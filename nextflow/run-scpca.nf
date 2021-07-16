@@ -10,7 +10,7 @@ params.outdir = "s3://nextflow-ccdl-results/scpca/alevin-fry-unfiltered-quant"
 
 // file paths
 params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/salmon_index/spliced_intron_txome_k31'
-params.t2g_2col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced.tx2gene.tsv'
+params.t2g_2col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene.tsv'
 params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene_3col.tsv'
 
 // run_ids are comma separated list to be parsed into a list of run ids,
