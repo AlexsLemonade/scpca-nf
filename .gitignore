@@ -2,4 +2,4 @@
 .nextflow*
 
 # ignore work directory
-work*
+work/

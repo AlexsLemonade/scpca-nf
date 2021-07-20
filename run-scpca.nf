@@ -92,7 +92,7 @@ process collate_fry{
       --input-dir ${run_dir} \
       --rad-dir ${run_dir} \
       -t ${task.cpus}
-    rm "${run_dir}"/map.rad
+    rm ${run_dir}/map.rad
     """
 }
 
@@ -112,11 +112,11 @@ process quant_fry{
      --input-dir ${run_dir} \
      --tg-map ${tx2gene_3col} \
      --output-dir ${run_dir} \
-     -r cr-like \
+     --resolution cr-like \
      -t ${task.cpus} \
      --use-mtx
-    rm "${run_dir}"/map.collated.rad
-    rm "${run_dir}"/*.bin
+    rm ${run_dir}/*.rad
+    rm ${run_dir}/*.bin
     """
 }
 
