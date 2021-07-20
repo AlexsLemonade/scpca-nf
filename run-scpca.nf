@@ -2,11 +2,9 @@
 nextflow.enable.dsl=2
 
 // run parameters
-params.resolution = 'cr-like' //default resolution is cr-like, can also use cr-like-em
 params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes' 
 params.run_metafile = 's3://ccdl-scpca-data/sample_info/scpca-library-metadata.tsv'
-// keeping outdir name consistent for now with previous benchmarking samples 
-params.outdir = "s3://nextflow-ccdl-results/scpca/alevin-fry-unfiltered-quant"
+params.outdir = "s3://nextflow-ccdl-results/scpca/processed"
 
 // file paths
 params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/salmon_index/spliced_intron_txome_k31'
@@ -38,9 +36,8 @@ process alevin{
   output:
     path run_dir
   script:
-    // label the run directory by id, index, alignment (salign), and resolution
-    // after we test cr-like vs. cr-like-em remove other tags and just keep sample ID
-    run_dir = "${id}-${index}-salign-${params.resolution}"
+    // label the run-dir
+    run_dir = "${id}"
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
                  '10Xv3': '--chromiumV3',
@@ -66,7 +63,6 @@ process alevin{
 //generate permit list from RAD input 
 process generate_permit{
   container 'quay.io/biocontainers/alevin-fry:0.4.0--h7d875b9_0'
-  publishDir "${params.outdir}"
   input:
     path run_dir
     path barcode_file
@@ -78,7 +74,7 @@ process generate_permit{
       -i ${run_dir} \
       --expected-ori fw \
       -o ${run_dir} \
-      -u ${barcode_file}
+      --unfiltered-pl ${barcode_file}
     """
 }
 
@@ -86,7 +82,6 @@ process generate_permit{
 process collate_fry{
   container 'quay.io/biocontainers/alevin-fry:0.4.0--h7d875b9_0'
   label 'cpus_8'
-  publishDir "${params.outdir}"
   input: 
     path run_dir
   output: 
@@ -97,6 +92,7 @@ process collate_fry{
       --input-dir ${run_dir} \
       --rad-dir ${run_dir} \
       -t ${task.cpus}
+    rm "${run_dir}"/map.rad
     """
 }
 
@@ -116,9 +112,11 @@ process quant_fry{
      --input-dir ${run_dir} \
      --tg-map ${tx2gene_3col} \
      --output-dir ${run_dir} \
-     -r ${params.resolution} \
+     -r cr-like \
      -t ${task.cpus} \
      --use-mtx
+    rm "${run_dir}"/map.collated.rad
+    rm "${run_dir}"/*.bin
     """
 }
 
