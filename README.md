@@ -8,4 +8,11 @@ To run this workflow use:
 nextflow run AlexsLemonade/scpca-nf 
 ```
 
-This workflow can also be run using AWS batch. For instructions on how to do so see the [alsf-scpca repo.](https://github.com/AlexsLemonade/alsf-scpca#readme)
+Although running workflows locally can be done, we recommend using AWS batch for this workflow. 
+The first step in running the workflow is ensuring that your AWS credentials are configured. 
+
+You can then run the same workflow with the `batch` profile, which has been configured in the `nextflow.config` file. 
+
+```
+nextflow run AlexsLemonade/scpca-nf -profile batch
+```
