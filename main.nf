@@ -2,153 +2,109 @@
 nextflow.enable.dsl=2
 
 // run parameters
-params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes' 
 params.run_metafile = 's3://ccdl-scpca-data/sample_info/scpca-library-metadata.tsv'
 params.outdir = "s3://nextflow-ccdl-results/scpca/processed"
 
-// file paths
+params.resolution = 'cr-like' //default resolution is cr-like, can also use full, cr-like-em, parsimony, and trivial
+params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes' 
 params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/salmon_index/spliced_intron_txome_k31'
 params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene_3col.tsv'
 
 // run_ids are comma separated list to be parsed into a list of run ids,
 // or "All" to process all samples in the metadata file
-params.run_ids = "SCPCR000001,SCPCR000002"
+params.run_ids = "SCPCR000001,SCPCS000101,SCPCR000050,SCPCR000084"
 
-// containers
-SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
-ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
+// include processes from modules
+include { alevin_rad; alevin_feature; index_feature } from './modules/salmon.nf'
+include { fry_quant_rna; fry_quant_feature } from './modules/alevin-fry.nf'
 
 // 10X barcode files
-barcodes = ['10Xv2': '737K-august-2016.txt',
-            '10Xv3': '3M-february-2018.txt',
-            '10Xv3.1': '3M-february-2018.txt']
+cell_barcodes = [
+  '10Xv2': '737K-august-2016.txt',
+  '10Xv3': '3M-february-2018.txt',
+  '10Xv3.1': '3M-february-2018.txt',
+  'CITEseq_10Xv2': '737K-august-2016.txt',
+  'CITEseq_10Xv3': '3M-february-2018.txt',
+  'CITEseq_10Xv3.1': '3M-february-2018.txt'
+  ]
 
 // supported single cell technologies
-tech_list = barcodes.keySet()
-
-// generates RAD file using alevin
-process alevin{
-  container SALMON_CONTAINER
-  label 'cpus_8'
-  tag "${id}"
-  publishDir "${params.outdir}"
-  input:
-    tuple val(id), val(tech), path(read1), path(read2)
-    path index
-  output:
-    path run_dir
-  script:
-    // label the run-dir
-    run_dir = "${id}"
-    // choose flag by technology
-    tech_flag = ['10Xv2': '--chromium',
-                 '10Xv3': '--chromiumV3',
-                 '10Xv3.1': '--chromiumV3']
-    // run alevin like normal with the --rad flag 
-    // creates output directory with RAD file needed for alevin-fry
-    """
-    mkdir -p ${run_dir}
-    salmon alevin \
-      -l ISR \
-      ${tech_flag[tech]} \
-      -1 ${read1} \
-      -2 ${read2} \
-      -i ${index} \
-      -o ${run_dir} \
-      -p ${task.cpus} \
-      --dumpFeatures \
-      --rad
-    """
-}
-
-//generate permit list from RAD input 
-process generate_permit{
-  container ALEVINFRY_CONTAINER
-  input:
-    path run_dir
-    path barcode_file
-  output:
-    path run_dir
-  script:
-    """
-    alevin-fry generate-permit-list \
-      -i ${run_dir} \
-      --expected-ori fw \
-      -o ${run_dir} \
-      --unfiltered-pl ${barcode_file}
-    """
-}
-
-// given permit list and barcode mapping, collate RAD file 
-process collate_fry{
-  container ALEVINFRY_CONTAINER
-  label 'cpus_8'
-  input: 
-    path run_dir
-  output: 
-    path run_dir
-  script:
-    """
-    alevin-fry collate \
-      --input-dir ${run_dir} \
-      --rad-dir ${run_dir} \
-      -t ${task.cpus}
-    rm ${run_dir}/map.rad
-    """
-}
-
-// then quantify collated RAD file
-process quant_fry{
-  container ALEVINFRY_CONTAINER
-  label 'cpus_8'
-  publishDir "${params.outdir}"
-  input: 
-    path run_dir
-    path tx2gene_3col
-  output: 
-    path run_dir
-  script:
-    """
-    alevin-fry quant \
-     --input-dir ${run_dir} \
-     --tg-map ${tx2gene_3col} \
-     --output-dir ${run_dir} \
-     --resolution cr-like \
-     -t ${task.cpus} \
-     --use-mtx
-    rm ${run_dir}/*.rad
-    rm ${run_dir}/*.bin
-    """
-}
-
-// insert process for generating unfiltered and filtered output in desired format 
-// insert process for generating QC report 
+tech_list = cell_barcodes.keySet()
+rna_techs = tech_list.findAll{it.startsWith('10Xv')}
+feature_techs = tech_list.findAll{it.startsWith('CITEseq')}
 
 workflow{
+  // select runs to use
   run_ids = params.run_ids?.tokenize(',') ?: []
   run_all = run_ids[0] == "All"
-  samples_ch = Channel.fromPath(params.run_metafile)
+  runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
+    // only technologies we know how to process
     .filter{it.technology in tech_list} 
     // use only the rows in the sample list
     .filter{run_all || (it.scpca_run_id in run_ids)}
-  // create tuple of [sample_id, technology, [Read1 files], [Read2 files]]
-  reads_ch = samples_ch
+  
+  
+  // **** Process RNA-seq data ****
+  // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files]]
+  // for rnaseq runs
+  rna_ch = runs_ch.filter{it.technology in rna_techs}
+  
+  rna_reads_ch = rna_ch
     .map{row -> tuple(row.scpca_run_id,
+                      row.scpca_sample_id,
                       row.technology,
                       file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
                       file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
                       )}
 
-  barcodes_ch = samples_ch
-    .map{row -> file("${params.barcode_dir}/${barcodes[row.technology]}")}
+  rna_cellbarcodes_ch = rna_ch
+    .map{file("${params.barcode_dir}/${cell_barcodes[it.technology]}")}
 
   // run Alevin
-  alevin(reads_ch, params.index_path)
+  alevin_rad(rna_reads_ch, params.index_path)
   // generate permit list from alignment 
-  generate_permit(alevin.out, barcodes_ch)
-  // collate RAD files 
-  collate_fry(generate_permit.out)
-  // create gene x cell matrix
-  quant_fry(collate_fry.out, params.t2g_3col_path)
+  fry_quant_rna(alevin_rad.out, rna_cellbarcodes_ch, params.t2g_3col_path)
+  // **** Done with RNA-seq data ****
+
+
+  // **** Process feature data ****
+  feature_ch = runs_ch.filter{it.technology in feature_techs} 
+  
+  //get and map the feature barcode files
+  feature_barcodes_ch = feature_ch
+    .map{row -> tuple(row.feature_barcode_file,
+                      file("s3://${row.feature_barcode_file}"))}
+    .unique()
+  index_feature(feature_barcodes_ch)
+
+  // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files], feature_geometry, feature_index]
+  // We start by including the feature_barcode file so we can join to the indices, but that will be removed
+  feature_reads_ch = feature_ch
+    .map{row -> tuple(row.feature_barcode_file,
+                      row.scpca_run_id,
+                      row.scpca_sample_id,
+                      row.technology,
+                      file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
+                      file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
+                      row.feature_barcode_geom
+                      )}
+    .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
+    .map{ it.subList(1, it.size())} // remove the first element
+  
+  feature_cellbarcode_ch = feature_ch
+    .map{file("${params.barcode_dir}/${cell_barcodes[it.technology]}")}
+
+  // run Alevin on feature reads
+  alevin_feature(feature_reads_ch)
+  // quantify feature reads 
+  fry_quant_feature(alevin_feature.out, feature_cellbarcode_ch)
+  // **** Done with feature data ****
+
+  // combine feature & RNA quants for feature reads
+  // just print for now
+  fry_quant_feature.out
+    .combine(fry_quant_rna.out, by: 1) // combine by the sample_id
+    .view()
+
 }
