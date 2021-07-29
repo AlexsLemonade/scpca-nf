@@ -7,8 +7,7 @@ SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
 process alevin_rad{
   container SALMON_CONTAINER
   label 'cpus_8'
-  tag "${id}"
-  publishDir "${params.outdir}"
+  tag "${run_id}-rna"
   input:
     tuple val(run_id), val(sample_id), val(tech), 
           path(read1), path(read2)
@@ -17,7 +16,7 @@ process alevin_rad{
     tuple val(run_id), val(sample_id), path(run_dir)
   script:
     // label the run-dir
-    run_dir = "${id}"
+    run_dir = "${run_id}-rna"
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
                  '10Xv3': '--chromiumV3',

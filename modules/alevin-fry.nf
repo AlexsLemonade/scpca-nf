@@ -20,7 +20,7 @@ process fry_quant_rna{
       -i ${run_dir} \
       --expected-ori fw \
       -o ${run_dir} \
-      -unfiltered-pl ${barcode_file}
+      --unfiltered-pl ${barcode_file}
 
     alevin-fry collate \
       --input-dir ${run_dir} \
@@ -30,7 +30,7 @@ process fry_quant_rna{
     alevin-fry quant \
       --input-dir ${run_dir} \
       --tg-map ${tx2gene_3col} \
-      -r ${params.resolution} \
+      --resolution ${params.resolution} \
       -o ${run_dir} \
       --use-mtx \
       -t ${task.cpus} \
@@ -63,7 +63,7 @@ process fry_quant_feature{
       -i ${run_dir} \
       --expected-ori fw \
       -o ${run_dir} \
-      -unfiltered-pl ${barcode_file}
+      --unfiltered-pl ${barcode_file}
 
     alevin-fry collate \
       --input-dir ${run_dir} \
@@ -73,7 +73,7 @@ process fry_quant_feature{
     alevin-fry quant \
       --input-dir ${run_dir} \
       --tg-map ${feature_index}/t2g.tsv \
-      -r ${params.resolution} \
+      --resolution ${params.resolution} \
       -o ${run_dir} \
       --use-mtx \
       -t ${task.cpus} \
