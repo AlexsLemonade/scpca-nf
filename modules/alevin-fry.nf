@@ -5,7 +5,7 @@ ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
 process fry_quant_rna{
   container ALEVINFRY_CONTAINER
   label 'cpus_8'
-  publishDir "${params.outdir}/features"
+  publishDir "${params.outdir}/rna"
 
   input:
     tuple val(run_id), val(sample_id), path(run_dir)

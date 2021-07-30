@@ -33,6 +33,65 @@ tech_list = cell_barcodes.keySet()
 rna_techs = tech_list.findAll{it.startsWith('10Xv')}
 feature_techs = tech_list.findAll{it.startsWith('CITEseq')}
 
+workflow map_quant_rna {
+  take: rna_channel
+  main:
+    // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files]]
+    // for rnaseq runs
+    rna_reads_ch = rna_channel
+      .map{row -> tuple(row.scpca_run_id,
+                        row.scpca_sample_id,
+                        row.technology,
+                        file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
+                        file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
+                        )}
+
+    rna_cellbarcodes_ch = rna_channel
+      .map{file("${params.barcode_dir}/${cell_barcodes[it.technology]}")}
+
+    // run Alevin
+    alevin_rad(rna_reads_ch, params.index_path)
+    // generate permit list from alignment 
+    fry_quant_rna(alevin_rad.out, rna_cellbarcodes_ch, params.t2g_3col_path)
+  
+  emit: fry_quant_rna.out
+}
+
+workflow map_quant_feature {
+  take: feature_channel
+  main:
+    //get and map the feature barcode files
+    feature_barcodes_ch = feature_channel
+      .map{row -> tuple(row.feature_barcode_file,
+                        file("s3://${row.feature_barcode_file}"))}
+      .unique()
+    index_feature(feature_barcodes_ch)
+
+    // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files], feature_geometry, feature_index]
+    // We start by including the feature_barcode file so we can join to the indices, but that will be removed
+    feature_reads_ch = feature_channel
+      .map{row -> tuple(row.feature_barcode_file,
+                        row.scpca_run_id,
+                        row.scpca_sample_id,
+                        row.technology,
+                        file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
+                        file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
+                        row.feature_barcode_geom
+                        )}
+      .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
+      .map{ it.subList(1, it.size())} // remove the first element
+    
+    feature_cellbarcode_ch = feature_channel
+      .map{file("${params.barcode_dir}/${cell_barcodes[it.technology]}")}
+
+    // run Alevin on feature reads
+    alevin_feature(feature_reads_ch)
+    // quantify feature reads 
+    fry_quant_feature(alevin_feature.out, feature_cellbarcode_ch)
+  
+  emit: fry_quant_feature.out
+}
+
 workflow{
   // select runs to use
   run_ids = params.run_ids?.tokenize(',') ?: []
@@ -46,65 +105,17 @@ workflow{
   
   
   // **** Process RNA-seq data ****
-  // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files]]
-  // for rnaseq runs
   rna_ch = runs_ch.filter{it.technology in rna_techs}
-  
-  rna_reads_ch = rna_ch
-    .map{row -> tuple(row.scpca_run_id,
-                      row.scpca_sample_id,
-                      row.technology,
-                      file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
-                      file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
-                      )}
-
-  rna_cellbarcodes_ch = rna_ch
-    .map{file("${params.barcode_dir}/${cell_barcodes[it.technology]}")}
-
-  // run Alevin
-  alevin_rad(rna_reads_ch, params.index_path)
-  // generate permit list from alignment 
-  fry_quant_rna(alevin_rad.out, rna_cellbarcodes_ch, params.t2g_3col_path)
-  // **** Done with RNA-seq data ****
-
+  map_quant_rna(rna_ch)
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
+  map_quant_feature(feature_ch)
   
-  //get and map the feature barcode files
-  feature_barcodes_ch = feature_ch
-    .map{row -> tuple(row.feature_barcode_file,
-                      file("s3://${row.feature_barcode_file}"))}
-    .unique()
-  index_feature(feature_barcodes_ch)
-
-  // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files], feature_geometry, feature_index]
-  // We start by including the feature_barcode file so we can join to the indices, but that will be removed
-  feature_reads_ch = feature_ch
-    .map{row -> tuple(row.feature_barcode_file,
-                      row.scpca_run_id,
-                      row.scpca_sample_id,
-                      row.technology,
-                      file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
-                      file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
-                      row.feature_barcode_geom
-                      )}
-    .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
-    .map{ it.subList(1, it.size())} // remove the first element
-  
-  feature_cellbarcode_ch = feature_ch
-    .map{file("${params.barcode_dir}/${cell_barcodes[it.technology]}")}
-
-  // run Alevin on feature reads
-  alevin_feature(feature_reads_ch)
-  // quantify feature reads 
-  fry_quant_feature(alevin_feature.out, feature_cellbarcode_ch)
-  // **** Done with feature data ****
-
   // combine feature & RNA quants for feature reads
   // just print for now
-  fry_quant_feature.out
-    .combine(fry_quant_rna.out, by: 1) // combine by the sample_id
+  map_quant_feature.out
+    .combine(map_quant_rna.out, by: 1) // combine by the sample_id
     .view()
 
 }
