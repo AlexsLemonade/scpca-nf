@@ -9,11 +9,11 @@ process alevin_rad{
   label 'cpus_8'
   tag "${run_id}-rna"
   input:
-    tuple val(run_id), val(sample_id), val(tech), 
+    tuple val(sample_id), val(run_id), val(tech), 
           path(read1), path(read2)
     path index
   output:
-    tuple val(run_id), val(sample_id), path(run_dir)
+    tuple val(sample_id), val(run_id), path(run_dir)
   script:
     // label the run-dir
     run_dir = "${run_id}-rna"
@@ -44,11 +44,11 @@ process alevin_feature{
   label 'cpus_8'
   tag "${run_id}-features"
   input:
-    tuple val(run_id), val(sample_id), val(tech), 
+    tuple val(sample_id), val(run_id), val(tech), 
           path(read1), path(read2), 
           val(feature_geom), path(feature_index)
   output:
-    tuple val(run_id), val(sample_id), 
+    tuple val(sample_id), val(run_id), 
           path(run_dir), path(feature_index)
   script:
     // label the run directory by id

@@ -39,8 +39,8 @@ workflow map_quant_rna {
     // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files]]
     // for rnaseq runs
     rna_reads_ch = rna_channel
-      .map{row -> tuple(row.scpca_run_id,
-                        row.scpca_sample_id,
+      .map{row -> tuple(row.scpca_sample_id,
+                        row.scpca_run_id,
                         row.technology,
                         file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
                         file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
@@ -71,8 +71,8 @@ workflow map_quant_feature {
     // We start by including the feature_barcode file so we can join to the indices, but that will be removed
     feature_reads_ch = feature_channel
       .map{row -> tuple(row.feature_barcode_file,
-                        row.scpca_run_id,
                         row.scpca_sample_id,
+                        row.scpca_run_id,
                         row.technology,
                         file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
                         file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
@@ -100,9 +100,8 @@ workflow{
     .splitCsv(header: true, sep: '\t')
     // only technologies we know how to process
     .filter{it.technology in tech_list} 
-    // use only the rows in the sample list
+    // use only the rows in the run_id list
     .filter{run_all || (it.scpca_run_id in run_ids)}
-  
   
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
@@ -115,7 +114,7 @@ workflow{
   // combine feature & RNA quants for feature reads
   // just print for now
   map_quant_feature.out
-    .combine(map_quant_rna.out, by: 1) // combine by the sample_id
+    .combine(map_quant_rna.out, by: 0) // combine by the sample_id
     .view()
 
 }

@@ -8,11 +8,11 @@ process fry_quant_rna{
   publishDir "${params.outdir}/rna"
 
   input:
-    tuple val(run_id), val(sample_id), path(run_dir)
+    tuple val(sample_id), val(run_id), path(run_dir)
     path barcode_file
     path tx2gene_3col
   output:
-    tuple val(run_id), val(sample_id), path(run_dir)
+    tuple val(sample_id), val(run_id), path(run_dir)
   
   script: 
     """
@@ -50,11 +50,11 @@ process fry_quant_feature{
   publishDir "${params.outdir}/features"
 
   input:
-    tuple val(run_id), val(sample_id),
+    tuple val(sample_id), val(run_id),
           path(run_dir), path(feature_index)
     path barcode_file
   output:
-    tuple val(run_id), val(sample_id),
+    tuple val(sample_id), val(run_id),
           path(run_dir)
   
   script: 
