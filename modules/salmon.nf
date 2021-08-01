@@ -6,7 +6,7 @@ SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
 // generates RAD file using alevin
 process alevin_rad{
   container SALMON_CONTAINER
-  label 'cpus_8'
+  label 'cpus_12'
   tag "${run_id}-rna"
   input:
     tuple val(sample_id), val(run_id), val(tech), 
