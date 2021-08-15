@@ -21,13 +21,16 @@ cell_barcodes = [
   '10Xv3.1': '3M-february-2018.txt',
   'CITEseq_10Xv2': '737K-august-2016.txt',
   'CITEseq_10Xv3': '3M-february-2018.txt',
-  'CITEseq_10Xv3.1': '3M-february-2018.txt'
+  'CITEseq_10Xv3.1': '3M-february-2018.txt',
+  'cellhash_10Xv2': '737K-august-2016.txt',
+  'cellhash_10Xv3': '3M-february-2018.txt',
+  'cellhash_10Xv3.1': '3M-february-2018.txt'
   ]
 
 // supported single cell technologies
 tech_list = cell_barcodes.keySet()
 rna_techs = tech_list.findAll{it.startsWith('10Xv')}
-feature_techs = tech_list.findAll{it.startsWith('CITEseq')}
+feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
