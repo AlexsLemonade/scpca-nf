@@ -36,10 +36,12 @@ process alevin_feature{
   script:
     // label the run directory by id
     run_dir = "${run_id}-features"
-    // Define umi geometries
-    umi_geoms = ['CITEseq_10Xv2': '1[17-26]',
-                 'CITEseq_10Xv3': '1[17-28]',
-                 'CITEseq_10Xv3.1': '1[17-28]']
+    // Define umi geometry by 10x version
+    umi_geom_map = ['10Xv2': '1[17-26]',
+                    '10Xv3': '1[17-28]',
+                    '10Xv3.1': '1[17-28]']
+    tech_version = tech.split('_').last()
+    umi_geom = umi_geom_map[tech_version]
     """
     mkdir -p ${run_dir}
     salmon alevin \
@@ -49,7 +51,7 @@ process alevin_feature{
       -i ${feature_index} \
       --read-geometry ${feature_geom} \
       --bc-geometry 1[1-16] \
-      --umi-geometry ${umi_geoms[tech]} \
+      --umi-geometry ${umi_geom} \
       --rad \
       -o ${run_dir} \
       -p ${task.cpus} 
