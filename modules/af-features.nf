@@ -1,11 +1,9 @@
 
-// containers
-SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
-ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
+
 
 //index a feature barcode file
 process index_feature{
-  container SALMON_CONTAINER
+  container params.SALMON_CONTAINER
   
   input:
     tuple val(id), path(feature_file)
@@ -25,7 +23,7 @@ process index_feature{
 
 // generates RAD file for alevin feature matrix using alevin
 process alevin_feature{
-  container SALMON_CONTAINER
+  container params.SALMON_CONTAINER
   label 'cpus_8'
   tag "${run_id}-features"
   input:
@@ -62,7 +60,7 @@ process alevin_feature{
 
 // quantify features from rad input
 process fry_quant_feature{
-  container ALEVINFRY_CONTAINER
+  container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   publishDir "${params.outdir}/features"
 
