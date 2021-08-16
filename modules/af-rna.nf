@@ -4,16 +4,16 @@
 process alevin_rad{
   container params.SALMON_CONTAINER
   label 'cpus_12'
-  tag "${run_id}-rna"
+  tag "${meta.run_id}-rna"
   input:
-    tuple val(sample_id), val(run_id), val(tech), 
+    tuple val(meta), 
           path(read1), path(read2)
     path index
   output:
-    tuple val(sample_id), val(run_id), path(run_dir)
+    tuple val(meta), path(run_dir)
   script:
     // label the run-dir
-    run_dir = "${run_id}-rna"
+    run_dir = "${meta.run_id}-rna"
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
                  '10Xv3': '--chromiumV3',
@@ -24,7 +24,7 @@ process alevin_rad{
     mkdir -p ${run_dir}
     salmon alevin \
       -l ISR \
-      ${tech_flag[tech]} \
+      ${tech_flag[meta.technology]} \
       -1 ${read1} \
       -2 ${read2} \
       -i ${index} \
@@ -39,14 +39,14 @@ process alevin_rad{
 process fry_quant_rna{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
-  publishDir "${params.outdir}/rna"
+  publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
 
   input:
-    tuple val(sample_id), val(run_id), path(run_dir)
+    tuple val(meta), path(run_dir)
     path barcode_file
     path tx2gene_3col
   output:
-    tuple val(sample_id), val(run_id), path(run_dir)
+    tuple val(meta), path(run_dir)
   
   script: 
     """
@@ -82,12 +82,17 @@ workflow map_quant_rna {
     // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files]]
     // for rnaseq runs
     rna_reads_ch = rna_channel
-      .map{row -> tuple(row.scpca_sample_id,
-                        row.scpca_run_id,
-                        row.technology,
-                        file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
-                        file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
-                        )}
+      .map{tuple([ // metadata map
+                   run_id: it.scpca_run_id,
+                   library_id: it.scpca_library_id,
+                   sample_id: it.scpca_sample_id,
+                   technology: it.technology,
+                   seq_unit: it.seq_unit,
+                   feature_barcode_geom: it.feature_barcode_geom,
+                 ],
+                 file("s3://${it.s3_prefix}/*_R1_*.fastq.gz"),
+                 file("s3://${it.s3_prefix}/*_R2_*.fastq.gz")
+                 )}
 
     rna_cellbarcodes_ch = rna_channel
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}

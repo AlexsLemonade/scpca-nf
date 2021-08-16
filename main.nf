@@ -62,8 +62,13 @@ workflow{
   
   // combine feature & RNA quants for feature reads
   // just print for now
-  map_quant_feature.out
-    .combine(map_quant_rna.out, by: 0) // combine by the sample_id
-    .view()
+  // combine_meta = {ch1, ch2, meta_value -> 
+  //   ch1_indexed = ch1.map{[it[0][meta_value]] + it }
+  //   ch2_indexed = ch2.map{[it[0][meta_value]] + it }
+  //   ch1_indexed.combine(ch2_indexed, by: 0)
+  //     .map{it.subList(1, it.size())} // remove index
+  // }
+  // combine_meta(map_quant_feature.out, map_quant_rna.out, "library_id")
+  //   .view()
 
 }

@@ -27,20 +27,20 @@ process alevin_feature{
   label 'cpus_8'
   tag "${run_id}-features"
   input:
-    tuple val(sample_id), val(run_id), val(tech), 
+    tuple val(meta), 
           path(read1), path(read2), 
-          val(feature_geom), path(feature_index)
+          path(feature_index)
   output:
-    tuple val(sample_id), val(run_id), 
+    tuple val(meta),
           path(run_dir), path(feature_index)
   script:
     // label the run directory by id
-    run_dir = "${run_id}-features"
+    run_dir = "${meta.run_id}-features"
     // Define umi geometry by 10x version
     umi_geom_map = ['10Xv2': '1[17-26]',
                     '10Xv3': '1[17-28]',
                     '10Xv3.1': '1[17-28]']
-    tech_version = tech.split('_').last()
+    tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
     """
     mkdir -p ${run_dir}
@@ -49,7 +49,7 @@ process alevin_feature{
       -1 ${read1} \
       -2 ${read2} \
       -i ${feature_index} \
-      --read-geometry ${feature_geom} \
+      --read-geometry ${meta.feature_geom} \
       --bc-geometry 1[1-16] \
       --umi-geometry ${umi_geom} \
       --rad \
@@ -62,14 +62,14 @@ process alevin_feature{
 process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
-  publishDir "${params.outdir}/features"
+  publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
 
   input:
-    tuple val(sample_id), val(run_id),
+    tuple val(meta),
           path(run_dir), path(feature_index)
     path barcode_file
   output:
-    tuple val(sample_id), val(run_id),
+    tuple val(meta),
           path(run_dir)
   
   script: 
@@ -101,28 +101,32 @@ process fry_quant_feature{
 
 workflow map_quant_feature{
   take: feature_channel
-  // a channel with a groovy map for each feature barcode library to process
+  // a channel with a groovy map of the row data for each feature barcode library to process
   main:
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
-      .map{row -> tuple(row.feature_barcode_file,
-                        file("s3://${row.feature_barcode_file}"))}
+      .map{tuple(it.feature_barcode_file,
+                 file("s3://${it.feature_barcode_file}"))}
       .unique()
     index_feature(feature_barcodes_ch)
 
-    // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files], feature_geometry, feature_index]
+    // create tuple of [metadata, [Read1 files], [Read2 files]]
     // We start by including the feature_barcode file so we can join to the indices, but that will be removed
     feature_reads_ch = feature_channel
-      .map{row -> tuple(row.feature_barcode_file,
-                        row.scpca_sample_id,
-                        row.scpca_run_id,
-                        row.technology,
-                        file("s3://${row.s3_prefix}/*_R1_*.fastq.gz"),
-                        file("s3://${row.s3_prefix}/*_R2_*.fastq.gz"),
-                        row.feature_barcode_geom
-                        )}
+      .map{tuple(it.feature_barcode_file,
+                 [ // metadata map
+                   run_id: it.scpca_run_id,
+                   library_id: it.scpca_library_id,
+                   sample_id: it.scpca_sample_id,
+                   technology: it.technology,
+                   seq_unit: it.seq_unit,
+                   feature_barcode_geom: it.feature_barcode_geom,
+                 ],
+                 file("s3://${it.s3_prefix}/*_R1_*.fastq.gz"),
+                 file("s3://${it.s3_prefix}/*_R2_*.fastq.gz")
+                 )}
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
-      .map{ it.subList(1, it.size())} // remove the first element
+      .map{ it.subList(1, it.size())} // remove the first element (feature_barcode_file)
     
     feature_cellbarcode_ch = feature_channel
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
@@ -133,5 +137,5 @@ workflow map_quant_feature{
     fry_quant_feature(alevin_feature.out, feature_cellbarcode_ch)
   
   emit: fry_quant_feature.out
-  // a tuple of sample_id, run_id, and the alevin-fry output directory
+  // a tuple of metadata map and the alevin-fry output directory
 }
