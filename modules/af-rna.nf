@@ -1,12 +1,8 @@
 
 
-// containers
-SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
-ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
-
 // generates RAD file using alevin
 process alevin_rad{
-  container SALMON_CONTAINER
+  container params.SALMON_CONTAINER
   label 'cpus_12'
   tag "${run_id}-rna"
   input:
@@ -41,7 +37,7 @@ process alevin_rad{
 
 // quantify rna from RAD input
 process fry_quant_rna{
-  container ALEVINFRY_CONTAINER
+  container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   publishDir "${params.outdir}/rna"
 

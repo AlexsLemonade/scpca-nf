@@ -10,6 +10,11 @@ params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes'
 params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/salmon_index/spliced_intron_txome_k31'
 params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene_3col.tsv'
 
+// Docker containerimages in use
+params.SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
+params.ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
+
+
 // run_ids are comma separated list to be parsed into a list of run ids,
 // or "All" to process all samples in the metadata file
 params.run_ids = "SCPCR000001,SCPCS000101,SCPCR000050,SCPCR000084"
