@@ -47,10 +47,21 @@ workflow{
   run_all = run_ids[0] == "All"
   runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
+    // convert row data to a metadata map, keeping only columns we will need (& some renaming)
+    .map{[
+      run_id: it.scpca_run_id,
+      library_id: it.scpca_library_id,
+      sample_id: it.scpca_sample_id,
+      technology: it.technology,
+      seq_unit: it.seq_unit,
+      feature_barcode_file: it.feature_barcode_file,
+      feature_barcode_geom: it.feature_barcode_geom,
+      s3_prefix: it.s3_prefix,
+    ]}
     // only technologies we know how to process
     .filter{it.technology in tech_list} 
     // use only the rows in the run_id list
-    .filter{run_all || (it.scpca_run_id in run_ids)}
+    .filter{run_all || (it.run_id in run_ids)}
   
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}

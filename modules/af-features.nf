@@ -101,40 +101,33 @@ process fry_quant_feature{
 
 workflow map_quant_feature{
   take: feature_channel
-  // a channel with a groovy map of the row data for each feature barcode library to process
+  // a channel with a groovy map of metadata for each feature barcode library to process
   main:
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
-      .map{tuple(it.feature_barcode_file,
-                 file("s3://${it.feature_barcode_file}"))}
+      .map{meta -> tuple(meta.feature_barcode_file,
+                         file("s3://${meta.feature_barcode_file}"))}
       .unique()
     index_feature(feature_barcodes_ch)
 
     // create tuple of [metadata, [Read1 files], [Read2 files]]
     // We start by including the feature_barcode file so we can join to the indices, but that will be removed
     feature_reads_ch = feature_channel
-      .map{tuple(it.feature_barcode_file,
-                 [ // metadata map
-                   run_id: it.scpca_run_id,
-                   library_id: it.scpca_library_id,
-                   sample_id: it.scpca_sample_id,
-                   technology: it.technology,
-                   seq_unit: it.seq_unit,
-                   feature_barcode_geom: it.feature_barcode_geom,
-                 ],
-                 file("s3://${it.s3_prefix}/*_R1_*.fastq.gz"),
-                 file("s3://${it.s3_prefix}/*_R2_*.fastq.gz")
-                 )}
+      .map{meta -> tuple(meta.feature_barcode_file,
+                         meta,
+                         file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
+                         file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
+                        )}
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
       .map{ it.subList(1, it.size())} // remove the first element (feature_barcode_file)
     
-    feature_cellbarcode_ch = feature_channel
+    cellbarcode_ch = feature_channel
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
 
     // run Alevin on feature reads
     alevin_feature(feature_reads_ch)
     // quantify feature reads 
-    fry_quant_feature(alevin_feature.out, feature_cellbarcode_ch)
+    fry_quant_feature(alevin_feature.out, cellbarcode_ch)
   
   emit: fry_quant_feature.out
   // a tuple of metadata map and the alevin-fry output directory

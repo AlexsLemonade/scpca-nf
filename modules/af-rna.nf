@@ -77,30 +77,23 @@ process fry_quant_rna{
 
 workflow map_quant_rna {
   take: rna_channel
-  // a channel with a groovy map for each rna library to process
+  // a channel with a map of metadata for each rna library to process
   main:
-    // create tuple of [run_id, sample_id, technology, [Read1 files], [Read2 files]]
+    // create tuple of (metadata map, [Read1 files], [Read2 files])
     // for rnaseq runs
     rna_reads_ch = rna_channel
-      .map{tuple([ // metadata map
-                   run_id: it.scpca_run_id,
-                   library_id: it.scpca_library_id,
-                   sample_id: it.scpca_sample_id,
-                   technology: it.technology,
-                   seq_unit: it.seq_unit,
-                   feature_barcode_geom: it.feature_barcode_geom,
-                 ],
-                 file("s3://${it.s3_prefix}/*_R1_*.fastq.gz"),
-                 file("s3://${it.s3_prefix}/*_R2_*.fastq.gz")
-                 )}
+      .map{meta -> tuple(meta,
+                         file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
+                         file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
+                        )}
 
-    rna_cellbarcodes_ch = rna_channel
+    cellbarcodes_ch = rna_channel
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
 
     // run Alevin for mapping
     alevin_rad(rna_reads_ch, params.index_path)
     // quantify with alevin-fry 
-    fry_quant_rna(alevin_rad.out, rna_cellbarcodes_ch, params.t2g_3col_path)
+    fry_quant_rna(alevin_rad.out, cellbarcodes_ch, params.t2g_3col_path)
   
   emit: fry_quant_rna.out
   // a tuple of sample_id, run_id, and the alevin-fry output directory
