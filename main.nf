@@ -40,6 +40,7 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
+include { generate_rds } from './modules/generate-rds.nf'
 
 workflow{
   // select runs to use
@@ -79,4 +80,6 @@ workflow{
   // just print for now
   feature_rna_quant_ch.view()
 
+  // **** Process convert RNA-seq alevin output to RDS files ****
+  generate_rds(map_quant_rna.out)
 }
