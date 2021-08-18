@@ -96,5 +96,5 @@ workflow map_quant_rna {
     fry_quant_rna(alevin_rad.out, cellbarcodes_ch, params.t2g_3col_path)
   
   emit: fry_quant_rna.out
-  // a tuple of sample_id, run_id, and the alevin-fry output directory
+  // a tuple of meta and the alevin-fry output directory
 }
