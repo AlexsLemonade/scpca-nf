@@ -41,7 +41,7 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
 
-workflow{
+workflow {
   // select runs to use
   run_ids = params.run_ids?.tokenize(',') ?: []
   run_all = run_ids[0] == "All"
@@ -78,5 +78,11 @@ workflow{
     .map{it.subList(1, it.size())} // remove library_id index
   // just print for now
   feature_rna_quant_ch.view()
+
+  // get RNA-only libraries
+  feature_libraries = feature_rna_quant_ch.collect{it[0]["library_id"]}
+  rna_quant_ch = map_quant_rna.out
+    .filter{!it[0]["library_id"] in feature_libraries}
+  rna_quant_ch.view()
 
 }

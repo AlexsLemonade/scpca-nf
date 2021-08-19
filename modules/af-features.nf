@@ -1,6 +1,4 @@
 
-
-
 //index a feature barcode file
 process index_feature{
   container params.SALMON_CONTAINER
@@ -25,7 +23,7 @@ process index_feature{
 process alevin_feature{
   container params.SALMON_CONTAINER
   label 'cpus_8'
-  tag "${run_id}-features"
+  tag "${meta.run_id}-features"
   input:
     tuple val(meta), 
           path(read1), path(read2), 
