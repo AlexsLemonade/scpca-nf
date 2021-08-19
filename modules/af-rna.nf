@@ -39,6 +39,7 @@ process alevin_rad{
 process fry_quant_rna{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
+  tag "${meta.run_id}-rna"
   publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
 
   input:
