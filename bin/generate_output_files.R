@@ -1,5 +1,3 @@
-#!/usr/bin/Rscript
-
 # This script takes the output folder from alevin-fry as input and 
 # returns both the filtered and unfiltered counts matrices as a SingleCellExperiment stored in a .rds file 
 
