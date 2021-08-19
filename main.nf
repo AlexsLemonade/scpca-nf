@@ -67,6 +67,7 @@ workflow{
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
   map_quant_rna(rna_ch)
+  generate_rds(map_quant_rna.out)
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
@@ -79,7 +80,4 @@ workflow{
     .map{it.subList(1, it.size())} // remove library_id index
   // just print for now
   feature_rna_quant_ch.view()
-
-  // **** Process convert RNA-seq alevin output to RDS files ****
-  generate_rds(map_quant_rna.out)
 }
