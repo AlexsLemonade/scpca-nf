@@ -39,7 +39,7 @@ process alevin_feature{
                     '10Xv3': '1[17-28]',
                     '10Xv3.1': '1[17-28]']
     tech_version = meta.technology.split('_').last()
-    umi_geom = umi_geom_map[tech_version]
+    umi_geom = umi_geom_map[meta.tech_version]
     """
     mkdir -p ${run_dir}
     salmon alevin \
