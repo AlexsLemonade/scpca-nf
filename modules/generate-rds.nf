@@ -1,7 +1,7 @@
 
 // generate unfiltered and filtered RDS file using scpcaTools
 process generate_rds{
-    container 'ghcr.io/alexslemonade/scpca-r'
+    container params.SCPCA_R_CONTAINTER
     memory '4 GB'
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
@@ -9,8 +9,8 @@ process generate_rds{
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-        filtered_rds = "${meta.library_id}_filtered.rds"
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds.gz"
+        filtered_rds = "${meta.library_id}_filtered.rds.gz"
         """
         generate_unfiltered_rds.R \
           --seq_unit ${meta.seq_unit} \

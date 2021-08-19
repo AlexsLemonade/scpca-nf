@@ -17,7 +17,7 @@ option_list <- list(
   make_option(
     opt_str = c("-f", "--filtered_file"),
     type = "character",
-    help = "path to output filtered rds file. Must end in .rds"
+    help = "path to output filtered rds file. Must end in .rds.gz"
   )
 )
 
@@ -29,8 +29,8 @@ if(!file.exists(opt$unfiltered_file)){
 }
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$filtered_file, ".rds"))){
-  stop("filtered file name must end in .rds")
+if(!(stringr::str_ends(opt$filtered_file, ".rds.gz"))){
+  stop("filtered file name must end in .rds.gz")
 }
 
 # read in unfiltered rds file
@@ -40,5 +40,5 @@ unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 
 # write filtered sce to output
-readr::write_rds(filtered_sce, opt$filtered_file)
+readr::write_rds(filtered_sce, opt$filtered_file, compress = "gz")
 
