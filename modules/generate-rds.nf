@@ -17,7 +17,7 @@ process generate_rds{
           --alevin_dir ${alevin_dir} \
           --unfiltered_file ${unfiltered_rds}
 
-        generate_filtered_rds.R \
+        filter_sce_rds.R \
           --unfiltered_file ${unfiltered_rds} \
           --filtered_file ${filtered_rds}
         """

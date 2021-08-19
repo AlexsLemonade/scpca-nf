@@ -50,5 +50,5 @@ unfiltered_sce <- import_quant_data(quant_dir = opt$alevin_dir,
                                     usa_mode = TRUE)
 
 # write to rds
-readr::write_rds(unfiltered_sce, opt$unfiltered_file)
+readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
 
