@@ -13,6 +13,7 @@ params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-1
 // Docker containerimages in use
 params.SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
 params.ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
+params.SCPCA_R_CONTAINTER = 'ghcr.io/alexslemonade/scpca-r'
 
 
 // run_ids are comma separated list to be parsed into a list of run ids,
@@ -40,6 +41,7 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
+include { generate_rds } from './modules/generate-rds.nf'
 
 workflow{
   // select runs to use
@@ -66,6 +68,7 @@ workflow{
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
   map_quant_rna(rna_ch)
+  generate_rds(map_quant_rna.out)
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
@@ -78,5 +81,4 @@ workflow{
     .map{it.subList(1, it.size())} // remove library_id index
   // just print for now
   feature_rna_quant_ch.view()
-
 }
