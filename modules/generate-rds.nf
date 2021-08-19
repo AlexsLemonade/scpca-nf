@@ -9,8 +9,8 @@ process generate_rds{
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds.gz"
-        filtered_rds = "${meta.library_id}_filtered.rds.gz"
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        filtered_rds = "${meta.library_id}_filtered.rds"
         """
         generate_unfiltered_rds.R \
           --seq_unit ${meta.seq_unit} \

@@ -17,7 +17,7 @@ option_list <- list(
   make_option(
     opt_str = c("-f", "--filtered_file"),
     type = "character",
-    help = "path to output filtered rds file. Must end in .rds.gz"
+    help = "path to output filtered rds file. Must end in .rds"
   )
 )
 
@@ -29,8 +29,8 @@ if(!file.exists(opt$unfiltered_file)){
 }
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$filtered_file, ".rds.gz"))){
-  stop("filtered file name must end in .rds.gz")
+if(!(stringr::str_ends(opt$filtered_file, ".rds"))){
+  stop("filtered file name must end in .rds")
 }
 
 # read in unfiltered rds file

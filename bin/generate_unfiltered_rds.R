@@ -23,7 +23,7 @@ option_list <- list(
   make_option(
     opt_str = c("-u", "--unfiltered_file"),
     type = "character",
-    help = "path to output unfiltered rds file. Must end in .rds.gz"
+    help = "path to output unfiltered rds file. Must end in .rds"
   )
 )
 
@@ -35,8 +35,8 @@ if(!(opt$seq_unit %in% c("cell", "nucleus"))){
 }
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$unfiltered_file, ".rds.gz"))){
-  stop("unfiltered file name must end in .rds.gz")
+if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
+  stop("unfiltered file name must end in .rds")
 }
 
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
