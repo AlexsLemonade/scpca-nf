@@ -47,7 +47,7 @@ process alevin_feature{
       -1 ${read1} \
       -2 ${read2} \
       -i ${feature_index} \
-      --read-geometry ${meta.feature_geom} \
+      --read-geometry ${meta.feature_barcode_geom} \
       --bc-geometry 1[1-16] \
       --umi-geometry ${umi_geom} \
       --rad \
@@ -60,8 +60,8 @@ process alevin_feature{
 process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
+  tag "${meta.run_id}-features"
   publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
-
   input:
     tuple val(meta),
           path(run_dir), path(feature_index)
