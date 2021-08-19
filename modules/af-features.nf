@@ -41,7 +41,7 @@ process alevin_feature{
                     '10Xv3': '1[17-28]',
                     '10Xv3.1': '1[17-28]']
     tech_version = meta.technology.split('_').last()
-    umi_geom = umi_geom_map[meta.tech_version]
+    umi_geom = umi_geom_map[tech_version]
     """
     mkdir -p ${run_dir}
     salmon alevin \
@@ -49,7 +49,7 @@ process alevin_feature{
       -1 ${read1} \
       -2 ${read2} \
       -i ${feature_index} \
-      --read-geometry ${meta.feature_geom} \
+      --read-geometry ${meta.feature_barcode_geom} \
       --bc-geometry 1[1-16] \
       --umi-geometry ${umi_geom} \
       --rad \
