@@ -13,6 +13,7 @@ params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-1
 // Docker containerimages in use
 params.SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
 params.ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
+params.SCPCA_R_CONTAINTER = 'ghcr.io/alexslemonade/scpca-r'
 
 
 // run_ids are comma separated list to be parsed into a list of run ids,
