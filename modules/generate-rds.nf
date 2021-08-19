@@ -3,7 +3,7 @@
 process generate_rds{
     container 'ghcr.io/alexslemonade/scpca-r'
     label 'cpus_8'
-    publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
+    publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(alevin_dir)
     output:
@@ -13,9 +13,9 @@ process generate_rds{
         filtered_rds = "${meta.library_id}_filtered.rds"
         """
         generate_output_files.sh \
-          -s ${meta.seq_unit} \
-          -a ${alevin_dir} \
-          -u ${unfiltered_rds} \
-          -f ${filtered_rds}
+          --seq_unit ${meta.seq_unit} \
+          --alevin_dir ${alevin_dir} \
+          --unfiltered_file ${unfiltered_rds} \
+          --filtered_file ${filtered_rds}
         """
 }
