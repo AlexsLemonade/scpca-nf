@@ -8,13 +8,13 @@ process generate_rds{
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     script:
-    unfiltered_rds = "${params.outdir}/${meta.sample_id}/${meta.library_id}/unfiltered.rds"
-    filtered_rds = "${params.outdir}/${meta.sample_id}/${meta.library_id}/filtered.rds"
-    """
-    Rscript --vanilla scripts/generate_output_files.R \
-      -s ${meta.seq_unit} \
-      -a ${alevin_dir} \
-      -u ${unfiltered_rds} \
-      -f ${filtered_rds}
-    """
+        unfiltered_rds = "${params.outdir}/${meta.sample_id}/${meta.library_id}/unfiltered.rds"
+        filtered_rds = "${params.outdir}/${meta.sample_id}/${meta.library_id}/filtered.rds"
+        """
+        generate_output_files.R \
+          -s ${meta.seq_unit} \
+          -a ${alevin_dir} \
+          -u ${unfiltered_rds} \
+          -f ${filtered_rds}
+        """
 }
