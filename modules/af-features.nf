@@ -25,7 +25,7 @@ process index_feature{
 process alevin_feature{
   container params.SALMON_CONTAINER
   label 'cpus_8'
-  tag "${run_id}-features"
+  tag "${meta.run_id}-features"
   input:
     tuple val(meta), 
           path(read1), path(read2), 
@@ -62,8 +62,8 @@ process alevin_feature{
 process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
+  tag "${meta.run_id}-features"
   publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
-
   input:
     tuple val(meta),
           path(run_dir), path(feature_index)
