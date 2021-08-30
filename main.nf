@@ -65,9 +65,9 @@ workflow {
   
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.filter{it.technology in feature_techs}
-    .collect{it.library_id}.getVal()
-  rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs)}
-    .collect{it.library_id}.getVal()
+    .collect{it.library_id}
+  rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs.getVal())}
+    .collect{it.library_id}
 
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
@@ -75,7 +75,7 @@ workflow {
   
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
-    .filter{it[0]["library_id"] in rna_only_libs}
+    .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   rna_quant_ch.view()
 
   // **** Process feature data ****
