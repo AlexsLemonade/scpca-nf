@@ -6,7 +6,10 @@ params.ref_dir = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104'
 params.gtf = 'annotation/Homo_sapiens.GRCh38.104.gtf.gz'
 params.fasta = 'fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
 params.assembly = 'Homo_sapiens.GRCh38.104'
-params.spliced_intron_txome = 'fasta/Homo_sapiens.GRCh38.104.spliced_intron.txome.fa.gz'
+
+// build paths
+gtf = "${params.ref_dir}/${params.gtf}"
+fasta = "${params.ref_dir}/${params.fasta}"
 
 
 // generate fastq files with spliced cDNA + intronic reads 
@@ -54,6 +57,6 @@ process salmon_index{
 
 
 workflow {
-  generate_fastq(params.gtf, params.fasta)
+  generate_fastq(gtf, fasta)
   salmon_index(generate_fastq.out)
 }
