@@ -2,11 +2,11 @@
 nextflow.enable.dsl=2
 
 // basic parameters
-params.ref_dir = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103'
+params.ref_dir = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104'
 params.gtf = 'annotation/Homo_sapiens.GRCh38.104.gtf.gz'
-params.fasta = 
+params.fasta = 'fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
 params.assembly = 'Homo_sapiens.GRCh38.104'
-params.spliced_intron_txome = 'fasta/Homo_sapiens.GRCh38.103.spliced_intron.txome.fa.gz'
+params.spliced_intron_txome = 'fasta/Homo_sapiens.GRCh38.104.spliced_intron.txome.fa.gz'
 
 
 // generate fastq files with spliced cDNA + intronic reads 
@@ -28,16 +28,6 @@ process generate_fastq{
     
     gzip annotation/*.gtf
     """
-}
-
-
-// remove .gz if it exists
-def get_base(file){
-  if (file.extension == "gz"){
-    return file.baseName
-  }else{
-    return file.fileName
-  }
 }
 
 
