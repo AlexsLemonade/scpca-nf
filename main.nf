@@ -43,7 +43,7 @@ include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: ce
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
 include { generate_rds } from './modules/generate-rds.nf'
 
-workflow{
+workflow {
   // select runs to use
   run_ids = params.run_ids?.tokenize(',') ?: []
   run_all = run_ids[0] == "All"
@@ -65,10 +65,21 @@ workflow{
     // use only the rows in the run_id list
     .filter{run_all || (it.run_id in run_ids)}
   
+  // generate lists of library ids for feature libraries & RNA-only
+  feature_libs = runs_ch.filter{it.technology in feature_techs}
+    .collect{it.library_id}
+  rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs.getVal())}
+    .collect{it.library_id}
+
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
   map_quant_rna(rna_ch)
   generate_rds(map_quant_rna.out)
+  
+  // get RNA-only libraries
+  rna_quant_ch = map_quant_rna.out
+    .filter{it[0]["library_id"] in rna_only_libs.getVal()}
+  rna_quant_ch.view()
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
