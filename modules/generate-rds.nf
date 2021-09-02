@@ -1,5 +1,7 @@
 
 // generate unfiltered and filtered RDS files using scpcaTools
+
+// RNA only libraries
 process make_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINTER
     memory '4 GB'
@@ -18,6 +20,7 @@ process make_unfiltered_sce{
         """
 }
 
+// channels with RNA and feature data
 process make_merged_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINTER
     memory '4 GB'

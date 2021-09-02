@@ -36,7 +36,7 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
-include { generate_rds } from './modules/generate-rds.nf'
+include { generate_rds, generate_merged_rds } from './modules/generate-rds.nf'
 
 workflow {
   // select runs to use
@@ -86,6 +86,10 @@ workflow {
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
-  // just print for now
-  feature_rna_quant_ch.view()
+  // make rds for merged RNA and feature quants
+  generate_merged_rds(feature_rna_quant_ch)
+
+  // Make channel for all library rds files
+  library_rds_ch = generate_rds.out.mix(generate_merged_rds.out)
+  library_rds_ch.view()
 }
