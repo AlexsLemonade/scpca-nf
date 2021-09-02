@@ -27,7 +27,7 @@ option_list <- list(
     help = "directory with alevin output files for feature quantification"
   ),
   make_option(
-    opt_str = c("-f", "--feature_name"),
+    opt_str = c("-n", "--feature_name"),
     type = "character",
     default = "ALT",
     help = "Feature type"

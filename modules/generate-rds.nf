@@ -26,7 +26,7 @@ process make_merged_unfiltered_sce{
     memory '4 GB'
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
-        tuple val(meta), path(alevin_dir), val (feature_meta), path(feature_alevin_dir)
+        tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -40,7 +40,7 @@ process make_merged_unfiltered_sce{
           --seq_unit ${meta.seq_unit} \
           --alevin_dir ${alevin_dir} \
           --feature_dir ${feature_alevin_dir} \
-          --feature_name ${feature_type} \
+          --feature_name ${meta.feature_type} \
           --unfiltered_file ${unfiltered_rds}
         """
 }
