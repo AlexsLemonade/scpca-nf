@@ -74,12 +74,13 @@ workflow {
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
   map_quant_rna(rna_ch)
-  generate_rds(map_quant_rna.out)
+  
   
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
-  rna_quant_ch.view()
+  // make rds for rna only
+  generate_rds(rna_quant_ch)
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
