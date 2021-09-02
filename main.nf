@@ -10,11 +10,6 @@ params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes'
 params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/salmon_index/spliced_intron_txome_k31'
 params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene_3col.tsv'
 
-// Docker containerimages in use
-params.SALMON_CONTAINER = 'quay.io/biocontainers/salmon:1.5.2--h84f40af_0'
-params.ALEVINFRY_CONTAINER = 'quay.io/biocontainers/alevin-fry:0.4.1--h7d875b9_0'
-params.SCPCA_R_CONTAINTER = 'ghcr.io/alexslemonade/scpca-r'
-
 
 // run_ids are comma separated list to be parsed into a list of run ids,
 // or "All" to process all samples in the metadata file
@@ -41,9 +36,9 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
-include { generate_rds } from './modules/generate-rds.nf'
+include { generate_rds; generate_merged_rds } from './modules/generate-rds.nf'
 
-workflow{
+workflow {
   // select runs to use
   run_ids = params.run_ids?.tokenize(',') ?: []
   run_all = run_ids[0] == "All"
@@ -65,10 +60,22 @@ workflow{
     // use only the rows in the run_id list
     .filter{run_all || (it.run_id in run_ids)}
   
+  // generate lists of library ids for feature libraries & RNA-only
+  feature_libs = runs_ch.filter{it.technology in feature_techs}
+    .collect{it.library_id}
+  rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs.getVal())}
+    .collect{it.library_id}
+
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
   map_quant_rna(rna_ch)
-  generate_rds(map_quant_rna.out)
+  
+  
+  // get RNA-only libraries
+  rna_quant_ch = map_quant_rna.out
+    .filter{it[0]["library_id"] in rna_only_libs.getVal()}
+  // make rds for rna only
+  generate_rds(rna_quant_ch)
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
@@ -79,6 +86,10 @@ workflow{
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
-  // just print for now
-  feature_rna_quant_ch.view()
+  // make rds for merged RNA and feature quants
+  generate_merged_rds(feature_rna_quant_ch)
+
+  // Make channel for all library rds files
+  library_rds_ch = generate_rds.out.mix(generate_merged_rds.out)
+  library_rds_ch.view()
 }

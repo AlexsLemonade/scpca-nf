@@ -13,12 +13,24 @@ option_list <- list(
   make_option(
     opt_str = c("-s", "--seq_unit"),
     type = "character",
-    help = "include counts for spliced cDNA only (spliced) or unspliced and spliced cDNA (unspliced)"
+    help = "`cell` or `nucleus`, which will determine whether to include counts for spliced cDNA only (cell) or unspliced and spliced cDNA (nucleus)"
   ),
   make_option(
     opt_str = c("-a", "--alevin_dir"),
     type = "character",
-    help = "directory with alevin output files"
+    help = "directory with alevin output files for RNA-seq quantification"
+  ),
+  make_option(
+    opt_str = c("-f", "--feature_dir"),
+    type = "character",
+    default = "",
+    help = "directory with alevin output files for feature quantification"
+  ),
+  make_option(
+    opt_str = c("-n", "--feature_name"),
+    type = "character",
+    default = "ALT",
+    help = "Feature type"
   ),
   make_option(
     opt_str = c("-u", "--unfiltered_file"),
@@ -44,10 +56,16 @@ which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
                                  opt$seq_unit == "nucleus" ~ "unspliced")
 
 # get unfiltered sce
-unfiltered_sce <- import_quant_data(quant_dir = opt$alevin_dir,
-                                    tool = "alevin-fry",
-                                    which_counts = which_counts,
-                                    usa_mode = TRUE)
+unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
+                              which_counts = which_counts,
+                              usa_mode = TRUE)
+
+# read and merge feature counts if present
+if (opt$feature_dir != ""){
+  feature_sce <- read_alevin(quant_dir = opt$feature_dir,
+                             mtx_format = TRUE)
+  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
+}                                
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
