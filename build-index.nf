@@ -16,7 +16,6 @@ fasta = "${params.ref_dir}/${params.fasta}"
 process generate_fastq{
   container 'ghcr.io/alexslemonade/scpca-r'
   publishDir params.ref_dir
-  memory 4 GB
   input:
     path(gtf)
     path(fasta)
