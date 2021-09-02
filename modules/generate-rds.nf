@@ -65,18 +65,23 @@ workflow generate_rds {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-    make_unfiltered_sce(quant_channel)
-    filter_sce(generate_unfiltered_sce.out)
+    quant_channel \
+      | make_unfiltered_sce \
+      | filter_sce
+
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
 
 workflow generate_merged_rds {
-  // generate rds files for RNA-only samples
-  take: quant_feature_channel
+  // generate rds files for feature + quant samples
+  // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
+  take: feature_quant_channel
   main:
-    make_merged_unfiltered_sce(quant_feature_channel)
-    filter_sce(make_merged_unfiltered_sce.out)
+    feature_quant_channel \
+      | make_merged_unfiltered_sce \
+      | filter_sce
+
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
