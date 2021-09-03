@@ -1,12 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// basic parameters
-params.ref_dir = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104'
-params.gtf = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz'
-params.fasta = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
-params.assembly = 'Homo_sapiens.GRCh38.104'
-
 // generate fasta and annotation files with spliced cDNA + intronic reads 
 process generate_splici{
   container params.SCPCATOOLS_CONTAINER
