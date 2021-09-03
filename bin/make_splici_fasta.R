@@ -38,13 +38,13 @@ option_list <- list(
     opt_str = c("-a", "--annotation_output"),
     type = "character",
     default = "annotation",
-    help = "Directory to write output files",
+    help = "Directory to write output gtf, tx2gene, and mitochondrial gene list files",
   ), 
   make_option(
     opt_str = c("-o", "--fasta_output"),
     type = "character",
     default = "fasta",
-    help = "Directory to write output files",
+    help = "Directory to write output transcript fasta files",
   )
 )
 
