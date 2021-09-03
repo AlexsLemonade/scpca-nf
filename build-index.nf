@@ -7,9 +7,9 @@ params.gtf = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104/annotat
 params.fasta = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
 params.assembly = 'Homo_sapiens.GRCh38.104'
 
-// generate fastq files with spliced cDNA + intronic reads 
-process generate_fastq{
-  container params.SCPCATOOLS_CONTAINTER
+// generate fasta and annotation files with spliced cDNA + intronic reads 
+process generate_splici{
+  container params.SCPCATOOLS_CONTAINER
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
   memory { 28.GB * task.attempt}
@@ -19,13 +19,15 @@ process generate_fastq{
     path(gtf)
     path(fasta)
   output: 
-    path(splici_fasta)
+    tuple path(splici_fasta), path("annotation")
   script:
-    splici_fasta="${params.ref_dir}/fasta/${params.assembly}.spliced_intron.txome.fa.gz"
+    splici_fasta="fasta/${params.assembly}.spliced_intron.txome.fa.gz"
     """
     make_splici_fasta.R \
       --gtf ${gtf} \
       --genome ${fasta}
+      --fasta_output fasta
+      --annotation_output annotation
     
     gzip annotation/*.gtf
     """
@@ -35,19 +37,17 @@ process generate_fastq{
 process salmon_index{
   container 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
   publishDir "${params.ref_dir}/salmon_index", mode: 'copy'
-  memory { 28.GB * task.attempt}
-  cpus 8
-  errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'terminate' }
-  maxRetries 1
+  label 'cpus_8'
   input:
-    path(splici_fasta)
+    path(fasta)
   output:
-    path(params.index_path)
+    path(index_dir)
   script:
+    index_dir = fasta.baseName.split("\\.(fasta|fa)")[0]
     """
     salmon index \
-      -t ${splici_fasta} \
-      -i ${params.assembly}.spliced_intron.txome \
+      -t ${fasta} \
+      -i ${index_dir} \
       -k 31 \
       -p ${task.cpus} \
     """
