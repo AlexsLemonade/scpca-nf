@@ -10,6 +10,7 @@ params.assembly = 'Homo_sapiens.GRCh38.104'
 // generate fastq files with spliced cDNA + intronic reads 
 process generate_fastq{
   container params.SCPCATOOLS_CONTAINTER
+  // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
   input:
     path(gtf)
@@ -51,6 +52,8 @@ process salmon_index{
 
 
 workflow {
+  // generate splici reference fasta
   generate_fastq(params.gtf, params.fasta)
+  // create index using splici reference fasta
   salmon_index(generate_fastq.out)
 }
