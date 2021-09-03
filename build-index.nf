@@ -16,7 +16,7 @@ process generate_splici{
   output: 
     tuple path(splici_fasta), path("annotation")
   script:
-    splici_fasta="fasta/${params.assembly}.spliced_intron.txome.fa.gz"
+    splici_fasta="fasta/${assembly}.spliced_intron.txome.fa.gz"
     """
     make_splici_fasta.R \
       --gtf ${gtf} \
@@ -52,7 +52,7 @@ process salmon_index{
 
 workflow {
   // generate splici reference fasta
-  generate_fastq(params.gtf, params.fasta, params.assembly)
+  generate_splici(params.gtf, params.fasta, params.assembly)
   // create index using splici reference fasta
-  salmon_index(generate_fastq.out)
+  salmon_index(generate_splici.out)
 }
