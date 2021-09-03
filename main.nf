@@ -7,8 +7,6 @@ params.outdir = "s3://nextflow-ccdl-results/scpca/processed"
 
 params.resolution = 'cr-like' //default resolution is cr-like, can also use full, cr-like-em, parsimony, and trivial
 params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes' 
-params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/salmon_index/spliced_intron_txome_k31'
-params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene_3col.tsv'
 
 
 // run_ids are comma separated list to be parsed into a list of run ids,
