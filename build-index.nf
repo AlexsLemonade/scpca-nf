@@ -3,18 +3,13 @@ nextflow.enable.dsl=2
 
 // basic parameters
 params.ref_dir = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104'
-params.gtf = 'annotation/Homo_sapiens.GRCh38.104.gtf.gz'
-params.fasta = 'fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
+params.gtf = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz'
+params.fasta = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
 params.assembly = 'Homo_sapiens.GRCh38.104'
-
-// build paths
-gtf = "${params.ref_dir}/${params.gtf}"
-fasta = "${params.ref_dir}/${params.fasta}"
-
 
 // generate fastq files with spliced cDNA + intronic reads 
 process generate_fastq{
-  container 'ghcr.io/alexslemonade/scpca-r'
+  container params.SCPCATOOLS_CONTAINTER
   publishDir params.ref_dir
   input:
     path(gtf)
@@ -43,7 +38,7 @@ process salmon_index{
   input:
     path(splici_fasta)
   output:
-    path "${params.ref_dir}/fasta/${params.assembly}.spliced_intron.txome"
+    path(params.index_path)
   script:
     """
     salmon index \
@@ -56,6 +51,6 @@ process salmon_index{
 
 
 workflow {
-  generate_fastq(gtf, fasta)
+  generate_fastq(params.gtf, params.fasta)
   salmon_index(generate_fastq.out)
 }

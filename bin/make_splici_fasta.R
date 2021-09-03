@@ -25,7 +25,7 @@ option_list <- list(
   make_option(
     opt_str = c("-f", "--gtf"),
     type = "character",
-    default = "annotation/Homo_sapiens.GRCh38.103.gtf.gz",
+    default = "annotation/Homo_sapiens.GRCh38.104.gtf.gz",
     help = "File path for input gtf file",
   ),
   make_option(
