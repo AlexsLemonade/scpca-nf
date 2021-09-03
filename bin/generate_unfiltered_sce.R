@@ -6,6 +6,7 @@
 # import libraries
 library(magrittr)
 library(optparse)
+library(SingleCellExperiment)
 library(scpcaTools)
 
 # set up arguments
@@ -62,6 +63,11 @@ if(!file.exists(opt$mito_file)){
   stop("Mitochondrial gene list is required using -m or --mito_file")
 }
 
+# read in mitochondrial gene list 
+mito_genes <- readr::read_tsv(opt$mito_file, col_names = "gene_id") %>%
+  dplyr::pull("gene_id") %>%
+  unique()
+
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
 which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
                                  opt$seq_unit == "nucleus" ~ "unspliced")
@@ -69,15 +75,28 @@ which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               which_counts = which_counts,
-                              usa_mode = TRUE)
+                              usa_mode = TRUE) %>%
+  # add per cell and per gene statistics to colData and rowData
+  add_cell_mito_qc(mito = mito_genes) %>%
+  scater::addPerFeatureQC()
+  
 
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             mtx_format = TRUE)
+                             mtx_format = TRUE) %>%
+    # add per cell statistics to colData without mitochondrial reads 
+    scater::addPerCellQC() %>%
+    # add per gene statistics to rowData
+    scater::addPerFeatureQC()
+  
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
+  
+  # add colData and rowData from feature_sce to alternative experiment in unfiltered_sce
+  head(colData(altExp(unfiltered_sce, opt$feature_name)))
+  head(rowData(altExp(unfiltered_sce, opt$feature_name)))
 }                                
 
 # write to rds
-readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
+#readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
 
