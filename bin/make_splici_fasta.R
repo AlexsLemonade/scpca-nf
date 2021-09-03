@@ -49,7 +49,7 @@ option_list <- list(
   make_option(
     opt_str = c("-s", "--assembly"),
     type = "character",
-    default = ""
+    default = "",
     help = "Prefix name containing organism and ensembl assembly version to be used for file naming"
   )
 )
