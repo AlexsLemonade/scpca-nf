@@ -12,6 +12,7 @@ process generate_splici{
   input:
     path(gtf)
     path(fasta)
+    val(assembly)
   output: 
     tuple path(splici_fasta), path("annotation")
   script:
@@ -19,9 +20,10 @@ process generate_splici{
     """
     make_splici_fasta.R \
       --gtf ${gtf} \
-      --genome ${fasta}
-      --fasta_output fasta
-      --annotation_output annotation
+      --genome ${fasta} \
+      --fasta_output fasta \
+      --annotation_output annotation \
+      --assembly ${assembly}
     
     gzip annotation/*.gtf
     """
@@ -50,7 +52,7 @@ process salmon_index{
 
 workflow {
   // generate splici reference fasta
-  generate_fastq(params.gtf, params.fasta)
+  generate_fastq(params.gtf, params.fasta, params.assembly)
   // create index using splici reference fasta
   salmon_index(generate_fastq.out)
 }

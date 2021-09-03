@@ -45,22 +45,25 @@ option_list <- list(
     type = "character",
     default = "fasta",
     help = "Directory to write output transcript fasta files",
+  ),
+  make_option(
+    opt_str = c("-s", "--assembly"),
+    type = "character",
+    default = ""
+    help = "Prefix name containing organism and ensembl assembly version to be used for file naming"
   )
 )
 
 # Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# Get base file name from input gtf file
-file_base <- stringr::str_replace(basename(opt$gtf), "\\.gtf(\\.gz)?$", "")
-
 ## files with spliced + intron regions
-spliced_intron_fasta_file <- paste0(file_base, ".spliced_intron.txome.fa.gz")
-spliced_intron_gtf_file <- paste0(file_base, ".spliced_intron.txome.gtf")
-spliced_intron_tx2gene_file <- paste0(file_base, ".spliced_intron.tx2gene.tsv")
-spliced_intron_tx2gene_3col_file <- paste0(file_base, ".spliced_intron.tx2gene_3col.tsv")
+spliced_intron_fasta_file <- paste0(opt$assembly, ".spliced_intron.txome.fa.gz")
+spliced_intron_gtf_file <- paste0(opt$assembly, ".spliced_intron.txome.gtf")
+spliced_intron_tx2gene_file <- paste0(opt$assembly, ".spliced_intron.tx2gene.tsv")
+spliced_intron_tx2gene_3col_file <- paste0(opt$assembly, ".spliced_intron.tx2gene_3col.tsv")
 
-mito_file <- paste0(file_base, ".mitogenes.txt")
+mito_file <- paste0(opt$assembly, ".mitogenes.txt")
 
 # make final output file names needed
 
