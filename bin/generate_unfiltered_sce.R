@@ -36,6 +36,12 @@ option_list <- list(
     opt_str = c("-u", "--unfiltered_file"),
     type = "character",
     help = "path to output unfiltered rds file. Must end in .rds"
+  ), 
+  make_option(
+    opt_str = c("-m", "--mito_file"),
+    type = "character", 
+    default = "", 
+    help = "path to list of mitochondrial genes"
   )
 )
 
@@ -49,6 +55,11 @@ if(!(opt$seq_unit %in% c("cell", "nucleus"))){
 # check that output file name ends in .rds
 if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
   stop("unfiltered file name must end in .rds")
+}
+
+# check that mitochondrial gene list exists
+if(!file.exists(opt$mito_file)){
+  stop("Mitochondrial gene list is required using -m or --mito_file")
 }
 
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
