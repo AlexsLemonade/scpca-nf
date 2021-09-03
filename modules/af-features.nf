@@ -1,6 +1,4 @@
 
-
-
 //index a feature barcode file
 process index_feature{
   container params.SALMON_CONTAINER
