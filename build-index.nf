@@ -12,6 +12,9 @@ process generate_fastq{
   container params.SCPCATOOLS_CONTAINTER
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
+  memory { 28.GB * task.attempt}
+  errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'terminate' }
+  maxRetries 1
   input:
     path(gtf)
     path(fasta)
