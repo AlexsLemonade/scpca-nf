@@ -6,7 +6,6 @@
 # import libraries
 library(magrittr)
 library(optparse)
-library(SingleCellExperiment)
 library(scpcaTools)
 
 # set up arguments
