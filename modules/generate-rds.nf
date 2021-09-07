@@ -7,6 +7,7 @@ process make_unfiltered_sce{
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(alevin_dir)
+        path(mito)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -15,7 +16,8 @@ process make_unfiltered_sce{
         generate_unfiltered_sce.R \
           --seq_unit ${meta.seq_unit} \
           --alevin_dir ${alevin_dir} \
-          --unfiltered_file ${unfiltered_rds}
+          --unfiltered_file ${unfiltered_rds} \
+          --mito_file ${mito}
         """
 }
 
@@ -25,6 +27,7 @@ process make_merged_unfiltered_sce{
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
+        path(mito)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -39,7 +42,8 @@ process make_merged_unfiltered_sce{
           --alevin_dir ${alevin_dir} \
           --feature_dir ${feature_alevin_dir} \
           --feature_name ${meta.feature_type} \
-          --unfiltered_file ${unfiltered_rds}
+          --unfiltered_file ${unfiltered_rds} \j
+          --mito_file ${mito}
         """
 }
 
@@ -63,9 +67,8 @@ workflow generate_rds {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-    quant_channel \
-      | make_unfiltered_sce \
-      | filter_sce
+    make_unfiltered_sce(quant_channel, params.mito_file)
+    filter_sce(make_unfiltered_sce.out)
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
@@ -76,9 +79,8 @@ workflow generate_merged_rds {
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel
   main:
-    feature_quant_channel \
-      | make_merged_unfiltered_sce \
-      | filter_sce
+    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file)
+    filter_sce(make_merged_unfiltered_sce.out)
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files

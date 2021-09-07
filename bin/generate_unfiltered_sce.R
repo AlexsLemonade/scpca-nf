@@ -37,11 +37,11 @@ option_list <- list(
     opt_str = c("-u", "--unfiltered_file"),
     type = "character",
     help = "path to output unfiltered rds file. Must end in .rds"
-  ), 
+  ),
   make_option(
     opt_str = c("-m", "--mito_file"),
-    type = "character", 
-    default = "", 
+    type = "character",
+    default = "",
     help = "path to list of mitochondrial genes"
   )
 )
@@ -63,7 +63,7 @@ if(!file.exists(opt$mito_file)){
   stop("Mitochondrial gene list is required using -m or --mito_file")
 }
 
-# read in mitochondrial gene list 
+# read in mitochondrial gene list
 mito_genes <- readr::read_tsv(opt$mito_file, col_names = "gene_id") %>%
   dplyr::pull("gene_id") %>%
   unique()
@@ -79,24 +79,20 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
   # add per cell and per gene statistics to colData and rowData
   add_cell_mito_qc(mito = mito_genes) %>%
   scater::addPerFeatureQC()
-  
+
 
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
                              mtx_format = TRUE) %>%
-    # add per cell statistics to colData without mitochondrial reads 
+    # add per cell statistics to colData without mitochondrial reads
     scater::addPerCellQC() %>%
     # add per gene statistics to rowData
     scater::addPerFeatureQC()
-  
+
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
-  
-  # add colData and rowData from feature_sce to alternative experiment in unfiltered_sce
-  head(colData(altExp(unfiltered_sce, opt$feature_name)))
-  head(rowData(altExp(unfiltered_sce, opt$feature_name)))
-}                                
+}
 
 # write to rds
-#readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
+readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
 
