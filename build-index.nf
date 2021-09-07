@@ -39,7 +39,7 @@ process salmon_index{
   output:
     path(index_dir)
   script:
-    index_dir = fasta.baseName.split("\\.(fasta|fa)")[0]
+    index_dir = "${fasta}".split("\\.(fasta|fa)")[0]
     """
     salmon index \
       -t ${fasta} \
