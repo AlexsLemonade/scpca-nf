@@ -83,13 +83,11 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             mtx_format = TRUE) %>%
-    # add per cell statistics to colData without mitochondrial reads
-    scater::addPerCellQC() %>%
-    # add per gene statistics to rowData
-    scater::addPerFeatureQC()
-
-  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
+                             mtx_format = TRUE) 
+   
+  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name) 
+  # add alt experiment features stats
+  altExp(unfiltered_sce, opt$feature_name) <- scater::addPerFeatureQC(altExp(unfiltered_sce, opt$feature_name))
 }
 
 # write to rds
