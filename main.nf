@@ -3,7 +3,8 @@ nextflow.enable.dsl=2
 
 // run parameters
 params.run_metafile = 's3://ccdl-scpca-data/sample_info/scpca-library-metadata.tsv'
-params.outdir = "s3://nextflow-ccdl-results/scpca/processed"
+params.alevin_outdir = 's3://nextflow-ccdl-results/scpca/alevin-fry-processed'
+params.final_outdir = 's3://nextflow-ccdl-results/scpca/processed-samples'
 
 params.resolution = 'cr-like' //default resolution is cr-like, can also use full, cr-like-em, parsimony, and trivial
 params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes' 

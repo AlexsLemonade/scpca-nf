@@ -61,7 +61,7 @@ process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
+  publishDir "${params.alevin_outdir}/${meta.sample_id}/${meta.library_id}"
   input:
     tuple val(meta),
           path(run_dir), path(feature_index)
