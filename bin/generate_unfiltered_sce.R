@@ -74,10 +74,7 @@ which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               which_counts = which_counts,
-                              usa_mode = TRUE) %>%
-  # add per cell and per gene statistics to colData and rowData
-  add_cell_mito_qc(mito = mito_genes) %>%
-  scater::addPerFeatureQC()
+                              usa_mode = TRUE)
 
 
 # read and merge feature counts if present
@@ -89,6 +86,11 @@ if (opt$feature_dir != ""){
   # add alt experiment features stats
   altExp(unfiltered_sce, opt$feature_name) <- scater::addPerFeatureQC(altExp(unfiltered_sce, opt$feature_name))
 }
+
+# add per cell and per gene statistics to colData and rowData
+unfiltered_sce <- unfiltered_sce %>%
+  add_cell_mito_qc(mito = mito_genes) %>%
+  scater::addPerFeatureQC()
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
