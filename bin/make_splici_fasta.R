@@ -25,13 +25,11 @@ option_list <- list(
   make_option(
     opt_str = c("-f", "--gtf"),
     type = "character",
-    default = "annotation/Homo_sapiens.GRCh38.104.gtf.gz",
     help = "File path for input gtf file",
   ),
   make_option(
     opt_str = c("-g", "--genome"),
     type = "character",
-    default = "fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
     help = "File path for reference fasta file",
   ), 
   make_option(
@@ -49,7 +47,6 @@ option_list <- list(
   make_option(
     opt_str = c("-s", "--assembly"),
     type = "character",
-    default = "",
     help = "Prefix name containing organism and ensembl assembly version to be used for file naming"
   )
 )
@@ -92,7 +89,7 @@ if (!dir.exists(opt$annotation_output)) {
 grl <- eisaR::getFeatureRanges(
   gtf = opt$gtf,
   featureType = c("spliced", "intron"), 
-  flankLength = 86L,
+  flankLength = opts$flank_length,
   joinOverlappingIntrons = FALSE,
   verbose = TRUE
 )
@@ -154,4 +151,4 @@ gtf <- rtracklayer::import(spliced_intron_gtf)
 mitogenes <- gtf[seqnames(gtf) == 'MT']
 
 # write out mitochondrial gene list
-writeLines(mitogenes$gene_id, mito_out)
+writeLines(unique(mitogenes$gene_id), mito_out)
