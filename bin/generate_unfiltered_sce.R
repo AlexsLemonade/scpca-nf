@@ -40,7 +40,6 @@ option_list <- list(
   make_option(
     opt_str = c("-m", "--mito_file"),
     type = "character",
-    default = "",
     help = "path to list of mitochondrial genes"
   )
 )
@@ -59,13 +58,11 @@ if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
 
 # check that mitochondrial gene list exists
 if(!file.exists(opt$mito_file)){
-  stop("Mitochondrial gene list is required using -m or --mito_file")
+  stop("Mitochondrial gene list file not found.")
 }
 
 # read in mitochondrial gene list
-mito_genes <- readr::read_tsv(opt$mito_file, col_names = "gene_id") %>%
-  dplyr::pull("gene_id") %>%
-  unique()
+mito_genes <- unique(scan(opt$mito_file, what = "character"))
 
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
 which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
