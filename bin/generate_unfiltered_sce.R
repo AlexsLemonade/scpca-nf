@@ -36,6 +36,11 @@ option_list <- list(
     opt_str = c("-u", "--unfiltered_file"),
     type = "character",
     help = "path to output unfiltered rds file. Must end in .rds"
+  ),
+  make_option(
+    opt_str = c("-m", "--mito_file"),
+    type = "character",
+    help = "path to list of mitochondrial genes"
   )
 )
 
@@ -51,6 +56,14 @@ if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
   stop("unfiltered file name must end in .rds")
 }
 
+# check that mitochondrial gene list exists
+if(!file.exists(opt$mito_file)){
+  stop("Mitochondrial gene list file not found.")
+}
+
+# read in mitochondrial gene list
+mito_genes <- unique(scan(opt$mito_file, what = "character"))
+
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
 which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
                                  opt$seq_unit == "nucleus" ~ "unspliced")
@@ -60,12 +73,21 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               which_counts = which_counts,
                               usa_mode = TRUE)
 
+
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             mtx_format = TRUE)
-  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
-}                                
+                             mtx_format = TRUE) 
+   
+  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name) 
+  # add alt experiment features stats
+  altExp(unfiltered_sce, opt$feature_name) <- scater::addPerFeatureQC(altExp(unfiltered_sce, opt$feature_name))
+}
+
+# add per cell and per gene statistics to colData and rowData
+unfiltered_sce <- unfiltered_sce %>%
+  add_cell_mito_qc(mito = mito_genes) %>%
+  scater::addPerFeatureQC()
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
