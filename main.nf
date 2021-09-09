@@ -11,9 +11,12 @@ params.index_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/
 params.t2g_3col_path = 's3://nextflow-ccdl-data/reference/homo_sapiens/ensembl-103/annotation/Homo_sapiens.GRCh38.103.spliced_intron.tx2gene_3col.tsv'
 
 
-// run_ids are comma separated list to be parsed into a list of run ids,
+// run_ids are comma separated list to be parsed into 
+// a list of run ids, library ids, and or sample_ids
 // or "All" to process all samples in the metadata file
 params.run_ids = "SCPCR000001,SCPCS000101,SCPCR000050,SCPCR000084"
+// to run all samples in a project use that project's submitter name
+params.project = ""
 
 // 10X barcode files
 cell_barcodes = [
@@ -40,8 +43,14 @@ include { generate_rds; generate_merged_rds } from './modules/generate-rds.nf'
 
 workflow {
   // select runs to use
-  run_ids = params.run_ids?.tokenize(',') ?: []
+  if (params.project){
+    // projects will use all runs in the project & supersede run_ids
+    run_ids = []
+  }else{
+    run_ids = params.run_ids?.tokenize(',') ?: []
+  }
   run_all = run_ids[0] == "All"
+
   runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping only columns we will need (& some renaming)
@@ -49,6 +58,7 @@ workflow {
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
       sample_id: it.scpca_sample_id,
+      submitter: it.submitter,
       technology: it.technology,
       seq_unit: it.seq_unit,
       feature_barcode_file: it.feature_barcode_file,
@@ -57,8 +67,13 @@ workflow {
     ]}
     // only technologies we know how to process
     .filter{it.technology in tech_list} 
-    // use only the rows in the run_id list
-    .filter{run_all || (it.run_id in run_ids)}
+    // use only the rows in the run_id list (run, library, or sample can match)
+    .filter{run_all 
+             || (it.run_id in run_ids) 
+             || (it.library_id in run_ids)
+             || (it.sample_id in run_ids)
+             || (it.submitter == params.project)
+            }
   
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.filter{it.technology in feature_techs}
