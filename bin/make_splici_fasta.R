@@ -48,6 +48,12 @@ option_list <- list(
     opt_str = c("-s", "--assembly"),
     type = "character",
     help = "Prefix name containing organism and ensembl assembly version to be used for file naming"
+  ),
+  make_option(
+    opt_str = c("-l","-flank_length"),
+    type = "integer",
+    default = 86,
+    help = "Length of sequence flanking introns to be included in index, recommended to use read length minus 5."
   )
 )
 
