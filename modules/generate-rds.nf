@@ -9,7 +9,7 @@ process make_unfiltered_sce{
         tuple val(meta), path(alevin_dir)
         path(mito)
     output:
-        tuple val(meta), path(unfiltered_rds), path(mito)
+        tuple val(meta), path(unfiltered_rds)
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
@@ -29,7 +29,7 @@ process make_merged_unfiltered_sce{
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
         path(mito)
     output:
-        tuple val(meta), path(unfiltered_rds), path(mito)
+        tuple val(meta), path(unfiltered_rds)
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         // add feature metadata as an element of the main meta object
@@ -51,7 +51,7 @@ process filter_sce{
     container params.SCPCATOOLS_CONTAINTER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
-        tuple val(meta), path(unfiltered_rds), path(mito)
+        tuple val(meta), path(unfiltered_rds)
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     script:
@@ -59,9 +59,7 @@ process filter_sce{
         """
         filter_sce_rds.R \
           --unfiltered_file ${unfiltered_rds} \
-          --filtered_file ${filtered_rds} \
-          --mito_file ${mito} \
-          --feature_name ${meta.feature_type}
+          --filtered_file ${filtered_rds}
         """
 }
 
