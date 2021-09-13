@@ -39,26 +39,26 @@ unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 # filter sce
 filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 
-# need to remove old rowData first 
+# need to remove old gene-level rowData first 
 rowData(filtered_sce) <- NULL
-
-# add prob_compromised to colData from miQC::mixtureModel 
-model <- miQC::mixtureModel(filtered_sce)
-filtered_sce <- miQC::filterCells(filtered_sce, model, posterior_cutoff = 1, verbose = FALSE)
 
 # recalculate rowData and add to filtered sce 
 filtered_sce <- filtered_sce %>%
   scater::addPerFeatureQC()
+  
+# add prob_compromised to colData from miQC::mixtureModel 
+model <- miQC::mixtureModel(filtered_sce)
+filtered_sce <- miQC::filterCells(filtered_sce, model, posterior_cutoff = 1, verbose = FALSE)
 
 # grab names of altExp, if any
-feature_names <- altExpNames(filtered_sce)
+alt_names <- altExpNames(filtered_sce)
 
-for (feature in feature_names) {
+for (alt in alt_names) {
   # remove old row data from unfiltered 
-  rowData(altExp(test, feature)) <- NULL
+  rowData(altExp(test, alt)) <- NULL
   
   # add alt experiment features stats for filtered data
-  altExp(test, feature) <- scater::addPerFeatureQC(altExp(test, feature))
+  altExp(test, alt) <- scater::addPerFeatureQC(altExp(test, alt))
 }
 
 # write filtered sce to output
