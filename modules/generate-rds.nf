@@ -63,7 +63,7 @@ process filter_sce{
         """
 }
 
-workflow generate_rds {
+workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
@@ -74,7 +74,7 @@ workflow generate_rds {
   // a tuple of meta and the filtered and unfiltered rds files
 }
 
-workflow generate_merged_rds {
+workflow generate_merged_sce {
   // generate rds files for feature + quant samples
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel
