@@ -3,7 +3,7 @@
 
 // RNA only libraries
 process make_unfiltered_sce{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(alevin_dir)
@@ -23,7 +23,7 @@ process make_unfiltered_sce{
 
 // channels with RNA and feature data
 process make_merged_unfiltered_sce{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
@@ -48,7 +48,7 @@ process make_merged_unfiltered_sce{
 }
 
 process filter_sce{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(unfiltered_rds)

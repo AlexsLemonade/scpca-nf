@@ -2,7 +2,7 @@
 // generate QC report from unfiltered and filtered SCE.rds files using scpcaTools
 
 process sce_qc_report{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
