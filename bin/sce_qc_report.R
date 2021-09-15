@@ -34,10 +34,10 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that input files exists
-if(!file.exists(opt$unfiltered_file)){
+if(!file.exists(opt$unfiltered_sce)){
   stop("Missing unfiltered .rds file")
 }
-if(!file.exists(opt$filtered_file)){
+if(!file.exists(opt$filtered_sce)){
   stop("Missing filtered .rds file")
 }
 

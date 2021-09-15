@@ -42,7 +42,7 @@ process make_merged_unfiltered_sce{
           --alevin_dir ${alevin_dir} \
           --feature_dir ${feature_alevin_dir} \
           --feature_name ${meta.feature_type} \
-          --unfiltered_file ${unfiltered_rds} \j
+          --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito}
         """
 }

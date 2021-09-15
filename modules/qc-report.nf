@@ -13,8 +13,8 @@ process sce_qc_report{
         """
         sce_qc_report.R \
           --sample_id {meta.library_id} \
-          --unfiltered_file ${unfiltered_rds} \
-          --filtered_file ${filtered_rds} \
+          --unfiltered_sce ${unfiltered_rds} \
+          --filtered_sce ${filtered_rds} \
           --output_file ${qc_report}
         """
 }

@@ -6,6 +6,7 @@
 # import libraries
 library(magrittr)
 library(optparse)
+library(SingleCellExperiment)
 
 # set up arguments
 option_list <- list(
@@ -55,10 +56,10 @@ alt_names <- altExpNames(filtered_sce)
 
 for (alt in alt_names) {
   # remove old row data from unfiltered
-  rowData(altExp(test, alt)) <- NULL
+  rowData(altExp(filtered_sce, alt)) <- NULL
 
   # add alt experiment features stats for filtered data
-  altExp(test, alt) <- scater::addPerFeatureQC(altExp(test, alt))
+  altExp(filtered_sce, alt) <- scater::addPerFeatureQC(altExp(filtered_sce, alt))
 }
 
 # write filtered sce to output
