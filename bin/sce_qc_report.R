@@ -3,7 +3,6 @@
 # This script generates a QC report using scpcaTools from a pair of filtered and unfiltered SCE objects
 
 # import libraries
-library(magrittr)
 library(optparse)
 
 # set up arguments

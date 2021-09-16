@@ -4,7 +4,6 @@
 # filters it using emptyDrops, adding miQC metrics for probability compromised
 
 # import libraries
-library(magrittr)
 library(optparse)
 library(SingleCellExperiment)
 
@@ -44,7 +43,7 @@ filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 rowData(filtered_sce) <- NULL
 
 # recalculate rowData and add to filtered sce
-filtered_sce <- filtered_sce %>%
+filtered_sce <- filtered_sce |>
   scater::addPerFeatureQC()
 
 # add prob_compromised to colData from miQC::mixtureModel
