@@ -37,7 +37,8 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
-include { generate_rds; generate_merged_rds } from './modules/generate-rds.nf'
+include { generate_sce; generate_merged_sce } from './modules/generate-rds.nf'
+include { sce_qc_report } from './modules/qc-report.nf'
 
 workflow {
   // select runs to use
@@ -88,7 +89,8 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  generate_rds(rna_quant_ch)
+  rna_sce_ch = generate_sce(rna_quant_ch)
+
 
   // **** Process feature data ****
   feature_ch = runs_ch.filter{it.technology in feature_techs} 
@@ -100,9 +102,10 @@ workflow {
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
-  generate_merged_rds(feature_rna_quant_ch)
+  merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
 
-  // Make channel for all library rds files
-  library_rds_ch = generate_rds.out.mix(generate_merged_rds.out)
-  library_rds_ch.view()
+  // **** Generate QC reports ****
+  // Make channel for all library sce files & run QC report
+  library_sce_ch = rna_sce_ch.mix(merged_sce_ch)
+  sce_qc_report(library_sce_ch)
 }

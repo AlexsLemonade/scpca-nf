@@ -3,7 +3,7 @@
 
 // RNA only libraries
 process make_unfiltered_sce{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(alevin_dir)
@@ -23,7 +23,7 @@ process make_unfiltered_sce{
 
 // channels with RNA and feature data
 process make_merged_unfiltered_sce{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
@@ -42,13 +42,13 @@ process make_merged_unfiltered_sce{
           --alevin_dir ${alevin_dir} \
           --feature_dir ${feature_alevin_dir} \
           --feature_name ${meta.feature_type} \
-          --unfiltered_file ${unfiltered_rds} \j
+          --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito}
         """
 }
 
 process filter_sce{
-    container params.SCPCATOOLS_CONTAINTER
+    container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(unfiltered_rds)
@@ -63,7 +63,7 @@ process filter_sce{
         """
 }
 
-workflow generate_rds {
+workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
@@ -74,7 +74,7 @@ workflow generate_rds {
   // a tuple of meta and the filtered and unfiltered rds files
 }
 
-workflow generate_merged_rds {
+workflow generate_merged_sce {
   // generate rds files for feature + quant samples
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel

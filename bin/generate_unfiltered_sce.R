@@ -4,8 +4,8 @@
 # returns the unfiltered counts matrices as a SingleCellExperiment stored in a .rds file
 
 # import libraries
-library(magrittr)
 library(optparse)
+library(SingleCellExperiment)
 library(scpcaTools)
 
 # set up arguments
@@ -85,8 +85,8 @@ if (opt$feature_dir != ""){
 }
 
 # add per cell and per gene statistics to colData and rowData
-unfiltered_sce <- unfiltered_sce %>%
-  add_cell_mito_qc(mito = mito_genes) %>%
+unfiltered_sce <- unfiltered_sce |>
+  add_cell_mito_qc(mito = mito_genes) |>
   scater::addPerFeatureQC()
 
 # write to rds
