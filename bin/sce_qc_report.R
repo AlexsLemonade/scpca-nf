@@ -31,7 +31,9 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
-
+if(is.null(opt$sample_id)){
+  stop("A sample id is required")
+}
 # check that input files exists
 if(!file.exists(opt$unfiltered_sce)){
   stop("Missing unfiltered .rds file")
@@ -39,6 +41,7 @@ if(!file.exists(opt$unfiltered_sce)){
 if(!file.exists(opt$filtered_sce)){
   stop("Missing filtered .rds file")
 }
+
 
 # read sce files
 unfiltered_sce <- readr::read_rds(opt$unfiltered_sce)
