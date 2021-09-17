@@ -32,14 +32,14 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 if(is.null(opt$sample_id)){
-  stop("A sample id is required")
+  stop("A `sample_id` is required.")
 }
 # check that input files exists
-if(!file.exists(opt$unfiltered_sce)){
-  stop("Missing unfiltered .rds file")
+if(is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)){
+  stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
 }
-if(!file.exists(opt$filtered_sce)){
-  stop("Missing filtered .rds file")
+if(is.null(opt$filtered_sce) || !file.exists(opt$filtered_sce)){
+  stop("Filtered .rds file missing or `filtered_sce` not specified.")
 }
 
 
