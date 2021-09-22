@@ -61,6 +61,12 @@ for (alt in alt_names) {
   altExp(filtered_sce, alt) <- scater::addPerFeatureQC(altExp(filtered_sce, alt))
 }
 
+# remove any genes with zero counts 
+detected_genes <- rowData(filtered_sce)$mean > 0 & 
+  rowData(filtered_sce)$detected > 0
+
+filtered_sce <- filtered_sce[detected_genes,]
+
 # write filtered sce to output
 readr::write_rds(filtered_sce, opt$filtered_file, compress = "gz")
 
