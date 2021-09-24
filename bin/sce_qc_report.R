@@ -63,7 +63,14 @@ option_list <- list(
     type = "character",
     default = NA,
     help = "workflow version identifier"
+  ),
+  make_option(
+    opt_str = "--workflow_commit",
+    type = "character",
+    default = NA,
+    help = "workflow commit hash"
   )
+
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -83,6 +90,9 @@ if (opt$workflow_url == "null"){
 }
 if (opt$workflow_version == "null"){
   opt$workflow_version <- NA
+}
+if (opt$workflow_commit == "null"){
+  opt$workflow_commit <- NA
 }
 
 # read sce files
@@ -110,7 +120,8 @@ metadata_list <- list(
   mapping_index = sce_meta$reference_index,
   transcript_type = sce_meta$transcript_type,
   workflow = opt$workflow_url,
-  workflow_version = opt$workflow_version
+  workflow_version = opt$workflow_version,
+  workflow_commit = opt$workflow_commit
 ) |>
   purrr::map(~ifelse(is.null(.), NA, .)) # convert any NULLS to NA
 

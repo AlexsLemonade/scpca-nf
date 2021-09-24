@@ -24,6 +24,7 @@ process sce_qc_report{
           --metadata_csv ${metadata_csv} \
           --metadata_json ${metadata_json} \
           --workflow_url "${workflow_url}" \
-          --workflow_version "${workflow.revision}" 
+          --workflow_version "${workflow.revision}" \
+          --workflow_commit "${workflow.commit}"
         """
 }
