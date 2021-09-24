@@ -25,6 +25,6 @@ process sce_qc_report{
           --metadata_json ${metadata_json} \
           --workflow_url "${workflow_url}" \
           --workflow_version "${workflow.revision}" \
-          --workflow_commit "${workflow.commit}"
+          --workflow_commit "${workflow.commitId}"
         """
 }
