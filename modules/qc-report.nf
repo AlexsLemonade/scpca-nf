@@ -12,7 +12,7 @@ process sce_qc_report{
         qc_report = "${meta.library_id}_qc.html"
         metadata_csv = "${meta.library_id}_metadata.csv"
         metadata_json = "${meta.library_id}_metadata.json"
-        workflow_version = workflow.revision ? workflow.revision : workflow.commitId
+        workflow_url = workflow.repository? workflow.repository : params.workflow_url
         """
         sce_qc_report.R \
           --library_id ${meta.library_id} \
@@ -23,7 +23,7 @@ process sce_qc_report{
           --genome_assembly ${params.assembly} \
           --metadata_csv ${metadata_csv} \
           --metadata_json ${metadata_json} \
-          --workflow_url "${workflow.repository}" \
-          --workflow_version "${workflow_version}" 
+          --workflow_url "${workflow_url}" \
+          --workflow_version "${workflow.revision}" 
         """
 }
