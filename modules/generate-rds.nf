@@ -61,7 +61,7 @@ process filter_sce{
         filter_sce_rds.R \
           --unfiltered_file ${unfiltered_rds} \
           --filtered_file ${filtered_rds} \
-          --lower ${lower}
+          --lower ${params.emptydrops_lower}
         """
 }
 
