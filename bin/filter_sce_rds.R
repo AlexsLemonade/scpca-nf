@@ -18,7 +18,12 @@ option_list <- list(
     opt_str = c("-f", "--filtered_file"),
     type = "character",
     help = "path to output filtered rds file. Must end in .rds"
-  )
+  ),
+  make_option(
+    opt_str = c("-l", "--lower"),
+    type = "integer",
+    help = "Value specifying the lower bound on total UMI count used in filtering with DropletUtils::emptyDrops."
+ )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -37,7 +42,8 @@ if(!(stringr::str_ends(opt$filtered_file, ".rds"))){
 unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 
 # filter sce
-filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
+filtered_sce <- scpcaTools::filter_counts(unfiltered_sce,
+                                          lower = opt$lower)
 
 # need to remove old gene-level rowData first
 rowData(filtered_sce) <- NULL
