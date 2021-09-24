@@ -109,6 +109,10 @@ scpcaTools::generate_qc_report(
 # Compile metadata for output files
 sce_meta <- metadata(unfiltered_sce)
 
+# check for alt experiments (CITE-seq, etc)
+alt_expts <- altExpNames(unfiltered_sce)
+has_citeseq <- "CITEseq" %in% alt_expts
+
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
@@ -119,6 +123,7 @@ metadata_list <- list(
   genome_assembly = opt$genome_assembly,
   mapping_index = sce_meta$reference_index,
   transcript_type = sce_meta$transcript_type,
+  has_citeseq = has_citeseq,
   workflow = opt$workflow_url,
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
