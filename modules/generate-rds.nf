@@ -52,7 +52,6 @@ process filter_sce{
     publishDir "${params.outdir}/${meta.sample_id}"
     input: 
         tuple val(meta), path(unfiltered_rds)
-        val(lower)
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     script:
@@ -69,8 +68,8 @@ workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-    make_unfiltered_sce(quant_channel, params.mito_file)
-    filter_sce(make_unfiltered_sce.out, params.lower)
+    make_unfiltered_sce(quant_channel, params.mito_file) \
+      | filter_sce(make_unfiltered_sce.out, params.lower)
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
@@ -81,8 +80,8 @@ workflow generate_merged_sce {
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel
   main:
-    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file)
-    filter_sce(make_merged_unfiltered_sce.out, params.lower)
+    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file) \
+      | filter_sce
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
