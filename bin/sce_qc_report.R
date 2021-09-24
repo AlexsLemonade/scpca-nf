@@ -78,6 +78,12 @@ if(is.null(opt$filtered_sce) || !file.exists(opt$filtered_sce)){
   stop("Filtered .rds file missing or `filtered_sce` not specified.")
 }
 
+if (opt$workflow_url == "null"){
+  opt$workflow_url <- NA
+}
+if (opt$workflow_version == "null"){
+  opt$workflow_version <- NA
+}
 
 # read sce files
 unfiltered_sce <- readr::read_rds(opt$unfiltered_sce)
@@ -110,6 +116,6 @@ metadata_list <- list(
 
 # Output metadata
 readr::write_csv(as.data.frame(metadata_list), file = opt$metadata_csv)
-jsonlite::write_json(metadata_list, path = opt$metadata_json)
+jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
   
 
