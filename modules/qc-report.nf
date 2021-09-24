@@ -7,14 +7,23 @@ process sce_qc_report{
     input: 
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     output:
-        tuple val(meta), path(qc_report)
+        tuple val(meta), path(qc_report), path(metadata_csv), path(metadata_json)
     script:
         qc_report = "${meta.library_id}_qc.html"
+        metadata_csv = "${meta.library_id}_metadata.csv"
+        metadata_json = "${meta.library_id}_metadata.json"
+        workflow_version = workflow.revision ? workflow.revision : workflow.commitId
         """
         sce_qc_report.R \
-          --sample_id {meta.library_id} \
+          --library_id ${meta.library_id} \
+          --sample_id ${meta.sample_id} \
           --unfiltered_sce ${unfiltered_rds} \
           --filtered_sce ${filtered_rds} \
-          --output_file ${qc_report}
+          --qc_report_file ${qc_report} \
+          --genome_assembly ${params.assembly} \
+          --metadata_csv ${metadata_csv} \
+          --metadata_json ${metadata_json} \
+          --workflow_url "${workflow.repository}" \
+          --workflow_version "${workflow_version}" 
         """
 }
