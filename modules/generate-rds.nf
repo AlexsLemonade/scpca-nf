@@ -69,7 +69,7 @@ workflow generate_sce {
   take: quant_channel
   main:
     make_unfiltered_sce(quant_channel, params.mito_file) \
-      | filter_sce(make_unfiltered_sce.out, params.lower)
+      | filter_sce
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
