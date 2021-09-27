@@ -76,7 +76,7 @@ if(!file.exists(opt$gtf_file)){
 mito_genes <- unique(scan(opt$mito_file, what = "character"))
 
 # read in gtf file (genes only for speed)
-gtf <- rtracklayer::import(opt$gtf_file, feature_type = "gene")
+gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
 which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
