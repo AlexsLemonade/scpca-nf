@@ -4,9 +4,10 @@
 # filters it using emptyDrops, adding miQC metrics for probability compromised
 
 # import libraries
-library(optparse)
-library(SingleCellExperiment)
-
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+})
 # set up arguments
 option_list <- list(
   make_option(

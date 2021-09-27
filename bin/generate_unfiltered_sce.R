@@ -4,10 +4,11 @@
 # returns the unfiltered counts matrices as a SingleCellExperiment stored in a .rds file
 
 # import libraries
-library(optparse)
-library(SingleCellExperiment)
-library(scpcaTools)
-
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+  library(scpcaTools)
+})
 # set up arguments
 option_list <- list(
   make_option(
