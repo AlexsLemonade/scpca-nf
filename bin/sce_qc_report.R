@@ -99,13 +99,6 @@ if (opt$workflow_commit == "null"){
 unfiltered_sce <- readr::read_rds(opt$unfiltered_sce)
 filtered_sce <- readr::read_rds(opt$filtered_sce)
 
-scpcaTools::generate_qc_report(
-  sample_name = opt$sample_id,
-  unfiltered_sce = unfiltered_sce,
-  filtered_sce = filtered_sce,
-  output = opt$qc_report_file
-)
-
 # Compile metadata for output files
 sce_meta <- metadata(unfiltered_sce)
 
@@ -116,6 +109,7 @@ has_citeseq <- "CITEseq" %in% alt_expts
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
+  date_processed = lubridate::now(),
   filtered_cells = ncol(filtered_sce),
   unfiltered_cells = ncol(unfiltered_sce),
   total_reads = sce_meta$total_reads,
@@ -134,4 +128,10 @@ metadata_list <- list(
 readr::write_csv(as.data.frame(metadata_list), file = opt$metadata_csv)
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
   
+scpcaTools::generate_qc_report(
+  sample_id = metadata_list$sample_id,
+  unfiltered_sce = unfiltered_sce,
+  filtered_sce = filtered_sce,
+  output = opt$qc_report_file
+)
 
