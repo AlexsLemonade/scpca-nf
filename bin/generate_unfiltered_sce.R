@@ -42,7 +42,7 @@ option_list <- list(
     opt_str = c("-m", "--mito_file"),
     type = "character",
     help = "path to list of mitochondrial genes"
-  )
+  ),
   make_option(
     opt_str = c("-g", "--gtf_file"),
     type = "character",
