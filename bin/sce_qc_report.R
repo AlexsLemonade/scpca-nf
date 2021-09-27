@@ -109,7 +109,7 @@ has_citeseq <- "CITEseq" %in% alt_expts
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
-  date_processed = lubridate::now(),
+  date_processed = lubridate::now(tzone = "UTC"),
   filtered_cells = ncol(filtered_sce),
   unfiltered_cells = ncol(unfiltered_sce),
   total_reads = sce_meta$total_reads,
