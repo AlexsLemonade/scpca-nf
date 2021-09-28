@@ -16,6 +16,7 @@ process alevin_rad{
     run_dir = "${meta.run_id}-rna"
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
+                 '10Xv2_5prime': '--chromium',
                  '10Xv3': '--chromiumV3',
                  '10Xv3.1': '--chromiumV3']
     // run alevin like normal with the --rad flag 
@@ -53,7 +54,7 @@ process fry_quant_rna{
     """
     alevin-fry generate-permit-list \
       -i ${run_dir} \
-      --expected-ori fw \
+      --expected-ori ${meta.technology == '10Xv2_5prime' ? 'rc' : 'fw'} \
       -o ${run_dir} \
       --unfiltered-pl ${barcode_file}
 
