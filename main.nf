@@ -19,6 +19,7 @@ params.project = ""
 // 10X barcode files
 cell_barcodes = [
   '10Xv2': '737K-august-2016.txt',
+  '10Xv2_5prime': '737K-august-2016.txt',
   '10Xv3': '3M-february-2018.txt',
   '10Xv3.1': '3M-february-2018.txt',
   'CITEseq_10Xv2': '737K-august-2016.txt',
