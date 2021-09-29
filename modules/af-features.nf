@@ -31,7 +31,7 @@ process alevin_feature{
           path(feature_index)
   output:
     tuple val(meta),
-          path(run_dir), path(feature_index)
+          path(run_dir)
   script:
     // label the run directory by id
     run_dir = "${meta.run_id}-features"
@@ -53,7 +53,9 @@ process alevin_feature{
       --umi-geometry ${umi_geom} \
       --rad \
       -o ${run_dir} \
-      -p ${task.cpus} 
+      -p ${task.cpus}
+
+    cp ${feature_index}/t2g.tsv ${run_dir}/t2g.tsv
     """
 }
 
@@ -65,7 +67,7 @@ process fry_quant_feature{
   publishDir "${params.outdir}/internal/${meta.library_id}"
   input:
     tuple val(meta),
-          path(run_dir), path(feature_index)
+          path(run_dir)
     path barcode_file
   output:
     tuple val(meta),
@@ -86,7 +88,7 @@ process fry_quant_feature{
     
     alevin-fry quant \
       --input-dir ${run_dir} \
-      --tg-map ${feature_index}/t2g.tsv \
+      --tg-map ${run_dir}/t2g.tsv \
       --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
