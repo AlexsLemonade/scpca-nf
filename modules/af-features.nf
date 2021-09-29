@@ -87,7 +87,7 @@ process fry_quant_feature{
     alevin-fry quant \
       --input-dir ${run_dir} \
       --tg-map ${feature_index}/t2g.tsv \
-      --resolution ${params.resolution} \
+      --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
       -t ${task.cpus} \

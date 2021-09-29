@@ -1,14 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// run parameters
-params.run_metafile = 's3://ccdl-scpca-data/sample_info/scpca-library-metadata.tsv'
-params.outdir = "s3://nextflow-ccdl-results/scpca/processed"
-
-params.resolution = 'cr-like' //default resolution is cr-like, can also use full, cr-like-em, parsimony, and trivial
-params.barcode_dir = 's3://nextflow-ccdl-data/reference/10X/barcodes' 
-
-
 // run_ids are comma separated list to be parsed into 
 // a list of run ids, library ids, and or sample_ids
 // or "All" to process all samples in the metadata file
@@ -58,7 +50,7 @@ workflow {
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
       sample_id: it.scpca_sample_id,
-      project_id: it.scpca_project_id?: "SCPCP000000",
+      project_id: it.scpca_project_id?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
       seq_unit: it.seq_unit,

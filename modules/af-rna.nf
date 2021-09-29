@@ -67,7 +67,7 @@ process fry_quant_rna{
     alevin-fry quant \
       --input-dir ${run_dir} \
       --tg-map ${tx2gene_3col} \
-      --resolution ${params.resolution} \
+      --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
       -t ${task.cpus} \
