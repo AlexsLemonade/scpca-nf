@@ -8,6 +8,7 @@ process make_unfiltered_sce{
     input: 
         tuple val(meta), path(alevin_dir)
         path(mito)
+        path(gtf)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -17,7 +18,8 @@ process make_unfiltered_sce{
           --seq_unit ${meta.seq_unit} \
           --alevin_dir ${alevin_dir} \
           --unfiltered_file ${unfiltered_rds} \
-          --mito_file ${mito}
+          --mito_file ${mito} \
+          --gtf_file ${gtf}
         """
 }
 
@@ -28,6 +30,7 @@ process make_merged_unfiltered_sce{
     input: 
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
         path(mito)
+        path(gtf)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -43,7 +46,8 @@ process make_merged_unfiltered_sce{
           --feature_dir ${feature_alevin_dir} \
           --feature_name ${meta.feature_type} \
           --unfiltered_file ${unfiltered_rds} \
-          --mito_file ${mito}
+          --mito_file ${mito} \
+          --gtf_file ${gtf}
         """
 }
 
@@ -68,7 +72,7 @@ workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-    make_unfiltered_sce(quant_channel, params.mito_file) \
+    make_unfiltered_sce(quant_channel, params.mito_file, params.gtf) \
       | filter_sce
 
   emit: filter_sce.out
@@ -80,7 +84,7 @@ workflow generate_merged_sce {
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel
   main:
-    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file) \
+    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file, params.gtf) \
       | filter_sce
 
   emit: filter_sce.out

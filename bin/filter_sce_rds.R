@@ -4,9 +4,10 @@
 # filters it using emptyDrops, adding miQC metrics for probability compromised
 
 # import libraries
-library(optparse)
-library(SingleCellExperiment)
-
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+})
 # set up arguments
 option_list <- list(
   make_option(
@@ -45,12 +46,13 @@ unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 filtered_sce <- scpcaTools::filter_counts(unfiltered_sce,
                                           lower = opt$lower)
 
-# need to remove old gene-level rowData first
-rowData(filtered_sce) <- NULL
+# need to remove old gene-level rowData statistics first
+drop_cols = colnames(rowData(filtered_sce)) %in% c('mean', 'detected')
+rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols] 
 
 # recalculate rowData and add to filtered sce
 filtered_sce <- filtered_sce |>
-  scater::addPerFeatureQC()
+  scuttle::addPerFeatureQCMetrics()
 
 # add prob_compromised to colData from miQC::mixtureModel
 model <- miQC::mixtureModel(filtered_sce)
@@ -61,10 +63,11 @@ alt_names <- altExpNames(filtered_sce)
 
 for (alt in alt_names) {
   # remove old row data from unfiltered
-  rowData(altExp(filtered_sce, alt)) <- NULL
+  drop_cols = colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
+  rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols] 
 
   # add alt experiment features stats for filtered data
-  altExp(filtered_sce, alt) <- scater::addPerFeatureQC(altExp(filtered_sce, alt))
+  altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
 }
 
 # write filtered sce to output
