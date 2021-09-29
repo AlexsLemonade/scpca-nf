@@ -5,6 +5,7 @@ process alevin_rad{
   container params.SALMON_CONTAINER
   label 'cpus_12'
   tag "${meta.run_id}-rna"
+  publishDir "${params.outdir}/internal/${meta.library_id}"
   input:
     tuple val(meta), 
           path(read1), path(read2)
@@ -41,7 +42,7 @@ process fry_quant_rna{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-rna"
-  publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
+  publishDir "${params.outdir}/internal/${meta.library_id}"
 
   input:
     tuple val(meta), path(run_dir)
