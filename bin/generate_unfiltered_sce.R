@@ -101,6 +101,7 @@ if (opt$feature_dir != ""){
 # add per cell and per gene statistics to colData and rowData
 unfiltered_sce <- unfiltered_sce |>
   add_cell_mito_qc(mito = mito_genes) |>
+ # add gene symbols to rowData
   add_gene_symbols(gene_info = gtf) |>
   scuttle::addPerFeatureQCMetrics()
 
