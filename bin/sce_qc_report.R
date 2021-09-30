@@ -35,22 +35,28 @@ option_list <- list(
     help = "path to QC report output file"
   ),
   make_option(
-    opt_str = "--metadata_csv",
-    default = "metadata.csv",
-    type = "character",
-    help = "path to metadata csv output file"
-  ),
-  make_option(
     opt_str = "--metadata_json",
     default = "metadata.json",
     type = "character",
     help = "path to metadata json output file"
   ),
   make_option(
+    opt_str = "--technology",
+    type = "character",
+    default = NA,
+    help = "sequencing technology"
+  ),
+  make_option(
+    opt_str = "--seq_unit",
+    type = "character",
+    default = NA,
+    help = "sequencing unit"
+  ),
+  make_option(
     opt_str = "--genome_assembly",
     type = "character",
     default = NA,
-    help = "workflow github url"
+    help = "genome assembly used for mapping"
   ),
   make_option(
     opt_str = "--workflow_url",
@@ -112,6 +118,9 @@ metadata_list <- list(
   date_processed = lubridate::now(tzone = "UTC"),
   filtered_cells = ncol(filtered_sce),
   unfiltered_cells = ncol(unfiltered_sce),
+  technology = opt$technology,
+  seq_unit = opt$seq_unit,
+  has_citeseq = has_citeseq,
   total_reads = sce_meta$total_reads,
   mapped_reads = sce_meta$mapped_reads,
   genome_assembly = opt$genome_assembly,
@@ -119,15 +128,13 @@ metadata_list <- list(
   transcript_type = sce_meta$transcript_type,
   salmon_version = sce_meta$salmon_version,
   alevin_fry_version = sce_meta$alevinfry_version,
-  has_citeseq = has_citeseq,
   workflow = opt$workflow_url,
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
   purrr::map(~ifelse(is.null(.), NA, .)) # convert any NULLS to NA
 
-# Output metadata
-readr::write_csv(as.data.frame(metadata_list), file = opt$metadata_csv)
+# Output metadata as JSON
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
   
 scpcaTools::generate_qc_report(
