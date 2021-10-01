@@ -11,7 +11,7 @@ process sce_qc_report{
     script:
         qc_report = "${meta.library_id}_qc.html"
         metadata_json = "${meta.library_id}_metadata.json"
-        workflow_url = workflow.repository? workflow.repository : params.workflow_url
+        workflow_url = workflow.repository ?: params.workflow_url
         """
         sce_qc_report.R \
           --library_id ${meta.library_id} \
