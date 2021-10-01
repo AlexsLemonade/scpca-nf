@@ -131,7 +131,7 @@ metadata_list <- list(
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
-  purrr::map(~if(is.null(.)) NA else .)) # convert any NULLS to NA
+  purrr::map(~if(is.null(.)) NA else .) # convert any NULLS to NA
 
 # Output metadata as JSON
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
