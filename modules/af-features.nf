@@ -24,13 +24,14 @@ process alevin_feature{
   container params.SALMON_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
+  publishDir "${params.outdir}/internal/rad/${meta.library_id}"
   input:
     tuple val(meta), 
           path(read1), path(read2), 
           path(feature_index)
   output:
     tuple val(meta),
-          path(run_dir), path(feature_index)
+          path(run_dir)
   script:
     // label the run directory by id
     run_dir = "${meta.run_id}-features"
@@ -52,7 +53,9 @@ process alevin_feature{
       --umi-geometry ${umi_geom} \
       --rad \
       -o ${run_dir} \
-      -p ${task.cpus} 
+      -p ${task.cpus}
+
+    cp ${feature_index}/t2g.tsv ${run_dir}/t2g.tsv
     """
 }
 
@@ -61,10 +64,10 @@ process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
+  publishDir "${params.outdir}/internal/af/${meta.library_id}"
   input:
     tuple val(meta),
-          path(run_dir), path(feature_index)
+          path(run_dir)
     path barcode_file
   output:
     tuple val(meta),
@@ -85,8 +88,8 @@ process fry_quant_feature{
     
     alevin-fry quant \
       --input-dir ${run_dir} \
-      --tg-map ${feature_index}/t2g.tsv \
-      --resolution ${params.resolution} \
+      --tg-map ${run_dir}/t2g.tsv \
+      --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
       -t ${task.cpus} \

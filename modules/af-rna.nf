@@ -5,6 +5,7 @@ process alevin_rad{
   container params.SALMON_CONTAINER
   label 'cpus_12'
   tag "${meta.run_id}-rna"
+  publishDir "${params.outdir}/internal/rad/${meta.library_id}"
   input:
     tuple val(meta), 
           path(read1), path(read2)
@@ -16,6 +17,7 @@ process alevin_rad{
     run_dir = "${meta.run_id}-rna"
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
+                 '10Xv2_5prime': '--chromium',
                  '10Xv3': '--chromiumV3',
                  '10Xv3.1': '--chromiumV3']
     // run alevin like normal with the --rad flag 
@@ -40,7 +42,7 @@ process fry_quant_rna{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-rna"
-  publishDir "${params.outdir}/${meta.sample_id}/${meta.library_id}"
+  publishDir "${params.outdir}/internal/af/${meta.library_id}"
 
   input:
     tuple val(meta), path(run_dir)
@@ -53,7 +55,7 @@ process fry_quant_rna{
     """
     alevin-fry generate-permit-list \
       -i ${run_dir} \
-      --expected-ori fw \
+      --expected-ori ${meta.technology == '10Xv2_5prime' ? 'rc' : 'fw'} \
       -o ${run_dir} \
       --unfiltered-pl ${barcode_file}
 
@@ -65,7 +67,7 @@ process fry_quant_rna{
     alevin-fry quant \
       --input-dir ${run_dir} \
       --tg-map ${tx2gene_3col} \
-      --resolution ${params.resolution} \
+      --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
       -t ${task.cpus} \

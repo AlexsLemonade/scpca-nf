@@ -4,10 +4,11 @@
 # returns the unfiltered counts matrices as a SingleCellExperiment stored in a .rds file
 
 # import libraries
-library(optparse)
-library(SingleCellExperiment)
-library(scpcaTools)
-
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+  library(scpcaTools)
+})
 # set up arguments
 option_list <- list(
   make_option(
@@ -41,6 +42,11 @@ option_list <- list(
     opt_str = c("-m", "--mito_file"),
     type = "character",
     help = "path to list of mitochondrial genes"
+  ),
+  make_option(
+    opt_str = c("-g", "--gtf_file"),
+    type = "character",
+    help = "path to gtf file with gene annotations"
   )
 )
 
@@ -61,8 +67,16 @@ if(!file.exists(opt$mito_file)){
   stop("Mitochondrial gene list file not found.")
 }
 
+# check that gtf file exists
+if(!file.exists(opt$gtf_file)){
+  stop("gtf file not found.")
+}
+
 # read in mitochondrial gene list
 mito_genes <- unique(scan(opt$mito_file, what = "character"))
+
+# read in gtf file (genes only for speed)
+gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 
 # convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
 which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
@@ -81,13 +95,15 @@ if (opt$feature_dir != ""){
    
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name) 
   # add alt experiment features stats
-  altExp(unfiltered_sce, opt$feature_name) <- scater::addPerFeatureQC(altExp(unfiltered_sce, opt$feature_name))
+  altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
 }
 
 # add per cell and per gene statistics to colData and rowData
 unfiltered_sce <- unfiltered_sce |>
   add_cell_mito_qc(mito = mito_genes) |>
-  scater::addPerFeatureQC()
+ # add gene symbols to rowData
+  add_gene_symbols(gene_info = gtf) |>
+  scuttle::addPerFeatureQCMetrics()
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
