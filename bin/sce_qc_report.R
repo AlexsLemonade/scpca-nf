@@ -137,7 +137,7 @@ metadata_list <- list(
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
   
 scpcaTools::generate_qc_report(
-  sample_id = metadata_list$library_id,
+  sample_name = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
   output = opt$qc_report_file
