@@ -124,14 +124,14 @@ metadata_list <- list(
   genome_assembly = opt$genome_assembly,
   mapping_index = sce_meta$reference_index,
   transcript_type = sce_meta$transcript_type,
-  date_processed = lubridate::now(tzone = "UTC"),
+  date_processed = lubridate::format_ISO8601(lubridate::now(tzone = "UTC"), usetz = TRUE),
   salmon_version = sce_meta$salmon_version,
   alevin_fry_version = sce_meta$alevinfry_version,
   workflow = opt$workflow_url,
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
-  purrr::map(~ifelse(is.null(.), NA, .)) # convert any NULLS to NA
+  purrr::map(~if(is.null(.)) NA else .)) # convert any NULLS to NA
 
 # Output metadata as JSON
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
