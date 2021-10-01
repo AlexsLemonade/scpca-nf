@@ -21,7 +21,7 @@ option_list <- list(
   make_option(
     opt_str = c("-l", "--library_id"),
     type = "character",
-    help = "Library identifier for report"
+    help = "Library identifier for report and metadata file"
   ),
   make_option(
     opt_str = c("-s", "--sample_id"),
@@ -76,7 +76,6 @@ option_list <- list(
     default = NA,
     help = "workflow commit hash"
   )
-
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -115,17 +114,17 @@ has_citeseq <- "CITEseq" %in% alt_expts
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
-  date_processed = lubridate::now(tzone = "UTC"),
-  filtered_cells = ncol(filtered_sce),
-  unfiltered_cells = ncol(unfiltered_sce),
   technology = opt$technology,
   seq_unit = opt$seq_unit,
   has_citeseq = has_citeseq,
+  filtered_cells = ncol(filtered_sce),
+  unfiltered_cells = ncol(unfiltered_sce),
   total_reads = sce_meta$total_reads,
   mapped_reads = sce_meta$mapped_reads,
   genome_assembly = opt$genome_assembly,
   mapping_index = sce_meta$reference_index,
   transcript_type = sce_meta$transcript_type,
+  date_processed = lubridate::now(tzone = "UTC"),
   salmon_version = sce_meta$salmon_version,
   alevin_fry_version = sce_meta$alevinfry_version,
   workflow = opt$workflow_url,
@@ -138,7 +137,7 @@ metadata_list <- list(
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
   
 scpcaTools::generate_qc_report(
-  sample_id = metadata_list$sample_id,
+  sample_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
   output = opt$qc_report_file

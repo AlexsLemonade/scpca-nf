@@ -19,10 +19,10 @@ process sce_qc_report{
           --unfiltered_sce ${unfiltered_rds} \
           --filtered_sce ${filtered_rds} \
           --qc_report_file ${qc_report} \
-          --genome_assembly ${params.assembly} \
           --metadata_json ${metadata_json} \
           --technology ${meta.technology} \
           --seq_unit ${meta.seq_unit} \
+          --genome_assembly ${params.assembly} \
           --workflow_url "${workflow_url}" \
           --workflow_version "${workflow.revision}" \
           --workflow_commit "${workflow.commitId}"
