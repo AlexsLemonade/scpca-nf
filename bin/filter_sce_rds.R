@@ -29,7 +29,7 @@ option_list <- list(
    opt_str = c("-r", "--random_seed"),
    type = "integer",
    help = "A random seed for reproducibility."
- ),
+ )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
