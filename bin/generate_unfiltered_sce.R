@@ -47,6 +47,11 @@ option_list <- list(
     opt_str = c("-g", "--gtf_file"),
     type = "character",
     help = "path to gtf file with gene annotations"
+  ),
+  make_option(
+    opt_str = c("-t", "--technology"),
+    type = "character",
+    help = "sequencing technology string to store in metadata"
   )
 )
 
@@ -85,7 +90,8 @@ which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               which_counts = which_counts,
-                              usa_mode = TRUE)
+                              usa_mode = TRUE,
+                              tech_version = opt$technology)
 
 
 # read and merge feature counts if present
