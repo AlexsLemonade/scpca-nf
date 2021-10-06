@@ -19,7 +19,8 @@ process make_unfiltered_sce{
           --alevin_dir ${alevin_dir} \
           --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito} \
-          --gtf_file ${gtf}
+          --gtf_file ${gtf} \
+          --technology ${meta.technology}
         """
 }
 
@@ -47,7 +48,8 @@ process make_merged_unfiltered_sce{
           --feature_name ${meta.feature_type} \
           --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito} \
-          --gtf_file ${gtf}
+          --gtf_file ${gtf} \
+          --technology ${meta.technology}
         """
 }
 
