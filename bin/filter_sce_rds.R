@@ -24,10 +24,18 @@ option_list <- list(
     opt_str = c("-l", "--lower"),
     type = "integer",
     help = "Value specifying the lower bound on total UMI count used in filtering with DropletUtils::emptyDrops."
- )
+ ),
+ make_option(
+   opt_str = c("-r", "--random_seed"),
+   type = "integer",
+   help = "A random seed for reproducibility."
+ ),
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
+
+# set seed
+set.seed(opt$random_seed)
 
 # check that unfiltered file file exists
 if(!file.exists(opt$unfiltered_file)){
