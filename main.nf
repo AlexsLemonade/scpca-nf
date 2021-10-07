@@ -22,8 +22,9 @@ cell_barcodes = [
   'cellhash_10Xv3.1': '3M-february-2018.txt'
   ]
 
-// supported single cell technologies
+// supported technologies
 tech_list = cell_barcodes.keySet()
+bulk_techs = ['single_end','paired_end']
 rna_techs = tech_list.findAll{it.startsWith('10Xv')}
 feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
 
@@ -75,6 +76,10 @@ workflow {
     .collect{it.library_id}
   rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs.getVal())}
     .collect{it.library_id}
+
+  // **** Process Bulk RNA-seq data *** 
+  bulk_ch = runs_ch.filter{it.technology in bulk_techs}
+  bulk_quant_rna(bulk_ch)
 
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
