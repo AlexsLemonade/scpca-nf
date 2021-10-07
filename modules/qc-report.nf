@@ -14,15 +14,15 @@ process sce_qc_report{
         workflow_url = workflow.repository ?: params.workflow_url
         """
         sce_qc_report.R \
-          --library_id ${meta.library_id} \
-          --sample_id ${meta.sample_id} \
+          --library_id "${meta.library_id}" \
+          --sample_id "${meta.sample_id}" \
           --unfiltered_sce ${unfiltered_rds} \
           --filtered_sce ${filtered_rds} \
           --qc_report_file ${qc_report} \
           --metadata_json ${metadata_json} \
-          --technology ${meta.technology} \
-          --seq_unit ${meta.seq_unit} \
-          --genome_assembly ${params.assembly} \
+          --technology "${meta.technology}" \
+          --seq_unit "${meta.seq_unit}" \
+          --genome_assembly "${params.assembly}" \
           --workflow_url "${workflow_url}" \
           --workflow_version "${workflow.revision}" \
           --workflow_commit "${workflow.commitId}"
