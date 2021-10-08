@@ -53,6 +53,8 @@ unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 # filter sce
 filtered_sce <- scpcaTools::filter_counts(unfiltered_sce,
                                           lower = opt$lower)
+# remove unfiltered for memory saving
+rm(unfiltered_sce)
 
 # need to remove old gene-level rowData statistics first
 drop_cols = colnames(rowData(filtered_sce)) %in% c('mean', 'detected')
@@ -62,10 +64,8 @@ rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
-# add prob_compromised to colData from miQC::mixtureModel and add model to metadata
-model <- miQC::mixtureModel(filtered_sce)
-filtered_sce <- miQC::filterCells(filtered_sce, model, posterior_cutoff = 1, verbose = FALSE)
-metadata(filtered_sce)$miQC_model <- model
+# add prob_compromised to colData and miQC model to metadata
+filtered_sce <- scpcaTools::add_miQC(filtered_sce)
 
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
