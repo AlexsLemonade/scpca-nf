@@ -65,7 +65,7 @@ filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
 # add prob_compromised to colData and miQC model to metadata
-filtered_sce <- add_miQC()
+filtered_sce <- scpcaTools::add_miQC()
 
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
