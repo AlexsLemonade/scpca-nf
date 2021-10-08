@@ -64,7 +64,7 @@ rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
-# add prob_compromised and miQC model to metadata
+# add prob_compromised to colData and miQC model to metadata
 filtered_sce <- add_miQC()
 
 # grab names of altExp, if any
