@@ -7,43 +7,43 @@ process fastp{
     tag "${meta.run_id}-bulk"
     publishDir "${params.outdir}/internal/fastp/${meta.library_id}"
     input: 
-        tuple val(meta),path(read1),path(read2)
+        tuple val(meta),path(read1), path(read2)
     output: 
         tuple val(meta),path(trimmed_read1),path(trimmed_read2)
     script: 
-        trimmed_data = "${params.outdir}/data/trimmed"
-        fastp_reports = "${params.outdir}/reports/fastp"
+        trimmed_read1 = "${params.outdir}/internal/fastp/${meta.library_id}/${meta.run_id}-trimmed-R1.fastq.gz"
+        trimmed_read2 = "${params.outdir}/internal/fastp/${meta.library_id}/${meta.run_id}-trimmed-R2.fastq.gz"
         """
-        mkdir -p data/trimmed
-        mkdir -p reports/fastp
+        mkdir -p ${params.outdir}/internal/fastp/${meta.library_id}
 
-        fastp --in1 {input.r1} --in2 {input.r2} /
-        --out1 "${trimmed_data}/${id}_R1_001_fastq.gz" /
-        --out2 "${trimmed_data}/${id}_R2_001_fastq.gz" /
-        --html "${fastp_reports}/${id}_fastp.html" /
-        --json "${fastp_reports}/${id}_fastp.json" /
-        --trim_poly_g /
-        --report_title '${id} report'
+        fastp --in1 ${read1} \
+        ${meta.library == 'paired_end' ? "--in2 ${read2}":""} \
+        --out1 "${trimmed_read1} \
+        ${meta.library == 'paired_end' ? "--out2 ${trimmed_read2}":""} \
+        --html "${fastp_reports}/${id}_fastp.html" \
+        --json "${fastp_reports}/${id}_fastp.json" \
+        --trim_poly_g \
+        --report_title ${meta.library_id}
         """
 
 }
 
 process salmon{
-    container 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
+    container params.SALMON_CONTAINER
     label 'cpus_8'
-    tag "${id}-${index}"
-    publishDir "${params.outdir}"
+    tag "${meta.run_id}-bulk"
+    publishDir "${params.outdir}/internal/${meta.project_id}/${meta.sample_id}"
     input: 
         tuple val(meta),path(trimmed_read1),path(trimmed_read2)
     output: 
-        tuple val(meta),path()
+        tuple val(meta),path(salmon_results)
     script:
-        salmon_results = "${params.outdir}/salmon-quant"
+        salmon_results = "${meta.library_id}-salmon"
         """
         salmon quant -i ${index} /
         -l A /
-        -1 "${trimmed_data}/${id}_R1_001_fastq.gz" /
-        -2 "${trimmed_data}/${id}_R2_001_fastq.gz" /
+        -1 ${trimmed_read1} /
+        ${meta.library == 'paired_end' ? "-2 ${trimmed_read2}":""} /
         -o ${salmon_results} /
         --threads ${task.cpus}
         """
@@ -55,16 +55,13 @@ workflow bulk_quant_rna {
     // a channel with a map of metadata for each rna library to process
     main: 
     // create tuple of (metadata map, [Read 1 files], [Read 2 files])
-    single_bulk_reads_ch = bulk_channel
-      .filter{it.technology == "single_end"}
-      .map{meta -> tuple(meta,
-                         file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"))}
-
-    paired_bulk_reads_ch = bulk_channel
-      .filter{it.technology == "paired_end"}
+    bulk_reads_ch = bulk_channel
       .map{meta -> tuple(meta,
                          file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
                          file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz"))}
+
+    fastp(bulk_reads_ch) \
+      | salmon
     
-    single_bulk
+    emit: salmon.out
 }
