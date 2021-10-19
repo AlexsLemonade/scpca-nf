@@ -16,10 +16,10 @@ process fastp{
         """
         fastp --in1 ${read1} \
         ${meta.technology == 'paired_end' ? "--in2 ${read2}":""} \
-        --out1 "${trimmed_read1} \
+        --out1 ${trimmed_read1} \
         ${meta.technology == 'paired_end' ? "--out2 ${trimmed_read2}":""} \
-        --html "${meta.library_id}_fastp.html" \
-        --json "${meta.library_id}_fastp.json" \
+        --html ${meta.library_id}_fastp.html \
+        --json ${meta.library_id}_fastp.json \
         --trim_poly_g \
         --report_title ${meta.library_id}
         """
