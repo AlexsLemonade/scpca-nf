@@ -18,9 +18,9 @@ process fastp{
         ${meta.technology == 'paired_end' ? "--in2 ${read2}":""} \
         --out1 ${trimmed_read1} \
         ${meta.technology == 'paired_end' ? "--out2 ${trimmed_read2}":""} \
+        --length_required 20 \
         --html ${meta.library_id}_fastp.html \
         --json ${meta.library_id}_fastp.json \
-        --trim_poly_g \
         --report_title ${meta.library_id}
         """
 
@@ -38,11 +38,15 @@ process salmon{
     script:
         salmon_results = "${meta.library_id}-salmon"
         """
-        salmon quant -i ${index} /
+        salmon quant -i ${params.bulk_index} /
         -l A /
         -1 ${trimmed_read1} /
         ${meta.technology == 'paired_end' ? "-2 ${trimmed_read2}":""} /
         -o ${salmon_results} /
+        --validateMappings /
+        --rangeFactorizationBins 4 /
+        --gcBias /
+        --seqBias /
         --threads ${task.cpus}
         """
 
