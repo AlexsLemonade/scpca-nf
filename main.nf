@@ -31,6 +31,7 @@ feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cel
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
+include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { generate_sce; generate_merged_sce } from './modules/generate-rds.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
