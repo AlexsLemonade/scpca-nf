@@ -11,17 +11,15 @@ process fastp{
     output: 
         tuple val(meta),path(trimmed_read1),path(trimmed_read2)
     script: 
-        trimmed_read1 = "${params.outdir}/internal/fastp/${meta.library_id}/${meta.run_id}-trimmed-R1.fastq.gz"
-        trimmed_read2 = "${params.outdir}/internal/fastp/${meta.library_id}/${meta.run_id}-trimmed-R2.fastq.gz"
+        trimmed_read1 = "${meta.run_id}-trimmed-R1.fastq.gz"
+        trimmed_read2 = "${meta.run_id}-trimmed-R2.fastq.gz"
         """
-        mkdir -p ${params.outdir}/internal/fastp/${meta.library_id}
-
         fastp --in1 ${read1} \
         ${meta.library == 'paired_end' ? "--in2 ${read2}":""} \
         --out1 "${trimmed_read1} \
         ${meta.library == 'paired_end' ? "--out2 ${trimmed_read2}":""} \
-        --html "${fastp_reports}/${id}_fastp.html" \
-        --json "${fastp_reports}/${id}_fastp.json" \
+        --html "${id}_fastp.html" \
+        --json "${id}_fastp.json" \
         --trim_poly_g \
         --report_title ${meta.library_id}
         """
@@ -32,13 +30,13 @@ process salmon{
     container params.SALMON_CONTAINER
     label 'cpus_8'
     tag "${meta.run_id}-bulk"
-    publishDir "${params.outdir}/internal/${meta.project_id}/${meta.sample_id}"
+    publishDir "${params.outdir}/internal/salmon/${meta.library_id}"
     input: 
         tuple val(meta),path(trimmed_read1),path(trimmed_read2)
     output: 
         tuple val(meta),path(salmon_results)
     script:
-        salmon_results = "${meta.library_id}-salmon"
+        salmon_results = "${meta.run_id}-salmon"
         """
         salmon quant -i ${index} /
         -l A /
