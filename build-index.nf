@@ -14,11 +14,12 @@ process generate_splici{
     path(fasta)
     val(assembly)
   output: 
-    tuple path(splici_fasta), path("annotation")
+    tuple path(splici_fasta), path(spliced_cdna_fasta), path("annotation")
   script:
     splici_fasta="fasta/${assembly}.spliced_intron.txome.fa.gz"
+    spliced_cdna_fasta="fasta/${assembly}.spliced_cdna.txome.fa.gz"
     """
-    make_splici_fasta.R \
+    make_reference_fasta.R \
       --gtf ${gtf} \
       --genome ${fasta} \
       --fasta_output fasta \
@@ -35,15 +36,30 @@ process salmon_index{
   publishDir "${params.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   input:
-    path(fasta)
+    tuple path(splici_fasta), path(spliced_cdna_fasta)
+    path(genome)
   output:
-    path(index_dir)
+    path(splici_index_dir)
+    path(spliced_cdna_index_dir)
   script:
-    index_dir = "${fasta}".split("\\.(fasta|fa)")[0]
+    splici_index_dir = "${splici_fasta}".split("\\.(fasta|fa)")[0]
+    spliced_cdna_index_dir = "${spliced_cdna_fasta}".split("\\.(fasta|fa)")[0]
     """
     salmon index \
-      -t ${fasta} \
-      -i ${index_dir} \
+      -t ${splici_fasta} \
+      -i ${splici_index_dir} \
+      -k 31 \
+      -p ${task.cpus} \
+
+    gunzip -c ${genome} \
+      |grep "^>" | cut -d " " -f 1 \
+      |sed -e 's/>//g' > decoys.txt
+    cat ${spliced_cdna_fasta} ${genome} > gentrome.fa.gz
+
+    salmon index \
+      -t gentrome.fa.gz \
+      -d decoys.txt \
+      -i ${spliced_cdna_index_dir} \
       -k 31 \
       -p ${task.cpus} \
     """
@@ -51,8 +67,8 @@ process salmon_index{
 
 
 workflow {
-  // generate splici reference fasta
-  generate_splici(params.gtf, params.fasta, params.assembly)
-  // create index using splici reference fasta
-  salmon_index(generate_splici.out)
+  // generate splici and spliced cDNA reference fasta
+  generate_fasta(params.gtf, params.fasta, params.assembly)
+  // create index using reference fastas
+  salmon_index(generate_fasta.out, params.fasta)
 }
