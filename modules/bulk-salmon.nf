@@ -39,7 +39,7 @@ process salmon{
         salmon_results = "${meta.library_id}-salmon"
         """
         salmon quant -i ${params.bulk_index} /
-        -l A /
+        -libType A /
         -1 ${trimmed_read1} /
         ${meta.technology == 'paired_end' ? "-2 ${trimmed_read2}":""} /
         -o ${salmon_results} /
