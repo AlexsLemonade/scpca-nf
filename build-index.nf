@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 // generate fasta and annotation files with spliced cDNA + intronic reads 
-process generate_splici{
+process generate_fasta{
   container params.SCPCATOOLS_CONTAINER
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
@@ -14,7 +14,7 @@ process generate_splici{
     path(fasta)
     val(assembly)
   output: 
-    tuple path(splici_fasta), path(spliced_cdna_fasta), path("annotation")
+    tuple path(splici_fasta), path(spliced_cdna_fasta)
   script:
     splici_fasta="fasta/${assembly}.spliced_intron.txome.fa.gz"
     spliced_cdna_fasta="fasta/${assembly}.spliced_cdna.txome.fa.gz"
