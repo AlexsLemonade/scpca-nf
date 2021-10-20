@@ -5,19 +5,20 @@ process fastp{
     container params.FASTP_CONTAINER
     label 'cpus_8'
     tag "${meta.library_id}-bulk"
-    publishDir "${params.outdir}/internal/fastp/${meta.library_id}"
+    publishDir "${params.outdir}/internal/fastp"
     input: 
         tuple val(meta),path(read1), path(read2)
     output: 
-        tuple val(meta),path(trimmed_read1),path(trimmed_read2)
+        tuple val(meta),path(trimmed_reads)
     script: 
-        trimmed_read1 = "${meta.library_id}-trimmed-R1.fastq.gz"
-        trimmed_read2 = "${meta.library_id}-trimmed-R2.fastq.gz"
+        trimmed_reads = "${meta.library_id}"
         """
+        mkdir -p ${meta.library_id}
+
         fastp --in1 ${read1} \
         ${meta.technology == 'paired_end' ? "--in2 ${read2}":""} \
-        --out1 ${trimmed_read1} \
-        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_read2}":""} \
+        --out1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz \
+        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz":""} \
         --length_required 20 \
         --html ${meta.library_id}_fastp.html \
         --json ${meta.library_id}_fastp.json \
@@ -32,16 +33,16 @@ process salmon{
     tag "${meta.library_id}-bulk"
     publishDir "${params.outdir}/internal/salmon/${meta.library_id}"
     input: 
-        tuple val(meta),path(trimmed_read1),path(trimmed_read2)
+        tuple val(meta),path(trimmed_reads)
     output: 
         tuple val(meta),path(salmon_results)
     script:
         salmon_results = "${meta.library_id}-salmon"
         """
         salmon quant -i ${params.bulk_index} /
-        -libType A /
-        -1 ${trimmed_read1} /
-        ${meta.technology == 'paired_end' ? "-2 ${trimmed_read2}":""} /
+        --libType A /
+        -1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz /
+        ${meta.technology == 'paired_end' ? "-2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz":""} /
         -o ${salmon_results} /
         --validateMappings /
         --rangeFactorizationBins 4 /
