@@ -50,7 +50,7 @@ option_list <- list(
     help = "Prefix name containing organism and ensembl assembly version to be used for file naming"
   ),
   make_option(
-    opt_str = c("-l","-flank_length"),
+    opt_str = c("-l","--flank_length"),
     type = "integer",
     default = 86,
     help = "Length of sequence flanking introns to be included in index, recommended to use read length minus 5."
@@ -60,7 +60,7 @@ option_list <- list(
 # Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
 
-## files with spliced + intron regions
+# files with spliced + intron regions
 spliced_intron_fasta_file <- paste0(opt$assembly, ".spliced_intron.txome.fa.gz")
 spliced_intron_gtf_file <- paste0(opt$assembly, ".spliced_intron.txome.gtf")
 spliced_intron_tx2gene_file <- paste0(opt$assembly, ".spliced_intron.tx2gene.tsv")
@@ -68,8 +68,13 @@ spliced_intron_tx2gene_3col_file <- paste0(opt$assembly, ".spliced_intron.tx2gen
 
 mito_file <- paste0(opt$assembly, ".mitogenes.txt")
 
-# make final output file names needed
+# files with spliced cDNA only 
+spliced_cdna_fasta_file <- paste0(opt$assembly, ".spliced_cdna.txome.fa.gz")
+spliced_cdna_gtf_file <- paste0(opt$assembly, ".spliced_cdna.txome.gtf")
+spliced_cdna_tx2gene_file <- paste0(opt$assembly, ".spliced_cdna.tx2gene.tsv")
 
+# make final output file names needed
+# splici output
 spliced_intron_fasta <- file.path(opt$fasta_output, spliced_intron_fasta_file)
 spliced_intron_gtf <- file.path(opt$annotation_output, spliced_intron_gtf_file)
 spliced_intron_tx2gene <- file.path(opt$annotation_output, 
@@ -77,6 +82,11 @@ spliced_intron_tx2gene <- file.path(opt$annotation_output,
 
 spliced_intron_tx2gene_3col <- file.path(opt$annotation_output, 
                                  spliced_intron_tx2gene_3col_file)
+
+# spliced cDNA output
+spliced_cdna_fasta <- file.path(opt$fasta_output, spliced_cdna_fasta_file)
+spliced_cdna_gtf <- file.path(opt$annotation_output, spliced_cdna_gtf_file)
+spliced_cdna_tx2gene <- file.path(opt$annotation_output, spliced_cdna_tx2gene_file)
 
 mito_out <- file.path(opt$annotation_output, mito_file)
 
@@ -95,7 +105,7 @@ if (!dir.exists(opt$annotation_output)) {
 grl <- eisaR::getFeatureRanges(
   gtf = opt$gtf,
   featureType = c("spliced", "intron"), 
-  flankLength = opts$flank_length,
+  flankLength = opt$flank_length,
   joinOverlappingIntrons = FALSE,
   verbose = TRUE
 )
@@ -158,3 +168,32 @@ mitogenes <- gtf[seqnames(gtf) == 'MT']
 
 # write out mitochondrial gene list
 writeLines(unique(mitogenes$gene_id), mito_out)
+
+# get list of all spliced transcript ID's
+spliced_cdna_genes = metadata(grl)$featurelist$spliced
+
+# subset sequences for only spliced cDNA
+spliced_cdna_grl = grl[spliced_cdna_genes]
+
+spliced_cdna_seqs <- GenomicFeatures::extractTranscriptSeqs(
+  x = genome, 
+  transcripts = spliced_cdna_grl
+)
+
+# write spliced sequences only to fasta file
+Biostrings::writeXStringSet(
+  spliced_cdna_seqs, filepath = spliced_cdna_fasta, compress = TRUE
+)
+
+# write the associated annotations to gtf 
+eisaR::exportToGtf(
+  spliced_cdna_grl, 
+  filepath = spliced_cdna_gtf
+)
+
+# get Tx2Gene for spliced transcripts
+spliced_cdna_tx2gene_df <- eisaR::getTx2Gene(spliced_cdna_grl)
+
+# write out Tx2Gene for spliced transcripts 
+readr::write_tsv(spliced_cdna_tx2gene_df, spliced_cdna_tx2gene, col_names = FALSE)
+
