@@ -14,7 +14,8 @@ process generate_fasta{
     path(fasta)
     val(assembly)
   output: 
-    tuple path(splici_fasta), path(spliced_cdna_fasta)
+    tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
+    path "annotation", emit: annotation_dir
   script:
     splici_fasta="fasta/${assembly}.spliced_intron.txome.fa.gz"
     spliced_cdna_fasta="fasta/${assembly}.spliced_cdna.txome.fa.gz"
@@ -70,5 +71,5 @@ workflow {
   // generate splici and spliced cDNA reference fasta
   generate_fasta(params.gtf, params.fasta, params.assembly)
   // create index using reference fastas
-  salmon_index(generate_fasta.out, params.fasta)
+  salmon_index(generate_fasta.fasta_files, params.fasta)
 }
