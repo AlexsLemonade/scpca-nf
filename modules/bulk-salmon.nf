@@ -39,15 +39,15 @@ process salmon{
     script:
         salmon_results = "${meta.library_id}-salmon"
         """
-        salmon quant -i ${params.bulk_index} /
-        --libType A /
-        -1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz /
-        ${meta.technology == 'paired_end' ? "-2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz":""} /
-        -o ${salmon_results} /
-        --validateMappings /
-        --rangeFactorizationBins 4 /
-        --gcBias /
-        --seqBias /
+        salmon quant -i ${params.bulk_index} \
+        --libType A \
+        -1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz \
+        ${meta.technology == 'paired_end' ? "-2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz":""} \
+        -o ${salmon_results} \
+        --validateMappings \
+        --rangeFactorizationBins 4 \
+        --gcBias \
+        --seqBias \
         --threads ${task.cpus}
         """
 
