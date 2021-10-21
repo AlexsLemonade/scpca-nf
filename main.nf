@@ -23,9 +23,9 @@ cell_barcodes = [
   ]
 
 // supported technologies
-single_cell_tech_list = cell_barcodes.keySet()
+single_cell_techs= cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
-all_tech_list = single_cell_tech_list.plus(bulk_techs)
+all_techs = single_cell_techs + bulk_techs
 rna_techs = single_cell_tech_list.findAll{it.startsWith('10Xv')}
 feature_techs = single_cell_tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
 
@@ -63,7 +63,7 @@ workflow {
       s3_prefix: it.s3_prefix,
     ]}
     // only technologies we know how to process
-    .filter{it.technology in all_tech_list} 
+    .filter{it.technology in all_techs} 
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
     .filter{run_all 

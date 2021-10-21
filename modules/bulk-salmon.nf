@@ -7,19 +7,20 @@ process fastp{
     tag "${meta.library_id}-bulk"
     publishDir "${params.outdir}/internal/fastp"
     input: 
-        tuple val(meta),path(read1), path(read2)
+        tuple val(meta), path(read1), path(read2)
     output: 
-        tuple val(meta),path(trimmed_reads)
+        tuple val(meta), path(trimmed_reads)
     script: 
         trimmed_reads = "${meta.library_id}"
         """
         mkdir -p ${meta.library_id}
 
         fastp --in1 ${read1} \
-        ${meta.technology == 'paired_end' ? "--in2 ${read2}":""} \
+        ${meta.technology == 'paired_end' ? "--in2 ${read2}" : ""} \
         --out1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz \
-        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz":""} \
+        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz" : ""} \
         --length_required 20 \
+        --thread ${task.cpus} \
         --html ${meta.library_id}_fastp.html \
         --json ${meta.library_id}_fastp.json \
         --report_title ${meta.library_id}
@@ -33,9 +34,9 @@ process salmon{
     tag "${meta.library_id}-bulk"
     publishDir "${params.outdir}/internal/salmon/${meta.library_id}"
     input: 
-        tuple val(meta),path(trimmed_reads)
+        tuple val(meta), path(trimmed_reads)
     output: 
-        tuple val(meta),path(salmon_results)
+        tuple val(meta), path(salmon_results)
     script:
         salmon_results = "${meta.library_id}-salmon"
         """
