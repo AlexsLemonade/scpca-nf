@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 // generate fasta and annotation files with spliced cDNA + intronic reads 
-process generate_fasta{
+process generate_reference{
   container params.SCPCATOOLS_CONTAINER
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
@@ -69,7 +69,7 @@ process salmon_index{
 
 workflow {
   // generate splici and spliced cDNA reference fasta
-  generate_fasta(params.gtf, params.fasta, params.assembly)
+  generate_reference(params.gtf, params.fasta, params.assembly)
   // create index using reference fastas
-  salmon_index(generate_fasta.fasta_files, params.fasta)
+  salmon_index(generate_reference.out.fasta_files, params.fasta)
 }
