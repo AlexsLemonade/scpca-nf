@@ -26,8 +26,8 @@ cell_barcodes = [
 single_cell_techs= cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
 all_techs = single_cell_techs + bulk_techs
-rna_techs = single_cell_tech_list.findAll{it.startsWith('10Xv')}
-feature_techs = single_cell_tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
+rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
+feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
 
 
 // include processes from modules

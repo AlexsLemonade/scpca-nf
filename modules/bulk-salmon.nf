@@ -9,20 +9,23 @@ process fastp{
     input: 
         tuple val(meta), path(read1), path(read2)
     output: 
-        tuple val(meta), path(trimmed_reads)
+        tuple val(meta), path(trimmed_reads), emit: salmon_input
+        path(fastp_report), emit: report
     script: 
         trimmed_reads = "${meta.library_id}"
+        fastp_report = "${meta.library_id}_fastp.html"
         """
         mkdir -p ${meta.library_id}
+        cat ${read1} > ${meta.library_id}_R1_merged.fastq.gz
+        cat ${read2} > ${meta.library_id}_R2_merged.fastq.gz
 
-        fastp --in1 ${read1} \
-        ${meta.technology == 'paired_end' ? "--in2 ${read2}" : ""} \
-        --out1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz \
-        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz" : ""} \
+        fastp --in1 ${meta.library_id}_R1_merged.fastq.gz \
+        ${meta.technology == 'paired_end' ? "--in2 ${meta.library_id}_R2_merged.fastq.gz" : ""} \
+        --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
+        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
         --length_required 20 \
         --thread ${task.cpus} \
-        --html ${meta.library_id}_fastp.html \
-        --json ${meta.library_id}_fastp.json \
+        --html ${fastp_report} \
         --report_title ${meta.library_id}
         """
 
@@ -34,16 +37,17 @@ process salmon{
     tag "${meta.library_id}-bulk"
     publishDir "${params.outdir}/internal/salmon/${meta.library_id}"
     input: 
-        tuple val(meta), path(trimmed_reads)
+        tuple val(meta), path(read_dir)
+        path (index)
     output: 
         tuple val(meta), path(salmon_results)
     script:
         salmon_results = "${meta.library_id}-salmon"
         """
-        salmon quant -i ${params.bulk_index} \
-        --libType A \
-        -1 ${trimmed_reads}/${meta.library_id}-trimmed-R1.fastq.gz \
-        ${meta.technology == 'paired_end' ? "-2 ${trimmed_reads}/${meta.library_id}-trimmed-R2.fastq.gz":""} \
+        salmon quant -i ${index} \
+        ${meta.technology == 'paired_end' ? "-l A" : "-l SR" } \
+        -1 ${read_dir}/*_R1_*.fastq.gz \
+        ${meta.technology == 'paired_end' ? "-2 ${read_dir}/*_R2_*.fastq.gz" : "" } \
         -o ${salmon_results} \
         --validateMappings \
         --rangeFactorizationBins 4 \
@@ -64,8 +68,8 @@ workflow bulk_quant_rna {
                              file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
                              file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz"))}
 
-        fastp(bulk_reads_ch) \
-          | salmon
+        fastp(bulk_reads_ch)
+        salmon(fastp.out.salmon_input, params.bulk_index)
     
         emit: salmon.out
 }
