@@ -35,17 +35,17 @@ process salmon{
     container params.SALMON_CONTAINER
     label 'cpus_8'
     tag "${meta.library_id}-bulk"
-    publishDir "${params.outdir}/internal/salmon/${meta.library_id}"
+    publishDir "${params.outdir}/internal/salmon/"
     input: 
         tuple val(meta), path(read_dir)
         path (index)
     output: 
         tuple val(meta), path(salmon_results)
     script:
-        salmon_results = "${meta.library_id}-salmon"
+        salmon_results = "${meta.library_id}"
         """
         salmon quant -i ${index} \
-        ${meta.technology == 'paired_end' ? "-l A" : "-l SR" } \
+        ${meta.technology == 'paired_end' ? "-l A" : "-l U" } \
         -1 ${read_dir}/*_R1_*.fastq.gz \
         ${meta.technology == 'paired_end' ? "-2 ${read_dir}/*_R2_*.fastq.gz" : "" } \
         -o ${salmon_results} \
