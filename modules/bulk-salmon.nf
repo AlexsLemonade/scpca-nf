@@ -14,6 +14,7 @@ process fastp{
         fastp_report = "${meta.library_id}_fastp.html"
         """
         mkdir -p ${meta.library_id}
+
         cat ${read1} > ${meta.library_id}_R1_merged.fastq.gz
         cat ${read2} > ${meta.library_id}_R2_merged.fastq.gz
 
@@ -41,8 +42,8 @@ process salmon{
         salmon_results = "${meta.library_id}"
         """
         salmon quant -i ${index} \
-        ${meta.technology == 'paired_end' ? "-l A" : "-l U" } \
-        -1 ${read_dir}/*_R1_*.fastq.gz \
+        -l A \
+        ${meta.technology == 'paired_end' ? "-1 ${read_dir}/*_R1_*.fastq.gz" : "-r ${read_dir}/*_R1_*.fastq.gz" } \
         ${meta.technology == 'paired_end' ? "-2 ${read_dir}/*_R2_*.fastq.gz" : "" } \
         -o ${salmon_results} \
         --validateMappings \
