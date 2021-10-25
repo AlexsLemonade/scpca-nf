@@ -5,12 +5,10 @@ process fastp{
     container params.FASTP_CONTAINER
     label 'cpus_8'
     tag "${meta.library_id}-bulk"
-    publishDir "${params.outdir}/internal/fastp"
     input: 
         tuple val(meta), path(read1), path(read2)
     output: 
-        tuple val(meta), path(trimmed_reads), emit: salmon_input
-        path(fastp_report), emit: report
+        tuple val(meta), path(trimmed_reads)
     script: 
         trimmed_reads = "${meta.library_id}"
         fastp_report = "${meta.library_id}_fastp.html"
@@ -24,9 +22,7 @@ process fastp{
         --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
         ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
         --length_required 20 \
-        --thread ${task.cpus} \
-        --html ${fastp_report} \
-        --report_title ${meta.library_id}
+        --thread ${task.cpus}
         """
 
 }
@@ -69,7 +65,7 @@ workflow bulk_quant_rna {
                              file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz"))}
 
         fastp(bulk_reads_ch)
-        salmon(fastp.out.salmon_input, params.bulk_index)
+        salmon(fastp.out, params.bulk_index)
     
         emit: salmon.out
 }
