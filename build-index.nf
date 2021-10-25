@@ -15,7 +15,7 @@ process generate_reference{
     val(assembly)
   output: 
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
-    path "annotation", emit: annotation_dir
+    tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
     splici_fasta="fasta/${assembly}.spliced_intron.txome.fa.gz"
     spliced_cdna_fasta="fasta/${assembly}.spliced_cdna.txome.fa.gz"
