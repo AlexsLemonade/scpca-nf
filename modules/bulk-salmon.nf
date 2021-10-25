@@ -16,7 +16,7 @@ process fastp{
         mkdir -p ${meta.library_id}
 
         fastp --in1 <(cat ${read1}) --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
-        ${meta.technology == 'paired_end' ? "--in2 cat <(${read2}) --out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
+        ${meta.technology == 'paired_end' ? "--in2 <(cat ${read2}) --out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
         --length_required 20 \
         --thread ${task.cpus}
         """
