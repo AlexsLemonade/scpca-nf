@@ -15,13 +15,8 @@ process fastp{
         """
         mkdir -p ${meta.library_id}
 
-        cat ${read1} > ${meta.library_id}_R1_merged.fastq.gz
-        cat ${read2} > ${meta.library_id}_R2_merged.fastq.gz
-
-        fastp --in1 ${meta.library_id}_R1_merged.fastq.gz \
-        ${meta.technology == 'paired_end' ? "--in2 ${meta.library_id}_R2_merged.fastq.gz" : ""} \
-        --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
-        ${meta.technology == 'paired_end' ? "--out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
+        fastp --in1 <(cat ${read1}) --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
+        ${meta.technology == 'paired_end' ? "--in2 cat <(${read2}) --out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
         --length_required 20 \
         --thread ${task.cpus}
         """
@@ -43,7 +38,7 @@ process salmon{
         """
         salmon quant -i ${index} \
         -l A \
-        ${meta.technology == 'paired_end' ? "-1 ${read_dir}/*_R1_*.fastq.gz" : "-r ${read_dir}/*_R1_*.fastq.gz" } \
+        ${meta.technology == 'paired_end' ? "-1": "-r"} ${read_dir}/*_R1_*.fastq.gz \
         ${meta.technology == 'paired_end' ? "-2 ${read_dir}/*_R2_*.fastq.gz" : "" } \
         -o ${salmon_results} \
         --validateMappings \
