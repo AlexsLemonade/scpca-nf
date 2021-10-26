@@ -22,14 +22,18 @@ cell_barcodes = [
   'cellhash_10Xv3.1': '3M-february-2018.txt'
   ]
 
-// supported single cell technologies
-tech_list = cell_barcodes.keySet()
-rna_techs = tech_list.findAll{it.startsWith('10Xv')}
-feature_techs = tech_list.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
+// supported technologies
+single_cell_techs= cell_barcodes.keySet()
+bulk_techs = ['single_end', 'paired_end']
+all_techs = single_cell_techs + bulk_techs
+rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
+feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
+
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
+include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { generate_sce; generate_merged_sce } from './modules/generate-rds.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
@@ -59,7 +63,7 @@ workflow {
       s3_prefix: it.s3_prefix,
     ]}
     // only technologies we know how to process
-    .filter{it.technology in tech_list} 
+    .filter{it.technology in all_techs} 
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
     .filter{run_all 
@@ -75,6 +79,10 @@ workflow {
     .collect{it.library_id}
   rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs.getVal())}
     .collect{it.library_id}
+
+  // **** Process Bulk RNA-seq data *** 
+  bulk_ch = runs_ch.filter{it.technology in bulk_techs}
+  bulk_quant_rna(bulk_ch)
 
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
