@@ -49,6 +49,25 @@ process salmon{
 
 }
 
+process group_tximport {
+    container params.SCPCA
+    tag "${meta.library_id}-bulk"
+    publishDir "${params.outdir}/publish/${meta.project_id}"
+    input:
+        tuple val(project_id), path('SCPCL*')
+        path(tx2gene)
+    output:
+        path(tximport_file)
+    script:
+        tximport_file = "${project_id}_bulk_quant.rds"
+        """
+        merge-counts-tximport.R \
+          --project_id ${project_id} \
+          --output_file ${tximport_file} \
+          --tx2gene ${tx2gene}
+        """
+}
+
 workflow bulk_quant_rna {
     take: bulk_channel 
     // a channel with a map of metadata for each rna library to process
@@ -64,3 +83,8 @@ workflow bulk_quant_rna {
     
         emit: salmon.out
 }
+
+grouped_salmon_ch = salmon.out
+  .map{[it[0]["project_id"], it[1]]}
+  .groupTuple(by: 0)
+group_tximport(grouped_salmon_ch, params.t2g_bulk_path)
