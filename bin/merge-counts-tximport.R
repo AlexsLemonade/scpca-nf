@@ -1,0 +1,59 @@
+#!/usr/bin/env Rscript
+
+# This script grabs the quant.sf output files from Salmon for all samples within a project
+# The files are then imported use tximport to generate a gene x count matrix
+# Output includes a counts matrix as a tab separated tsv file and a .Rds object containing the tximport object
+
+
+# load needed packages
+library(tximport)
+library(optparse)
+
+# Set up optparse options
+option_list <- list(
+  make_option(
+    opt_str = c("-p", "--project_id"),
+    type = "character",
+    help = "scpca project ID",
+  ),
+  make_option(
+    opt_str = c("-s", "--salmon_output"),
+    type = "character",
+    help = "Path to salmon output, must have one folder for each sample"
+  ),
+  make_option(
+    opt_str = c("-o", "--output_file"),
+    type = "character",
+    help = "Path to output RDS file, must end in .rds"
+  ),
+  make_option(
+    opt_str = c("-t", "--tx2gene"),
+    type = "character",
+    help = "Path to tx2gene file created from index used for mapping."
+  )
+)
+
+# Parse options
+opt <- parse_args(OptionParser(option_list = option_list))
+
+# get sample names
+library_ids <- list.dirs(path = opt$salmon_output, full.names = FALSE, recursive = FALSE)
+
+# read in tx2gene
+tx2gene <- readr::read_tsv(opt$tx2gene)
+
+# list of paths to salmon files 
+salmon_files <- file.path(opt$salmon_output, library_ids, "quant.sf")
+names(salmon_files) <- library_ids
+
+# import using tximport
+txi.salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
+
+# write counts matrix to txt file
+txi.salmon$counts %>%
+  as.data.frame %>%
+  tibble::rownames_to_column("gene_id") %>%
+  write_tsv(file = counts_file)
+
+# write tximport object to rds object
+readr::write_rds(txi.salmon, output_file)
