@@ -33,7 +33,7 @@ process salmon{
     output: 
         tuple val(meta), path(salmon_results)
     script:
-        salmon_results = "${project_id}/${meta.library_id}"
+        salmon_results = "${meta.library_id}"
         """
         salmon quant -i ${index} \
         -l A \
