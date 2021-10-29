@@ -83,11 +83,12 @@ workflow bulk_quant_rna {
 
         fastp(bulk_reads_ch)
         salmon(fastp.out, params.bulk_index)
-    
-        emit: salmon.out
-}
 
-grouped_salmon_ch = salmon.out
-  .map{[it[0]["project_id"], it[1]]}
-  .groupTuple(by: 0)
-group_tximport(grouped_salmon_ch, params.t2g_bulk_path)
+        grouped_salmon_ch = salmon.out
+            .map{[it[0]["project_id"], it[1]]}
+            .groupTuple(by: 0)
+
+        group_tximport(grouped_salmon_ch, params.t2g_bulk_path)
+    emit: 
+        group_tximport.out
+}
