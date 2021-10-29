@@ -17,9 +17,9 @@ option_list <- list(
     help = "scpca project ID",
   ),
   make_option(
-    opt_str = c("-s", "--salmon_output"),
+    opt_str = c("-s", "--salmon_dir"),
     type = "character",
-    help = "Path to salmon output, must have one folder for each sample"
+    help = "Path to salmon output directories"
   ),
   make_option(
     opt_str = c("-o", "--output_file"),
@@ -43,17 +43,18 @@ library_ids <- list.dirs(path = opt$salmon_output, full.names = FALSE, recursive
 tx2gene <- readr::read_tsv(opt$tx2gene)
 
 # list of paths to salmon files 
-salmon_files <- file.path(opt$salmon_output, library_ids, "quant.sf")
+library_ids <- readr::read_tsv(opt$salmon_dir)
+salmon_files <- file.path(library_ids, "quant.sf")
 names(salmon_files) <- library_ids
 
 # import using tximport
-txi.salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
+txi_salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
 
 # write counts matrix to txt file
-txi.salmon$counts %>%
+txi_salmon$counts %>%
   as.data.frame %>%
   tibble::rownames_to_column("gene_id") %>%
   write_tsv(file = counts_file)
 
 # write tximport object to rds object
-readr::write_rds(txi.salmon, output_file)
+readr::write_rds(txi_salmon, output_file)

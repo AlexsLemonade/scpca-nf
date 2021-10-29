@@ -33,7 +33,7 @@ process salmon{
     output: 
         tuple val(meta), path(salmon_results)
     script:
-        salmon_results = "${meta.library_id}"
+        salmon_results = "${project_id}/${meta.library_id}"
         """
         salmon quant -i ${index} \
         -l A \
@@ -50,7 +50,7 @@ process salmon{
 }
 
 process group_tximport {
-    container params.SCPCA
+    container params.SCPCATOOLS_CONTAINER
     tag "${meta.library_id}-bulk"
     publishDir "${params.outdir}/publish/${meta.project_id}"
     input:
@@ -61,8 +61,11 @@ process group_tximport {
     script:
         tximport_file = "${project_id}_bulk_quant.rds"
         """
+        ls -d 'SCPCL*' > salmon_directories.tsv
+
         merge-counts-tximport.R \
           --project_id ${project_id} \
+          --salmon_dir salmon_directories.tsv \
           --output_file ${tximport_file} \
           --tx2gene ${tx2gene}
         """
