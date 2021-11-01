@@ -51,7 +51,6 @@ process salmon{
 
 process group_tximport {
     container params.SCPCATOOLS_CONTAINER
-    tag "${meta.library_id}-bulk"
     publishDir "${params.outdir}/publish/${meta.project_id}"
     input:
         tuple val(project_id), path('SCPCL*')
@@ -59,9 +58,9 @@ process group_tximport {
     output:
         path(tximport_file)
     script:
-        tximport_file = "${project_id}_bulk_quant.rds"
+        tximport_file = "${project_id}_bulk_quant.tsv"
         """
-        ls -d 'SCPCL*' > salmon_directories.tsv
+        ls -d SCPCL* > salmon_directories.tsv
 
         merge-counts-tximport.R \
           --project_id ${project_id} \

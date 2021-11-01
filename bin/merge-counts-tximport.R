@@ -6,6 +6,7 @@
 
 
 # load needed packages
+library(magrittr)
 library(tximport)
 library(optparse)
 
@@ -36,11 +37,8 @@ option_list <- list(
 # Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# get sample names
-library_ids <- list.dirs(path = opt$salmon_output, full.names = FALSE, recursive = FALSE)
-
 # read in tx2gene
-tx2gene <- readr::read_tsv(opt$tx2gene)
+tx2gene <- readr::read_tsv(opt$tx2gene, col_names = c("transcript_id", "gene_id"))
 
 # list of paths to salmon files 
 library_ids <- readr::read_tsv(opt$salmon_dir)
@@ -54,7 +52,7 @@ txi_salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
 txi_salmon$counts %>%
   as.data.frame %>%
   tibble::rownames_to_column("gene_id") %>%
-  write_tsv(file = counts_file)
+  readr::write_tsv(file = opt$output_file)
 
 # write tximport object to rds object
-readr::write_rds(txi_salmon, output_file)
+#readr::write_rds(txi_salmon, opt$output_file)
