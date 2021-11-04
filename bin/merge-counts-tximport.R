@@ -41,7 +41,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 tx2gene <- readr::read_tsv(opt$tx2gene, col_names = c("transcript_id", "gene_id"))
 
 # list of paths to salmon files 
-library_ids <- readr::read_tsv(opt$salmon_dir)
+library_ids <- readLines(opt$salmon_dir)
 salmon_files <- file.path(library_ids, "quant.sf")
 names(salmon_files) <- library_ids
 
