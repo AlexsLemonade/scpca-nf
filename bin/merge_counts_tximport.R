@@ -53,6 +53,3 @@ txi_salmon$counts %>%
   as.data.frame %>%
   tibble::rownames_to_column("gene_id") %>%
   readr::write_tsv(file = opt$output_file)
-
-# write tximport object to rds object
-#readr::write_rds(txi_salmon, opt$output_file)

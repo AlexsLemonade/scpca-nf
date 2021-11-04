@@ -53,16 +53,16 @@ process group_tximport {
     container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/publish/${project_id}"
     input:
-        tuple val(project_id), path('SCPCL*')
+        tuple val(project_id), path(salmon_directories)
         path(tx2gene)
     output:
         path(tximport_file)
     script:
         tximport_file = "${project_id}_bulk_quant.tsv"
         """
-        ls -d SCPCL* > salmon_directories.txt
+        ls -d ${salmon_directories} > salmon_directories.txt
 
-        merge-counts-tximport.R \
+        merge_counts_tximport.R \
           --project_id ${project_id} \
           --salmon_dir salmon_directories.txt \
           --output_file ${tximport_file} \
