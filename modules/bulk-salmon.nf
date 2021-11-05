@@ -49,6 +49,27 @@ process salmon{
 
 }
 
+process group_tximport {
+    container params.SCPCATOOLS_CONTAINER
+    publishDir "${params.outdir}/publish/${project_id}"
+    input:
+        tuple val(project_id), path(salmon_directories)
+        path(tx2gene)
+    output:
+        path(tximport_file)
+    script:
+        tximport_file = "${project_id}_bulk_quant.tsv"
+        """
+        ls -d ${salmon_directories} > salmon_directories.txt
+
+        merge_counts_tximport.R \
+          --project_id ${project_id} \
+          --salmon_dirs salmon_directories.txt \
+          --output_file ${tximport_file} \
+          --tx2gene ${tx2gene}
+        """
+}
+
 workflow bulk_quant_rna {
     take: bulk_channel 
     // a channel with a map of metadata for each rna library to process
@@ -61,6 +82,12 @@ workflow bulk_quant_rna {
 
         fastp(bulk_reads_ch)
         salmon(fastp.out, params.bulk_index)
-    
-        emit: salmon.out
+
+        grouped_salmon_ch = salmon.out
+            .map{[it[0]["project_id"], it[1]]}
+            .groupTuple(by: 0)
+
+        group_tximport(grouped_salmon_ch, params.t2g_bulk_path)
+    emit: 
+        group_tximport.out
 }
