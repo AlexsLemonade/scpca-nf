@@ -18,9 +18,9 @@ option_list <- list(
     help = "scpca project ID",
   ),
   make_option(
-    opt_str = c("-s", "--salmon_dir"),
+    opt_str = c("-s", "--salmon_dirs"),
     type = "character",
-    help = "Path to salmon output directories"
+    help = "Path to text file containing salmon output directories, one per line."
   ),
   make_option(
     opt_str = c("-o", "--output_file"),
@@ -41,7 +41,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 tx2gene <- readr::read_tsv(opt$tx2gene, col_names = c("transcript_id", "gene_id"))
 
 # list of paths to salmon files 
-library_ids <- readLines(opt$salmon_dir)
+library_ids <- readLines(opt$salmon_dirs)
 salmon_files <- file.path(library_ids, "quant.sf")
 names(salmon_files) <- library_ids
 
@@ -50,6 +50,6 @@ txi_salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
 
 # write counts matrix to txt file
 txi_salmon$counts %>%
-  as.data.frame %>%
+  as.data.frame() %>%
   tibble::rownames_to_column("gene_id") %>%
   readr::write_tsv(file = opt$output_file)

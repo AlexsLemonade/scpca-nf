@@ -64,7 +64,7 @@ process group_tximport {
 
         merge_counts_tximport.R \
           --project_id ${project_id} \
-          --salmon_dir salmon_directories.txt \
+          --salmon_dirs salmon_directories.txt \
           --output_file ${tximport_file} \
           --tx2gene ${tx2gene}
         """
