@@ -25,7 +25,8 @@ cell_barcodes = [
 // supported technologies
 single_cell_techs= cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
-all_techs = single_cell_techs + bulk_techs
+spatial_techs = ["spatial", "visium_v1", "visium_v2"]
+all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
 
@@ -34,6 +35,7 @@ feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsW
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
+include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce } from './modules/generate-rds.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
@@ -61,6 +63,8 @@ workflow {
       feature_barcode_file: it.feature_barcode_file,
       feature_barcode_geom: it.feature_barcode_geom,
       s3_prefix: it.s3_prefix,
+      slide_serial_number: it.slide_serial_number,
+      slide_section: it.slide_section
     ]}
     // only technologies we know how to process
     .filter{it.technology in all_techs} 
@@ -83,6 +87,10 @@ workflow {
   // **** Process Bulk RNA-seq data *** 
   bulk_ch = runs_ch.filter{it.technology in bulk_techs}
   bulk_quant_rna(bulk_ch)
+
+  // **** Process Spatial Transcriptomics data ****
+  spatial_ch = runs_ch.filter{it.technology in spatial_techs}
+  spaceranger_quant(spatial_ch)
 
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
