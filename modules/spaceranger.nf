@@ -2,10 +2,10 @@
 nextflow.enable.dsl=2
 
 process spaceranger{
-  container SPACERANGER_CONTAINER
+  container params.SPACERANGER_CONTAINER
   publishDir "${params.outdir}/internal/spaceranger/${meta.library_id}"
-  tag "${meta.scpca_run_id}-spatial" 
-  label 'cpus_8'
+  tag "${meta.run_id}-spatial" 
+  label 'cpus_12'
   label 'bigdisk'
   input:
     tuple val(meta), path(fastq_dir), file(image_file)
@@ -51,8 +51,7 @@ workflow spaceranger_quant{
     // a channel with a map of metadata for each spatial library to process 
     main: 
         // create tuple of (metadata map, [])
-        spaceranger_reads = ch_reads
-          .filter{it.technology in spatial_techs}
+        spaceranger_reads = spatial_channel
           // add sample names to metadata
           .map{it.cr_samples =  getCRsamples(it.files); it}
           // create tuple of [metadata, fastq dir, and path to image file]
