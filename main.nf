@@ -89,10 +89,6 @@ workflow {
   bulk_ch = runs_ch.filter{it.technology in bulk_techs}
   bulk_quant_rna(bulk_ch)
 
-  // **** Process Spatial Transcriptomics data ****
-  spatial_ch = runs_ch.filter{it.technology in spatial_techs}
-  spaceranger_quant(spatial_ch)
-
   // **** Process RNA-seq data ****
   rna_ch = runs_ch.filter{it.technology in rna_techs}
   map_quant_rna(rna_ch)
@@ -116,6 +112,10 @@ workflow {
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
   merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+
+   // **** Process Spatial Transcriptomics data ****
+  spatial_ch = runs_ch.filter{it.technology in spatial_techs}
+  spaceranger_quant(spatial_ch)
 
   // **** Generate QC reports ****
   // Make channel for all library sce files & run QC report
