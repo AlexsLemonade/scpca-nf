@@ -26,6 +26,8 @@ process spaceranger{
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section}
 
+    rm ${output_id}/outs/*.bam & ${output_id}/outs/*.bam.bai
+
     """
 }
 
