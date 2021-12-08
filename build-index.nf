@@ -81,14 +81,11 @@ process cellranger_index{
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
-    cellranger mkgtf \
-      genome.gtf \
-      filtered.gtf
     
     cellranger mkref \
       --genome=${cellranger_index} \
       --fasta=genome.fasta \
-      --genes=filtered.gtf \
+      --genes=genome.gtf \
       --nthreads=${task.cpus}
     """
 }
