@@ -68,7 +68,7 @@ workflow spaceranger_quant{
                             )}
 
         // run spaceranger 
-        spaceranger(spaceranger_reads, params.spaceranger_index)
+        spaceranger(spaceranger_reads, params.cellranger_index)
 
     // tuple of metadata and path to spaceranger output directory 
     emit: spaceranger.out
