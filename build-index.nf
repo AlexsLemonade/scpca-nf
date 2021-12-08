@@ -83,8 +83,7 @@ process cellranger_index{
     gunzip -c ${gtf} > genome.gtf
     cellranger mkgtf \
       genome.gtf \
-      filtered.gtf \
-      --attribute=gene_biotype:protein_coding
+      filtered.gtf
     
     cellranger mkref \
       --genome=${cellranger_index} \
@@ -98,9 +97,9 @@ process cellranger_index{
 
 workflow {
   // generate splici and spliced cDNA reference fasta
-  generate_reference(params.gtf, params.fasta, params.assembly)
+  //generate_reference(params.gtf, params.fasta, params.assembly)
   // create index using reference fastas
-  salmon_index(generate_reference.out.fasta_files, params.fasta)
+  //salmon_index(generate_reference.out.fasta_files, params.fasta)
   // create cellranger index 
   cellranger_index(params.fasta, params.gtf, params.assembly)
 }
