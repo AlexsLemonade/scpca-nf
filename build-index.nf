@@ -77,7 +77,7 @@ process cellranger_index{
   output:
     path(cellranger_index)
   script:
-    cellranger_index = "${assembly}_cdna_cellranger"
+    cellranger_index = "${assembly}_cellranger_full"
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
