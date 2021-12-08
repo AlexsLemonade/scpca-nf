@@ -11,12 +11,12 @@ process spaceranger{
     tuple val(meta), path(fastq_dir), file(image_file)
     path index
   output:
-    tuple val(meta), path(output_id)
+    tuple val(meta), path(outs_dir)
   script:
-    output_id = "${meta.run_id}-spatial"
+    outs_dir = "${meta.run_id}-spatial/outs"
     """
     spaceranger count \
-      --id=${output_id} \
+      --id=${meta.run_id}-spatial \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
@@ -26,7 +26,12 @@ process spaceranger{
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section}
 
-    rm ${output_id}/outs/*.bam & ${output_id}/outs/*.bam.bai
+    # remove bam files 
+    rm ${outs_dir}/*.bam & ${outs_dir}/*.bam.bai
+
+    # copy over needed files to outs directory 
+    mv ${meta.run_id}-spatial/_versions ${outs_dir}/spaceranger_versions.json
+    mv ${meta.run_id}-spatial/${meta.run_id}-spatial.mri.tgz ${outs_dir}
 
     """
 }
