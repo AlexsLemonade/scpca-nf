@@ -69,7 +69,7 @@ process salmon_index{
 process cellranger_index{
   container params.CELLRANGER_CONTAINER
   publishDir "${params.ref_dir}/cellranger_index", mode: 'copy'
-  label 'cpus_8'
+  label 'cpus_12'
   input:
     path(fasta)
     path(gtf)
