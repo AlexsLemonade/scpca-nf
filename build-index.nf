@@ -66,10 +66,37 @@ process salmon_index{
     """
 }
 
+process cellranger_index{
+  container params.CELLRANGER_CONTAINER
+  publishDir "${params.ref_dir}/cellranger_index", mode: 'copy'
+  label 'cpus_12'
+  input:
+    path(fasta)
+    path(gtf)
+    val(assembly)
+  output:
+    path(cellranger_index)
+  script:
+    cellranger_index = "${assembly}_cellranger_full"
+    """
+    gunzip -c ${fasta} > genome.fasta
+    gunzip -c ${gtf} > genome.gtf
+    
+    cellranger mkref \
+      --genome=${cellranger_index} \
+      --fasta=genome.fasta \
+      --genes=genome.gtf \
+      --nthreads=${task.cpus}
+    """
+}
+
+
 
 workflow {
   // generate splici and spliced cDNA reference fasta
   generate_reference(params.gtf, params.fasta, params.assembly)
   // create index using reference fastas
   salmon_index(generate_reference.out.fasta_files, params.fasta)
+  // create cellranger index 
+  cellranger_index(params.fasta, params.gtf, params.assembly)
 }
