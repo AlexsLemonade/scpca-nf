@@ -27,7 +27,7 @@ process spaceranger{
       --area=${meta.slide_section}
 
     # remove bam files 
-    rm ${outs_dir}/*.bam & ${outs_dir}/*.bam.bai
+    rm ${outs_dir}/*.bam && rm ${outs_dir}/*.bam.bai
 
     # copy over needed files to outs directory 
     mv ${meta.run_id}-spatial/_versions ${outs_dir}/spaceranger_versions.json
