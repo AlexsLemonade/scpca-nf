@@ -31,7 +31,6 @@ process spaceranger{
 
     # copy over needed files to outs directory 
     mv ${meta.run_id}-spatial/_versions ${outs_dir}/spaceranger_versions.json
-    mv ${meta.run_id}-spatial/${meta.run_id}-spatial.mri.tgz ${outs_dir}
 
     """
 }
