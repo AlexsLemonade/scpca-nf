@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 
 process spaceranger{
   container params.SPACERANGER_CONTAINER
-  publishDir "${params.outdir}/internal/spaceranger/${meta.library_id}"
+  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   tag "${meta.run_id}-spatial" 
   label 'cpus_12'
   label 'bigdisk'
@@ -11,12 +11,13 @@ process spaceranger{
     tuple val(meta), path(fastq_dir), file(image_file)
     path index
   output:
-    tuple val(meta), path(outs_dir)
+    tuple val(meta), path(spatial_out)
   script:
-    outs_dir = "${meta.run_id}-spatial/outs"
+    spatial_out = "${meta.library_id}"
+    outs_dir = "${meta.run_id}/outs"
     """
     spaceranger count \
-      --id=${meta.run_id}-spatial \
+      --id=${meta.run_id} \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
@@ -24,13 +25,19 @@ process spaceranger{
       --localmem=${task.memory.toGiga()} \
       --image=${image_file} \
       --slide=${meta.slide_serial_number} \
-      --area=${meta.slide_section}
+      --area=${meta.slide_section} 
 
-    # remove bam files 
-    rm ${outs_dir}/*.bam && rm ${outs_dir}/*.bam.bai
+    # make a new directory to hold only the outs file we want to publish 
+    mkdir ${spatial_out}
 
-    # copy over needed files to outs directory 
-    mv ${meta.run_id}-spatial/_versions ${outs_dir}/spaceranger_versions.json
+    # move over needed files to outs directory 
+    mv ${outs_dir}/filtered_feature_barcode_bc_matrix ${spatial_out}
+    mv ${outs_dir}/raw_feature_bc_matrix ${spatial_out}
+    mv ${outs_dir}/spatial ${spatial_out}
+    mv ${outs_dir}/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
+
+    # move over versions file temporarily to be passed to metadata.json
+    mv ${meta.run_id}/_versions ${outs_dir}/spaceranger_versions.json
 
     """
 }
