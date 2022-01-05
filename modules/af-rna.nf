@@ -4,6 +4,7 @@
 process alevin_rad{
   container params.SALMON_CONTAINER
   label 'cpus_12'
+  label 'bigdisk'
   tag "${meta.run_id}-rna"
   publishDir "${params.outdir}/internal/rad/${meta.library_id}"
   input:
