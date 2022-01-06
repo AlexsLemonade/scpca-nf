@@ -42,6 +42,31 @@ process spaceranger{
     """
 }
 
+process make_metadata{
+  container 
+  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  input:
+    tuple val(meta), path(spatial_out)
+  output:
+    tuple val(meta), path(metadata_json)
+  script:
+    metadata_json = "${meta.library_id}_metadata.json" 
+    workflow_url = workflow.repository ?: params.workflow_url
+    """
+    generate_spaceranger_metadata.R \
+      --library_id ${meta.library_id} \
+      --sample_id ${meta.sample_id} \
+      --raw_spatial_out ${spatial_out}/raw_feature_bc_matrix
+      --metadata_json ${metadata_json} \
+      --technology ${meta.technology} \
+      --seq_unit ${meta.seq_unit} \
+      --genome_assembly ${params.assembly} \
+      --workflow_url "${workflow_url}" \
+      --workflow_version "${workflow.revision}" \
+      --workflow_commit "${workflow.commitId}"
+    """
+}
+
 def getCRsamples(filelist){
   // takes a string with semicolon separated file names
   // returns just the 'sample info' portion of the file names,
@@ -74,7 +99,8 @@ workflow spaceranger_quant{
                             )}
 
         // run spaceranger 
-        spaceranger(spaceranger_reads, params.cellranger_index)
+        spaceranger(spaceranger_reads, params.cellranger_index) \
+          | make_metadata
 
     // tuple of metadata and path to spaceranger output directory 
     emit: spaceranger.out
