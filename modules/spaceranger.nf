@@ -36,19 +36,21 @@ process spaceranger{
     mv ${outs_dir}/spatial ${spatial_out}
     mv ${outs_dir}/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
 
-    # move over versions file temporarily to be passed to metadata.json
+    # move over versions and metrics summary file temporarily to be passed to metadata.json
     mv ${meta.run_id}/_versions ${spatial_out}/spaceranger_versions.json
+    mv ${outs_dir}/metrics_summary.csv ${spatial_out}/spaceranger_metrics_summary.csv
 
     """
 }
 
 process make_metadata{
-  container 
+  container SCPCATOOLS_CONTAINER
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
+    path (index)
   output:
-    tuple val(meta), path(metadata_json)
+    tuple val(meta), path(spatial_out), path(metadata_json)
   script:
     metadata_json = "${meta.library_id}_metadata.json" 
     workflow_url = workflow.repository ?: params.workflow_url
@@ -56,11 +58,15 @@ process make_metadata{
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
       --sample_id ${meta.sample_id} \
-      --raw_spatial_out ${spatial_out}/raw_feature_bc_matrix
+      --unfiltered_barcodes_file "${spatial_out}/raw_feature_bc_matrix/barcodes.tsv.gz" \
+      --filtered_barcodes_file "${spatial_out}/filtered_feature_bc_matrix/barcodes.tsv.gz" \
+      --metrics_summary_file "${spatial_out}/spaceranger_metrics_summary.csv" \
+      --spaceranger_versions_file "${spatial_out}/spaceranger_versions.json" \
       --metadata_json ${metadata_json} \
       --technology ${meta.technology} \
       --seq_unit ${meta.seq_unit} \
       --genome_assembly ${params.assembly} \
+      --index_path ${index} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
@@ -99,10 +105,12 @@ workflow spaceranger_quant{
                             )}
 
         // run spaceranger 
-        spaceranger(spaceranger_reads, params.cellranger_index) \
-          | make_metadata
+        spaceranger(spaceranger_reads, params.cellranger_index) 
 
-    // tuple of metadata and path to spaceranger output directory 
-    emit: spaceranger.out
+        // generate metadata.json
+        make_metadata(spaceranger.out, params.cellranger_index)
+
+    // tuple of metadata, path to spaceranger output directory and path to metadata.json
+    emit: make_metadata.out
   
 }
