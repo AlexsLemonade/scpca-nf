@@ -14,10 +14,10 @@ process spaceranger{
     tuple val(meta), path(spatial_out)
   script:
     spatial_out = "${meta.library_id}"
-    outs_dir = "${meta.run_id}/outs"
+    outs_dir = "${meta.run_id}-spatial/outs"
     """
     spaceranger count \
-      --id=${meta.run_id} \
+      --id=${meta.run_id}-spatial \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
