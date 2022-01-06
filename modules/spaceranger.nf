@@ -6,7 +6,7 @@ process spaceranger{
   publishDir "${params.outdir}/internal/spaceranger/${meta.library_id}"
   tag "${meta.run_id}-spatial" 
   label 'cpus_12'
-  label 'bigdisk'
+  label 'disk_big'
   input:
     tuple val(meta), path(fastq_dir), file(image_file)
     path index
