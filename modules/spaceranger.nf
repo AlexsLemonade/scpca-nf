@@ -37,7 +37,7 @@ process spaceranger{
     mv ${outs_dir}/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
 
     # move over versions file temporarily to be passed to metadata.json
-    mv ${meta.run_id}/_versions ${outs_dir}/spaceranger_versions.json
+    mv ${meta.run_id}/_versions ${spatial_out}/spaceranger_versions.json
 
     """
 }
