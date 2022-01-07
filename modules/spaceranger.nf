@@ -44,7 +44,7 @@ process spaceranger{
 }
 
 process make_metadata{
-  container SCPCATOOLS_CONTAINER
+  container params.SCPCATOOLS_CONTAINER
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
