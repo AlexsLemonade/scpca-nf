@@ -89,15 +89,21 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
+
+# check for sample and library id
 if(is.null(opt$library_id)){
   stop("A `library_id` is required.")
 }
+if(is.null(opt$sample_id)){
+  stop("A `sample_id` is required.")
+}
+
 # check that barcode files exist
 if(is.null(opt$unfiltered_barcodes_file) || !dir.exists(opt$unfiltered_barcodes_file)){
   stop("Unfiltered barcodes file missing or `unfiltered_barcodes_file` not specified.")
 }
 if(is.null(opt$filtered_barcodes_file) || !file.exists(opt$filtered_barcodes_file)){
-  stop("Unfiltered barcodes file missing or `unfiltered_barcodes_file` not specified.")
+  stop("Filtered barcodes file missing or `filtered_barcodes_file` not specified.")
 }
 
 # check that metrics summary file exists 
@@ -110,6 +116,7 @@ if(is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versio
   stop("Versions file missing or `spaceranger_versions_file` not specified.")
 }
 
+# replace workflow url and commit if not provided
 if (opt$workflow_url == "null"){
   opt$workflow_url <- NA
 }
