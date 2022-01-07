@@ -15,10 +15,11 @@ process spaceranger{
   script:
     spatial_out = "${meta.library_id}"
     outs_dir = "${meta.run_id}-spatial/outs"
+    meta.cellranger_index = "${index}"
     """
     spaceranger count \
       --id=${meta.run_id}-spatial \
-      --transcriptome=${index} \
+      --transcriptome=${meta.cellranger_index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
@@ -48,9 +49,8 @@ process spaceranger_metadata{
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
-    path (index)
   output:
-    tuple val(meta), path(spatial_out), path(metadata_json)
+    tuple val(meta), path(metadata_json)
   script:
     metadata_json = "${meta.library_id}_metadata.json" 
     workflow_url = workflow.repository ?: params.workflow_url
@@ -66,7 +66,7 @@ process spaceranger_metadata{
       --technology ${meta.technology} \
       --seq_unit ${meta.seq_unit} \
       --genome_assembly ${params.assembly} \
-      --index_path ${index} \
+      --index_path ${meta.cellranger_index} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
@@ -104,13 +104,12 @@ workflow spaceranger_quant{
                             file("s3://${meta.s3_prefix}/*.jpg")
                             )}
 
-        // run spaceranger 
-        spaceranger(spaceranger_reads, params.cellranger_index) 
+        // run spaceranger
+        spaceranger(spaceranger_reads, params.cellranger_index) \
+          // generate metadata.json
+          | spaceranger_metadata
 
-        // generate metadata.json
-        make_metadata(spaceranger.out, params.cellranger_index)
-
-    // tuple of metadata, path to spaceranger output directory and path to metadata.json
-    emit: make_metadata.out
+    // tuple of metadata and path to spaceranger output directory
+    emit: spaceranger.out
   
 }
