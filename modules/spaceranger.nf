@@ -43,7 +43,7 @@ process spaceranger{
     """
 }
 
-process make_metadata{
+process spaceranger_metadata{
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:

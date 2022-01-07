@@ -99,7 +99,7 @@ if(is.null(opt$sample_id)){
 }
 
 # check that barcode files exist
-if(is.null(opt$unfiltered_barcodes_file) || !dir.exists(opt$unfiltered_barcodes_file)){
+if(is.null(opt$unfiltered_barcodes_file) || !file.exists(opt$unfiltered_barcodes_file)){
   stop("Unfiltered barcodes file missing or `unfiltered_barcodes_file` not specified.")
 }
 if(is.null(opt$filtered_barcodes_file) || !file.exists(opt$filtered_barcodes_file)){
