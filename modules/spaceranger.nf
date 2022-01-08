@@ -38,9 +38,8 @@ process spaceranger{
     mv ${outs_dir}/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
 
     # move over versions and metrics summary file temporarily to be passed to metadata.json
-    mv ${meta.run_id}/_versions ${spatial_out}/spaceranger_versions.json
+    mv ${meta.run_id}-spatial/_versions ${spatial_out}/spaceranger_versions.json
     mv ${outs_dir}/metrics_summary.csv ${spatial_out}/spaceranger_metrics_summary.csv
-
     """
 }
 
