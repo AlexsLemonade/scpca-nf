@@ -14,7 +14,7 @@ process spaceranger{
     tuple val(meta), path(spatial_out)
   script:
     spatial_out = "${meta.library_id}"
-    outs_dir = "${meta.run_id}-spatial/outs"
+    out_id = "${meta.run_id}-spatial"
     """
     spaceranger count \
       --id=${meta.run_id}-spatial \
@@ -31,13 +31,13 @@ process spaceranger{
     mkdir ${spatial_out}
 
     # move over needed files to outs directory 
-    mv ${outs_dir}/filtered_feature_bc_matrix ${spatial_out}
-    mv ${outs_dir}/raw_feature_bc_matrix ${spatial_out}
-    mv ${outs_dir}/spatial ${spatial_out}
-    mv ${outs_dir}/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
+    mv ${out_id}/outs/filtered_feature_bc_matrix ${spatial_out}
+    mv ${out_id}/outs/raw_feature_bc_matrix ${spatial_out}
+    mv ${out_id}/outs/spatial ${spatial_out}
+    mv ${out_id}/outs/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
 
     # move over versions file temporarily to be passed to metadata.json
-    mv ${meta.run_id}-spatial/_versions ${spatial_out}/spaceranger_versions.json
+    mv ${out_id}/_versions ${spatial_out}/spaceranger_versions.json
 
     """
 }
