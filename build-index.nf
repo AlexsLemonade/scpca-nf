@@ -94,9 +94,9 @@ process cellranger_index{
 
 workflow {
   // generate splici and spliced cDNA reference fasta
-  generate_reference(params.gtf, params.fasta, params.assembly)
+  generate_reference(params.ref_gtf, params.ref_fasta, params.assembly)
   // create index using reference fastas
-  salmon_index(generate_reference.out.fasta_files, params.fasta)
+  salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
   // create cellranger index 
-  cellranger_index(params.fasta, params.gtf, params.assembly)
+  cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
 }
