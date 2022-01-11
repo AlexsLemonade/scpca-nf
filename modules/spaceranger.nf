@@ -15,6 +15,7 @@ process spaceranger{
   script:
     spatial_out = "${meta.library_id}"
     out_id = "${meta.run_id}-spatial"
+    meta.cellranger_index = index.fileName
     """
     spaceranger count \
       --id=${out_id} \
@@ -38,7 +39,36 @@ process spaceranger{
 
     # move over versions file temporarily to be passed to metadata.json
     mv ${out_id}/_versions ${spatial_out}/spaceranger_versions.json
+    mv ${out_id}/outs/metrics_summary.csv ${spatial_out}/spaceranger_metrics_summary.csv
+    """
+}
 
+process spaceranger_metadata{
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  input:
+    tuple val(meta), path(spatial_out)
+  output:
+    tuple val(meta), path(metadata_json)
+  script:
+    metadata_json = "${meta.library_id}_metadata.json" 
+    workflow_url = workflow.repository ?: params.workflow_url
+    """
+    generate_spaceranger_metadata.R \
+      --library_id ${meta.library_id} \
+      --sample_id ${meta.sample_id} \
+      --unfiltered_barcodes_file "${spatial_out}/raw_feature_bc_matrix/barcodes.tsv.gz" \
+      --filtered_barcodes_file "${spatial_out}/filtered_feature_bc_matrix/barcodes.tsv.gz" \
+      --metrics_summary_file "${spatial_out}/spaceranger_metrics_summary.csv" \
+      --spaceranger_versions_file "${spatial_out}/spaceranger_versions.json" \
+      --metadata_json ${metadata_json} \
+      --technology ${meta.technology} \
+      --seq_unit ${meta.seq_unit} \
+      --genome_assembly ${params.assembly} \
+      --index_filename ${meta.cellranger_index} \
+      --workflow_url "${workflow_url}" \
+      --workflow_version "${workflow.revision}" \
+      --workflow_commit "${workflow.commitId}"
     """
 }
 
@@ -73,10 +103,12 @@ workflow spaceranger_quant{
                             file("s3://${meta.s3_prefix}/*.jpg")
                             )}
 
-        // run spaceranger 
-        spaceranger(spaceranger_reads, params.cellranger_index)
+        // run spaceranger
+        spaceranger(spaceranger_reads, params.cellranger_index) \
+          // generate metadata.json
+          | spaceranger_metadata
 
-    // tuple of metadata and path to spaceranger output directory 
+    // tuple of metadata and path to spaceranger output directory
     emit: spaceranger.out
   
 }
