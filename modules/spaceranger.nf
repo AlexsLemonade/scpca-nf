@@ -17,7 +17,7 @@ process spaceranger{
     out_id = "${meta.run_id}-spatial"
     """
     spaceranger count \
-      --id=${meta.run_id}-spatial \
+      --id=${out_id} \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
