@@ -95,7 +95,7 @@ workflow map_quant_rna {
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
 
     // run Alevin for mapping
-    alevin_rad(rna_reads_ch, params.index_path)
+    alevin_rad(rna_reads_ch, params.splici_index)
     // quantify with alevin-fry 
     fry_quant_rna(alevin_rad.out, cellbarcodes_ch, params.t2g_3col_path)
   
