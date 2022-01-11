@@ -63,10 +63,10 @@ option_list <- list(
     help = "genome assembly used for mapping"
   ),
   make_option(
-    opt_str = "--index_path",
+    opt_str = "--index_filename",
     type = "character",
     default = NA,
-    help = "path to index used for mapping"
+    help = "filename for index used for mapping"
   ),
   make_option(
     opt_str = "--workflow_url",
@@ -139,9 +139,6 @@ metrics_summary <- readr::read_csv(opt$metrics_summary_file)
 # read in versions file 
 spaceranger_versions <- jsonlite::read_json(opt$spaceranger_versions_file)
 
-# obtain just the index name and drop the rest of the path 
-index_name <- basename(opt$index_path)
-
 # compile metadata list 
 metadata_list <- list(
   library_id = opt$library_id,
@@ -154,7 +151,7 @@ metadata_list <- list(
   mapped_reads = metrics_summary$`Reads Mapped Confidently to Genome`,
   tissue_spots = metrics_summary$`Number of Spots Under Tissue`,
   genome_assembly = opt$genome_assembly,
-  mapping_index = index_name,
+  mapping_index = opt$index_filename,
   date_processed = lubridate::format_ISO8601(lubridate::now(tzone = "UTC"), usetz = TRUE),
   spaceranger_version = spaceranger_versions$pipelines,
   workflow = opt$workflow_url,

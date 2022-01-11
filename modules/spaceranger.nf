@@ -65,7 +65,7 @@ process spaceranger_metadata{
       --technology ${meta.technology} \
       --seq_unit ${meta.seq_unit} \
       --genome_assembly ${params.assembly} \
-      --index_path ${meta.cellranger_index} \
+      --index_filename ${meta.cellranger_index} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
