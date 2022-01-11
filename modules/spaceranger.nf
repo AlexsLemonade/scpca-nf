@@ -39,7 +39,9 @@ process spaceranger{
 
     # move over versions file temporarily to be passed to metadata.json
     mv ${out_id}/_versions ${spatial_out}/spaceranger_versions.json
-    mv ${outs_dir}/metrics_summary.csv ${spatial_out}/spaceranger_metrics_summary.csv
+    mv ${out_id}/outs/metrics_summary.csv ${spatial_out}/spaceranger_metrics_summary.csv
+    """
+}
 
 process spaceranger_metadata{
   container params.SCPCATOOLS_CONTAINER
