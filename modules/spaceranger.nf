@@ -15,11 +15,11 @@ process spaceranger{
   script:
     spatial_out = "${meta.library_id}"
     outs_dir = "${meta.run_id}-spatial/outs"
-    meta.cellranger_index = "${index}"
+    meta.cellranger_index = index.fileName
     """
     spaceranger count \
       --id=${meta.run_id}-spatial \
-      --transcriptome=${meta.cellranger_index} \
+      --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
