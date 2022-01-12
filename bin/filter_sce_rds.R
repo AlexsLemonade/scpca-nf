@@ -21,11 +21,6 @@ option_list <- list(
     help = "path to output filtered rds file. Must end in .rds"
   ),
   make_option(
-    opt_str = c("-l", "--lower"),
-    type = "integer",
-    help = "Value specifying the lower bound on total UMI count used in filtering with DropletUtils::emptyDrops."
- ),
- make_option(
    opt_str = c("-r", "--random_seed"),
    type = "integer",
    help = "A random seed for reproducibility."
@@ -51,8 +46,7 @@ if(!(stringr::str_ends(opt$filtered_file, ".rds"))){
 unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 
 # filter sce
-filtered_sce <- scpcaTools::filter_counts(unfiltered_sce,
-                                          lower = opt$lower)
+filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 # remove unfiltered for memory saving
 rm(unfiltered_sce)
 
