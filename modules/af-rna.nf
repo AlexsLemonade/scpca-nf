@@ -12,7 +12,7 @@ process alevin_rad{
           path(read1), path(read2)
     path index
   output:
-    tuple val(meta), path(run_dir)
+    tuple val(meta), path(run_dir) 
   script:
     // label the run-dir
     run_dir = "${meta.run_id}-rna"
@@ -46,8 +46,7 @@ process fry_quant_rna{
   publishDir "${params.outdir}/internal/af/${meta.library_id}"
 
   input:
-    tuple val(meta), path(run_dir)
-    path barcode_file
+    tuple val(meta), path(run_dir), path(barcode_file)
     path tx2gene_3col
   output:
     tuple val(meta), path(run_dir)
@@ -85,19 +84,32 @@ workflow map_quant_rna {
   main:
     // create tuple of (metadata map, [Read1 files], [Read2 files])
     // for rnaseq runs
+    rna_channel = rna_channel
+      .map{it.rad_publish_dir = "${params.outdir}/internal/rad/${it.library_id}";
+           it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna"; 
+           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+           it}
+
     rna_reads_ch = rna_channel
+      .filter{!(params.rad_skip && file(it.rad_dir).exists())}      
       .map{meta -> tuple(meta,
                          file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
                          file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
                         )}
 
-    cellbarcodes_ch = rna_channel
-      .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
+    rna_rad_ch = rna_channel
+      .filter{params.rad_skip && file(it.rad_dir).exists()}
+      .map{meta -> tuple(meta, 
+                         file(meta.rad_dir)
+                         )}
 
     // run Alevin for mapping
     alevin_rad(rna_reads_ch, params.splici_index)
-    // quantify with alevin-fry 
-    fry_quant_rna(alevin_rad.out, cellbarcodes_ch, params.t2g_3col_path)
+    // quantify with alevin-fry
+    all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
+      .map{it + [file(it[0].barcode_file)]}
+
+    fry_quant_rna(all_rad_ch, params.t2g_3col_path)
   
   emit: fry_quant_rna.out
   // a tuple of meta and the alevin-fry output directory
