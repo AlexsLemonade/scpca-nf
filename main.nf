@@ -1,13 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// run_ids are comma separated list to be parsed into 
-// a list of run ids, library ids, and or sample_ids
-// or "All" to process all samples in the metadata file
-params.run_ids = "SCPCR000001,SCPCS000101,SCPCR000050,SCPCR000084"
-// to run all samples in a project use that project's submitter name
-params.project = ""
-
 // 10X barcode files
 cell_barcodes = [
   '10Xv2': '737K-august-2016.txt',
