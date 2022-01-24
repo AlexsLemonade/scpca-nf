@@ -82,14 +82,15 @@ workflow map_quant_rna {
   take: rna_channel
   // a channel with a map of metadata for each rna library to process
   main:
-    // create tuple of (metadata map, [Read1 files], [Read2 files])
-    // for rnaseq runs
+    // add rad publish directory, rad directory, and barcode file to meta
     rna_channel = rna_channel
       .map{it.rad_publish_dir = "${params.outdir}/internal/rad/${it.library_id}";
            it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
 
+    // if the rad directory has not been created or rad_skip is set to false
+    // create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
     rna_reads_ch = rna_channel
       .filter{!(params.rad_skip && file(it.rad_dir).exists())}      
       .map{meta -> tuple(meta,
@@ -97,19 +98,22 @@ workflow map_quant_rna {
                          file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
                         )}
 
+    // if the rad directory has been created and rad_skip is set to true
+    // create tuple of (metdata map, rad_directory) to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel
       .filter{params.rad_skip && file(it.rad_dir).exists()}
       .map{meta -> tuple(meta, 
                          file(meta.rad_dir)
                          )}
 
-    // run Alevin for mapping
+    // run Alevin for mapping on libraries that don't have RAD directory already created
     alevin_rad(rna_reads_ch, params.splici_index)
 
-    // quantify with alevin-fry
+    // combine ouput from running alevin step with channel containing libraries that skipped creating a RAD file 
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
-      .map{[it[0].barcode_file] + it} 
+      .map{[it[0].barcode_file] + it} // add barcode file to tuple to use in fry_quant_rna process
 
+    // quantify with alevin-fry
     fry_quant_rna(all_rad_ch, params.t2g_3col_path)
   
   emit: fry_quant_rna.out
