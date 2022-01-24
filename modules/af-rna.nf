@@ -12,10 +12,10 @@ process alevin_rad{
           path(read1), path(read2)
     path index
   output:
-    tuple val(meta), path(run_dir) 
+    tuple val(meta), path(rad_dir) 
   script:
     // label the run-dir
-    run_dir = "${meta.run_id}-rna"
+    rad_dir = "${meta.run_id}-rna"
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
                  '10Xv2_5prime': '--chromium',
@@ -24,7 +24,7 @@ process alevin_rad{
     // run alevin like normal with the --rad flag 
     // creates output directory with RAD file needed for alevin-fry
     """
-    mkdir -p ${run_dir}
+    mkdir -p ${rad_dir}
     salmon alevin \
       -l ISR \
       ${tech_flag[meta.technology]} \
@@ -46,7 +46,7 @@ process fry_quant_rna{
   publishDir "${params.outdir}/internal/af/${meta.library_id}"
 
   input:
-    tuple val(meta), path(run_dir), path(barcode_file)
+    tuple path(barcode_file), val(meta), path(run_dir)
     path tx2gene_3col
   output:
     tuple val(meta), path(run_dir)
@@ -105,9 +105,10 @@ workflow map_quant_rna {
 
     // run Alevin for mapping
     alevin_rad(rna_reads_ch, params.splici_index)
+
     // quantify with alevin-fry
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
-      .map{it + [file(it[0].barcode_file)]}
+      .map{[it[0].barcode_file] + it} 
 
     fry_quant_rna(all_rad_ch, params.t2g_3col_path)
   
