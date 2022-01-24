@@ -31,7 +31,7 @@ process alevin_rad{
       -1 ${read1} \
       -2 ${read2} \
       -i ${index} \
-      -o ${run_dir} \
+      -o ${rad_dir} \
       -p ${task.cpus} \
       --dumpFeatures \
       --rad
