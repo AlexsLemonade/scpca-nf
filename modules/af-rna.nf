@@ -14,8 +14,8 @@ process alevin_rad{
   output:
     tuple val(meta), path(rad_dir) 
   script:
-    // label the run-dir
-    rad_dir = "${meta.run_id}-rna"
+// define the local location for the rad output
+    rad_dir = file(meta.rad_dir).name
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
                  '10Xv2_5prime': '--chromium',
@@ -88,11 +88,14 @@ workflow map_quant_rna {
            it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
-
-    // if the rad directory has not been created or rad_skip is set to false
-    // create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
-    rna_reads_ch = rna_channel
-      .filter{!(params.rad_skip && file(it.rad_dir).exists())}      
+       // split based in whether rad_skip is true and a previous dir exists
+      .branch{
+          has_rad: params.rad_skip && file(it.rad_dir).exists()    
+          do_rad: true
+       }     
+    
+    // If We need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])   
+    rna_reads_ch = rna_channel.do_rad
       .map{meta -> tuple(meta,
                          file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
                          file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
@@ -100,7 +103,7 @@ workflow map_quant_rna {
 
     // if the rad directory has been created and rad_skip is set to true
     // create tuple of (metdata map, rad_directory) to be used directly as input to alevin-fry quantification
-    rna_rad_ch = rna_channel
+    rna_rad_ch = rna_channel.has_rad
       .filter{params.rad_skip && file(it.rad_dir).exists()}
       .map{meta -> tuple(meta, 
                          file(meta.rad_dir)
@@ -111,7 +114,7 @@ workflow map_quant_rna {
 
     // combine ouput from running alevin step with channel containing libraries that skipped creating a RAD file 
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
-      .map{[it[0].barcode_file] + it} // add barcode file to tuple to use in fry_quant_rna process
+      .map{it.asList() + file(it[0].barcode_file)} // add barcode file to channel to use in fry_quant_rna process
 
     // quantify with alevin-fry
     fry_quant_rna(all_rad_ch, params.t2g_3col_path)
