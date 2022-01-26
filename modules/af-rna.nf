@@ -113,7 +113,7 @@ workflow map_quant_rna {
 
     // combine ouput from running alevin step with channel containing libraries that skipped creating a RAD file 
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
-      .map{it.toList() + it[0].barcode_file} // add barcode file to channel to use in fry_quant_rna process
+      .map{it.toList() << file(it[0].barcode_file)} // add barcode file to channel to use in fry_quant_rna process
 
     // quantify with alevin-fry
     fry_quant_rna(all_rad_ch, params.t2g_3col_path)
