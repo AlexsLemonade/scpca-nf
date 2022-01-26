@@ -6,16 +6,16 @@ process alevin_rad{
   label 'cpus_12'
   label 'disk_dynamic'
   tag "${meta.run_id}-rna"
-  publishDir "${params.outdir}/internal/rad/${meta.library_id}"
+  publishDir "${meta.rad_publish_dir}"
   input:
     tuple val(meta), 
           path(read1), path(read2)
     path index
   output:
-    tuple val(meta), path(run_dir)
+    tuple val(meta), path(rad_dir) 
   script:
-    // label the run-dir
-    run_dir = "${meta.run_id}-rna"
+    // define the local location for the rad output
+    rad_dir = file(meta.rad_dir).name
     // choose flag by technology
     tech_flag = ['10Xv2': '--chromium',
                  '10Xv2_5prime': '--chromium',
@@ -24,14 +24,14 @@ process alevin_rad{
     // run alevin like normal with the --rad flag 
     // creates output directory with RAD file needed for alevin-fry
     """
-    mkdir -p ${run_dir}
+    mkdir -p ${rad_dir}
     salmon alevin \
       -l ISR \
       ${tech_flag[meta.technology]} \
       -1 ${read1} \
       -2 ${read2} \
       -i ${index} \
-      -o ${run_dir} \
+      -o ${rad_dir} \
       -p ${task.cpus} \
       --dumpFeatures \
       --rad
@@ -46,8 +46,7 @@ process fry_quant_rna{
   publishDir "${params.outdir}/internal/af/${meta.library_id}"
 
   input:
-    tuple val(meta), path(run_dir)
-    path barcode_file
+    tuple val(meta), path(run_dir), path(barcode_file)
     path tx2gene_3col
   output:
     tuple val(meta), path(run_dir)
@@ -83,21 +82,41 @@ workflow map_quant_rna {
   take: rna_channel
   // a channel with a map of metadata for each rna library to process
   main:
-    // create tuple of (metadata map, [Read1 files], [Read2 files])
-    // for rnaseq runs
-    rna_reads_ch = rna_channel
+    // add rad publish directory, rad directory, and barcode file to meta
+    rna_channel = rna_channel
+      .map{it.rad_publish_dir = "${params.outdir}/internal/rad/${it.library_id}";
+           it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna"; 
+           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+           it}
+       // split based in whether rad_skip is true and a previous dir exists
+      .branch{
+          has_rad: params.rad_skip && file(it.rad_dir).exists()    
+          make_rad: true
+       }     
+    
+    // If We need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])   
+    rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(meta,
                          file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
                          file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
                         )}
 
-    cellbarcodes_ch = rna_channel
-      .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
+    // if the rad directory has been created and rad_skip is set to true
+    // create tuple of (metdata map, rad_directory) to be used directly as input to alevin-fry quantification
+    rna_rad_ch = rna_channel.has_rad
+      .map{meta -> tuple(meta, 
+                         file(meta.rad_dir)
+                         )}
 
-    // run Alevin for mapping
+    // run Alevin for mapping on libraries that don't have RAD directory already created
     alevin_rad(rna_reads_ch, params.splici_index)
-    // quantify with alevin-fry 
-    fry_quant_rna(alevin_rad.out, cellbarcodes_ch, params.t2g_3col_path)
+
+    // combine ouput from running alevin step with channel containing libraries that skipped creating a RAD file 
+    all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
+      .map{it.toList() << file(it[0].barcode_file)} // add barcode file to channel to use in fry_quant_rna process
+
+    // quantify with alevin-fry
+    fry_quant_rna(all_rad_ch, params.t2g_3col_path)
   
   emit: fry_quant_rna.out
   // a tuple of meta and the alevin-fry output directory
