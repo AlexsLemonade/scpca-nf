@@ -97,8 +97,8 @@ workflow map_quant_rna {
     // If We need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])   
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(meta,
-                         file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
-                         file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
+                         file("${meta.files_directory}/*_R1_*.fastq.gz"),
+                         file("${meta.files_directory}/*_R2_*.fastq.gz")
                         )}
 
     // if the rad directory has been created and rad_skip is set to true
