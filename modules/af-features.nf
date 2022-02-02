@@ -107,7 +107,7 @@ workflow map_quant_feature{
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
       .map{meta -> tuple(meta.feature_barcode_file,
-                         file("s3://${meta.feature_barcode_file}"))}
+                         file("${meta.feature_barcode_file}"))}
       .unique()
     index_feature(feature_barcodes_ch)
 
