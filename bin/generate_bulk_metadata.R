@@ -58,8 +58,6 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# checks 
-
 # check for project id
 if(is.null(opt$project_id)){
   stop("A `project_id` is required.")
