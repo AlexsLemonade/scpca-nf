@@ -55,7 +55,7 @@ workflow {
       seq_unit: it.seq_unit,
       feature_barcode_file: it.feature_barcode_file,
       feature_barcode_geom: it.feature_barcode_geom,
-      s3_prefix: it.s3_prefix,
+      files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
       slide_section: it.slide_section,
       files: it.files

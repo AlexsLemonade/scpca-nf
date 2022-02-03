@@ -99,8 +99,8 @@ workflow spaceranger_quant{
           .map{it.cr_samples =  getCRsamples(it.files); it}
           // create tuple of [metadata, fastq dir, and path to image file]
           .map{meta -> tuple(meta,
-                            file("s3://${meta.s3_prefix}"),
-                            file("s3://${meta.s3_prefix}/*.jpg")
+                            file("${meta.files_directory}"),
+                            file("${meta.files_directory}/*.jpg")
                             )}
 
         // run spaceranger

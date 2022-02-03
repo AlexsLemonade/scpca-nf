@@ -107,7 +107,7 @@ workflow map_quant_feature{
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
       .map{meta -> tuple(meta.feature_barcode_file,
-                         file("s3://${meta.feature_barcode_file}"))}
+                         file("${meta.feature_barcode_file}"))}
       .unique()
     index_feature(feature_barcodes_ch)
 
@@ -116,8 +116,8 @@ workflow map_quant_feature{
     feature_reads_ch = feature_channel
       .map{meta -> tuple(meta.feature_barcode_file,
                          meta,
-                         file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
-                         file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz")
+                         file("${meta.files_directory}/*_R1_*.fastq.gz"),
+                         file("${meta.files_directory}/*_R2_*.fastq.gz")
                         )}
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
       .map{ it.subList(1, it.size())} // remove the first element (feature_barcode_file)
