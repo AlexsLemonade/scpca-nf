@@ -91,8 +91,8 @@ workflow bulk_quant_rna {
     // create tuple of (metadata map, [Read 1 files], [Read 2 files])
         bulk_reads_ch = bulk_channel
           .map{meta -> tuple(meta,
-                             file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
-                             file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz"))}
+                             file("${meta.files_directory}/*_R1_*.fastq.gz"),
+                             file("${meta.files_directory}/*_R2_*.fastq.gz"))}
 
         fastp(bulk_reads_ch)
         salmon(fastp.out, params.bulk_index)
