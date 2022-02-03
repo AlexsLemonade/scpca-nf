@@ -70,6 +70,32 @@ process group_tximport {
         """
 }
 
+process bulk_metadata {
+    container params.SCPCATOOLS_CONTAINER
+    publishDir "${params.outdir}/publish/${project_id}"
+    input:
+        tuple val(project_id), path(salmon_directories)
+        path(library_metadata)
+    output: 
+        path(bulk_metadata_file)
+    script:
+        bulk_metadata_file = "${project_id}_bulk_metadata.tsv"
+        workflow_url = workflow.repository ?: params.workflow_url
+        """
+        ls -d ${salmon_directories} > salmon_directories.txt
+
+        generate_bulk_metadata.R \
+         --project_id ${project_id} \
+         --salmon_dirs salmon_directories.txt \
+         --library_metadata_file ${library_metadata} \
+         --metadata_output ${bulk_metadata_file} \
+         --genome_assembly ${params.assembly} \
+         --workflow_url "${workflow_url}" \
+         --workflow_version "${workflow.revision}" \
+         --workflow_commit "${workflow.commitId}"
+        """
+}
+
 workflow bulk_quant_rna {
     take: bulk_channel 
     // a channel with a map of metadata for each rna library to process
@@ -83,11 +109,17 @@ workflow bulk_quant_rna {
         fastp(bulk_reads_ch)
         salmon(fastp.out, params.bulk_index)
 
+        // group libraries together by project
         grouped_salmon_ch = salmon.out
             .map{[it[0]["project_id"], it[1]]}
             .groupTuple(by: 0)
 
+        // create tsv file for each project containing all libraries
         group_tximport(grouped_salmon_ch, params.t2g_bulk_path)
+
+        // create combined metadata file for each project
+        bulk_metadata(grouped_salmon_ch, params.run_metafile)
+
     emit: 
         group_tximport.out
 }
