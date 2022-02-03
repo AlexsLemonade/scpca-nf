@@ -95,15 +95,14 @@ bulk_metadata_df <- library_metadata |>
     project_id = scpca_project_id
   ) |>
   # add columns with processing information and date processed (same for all libraries )
-  dplyr::mutate(date_processed = lubridate::format_ISO8601(lubridate::now(tzone = "UTC"), usetz = TRUE),
-                genome_assembly = opt$genome_assembly, 
+  dplyr::mutate(genome_assembly = opt$genome_assembly, 
                 workflow = opt$workflow_url,
                 workflow_version = opt$workflow_version,
                 workflow_commit = opt$workflow_commit)
 
 
 # add salmon version, index, total_reads, mapped_reads for each library 
-add_processing_info <- function(library_id) {
+get_processing_info <- function(library_id) {
   
   # read in json files for that library containing individual process information
   cmd_info_file <- file.path(library_id, "cmd_info.json")
@@ -122,8 +121,7 @@ add_processing_info <- function(library_id) {
   
 }
 
-bulk_processing_metadata <- purrr::map(library_ids, add_processing_info) |>
-  dplyr::bind_rows()
+bulk_processing_metadata <- purrr::map_dfr(library_ids, add_processing_info) 
 
 bulk_metadata_df <- bulk_metadata_df |>
   dplyr::left_join(bulk_processing_metadata, by = c("library_id"))
