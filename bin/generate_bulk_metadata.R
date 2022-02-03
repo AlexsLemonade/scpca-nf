@@ -111,17 +111,25 @@ get_processing_info <- function(library_id) {
   cmd_info <- jsonlite::read_json(cmd_info_file)
   meta_info <- jsonlite::read_json(meta_info_file)
   
+  date_processed <- lubridate::as_datetime(meta_info$end_time, 
+                                           format = "%a %b %d %T %Y")
+  # if meta_info is not recorded or the format has changed, use the modification time of the file
+  if (is.na(date_processed)){
+    date_processed <- file.info(meta_info_file)$mtime
+  }
+  
   library_processing <- data.frame(
     library_id = library_id,
     salmon_version = cmd_info$salmon_version,
     mapping_index = cmd_info$index,
     total_reads = meta_info$num_processed,
-    mapped_reads = meta_info$num_mapped
+    mapped_reads = meta_info$num_mapped,
+    date_processed = lubridate::format_ISO8601(date_processed, usetz = TRUE)
   )
   
 }
 
-bulk_processing_metadata <- purrr::map_dfr(library_ids, add_processing_info) 
+bulk_processing_metadata <- purrr::map_dfr(library_ids, get_processing_info) 
 
 bulk_metadata_df <- bulk_metadata_df |>
   dplyr::left_join(bulk_processing_metadata, by = c("library_id"))
