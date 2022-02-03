@@ -49,16 +49,20 @@ process salmon{
 
 }
 
-process group_tximport {
+process group_output {
     container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/publish/${project_id}"
     input:
         tuple val(project_id), path(salmon_directories)
         path(tx2gene)
+        path(library_metadata)
     output:
-        path(tximport_file)
+        path(tximport_file), emit: bulk_counts
+        path(bulk_metadata_file), emit: bulk_metadata
     script:
         tximport_file = "${project_id}_bulk_quant.tsv"
+        bulk_metadata_file = "${project_id}_bulk_metadata.tsv"
+        workflow_url = workflow.repository ?: params.workflow_url
         """
         ls -d ${salmon_directories} > salmon_directories.txt
 
@@ -67,22 +71,6 @@ process group_tximport {
           --salmon_dirs salmon_directories.txt \
           --output_file ${tximport_file} \
           --tx2gene ${tx2gene}
-        """
-}
-
-process bulk_metadata {
-    container params.SCPCATOOLS_CONTAINER
-    publishDir "${params.outdir}/publish/${project_id}"
-    input:
-        tuple val(project_id), path(salmon_directories)
-        path(library_metadata)
-    output: 
-        path(bulk_metadata_file)
-    script:
-        bulk_metadata_file = "${project_id}_bulk_metadata.tsv"
-        workflow_url = workflow.repository ?: params.workflow_url
-        """
-        ls -d ${salmon_directories} > salmon_directories.txt
 
         generate_bulk_metadata.R \
          --project_id ${project_id} \
@@ -114,12 +102,10 @@ workflow bulk_quant_rna {
             .map{[it[0]["project_id"], it[1]]}
             .groupTuple(by: 0)
 
-        // create tsv file for each project containing all libraries
-        group_tximport(grouped_salmon_ch, params.t2g_bulk_path)
-
-        // create combined metadata file for each project
-        bulk_metadata(grouped_salmon_ch, params.run_metafile)
+        // create tsv file and combined metadata for each project containing all libraries
+        group_output(grouped_salmon_ch, params.t2g_bulk_path, params.run_metafile)
 
     emit: 
-        group_tximport.out
+        bulk_counts = group_output.out.bulk_counts
+        bulk_metadata = group_output.out.bulk_metadata
 }
