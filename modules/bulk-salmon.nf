@@ -49,7 +49,7 @@ process salmon{
 
 }
 
-process group_output {
+process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
     publishDir "${params.outdir}/publish/${project_id}"
     input:
@@ -103,9 +103,8 @@ workflow bulk_quant_rna {
             .groupTuple(by: 0)
 
         // create tsv file and combined metadata for each project containing all libraries
-        group_output(grouped_salmon_ch, params.t2g_bulk_path, params.run_metafile)
+        merge_bulk_quants(grouped_salmon_ch, params.t2g_bulk_path, params.run_metafile)
 
     emit: 
-        bulk_counts = group_output.out.bulk_counts
-        bulk_metadata = group_output.out.bulk_metadata
+        merge_bulk_quants.out
 }
