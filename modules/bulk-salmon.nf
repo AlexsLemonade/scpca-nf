@@ -10,7 +10,7 @@ process fastp{
     output: 
         tuple val(meta), path(trimmed_reads)
     script: 
-        trimmed_reads = "${meta.library_id}"
+        trimmed_reads = "${meta.library_id}_trimmed"
         fastp_report = "${meta.library_id}_fastp.html"
         """
         mkdir -p ${trimmed_reads}
@@ -33,7 +33,7 @@ process salmon{
     output: 
         tuple val(meta), path(salmon_results_dir)
     script:
-        salmon_results = "${meta.library_id}"
+        salmon_results_dir = "${meta.library_id}"
         """
         salmon quant -i ${index} \
         -l A \
@@ -92,11 +92,10 @@ workflow bulk_quant_rna {
           // add salmon directory and salmon file location to meta 
           .map{it.salmon_publish_dir = "${params.outdir}/internal/salmon";
                it.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
-               it.salmon_quant_file = "${it.salmon_results_dir}/quant.sf";
                it}
           // split based on whether repeat_mapping is false and the salmon quant.sf file exists 
           .branch{
-              has_quants: !params.repeat_mapping && file(it.salmon_quant_file).exists()
+              has_quants: !params.repeat_mapping && file(it.salmon_results_dir).exists()
               make_quants: true
           }
         
@@ -128,6 +127,6 @@ workflow bulk_quant_rna {
         merge_bulk_quants(grouped_salmon_ch, params.t2g_bulk_path, params.run_metafile)
 
     emit: 
-        merge_bulk_quants.out.bulk_counts
-        merge_bulk_quants.out.bulk_metadata
+        bulk_counts = merge_bulk_quants.out.bulk_counts
+        bulk_metadata = merge_bulk_quants.out.bulk_metadata
 }
