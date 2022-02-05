@@ -88,9 +88,9 @@ workflow map_quant_rna {
            it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
-       // split based in whether rad_skip is true and a previous dir exists
+       // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_rad: params.rad_skip && file(it.rad_dir).exists()    
+          has_rad: !params.repeat_mapping && file(it.rad_dir).exists()    
           make_rad: true
        }     
     
@@ -101,7 +101,7 @@ workflow map_quant_rna {
                          file("${meta.files_directory}/*_R2_*.fastq.gz")
                         )}
 
-    // if the rad directory has been created and rad_skip is set to true
+    // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of (metdata map, rad_directory) to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(meta, 
