@@ -24,7 +24,7 @@ process fastp{
 
 process salmon{
     container params.SALMON_CONTAINER
-    label 'cpus_8'
+    label 'cpus_12'
     tag "${meta.library_id}-bulk"
     publishDir "${meta.salmon_publish_dir}"
     input: 
@@ -110,8 +110,8 @@ workflow bulk_quant_rna {
         // create tuple of metadata map, salmon output directory to use as input to merge_bulk_quants
         quants_ch = bulk_channel.has_quants
           .map{meta -> tuple(meta,
-                       file(meta.salmon_results_dir)
-                       )}
+                             file(meta.salmon_results_dir)
+                             )}
 
         
         // run fastp and salmon for libraries that are not skipping salmon
