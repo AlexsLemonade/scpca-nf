@@ -1,11 +1,10 @@
-#!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+include { index_bam } from './mpileup.nf'
 
 process bulkmap_star{
   container params.STAR_CONTAINER
   tag "${meta.run_id}"
+  label 'cpus_8'
   memory "32.GB"
-  cpus "8"
   input:
     tuple val(meta), path(read1), path(read2)
     path star_index
@@ -23,20 +22,6 @@ process bulkmap_star{
       --outSAMtype BAM SortedByCoordinate
 
     mv Aligned.sortedByCoord.out.bam ${output_bam}
-    """
-}
-
-process index_bam{
-  container params.SAMTOOLS_CONTAINER
-  tag "${meta.run_id}"
-  input:
-    tuple val(meta), path(bamfile)
-  output:
-    tuple val(meta), path(bamfile), path(bamfile_index)
-  script:
-    bamfile_index = "${bamfile}.bai"
-    """
-    samtools index ${bamfile} ${bamfile_index}
     """
 }
 

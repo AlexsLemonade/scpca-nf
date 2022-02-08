@@ -1,10 +1,11 @@
+include { index_bam } from './mpileup.nf'
 
 process starsolo{
   container params.STAR_CONTAINER
   tag "${meta.run_id}"
-  label 'bigdisk'
+  label 'cpus_8'
+  label 'disk_big'
   memory "32.GB"
-  cpus "8"
   input:
     tuple val(meta), path(read1), path(read2)
     path star_index
@@ -44,19 +45,6 @@ process starsolo{
     """
 }
 
-process index_bam{
-  container params.SAMTOOLS_CONTAINER
-  tag "${meta.run_id}"
-  input:
-    tuple val(meta), path(bamfile)
-  output:
-    tuple val(meta), path(bamfile), path(bamfile_index)
-  script:
-    bamfile_index = "${bamfile}.bai"
-    """
-    samtools index ${bamfile} ${bamfile_index}
-    """
-}
 
 workflow starsolo_map{
   take:

@@ -1,8 +1,20 @@
 
+process index_bam{
+  container params.SAMTOOLS_CONTAINER
+  input:
+    tuple val(meta), path(bamfile)
+  output:
+    tuple val(meta), path(bamfile), path(bamfile_index)
+  script:
+    bamfile_index = "${bamfile}.bai"
+    """
+    samtools index ${bamfile} ${bamfile_index}
+    """
+}
+
 process mpileup{
   container params.BCFTOOLS_CONTAINER
   tag "${meta.multiplex_run_id}"
-  cpus "2"
   input:
     tuple val(meta), path(bamfiles), path(bamfiles_index)
     tuple path(ref_fasta), path(ref_index)
