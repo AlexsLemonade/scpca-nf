@@ -42,13 +42,13 @@ workflow {
   }
   run_all = run_ids[0] == "All"
 
-  runs_ch = Channel.fromPath(params.run_metafile)
+  unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping only columns we will need (& some renaming)
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id,
+      sample_id: it.scpca_sample_id.replaceAll(";", "_"),
       project_id: it.scpca_project_id?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
@@ -60,6 +60,8 @@ workflow {
       slide_section: it.slide_section,
       files: it.files
     ]}
+
+ runs_ch = unfiltered_runs_ch 
     // only technologies we know how to process
     .filter{it.technology in all_techs} 
     // use only the rows in the run_id list (run, library, or sample can match)
