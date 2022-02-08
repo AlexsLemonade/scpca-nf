@@ -65,8 +65,8 @@ workflow starsolo_map{
   main: 
     sc_reads_ch = singlecell_ch
       .map{meta -> tuple(meta,
-                         file("s3://${meta.s3_prefix}/*_R1_*.fastq.gz"),
-                         file("s3://${meta.s3_prefix}/*_R2_*.fastq.gz"))}
+                         file("${meta.files_directory}/*_R1_*.fastq.gz"),
+                         file("${meta.files_directory}/*_R2_*.fastq.gz"))}
 
     cellbarcodes_ch = singlecell_ch
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}

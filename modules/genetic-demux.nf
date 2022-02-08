@@ -1,7 +1,7 @@
 
 // include processes
 include { star_bulk } from './bulk-star.nf'
-include { starsolo_map } from './starsolo.nf' addParams(cell_barcodes: cell_barcodes)
+include { starsolo_map } from './starsolo.nf' 
 include { pileup_multibulk } from './mpileup.nf'
 include { cellsnp_vireo } from './cellsnp.nf'
 
@@ -29,10 +29,10 @@ workflow genetic_demux{
     pileup_multibulk(multiplex_ch, star_bulk.out)
 
     // map multiplexed single cell samples
-    starsolo_sc(multiplex_ch)
+    starsolo_map(multiplex_ch)
 
     // call cell snps and genotype cells 
-    cellsnp_vireo(starsolo_sc.out.bam,  starsolo_sc.out.quant, pileup_multibulk.out)
+    cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)
   
   emit:
     cellsnp_vireo.out
