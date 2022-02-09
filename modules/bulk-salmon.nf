@@ -25,6 +25,7 @@ process fastp{
 process salmon{
     container params.SALMON_CONTAINER
     label 'cpus_12'
+    label 'mem_24'
     tag "${meta.library_id}-bulk"
     publishDir "${meta.salmon_publish_dir}"
     input: 
