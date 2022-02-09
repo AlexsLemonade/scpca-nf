@@ -4,6 +4,7 @@
 process alevin_rad{
   container params.SALMON_CONTAINER
   label 'cpus_12'
+  label 'mem_24'
   label 'disk_dynamic'
   tag "${meta.run_id}-rna"
   publishDir "${meta.rad_publish_dir}"
@@ -42,6 +43,7 @@ process alevin_rad{
 process fry_quant_rna{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
+  label 'mem_8'
   tag "${meta.run_id}-rna"
   publishDir "${params.outdir}/internal/af/${meta.library_id}"
 

@@ -23,6 +23,7 @@ process index_feature{
 process alevin_feature{
   container params.SALMON_CONTAINER
   label 'cpus_8'
+  label 'mem_8'
   tag "${meta.run_id}-features"
   publishDir "${params.outdir}/internal/rad/${meta.library_id}"
   input:

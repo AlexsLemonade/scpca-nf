@@ -6,7 +6,7 @@ process generate_reference{
   container params.SCPCATOOLS_CONTAINER
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
-  memory { 28.GB * task.attempt}
+  label 'mem_32'
   errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'terminate' }
   maxRetries 1
   input:
@@ -36,6 +36,7 @@ process salmon_index{
   container 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
   publishDir "${params.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
+  label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
     path(genome)
@@ -70,6 +71,7 @@ process cellranger_index{
   container params.CELLRANGER_CONTAINER
   publishDir "${params.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
+  label 'mem_24'
   input:
     path(fasta)
     path(gtf)
