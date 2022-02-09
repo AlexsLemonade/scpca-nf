@@ -7,9 +7,9 @@ process starsolo{
   label 'disk_big'
   memory "32.GB"
   input:
-    tuple val(meta), path(read1), path(read2)
+    tuple val(meta), path(read1), path(read2), path(barcode_file)
     path star_index
-    path barcode_file
+    
   output:
     tuple val(meta), path(output_dir), emit: starsolo_dir
     tuple val(meta), path(output_bam), emit: star_bam
@@ -54,12 +54,10 @@ workflow starsolo_map{
     sc_reads_ch = singlecell_ch
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                         file("${meta.files_directory}/*_R2_*.fastq.gz"))}
-
-    cellbarcodes_ch = singlecell_ch
-      .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
-
-    starsolo(sc_reads_ch, params.star_index, cellbarcodes_ch)
+                         file("${meta.files_directory}/*_R2_*.fastq.gz"),
+                         file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")
+                         )}
+    starsolo(sc_reads_ch, file(params.star_index))
     index_bam(starsolo.out.star_bam)
   
   emit:
