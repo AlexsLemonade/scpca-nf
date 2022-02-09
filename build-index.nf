@@ -115,6 +115,7 @@ process index_star{
       --runThreadN ${task.cpus} \
       --genomeDir ${output_dir} \
       --genomeFastaFiles ${assembly}.fa \
+      --genomeSAsparseD 2 \
       --sjdbGTFfile ${assembly}.gtf \
       --sjdbOverhang 100 \
       --limitGenomeGenerateRAM 64000000000
