@@ -1,10 +1,10 @@
-include { index_bam } from './mpileup.nf'
+include { index_bam } from './sambcftools.nf'
 
 process bulkmap_star{
   container params.STAR_CONTAINER
   tag "${meta.run_id}"
   label 'cpus_8'
-  memory "32.GB"
+  label 'mem_24'
   input:
     tuple val(meta), path(read1), path(read2)
     path star_index

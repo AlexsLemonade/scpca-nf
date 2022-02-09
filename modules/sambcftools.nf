@@ -14,6 +14,7 @@ process index_bam{
 
 process mpileup{
   container params.BCFTOOLS_CONTAINER
+  label 'cpus_2'
   tag "${meta.multiplex_run_id}"
   input:
     tuple val(meta), path(bamfiles), path(bamfiles_index)

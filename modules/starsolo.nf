@@ -1,4 +1,4 @@
-include { index_bam } from './mpileup.nf'
+include { index_bam } from './sambcftools.nf'
 
 process starsolo{
   container params.STAR_CONTAINER

@@ -2,7 +2,7 @@
 // include processes
 include { star_bulk } from './bulk-star.nf'
 include { starsolo_map } from './starsolo.nf' 
-include { pileup_multibulk } from './mpileup.nf'
+include { pileup_multibulk } from './sambcftools.nf'
 include { cellsnp_vireo } from './cellsnp.nf'
 
 
