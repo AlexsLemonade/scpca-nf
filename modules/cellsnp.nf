@@ -31,7 +31,7 @@ process cellsnp{
 
 process vireo{
   container params.CONDA_CONTAINER
-  publishDir "${params.outdir}/cellsnp/${meta.library_id}"
+  publishDir "${params.outdir}/internal/vireo"
   tag "${meta.run_id}"
   label 'cpus_8'
   label 'mem_16'
@@ -40,7 +40,7 @@ process vireo{
   output:
     tuple val(meta), path(outdir)
   script:
-    outdir = "${meta.library_id}_vireo"
+    outdir = "${meta.library_id}-vireo"
     """
     pip install vireoSNP==0.5.6
     vireo \

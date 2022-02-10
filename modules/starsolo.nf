@@ -4,8 +4,9 @@ process starsolo{
   container params.STAR_CONTAINER
   tag "${meta.run_id}"
   label 'cpus_8'
+  label 'mem_32'
   label 'disk_big'
-  memory "32.GB"
+
   input:
     tuple val(meta), path(read1), path(read2), path(barcode_file)
     path star_index
@@ -55,7 +56,7 @@ workflow starsolo_map{
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
                          file("${meta.files_directory}/*_R2_*.fastq.gz"),
-                         file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")
+                         file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}")
                          )}
     starsolo(sc_reads_ch, file(params.star_index))
     index_bam(starsolo.out.star_bam)

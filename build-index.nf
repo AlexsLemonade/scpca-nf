@@ -96,7 +96,7 @@ process index_star{
   container params.STAR_CONTAINER
   publishDir "${params.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
-  memory "64.GB"
+  memory '64.GB'
   input:
     path fasta
     path gtf
