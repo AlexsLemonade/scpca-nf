@@ -49,7 +49,7 @@ workflow {
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id.replaceAll(";", "_"),
+      sample_id: it.scpca_sample_id.split(";").sort().join("_"),
       project_id: it.scpca_project_id?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
