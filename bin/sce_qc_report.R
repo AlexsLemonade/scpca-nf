@@ -106,6 +106,7 @@ filtered_sce <- readr::read_rds(opt$filtered_sce)
 
 # Compile metadata for output files
 sce_meta <- metadata(unfiltered_sce)
+filtered_sce_meta <- metadata(filtered_sce)
 
 # check for alt experiments (CITE-seq, etc)
 alt_expts <- altExpNames(unfiltered_sce)
@@ -121,6 +122,7 @@ metadata_list <- list(
   unfiltered_cells = ncol(unfiltered_sce),
   total_reads = sce_meta$total_reads,
   mapped_reads = sce_meta$mapped_reads,
+  filtering_method = filtered_sce_meta$filtering_method,
   genome_assembly = opt$genome_assembly,
   mapping_index = sce_meta$reference_index,
   transcript_type = sce_meta$transcript_type,
