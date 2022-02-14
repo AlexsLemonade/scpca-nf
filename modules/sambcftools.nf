@@ -53,7 +53,7 @@ workflow pileup_multibulk{
     pileup_ch = multiplex_ch 
       .map{[it.sample_id.tokenize("_"), it]} // split out sample ids into a tuple
       .transpose() // one element per sample (meta objects repeated)
-      .combine(sample_bulk_ch, by: 0) // combine by sample id
+      .combine(sample_bulk_ch, by: 0) // combine by individual sample ids
       .groupTuple(by: 1) // group by the multiplex run meta object
       .map{[
         [ // create a meta object for each group of files
@@ -61,8 +61,10 @@ workflow pileup_multibulk{
           multiplex_run_id: it[1].run_id,
           multiplex_library_id: it[1].library_id,
           multiplex_sample_id: it[1].sample_id,
+          n_samples: it[1].sample_id.split("_").length,
+          n_bulk_mapped: it[2].length,
           bulk_run_ids: it[2].collect{it.run_id},
-          bulk_run_prefixes: it[2].collect{it.files_directory},
+          bulk_run_prefixes: it[2].collect{it.files_directory}
         ],
         it[3], // bamfiles
         it[4]  // bamfile indexes
