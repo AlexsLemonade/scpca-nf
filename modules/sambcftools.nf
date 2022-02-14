@@ -60,12 +60,14 @@ workflow pileup_multibulk{
           sample_ids: it[0],
           multiplex_run_id: it[1].run_id,
           multiplex_library_id: it[1].library_id,
+          multiplex_sample_id: it[1].sample_id,
           bulk_run_ids: it[2].collect{it.run_id},
-          bulk_run_prefixes: it[2].collect{it.s3_prefix}
+          bulk_run_prefixes: it[2].collect{it.files_directory},
         ],
         it[3], // bamfiles
         it[4]  // bamfile indexes
       ]}
+
     mpileup(pileup_ch, [params.ref_fasta, params.ref_fasta_index])
   
   emit:
