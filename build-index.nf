@@ -7,12 +7,11 @@ process generate_reference{
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
   label 'mem_32'
-  errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'terminate' }
   maxRetries 1
   input:
-    path(fasta)
-    path(gtf)
-    val(assembly)
+    path fasta
+    path gtf
+    val assembly
   output: 
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
@@ -33,16 +32,16 @@ process generate_reference{
 
 
 process salmon_index{
-  container 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
+  container params.SALMON_CONTAINER
   publishDir "${params.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
-    path(genome)
+    path genome 
   output:
-    path(splici_index_dir)
-    path(spliced_cdna_index_dir)
+    path splici_index_dir 
+    path spliced_cdna_index_dir
   script:
     splici_index_dir = "${splici_fasta}".split("\\.(fasta|fa)")[0]
     spliced_cdna_index_dir = "${spliced_cdna_fasta}".split("\\.(fasta|fa)")[0]
@@ -73,13 +72,13 @@ process cellranger_index{
   label 'cpus_12'
   label 'mem_24'
   input:
-    path(fasta)
-    path(gtf)
-    val(assembly)
+    path fasta
+    path gtf
+    val assembly 
   output:
-    path(cellranger_index)
+    path cellranger_index
   script:
-    cellranger_index = "${params.assembly}_cellranger_full"
+    cellranger_index = "${assembly}_cellranger_full"
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
@@ -104,7 +103,7 @@ process index_star{
   output:
     path output_dir
   script:
-    output_dir = "${params.assembly}.star_idx"
+    output_dir = "${assembly}.star_idx"
     """
     mkdir ${output_dir}
 
@@ -121,8 +120,8 @@ process index_star{
       --limitGenomeGenerateRAM 64000000000
     
     # clean up
-    rm ${params.assembly}.fa
-    rm ${params.assembly}.gtf
+    rm ${assembly}.fa
+    rm ${assembly}.gtf
     """
 }
 
