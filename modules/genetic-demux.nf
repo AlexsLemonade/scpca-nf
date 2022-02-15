@@ -3,7 +3,7 @@
 include { star_bulk } from './bulk-star.nf'
 include { mpileup } from './bcftools.nf'
 include { starsolo_map } from './starsolo.nf' 
-include { cellsnp_vireo } from './cellsnp.nf'
+include { cellsnp; vireo } from './cellsnp.nf'
 
 
 workflow genetic_demux{
@@ -55,7 +55,7 @@ workflow pileup_multibulk{
       .combine(sample_bulk_ch, by: 0) // combine by individual sample ids
       .groupTuple(by: 1) // group by the multiplex run meta object
       .map{[
-        [ // create a meta object for each group of files
+        [ // create a meta object for each group of samples
           sample_ids: it[0],
           multiplex_run_id: it[1].run_id,
           multiplex_library_id: it[1].library_id,
@@ -63,7 +63,8 @@ workflow pileup_multibulk{
           n_samples: it[1].sample_id.split("_").length,
           n_bulk_mapped: it[2].length,
           bulk_run_ids: it[2].collect{it.run_id},
-          bulk_run_prefixes: it[2].collect{it.files_directory}
+          bulk_sample_ids: it[2].collect{it.sample_id},
+          bulk_library_ids: it[2].collect{it.library_id}
         ],
         it[3], // bamfiles
         it[4]  // bamfile indexes
@@ -74,4 +75,25 @@ workflow pileup_multibulk{
   emit:
     mpileup.out
 
+}
+
+workflow cellsnp_vireo {
+  take: 
+    starsolo_bam_ch //channel of [meta, bamfile, bam.bai]
+    starsolo_quant_ch //channel of [meta, starsolo_dir]
+    mpileup_vcf_ch // channel of [meta_mpileup, vcf_file]
+  main:
+    mpileup_ch = mpileup_vcf_ch
+      .map{[it[0].multiplex_library_id] + it} // pull out library id for combining
+    star_mpileup_ch = starsolo_bam_ch.map{[it[0].library_id] + it} // add library id at start
+      .combine(starsolo_quant_ch.map{[it[0].library_id] + it}, by: 0) // join starsolo outs by library_id 
+      .map{[it[0], it[1], it[2], it[3], it[5]]} // remove redundant meta
+      .combine(mpileup_ch, by: 0) // join starsolo and mpileup by library id
+      .map{it.drop(1)} // drop library id
+      //result: [meta, star_bam, star_bai, star_quant, meta_mpileup, vcf_file]
+
+    cellsnp(star_mpileup_ch) \
+      | vireo
+  emit:
+    vireo.out
 }

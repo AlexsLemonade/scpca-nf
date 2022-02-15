@@ -1,5 +1,4 @@
 
-
 process mpileup{
   container params.BCFTOOLS_CONTAINER
   label 'cpus_2'
