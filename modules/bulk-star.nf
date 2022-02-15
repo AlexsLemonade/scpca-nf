@@ -1,4 +1,4 @@
-include { index_bam } from './sambcftools.nf'
+include { index_bam } from './samtools.nf'
 
 process bulkmap_star{
   container params.STAR_CONTAINER
