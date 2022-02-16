@@ -5,14 +5,41 @@ include { mpileup } from './bcftools.nf'
 include { starsolo_map } from './starsolo.nf' 
 include { cellsnp; vireo } from './cellsnp.nf'
 
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+def write_meta(file, meta) {
+  json = JsonOutput.toJson(meta)
+  json = JsonOutput.prettyPrint(json)
+  file.write(json)
+}
+
+def read_meta(file) {
+  meta = new JsonSlurper().parse(file.text)
+  return(meta)
+}
+
 
 workflow genetic_demux{
   take: 
     multiplex_ch
     unfiltered_runs_ch
   main:
+    // add vireo publish directory, vireo directory, and barcode file to meta
+    multiplex_ch = multiplex_ch
+      .map{it.vireo_publish_dir = "${params.outdir}/internal/vireo/${it.library_id}";
+           it.vireo_dir = "${it.vireo_publish_dir}/${it.run_id}-vireo"; 
+           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+           it}
+       // split based in whether repeat_mapping is false and a previous dir exists
+      .branch{
+          has_demux: !params.repeat_gdemux && file(it.vireo_dir).exists()    
+          make_demux: true
+       }     
+    
+    
     // get the bulk samples that correspond to multiplexed samples
-    bulk_samples = multiplex_ch
+    bulk_samples = multiplex_ch.make_demux
       .map{[it.sample_id.tokenize("_")]} // split out sample ids into a tuple
       .transpose() // one element per sample (meta objects repeated)
       .map{it[0]} // get sample ids
@@ -26,16 +53,23 @@ workflow genetic_demux{
     star_bulk(bulk_ch)
     
     // pileup bulk samples by multiplex groups
-    pileup_multibulk(multiplex_ch, star_bulk.out)
+    pileup_multibulk(multiplex_ch.make_demux, star_bulk.out)
 
     // map multiplexed single cell samples
-    starsolo_map(multiplex_ch)
+    starsolo_map(multiplex_ch.make_demux)
 
     // call cell snps and genotype cells 
     cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)
+
+    // construct demux output for skipped & join others
+    demux_out = multiplex_ch.has_demux
+      .map{[read_meta(file("${it.vireo_dir}/scpca.json")),
+            it.vireo_dir
+            ]}
+      .mix(cellsnp_vireo.out)
   
   emit:
-    cellsnp_vireo.out
+    demux_out
 }
 
 

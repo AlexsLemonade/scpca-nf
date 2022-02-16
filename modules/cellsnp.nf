@@ -15,7 +15,7 @@ process cellsnp{
     meta.bulk_run_ids = meta_mpileup.bulk_run_ids
     quant_dir = meta_star.seq_unit == "nucleus" ? "GeneFull" : "Gene"
     barcodes = "${star_quant}/Solo.out/${quant_dir}/filtered/barcodes.tsv"
-    outdir = "${meta.library_id}_cellSNP"
+    outdir = "${meta.run_id}-cellSNP"
     """
     cellsnp-lite \
       --samFile ${star_bam} \
@@ -31,7 +31,7 @@ process cellsnp{
 
 process vireo{
   container params.CONDA_CONTAINER
-  publishDir "${params.outdir}/internal/vireo"
+  publishDir "${meta.vireo_publish_dir}"
   tag "${meta.run_id}"
   label 'cpus_8'
   label 'mem_16'
@@ -40,7 +40,7 @@ process vireo{
   output:
     tuple val(meta), path(outdir)
   script:
-    outdir = "${meta.library_id}-vireo"
+    outdir = file(meta.vireo_dir).name
     """
     pip install vireoSNP==0.5.6
     vireo \
@@ -49,6 +49,9 @@ process vireo{
       --outDir ${outdir} \
       --nproc ${task.cpus}
     """
+    // write out meta object
+    meta_file = file("${outdir}/scpca.json")
+    write_meta(meta, meta_file)
 }
 
 
