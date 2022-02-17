@@ -9,7 +9,7 @@ process fastp{
     input: 
         tuple val(meta), path(read1), path(read2)
     output: 
-        tuple val(meta), path(trimmed_reads), path(fastp_report)
+        tuple val(meta), path(trimmed_reads)
     script: 
         trimmed_reads = "${meta.library_id}_trimmed"
         fastp_report = "${meta.library_id}_fastp.html"
@@ -18,8 +18,7 @@ process fastp{
         fastp --in1 <(gunzip -c ${read1}) --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
         ${meta.technology == 'paired_end' ? "--in2 <(gunzip -c ${read2}) --out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
         --length_required 20 \
-        --thread ${task.cpus} \
-        --html ${fastp_report}
+        --thread ${task.cpus}
         """
 
 }
@@ -31,7 +30,7 @@ process salmon{
     tag "${meta.library_id}-bulk"
     publishDir "${meta.salmon_publish_dir}"
     input: 
-        tuple val(meta), path(read_dir), path(fastp_report)
+        tuple val(meta), path(read_dir)
         path (index)
     output: 
         tuple val(meta), path(salmon_results_dir)
