@@ -9,7 +9,7 @@ process fastp{
     input: 
         tuple val(meta), path(read1), path(read2)
     output: 
-        tuple val(meta), path(trimmed_reads)
+        tuple val(meta), path(trimmed_reads), fastp_report
     script: 
         trimmed_reads = "${meta.library_id}_trimmed"
         fastp_report = "${meta.library_id}_fastp.html"
@@ -30,7 +30,7 @@ process salmon{
     tag "${meta.library_id}-bulk"
     publishDir "${meta.salmon_publish_dir}"
     input: 
-        tuple val(meta), path(read_dir)
+        tuple val(meta), path(read_dir), path(fastp_report)
         path (index)
     output: 
         tuple val(meta), path(salmon_results_dir)
