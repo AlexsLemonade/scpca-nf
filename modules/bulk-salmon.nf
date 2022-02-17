@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 process fastp{
     container params.FASTP_CONTAINER
     label 'cpus_8'
+    label 'mem_8'
     tag "${meta.library_id}-bulk"
     input: 
         tuple val(meta), path(read1), path(read2)
