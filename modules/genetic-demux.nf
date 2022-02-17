@@ -6,7 +6,6 @@ include { starsolo_map } from './starsolo.nf'
 include { cellsnp_vireo } from './cellsnp.nf'
 
 import groovy.json.JsonSlurper
-import groovy.json.JsonOutput
 
 def read_meta(path) {
   meta = new JsonSlurper().parse(file(path))
@@ -38,7 +37,7 @@ workflow genetic_demux{
       .transpose() // one element per sample (meta objects repeated)
       .map{it[0]} // get sample ids
       .collect()
-      
+
     // make a channel of the bulk samples we need to process
     bulk_ch = unfiltered_runs_ch
       .filter{it.technology in params.bulk_techs}
@@ -58,9 +57,7 @@ workflow genetic_demux{
 
     // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
     demux_out = multiplex_ch.has_demux
-      .map{[read_meta("${it.vireo_dir}/scpca-meta.json"),
-            it.vireo_dir
-            ]}
+      .map{[read_meta("${it.vireo_dir}/scpca-meta.json"), file(it.vireo_dir)]}
       .mix(cellsnp_vireo.out)
   
   emit:
