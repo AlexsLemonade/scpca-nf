@@ -18,7 +18,8 @@ process fastp{
         fastp --in1 <(gunzip -c ${read1}) --out1 ${trimmed_reads}/${meta.library_id}_R1_trimmed.fastq.gz \
         ${meta.technology == 'paired_end' ? "--in2 <(gunzip -c ${read2}) --out2 ${trimmed_reads}/${meta.library_id}_R2_trimmed.fastq.gz" : ""} \
         --length_required 20 \
-        --thread ${task.cpus}
+        --thread ${task.cpus} \
+        --html ${fastp_report}
         """
 
 }
