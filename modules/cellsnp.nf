@@ -1,3 +1,4 @@
+import groovy.json.JsonOutput
 
 process cellsnp{
   container params.CELLSNP_CONTAINER
@@ -41,6 +42,8 @@ process vireo{
     tuple val(meta), path(outdir)
   script:
     outdir = file(meta.vireo_dir).name
+    meta_json = JsonOutput.toJson(meta)
+    meta_json = JsonOutput.prettyPrint(meta_json)
     """
     pip install vireoSNP==0.5.6
     vireo \
@@ -48,10 +51,9 @@ process vireo{
       --donorFile ${vcf_file}  \
       --outDir ${outdir} \
       --nproc ${task.cpus}
-    """
-    // write out meta object
-    meta_file = file("${outdir}/scpca.json")
-    write_meta(meta, meta_file)
+
+    echo '${meta_json}' > ${outdir}/scpca-meta.json
+    """ 
 }
 
 

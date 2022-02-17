@@ -8,14 +8,8 @@ include { cellsnp; vireo } from './cellsnp.nf'
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-def write_meta(file, meta) {
-  json = JsonOutput.toJson(meta)
-  json = JsonOutput.prettyPrint(json)
-  file.write(json)
-}
-
-def read_meta(file) {
-  meta = new JsonSlurper().parse(file.text)
+def read_meta(path) {
+  meta = new JsonSlurper().parse(file(path))
   return(meta)
 }
 
@@ -35,7 +29,7 @@ workflow genetic_demux{
       .branch{
           has_demux: !params.repeat_gdemux && file(it.vireo_dir).exists()    
           make_demux: true
-       }     
+       } 
     
     
     // get the bulk samples that correspond to multiplexed samples
@@ -63,7 +57,7 @@ workflow genetic_demux{
 
     // construct demux output for skipped & join others
     demux_out = multiplex_ch.has_demux
-      .map{[read_meta(file("${it.vireo_dir}/scpca.json")),
+      .map{[read_meta("${it.vireo_dir}/scpca-meta.json"),
             it.vireo_dir
             ]}
       .mix(cellsnp_vireo.out)
