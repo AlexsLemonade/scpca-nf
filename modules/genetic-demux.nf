@@ -38,6 +38,7 @@ workflow genetic_demux{
       .transpose() // one element per sample (meta objects repeated)
       .map{it[0]} // get sample ids
       .collect()
+      
     // make a channel of the bulk samples we need to process
     bulk_ch = unfiltered_runs_ch
       .filter{it.technology in params.bulk_techs}
@@ -55,7 +56,7 @@ workflow genetic_demux{
     // call cell snps and genotype cells 
     cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)
 
-    // construct demux output for skipped & join others
+    // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
     demux_out = multiplex_ch.has_demux
       .map{[read_meta("${it.vireo_dir}/scpca-meta.json"),
             it.vireo_dir
