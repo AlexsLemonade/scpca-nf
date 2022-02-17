@@ -56,4 +56,24 @@ process vireo{
     """ 
 }
 
+workflow cellsnp_vireo {
+  take: 
+    starsolo_bam_ch //channel of [meta, bamfile, bam.bai]
+    starsolo_quant_ch //channel of [meta, starsolo_dir]
+    mpileup_vcf_ch // channel of [meta_mpileup, vcf_file]
+  main:
+    mpileup_ch = mpileup_vcf_ch
+      .map{[it[0].multiplex_library_id] + it} // pull out library id for combining
+    star_mpileup_ch = starsolo_bam_ch.map{[it[0].library_id] + it} // add library id at start
+      .combine(starsolo_quant_ch.map{[it[0].library_id] + it}, by: 0) // join starsolo outs by library_id 
+      .map{[it[0], it[1], it[2], it[3], it[5]]} // remove redundant meta
+      .combine(mpileup_ch, by: 0) // join starsolo and mpileup by library id
+      .map{it.drop(1)} // drop library id
+      //result: [meta, star_bam, star_bai, star_quant, meta_mpileup, vcf_file]
+
+    cellsnp(star_mpileup_ch) \
+      | vireo
+  emit:
+    vireo.out
+}
 
