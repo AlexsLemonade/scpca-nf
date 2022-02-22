@@ -20,8 +20,8 @@ workflow genetic_demux{
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_ch
-      .map{it.vireo_publish_dir = "${params.outdir}/internal/vireo/${it.library_id}";
-           it.vireo_dir = "${it.vireo_publish_dir}/${it.run_id}-vireo"; 
+      .map{it.vireo_publish_dir = "${params.outdir}/internal/vireo/";
+           it.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
        // split based in whether repeat_mapping is false and a previous dir exists
