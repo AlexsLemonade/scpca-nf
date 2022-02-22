@@ -37,24 +37,24 @@ workflow pileup_multibulk{
       .map{[it[0].sample_id] + it} 
 
     pileup_ch = multiplex_ch 
-      .map{[it.sample_id.tokenize("_"), it]} // split out sample ids into a tuple
-      .transpose() // one element per sample (meta objects repeated)
+      .map{[it.sample_id.tokenize("_"), it.library_id, it]} // split out sample ids into a tuple, add library_id separately
+      .transpose() // one element per sample (library & meta objects repeated)
       .combine(sample_bulk_ch, by: 0) // combine by individual sample ids
-      .groupTuple(by: 1) // group by the multiplex run meta object
+      .groupTuple(by: 1) // group by library id 
       .map{[
         [ // create a meta object for each group of samples
           sample_ids: it[0],
-          multiplex_run_id: it[1].run_id,
-          multiplex_library_id: it[1].library_id,
-          multiplex_sample_id: it[1].sample_id,
-          n_samples: it[1].sample_id.split("_").length,
-          n_bulk_mapped: it[2].length,
-          bulk_run_ids: it[2].collect{it.run_id},
-          bulk_sample_ids: it[2].collect{it.sample_id},
-          bulk_library_ids: it[2].collect{it.library_id}
+          multiplex_run_id: it[2][0].run_id, // multiplex meta objects are repeated, but identical: use first element
+          multiplex_library_id: it[2][0].library_id,
+          multiplex_sample_id: it[2][0].sample_id,
+          n_samples: it[2][0].sample_id.split("_").length,
+          n_bulk_mapped: it[3].length,
+          bulk_run_ids: it[3].collect{it.run_id},
+          bulk_sample_ids: it[3].collect{it.sample_id},
+          bulk_library_ids: it[3].collect{it.library_id}
         ],
-        it[3], // bamfiles
-        it[4]  // bamfile indexes
+        it[4], // bamfiles
+        it[5]  // bamfile indexes
       ]}
 
     mpileup(pileup_ch, [params.ref_fasta, params.ref_fasta_index])
