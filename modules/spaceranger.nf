@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 
 process spaceranger{
   container params.SPACERANGER_CONTAINER
-  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  publishDir "${meta.spaceranger_publish_dir}"
   tag "${meta.run_id}-spatial" 
   label 'cpus_12'
   label 'mem_24'
@@ -46,7 +46,7 @@ process spaceranger{
 
 process spaceranger_metadata{
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  publishDir "${meta.spaceranger_publish_dir}"
   input:
     tuple val(meta), path(spatial_out)
   output:
@@ -95,21 +95,37 @@ workflow spaceranger_quant{
     // a channel with a map of metadata for each spatial library to process 
     main: 
         // create tuple of (metadata map, [])
-        spaceranger_reads = spatial_channel
+        spatial_channel = spatial_channel
           // add sample names to metadata
-          .map{it.cr_samples =  getCRsamples(it.files); it}
+          .map{it.cr_samples =  getCRsamples(it.files);
+               it.spaceranger_publish_dir =  "${params.outdir}/publish/${it.project_id}/${it.sample_id}";
+               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
+               it}
+          .branch{
+            has_spatial: !params.repeat_mapping & file(it.spaceranger_results_dir).exists()
+            make_spatial: true
+          }
+
           // create tuple of [metadata, fastq dir, and path to image file]
+        spaceranger_reads = spatial_channel.make_spatial
           .map{meta -> tuple(meta,
                             file("${meta.files_directory}"),
                             file("${meta.files_directory}/*.jpg")
                             )}
 
         // run spaceranger
-        spaceranger(spaceranger_reads, params.cellranger_index) \
+        spaceranger(spaceranger_reads, params.cellranger_index)
+
+        spaceranger_quants_ch = spatial_channel.has_spatial
+          .map{meta -> tuple(meta,
+                             file("${meta.spaceranger_results_dir}")
+                             )}
+
+        grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
           // generate metadata.json
-          | spaceranger_metadata
+        spaceranger_metadata(grouped_spaceranger_ch)
 
     // tuple of metadata and path to spaceranger output directory
-    emit: spaceranger.out
+    emit: spaceranger_metadata.out
   
 }
