@@ -51,7 +51,6 @@ Once you have completed the below steps you will be able to setup your run as fo
 ```
 nextflow run AlexsLemonade/scpca-nf \
   --run_metafile <path/to/metadata file> \
-  --ref_dir <path/to/reference files> \
   --outdir <path/to/output>
 ```
 
@@ -74,8 +73,9 @@ Instructions on adding a new profile
 
 ### Choose an index 
 
-If you are running the workflow on AWS, then you are able to use the pre-built index files that we have. 
-However, if you are running in any other location you will need to provide your own index files. 
+We have provided pre-built index files that are stored in AWS S3 storage that can be used regardless of how you choose to run the workflow.
+
+However, if you would like to create your own index, you then must provide the directory containing the index to `--ref_dir` at the command line.  
 
 For single-cell/single-nuclei samples you will need to provide a [`splici` index](https://combine-lab.github.io/alevin-fry-tutorials/2021/improving-txome-specificity/).
 For more information on how to build a `splici` index... 
