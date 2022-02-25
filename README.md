@@ -39,7 +39,7 @@ nextflow run AlexsLemonade/scpca-nf -profile batch
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release: 
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.1.1 -profile batch
+nextflow run AlexsLemonade/scpca-nf -r v0.2.3 -profile batch --project SCPCP000000
 ```
 
 ## How to use `scpca-nf` as an external user 
@@ -50,6 +50,8 @@ Once you have completed the below steps you will be able to setup your run as fo
 
 ```
 nextflow run AlexsLemonade/scpca-nf \
+ -r 0.2.3 \
+ -c my_config.config \
   --run_metafile <path/to/metadata file> \
   --outdir <path/to/output>
 ```
