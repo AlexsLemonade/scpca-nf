@@ -20,7 +20,8 @@ In order to use `scpca-nf` to process your own data, you will need to make sure 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 - [Docker](https://docs.docker.com/get-started/#download-and-install-docker) (installed either locally or on an HPC)
 
-Once you have setup your environment and completed the below steps you will be able to setup your run as follows, adding any additional optional parameters that you may choose: 
+You will also need to create a metadata file and a nextflow configuration file (see below).
+Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
 
 ```
 nextflow run AlexsLemonade/scpca-nf \
