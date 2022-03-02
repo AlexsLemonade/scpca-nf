@@ -1,0 +1,2 @@
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	submitter	technology	seq_unit	library_method	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	files_directory
+SCPCR000001	SCPCL000001	SCPCS000001	SCPCP000001	example	10Xv3.1	cell						example_fastq	
