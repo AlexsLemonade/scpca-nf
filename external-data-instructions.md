@@ -44,13 +44,13 @@ You will need to create a tab separated file with the following columns:
 | `submitter_id`    | Original sample identifier defined by user                     |
 | `submitter`       | Name of user submitting name/id                                 |
 | `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium_v1` or `visium_v2`      |
-| `seq_unit`        | Sequencing unit (likely one of: `cell`, `nucleus`, `bulk`)           |
+| `seq_unit`        | Sequencing unit (likely one of: `cell`, `nucleus`, `bulk`, or `spot`)           |
 | `feature_barcode_file` | path/uri to directory containing the feature barcode sequences (only applicable for CITE-seq)  |	
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only applicable for CITE-seq) |
 | `slide_section`   | The slide section for spatial transcriptomics samples               |
 | `slide_serial_number` | The slide serial number for spatial transcriptomics samples     |
 | `files_directory` | path/uri to directory containing fastq files from run (unique per run) |
-| `files`           | All sequencing files in the run folder, `;`-separated              |
+| `files`           | All sequencing files in the run folder, `;`-separated (only applicable for spatial transcriptomics)  |
 
 The ids that should be used for `scpca_run_id`, `scpca_library_id`, and `scpca_sample_id` will be provided to each user based on the number and types of samples that are being processed as to avoid overlap with existing sample identifiers. 
 Before using the workflow, please be sure to obtain the list of sample identifiers to use for your samples from the Data Lab. 
