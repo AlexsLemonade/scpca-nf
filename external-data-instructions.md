@@ -39,12 +39,12 @@ You will need to create a tab separated file with the following columns:
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
 | `scpca_run_id`    | Run ID in the form `SCPCR000000`                               |
-| `scpca_library_id` | Library ID in the form `SCPCL000000` <br> The numeric portion will equal the `scpca_run_id` for RNA-seq data, but for associated feature data (CITE-seq, cell hashing, etc.) this will be shared with the associated RNA-seq data that it is paired with.|
+| `scpca_library_id` | Library ID in the form `SCPCL000000` <br> The numeric portion will equal the `scpca_run_id` for RNA-seq data, but for associated feature data (CITE-seq) this will be shared with the associated RNA-seq data that it is paired with.|
 | `scpca_sample_id` | Sample ID in the form `SCPCS000000`                            |
 | `submitter_id`    | Original sample identifier defined by user                     |
-| `submitter`       | Name of user submittin name/id                                 |
-| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either 10Xv2, 10Xv2_5prime, 10Xv3, or 10Xv31. <br> For CITE-seq libraries use either CITEseq_10Xv2, CITEseq_10Xv3, or CITEseq_10Xv3.1 <br> For bulk RNA-seq use either single_end or paired_end. <br> For spatial transcriptomics use either visium_v1 or visium_v2      |
-| `seq_unit`        | Sequencing unit (likely one of: cell, nucleus, bulk)           |
+| `submitter`       | Name of user submitting name/id                                 |
+| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium_v1` or `visium_v2`      |
+| `seq_unit`        | Sequencing unit (likely one of: `cell`, `nucleus`, `bulk`)           |
 | `feature_barcode_file` | path/uri to directory containing the feature barcode sequences (only applicable for CITE-seq)  |	
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only applicable for CITE-seq) |
 | `slide_section`   | The slide section for spatial transcriptomics samples               |
