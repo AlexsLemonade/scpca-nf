@@ -84,13 +84,13 @@ See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html
 Local running may be sufficient for small jobs or testing, but you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
 To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate Nextflow settings like the `process.executor` that will be used to run each process and associated details that may be required, such as queue names or the container engine your system uses.
 
-In our example template file [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), we define a profile named `user_cluster` which could be invoked with the following command:
+In our example template file [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
- -r v0.2.4 \
- -config user_template.config \
- -profile user_cluster
+  -r v0.2.4 \
+  -config user_template.config \
+  -profile cluster
 ```
 
 ### Using `scpca-nf` with AWS
