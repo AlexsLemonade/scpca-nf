@@ -83,7 +83,7 @@ See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html
 ### Setting up a profile in the configuration file
 
 Local running may be sufficient for small jobs or testing, but you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
-To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate Nextflow settings like the `process.executor` that will be used to run each process and associated details that may be required, such as queue names or the container engine your system uses.
+To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine your system uses. 
 
 In our example template file [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
 
