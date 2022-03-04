@@ -24,8 +24,9 @@ Once you have set up your environment and created these files you will be able t
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
- -r v0.2.4 \
- -config my_config.config 
+  -r v0.2.4 \
+  -config my_config.config \
+  --run_metafile <path/to/metadata_file>
 ```
 
 This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.4` version, and run it based on the settings in the local configuration file `my_config.config`.
@@ -71,8 +72,8 @@ This is then used with the `-config` (or `-c`) argument at the command line:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
- -r v0.2.4 \
- -config my_config.config 
+  -r v0.2.4 \
+  -config my_config.config 
 ```
 
 We provide an example template configuration file, [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), for reference, which includes some other workflow parameters that may be useful, as well as an example of profile configuration, discussed below. 
