@@ -33,18 +33,18 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Prepare the metadata file 
 
-Using `scpca-nf` requires a metadata file where each library to be processed is a row and columns contain associated information about that library. 
+Using `scpca-nf` requires a metadata file where each sequencing run to be processed is a row and columns contain associated information about that run. 
 
-For each library, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`). 
+For each run, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`). 
 Each row should contain a unique run ID, corresponding to a unique sequencing run or set of FASTQ files. 
 For example, row 1 will contain all information about a single-cell library and the corresponding FASTQ files. 
 If that library has a corresponding CITE-seq library, and therefore a separate set of FASTQ files, the CITE-seq library should have it's own row and its own unique run ID. 
 
-The library ID will be unique for each set of cells that have been extracted from a sample and have undergone droplet generation. 
+The library ID will be unique for each set of cells that have been isolated from a sample and have undergone droplet generation. 
 For single-cell/single-nuclei RNA-seq runs, the library ID should be unique for each sequencing run.
-For libraries that have corresponding CITE-seq, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run indicating that the sequencing data has been generated from the same group of cells. 
+For libraries that have corresponding CITE-seq, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run, indicating that the sequencing data has been generated from the same group of cells. 
 
-Finally, the sample ID will indicate the unique tissue that was collected. 
+Finally, the sample ID will indicate the unique tissue or source from which a sample was collected. 
 If you have two libraries that have been generated from the same original tissue, then they will share the same sample ID. 
 
 For more information on understanding the difference between library and sample IDs, see the [FAQ on library and sample IDs in the ScPCA portal documentation](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries). 
