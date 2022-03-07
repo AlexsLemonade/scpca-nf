@@ -17,7 +17,7 @@
 In order to use `scpca-nf` to process your own data, you will need to make sure you have the following installed: 
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
-- [Docker](https://docs.docker.com/get-started/#download-and-install-docker) or [Singlularity](https://sylabs.io/docs) (installed either locally or on an HPC)
+- [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singlularity](https://www.nextflow.io/docs/latest/singularity.html) (installed either locally or on an HPC)
 
 You will also need to create a metadata file and a Nextflow configuration file (see below).
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
@@ -85,7 +85,7 @@ See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html
 ### Setting up a profile in the configuration file
 
 Local running may be sufficient for small jobs or testing, but you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
-To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e. Docker or Singularity) your system uses.
+To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e. [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
 In our example template file [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
