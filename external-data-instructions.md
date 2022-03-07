@@ -31,7 +31,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.4` version, and run it based on the settings in the local configuration file `my_config.config`.
 
-**Note:** `spca-nf` is under active development.
+**Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
