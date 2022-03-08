@@ -1,6 +1,16 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+manifest{
+  name = 'scpca-nf'
+  description = 'A nextflow workflow for processing single-cell RNA-seq data as part of the ScPCA project.'
+  homepage = 'https://github.com/AlexsLemonade/scpca-nf'
+  author = "Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation"
+  mainScript = 'main.nf'
+  version = 'v0.2.4'
+}
+
+
 // 10X barcode files
 cell_barcodes = [
   '10Xv2': '737K-august-2016.txt',
