@@ -20,7 +20,12 @@ In order to use `scpca-nf` to process your own data, you will need to make sure 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 - [Docker](https://docs.docker.com/get-started/#download-and-install-docker) (installed either locally or on an HPC)
 
-You will also need to create a metadata file and a nextflow configuration file (see below).
+You will also need to have files organized so that all the sequencing files for one run live in their own directory or folder.
+This requires that all FASTQ files in a given folder only pertain to a single run and library. 
+Any sequencing runs that contain multiple samples must be demultiplexed and FASTQ files must be placed into separate distinct folders. 
+If a run has been re-sequenced for any reason (e.g. to increase coverage), all FASTQ files can be combined into the same folder. 
+
+Finally, you will need to create a metadata file and a nextflow configuration file (see below).
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
 
 ```
@@ -33,7 +38,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Prepare the metadata file 
 
-Using `scpca-nf` requires a metadata file where each sequencing run to be processed is a row and columns contain associated information about that run. 
+Using `scpca-nf` requires a metadata file as a TSV (tab separated values) file, where each sequencing run to be processed is a row and columns contain associated information about that run. 
 
 For each run, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`). 
 Each row should contain a unique run ID, corresponding to a sequencing run or set of FASTQ files. 
@@ -54,7 +59,7 @@ For more information on understanding the difference between library and sample 
 Before using the workflow with data that you might plan to submit to ScPCA, please be sure to obtain a list of sample identifiers to use for your samples from the Data Lab. 
 We will provide IDs that can be used for `scpca_run_id`, `scpca_library_id`, and `scpca_sample_id` based on the number and types of samples that are being processed to avoid overlap with existing sample identifiers. 
 
-To run the workflow, you will need to create a tab separated file with the following required columns: 
+To run the workflow, you will need to create a tab separated values (TSV) metadata file with the following required columns: 
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
