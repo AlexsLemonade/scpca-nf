@@ -21,7 +21,6 @@ In order to use `scpca-nf` to process your own data, you will need to make sure 
 - [Docker](https://docs.docker.com/get-started/#download-and-install-docker) (installed either locally or on an HPC)
 
 You will also need to have files organized so that all the sequencing files for each run are in their own directory or folder.
-This requires that all FASTQ files in a given folder only pertain to a single run and library. 
 Any sequencing runs that contain multiple samples must be demultiplexed and FASTQ files must be placed into separate distinct folders. 
 If a run has been re-sequenced for any reason (e.g. to increase coverage), all FASTQ files should be combined into the same folder. 
 
