@@ -145,7 +145,25 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 ### Using `scpca-nf` with AWS
-Instructions on setting up AWS
+
+At the Data Lab, we use Nextflow with the [Amazon Web Services (AWS) Batch](https://aws.amazon.com/batch/) compute environment. 
+If you are interested in using AWS batch with `scpca-nf`, we provide some basic instructions here to get you started.
+Be aware, AWS management can be quite complex, with many interacting parts and mysterious acronyms.
+We encourage you to read the official Nextflow instructions for [running pipelines on AWS](https://www.nextflow.io/docs/latest/awscloud.html), which includes information about security and permission settings that are beyond the scope of this document.
+
+To run `scpca-nf`, you will need to set up at least one batch queue and an associated compute environment configured with a custom Amazon Machine Image (AMI) prepared according to the [Nextflow instructions](https://www.nextflow.io/docs/latest/awscloud.html#custom-ami). 
+You will also need an [S3 bucket](https://aws.amazon.com/s3/) path to use as the Nextflow `work` directory for intermediate files.
+As the intermediate files can get quite large, you will likely want to set up a [lifecycle rule](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) to delete files from this location after a fixed period of time (e.g., 30 days).
+
+
+In most Batch queue setups, each AWS compute node has a fixed amount of disk space. 
+We found it useful to have two queues: one for general use and one for jobs that may require larger amounts of disk space. 
+The two compute environments use the same AMI, but use [Launch Templates](https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html) to configure the nodes on launch with different amounts of disk space. 
+Currently, our default queue is configured with a disk size of 128 GB for each node, and our "bigdisk" queue has 1000 GB of disk space.
+The queue used by each process is determined by Nextflow labels and associated profile settings.
+
+The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf/blob/main/config/profile_awsbatch.config) may be helpful as a reference for creating a profile for use with AWS, but note that the queues and file locations listed there are not publicly available, so these will need to be set to different values your own profile.
+
 
 ## Adjust optional parameters
 
