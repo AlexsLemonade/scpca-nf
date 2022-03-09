@@ -146,7 +146,8 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Using `scpca-nf` with AWS
 
-At the Data Lab, we use Nextflow with the [Amazon Web Services (AWS) Batch](https://aws.amazon.com/batch/) compute environment, so we can provide a bit more instruction related to that setup, if that is a direction you want to go. 
+At the Data Lab, we use Nextflow with the [Amazon Web Services (AWS) Batch](https://aws.amazon.com/batch/) compute environment. 
+If you are interested in using AWS batch with `scpca-nf`, we provide some basic instructions here to get you started.
 Be aware, AWS management can be quite complex, with many interacting parts and mysterious acronyms.
 We encourage you to read the official Nextflow instructions for [running pipelines on AWS](https://www.nextflow.io/docs/latest/awscloud.html), which includes information about security and permission settings that are beyond the scope of this document.
 
