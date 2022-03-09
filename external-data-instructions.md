@@ -20,7 +20,11 @@ In order to use `scpca-nf` to process your own data, you will need to make sure 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 - [Docker](https://docs.docker.com/get-started/#download-and-install-docker) (installed either locally or on an HPC)
 
-You will also need to create a metadata file and a nextflow configuration file (see below).
+You will also need to have files organized so that all the sequencing files for each run are in their own directory or folder.
+Any sequencing runs that contain multiple samples must be demultiplexed and FASTQ files must be placed into separate distinct folders. 
+If a run has been re-sequenced for any reason (e.g. to increase coverage), all FASTQ files should be combined into the same folder. 
+
+Finally, you will need to create a metadata file and a nextflow configuration file (see below).
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
 
 ```
@@ -33,8 +37,51 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Prepare the metadata file 
 
-Using `scpca-nf` requires a metadata file where each library to be processed is a row and columns contain associated information about that library. 
-You will need the following columns to be present in your metadata file... 
+Using `scpca-nf` requires a metadata file as a TSV (tab separated values) file, where each sequencing run to be processed is a row and columns contain associated information about that run. 
+
+For each run, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`). 
+Each row should contain a unique run ID, corresponding to a sequencing run or set of FASTQ files. 
+If the same sequencing library was sequenced across multiple flowcells (to increase coverage, for example), these should be combined into a single row that includes all FASTQ files. 
+Each run should also have a unique directory where all FASTQ files associated with that run can be found.
+For example, row 1 might contain all information about a single-cell RNA-seq library and the corresponding FASTQ files. 
+If that library has a corresponding CITE-seq library, and therefore a separate set of FASTQ files, the CITE-seq library should have it's own row and its own unique run ID. 
+
+The library ID will be unique for each set of cells that have been isolated from a sample and have undergone droplet generation. 
+For single-cell/single-nuclei RNA-seq runs, the library ID should be unique for each sequencing run.
+For libraries that have corresponding CITE-seq, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run, indicating that the sequencing data has been generated from the same group of cells. 
+
+Finally, the sample ID will indicate the unique tissue or source from which a sample was collected. 
+If you have two libraries that have been generated from the same original tissue, then they will share the same sample ID. 
+
+For more information on understanding the difference between library and sample IDs, see the [FAQ on library and sample IDs in the ScPCA portal documentation](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries). 
+
+Before using the workflow with data that you might plan to submit to ScPCA, please be sure to obtain a list of sample identifiers to use for your samples from the Data Lab. 
+We will provide IDs that can be used for `scpca_run_id`, `scpca_library_id`, and `scpca_sample_id` based on the number and types of samples that are being processed to avoid overlap with existing sample identifiers. 
+
+To run the workflow, you will need to create a tab separated values (TSV) metadata file with the following required columns: 
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `scpca_run_id`    | A unique run ID                                              |
+| `scpca_library_id`| A unique library ID for each unique set of cells             |
+| `scpca_sample_id` | A unique sample ID for each tissue or unique source          |
+| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium_v1` or `visium_v2`      |
+| `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
+| `files_directory` | path/uri to directory containing fastq files (unique per run) |
+
+The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or are optional and can be included in the metadata file if desired: 
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `submitter_id`    | Original sample identifier defined by user (for reference only; optional)|
+| `submitter`       | Name of user submitting name/id  (optional)                  |
+| `feature_barcode_file`| path/uri to directory containing the feature barcode sequences (only required for CITE-seq)  |	
+| `feature_barcode_geom`| A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq) |
+| `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
+| `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
+| `files`           | All sequencing files in the run folder, `;`-separated (only required for spatial transcriptomics)  |
+
+We have provided an example metadata file for reference that can be found in [`examples/example_metadata.tsv`](examples/example_metadata.tsv).
 
 ### Configuring `scpca-nf` for your environment
 
