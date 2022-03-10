@@ -190,23 +190,25 @@ For more information on the contents of these files, see the [ScPCA portal docs 
 See below for the expected structure of the `publish` folder: 
 
 ```
-└── SCPCS000001
-    ├── SCPCL000001_filtered.rds
-    ├── SCPCL000001_metadata.json
-    ├── SCPCL000001_qc.html
-    └── SCPCL000001_unfiltered.rds
+└── SCPCS999991
+    ├── SCPCL999991_filtered.rds
+    ├── SCPCL999991_metadata.json
+    ├── SCPCL999991_qc.html
+    └── SCPCL999991_unfiltered.rds
 ```
 
 Additionally, if bulk libraries are processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will be present in the `publish` directory. 
 
 The `internal` folder will contain the intermediate files that are produced throughout the workflow. 
+All files pertaining to a specific library will be nested within a folder labeled with the library ID.
+Additionally, for each run, all files related to that run will be inside the library ID folder and labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq)
 The `af` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html#alevin) with the `--rad` flag, while the `rad` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
 See below for the expected structure of the `internal` folder after running the single-cell/single-nuclei workflow: 
 
 ```
 ├── af
-│   └── SCPCL000001
-│       └── SCPCR000001-rna
+│   └── SCPCL999991
+│       └── SCPCR999991-rna
 │           ├── alevin
 │           │   ├── alevin.log
 │           │   ├── quants_mat.mtx
@@ -223,8 +225,8 @@ See below for the expected structure of the `internal` folder after running the 
 │           ├── permit_freq.tsv
 │           └── quant.json
 └── rad
-    └── SCPCL000001
-        └── SCPCR000001-rna
+    └── SCPCL999991
+        └── SCPCR999991-rna
             ├── alevin
             │   └── alevin.log
             ├── aux_info
