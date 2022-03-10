@@ -172,3 +172,68 @@ Include information on all parameters that can be altered.
 ## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
 
 Instructions on creating your own spaceranger docker image
+
+## Output files 
+
+Upon completion of the `scpca-nf` workflow, the results will be published to the specified `outdir`. 
+Within the `outdir`, two folders will be present, `publish` and `internal`. 
+
+The `publish` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal. 
+
+Within the `publish` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
+An `unfiltered.rds`, `filtered.rds`, `metadata.json`, and QC report (`qc.html`) will be present for each library. 
+The `unfiltered.rds` and `filtered.rds` files will contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents.](https://scpca.readthedocs.io/en/latest/sce_file_contents.html)
+
+Additionally, if bulk libraries are processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will be present in the `publish` directory. 
+
+See below for the expected structure of the `publish` folder: 
+
+```
+├── SCPCP000001_bulk_metadata.tsv
+├── SCPCP000001_bulk_quant.tsv
+└── SCPCS000001
+    ├── SCPCL000001_filtered.rds
+    ├── SCPCL000001_metadata.json
+    ├── SCPCL000001_qc.html
+    └── SCPCL000001_unfiltered.rds
+```
+
+The `internal` folder will contain the intermediate files that are produced throughout the workflow. 
+The `af` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html#alevin) with the `--rad` flag, while the `rad` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
+See below for the expected structure of the `internal` folder after running the single-cell/single-nuclei workflow: 
+
+```
+├── af
+│   └── SCPCL000001
+│       └── SCPCR000001-rna
+│           ├── alevin
+│           │   ├── alevin.log
+│           │   ├── quants_mat.mtx
+│           │   ├── quants_mat_cols.txt
+│           │   └── quants_mat_rows.txt
+│           ├── aux_info
+│           │   └── meta_info.json
+│           ├── cmd_info.json
+│           ├── collate.json
+│           ├── featureDump.txt
+│           ├── generate_permit_list.json
+│           ├── logs
+│           │   └── salmon_quant.log
+│           ├── permit_freq.tsv
+│           └── quant.json
+└── rad
+    └── SCPCL000001
+        └── SCPCR000001-rna
+            ├── alevin
+            │   └── alevin.log
+            ├── aux_info
+            │   └── meta_info.json
+            ├── cmd_info.json
+            ├── logs
+            │   └── salmon_quant.log
+            ├── map.rad
+            └── unmapped_bc_count.bin
+```
+
+If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon`](https://salmon.readthedocs.io/en/latest/file_formats.html#fileformats) on each library processed. 
