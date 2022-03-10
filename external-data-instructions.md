@@ -166,14 +166,14 @@ The queue used by each process is determined by Nextflow labels and associated p
 
 The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf/blob/main/config/profile_awsbatch.config) may be helpful as a reference for creating a profile for use with AWS, but note that the queues and file locations listed there are not publicly available, so these will need to be set to different values your own profile.
 
-
-## Adjust optional parameters
-
-Include information on all parameters that can be altered. 
-
 ## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
 
-Instructions on creating your own spaceranger docker image
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside its own directory. 
+The `run_metafile` must also contain columns with the `slide_section`, `slide_serial_number`, and list of all `files` inside the run directory, including the `.jpg` image. 
+
+You will also need to provide a docker image that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest). 
+
+After building the docker image, add the path/uri to the image to `params.SPACERANGER_CONTAINER` in the `user_template.config` file. 
 
 ## Output files 
 
@@ -209,3 +209,14 @@ All files pertaining to a specific library will be nested within a folder labele
 Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
 
 If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon`](https://salmon.readthedocs.io/en/latest/file_formats.html#fileformats) on each library processed. 
+
+## Repeat mapping 
+
+By default, `scpca-nf` is setup to skip the mapping steps for any libraries in which the output files from the mapping step exists (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon`). 
+
+If you would like to repeat mapping, regardless of if the files exist, you can do so by using the `--repeat_mapping` flag at the command line: 
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  -r v0.2.4 \
+  --repeat_mapping
+```
