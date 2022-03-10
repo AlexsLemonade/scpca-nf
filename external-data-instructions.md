@@ -201,7 +201,7 @@ Additionally, if bulk libraries are processed, a `bulk_quant.tsv` and `bulk_meta
 
 The `internal` folder will contain the intermediate files that are produced throughout the workflow. 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
-Additionally, for each run, all files related to that run will be inside the library ID folder and labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq)
+Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
 The `af` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html#alevin) with the `--rad` flag, while the `rad` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
 See below for the expected structure of the `internal` folder after running the single-cell/single-nuclei workflow: 
 
