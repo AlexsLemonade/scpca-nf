@@ -171,7 +171,7 @@ The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf
 To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside its own directory. 
 The `run_metafile` must also contain columns with the `slide_section`, `slide_serial_number`, and list of all `files` inside the run directory, including the `.jpg` image. 
 
-You will also need to provide a docker image that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest). 
+You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest). 
 
 After building the docker image, add the path/uri to the image to `params.SPACERANGER_CONTAINER` in the `user_template.config` file. 
 
