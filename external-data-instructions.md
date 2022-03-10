@@ -8,9 +8,9 @@
     - [Configuration files](#configuration-files)
     - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
     - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
-  - [Adjust optional parameters](#adjust-optional-parameters)
   - [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
   - [Output files](#output-files)
+  - [Repeat mapping](#repeat-mapping)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
