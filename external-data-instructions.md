@@ -168,12 +168,12 @@ The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf
 
 ## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
 
-To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside its own directory. 
-The `run_metafile` must also contain columns with the `slide_section`, `slide_serial_number`, and list of all `files` inside the run directory, including the `.jpg` image. 
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file). 
+The metadata file must also contain columns with the `slide_section`, `slide_serial_number`, and list of all `files` inside the run directory, including the `.jpg` image. 
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest). 
 
-After building the docker image, add the path/uri to the image to `params.SPACERANGER_CONTAINER` in the `user_template.config` file. 
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file. 
 
 ## Output files 
 
@@ -210,11 +210,14 @@ Additionally, for each run, all files related to that run will be inside a folde
 
 If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon`](https://salmon.readthedocs.io/en/latest/file_formats.html#fileformats) on each library processed. 
 
-## Repeat mapping 
+## Repeating the mapping step
 
-By default, `scpca-nf` is setup to skip the mapping steps for any libraries in which the output files from the mapping step exists (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon`). 
+By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `internal` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`). 
+If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
+However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process. 
 
-If you would like to repeat mapping, regardless of if the files exist, you can do so by using the `--repeat_mapping` flag at the command line: 
+To force repeating the mapping process, use the `--repeat_mapping` flag at the command line: 
+
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
   -r v0.2.4 \
