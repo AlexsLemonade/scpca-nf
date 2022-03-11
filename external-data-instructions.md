@@ -23,7 +23,7 @@ In order to use `scpca-nf` to process your own data, you will need to make sure 
 
 You will also need to have files organized so that all the sequencing files for each run are in their own directory or folder.
 Any sequencing runs that contain multiple samples must be demultiplexed and FASTQ files must be placed into separate distinct folders. 
-If a run has been re-sequenced for any reason (e.g. to increase coverage), all FASTQ files should be combined into the same folder. 
+If a run has been re-sequenced for any reason (e.g., to increase coverage), all FASTQ files should be combined into the same folder. 
 
 Finally, you will need to create a metadata file and a nextflow configuration file (see below).
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
@@ -166,7 +166,7 @@ The queue used by each process is determined by Nextflow labels and associated p
 
 The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf/blob/main/config/profile_awsbatch.config) may be helpful as a reference for creating a profile for use with AWS, but note that the queues and file locations listed there are not publicly available, so these will need to be set to different values your own profile.
 
-## Repeating the mapping step
+## Repeating mapping steps
 
 By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `internal` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`). 
 If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
