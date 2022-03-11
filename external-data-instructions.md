@@ -224,5 +224,3 @@ If bulk libraries are processed, there will be an additional `salmon` folder tha
 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
 Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
-
-If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon`](https://salmon.readthedocs.io/en/latest/file_formats.html#fileformats) on each library processed. 
