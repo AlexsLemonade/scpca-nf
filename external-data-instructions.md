@@ -2,13 +2,15 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Prepare the metadata file](#prepare-the-metadata-file)
-- [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
-  - [Configuration files](#configuration-files)
-  - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
-  - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
-- [Adjust optional parameters](#adjust-optional-parameters)
-- [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+- [How to use `scpca-nf` as an external user](#how-to-use-scpca-nf-as-an-external-user)
+  - [Prepare the metadata file](#prepare-the-metadata-file)
+  - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
+    - [Configuration files](#configuration-files)
+    - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
+    - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
+  - [Adjust optional parameters](#adjust-optional-parameters)
+  - [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+  - [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -172,3 +174,37 @@ Include information on all parameters that can be altered.
 ## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
 
 Instructions on creating your own spaceranger docker image
+
+## Output files 
+
+Upon completion of the `scpca-nf` workflow, the results will be published to the specified `outdir`. 
+Within the `outdir`, two folders will be present, `publish` and `internal`. 
+
+The `publish` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal. 
+
+Within the `publish` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
+All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_metadata.json`, and `_qc.html`. 
+The `_unfiltered.rds` and `_filtered.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
+
+See below for the expected structure of the `publish` folder: 
+
+```
+publish
+└── SCPCS999991
+    ├── SCPCL999991_filtered.rds
+    ├── SCPCL999991_metadata.json
+    ├── SCPCL999991_qc.html
+    └── SCPCL999991_unfiltered.rds
+```
+
+If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `publish` directory. 
+
+The `internal` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon` and quantification with `alevin-fry`. 
+The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
+
+The `rad` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag, while the `af` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
+If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed. 
+
+All files pertaining to a specific library will be nested within a folder labeled with the library ID.
+Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
