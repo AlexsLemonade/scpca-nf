@@ -3,12 +3,13 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [How to use `scpca-nf` as an external user](#how-to-use-scpca-nf-as-an-external-user)
+  - [File organization](#file-organization)
   - [Prepare the metadata file](#prepare-the-metadata-file)
   - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
     - [Configuration files](#configuration-files)
     - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
     - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
-  - [Repeating the mapping step](#repeating-the-mapping-step)
+  - [Repeating mapping steps](#repeating-mapping-steps)
   - [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
   - [Output files](#output-files)
 
@@ -19,13 +20,12 @@
 In order to use `scpca-nf` to process your own data, you will need to make sure you have the following installed: 
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
-- [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singlularity](https://www.nextflow.io/docs/latest/singularity.html) (installed either locally or on an HPC)
+- [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singlularity](https://www.nextflow.io/docs/latest/singularity.html) (installed either locally or on an HPC) 
 
-You will also need to have files organized so that all the sequencing files for each run are in their own directory or folder.
-Any sequencing runs that contain multiple samples must be demultiplexed and FASTQ files must be placed into separate distinct folders. 
-If a run has been re-sequenced for any reason (e.g., to increase coverage), all FASTQ files should be combined into the same folder. 
+You will also need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library. 
+See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
-Finally, you will need to create a metadata file and a nextflow configuration file (see below).
+Finally, you will need to create a [metadata file](#prepare-the-metadata-file) and a [nextflow configuration file](#configuration-files) (see below).
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
 
 ```bash
@@ -41,16 +41,21 @@ This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.4` 
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
+## File organization  
+
+You will need to have files organized so that all the sequencing files for each library are in their own directory or folder. 
+Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-metadata-file). 
+Any sequencing runs that contain multiple libraries must be demultiplexed and FASTQ files must be placed into separate distinct folders, with distinct run IDs as the folder name. 
+If the same sequencing library was sequenced across multiple flowcells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
+If a library has a corresponding CITE-seq library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the CITE-seq library should be in their own folder, with a unique run ID. 
+
 ## Prepare the metadata file 
 
-Using `scpca-nf` requires a metadata file as a TSV (tab separated values) file, where each sequencing run to be processed is a row and columns contain associated information about that run. 
+Using `scpca-nf` requires a metadata file as a TSV (tab separated values) file, where each sequencing run to be processed is a row and columns contain associated information about that run.
 
-For each run, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`). 
-Each row should contain a unique run ID, corresponding to a sequencing run or set of FASTQ files. 
-If the same sequencing library was sequenced across multiple flowcells (to increase coverage, for example), these should be combined into a single row that includes all FASTQ files. 
-Each run should also have a unique directory where all FASTQ files associated with that run can be found.
-For example, row 1 might contain all information about a single-cell RNA-seq library and the corresponding FASTQ files. 
-If that library has a corresponding CITE-seq library, and therefore a separate set of FASTQ files, the CITE-seq library should have it's own row and its own unique run ID. 
+For each sequencing run, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`).
+The run ID will correspond to the name of the folder that contains the FASTQ files associated with the sequencing run.
+See [the section on file organization above for more information](#file-organization).
 
 The library ID will be unique for each set of cells that have been isolated from a sample and have undergone droplet generation. 
 For single-cell/single-nuclei RNA-seq runs, the library ID should be unique for each sequencing run.
