@@ -201,11 +201,10 @@ publish
 If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `publish` directory. 
 
 The `internal` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon` and quantification with `alevin-fry`. 
-The `rad` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html#alevin) with the `--rad` flag, while the `af` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
-These are created in part to allow restarting the workflow from internal checkpoints (in particular so the initial `salmon` mapping does not need to be repeated).
-These also may contain log files and other outputs that can be useful for troubleshooting or alternative analyses.
+The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
+
+The `rad` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag, while the `af` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
+If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed. 
 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
 Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
-
-If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon`](https://salmon.readthedocs.io/en/latest/file_formats.html#fileformats) on each library processed. 
