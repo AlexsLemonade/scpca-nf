@@ -64,7 +64,7 @@ process merge_bulk_quants {
     script:
         tximport_file = "${project_id}_bulk_quant.tsv"
         bulk_metadata_file = "${project_id}_bulk_metadata.tsv"
-        workflow_url = workflow.repository ?: params.workflow_url
+        workflow_url = workflow.repository ?: workflow.manifest.homePage
         """
         ls -d ${salmon_directories} > salmon_directories.txt
 

@@ -53,7 +53,7 @@ process spaceranger_metadata{
     tuple val(meta), path(metadata_json)
   script:
     metadata_json = "${meta.library_id}_metadata.json" 
-    workflow_url = workflow.repository ?: params.workflow_url
+    workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
