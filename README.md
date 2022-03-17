@@ -6,7 +6,7 @@ All samples are aligned, using selective alignment, to an index with transcripts
 `scpca-nf` can also process CITE-seq, bulk RNA-seq, and spatial transcriptomics. 
 For more information on the processing of other modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/). 
 
-To run `scpca-nf` in it's default configuration: 
+To run `scpca-nf` in its default configuration: 
 
 ```
 nextflow run AlexsLemonade/scpca-nf 
