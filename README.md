@@ -24,7 +24,7 @@ nextflow run AlexsLemonade/scpca-nf -profile batch
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release: 
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.2.3 -profile batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.2.4 -profile batch --project SCPCP000000
 ```
 
 Note that the default settings of the workflow is configured for the ALSF Childhood Cancer Data Lab computational infrastructure. 
