@@ -1,10 +1,14 @@
-## Running scpca-nf for the ScPCA portal 
+# scpca-nf
 
-This repo holds the scripts to run the nextflow workflow to process samples as part of the ScPCA project.
+This repository holds a [Nextflow](https://www.nextflow.io) workflow to process samples as part of the ScPCA project.
+
 Fastq files for single-cell and single-nuclei RNA-seq samples are processed using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/).
 All samples are aligned, using selective alignment, to an index with transcripts corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as `splici`. 
 `scpca-nf` can also process CITE-seq, bulk RNA-seq, and spatial transcriptomics. 
 For more information on the processing of other modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/). 
+
+
+## Running scpca-nf for the ScPCA portal 
 
 To run `scpca-nf` in its default configuration: 
 
