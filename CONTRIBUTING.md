@@ -16,7 +16,7 @@ New features and other workflow updates that are ready in advance of a new relea
 Contributions and updates to the `scpca-nf` repository operate on a pull request model. 
 Changes will typically be made in a new branch that is created from the `development` branch, followed by a pull request back to the `development` branch.
 All pull requests must be reviewed before merging to `development`. 
-To allow for efficeint reciew, please include in any pull request a concise and clear explanation of the changes you have made and the issues addressed. 
+To allow for efficient review, please include in any pull request a concise and clear explanation of the changes you have made and the issues addressed. 
 
 When the changes in `development` merit a new release, a pull request will be filed to merge the current version of the `development` branch into `main`, followed by tagging a release on the `main` branch.
 
