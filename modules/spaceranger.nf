@@ -14,7 +14,7 @@ process spaceranger{
   output:
     tuple val(meta), path(spatial_out)
   script:
-    spatial_out = "${meta.library_id}"
+    spatial_out = "${meta.library_id}_spatial"
     out_id = "${meta.run_id}-spatial"
     meta.cellranger_index = index.fileName
     """
@@ -70,6 +70,9 @@ process spaceranger_metadata{
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
+
+    # clean up extra metadata files 
+    rm ${spatial_out}/spaceranger_metrics_summary.csv && rm ${spatial_out}/spaceranger_versions.json
     """
 }
 
@@ -96,10 +99,10 @@ workflow spaceranger_quant{
     main: 
         // create tuple of (metadata map, [])
         spatial_channel = spatial_channel
-          // add sample names to metadata
+          // add sample names and spatial output directory to metadata
           .map{it.cr_samples =  getCRsamples(it.files);
                it.spaceranger_publish_dir =  "${params.outdir}/publish/${it.project_id}/${it.sample_id}";
-               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
+               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.library_id}_spatial";
                it}
           .branch{
             has_spatial: !params.repeat_mapping & file(it.spaceranger_results_dir).exists()
@@ -116,12 +119,14 @@ workflow spaceranger_quant{
         // run spaceranger
         spaceranger(spaceranger_reads, params.cellranger_index)
 
+        // gather spaceranger output for completed libraries
         spaceranger_quants_ch = spatial_channel.has_spatial
           .map{meta -> tuple(meta,
                              file("${meta.spaceranger_results_dir}")
                              )}
 
         grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
+
           // generate metadata.json
         spaceranger_metadata(grouped_spaceranger_ch)
 
