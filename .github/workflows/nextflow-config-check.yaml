@@ -4,7 +4,7 @@ name: Check nextflow config
 on:
   push:
     branches:
-      - jashapiro/123-ccdl-params
+      - 'jashapiro/123-ccdl-params'
   pull_request:
     branches:
       - main
@@ -13,7 +13,8 @@ on:
 
 jobs:
   nf-config-check:
-    container: nextflow/nextflow
+    runs-on: ubuntu-20.04
+    container: nextflow/nextflow:21.10.6
     steps:
       - uses: actions/checkout@v2
       - name: Check nextflow params
