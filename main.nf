@@ -49,7 +49,7 @@ workflow {
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id.split(";").sort().join("_"),
+      sample_id: it.scpca_sample_id.split(";").sort().join(","),
       project_id: it.scpca_project_id?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
@@ -110,7 +110,7 @@ workflow {
   merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
 
   // **** Process multiplexed samples ****
-  multiplexed_rna_ch = rna_ch.filter{it.sample_id.contains("_")} 
+  multiplexed_rna_ch = rna_ch.filter{it.sample_id.contains(",")} 
   genetic_demux(multiplexed_rna_ch, unfiltered_runs_ch)
 
    // **** Process Spatial Transcriptomics data ****
