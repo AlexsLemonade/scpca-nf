@@ -14,7 +14,6 @@ on:
 jobs:
   nf-config-check:
     runs-on: ubuntu-20.04
-    container: nextflow/nextflow:21.10.6
     steps:
       - uses: actions/checkout@v2
       - name: Check nextflow params
