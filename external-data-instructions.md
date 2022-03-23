@@ -100,7 +100,7 @@ Two workflow parameters are required for running `scpca-nf` on your own data:
 - `run_metafile`: the metadata file with sample information, prepared according to the directions above. 
   - This has a default value of `run_metadata.tsv`, but you will likely want to set your own file path.
 - `outdir`: the output directory where results will be stored.
-  - The default output is `scpca_output`, but again, you will likely want to customize this.
+  - The default output is `scpca_out`, but again, you will likely want to customize this.
 
 By default, the workflow is set up to run in a local environment, and these parameters can be set at the command line as follows:
 
