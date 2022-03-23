@@ -33,7 +33,7 @@ process spaceranger{
     """
 }
 
-process spaceranger_metadata{
+process spaceranger_publish{
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
@@ -124,9 +124,9 @@ workflow spaceranger_quant{
         grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
 
           // generate metadata.json
-        spaceranger_metadata(grouped_spaceranger_ch)
+        spaceranger_publish(grouped_spaceranger_ch)
 
-    // tuple of metadata and path to spaceranger output directory
-    emit: spaceranger_metadata.out
+    // tuple of metadata, path to spaceranger output directory, and path to metadata json file
+    emit: spaceranger_publish.out
   
 }
