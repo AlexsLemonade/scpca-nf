@@ -18,5 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check nextflow params
-        run: |
-          nextflow config
+        uses: docker://nextflow/nextflow:21.10.6
+        with: 
+          args: nextflow config
