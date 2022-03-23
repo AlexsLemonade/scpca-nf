@@ -1,0 +1,21 @@
+
+name: Check nextflow config
+
+on:
+  push:
+    branches:
+      - jashapiro/123-ccdl-params
+  pull_request:
+    branches:
+      - main
+      - development
+
+
+jobs:
+  nf-config-check:
+    container: nextflow/nextflow
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check nextflow params
+        run: |
+          nextflow config
