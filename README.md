@@ -21,7 +21,6 @@ nextflow run AlexsLemonade/scpca-nf -profile ccdl
 ```
 Although running workflows locally can be done, we recommend using AWS batch for this workflow. 
 The first step in running the workflow is ensuring that your AWS credentials are configured. 
-()
 
 You can then run the same workflow with the `batch` profile, which has been configured in the `nextflow.config` file. 
 Note that you will still need the `ccdl` profile, and you can specify both with by separating them with a comma. 
