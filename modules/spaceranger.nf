@@ -12,9 +12,8 @@ process spaceranger{
     tuple val(meta), path(fastq_dir), file(image_file)
     path index
   output:
-    tuple val(meta), path(spatial_out)
+    tuple val(meta), path(out_id)
   script:
-    spatial_out = "${meta.library_id}_spatial"
     out_id = "${meta.run_id}-spatial"
     meta.cellranger_index = index.fileName
     """
@@ -29,39 +28,39 @@ process spaceranger{
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} 
 
-    # make a new directory to hold only the outs file we want to publish 
-    mkdir ${spatial_out}
-
-    # move over needed files to outs directory 
-    mv ${out_id}/outs/filtered_feature_bc_matrix ${spatial_out}
-    mv ${out_id}/outs/raw_feature_bc_matrix ${spatial_out}
-    mv ${out_id}/outs/spatial ${spatial_out}
-    mv ${out_id}/outs/web_summary.html ${spatial_out}/${meta.library_id}_spaceranger_summary.html
-
-    # move over versions file temporarily to be passed to metadata.json
-    mv ${out_id}/_versions ${spatial_out}/spaceranger_versions.json
-    mv ${out_id}/outs/metrics_summary.csv ${spatial_out}/spaceranger_metrics_summary.csv
+    # remove bam files
+    rm ${out_id}/*.bam*
     """
 }
 
 process spaceranger_metadata{
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${meta.spaceranger_publish_dir}"
+  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
   output:
-    tuple val(meta), path(metadata_json)
+    tuple val(meta), path(spatial_publish_dir), path(metadata_json)
   script:
+    spatial_publish_dir = "${meta.library_id}_spatial"
     metadata_json = "${meta.library_id}_metadata.json" 
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
+    # make a new directory to hold only the outs file we want to publish 
+    mkdir ${spatial_publish_dir}
+
+    # move over needed files to outs directory 
+    mv ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
+    mv ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
+    mv ${spatial_out}/outs/spatial ${spatial_publish_dir}
+    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger_summary.html
+
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
       --sample_id ${meta.sample_id} \
-      --unfiltered_barcodes_file "${spatial_out}/raw_feature_bc_matrix/barcodes.tsv.gz" \
-      --filtered_barcodes_file "${spatial_out}/filtered_feature_bc_matrix/barcodes.tsv.gz" \
-      --metrics_summary_file "${spatial_out}/spaceranger_metrics_summary.csv" \
-      --spaceranger_versions_file "${spatial_out}/spaceranger_versions.json" \
+      --unfiltered_barcodes_file "${spatial_publish_dir}/raw_feature_bc_matrix/barcodes.tsv.gz" \
+      --filtered_barcodes_file "${spatial_publish_dir}/filtered_feature_bc_matrix/barcodes.tsv.gz" \
+      --metrics_summary_file "${spatial_out}/outs/metrics_summary.csv" \
+      --spaceranger_versions_file "${spatial_out}/_versions" \
       --metadata_json ${metadata_json} \
       --technology ${meta.technology} \
       --seq_unit ${meta.seq_unit} \
@@ -70,9 +69,6 @@ process spaceranger_metadata{
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
-
-    # clean up extra metadata files 
-    rm ${spatial_out}/spaceranger_metrics_summary.csv && rm ${spatial_out}/spaceranger_versions.json
     """
 }
 
@@ -101,8 +97,8 @@ workflow spaceranger_quant{
         spatial_channel = spatial_channel
           // add sample names and spatial output directory to metadata
           .map{it.cr_samples =  getCRsamples(it.files);
-               it.spaceranger_publish_dir =  "${params.outdir}/publish/${it.project_id}/${it.sample_id}";
-               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.library_id}_spatial";
+               it.spaceranger_publish_dir =  "${params.outdir}/internal/spaceranger/${it.library_id}";
+               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
                it}
           .branch{
             has_spatial: !params.repeat_mapping & file(it.spaceranger_results_dir).exists()
