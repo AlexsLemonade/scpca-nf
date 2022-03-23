@@ -28,7 +28,7 @@ process spaceranger{
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} 
 
-    # remove bam files
+    # remove bam and bai files
     rm ${out_id}/outs/*.bam*
     """
 }
