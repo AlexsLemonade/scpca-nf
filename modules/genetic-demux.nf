@@ -4,6 +4,7 @@ include { star_bulk } from './bulk-star.nf'
 include { pileup_multibulk } from './bulk-pileup.nf'
 include { starsolo_map } from './starsolo.nf' 
 include { cellsnp_vireo } from './cellsnp.nf'
+include { add_vireo } from './generate-rds.nf'
 
 import groovy.json.JsonSlurper
 
@@ -15,11 +16,12 @@ def read_meta(path) {
 
 workflow genetic_demux{
   take: 
-    multiplex_ch
+    multiplex_run_ch
     unfiltered_runs_ch
+    sce_ch
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
-    multiplex_ch = multiplex_ch
+    multiplex_ch = multiplex_run_ch
       .map{it.vireo_publish_dir = "${params.outdir}/internal/vireo/";
            it.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
@@ -56,9 +58,12 @@ workflow genetic_demux{
     cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)
 
     // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
-    demux_out = multiplex_ch.has_demux
+    demux_results_ch = multiplex_ch.has_demux
       .map{[read_meta("${it.vireo_dir}/scpca-meta.json"), file(it.vireo_dir)]}
       .mix(cellsnp_vireo.out)
+
+    // Join demux results with SCE
+    add_vireo
   
   emit:
     demux_out

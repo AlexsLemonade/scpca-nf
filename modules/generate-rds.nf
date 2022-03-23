@@ -72,6 +72,15 @@ process filter_sce{
         """
 }
 
+process add_vireo{
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_8'
+  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  input:
+    tuple val(demux_meta), path(vireo_dir),
+          val(meta), path(unfiltered_rds)
+}
+
 workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
