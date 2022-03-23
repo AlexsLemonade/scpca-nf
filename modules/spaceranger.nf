@@ -29,7 +29,7 @@ process spaceranger{
       --area=${meta.slide_section} 
 
     # remove bam files
-    rm ${out_id}/*.bam*
+    rm ${out_id}/outs/*.bam*
     """
 }
 
