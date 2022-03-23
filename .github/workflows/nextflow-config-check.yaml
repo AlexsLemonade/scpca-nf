@@ -4,7 +4,7 @@ name: Check nextflow config
 on:
   push:
     branches:
-      - 'jashapiro/123-ccdl-params'
+      - jashapiro/123-ccdl-params
   pull_request:
     branches:
       - main
