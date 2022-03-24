@@ -19,7 +19,9 @@ process make_unfiltered_sce{
           --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito} \
           --gtf_file ${gtf} \
-          --technology ${meta.technology}
+          --technology ${meta.technology} \
+          --library_id "${meta.library_id}" \
+          --sample_id "${meta.sample_id}"
         """
 }
 
@@ -48,7 +50,9 @@ process make_merged_unfiltered_sce{
           --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito} \
           --gtf_file ${gtf} \
-          --technology ${meta.technology}
+          --technology ${meta.technology} \
+          --library_id "${meta.library_id}" \
+          --sample_id "${meta.sample_id}"
         """
 }
 
