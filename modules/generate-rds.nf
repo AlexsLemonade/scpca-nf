@@ -80,16 +80,21 @@ process multiplex_demux_sce{
   input:
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(sce_rds)
+    path(cellhash_pool_file)
   output:
     tuple val(meta), path (sce_rds)
   script:
     // output will be the same path as input
     """
     mv ${sce_rds} input.rds
-    merge_vireo_sce.R \
-      --vireo_dir ${vireo_dir} \
+    add_demux_sce.R \
       --sce_file input.rds \
-      --output_sce_file ${sce_rds}
+      --output_sce_file ${sce_rds} \
+      --library_id ${meta.library_id} \
+      --vireo_dir ${vireo_dir} \
+      --cellhash_pool_file ${cellhash_pool_file} \
+      --hash_demux \
+      --seurat_demux
     """
 }
 
