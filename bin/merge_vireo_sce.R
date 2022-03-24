@@ -50,7 +50,7 @@ sce <- readr::read_rds(opt$sce_file)
 vireo_table <- readr::read_tsv(vireo_file)
 
 # add vireo results to sce
-vireo_sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
+sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
 
 # write filtered sce to output
-readr::write_rds(vireo_sce, opt$output_sce_file, compress = "gz")
+readr::write_rds(sce, opt$output_sce_file, compress = "gz")

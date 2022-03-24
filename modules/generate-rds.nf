@@ -77,16 +77,15 @@ process multiplex_demux_sce{
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(sce_rds)
   output:
-    tuple val(meta), path (demux_rds)
+    tuple val(meta), path (sce_rds)
   script:
     // output will be the same path as input
-    demux_rds = ${unfiltered_rds}
     """
-    mv ${unfiltered_rds} input.rds
+    mv ${sce_rds} input.rds
     merge_vireo_sce.R \
       --vireo_dir ${vireo_dir} \
       --sce_file input.rds \
-      --output_sce_file ${demux_rds}
+      --output_sce_file ${sce_rds}
     """
 }
 
