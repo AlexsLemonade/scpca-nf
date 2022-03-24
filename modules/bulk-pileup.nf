@@ -37,7 +37,7 @@ workflow pileup_multibulk{
       .map{[it[0].sample_id] + it} 
 
     pileup_ch = multiplex_ch 
-      .map{[it.sample_id.tokenize("_"), it.library_id, it]} // split out sample ids into a tuple, add library_id separately
+      .map{[it.sample_id.tokenize(","), it.library_id, it]} // split out sample ids into a tuple, add library_id separately
       .transpose() // one element per sample (library & meta objects repeated)
       .combine(sample_bulk_ch, by: 0) // combine by individual sample ids
       .groupTuple(by: 1) // group by library id 
