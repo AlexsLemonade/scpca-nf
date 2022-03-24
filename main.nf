@@ -30,7 +30,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { make_unfiltered_sce; make_merged_unfiltered_sce; multiplex_demux_sce; filter_sce } from './modules/generate-rds.nf'
+include { make_unfiltered_sce; make_merged_unfiltered_sce; multiplex_demux_sce; filter_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 workflow {
