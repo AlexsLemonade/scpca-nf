@@ -28,7 +28,7 @@ process mpileup{
 
 workflow pileup_multibulk{
   take:
-    multiplex_ch // a channel of multiplex meta objects, with sample_ids joined by `_` in their ids
+    multiplex_ch // a channel of multiplex meta objects, with sample_ids joined by `,` in their ids
     bulk_mapped_ch // output of bulk mapping: [meta, bamfile, bamfile_index]
   
   main:
@@ -47,7 +47,7 @@ workflow pileup_multibulk{
           multiplex_run_id: it[2][0].run_id, // multiplex meta objects are repeated, but identical: use first element
           multiplex_library_id: it[2][0].library_id,
           multiplex_sample_id: it[2][0].sample_id,
-          n_samples: it[2][0].sample_id.split("_").length,
+          n_samples: it[2][0].sample_id.split(",").length,
           n_bulk_mapped: it[3].length,
           bulk_run_ids: it[3].collect{it.run_id},
           bulk_sample_ids: it[3].collect{it.sample_id},

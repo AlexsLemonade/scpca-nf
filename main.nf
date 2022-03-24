@@ -30,7 +30,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { make_unfiltered_sce; make_merged_unfiltered_sce; filter_sce } from './modules/generate-rds.nf'
+include { make_unfiltered_sce; make_merged_unfiltered_sce; multiplex_demux_sce; filter_sce } from './modules/generate-rds.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 workflow {
@@ -126,12 +126,17 @@ workflow {
   multiplex_run_ch = run_ch.rna
     .filter{it.library_id in multiplex_libs.getVal()} 
   genetic_demux(multiplex_run_ch, unfiltered_runs_ch, sce_ch.multiplex)
-  
-  all_sce = sce_ch.single.mix(genetic_demux.out)
+  // combine demux result with SCE output
+  // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
+  sce_demux_ch = genetic_demux.out
+    .map{[it[0]["library_id"]] + it }
+    .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
+    .map{it.subList(1, it.size())}
+  multiplex_demux_sce(sce_demux_ch)
 
   // **** Generate QC reports ****
   // make filtered SCEs & run QC report
-  filter_sce(all_sce)
+  filter_sce(sce_ch.single.mix(multiplex_demux_sce.out))
   sce_qc_report(filter_sce.out)
 
    // **** Process Spatial Transcriptomics data ****

@@ -4,7 +4,6 @@
 process make_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
-    publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
     input: 
         tuple val(meta), path(alevin_dir)
         path(mito)
@@ -28,7 +27,6 @@ process make_unfiltered_sce{
 process make_merged_unfiltered_sce{
     label 'mem_8'
     container params.SCPCATOOLS_CONTAINER
-    publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
     input: 
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
         path(mito)
@@ -72,13 +70,24 @@ process filter_sce{
         """
 }
 
-process add_vireo{
+process multiplex_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
-  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(demux_meta), path(vireo_dir),
-          val(meta), path(unfiltered_rds)
+          val(meta), path(sce_rds)
+  output:
+    tuple val(meta), path (demux_rds)
+  script:
+    // output will be the same path as input
+    demux_rds = ${unfiltered_rds}
+    """
+    mv ${unfiltered_rds} input.rds
+    merge_vireo_sce.R \
+      --vireo_dir ${vireo_dir} \
+      --sce_file input.rds \
+      --output_sce_file ${demux_rds}
+    """
 }
 
 workflow generate_sce {

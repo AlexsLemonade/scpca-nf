@@ -58,13 +58,10 @@ workflow genetic_demux{
     cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)
 
     // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
-    demux_results_ch = multiplex_ch.has_demux
+    demux_out = multiplex_ch.has_demux
       .map{[read_meta("${it.vireo_dir}/scpca-meta.json"), file(it.vireo_dir)]}
       .mix(cellsnp_vireo.out)
 
-    // Join demux results with SCE
-    add_vireo
-  
   emit:
     demux_out
 }
