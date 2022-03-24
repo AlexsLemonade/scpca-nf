@@ -4,7 +4,6 @@ include { star_bulk } from './bulk-star.nf'
 include { pileup_multibulk } from './bulk-pileup.nf'
 include { starsolo_map } from './starsolo.nf' 
 include { cellsnp_vireo } from './cellsnp.nf'
-include { add_vireo } from './generate-rds.nf'
 
 import groovy.json.JsonSlurper
 

@@ -100,12 +100,11 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = make_unfiltered_sce(rna_quant_ch)
+  rna_sce_ch = make_unfiltered_sce(rna_quant_ch, params.mito_file, params.ref_gtf)
 
 
   // **** Process feature data ****
-  feature_ch = runs_ch.filter{it.technology in feature_techs} 
-  map_quant_feature(feature_ch)
+  map_quant_feature(runs_ch.feature)
   
   // combine feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
@@ -113,7 +112,7 @@ workflow {
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
-  merged_sce_ch = make_merged_unfiltered_sce(feature_rna_quant_ch)
+  merged_sce_ch = make_merged_unfiltered_sce(feature_rna_quant_ch, params.mito_file, params.ref_gtf)
 
   // join SCE outputs and branch by multiplexing
   sce_ch = rna_sce_ch.mix(merged_sce_ch)
@@ -123,7 +122,7 @@ workflow {
     }
 
   // **** Process multiplexed samples ****
-  multiplex_run_ch = run_ch.rna
+  multiplex_run_ch = runs_ch.rna
     .filter{it.library_id in multiplex_libs.getVal()} 
   genetic_demux(multiplex_run_ch, unfiltered_runs_ch, sce_ch.multiplex)
   // combine demux result with SCE output

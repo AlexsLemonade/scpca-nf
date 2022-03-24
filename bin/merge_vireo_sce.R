@@ -39,7 +39,7 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 
 # check for donr_ids file in vireo_dir
 vireo_file <- file.path(opt$vireo_dir, "donor_ids.tsv")
-if(!file.exists(vireo_file){
+if(!file.exists(vireo_file)){
   stop("Missing donor_ids.tsv file in vireo directory")
 }
 
@@ -54,4 +54,3 @@ vireo_sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
 
 # write filtered sce to output
 readr::write_rds(vireo_sce, opt$output_sce_file, compress = "gz")
-
