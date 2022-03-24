@@ -18,10 +18,11 @@ option_list <- list(
     help = "path to output with multiplex data added. Must end in .rds"
   ),
   make_option(
-   opt_str = c("-v", "--vireo_dir"),
-   type = "character",
-   help = "path to vireo output directory"
- )
+    opt_str = c("-v", "--vireo_dir"),
+    type = "character",
+    help = "path to vireo output directory",
+    default = NULL
+  )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
