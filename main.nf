@@ -133,13 +133,13 @@ workflow {
     .map{it.subList(1, it.size())}
   multiplex_demux_sce(sce_demux_ch)
 
-
-
   // **** Generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
   all_sce_ch = sce_ch.single.mix(multiplex_demux_sce.out)
-  sce_qc_report(library_sce_ch)
+  sce_qc_report(all_sce_ch)
+
+
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
 }
