@@ -45,7 +45,7 @@ if(!file.exists(vireo_file)){
 }
 
 # read in sce rds file
-sce <- readr::read_rds(opt$sce_file)
+sce <- readRDS(opt$sce_file)
 
 # read in vireo file
 vireo_table <- readr::read_tsv(vireo_file)
