@@ -30,7 +30,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { make_unfiltered_sce; make_merged_unfiltered_sce; multiplex_demux_sce; filter_sce } from './modules/sce-processing.nf'
+include { generate_sce; generate_merged_sce; multiplex_demux_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 workflow {
@@ -100,7 +100,7 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = make_unfiltered_sce(rna_quant_ch, params.mito_file, params.ref_gtf)
+  rna_sce_ch = generate_sce(rna_quant_ch)
 
 
   // **** Process feature data ****
@@ -112,7 +112,7 @@ workflow {
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
-  merged_sce_ch = make_merged_unfiltered_sce(feature_rna_quant_ch, params.mito_file, params.ref_gtf)
+  merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
 
   // join SCE outputs and branch by multiplexing
   sce_ch = rna_sce_ch.mix(merged_sce_ch)
@@ -134,9 +134,11 @@ workflow {
   multiplex_demux_sce(sce_demux_ch, params.cellhash_pool_file)
 
   // **** Generate QC reports ****
-  // make filtered SCEs & run QC report
-  filter_sce(sce_ch.single.mix(multiplex_demux_sce.out))
-  sce_qc_report(filter_sce.out)
+  // combine all SCE outputs
+  // Make channel for all library sce files & run QC report
+  all_sce_ch = sce_ch.single.mix(multiplex_demux_sce.out)
+  sce_qc_report(all_sce_ch)
+
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)

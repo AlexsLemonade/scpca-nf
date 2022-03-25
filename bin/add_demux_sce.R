@@ -81,7 +81,7 @@ if(!is.null(opt$cellhash_pool_file)){
 }
 
 # read in sce rds file
-sce <- readr::read_rds(opt$sce_file)
+sce <- readRDS(opt$sce_file)
 
 # check for cellhash altExp if we will use it
 if(!is.null(cellhash_df) || opt$hash_demux || opts$seurat_demux){
