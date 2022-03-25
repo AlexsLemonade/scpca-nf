@@ -33,15 +33,16 @@ option_list <- list(
     opt_str = c("--cellhash_pool_file"),
     type = "character",
     help = "path to table of cellhash barcodes and sample ids",
+    default = NULL
   ),
   make_option(
     opt_str = c("-H", "--hash_demux"),
-    type = "character",
+    action = "store_true",
     help = "add HashedDrops demultiplex results to sce"
   ),
   make_option(
     opt_str = c("-S", "--seurat_demux"),
-    type = "store_true",
+    action = "store_true",
     help = "add Seurat demultiplex results to sce"
   )
 )
