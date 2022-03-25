@@ -1,4 +1,4 @@
-// generate unfiltered and filtered RDS files using scpcaTools
+// generate and manipulate SCE objects as RDS files using scpcaTools
 
 // RNA only libraries
 process make_unfiltered_sce{
@@ -56,6 +56,7 @@ process make_merged_unfiltered_sce{
         """
 }
 
+// filter sce to remove empty droplets
 process filter_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
@@ -74,6 +75,7 @@ process filter_sce{
         """
 }
 
+// add multiplex results from vireo & cellhash to an SCE RDS file
 process multiplex_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'

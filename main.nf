@@ -131,7 +131,7 @@ workflow {
     .map{[it[0]["library_id"]] + it }
     .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
     .map{it.subList(1, it.size())}
-  multiplex_demux_sce(sce_demux_ch)
+  multiplex_demux_sce(sce_demux_ch, params.cellhash_pool_file)
 
   // **** Generate QC reports ****
   // make filtered SCEs & run QC report
