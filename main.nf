@@ -33,6 +33,25 @@ include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; multiplex_demux_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
+// parameter checks
+param_error = false
+
+if (!file(params.run_metafile).exists()) {
+  log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
+  param_error = true
+}
+
+resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
+if (!resolution_strategies.contains(params.af_resolution)) {
+  log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
+  param_error = true
+}
+
+if(param_error){
+  System.exit(1)
+}
+
+// Main workflow
 workflow {
   // select runs to use
   if (params.project){
@@ -42,6 +61,9 @@ workflow {
     run_ids = params.run_ids?.tokenize(',') ?: []
   }
   run_all = run_ids[0] == "All"
+  if (run_all){
+    log.info("Executing workflow for all runs in the run metafile.")
+  }
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')

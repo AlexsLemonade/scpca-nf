@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 process fastp{
     container params.FASTP_CONTAINER
     label 'cpus_8'
+    label 'mem_8'
     tag "${meta.library_id}-bulk"
     input: 
         tuple val(meta), path(read1), path(read2)
@@ -63,7 +64,7 @@ process merge_bulk_quants {
     script:
         tximport_file = "${project_id}_bulk_quant.tsv"
         bulk_metadata_file = "${project_id}_bulk_metadata.tsv"
-        workflow_url = workflow.repository ?: params.workflow_url
+        workflow_url = workflow.repository ?: workflow.manifest.homePage
         """
         ls -d ${salmon_directories} > salmon_directories.txt
 

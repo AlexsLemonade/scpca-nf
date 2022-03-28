@@ -1,0 +1,19 @@
+
+name: Check nextflow config
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+
+
+jobs:
+  nf-config-check:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check nextflow params
+        uses: docker://nextflow/nextflow:21.10.6
+        with: 
+          args: nextflow config
