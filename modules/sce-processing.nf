@@ -85,7 +85,7 @@ process multiplex_demux_sce{
   input:
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(unfiltered_rds), path(filtered_rds)
-    val cellhash_pool_file
+    path cellhash_pool_file
   output:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
   script:
