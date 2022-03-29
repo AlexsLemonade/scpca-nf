@@ -92,7 +92,7 @@ if(!is.null(cellhash_df) || opt$hash_demux || opts$seurat_demux){
 
 # add cellhash sample data to SCE
 if(!is.null(cellhash_df)){
-  sce <- scpcaTools::add_cellhash_ids(sce, cellhash_df)
+  sce <- scpcaTools::add_cellhash_ids(sce, cellhash_df, remove_unlabeled = TRUE)
 }
 
 # add HashedDrops results
