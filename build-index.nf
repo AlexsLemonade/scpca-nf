@@ -7,12 +7,11 @@ process generate_reference{
   // publish fasta and annotation files within reference directory 
   publishDir params.ref_dir
   label 'mem_32'
-  errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'terminate' }
   maxRetries 1
   input:
-    path(gtf)
-    path(fasta)
-    val(assembly)
+    path fasta
+    path gtf
+    val assembly
   output: 
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
@@ -33,16 +32,16 @@ process generate_reference{
 
 
 process salmon_index{
-  container 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
+  container params.SALMON_CONTAINER
   publishDir "${params.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
-    path(genome)
+    path genome 
   output:
-    path(splici_index_dir)
-    path(spliced_cdna_index_dir)
+    path splici_index_dir 
+    path spliced_cdna_index_dir
   script:
     splici_index_dir = "${splici_fasta}".split("\\.(fasta|fa)")[0]
     spliced_cdna_index_dir = "${spliced_cdna_fasta}".split("\\.(fasta|fa)")[0]
@@ -73,11 +72,11 @@ process cellranger_index{
   label 'cpus_12'
   label 'mem_24'
   input:
-    path(fasta)
-    path(gtf)
-    val(assembly)
+    path fasta
+    path gtf
+    val assembly 
   output:
-    path(cellranger_index)
+    path cellranger_index
   script:
     cellranger_index = "${assembly}_cellranger_full"
     """
@@ -92,13 +91,47 @@ process cellranger_index{
     """
 }
 
+process index_star{
+  container params.STAR_CONTAINER
+  publishDir "${params.ref_dir}/star_index", mode: 'copy'
+  label 'cpus_12'
+  memory '64.GB'
+  input:
+    path fasta
+    path gtf
+    val assembly
+  output:
+    path output_dir
+  script:
+    output_dir = "${assembly}.star_idx"
+    """
+    mkdir ${output_dir}
 
+    # star needs uncompressed fasta & gtf
+    gunzip -c ${fasta} > ${assembly}.fa
+    gunzip -c ${gtf} > ${assembly}.gtf
+    STAR --runMode genomeGenerate \
+      --runThreadN ${task.cpus} \
+      --genomeDir ${output_dir} \
+      --genomeFastaFiles ${assembly}.fa \
+      --genomeSAsparseD 2 \
+      --sjdbGTFfile ${assembly}.gtf \
+      --sjdbOverhang 100 \
+      --limitGenomeGenerateRAM 64000000000
+    
+    # clean up
+    rm ${assembly}.fa
+    rm ${assembly}.gtf
+    """
+}
 
 workflow {
   // generate splici and spliced cDNA reference fasta
-  generate_reference(params.ref_gtf, params.ref_fasta, params.assembly)
+  generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
   // create index using reference fastas
   salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
   // create cellranger index 
   cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  // create star index
+  star_index(params.ref_fasta, params.ref_gtf, params.assembly)
 }

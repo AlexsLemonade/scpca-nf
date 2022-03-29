@@ -2,16 +2,15 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [How to use `scpca-nf` as an external user](#how-to-use-scpca-nf-as-an-external-user)
-  - [File organization](#file-organization)
-  - [Prepare the metadata file](#prepare-the-metadata-file)
-  - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
-    - [Configuration files](#configuration-files)
-    - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
-    - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
-  - [Repeating mapping steps](#repeating-mapping-steps)
-  - [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
-  - [Output files](#output-files)
+- [File organization](#file-organization)
+- [Prepare the metadata file](#prepare-the-metadata-file)
+- [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
+  - [Configuration files](#configuration-files)
+  - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
+  - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
+- [Repeating mapping steps](#repeating-mapping-steps)
+- [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+- [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -30,12 +29,12 @@ Once you have set up your environment and created these files you will be able t
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   -config my_config.config \
   --run_metafile <path/to/metadata_file>
 ```
 
-This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.4` version, and run it based on the settings in the local configuration file `my_config.config`.
+This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.5` version, and run it based on the settings in the local configuration file `my_config.config`.
 
 **Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
@@ -96,16 +95,18 @@ We have provided an example metadata file for reference that can be found in [`e
 
 ## Configuring `scpca-nf` for your environment
 
-Two workflow parameters are *required* for running `scpca-nf` on your own data:
+Two workflow parameters are required for running `scpca-nf` on your own data:
 
-- `run_metafile`: the metadata file with sample information, prepared according to the directions above
-- `outdir`: the output directory where results will be stored
+- `run_metafile`: the metadata file with sample information, prepared according to the directions above. 
+  - This has a default value of `run_metadata.tsv`, but you will likely want to set your own file path.
+- `outdir`: the output directory where results will be stored.
+  - The default output is `scpca_out`, but again, you will likely want to customize this.
 
 By default, the workflow is set up to run in a local environment, and these parameters can be set at the command line as follows:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   --run_metafile <path/to/metadata_file> \
   --outdir <path/to/output>
 ```
@@ -128,7 +129,7 @@ This file is then used with the `-config` (or `-c`) argument at the command line
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   -config my_config.config 
 ```
 
@@ -146,7 +147,7 @@ In our example template file [user_template.config](https://github.com/AlexsLemo
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   -config user_template.config \
   -profile cluster
 ```
@@ -181,7 +182,7 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   --repeat_mapping
 ```
 
