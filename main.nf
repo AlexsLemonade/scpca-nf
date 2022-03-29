@@ -28,6 +28,7 @@ feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsW
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
+include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce } from './modules/generate-rds.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
@@ -64,13 +65,13 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  runs_ch = Channel.fromPath(params.run_metafile)
+  unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping only columns we will need (& some renaming)
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id,
+      sample_id: it.scpca_sample_id.split(";").sort().join(","),
       project_id: it.scpca_project_id?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
@@ -82,6 +83,8 @@ workflow {
       slide_section: it.slide_section,
       files: it.files
     ]}
+
+ runs_ch = unfiltered_runs_ch 
     // only technologies we know how to process
     .filter{it.technology in all_techs} 
     // use only the rows in the run_id list (run, library, or sample can match)
@@ -127,6 +130,10 @@ workflow {
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
   merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+
+  // **** Process multiplexed samples ****
+  multiplexed_rna_ch = rna_ch.filter{it.sample_id.contains(",")} 
+  genetic_demux(multiplexed_rna_ch, unfiltered_runs_ch)
 
    // **** Process Spatial Transcriptomics data ****
   spatial_ch = runs_ch.filter{it.technology in spatial_techs}
