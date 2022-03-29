@@ -4,6 +4,7 @@
 process make_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
+    tag "${meta.library_id}"
     input: 
         tuple val(meta), path(alevin_dir)
         path(mito)
@@ -28,6 +29,7 @@ process make_unfiltered_sce{
 // channels with RNA and feature data
 process make_merged_unfiltered_sce{
     label 'mem_8'
+    tag "${meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input: 
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
@@ -59,6 +61,7 @@ process make_merged_unfiltered_sce{
 process filter_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
+    tag "${meta.library_id}"
     publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
     input: 
         tuple val(meta), path(unfiltered_rds)
@@ -77,6 +80,7 @@ process filter_sce{
 process multiplex_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
+  tag "${meta.library_id}"
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(demux_meta), path(vireo_dir),
