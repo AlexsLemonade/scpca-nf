@@ -1,3 +1,4 @@
+import groovy.json.JsonOutput
 
 process cellsnp{
   container params.CELLSNP_CONTAINER
@@ -15,7 +16,7 @@ process cellsnp{
     meta.bulk_run_ids = meta_mpileup.bulk_run_ids
     quant_dir = meta_star.seq_unit == "nucleus" ? "GeneFull" : "Gene"
     barcodes = "${star_quant}/Solo.out/${quant_dir}/filtered/barcodes.tsv"
-    outdir = "${meta.library_id}_cellSNP"
+    outdir = "${meta.run_id}-cellSNP"
     """
     cellsnp-lite \
       --samFile ${star_bam} \
@@ -31,7 +32,7 @@ process cellsnp{
 
 process vireo{
   container params.CONDA_CONTAINER
-  publishDir "${params.outdir}/internal/vireo"
+  publishDir "${meta.vireo_publish_dir}"
   tag "${meta.run_id}"
   label 'cpus_8'
   label 'mem_16'
@@ -40,7 +41,9 @@ process vireo{
   output:
     tuple val(meta), path(outdir)
   script:
-    outdir = "${meta.library_id}-vireo"
+    outdir = file(meta.vireo_dir).name
+    meta_json = JsonOutput.toJson(meta)
+    meta_json = JsonOutput.prettyPrint(meta_json)
     """
     pip install vireoSNP==0.5.6
     vireo \
@@ -48,7 +51,9 @@ process vireo{
       --donorFile ${vcf_file}  \
       --outDir ${outdir} \
       --nproc ${task.cpus}
-    """
+
+    echo '${meta_json}' > ${outdir}/scpca-meta.json
+    """ 
 }
 
 workflow cellsnp_vireo {
