@@ -89,7 +89,6 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `feature_barcode_geom`| A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
-| `files`           | All sequencing files in the run folder, `;`-separated (only required for spatial transcriptomics)  |
 
 We have provided an example metadata file for reference that can be found in [`examples/example_metadata.tsv`](examples/example_metadata.tsv).
 
@@ -189,7 +188,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
 
 To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file). 
-The metadata file must also contain columns with the `slide_section`, `slide_serial_number`, and list of all `files` inside the run directory, including the `.jpg` image. 
+The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest). 
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you. 
