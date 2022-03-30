@@ -72,11 +72,11 @@ process spaceranger_publish{
     """
 }
 
-def getCRsamples(filelist){
-  // takes a string with semicolon separated file names
+def getCRsamples(files_dir){
+  // takes the path to the directory holding the fastq files for each sample 
   // returns just the 'sample info' portion of the file names,
   // as spaceranger would interpret them, comma separated
-  fastq_files = filelist.tokenize(';').findAll{it.contains '.fastq.gz'}
+  fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
   samples = []
   fastq_files.each{
     // append sample names to list, using regex to extract element before S001, etc.
@@ -93,17 +93,16 @@ workflow spaceranger_quant{
     take: spatial_channel 
     // a channel with a map of metadata for each spatial library to process 
     main: 
-        // create tuple of (metadata map, [])
         spatial_channel = spatial_channel
-          // add sample names and spatial output directory to metadata
-          .map{it.cr_samples =  getCRsamples(it.files);
+        // add sample names and spatial output directory to metadata
+          .map{it.cr_samples = getCRsamples(it.files_directory);
                it.spaceranger_publish_dir =  "${params.outdir}/internal/spaceranger/${it.library_id}";
                it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
                it}
           .branch{
             has_spatial: !params.repeat_mapping & file(it.spaceranger_results_dir).exists()
             make_spatial: true
-          }
+           }
 
           // create tuple of [metadata, fastq dir, and path to image file]
         spaceranger_reads = spatial_channel.make_spatial
