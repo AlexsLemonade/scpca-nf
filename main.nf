@@ -79,8 +79,7 @@ workflow {
       feature_barcode_geom: it.feature_barcode_geom,
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
-      slide_section: it.slide_section,
-      files: it.files
+      slide_section: it.slide_section
     ]}
     // only technologies we know how to process
     .filter{it.technology in all_techs} 
