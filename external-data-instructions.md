@@ -9,7 +9,9 @@
   - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
   - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
 - [Repeating mapping steps](#repeating-mapping-steps)
-- [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+- [Special considerations for unusual library types](#special-considerations-for-unusual-library-types)
+  - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
+  - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -85,8 +87,8 @@ The following columns may be necessary for running other data modalities (CITE-s
 |-----------------|----------------------------------------------------------------|
 | `submitter_id`    | Original sample identifier defined by user (for reference only; optional)|
 | `submitter`       | Name of user submitting name/id  (optional)                  |
-| `feature_barcode_file`| path/uri to directory containing the feature barcode sequences (only required for CITE-seq)  |	
-| `feature_barcode_geom`| A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq) |
+| `feature_barcode_file`| path/uri to directory containing the feature barcode sequences (only required for CITE-seq and multiplexed samples)  |	
+| `feature_barcode_geom`| A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq and multiplexed samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 
@@ -185,7 +187,22 @@ nextflow run AlexsLemonade/scpca-nf \
   --repeat_mapping
 ```
 
-## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
+## Special considerations for unusual library types
+
+### Multiplexed (cellhash) libraries
+
+When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform both cellhash-based demultiplexing and genetic demultiplexing.
+
+To support both of these demultiplexing strategies, we currently require *ALL* of the following for multiplexed libaries:
+
+- A single-cell RNA-seq run of the pooled samples
+- A matched cellhash sequencing run for the pooled samples
+- Separate bulk RNA-seq libraries for each sample in the pool
+- A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences. 
+- A TSV file, `cellhash_pool_file` that defines which sample-barcode relationship for each library/pool of samples 
+
+
+### Spatial transcriptomics libraries 
 
 To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file). 
 The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
@@ -195,6 +212,8 @@ For licensing reasons, we cannot provide a Docker container with Space Ranger fo
 As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger). 
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file. 
+
+
 
 ## Output files 
 
