@@ -136,7 +136,7 @@ workflow {
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
     .branch{ // branch cellhash libs
-      cellhash: it[0]["technology"] in cellhash_techs
+      cellhash: it[0]["feature_type"] == "cellhash"
       single: true
     }
   // apply cellhash demultiplexing
