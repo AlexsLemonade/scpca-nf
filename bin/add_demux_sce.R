@@ -68,7 +68,9 @@ if(!is.null(opt$vireo_dir)){
   }
 }
 
-if(!is.null(opt$cellhash_pool_file)){
+if(is.null(opt$cellhash_pool_file)){
+  cellhash_df <- NULL
+} else {
   if(!file.exists(opt$cellhash_pool_file)){
     stop("Can't find cellhash_pool_file")
   }
