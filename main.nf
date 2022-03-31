@@ -21,7 +21,8 @@ bulk_techs = ['single_end', 'paired_end']
 spatial_techs = ["spatial", "visium_v1", "visium_v2"]
 all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
-feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
+citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
+cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 
 // include processes from modules
@@ -97,7 +98,7 @@ workflow {
             }
      .branch{
        bulk: it.technology in bulk_techs
-       feature: it.technology in feature_techs
+       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
        rna: it.technology in rna_techs 
        spatial: it.technology in spatial_techs
      }
@@ -135,6 +136,7 @@ workflow {
   // make rds for merged RNA and feature quants
   merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
 
+
   // join SCE outputs and branch by multiplexing
   sce_ch = rna_sce_ch.mix(merged_sce_ch)
     .branch{
@@ -145,7 +147,7 @@ workflow {
   // **** Process multiplexed samples ****
   multiplex_run_ch = runs_ch.rna
     .filter{it.library_id in multiplex_libs.getVal()} 
-  genetic_demux(multiplex_run_ch, unfiltered_runs_ch, sce_ch.multiplex)
+  genetic_demux(multiplex_run_ch, unfiltered_runs_ch)
   // combine demux result with SCE output
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   sce_demux_ch = genetic_demux.out

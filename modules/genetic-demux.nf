@@ -17,7 +17,6 @@ workflow genetic_demux{
   take: 
     multiplex_run_ch
     unfiltered_runs_ch
-    sce_ch
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
