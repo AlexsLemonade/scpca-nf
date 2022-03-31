@@ -18,7 +18,7 @@ cell_barcodes = [
 // supported technologies
 single_cell_techs = cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
-spatial_techs = ["spatial", "visium_v1", "visium_v2"]
+spatial_techs = ['spatial', 'visium']
 all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
