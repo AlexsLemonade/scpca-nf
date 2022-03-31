@@ -2,16 +2,15 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [How to use `scpca-nf` as an external user](#how-to-use-scpca-nf-as-an-external-user)
-  - [File organization](#file-organization)
-  - [Prepare the metadata file](#prepare-the-metadata-file)
-  - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
-    - [Configuration files](#configuration-files)
-    - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
-    - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
-  - [Repeating mapping steps](#repeating-mapping-steps)
-  - [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
-  - [Output files](#output-files)
+- [File organization](#file-organization)
+- [Prepare the metadata file](#prepare-the-metadata-file)
+- [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
+  - [Configuration files](#configuration-files)
+  - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
+  - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
+- [Repeating mapping steps](#repeating-mapping-steps)
+- [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+- [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -95,10 +94,12 @@ We have provided an example metadata file for reference that can be found in [`e
 
 ## Configuring `scpca-nf` for your environment
 
-Two workflow parameters are *required* for running `scpca-nf` on your own data:
+Two workflow parameters are required for running `scpca-nf` on your own data:
 
-- `run_metafile`: the metadata file with sample information, prepared according to the directions above
-- `outdir`: the output directory where results will be stored
+- `run_metafile`: the metadata file with sample information, prepared according to the directions above. 
+  - This has a default value of `run_metadata.tsv`, but you will likely want to set your own file path.
+- `outdir`: the output directory where results will be stored.
+  - The default output is `scpca_out`, but again, you will likely want to customize this.
 
 By default, the workflow is set up to run in a local environment, and these parameters can be set at the command line as follows:
 
