@@ -30,7 +30,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce } from './modules/generate-rds.nf'
+include { generate_sce; generate_merged_sce; multiplex_demux_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 // parameter checks
@@ -95,21 +95,28 @@ workflow {
              || (it.submitter == params.project)
              || (it.project_id == params.project)
             }
-  
+     .branch{
+       bulk: it.technology in bulk_techs
+       feature: it.technology in feature_techs
+       rna: it.technology in rna_techs 
+       spatial: it.technology in spatial_techs
+     }
   // generate lists of library ids for feature libraries & RNA-only
-  feature_libs = runs_ch.filter{it.technology in feature_techs}
+  feature_libs = runs_ch.feature
     .collect{it.library_id}
-  rna_only_libs = runs_ch.filter{!(it.library_id in feature_libs.getVal())}
+  rna_only_libs = runs_ch.rna
+    .filter{!(it.library_id in feature_libs.getVal())}
+    .collect{it.library_id}
+  multiplex_libs = runs_ch.rna
+    .filter{it.sample_id.contains(",")}
     .collect{it.library_id}
 
   // **** Process Bulk RNA-seq data *** 
-  bulk_ch = runs_ch.filter{it.technology in bulk_techs}
-  bulk_quant_rna(bulk_ch)
+  bulk_quant_rna(runs_ch.bulk)
 
   // **** Process RNA-seq data ****
-  rna_ch = runs_ch.filter{it.technology in rna_techs}
-  map_quant_rna(rna_ch)
-    
+  map_quant_rna(runs_ch.rna)
+  
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
@@ -118,8 +125,7 @@ workflow {
 
 
   // **** Process feature data ****
-  feature_ch = runs_ch.filter{it.technology in feature_techs} 
-  map_quant_feature(feature_ch)
+  map_quant_feature(runs_ch.feature)
   
   // combine feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
@@ -129,16 +135,32 @@ workflow {
   // make rds for merged RNA and feature quants
   merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
 
-  // **** Process multiplexed samples ****
-  multiplexed_rna_ch = rna_ch.filter{it.sample_id.contains(",")} 
-  genetic_demux(multiplexed_rna_ch, unfiltered_runs_ch)
+  // join SCE outputs and branch by multiplexing
+  sce_ch = rna_sce_ch.mix(merged_sce_ch)
+    .branch{
+      multiplex: it[0]["library_id"] in multiplex_libs.getVal()
+      single: true
+    }
 
-   // **** Process Spatial Transcriptomics data ****
-  spatial_ch = runs_ch.filter{it.technology in spatial_techs}
-  spaceranger_quant(spatial_ch)
+  // **** Process multiplexed samples ****
+  multiplex_run_ch = runs_ch.rna
+    .filter{it.library_id in multiplex_libs.getVal()} 
+  genetic_demux(multiplex_run_ch, unfiltered_runs_ch, sce_ch.multiplex)
+  // combine demux result with SCE output
+  // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
+  sce_demux_ch = genetic_demux.out
+    .map{[it[0]["library_id"]] + it }
+    .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
+    .map{it.subList(1, it.size())}
+  multiplex_demux_sce(sce_demux_ch)
 
   // **** Generate QC reports ****
+  // combine all SCE outputs
   // Make channel for all library sce files & run QC report
-  library_sce_ch = rna_sce_ch.mix(merged_sce_ch)
-  sce_qc_report(library_sce_ch)
+  all_sce_ch = sce_ch.single.mix(multiplex_demux_sce.out)
+  sce_qc_report(all_sce_ch)
+
+
+   // **** Process Spatial Transcriptomics data ****
+  spaceranger_quant(runs_ch.spatial)
 }

@@ -15,11 +15,12 @@ def read_meta(path) {
 
 workflow genetic_demux{
   take: 
-    multiplex_ch
+    multiplex_run_ch
     unfiltered_runs_ch
+    sce_ch
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
-    multiplex_ch = multiplex_ch
+    multiplex_ch = multiplex_run_ch
       .map{it.vireo_publish_dir = "${params.outdir}/internal/vireo/";
            it.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
@@ -33,7 +34,7 @@ workflow genetic_demux{
     
     // get the bulk samples that correspond to multiplexed samples
     bulk_samples = multiplex_ch.make_demux
-      .map{[it.sample_id.tokenize("_")]} // split out sample ids into a tuple
+      .map{[it.sample_id.tokenize(",")]} // split out sample ids into a tuple
       .transpose() // one element per sample (meta objects repeated)
       .map{it[0]} // get sample ids
       .collect()
@@ -59,7 +60,7 @@ workflow genetic_demux{
     demux_out = multiplex_ch.has_demux
       .map{[read_meta("${it.vireo_dir}/scpca-meta.json"), file(it.vireo_dir)]}
       .mix(cellsnp_vireo.out)
-  
+
   emit:
     demux_out
 }
