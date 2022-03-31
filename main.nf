@@ -21,7 +21,8 @@ bulk_techs = ['single_end', 'paired_end']
 spatial_techs = ["spatial", "visium_v1", "visium_v2"]
 all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
-feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
+citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
+cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 
 // include processes from modules
@@ -30,7 +31,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; multiplex_demux_sce } from './modules/sce-processing.nf'
+include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 // parameter checks
@@ -97,7 +98,8 @@ workflow {
             }
      .branch{
        bulk: it.technology in bulk_techs
-       feature: it.technology in feature_techs
+       citeseq: it.technology in citeseq_techs
+       cellhash: it.technology in cellhash_techs
        rna: it.technology in rna_techs 
        spatial: it.technology in spatial_techs
      }
@@ -124,19 +126,29 @@ workflow {
   rna_sce_ch = generate_sce(rna_quant_ch)
 
 
-  // **** Process feature data ****
-  map_quant_feature(runs_ch.feature)
-  
-  // combine feature & RNA quants for feature reads
-  feature_rna_quant_ch = map_quant_feature.out
+  // **** Process CITEseq data ****
+  citeseq_quant = map_quant_feature(runs_ch.citeseq)
+  // combine feature & RNA quants for citeseq reads
+  citeseq_rna_quant_ch = citeseq_quant
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
-  merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+  citeseq_sce_ch = generate_merged_sce(citeseq_rna_quant_ch)
+  
+  // **** Process cellhash data ****
+  cellhash_quant = map_quant_feature(runs_ch.cellhash)
+  // combine feature & RNA quants for cellhash reads
+  cellhash_rna_quant_ch = cellhash_quant
+    .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
+    .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
+    .map{it.subList(1, it.size())} // remove library_id index
+  // make rds for merged RNA and feature quants
+  cellhash_sce_ch = generate_merged_sce(cellhash_rna_quant_ch)
+  cellhash_demux_sce(cellhash_sce_ch, file(params.cellhash_pool_file))
 
   // join SCE outputs and branch by multiplexing
-  sce_ch = rna_sce_ch.mix(merged_sce_ch)
+  sce_ch = rna_sce_ch.mix(citeseq_sce_ch).mix(cellhash_demux_sce.out)
     .branch{
       multiplex: it[0]["library_id"] in multiplex_libs.getVal()
       single: true
@@ -152,12 +164,12 @@ workflow {
     .map{[it[0]["library_id"]] + it }
     .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
     .map{it.subList(1, it.size())}
-  multiplex_demux_sce(sce_demux_ch, file(params.cellhash_pool_file))
+  genetic_demux_sce(sce_demux_ch, file(params.cellhash_pool_file))
 
   // **** Generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
-  all_sce_ch = sce_ch.single.mix(multiplex_demux_sce.out)
+  all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
   sce_qc_report(all_sce_ch)
 
 
