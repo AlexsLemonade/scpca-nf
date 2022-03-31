@@ -13,7 +13,7 @@ def read_meta(path) {
 }
 
 
-workflow genetic_demux{
+workflow genetic_demux_vireo{
   take: 
     multiplex_run_ch
     unfiltered_runs_ch

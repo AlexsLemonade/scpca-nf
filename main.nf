@@ -29,7 +29,7 @@ cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
-include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
+include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
@@ -150,17 +150,18 @@ workflow {
       single: true
     }
 
-  // **** Process multiplexed samples ****
+  // **** Perform Genetic Demultiplexing ****
   multiplex_run_ch = runs_ch.rna
     .filter{it.library_id in multiplex_libs.getVal()} 
-  genetic_demux(multiplex_run_ch, unfiltered_runs_ch)
+  genetic_demux_vireo(multiplex_run_ch, unfiltered_runs_ch)
   // combine demux result with SCE output
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
-  sce_demux_ch = genetic_demux.out
+  demux_results_ch = genetic_demux_vireo.out
     .map{[it[0]["library_id"]] + it }
     .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
     .map{it.subList(1, it.size())}
-  genetic_demux_sce(sce_demux_ch)
+  // add genetic demux results to sce objects
+  genetic_demux_sce(demux_results_ch)
 
   // **** Generate QC reports ****
   // combine all SCE outputs
