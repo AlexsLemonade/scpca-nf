@@ -1,4 +1,4 @@
-scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	submitter	technology	seq_unit	library_method	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	files_directory	files
-SCPCR999991	SCPCL999991	SCPCS999991	SCPCP999991	example	10Xv3.1	cell						example_fastqs/example1	example1_R1.fastq.gz;example1_R2.fastq.gz
-SCPCR999992	SCPCL999991	SCPCS999991	SCPCP999991	example	CITEseq_10Xv3	cell		example_barcode_files/cite_barcodes.tsv	2[1-15]			example_fastqs/example2	example2_R1.fastq.gz;example2_R2.fastq.gz
-SCPCR999993	SCPCL999993	SCPCS999992	SCPCP999992	example	visium_v1	spot				A1	VXXXX-XXX	example_fastqs/example3	example3_R1.fastq.gz;example3_R2.fastq.gz;example3.jpg
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	submitter	technology	seq_unit	library_method	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	files_directory
+SCPCR999991	SCPCL999991	SCPCS999991	SCPCP999991	example	10Xv3.1	cell						example_fastqs/example1
+SCPCR999992	SCPCL999991	SCPCS999991	SCPCP999991	example	CITEseq_10Xv3	cell		example_barcode_files/cite_barcodes.tsv	2[1-15]			example_fastqs/example2
+SCPCR999993	SCPCL999993	SCPCS999992	SCPCP999992	example	visium_v1	spot				A1	VXXXX-XXX	example_fastqs/example3

@@ -2,16 +2,15 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [How to use `scpca-nf` as an external user](#how-to-use-scpca-nf-as-an-external-user)
-  - [File organization](#file-organization)
-  - [Prepare the metadata file](#prepare-the-metadata-file)
-  - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
-    - [Configuration files](#configuration-files)
-    - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
-    - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
-  - [Repeating mapping steps](#repeating-mapping-steps)
-  - [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
-  - [Output files](#output-files)
+- [File organization](#file-organization)
+- [Prepare the metadata file](#prepare-the-metadata-file)
+- [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
+  - [Configuration files](#configuration-files)
+  - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
+  - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
+- [Repeating mapping steps](#repeating-mapping-steps)
+- [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+- [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -30,12 +29,12 @@ Once you have set up your environment and created these files you will be able t
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   -config my_config.config \
   --run_metafile <path/to/metadata_file>
 ```
 
-This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.4` version, and run it based on the settings in the local configuration file `my_config.config`.
+This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.5` version, and run it based on the settings in the local configuration file `my_config.config`.
 
 **Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
@@ -76,7 +75,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_run_id`    | A unique run ID                                              |
 | `scpca_library_id`| A unique library ID for each unique set of cells             |
 | `scpca_sample_id` | A unique sample ID for each tissue or unique source          |
-| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium_v1` or `visium_v2`      |
+| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `files_directory` | path/uri to directory containing fastq files (unique per run) |
 
@@ -90,22 +89,23 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `feature_barcode_geom`| A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
-| `files`           | All sequencing files in the run folder, `;`-separated (only required for spatial transcriptomics)  |
 
 We have provided an example metadata file for reference that can be found in [`examples/example_metadata.tsv`](examples/example_metadata.tsv).
 
 ## Configuring `scpca-nf` for your environment
 
-Two workflow parameters are *required* for running `scpca-nf` on your own data:
+Two workflow parameters are required for running `scpca-nf` on your own data:
 
-- `run_metafile`: the metadata file with sample information, prepared according to the directions above
-- `outdir`: the output directory where results will be stored
+- `run_metafile`: the metadata file with sample information, prepared according to the directions above. 
+  - This has a default value of `run_metadata.tsv`, but you will likely want to set your own file path.
+- `outdir`: the output directory where results will be stored.
+  - The default output is `scpca_out`, but again, you will likely want to customize this.
 
 By default, the workflow is set up to run in a local environment, and these parameters can be set at the command line as follows:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   --run_metafile <path/to/metadata_file> \
   --outdir <path/to/output>
 ```
@@ -128,7 +128,7 @@ This file is then used with the `-config` (or `-c`) argument at the command line
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   -config my_config.config 
 ```
 
@@ -146,7 +146,7 @@ In our example template file [user_template.config](https://github.com/AlexsLemo
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   -config user_template.config \
   -profile cluster
 ```
@@ -181,20 +181,21 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.4 \
+  -r v0.2.5 \
   --repeat_mapping
 ```
 
 ## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
 
 To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file). 
-The metadata file must also contain columns with the `slide_section`, `slide_serial_number`, and list of all `files` inside the run directory, including the `.jpg` image. 
+The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest). 
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you. 
 As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger). 
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file. 
+*Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods.*
 
 ## Output files 
 

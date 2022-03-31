@@ -18,7 +18,7 @@ cell_barcodes = [
 // supported technologies
 single_cell_techs = cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
-spatial_techs = ["spatial", "visium_v1", "visium_v2"]
+spatial_techs = ['visium']
 all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
@@ -79,8 +79,7 @@ workflow {
       feature_barcode_geom: it.feature_barcode_geom,
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
-      slide_section: it.slide_section,
-      files: it.files
+      slide_section: it.slide_section
     ]}
     // only technologies we know how to process
     .filter{it.technology in all_techs} 
