@@ -41,7 +41,6 @@ process make_merged_unfiltered_sce{
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         // add feature metadata as an element of the main meta object
         meta['feature_type'] = feature_meta.technology.split('_')[0]
-        meta['feature_technology'] = feature_meta.technology
         meta['feature_meta'] = feature_meta
         
         """
