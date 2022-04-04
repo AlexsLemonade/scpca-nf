@@ -18,19 +18,20 @@ cell_barcodes = [
 // supported technologies
 single_cell_techs = cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
-spatial_techs = ["spatial", "visium_v1", "visium_v2"]
+spatial_techs = ['visium']
 all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
-feature_techs = single_cell_techs.findAll{it.startsWith('CITEseq') || it.startsWith('cellhash')}
+citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
+cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
 include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
-include { genetic_demux } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
+include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; multiplex_demux_sce } from './modules/sce-processing.nf'
+include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce } from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 // parameter checks
@@ -97,7 +98,7 @@ workflow {
             }
      .branch{
        bulk: it.technology in bulk_techs
-       feature: it.technology in feature_techs
+       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
        rna: it.technology in rna_techs 
        spatial: it.technology in spatial_techs
      }
@@ -133,7 +134,14 @@ workflow {
     .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
     .map{it.subList(1, it.size())} // remove library_id index
   // make rds for merged RNA and feature quants
-  merged_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+    .branch{ // branch cellhash libs
+      cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
+      single: true
+    }
+  // apply cellhash demultiplexing
+  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
+  merged_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by multiplexing
   sce_ch = rna_sce_ch.mix(merged_sce_ch)
@@ -142,22 +150,23 @@ workflow {
       single: true
     }
 
-  // **** Process multiplexed samples ****
+  // **** Perform Genetic Demultiplexing ****
   multiplex_run_ch = runs_ch.rna
     .filter{it.library_id in multiplex_libs.getVal()} 
-  genetic_demux(multiplex_run_ch, unfiltered_runs_ch, sce_ch.multiplex)
+  genetic_demux_vireo(multiplex_run_ch, unfiltered_runs_ch)
   // combine demux result with SCE output
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
-  sce_demux_ch = genetic_demux.out
+  demux_results_ch = genetic_demux_vireo.out
     .map{[it[0]["library_id"]] + it }
     .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
     .map{it.subList(1, it.size())}
-  multiplex_demux_sce(sce_demux_ch, file(params.cellhash_pool_file))
+  // add genetic demux results to sce objects
+  genetic_demux_sce(demux_results_ch)
 
   // **** Generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
-  all_sce_ch = sce_ch.single.mix(multiplex_demux_sce.out)
+  all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
   sce_qc_report(all_sce_ch)
 
 

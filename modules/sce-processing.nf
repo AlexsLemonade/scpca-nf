@@ -77,7 +77,7 @@ process filter_sce{
         """
 }
 
-process multiplex_demux_sce{
+process genetic_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
@@ -85,6 +85,28 @@ process multiplex_demux_sce{
   input:
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(unfiltered_rds), path(filtered_rds)
+  output:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+  script:
+    // output will be same as input, with replacement of the filtered_rds file
+    // demultiplex results will be added to the SCE object colData 
+    """
+    mv ${filtered_rds} filtered_nodemux.rds
+    add_demux_sce.R \
+      --sce_file filtered_nodemux.rds \
+      --output_sce_file ${filtered_rds} \
+      --library_id ${meta.library_id} \
+      --vireo_dir ${vireo_dir} 
+    """
+}
+
+process cellhash_demux_sce{
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_8'
+  tag "${meta.library_id}"
+  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  input:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     path cellhash_pool_file
   output:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
@@ -97,7 +119,6 @@ process multiplex_demux_sce{
       --sce_file filtered_nodemux.rds \
       --output_sce_file ${filtered_rds} \
       --library_id ${meta.library_id} \
-      --vireo_dir ${vireo_dir} \
       --cellhash_pool_file ${cellhash_pool_file} \
       --hash_demux \
       --seurat_demux

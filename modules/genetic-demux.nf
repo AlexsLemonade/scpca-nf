@@ -13,11 +13,10 @@ def read_meta(path) {
 }
 
 
-workflow genetic_demux{
+workflow genetic_demux_vireo{
   take: 
     multiplex_run_ch
     unfiltered_runs_ch
-    sce_ch
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
