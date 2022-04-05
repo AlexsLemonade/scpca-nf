@@ -15,7 +15,6 @@ process spaceranger{
     tuple val(meta), path(out_id)
   script:
     out_id = "${meta.run_id}-spatial"
-    meta.cellranger_index = index.fileName
     """
     spaceranger count \
       --id=${out_id} \
@@ -38,10 +37,12 @@ process spaceranger_publish{
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
+    path index
   output:
     tuple val(meta), path(spatial_publish_dir), path(metadata_json)
   script:
     spatial_publish_dir = "${meta.library_id}_spatial"
+    meta.cellranger_index = index.fileName
     metadata_json = "${meta.library_id}_metadata.json" 
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
@@ -123,7 +124,7 @@ workflow spaceranger_quant{
         grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
 
           // generate metadata.json
-        spaceranger_publish(grouped_spaceranger_ch)
+        spaceranger_publish(grouped_spaceranger_ch, params.cellranger_index)
 
     // tuple of metadata, path to spaceranger output directory, and path to metadata json file
     emit: spaceranger_publish.out
