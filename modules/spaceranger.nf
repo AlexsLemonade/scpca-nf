@@ -37,12 +37,12 @@ process spaceranger_publish{
   publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
-    path index
+    val index
   output:
     tuple val(meta), path(spatial_publish_dir), path(metadata_json)
   script:
     spatial_publish_dir = "${meta.library_id}_spatial"
-    meta.cellranger_index = index.fileName
+    meta.cellranger_index = file(index).fileName
     metadata_json = "${meta.library_id}_metadata.json" 
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
