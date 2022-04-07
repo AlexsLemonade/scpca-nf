@@ -220,7 +220,7 @@ To support both of these demultiplexing strategies, we currently require *ALL* o
 The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file). 
 
 The  `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed. 
-This file will contain one row for each library-sample pair (i.e. a library with 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
+This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
