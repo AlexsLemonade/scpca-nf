@@ -192,10 +192,10 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Libraries with additional feature data (CITE-seq or cellhash)
 
-Libraries with additional feature data runs such as CITE-seq or cellhash tags will require a file containing the barcode IDs and sequences. 
+Libraries processed using multiple modalities, such as addition of CITE-seq or cellhash tags, will require a file containing the barcode IDs and sequences. 
 This is a tab separated file with one line per barcode and no header. 
 The first column will contain the barcode or antibody ID and the second column the barcode nucleotide sequence.
-The file location will be defined by the `feature_barcode_file` for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
+The file location should be specified in the `feature_barcode_file` column for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
 
 ### Multiplexed (cellhash) libraries
 
@@ -207,12 +207,12 @@ To support both of these demultiplexing strategies, we currently require *ALL* o
 - A matched cellhash sequencing run for the pooled samples
 - Separate bulk RNA-seq libraries for each sample in the pool
 - A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences. 
-- A TSV file, `cellhash_pool_file` that defines which sample-barcode relationship for each library/pool of samples 
+- A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples 
 
 The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file). 
 
 The  `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed. 
-This file will contain one row for each library-sample pair (i.e. a library with 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
+This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
