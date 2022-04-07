@@ -203,8 +203,8 @@ The first column will contain the barcode or antibody ID and the second column t
 For example:
 
 ```
-ADT01	CATGTGAGCT
-ADT02	TGTGAGGGTG
+TAG01	CATGTGAGCT
+TAG02	TGTGAGGGTG
 ``` 
 
 
@@ -232,6 +232,8 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 | `barcode_id`      | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
 Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
+
+We have provided an example multiplex pool file for reference that can be found in [`examples/example_multiplex_pools.tsv`](examples/example_multiplex_pools.tsv).
 
 ### Spatial transcriptomics libraries 
 
