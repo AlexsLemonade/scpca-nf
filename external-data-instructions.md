@@ -5,14 +5,14 @@
 - [File organization](#file-organization)
 - [Prepare the metadata file](#prepare-the-metadata-file)
 - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
-  - [Configuration files](#configuration-files)
-  - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
-  - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
+	- [Configuration files](#configuration-files)
+	- [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
+	- [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
 - [Repeating mapping steps](#repeating-mapping-steps)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
-  - [Libraries with additional feature data (CITE-seq or cellhash)](#libraries-with-additional-feature-data-cite-seq-or-cellhash)
-  - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
-  - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
+	- [Libraries with additional feature data (CITE-seq or cellhash)](#libraries-with-additional-feature-data-cite-seq-or-cellhash)
+	- [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
+	- [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -89,7 +89,7 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `submitter_id`    | Original sample identifier defined by user (for reference only; optional)|
 | `submitter`       | Name of user submitting name/id  (optional)                  |
 | `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |	
-| `feature_barcode_geom`| A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq and cellhash samples) |
+| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 
@@ -192,10 +192,18 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Libraries with additional feature data (CITE-seq or cellhash)
 
-Libraries with additional feature data runs such as CITE-seq or cellhash tags will require a file containing the barcode IDs and sequences. 
-This is a tab separated file with one line per barcode and no header. 
+Libraries processed using multiple modalities, such as those that include runs of CITE-seq or cellhash tags, will require a file containing the barcode IDs and sequences. 
+The file location should be specified in the `feature_barcode_file` for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
+
+The `feature_barcode_file` itself is a tab separated file with one line per barcode and no header. 
 The first column will contain the barcode or antibody ID and the second column the barcode nucleotide sequence.
-The file location will be defined by the `feature_barcode_file` for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
+For example:
+
+```
+ADT01	CATGTGAGCT
+ADT02	TGTGAGGGTG
+``` 
+
 
 ### Multiplexed (cellhash) libraries
 
@@ -207,7 +215,7 @@ To support both of these demultiplexing strategies, we currently require *ALL* o
 - A matched cellhash sequencing run for the pooled samples
 - Separate bulk RNA-seq libraries for each sample in the pool
 - A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences. 
-- A TSV file, `cellhash_pool_file` that defines which sample-barcode relationship for each library/pool of samples 
+- A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples 
 
 The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file). 
 
@@ -269,7 +277,6 @@ If bulk libraries are processed, there will be an additional `salmon` folder tha
 
 If genetic demultiplexing was performed, there will also be a folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq. 
 Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.
-If desired, these can be extracted from work data.
 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
 Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
