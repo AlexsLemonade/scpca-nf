@@ -1,7 +1,9 @@
+# How to use `scpca-nf` as an external user 
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Overview](#overview)
 - [File organization](#file-organization)
 - [Prepare the metadata file](#prepare-the-metadata-file)
 - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
@@ -17,8 +19,9 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# How to use `scpca-nf` as an external user 
 
+ ## Overview
+ 
 In order to use `scpca-nf` to process your own data, you will need to make sure you have the following installed: 
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
