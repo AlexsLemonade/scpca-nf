@@ -138,7 +138,7 @@ nextflow run AlexsLemonade/scpca-nf \
   -config my_config.config 
 ```
 
-For reference, we provide an example template configuration file, [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of profile configuration, discussed below. 
+For reference, we provide an example template configuration file, [`user_template.config`](examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of profile configuration, discussed below. 
 
 See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) and the below sections for more detail on creating your own configuration file.
 
@@ -148,7 +148,7 @@ Local running may be sufficient for small jobs or testing, but you will most lik
 To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
-In our example template file [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
+In our example template file [`user_template.config`](examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
