@@ -6,7 +6,7 @@ Here we provide an example of the [metadata file](../external-data-instructions.
 
 If you would like to test your configuration setup, after following the instructions outlined in the [external instructions](../external-data-instructions.md), you can do so by performing a test run with the example data that we have provided.
 
-We have an example 10X dataset from a [human glioblastoma donor that was processed using 10X Genomics' Next GEM Single Cell 3' Reagent Kits v3.1](https://www.10xgenomics.com/resources/datasets/2-k-sorted-cells-from-human-glioblastoma-multiforme-3-v-3-1-3-1-standard-6-0-0) that is available for download. 
+We have an example 10X dataset from a [human glioblastoma donor that was processed using the 10X Genomics' Next GEM Single Cell 3' Reagent Kits v3.1](https://www.10xgenomics.com/resources/datasets/2-k-sorted-cells-from-human-glioblastoma-multiforme-3-v-3-1-3-1-standard-6-0-0) that is available for download. 
 The fastq files for this example data can be downloaded by navigating to https://s3.amazonaws.com/scpca-references/example-data/example_fastq_gbm_10x.zip. 
 
 Following download and unzipping of the fastq files, you will need to create a metadata file that looks like the following: 
