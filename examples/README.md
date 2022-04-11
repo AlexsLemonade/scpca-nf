@@ -1,6 +1,7 @@
-## Example Files 
+# Example Metadata & Configuration Files for `scpca-nf`
 
-Here we provide an example of the [metadata file](../external-data-instructions.md#prepare-the-metadata-file) and [configuration file](../external-data-instructions.md#configuration-files) that you will need in order to setup a run of the `scpca-nf` workflow. 
+This directory contains an example the [metadata file](../external-data-instructions.md#prepare-the-metadata-file) and [configuration file](../external-data-instructions.md#configuration-files) for the `scpca-nf` workflow. 
+These files should be used as an example of formats and content, but note that the values in these files may not be applicable or sufficient to allow running `scpca-nf` to be used directly on your system.
 
 ## Testing your setup with example data
 
@@ -13,16 +14,15 @@ Following download and unzipping of the fastq files, you will need to create a m
 
 | scpca_run_id | scpca_library_id | scpca_sample_id | scpca_project_id | technology | seq_unit | files_directory | 
 | ------------ | ---------------- | --------------- | ---------------- | ---------- | -------- | --------------- | 
-| SCPCR999991 | SCPCL999991 | SCPCS999991 | SCPCP999991 | 10Xv3.1 | cell | path/to/example_fastq_files | 
+| run01 | library01 | sample01 | project01 | 10Xv3.1 | cell | /path/to/example_fastq_files | 
 
-Be sure to enter the full path to where the fastq files are located in the `files_directory` column.
+Be sure to enter the **full** path to the directory containing the fastq files in the `files_directory` column.
 
 You can provide the path to the metadata file at the command line (here we name the file `example_metadata.tsv` but you can use the filename of your choice).
 The following command can then be used to test your configuration setup with the example data: 
 
 ```
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.6 \
   -config my_config.config  \
   -profile <name of profile> \
   --run_metafile <path/to/example_metadata.tsv>
@@ -33,5 +33,5 @@ See the instructions on [creating a configuration file](../external-data-instruc
 
 ## Example output 
 
-You can download an example of the expected output files at https://s3.amazonaws.com/scpca-references/example-data/scpca_out.zip. 
+You can download an example of the expected output files here: [scpca_out.zip](https://s3.amazonaws.com/scpca-references/example-data/scpca_out.zip). 
 For more information on the file structure and what to expect see the description of the [output files](../external-data-instructions.md#output-files). 
