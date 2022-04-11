@@ -7,7 +7,7 @@ These files should be used as an example of formats and content, but note that t
 
 If you would like to test your configuration setup, after following the instructions outlined in the [external instructions](../external-data-instructions.md), you can do so by performing a test run with the example data that we have provided.
 
-We have an example 10X dataset from a [human glioblastoma donor that was processed using the 10X Genomics' Next GEM Single Cell 3' Reagent Kits v3.1](https://www.10xgenomics.com/resources/datasets/2-k-sorted-cells-from-human-glioblastoma-multiforme-3-v-3-1-3-1-standard-6-0-0) that is available for download. 
+We recommend using the example 10X dataset from a [human glioblastoma donor that was processed using the 10X Genomics' Next GEM Single Cell 3' Reagent Kits v3.1](https://www.10xgenomics.com/resources/datasets/2-k-sorted-cells-from-human-glioblastoma-multiforme-3-v-3-1-3-1-standard-6-0-0). 
 The fastq files for this example data can be downloaded from the following link: [Brain_Tumor_3p_fastqs.tar](https://cf.10xgenomics.com/samples/cell-exp/6.0.0/Brain_Tumor_3p/Brain_Tumor_3p_fastqs.tar).
 
 Following download and unzipping of the fastq files, you will need to create a metadata file that looks like the following: 
