@@ -1,21 +1,27 @@
+# How to use `scpca-nf` as an external user 
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Overview](#overview)
 - [File organization](#file-organization)
 - [Prepare the metadata file](#prepare-the-metadata-file)
 - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
-  - [Configuration files](#configuration-files)
-  - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
-  - [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
+	- [Configuration files](#configuration-files)
+	- [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
+	- [Using `scpca-nf` with AWS](#using-scpca-nf-with-aws)
 - [Repeating mapping steps](#repeating-mapping-steps)
-- [Special considerations for using `scpca-nf` with spatial transcriptomics libraries](#special-considerations-for-using-scpca-nf-with-spatial-transcriptomics-libraries)
+- [Special considerations for specific data types](#special-considerations-for-specific-data-types)
+	- [Libraries with additional feature data (CITE-seq or cellhash)](#libraries-with-additional-feature-data-cite-seq-or-cellhash)
+	- [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
+	- [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# How to use `scpca-nf` as an external user 
 
+ ## Overview
+ 
 In order to use `scpca-nf` to process your own data, you will need to make sure you have the following installed: 
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
@@ -58,7 +64,7 @@ See [the section on file organization above for more information](#file-organiza
 
 The library ID will be unique for each set of cells that have been isolated from a sample and have undergone droplet generation. 
 For single-cell/single-nuclei RNA-seq runs, the library ID should be unique for each sequencing run.
-For libraries that have corresponding CITE-seq, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run, indicating that the sequencing data has been generated from the same group of cells. 
+For libraries that have corresponding CITE-seq or cellhash runs, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run, indicating that the sequencing data has been generated from the same group of cells. 
 
 Finally, the sample ID will indicate the unique tissue or source from which a sample was collected. 
 If you have two libraries that have been generated from the same original tissue, then they will share the same sample ID. 
@@ -74,8 +80,8 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 |-----------------|----------------------------------------------------------------|
 | `scpca_run_id`    | A unique run ID                                              |
 | `scpca_library_id`| A unique library ID for each unique set of cells             |
-| `scpca_sample_id` | A unique sample ID for each tissue or unique source          |
-| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
+| `scpca_sample_id` | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)          |
+| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `files_directory` | path/uri to directory containing fastq files (unique per run) |
 
@@ -85,8 +91,8 @@ The following columns may be necessary for running other data modalities (CITE-s
 |-----------------|----------------------------------------------------------------|
 | `submitter_id`    | Original sample identifier defined by user (for reference only; optional)|
 | `submitter`       | Name of user submitting name/id  (optional)                  |
-| `feature_barcode_file`| path/uri to directory containing the feature barcode sequences (only required for CITE-seq)  |	
-| `feature_barcode_geom`| A salmon `--read-geometry` layout string/ See https://github.com/COMBINE-lab/salmon/releases for details (only required for CITE-seq) |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |	
+| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 
@@ -132,7 +138,7 @@ nextflow run AlexsLemonade/scpca-nf \
   -config my_config.config 
 ```
 
-For reference, we provide an example template configuration file, [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of profile configuration, discussed below. 
+For reference, we provide an example template configuration file, [`user_template.config`](examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of configuring a profile for executing the workflow on a cluster, discussed below.
 
 See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) and the below sections for more detail on creating your own configuration file.
 
@@ -142,7 +148,7 @@ Local running may be sufficient for small jobs or testing, but you will most lik
 To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
-In our example template file [user_template.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
+In our example template file [`user_template.config`](examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
@@ -185,7 +191,51 @@ nextflow run AlexsLemonade/scpca-nf \
   --repeat_mapping
 ```
 
-## Special considerations for using `scpca-nf` with spatial transcriptomics libraries 
+## Special considerations for specific data types
+
+### Libraries with additional feature data (CITE-seq or cellhash)
+
+Libraries processed using multiple modalities, such as those that include runs of CITE-seq or cellhash tags, will require a file containing the barcode IDs and sequences. 
+The file location should be specified in the `feature_barcode_file` for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
+
+The `feature_barcode_file` itself is a tab separated file with one line per barcode and no header. 
+The first column will contain the barcode or antibody ID and the second column the barcode nucleotide sequence.
+For example:
+
+```
+TAG01	CATGTGAGCT
+TAG02	TGTGAGGGTG
+``` 
+
+
+### Multiplexed (cellhash) libraries
+
+When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform both cellhash-based demultiplexing and genetic demultiplexing.
+
+To support both of these demultiplexing strategies, we currently require *ALL* of the following for multiplexed libraries:
+
+- A single-cell RNA-seq run of the pooled samples
+- A matched cellhash sequencing run for the pooled samples
+- Separate bulk RNA-seq libraries for each sample in the pool
+- A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences. 
+- A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples 
+
+The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file). 
+
+The  `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed. 
+This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `scpca_library_id`| Multiplexed library ID matching values in the metadata file. |
+| `scpca_sample_id` | Sample ID for a sample contained in the listed multiplexed library |
+| `barcode_id`      | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
+
+Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
+
+We have provided an example multiplex pool file for reference that can be found in [`examples/example_multiplex_pools.tsv`](examples/example_multiplex_pools.tsv).
+
+### Spatial transcriptomics libraries 
 
 To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file). 
 The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
@@ -196,6 +246,8 @@ As an example, the Dockerfile that we used to build Space Ranger can be found [h
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file. 
 *Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods.*
+
+
 
 ## Output files 
 
@@ -227,6 +279,9 @@ The contents of this folder are used to allow restarting the workflow from inter
 
 The `rad` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag, while the `af` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
 If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed. 
+
+If genetic demultiplexing was performed, there will also be a folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq. 
+Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.
 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
 Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
