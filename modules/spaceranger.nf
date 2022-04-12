@@ -44,7 +44,7 @@ process spaceranger_publish{
   script:
     spatial_publish_dir = "${meta.library_id}_spatial"
     meta.cellranger_index = file(index).name
-    metadata_json = "${meta.library_id}_metadata.json" 
+    metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json" 
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
     # make a new directory to hold only the outs file we want to publish 
