@@ -1,6 +1,6 @@
 # Example Metadata & Configuration Files for `scpca-nf`
 
-## Set up configuration file
+## Example files
 
 This directory contains an example [metadata file](../external-data-instructions.md#prepare-the-metadata-file) and [configuration file](../external-data-instructions.md#configuration-files) for the `scpca-nf` workflow. 
 These files should be used as an example of formats and content, but note that the values in these files may not be applicable or sufficient to allow running `scpca-nf` to be used directly on your system.
@@ -11,8 +11,8 @@ Before following the instructions below, please ensure that you have already set
 You can test your configuration setup by performing a test run with the example data that we have provided.
 
 We recommend using the example 10X dataset from a [human glioblastoma donor that was processed using the 10X Genomics' Next GEM Single Cell 3' Reagent Kits v3.1](https://www.10xgenomics.com/resources/datasets/2-k-sorted-cells-from-human-glioblastoma-multiforme-3-v-3-1-3-1-standard-6-0-0)(note: you may be prompted to provide an email and register upon navigating to the 10X downloads site). 
-The fastq files for this example data can be downloaded from the following link: [Brain_Tumor_3p_fastqs.tar](https://cf.10xgenomics.com/samples/cell-exp/6.0.0/Brain_Tumor_3p/Brain_Tumor_3p_fastqs.tar).
-**Note:** These files will take approximately 10 GB of disk space upon download and expanding the tar file. 
+The fastq files for this example data can be downloaded from the following link (**note:** These files will take approximately 10 GB of disk space upon download and expanding the tar file): [Brain_Tumor_3p_fastqs.tar](https://cf.10xgenomics.com/samples/cell-exp/6.0.0/Brain_Tumor_3p/Brain_Tumor_3p_fastqs.tar).
+
 
 Following download and unzipping of the fastq files, you will need to create a tab-separated values metadata file that looks like the following: 
 
@@ -43,5 +43,5 @@ See the instructions on [creating a configuration file](../external-data-instruc
 
 ## Example output 
 
-You can download an example of the expected output files here: [scpca_out.zip](https://s3.amazonaws.com/scpca-references/example-data/scpca_out.zip). 
+You can download an example of the expected output files here: [`scpca_out.zip`](https://s3.amazonaws.com/scpca-references/example-data/scpca_out.zip). 
 For more information on the file structure and what to expect see the description of the [output files](../external-data-instructions.md#output-files). 
