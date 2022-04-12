@@ -8,6 +8,9 @@ Before following the instructions below, please ensure that you have already set
 
 ## Testing your setup with example data 
 
+:warning: These instructions are only intended to be used to test accurate set up of a configuration file. 
+Before following these instructions, please ensure that you have already set up your own [configuration file](../external-data-instructions.md#configuration-files) and have [created and named a profile to use](../external-data-instructions.md#setting-up-a-profile-in-the-configuration-file).
+
 You can test your configuration setup by performing a test run with the example data that we have provided.
 
 We recommend using the example 10X dataset from a [human glioblastoma donor that was processed using the 10X Genomics' Next GEM Single Cell 3' Reagent Kits v3.1](https://www.10xgenomics.com/resources/datasets/2-k-sorted-cells-from-human-glioblastoma-multiforme-3-v-3-1-3-1-standard-6-0-0)(note: you may be prompted to provide an email and register upon navigating to the 10X downloads site). 
@@ -31,15 +34,9 @@ nextflow run AlexsLemonade/scpca-nf \
   --run_metafile <path to metadata file>
 ```
 
-Here, you will need to provide the relative path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files). 
-You also will need to provide the name of the profile that you chose when creating a profile. 
-For the example configuration file that we provided, we used the profile name `cluster` and would indicate that we would like to use that profile at the command line with `-profile cluster`. 
-Finally, you will need to provide the path to the metadata file containing the associated metadata for the example data that you have set up following the instructions above. 
+Where `<path to config file>` is the **relative** path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files), `<name of profile>` is the name of the profile that you chose when creating a profile, and `<path to metadata file>` is the **full** path to the metadata TSV you created. 
+For the [example configuration file that we provided](./user_template.config), we used the profile name `cluster` and would indicate that we would like to use that profile at the command line with `-profile cluster`. 
 For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the metadata file](../external-data-instructions.md#prepare-the-metadata-file). 
-
-:warning: These instructions are only intended to be used to test accurate set up of a configuration file. 
-This setup assumes that you have already created a configuration file and have created and named a profile to use. 
-See the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files) and [setting up a profile](../external-data-instructions.md#setting-up-a-profile-in-the-configuration-file) for more information.
 
 ## Example output 
 
