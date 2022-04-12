@@ -7,19 +7,20 @@ All samples are aligned, using selective alignment, to an index with transcripts
 `scpca-nf` can also process CITE-seq, bulk RNA-seq, and spatial transcriptomics. 
 For more information on the processing of all types of modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/). 
 
-## Using scpca-nf to process samples in your computing environment
+## Using scpca-nf to process samples in your HPC
+
 The `scpca-nf` workflow is currently set up to process samples as part of the ScPCA portal and requires access to AWS through the CCDL.  
 For all other users, `scpca-nf` can be set up to process your samples in your computing environment by following the [instructions for using `scpca-nf` with external data](external-data-instructions.md). 
 
-:warning: As a warning, processing single-cell and single-nuclei RNA-seq samples, requires access to a high power computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 cpus. 
+:warning: Please note that processing single-cell and single-nuclei RNA-seq samples, requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 cpus. 
 
 To run `scpca-nf` on your own samples, you will need to complete the following steps: 
 
 1. [Organize your files](./external-data-instructions.md#file-organization) so that each folder contains fastq files relevant to a single sequencing run. 
-2. [Prepare a metadata file](./external-data-instructions.md#prepare-the-metadata-file) with all associated metadata about the samples you would like to process. 
+2. [Prepare a metadata file](./external-data-instructions.md#prepare-the-metadata-file) with one row per library containing all information needed to process your samples.
 3. Set up a [configuration file](./external-data-instructions.md#configuration-files), including the [definition of a profile](./external-data-instructions.md#setting-up-a-profile-in-the-configuration-file), dictating where nextflow should execute the workflow. 
 
-If you would like, after you created a configuration file, you may also [test your set up using example data](examples/README.md). 
+If you would like, after you created your configuration file, you may also [test your set up using example data](examples/README.md). 
 
 ## Running scpca-nf for the Data Lab staff 
 
