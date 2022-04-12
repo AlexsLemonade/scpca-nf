@@ -4,7 +4,6 @@
 
 This directory contains an example [metadata file](../external-data-instructions.md#prepare-the-metadata-file) and [configuration file](../external-data-instructions.md#configuration-files) for the `scpca-nf` workflow. 
 These files should be used as an example of formats and content, but note that the values in these files may not be applicable or sufficient to allow running `scpca-nf` to be used directly on your system.
-Before following the instructions below, please ensure that you have already set up your own [configuration file](../external-data-instructions.md#configuration-files) and [created a profile](../external-data-instructions.md#setting-up-a-profile-in-the-configuration-file) to run `scpca-nf` on your system. 
 
 ## Testing your setup with example data 
 
