@@ -35,12 +35,12 @@ Once you have set up your environment and created these files you will be able t
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.6 \
+  -r v0.2.7 \
   -config my_config.config \
   --run_metafile <path/to/metadata_file>
 ```
 
-This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.6` version, and run it based on the settings in the local configuration file `my_config.config`.
+This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the local configuration file `my_config.config`.
 
 **Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
@@ -111,7 +111,7 @@ By default, the workflow is set up to run in a local environment, and these para
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.6 \
+  -r v0.2.7 \
   --run_metafile <path/to/metadata_file> \
   --outdir <path/to/output>
 ```
@@ -134,7 +134,7 @@ This file is then used with the `-config` (or `-c`) argument at the command line
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.6 \
+  -r v0.2.7 \
   -config my_config.config 
 ```
 
@@ -152,7 +152,7 @@ In our example template file [`user_template.config`](examples/user_template.con
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.6 \
+  -r v0.2.7 \
   -config user_template.config \
   -profile cluster
 ```
@@ -187,7 +187,7 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.6 \
+  -r v0.2.7 \
   --repeat_mapping
 ```
 
