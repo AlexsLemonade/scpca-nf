@@ -45,12 +45,11 @@ Once you have set up your environment and created these files you will be able t
 nextflow run AlexsLemonade/scpca-nf \
   -r v0.2.7
   -config <path to config file>  \
-  -profile <name of profile> \
-  --run_metafile <path to metadata file>
+  -profile <name of profile>
 ```
 
 This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the configuration file that you have defined. 
-Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup, `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file), and `<path to metadata file>` is the **full** path to the [metadata file](#prepare-the-metadata-file) you created.  
+Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).   
 
 **Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
