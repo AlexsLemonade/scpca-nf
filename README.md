@@ -12,7 +12,7 @@ For more information on the processing of all modalities, please see the [ScPCA 
 The `scpca-nf` workflow is currently set up to process samples as part of [the ScPCA portal](https://scpca.alexslemonade.org/) and requires access to AWS through the Data Lab.  
 For all other users, `scpca-nf` can be set up to process your samples in your computing environment by following the [instructions for using `scpca-nf` with external data](external-data-instructions.md). 
 
-:warning: Please note that processing single-cell and single-nuclei RNA-seq samples, requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 CPUs. 
+:warning: Please note that processing single-cell and single-nuclei RNA-seq samples, requires access to a high performance computing (HPC) environment that can accomodate up to 24 GB of RAM and 12 CPUs. 
 
 To run `scpca-nf` on your own samples, you will need to complete the following steps: 
 
