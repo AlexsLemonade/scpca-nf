@@ -26,20 +26,20 @@ Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data 
 After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process. 
 Here we provide an overview of the steps you will need to complete: 
 
-1. Install the necessary dependencies. 
+1. **Install the necessary dependencies.** 
 You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: 
     - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
     - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation)
 
-2. Organize your files. 
+2. **Organize your files.** 
 You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library. 
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
-3. Create a [metadata file](#prepare-the-metadata-file). 
+3. **Create a [metadata file](#prepare-the-metadata-file).** 
 Create a TSV (tab-separated values) file with one sequencing library per row and pertinent information related to that sequencing run in each column. 
 See the [section below on preparing a metadata file](#prepare-the-metadata-file) for more information on creating a metadata file for your samples.
 
-4. Create a [config file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).
+4. **Create a [config file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).**
 Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow. 
 See the [section below on configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment) for more information on setting up the configuration files to run Nextflow on your system.
 
