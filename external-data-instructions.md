@@ -22,21 +22,25 @@
 
  ## Overview
  
-Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 CPUs.
+Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accomodate up to 24 GB of RAM and 12 CPUs.
 After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process. 
 Here we provide an overview of the steps you will need to complete: 
 
-1. Install the necessary dependencies - You will need to make sure you have the following software installed on your HPC (or where you plan to execute the workflow): 
-  - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
-  - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation)
+1. Install the necessary dependencies. 
+You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: 
+    - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+    - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation)
 
-2. Organize your files - You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library. 
+2. Organize your files. 
+You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library. 
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
-3. Create a [metadata file](#prepare-the-metadata-file) - Create a TSV (tab separated values) file with one sequencing library per row and pertinent information related to that sequencing run in each column. 
+3. Create a [metadata file](#prepare-the-metadata-file). 
+Create a TSV (tab-separated values) file with one sequencing library per row and pertinent information related to that sequencing run in each column. 
 See the [section below on preparing a metadata file](#prepare-the-metadata-file) for more information on creating a metadata file for your samples.
 
-4. Create a [config file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file) - Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow. 
+4. Create a [config file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).
+Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow. 
 See the [section below on configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment) for more information on setting up the configuration files to run Nextflow on your system.
 
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
@@ -48,14 +52,14 @@ nextflow run AlexsLemonade/scpca-nf \
   -profile <name of profile>
 ```
 
-This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the configuration file that you have defined. 
-Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).   
+Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).  
+This command will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the configuration file that you have defined.  
 
 **Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
-For each library that is successfully processed, the workflow will return quantified gene expression data as a `SingleCellExperiment` object stored in an RDS file along with a summary html report and any relevant intermediate files. 
+For each library that is successfully processed, the workflow will return quantified gene expression data as a `SingleCellExperiment` object stored in an RDS file along with a summary HTML report and any relevant intermediate files. 
 For a complete description of the expected output files, see the section describing [output files](#output-files).
 
 ## File organization  
