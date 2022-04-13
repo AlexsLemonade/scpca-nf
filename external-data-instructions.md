@@ -20,7 +20,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
- ## Overview 
+ ## Overview
  
 Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 CPUs.
 After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process. 
