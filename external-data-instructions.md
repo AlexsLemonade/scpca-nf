@@ -20,31 +20,41 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
- ## Overview
+ ## Overview 
  
-In order to use `scpca-nf` to process your own data, you will need to make sure you have the following installed: 
+To use `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 cpus.
+After identifying the HPC that you will use to execute the nextflow workflow, you will need to take the following steps to complete the set up process: 
 
-- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
-- [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singlularity](https://www.nextflow.io/docs/latest/singularity.html) (installed either locally or on an HPC) 
+1. Install the necessary dependencies - Before you can begin, you will need to make sure you ahve the following software installed on your HPC: 
+  - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+  - [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)
 
-You will also need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library. 
+2. Organize your files - You will also need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library. 
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
+
+3. Create a [metadata file](#prepare-the-metadata-file) - 
+
+4. Create a [config file] and [define a profile] -
 
 Finally, you will need to create a [metadata file](#prepare-the-metadata-file) and a [nextflow configuration file](#configuration-files) (see below).
 Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose: 
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7 \
-  -config my_config.config \
-  --run_metafile <path/to/metadata_file>
+  -r v0.2.7
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --run_metafile <path to metadata file>
 ```
 
-This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the local configuration file `my_config.config`.
+This will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
 We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
+
+Successful completion of the workflow will result in gene expression files, a QC file, a metadata file, and associated intermediate files being written to the output directory specified in your config file. 
+See the outputs section for more information. 
 
 ## File organization  
 
