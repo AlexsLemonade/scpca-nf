@@ -5,14 +5,14 @@ This repository holds a [Nextflow](https://www.nextflow.io) workflow to process 
 Fastq files for single-cell and single-nuclei RNA-seq samples are processed using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/).
 All samples are aligned, using selective alignment, to an index with transcripts corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as `splici`. 
 `scpca-nf` can also process CITE-seq, bulk RNA-seq, and spatial transcriptomics. 
-For more information on the processing of all types of modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/). 
+For more information on the processing of all modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/). 
 
-## Using scpca-nf to process samples in your HPC
+## Using scpca-nf to process your samples
 
-The `scpca-nf` workflow is currently set up to process samples as part of the ScPCA portal and requires access to AWS through the CCDL.  
+The `scpca-nf` workflow is currently set up to process samples as part of [the ScPCA portal](https://scpca.alexslemonade.org/) and requires access to AWS through the Data Lab.  
 For all other users, `scpca-nf` can be set up to process your samples in your computing environment by following the [instructions for using `scpca-nf` with external data](external-data-instructions.md). 
 
-:warning: Please note that processing single-cell and single-nuclei RNA-seq samples, requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 cpus. 
+:warning: Please note that processing single-cell and single-nuclei RNA-seq samples, requires access to a high performance computing (HPC) environment that can accomodate up to 24 gb of RAM and 12 CPUs. 
 
 To run `scpca-nf` on your own samples, you will need to complete the following steps: 
 
@@ -22,7 +22,7 @@ To run `scpca-nf` on your own samples, you will need to complete the following s
 
 If you would like, after you created your configuration file, you may also [test your set up using example data](examples/README.md). 
 
-## Running scpca-nf for the Data Lab staff 
+## Running scpca-nf as a Data Lab staff member
 
 The instructions below assume that you are a member of the CCDL with access to AWS.
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure. 
