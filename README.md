@@ -1,6 +1,6 @@
 # scpca-nf
 
-This repository holds a [Nextflow](https://www.nextflow.io) workflow to process samples as part of the ScPCA project.
+This repository holds a [Nextflow](https://www.nextflow.io) workflow to process samples as part of the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 
 Fastq files for single-cell and single-nuclei RNA-seq samples are processed using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/).
 All samples are aligned, using selective alignment, to an index with transcripts corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as `splici`. 
@@ -20,7 +20,7 @@ To run `scpca-nf` on your own samples, you will need to complete the following s
 2. [Prepare a metadata file](./external-data-instructions.md#prepare-the-metadata-file) with one row per library containing all information needed to process your samples.
 3. Set up a [configuration file](./external-data-instructions.md#configuration-files), including the [definition of a profile](./external-data-instructions.md#setting-up-a-profile-in-the-configuration-file), dictating where nextflow should execute the workflow. 
 
-If you would like, after you created your configuration file, you may also [test your set up using example data](examples/README.md). 
+You may also [test your configuration file using example data](examples/README.md).
 
 ## Running scpca-nf as a Data Lab staff member
 
