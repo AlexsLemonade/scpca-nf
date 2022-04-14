@@ -268,36 +268,58 @@ After building the docker image, you will need to push it to a [private docker r
 ## Output files 
 
 Upon completion of the `scpca-nf` workflow, the results will be published to the specified `outdir`. 
-Within the `outdir`, two folders will be present, `publish` and `internal`. 
+Within the `outdir`, two folders will be present, `results` and `checkpoints`. 
 
-The `publish` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal. 
+The `results` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal. 
 
-Within the `publish` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
+Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
 All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_metadata.json`, and `_qc.html`. 
 The `_unfiltered.rds` and `_filtered.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
 
-See below for the expected structure of the `publish` folder: 
+See below for the expected structure of the `results` folder: 
 
 ```
 publish
-└── SCPCS999991
-    ├── SCPCL999991_filtered.rds
-    ├── SCPCL999991_metadata.json
-    ├── SCPCL999991_qc.html
-    └── SCPCL999991_unfiltered.rds
+└── sample_id
+    ├── library_id_filtered.rds
+    ├── library_id_metadata.json
+    ├── library_id_qc.html
+    └── library_id_unfiltered.rds
 ```
 
 If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `publish` directory. 
 
-The `internal` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon` and quantification with `alevin-fry`. 
-The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
+The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`. 
+The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
 
-The `rad` folder contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag, while the `af` folder contains the outputs from [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html). 
+The `rad` folder (nested inside the `checkpoints` folder) contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag.
 If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed. 
-
-If genetic demultiplexing was performed, there will also be a folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq. 
-Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.
 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
 Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
+
+See below for the expected structure of the `checkpoints` folder: 
+
+```
+checkpoints
+├── rad
+│   └── library_id
+│       └── run_id-rna
+└── salmon
+```
+
+By default, the direct output from running [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html) is not provided. 
+Within `scpca-nf`, the [counts matrix output from `alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/quant.html#output) is directly imported into R as a `SingleCellExperiment` object and can be obtained in the `_unfiltered.RDS` file. 
+If you would like to obtain all files typically output from running `alevin-fry`, you may run the workflow with the `--publish_fry_outs` option at the command line. 
+This will tell the workflow to save the `alevin-fry` outputs to a folder labeled `alevinfry` nested inside the `checkpoints` folder. 
+
+```bash
+nextflow run AlexsLemonade/scpca-nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --publish_fry_outs
+```
+
+If genetic demultiplexing was performed, there will also be a folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq. 
+Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.
