@@ -65,7 +65,7 @@ process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.checkpoints_dir}/af/${meta.library_id}", enabled: params.publish_fry_outs
+  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
   input:
     tuple val(meta),
           path(run_dir)
