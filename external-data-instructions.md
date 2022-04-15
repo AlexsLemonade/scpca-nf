@@ -97,6 +97,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_run_id`    | A unique run ID                                              |
 | `scpca_library_id`| A unique library ID for each unique set of cells             |
 | `scpca_sample_id` | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)          |
+| `scpca_project_id` | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
 | `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `files_directory` | path/uri to directory containing fastq files (unique per run) |
@@ -106,7 +107,6 @@ The following columns may be necessary for running other data modalities (CITE-s
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
 | `submitter_id`    | Original sample identifier defined by user (for reference only; optional)|
-| `submitter`       | Name of user submitting name/id  (optional)                  |
 | `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |	
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
