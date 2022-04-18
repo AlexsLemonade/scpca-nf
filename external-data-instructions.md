@@ -304,8 +304,11 @@ See below for the expected structure of the `checkpoints` folder:
 ```
 checkpoints
 ├── rad
-│   └── library_id
-│       └── run_id-rna
+│   ├── library01
+│   │   ├── run01-rna
+│   │   └── run02-features
+│   └── library02
+│       └── run03-rna
 └── salmon
 ```
 
