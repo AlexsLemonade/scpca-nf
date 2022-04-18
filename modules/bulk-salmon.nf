@@ -53,7 +53,7 @@ process salmon{
 
 process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
-    publishDir "${params.outdir}/publish/${project_id}"
+    publishDir "${params.output_dir}/${project_id}"
     input:
         tuple val(project_id), path(salmon_directories)
         path(tx2gene)
@@ -92,7 +92,7 @@ workflow bulk_quant_rna {
     main: 
         bulk_channel = bulk_channel
           // add salmon directory and salmon file location to meta 
-          .map{it.salmon_publish_dir = "${params.outdir}/internal/salmon";
+          .map{it.salmon_publish_dir = "${params.checkpoints_dir}/salmon";
                it.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
                it}
           // split based on whether repeat_mapping is false and the salmon quant.sf file exists 

@@ -4,7 +4,7 @@
 process sce_qc_report{
     container params.SCPCATOOLS_CONTAINER
     tag "${meta.library_id}"
-    publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+    publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
     input: 
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     output:
