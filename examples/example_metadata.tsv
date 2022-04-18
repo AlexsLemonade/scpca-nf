@@ -1,7 +1,7 @@
-scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	seq_unit	files_directory	submitter_id	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number
-run01	library01	sample01	project01	10Xv3.1	cell	example_fastqs/run01	example01				
-run02	library01	sample01	project01	CITEseq_10Xv3	cell	example_fastqs/run02	example02	example_barcode_files/cite_barcodes.tsv	2[1-15]		
-run03	library02	sample02	project01	visium	spot	example_fastqs/run03	example03			A1	VXXXX-XXX
-run04	library03	sample03;sample04	project01	10Xv3.1	cell	example_fastqs/run04	example04				
-run05	library03	sample03;sample04	project01	cellhash	cell	example_fastqs/run05	example05	example_barcode_files/cellhash_barcodes.tsv	2[1-10]		
-run06	library04	sample05	project01	paired_end	bulk	example_fastqs/run06	example06				
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	seq_unit	files_directory	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number
+run01	library01	sample01	project01	10Xv3.1	cell	example_fastqs/run01				
+run02	library01	sample01	project01	CITEseq_10Xv3	cell	example_fastqs/run02	example_barcode_files/cite_barcodes.tsv	2[1-15]		
+run03	library02	sample02	project01	visium	spot	example_fastqs/run03			A1	VXXXX-XXX
+run04	library03	sample03;sample04	project01	10Xv3.1	cell	example_fastqs/run04				
+run05	library03	sample03;sample04	project01	cellhash	cell	example_fastqs/run05	example_barcode_files/cellhash_barcodes.tsv	2[1-10]		
+run06	library04	sample05	project01	paired_end	bulk	example_fastqs/run06				

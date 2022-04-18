@@ -106,7 +106,6 @@ The following columns may be necessary for running other data modalities (CITE-s
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `submitter_id`    | Original sample identifier defined by user (for reference only; optional)|
 | `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |	
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
