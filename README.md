@@ -28,16 +28,13 @@ The instructions below assume that you are a member of the CCDL with access to A
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure. 
 To process samples that are not part of the ScPCA project, please see the [instructions on using `scpca-nf` with external data](external-data-instructions.md). 
 
-To run `scpca-nf` in its default configuration for the CCDL, you can use the following command: 
-
-```
-nextflow run AlexsLemonade/scpca-nf -profile ccdl
-```
-Although running workflows locally can be done, we recommend using AWS batch for this workflow. 
+To process single-cell and single-nuclei samples using `scpca-nf` you will need access to 24 GB of RAM and 12 CPUs, so we recommend using AWS batch.
 The first step in running the workflow is ensuring that your AWS credentials are configured. 
 
-You can then run the same workflow with the `batch` profile, which has been configured in the `nextflow.config` file. 
-Note that you will still need the `ccdl` profile, and you can specify both with by separating them with a comma. 
+You can then run the workflow with the `batch` profile, which has been configured in the `nextflow.config` file. 
+Note that you will also need the `ccdl` profile, and you can specify both with by separating them with a comma. 
+
+You can then run the workflow use the following command: 
 
 ```
 nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
@@ -48,5 +45,3 @@ When running the workflow for a project or group of samples that is ready to be 
 ```
 nextflow run AlexsLemonade/scpca-nf -r v0.2.7 -profile ccdl,batch --project SCPCP000000
 ```
-
-
