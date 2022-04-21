@@ -47,7 +47,7 @@ Once you have set up your environment and created these files you will be able t
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7
+  -r v0.2.7 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -122,14 +122,7 @@ Two workflow parameters are required for running `scpca-nf` on your own data:
 - `outdir`: the output directory where results will be stored.
   - The default output is `scpca_out`, but again, you will likely want to customize this.
 
-By default, the workflow is set up to run in a local environment, and these parameters can be set at the command line as follows:
-
-```sh
-nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7 \
-  --run_metafile <path/to/metadata_file> \
-  --outdir <path/to/output>
-```
+These parameters can be set at the command line using `--run_metafile <path to run_metafile>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
 
 Note that *workflow* parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen. 
 
@@ -141,25 +134,29 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 
 ```groovy
 // my_config.config
-params.run_metafile = '<path/to/metadata_file>'
-params.outdir = '<path/to/output>'
+params.run_metafile = '<path to run_metafile>'
+params.outdir = '<path to output>'
 ```
 
 This file is then used with the `-config` (or `-c`) argument at the command line:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7 \
+  -r <tagged version number> \
   -config my_config.config 
 ```
 
 For reference, we provide an example template configuration file, [`user_template.config`](examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of configuring a profile for executing the workflow on a cluster, discussed below.
 
+**Note:** This example tells Nextflow to use the configuration set up in the configuration file, but it does not invoke a specific profile, which is necessary to tell Nextflow where to execute the workflow.
+Without a profile name, Nextflow will attempt to run the workflow locally which will not work without access to the minimum computing requirements, 24 GB of RAM and 12 CPUs.
+For more on [creating and using a profile](#setting-up-a-profile-in-the-configuration-file) see the below section. 
+
 See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) and the below sections for more detail on creating your own configuration file.
 
 ### Setting up a profile in the configuration file
 
-Local running may be sufficient for small jobs or testing, but you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
+Processing single-cell and single-nuclei samples requires access to 24 GB of RAM and 12 CPUs so you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
 To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
@@ -167,7 +164,7 @@ In our example template file [`user_template.config`](examples/user_template.con
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7 \
+  -r <tagged version number> \
   -config user_template.config \
   -profile cluster
 ```
@@ -194,7 +191,7 @@ The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf
 
 ## Repeating mapping steps
 
-By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `internal` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`). 
+By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `checkpoints` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`). 
 If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
 However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process. 
 
@@ -202,7 +199,7 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7 \
+  -r <tagged version number> \
   --repeat_mapping
 ```
 
@@ -318,6 +315,7 @@ This will tell the workflow to save the `alevin-fry` outputs to a folder labeled
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
+  -r <tagged version number> \
   -config <path to config file>  \
   -profile <name of profile> \
   --publish_fry_outs
