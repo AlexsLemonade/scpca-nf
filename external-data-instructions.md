@@ -148,9 +148,10 @@ nextflow run AlexsLemonade/scpca-nf \
 
 For reference, we provide an example template configuration file, [`user_template.config`](examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of configuring a profile for executing the workflow on a cluster, discussed below.
 
-**Note:** This example tells Nextflow to use the configuration set up in the configuration file, but it does not invoke a specific profile, which is necessary to tell Nextflow where to execute the workflow.
-Without a profile name, Nextflow will attempt to run the workflow locally which will not work without access to the minimum computing requirements, 24 GB of RAM and 12 CPUs.
-For more on [creating and using a profile](#setting-up-a-profile-in-the-configuration-file) see the below section. 
+**Note:** This example tells Nextflow to use the configuration set up in the configuration file, but it does not invoke a specific profile, and will use the `standard` profile.
+Under the `standard` profile, Nextflow will attempt to run the workflow locally using Docker. 
+This will most likely result in an error unless the minimum computing requirements (24 GB of RAM and 12 CPUs) are met on the local machine.
+For more on [creating and using a profile](#setting-up-a-profile-in-the-configuration-file) see the section below. 
 
 See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) and the below sections for more detail on creating your own configuration file.
 
