@@ -47,7 +47,6 @@ Once you have set up your environment and created these files you will be able t
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.2.7 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -56,8 +55,16 @@ Where `<path to config file>` is the **relative** path to the [configuration fil
 This command will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the configuration file that you have defined.  
 
 **Note:** `scpca-nf` is under active development.
-We strongly encourage you to use a release tagged version of the workflow, set here with the `-r` flag.
+Using the above command will run the latest version of the workflow. 
+To  be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
+
+```bash
+nextflow run AlexsLemonade/scpca-nf \
+  -r v0.2.7 \
+  -config <path to config file>  \
+  -profile <name of profile>
+```
 
 For each library that is successfully processed, the workflow will return quantified gene expression data as a `SingleCellExperiment` object stored in an RDS file along with a summary HTML report and any relevant intermediate files. 
 For a complete description of the expected output files, see the section describing [output files](#output-files).
@@ -142,7 +149,6 @@ This file is then used with the `-config` (or `-c`) argument at the command line
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r <tagged version number> \
   -config my_config.config 
 ```
 
@@ -165,7 +171,6 @@ In our example template file [`user_template.config`](examples/user_template.con
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r <tagged version number> \
   -config user_template.config \
   -profile cluster
 ```
@@ -200,7 +205,6 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r <tagged version number> \
   --repeat_mapping
 ```
 
@@ -316,7 +320,6 @@ This will tell the workflow to save the `alevin-fry` outputs to a folder labeled
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  -r <tagged version number> \
   -config <path to config file>  \
   -profile <name of profile> \
   --publish_fry_outs
