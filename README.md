@@ -31,8 +31,8 @@ To process samples that are not part of the ScPCA project, please see the [instr
 To process single-cell and single-nuclei samples using `scpca-nf` you will need access to 24 GB of RAM and 12 CPUs, so we recommend using AWS batch.
 The first step in running the workflow is ensuring that your AWS credentials are configured. 
 
-You can then run the workflow with the `batch` profile, which has been configured in the `nextflow.config` file. 
-Note that you will also need the `ccdl` profile, and you can specify both with by separating them with a comma. 
+You can then run the workflow with the `batch` profile, which has been named in the `nextflow.config` file with full settings set up in the `profile_awsbatch.config` file. 
+Note that you will also need to use the `ccdl` profile to set file paths, and you can specify both profiles by separating them with a comma. 
 
 You can then run the workflow use the following command: 
 
