@@ -55,7 +55,9 @@ Where `<path to config file>` is the **relative** path to the [configuration fil
 This command will pull the `scpca-nf` workflow directly from Github, using the `v0.2.7` version, and run it based on the settings in the configuration file that you have defined.  
 
 **Note:** `scpca-nf` is under active development.
-Using the above command will run the latest version of the workflow. 
+Using the above command will run the workflow from the `main` branch of the workflow repository. 
+To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command. 
+ 
 To  be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
