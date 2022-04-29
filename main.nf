@@ -24,15 +24,18 @@ rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
+// build output paths 
+checkpoints_dir = "${params.outdir}/${params.checkpoints}"
+results_dir = "${params.outdir}/${params.results}"
 
 // include processes from modules
-include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
-include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
-include { bulk_quant_rna } from './modules/bulk-salmon.nf'
-include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
-include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce } from './modules/sce-processing.nf'
-include { sce_qc_report } from './modules/qc-report.nf'
+include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes, checkpoints_dir: checkpoints_dir)
+include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes, checkpoints_dir: checkpoints_dir)
+include { bulk_quant_rna } from './modules/bulk-salmon.nf' addParams(checkpoints_dir: checkpoints_dir, results_dir: results_dir)
+include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs, checkpoints_dir: checkpoints_dir)
+include { spaceranger_quant } from './modules/spaceranger.nf' addParams(checkpoints_dir: checkpoints_dir, results_dir: results_dir)
+include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce } from './modules/sce-processing.nf' addParams(results_dir: results_dir)
+include { sce_qc_report } from './modules/qc-report.nf' addParams(results_dir: results_dir)
 
 // parameter checks
 param_error = false
