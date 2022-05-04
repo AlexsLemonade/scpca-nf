@@ -35,7 +35,7 @@ process spaceranger{
 
 process spaceranger_publish{
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.outdir}/publish/${meta.project_id}/${meta.sample_id}"
+  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(spatial_out)
     val index
@@ -98,7 +98,7 @@ workflow spaceranger_quant{
         spatial_channel = spatial_channel
         // add sample names and spatial output directory to metadata
           .map{it.cr_samples = getCRsamples(it.files_directory);
-               it.spaceranger_publish_dir =  "${params.outdir}/internal/spaceranger/${it.library_id}";
+               it.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
                it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
                it}
           .branch{

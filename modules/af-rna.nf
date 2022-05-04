@@ -45,7 +45,7 @@ process fry_quant_rna{
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-rna"
-  publishDir "${params.outdir}/internal/af/${meta.library_id}"
+  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
 
   input:
     tuple val(meta), path(run_dir), path(barcode_file)
@@ -86,7 +86,7 @@ workflow map_quant_rna {
   main:
     // add rad publish directory, rad directory, and barcode file to meta
     rna_channel = rna_channel
-      .map{it.rad_publish_dir = "${params.outdir}/internal/rad/${it.library_id}";
+      .map{it.rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
            it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna"; 
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
