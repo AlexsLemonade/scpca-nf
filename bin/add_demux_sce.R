@@ -1,5 +1,10 @@
 #!/usr/bin/env Rscript
 
+# Script for adding demultiplexing information to a SingleCellExperiment object
+# If provided, it will add genetic demultiplexing information from vireo,
+# and/or demultiplexing based on cellhash data using Seurat::HTOdemux
+# and/or DropletUtils::HashedDrops
+
 # import libraries
 suppressPackageStartupMessages({
   library(optparse)
@@ -86,6 +91,7 @@ if(is.null(opt$cellhash_pool_file)){
 
 # read in sce rds file
 sce <- readRDS(opt$sce_file)
+metadata(sce)
 
 # check for cellhash altExp if we will use it
 if( opt$hash_demux || opt$seurat_demux ){
