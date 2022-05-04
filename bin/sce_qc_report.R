@@ -173,10 +173,12 @@ if(multiplexed){
     as.list()
 
   # add demux info to the metadata list
-  metadata_list <- c(metadata_list,
-                     demux_method = demux_method,
-                     demux_samples = sample_ids,
-                     sample_cell_estimates = demux_counts)
+  metadata_list <- append(
+    metadata_list,
+    list(demux_method = demux_method,
+         demux_samples = sample_ids,
+         sample_cell_estimates = demux_counts)
+  )
 }
 
 # Output metadata as JSON
