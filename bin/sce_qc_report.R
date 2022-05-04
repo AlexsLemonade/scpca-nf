@@ -121,12 +121,12 @@ sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 multiplexed = if (length(sample_ids) > 1){TRUE} else {FALSE}
 
 # sanity check ids
-if (sce_meta$sample_id){
+if (!is.null(sce_meta$sample_id)){
   if (!all.equal(sample_ids, sce_meta$sample_id)){
     stop("--sample_id  does not match SCE metadata")
   }
 }
-if (sce_meta$library_id){
+if (!is.null(sce_meta$library_id)){
   if (opt$library_id != sce_meta$library_id){
     stop("--library_id  does not match SCE metadata")
   }
