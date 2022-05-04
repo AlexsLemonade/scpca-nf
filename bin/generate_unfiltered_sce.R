@@ -52,6 +52,16 @@ option_list <- list(
     opt_str = c("-t", "--technology"),
     type = "character",
     help = "sequencing technology string to store in metadata"
+  ),
+  make_option(
+    opt_str = c("--library_id"),
+    type = "character",
+    help = "library id"
+  ),
+  make_option(
+    opt_str = c("--sample_id"),
+    type = "character",
+    help = "sample id(s). If more than one, separated by commas and/or semicolons."
   )
 )
 
@@ -87,19 +97,26 @@ gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
                                  opt$seq_unit == "nucleus" ~ "unspliced")
 
+# parse sample id list
+sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;"))
+
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               which_counts = which_counts,
                               usa_mode = TRUE,
-                              tech_version = opt$technology)
+                              tech_version = opt$technology,
+                              library_id = opt$library_id,
+                              sample_id = sample_ids)
 
 
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             mtx_format = TRUE) 
-   
-  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name) 
+                             mtx_format = TRUE,
+                             library_id = opt$library_id,
+                             sample_id = sample_ids)
+
+  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
   # add alt experiment features stats
   altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
 }
