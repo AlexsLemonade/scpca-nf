@@ -140,7 +140,7 @@ has_cellhash <- "cellhash" %in% alt_expts
 
 metadata_list <- list(
   library_id = opt$library_id,
-  sample_id = sample_ids,
+  sample_id = opt$sample_id,
   technology = opt$technology,
   seq_unit = opt$seq_unit,
   is_multiplexed = multiplexed,
@@ -161,7 +161,7 @@ metadata_list <- list(
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
-  purrr::map(~if(is.null(.)) NA else .) # convert any NULLS to NA
+  purrr::map(~if(is.null(.)) NA else . ) # convert any NULLS to NA
 
 # estimate cell counts for multiplexed samples
 if(multiplexed){
@@ -172,9 +172,10 @@ if(multiplexed){
     table() |>
     as.list()
 
-  # add to the metadata list
+  # add demux info to the metadata list
   metadata_list <- c(metadata_list,
                      demux_method = demux_method,
+                     demux_samples = sample_ids,
                      sample_cell_estimates = demux_counts)
 }
 
