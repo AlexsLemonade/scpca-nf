@@ -80,7 +80,7 @@ option_list <- list(
     opt_str = "--demux_method",
     type = "character",
     default = "vireo",
-    help = "Demultiplexing method to use for multiplexed samples. One of `vireo`, HTOdemux`, or `HashedDrops`"
+    help = "Demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
   )
 )
 
@@ -94,6 +94,10 @@ if(is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)){
 }
 if(is.null(opt$filtered_sce) || !file.exists(opt$filtered_sce)){
   stop("Filtered .rds file missing or `filtered_sce` not specified.")
+}
+demux_methods <- c("vireo", "HTODemux", "HashedDrops")
+if(opt$demux_method %in% demux_methods){
+  stop("Unknown `demux_method` value. Must be one of `vireo`, `HTOdemux`, or `HashedDrops`")
 }
 
 if (opt$workflow_url == "null"){
@@ -165,12 +169,10 @@ metadata_list <- list(
 
 # estimate cell counts for multiplexed samples
 if(multiplexed){
-  demux_method = match.arg(opt$demux_method,
-                           c("vireo", "HTODemux", "HashedDrops"))
-  demux_column <- paste0(demux_method, "_sampleid")
+  demux_column <- paste0(opt$demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
     table() |>
-    as.list()
+    as.list() # save as a list for json output
 
   # add demux info to the metadata list
   metadata_list <- append(
