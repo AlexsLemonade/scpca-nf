@@ -63,6 +63,7 @@ filtered_sce <- filtered_sce |>
 miqc_attempt <- 0
 miqc_sce <- NULL
 while (miqc_attempt < 3 && is.null(miqc_sce)){
+  miqc_attempt <- miqc_attempt + 1
   try({
     miqc_sce <- scpcaTools::add_miQC(filtered_sce)
     filtered_sce <- miqc_sce
