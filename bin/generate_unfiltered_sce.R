@@ -98,7 +98,7 @@ which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
                                  opt$seq_unit == "nucleus" ~ "unspliced")
 
 # parse sample id list
-sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;"))
+sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
