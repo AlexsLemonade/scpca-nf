@@ -45,3 +45,21 @@ When running the workflow for a project or group of samples that is ready to be 
 ```
 nextflow run AlexsLemonade/scpca-nf -r v0.3.0 -profile ccdl,batch --project SCPCP000000
 ```
+
+### Processing example data 
+
+We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users. 
+If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`. 
+
+The following command should be used to run the workflow and process the example data: 
+
+```sh 
+nextflow run AlexsLemonade/scpca-nf \
+  -profile ccdl,batch \
+  --run_ids run01 \
+  --run_metafile s3://scpca-references/example-data/example_metadata.tsv \
+  --outdir s3://scpca-references/example-data/scpca_out
+```
+
+After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored in the bucket, `s3://scpca-references/example-data/`. 
+Make sure to adjust the settings to make the zip file publicly accessible. 
