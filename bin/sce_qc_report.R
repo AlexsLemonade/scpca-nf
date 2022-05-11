@@ -177,7 +177,7 @@ if(multiplexed){
   # add demux info to the metadata list
   metadata_list <- append(
     metadata_list,
-    list(demux_method = demux_method,
+    list(demux_method = opt$demux_method,
          demux_samples = sample_ids,
          sample_cell_estimates = demux_counts)
   )
