@@ -61,12 +61,6 @@ filtered_sce <- filtered_sce |>
 # add prob_compromised to colData and miQC model to metadata
 filtered_sce <- scpcaTools::add_miQC(filtered_sce)
 
-# set prob_compromised to NA if miQC failed
-if (is.null(miqc_sce)){
-  filtered_sce$prob_compromised <- NA_real_
-}
-
-
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
 
