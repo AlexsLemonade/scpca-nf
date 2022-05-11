@@ -61,5 +61,5 @@ nextflow run AlexsLemonade/scpca-nf \
   --outdir s3://scpca-references/example-data/scpca_out
 ```
 
-After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored in the bucket, `s3://scpca-references/example-data/`. 
+After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`. 
 Make sure to adjust the settings to make the zip file publicly accessible. 
