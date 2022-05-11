@@ -96,7 +96,7 @@ if(is.null(opt$filtered_sce) || !file.exists(opt$filtered_sce)){
   stop("Filtered .rds file missing or `filtered_sce` not specified.")
 }
 demux_methods <- c("vireo", "HTODemux", "HashedDrops")
-if(opt$demux_method %in% demux_methods){
+if(!opt$demux_method %in% demux_methods){
   stop("Unknown `demux_method` value. Must be one of `vireo`, `HTOdemux`, or `HashedDrops`")
 }
 
