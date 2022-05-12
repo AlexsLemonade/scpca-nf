@@ -59,21 +59,18 @@ filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
 # add prob_compromised to colData and miQC model to metadata
-# since this can fail, we will try it 3 times
-miqc_attempt <- 0
-miqc_sce <- NULL
-while (miqc_attempt < 3 && is.null(miqc_sce)){
-  miqc_attempt <- miqc_attempt + 1
-  try({
-    miqc_sce <- scpcaTools::add_miQC(filtered_sce)
-    filtered_sce <- miqc_sce
-    })
-}
+# since this can fail, we will check for success
+miQC_worked <- FALSE
+try({
+  filtered_sce <- scpcaTools::add_miQC(filtered_sce)
+  miQC_worked <- TRUE
+ })
+ 
 # set prob_compromised to NA if miQC failed
-if (is.null(miqc_sce)){
+if (!miQC_worked){
+  warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
 }
-
 
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
