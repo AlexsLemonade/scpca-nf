@@ -5,7 +5,7 @@ process alevin_rad{
   container params.SALMON_CONTAINER
   label 'cpus_12'
   label 'mem_24'
-  label 'disk_dynamic'
+  label 'disk_big'
   tag "${meta.run_id}-rna"
   publishDir "${meta.rad_publish_dir}"
   input:
@@ -44,6 +44,7 @@ process fry_quant_rna{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   label 'mem_8'
+  label 'disk_dynamic'
   tag "${meta.run_id}-rna"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
 
