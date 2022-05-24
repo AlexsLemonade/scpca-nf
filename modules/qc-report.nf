@@ -3,6 +3,7 @@
 
 process sce_qc_report{
     container params.SCPCATOOLS_CONTAINER
+    label 'disk_dynamic'
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
     input: 
