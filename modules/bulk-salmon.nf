@@ -53,7 +53,7 @@ process salmon{
 
 process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
-    publishDir "${params.output_dir}/${project_id}"
+    publishDir "${params.results_dir}/${project_id}"
     input:
         tuple val(project_id), path(salmon_directories)
         path(tx2gene)
