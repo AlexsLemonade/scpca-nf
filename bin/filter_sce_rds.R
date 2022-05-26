@@ -52,14 +52,25 @@ rm(unfiltered_sce)
 
 # need to remove old gene-level rowData statistics first
 drop_cols = colnames(rowData(filtered_sce)) %in% c('mean', 'detected')
-rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols] 
+rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
 # recalculate rowData and add to filtered sce
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
 # add prob_compromised to colData and miQC model to metadata
-filtered_sce <- scpcaTools::add_miQC(filtered_sce)
+# since this can fail, we will check for success
+miQC_worked <- FALSE
+try({
+  filtered_sce <- scpcaTools::add_miQC(filtered_sce)
+  miQC_worked <- TRUE
+ })
+ 
+# set prob_compromised to NA if miQC failed
+if (!miQC_worked){
+  warning("miQC failed. Setting `prob_compromised` to NA.")
+  filtered_sce$prob_compromised <- NA_real_
+}
 
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
@@ -67,7 +78,7 @@ alt_names <- altExpNames(filtered_sce)
 for (alt in alt_names) {
   # remove old row data from unfiltered
   drop_cols = colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
-  rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols] 
+  rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
 
   # add alt experiment features stats for filtered data
   altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
