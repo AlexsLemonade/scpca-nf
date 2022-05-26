@@ -4,7 +4,6 @@
 process make_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
-    label 'disk_dynamic'
     tag "${meta.library_id}"
     input: 
         tuple val(meta), path(alevin_dir)
@@ -30,7 +29,6 @@ process make_unfiltered_sce{
 // channels with RNA and feature data
 process make_merged_unfiltered_sce{
     label 'mem_8'
-    label 'disk_dynamic'
     tag "${meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input: 
@@ -63,7 +61,6 @@ process make_merged_unfiltered_sce{
 process filter_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
-    label 'disk_dynamic'
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
     input: 
@@ -83,7 +80,6 @@ process filter_sce{
 process genetic_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
-  label 'disk_dynamic'
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
   input:
@@ -107,7 +103,6 @@ process genetic_demux_sce{
 process cellhash_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
-  label 'disk_dynamic'
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
   input:
