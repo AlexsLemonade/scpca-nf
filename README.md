@@ -43,7 +43,7 @@ nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release: 
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.3.2 -profile ccdl,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.3.3 -profile ccdl,batch --project SCPCP000000
 ```
 
 ### Processing example data 
