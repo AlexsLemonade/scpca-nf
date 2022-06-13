@@ -103,22 +103,25 @@ if( opt$hash_demux || opt$seurat_demux ){
   }
 }
 
+cellhash_ids <- rownames(altExp(sce))
 
-
-# add HashedDrops results
-if(opt$hash_demux){
-  sce <- scpcaTools::add_demux_hashedDrops(sce)
-}
-
-# add Seurat results
-if(opt$seurat_demux){
-  sce <- scpcaTools::add_demux_seurat(sce)
-}
-
-# add vireo results
-if(!is.null(opt$vireo_dir)){
-  vireo_table <- readr::read_tsv(vireo_file)
-  sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
+# only perform demultiplexing if more than one HTO is detected
+if(length(cellhash_ids) > 1) {
+  # add HashedDrops results
+  if(opt$hash_demux){
+    sce <- scpcaTools::add_demux_hashedDrops(sce)
+  }
+  
+  # add Seurat results
+  if(opt$seurat_demux){
+    sce <- scpcaTools::add_demux_seurat(sce)
+  }
+  
+  # add vireo results
+  if(!is.null(opt$vireo_dir)){
+    vireo_table <- readr::read_tsv(vireo_file)
+    sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
+  } 
 }
 
 # write filtered sce to output
