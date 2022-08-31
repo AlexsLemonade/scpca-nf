@@ -57,7 +57,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # set seed
 set.seed(opt$random_seed)
 
-# check that unfiltered file file exists
+# check that input file file exists
 if(!file.exists(opt$input_sce_file)){
   stop("Missing unfiltered.rds file")
 }
@@ -67,7 +67,7 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
   stop("output file name must end in .rds")
 }
 
-# read in unfiltered rds file
+# read in input rds file
 sce <- readr::read_rds(opt$input_sce_file)
 
 # check that prob compromised cutoff is between 0-1
@@ -77,10 +77,12 @@ if(!dplyr::between(opt$prob_compromised_cutoff, 0, 1)){
 
 # if the column is all NA then no filtering is performed? 
 if(all(is.na(sce$prob_compromised))){
-  filtered_sce <- sce 
+  filtered_sce <- sce
+  metadata(filtered_sce)$filtering_method <- NA_real_
 } else {
   # remove cells with >= probability compromised cutoff
   filtered_sce <- sce[, sce$prob_compromised < opt$prob_compromised_cutoff]
+  metadata(filtered_sce)$filtering_method <- "miQC"
 }
 
 # cluster prior to normalization 
