@@ -33,10 +33,10 @@ option_list <- list(
     metavar = "double"
   ),
   make_option(
-    opt_str = c("--use_hvg"),
-    action = "store_true",
-    help = "Boolean indicating whether or not to use highly variable genes as input to 
-      PCA calculation."
+    opt_str = c("--gene_cutoff"),
+    type = "integer",
+    default = 200,
+    help = "Minimum number of genes per cell cutoff used for filtering cells."
   ),
   make_option(
     opt_str = c("-n", "--top_n"),
@@ -75,15 +75,25 @@ if(!dplyr::between(opt$prob_compromised_cutoff, 0, 1)){
   stop("--prob_compromised_cutoff must be a number between 0 to 1")
 }
 
-# if the column is all NA then no filtering is performed? 
+# create ccdl_filter column
 if(all(is.na(sce$prob_compromised))){
-  filtered_sce <- sce
-  metadata(filtered_sce)$filtering_method <- NA_real_
+  colData(sce)$ccdl_filter <- ifelse(
+    sce$detected >= opt$gene_cutoff, "Keep", "Remove"
+  )
+  metadata(sce)$ccdl_filter_method <- "Minimum_gene_cutoff"
 } else {
-  # remove cells with >= probability compromised cutoff
-  filtered_sce <- sce[, sce$prob_compromised < opt$prob_compromised_cutoff]
-  metadata(filtered_sce)$filtering_method <- "miQC"
+  # remove cells with >= probability compromised cutoff + min gene cutoff
+  colData(sce)$ccdl_filter <- ifelse(
+    sce$prob_compromised < opt$prob_compromised_cutoff & 
+      sce$detected >= opt$gene_cutoff, 
+    "Keep", 
+    "Remove"
+  )
+  metadata(sce)$ccdl_filter_method <- "miQC"
 }
+
+# filter sce using criteria in ccdl_filter 
+filtered_sce <- sce[, sce$ccdl_filter == "Keep"]
 
 # cluster prior to normalization 
 qclust <- NULL
@@ -124,20 +134,16 @@ var_genes <- scran::getTopHVGs(gene_variance, n = opt$top_n)
 metadata(normalized_sce)$variable_genes <- var_genes
 
 # dimensionality reduction 
-# highly variable genes are used as input to PCA only if --use_hvg option is used
-# otherwise use all genes as input to PCA
-if(!is.null(opt$use_hvg)){
-  subset_genes <- var_genes
-} else {
-  subset_genes <- rownames(normalized_sce)
-}
-# add PCA to normalized sce
+# highly variable genes are used as input to PCA 
 normalized_sce <- scater::runPCA(normalized_sce, 
-                                 subset_row = subset_genes)
+                                 subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
 normalized_sce <- scater::runUMAP(normalized_sce, 
                                   dimred = "PCA")
+
+# write out original SCE with additional filtering column
+readr::write_rds(sce, opt$input_sce_file)
 
 # write out processed SCE 
 readr::write_rds(normalized_sce, opt$output_sce_file)
