@@ -16,12 +16,12 @@ option_list <- list(
     help = "library id"
   ),
   make_option(
-    opt_str = c("-u", "--input_sce_file"),
+    opt_str = c("-i", "--input_sce_file"),
     type = "character",
     help = "path to rds file with input sce object to be processed"
   ),
   make_option(
-    opt_str = c("-f", "--output_sce_file"),
+    opt_str = c("-o", "--output_sce_file"),
     type = "character",
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
@@ -39,7 +39,7 @@ option_list <- list(
     help = "Minimum number of genes per cell cutoff used for filtering cells."
   ),
   make_option(
-    opt_str = c("-n", "--top_n"),
+    opt_str = c("-n", "--n_hvg"),
     type = "double",
     default = 2000,
     help = "top number of high variance genes to use for dimension reduction;
@@ -131,11 +131,12 @@ gene_variance <- scran::modelGeneVar(normalized_sce)
 var_genes <- scran::getTopHVGs(gene_variance, n = opt$top_n)
 
 # save the most variable genes to the metadata
-metadata(normalized_sce)$variable_genes <- var_genes
+metadata(normalized_sce)$highly_variable_genes <- var_genes
 
 # dimensionality reduction 
 # highly variable genes are used as input to PCA 
 normalized_sce <- scater::runPCA(normalized_sce, 
+                                 n_components = opt$n_pcs,
                                  subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
