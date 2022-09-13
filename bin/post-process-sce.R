@@ -11,11 +11,6 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("--library_id"),
-    type = "character",
-    help = "library id"
-  ),
-  make_option(
     opt_str = c("-i", "--input_sce_file"),
     type = "character",
     help = "path to rds file with input sce object to be processed"
@@ -39,11 +34,18 @@ option_list <- list(
     help = "Minimum number of genes per cell cutoff used for filtering cells."
   ),
   make_option(
-    opt_str = c("-n", "--n_hvg"),
-    type = "double",
+    opt_str = c("--n_hvg"),
+    type = "integer",
     default = 2000,
-    help = "top number of high variance genes to use for dimension reduction;
-            the default is top_n = 2000",
+    help = "number of high variance genes to use for dimension reduction;
+            the default is n_hvg = 2000",
+  ),
+  make_option(
+    opt_str = c("--n_pcs"),
+    type = "integer",
+    default = 50,
+    help = "Number of principal components to retain in the returned SingleCellExperiment object 
+      when using scater::runPCA; the default is n_pcs = 50",
   ),
   make_option(
     opt_str = c("-r", "--random_seed"),
@@ -128,7 +130,7 @@ rm(filtered_sce)
 gene_variance <- scran::modelGeneVar(normalized_sce)
 
 # select the most variable genes
-var_genes <- scran::getTopHVGs(gene_variance, n = opt$top_n)
+var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
 
 # save the most variable genes to the metadata
 metadata(normalized_sce)$highly_variable_genes <- var_genes
