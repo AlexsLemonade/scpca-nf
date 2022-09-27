@@ -1,4 +1,3 @@
-import groovy.json.JsonOutput
 
 process cellsnp{
   container params.CELLSNP_CONTAINER
@@ -42,8 +41,7 @@ process vireo{
     tuple val(meta), path(outdir)
   script:
     outdir = file(meta.vireo_dir).name
-    meta_json = JsonOutput.toJson(meta)
-    meta_json = JsonOutput.prettyPrint(meta_json)
+    meta_json = Utils.makeJson(meta)
     """
     pip install vireoSNP==0.5.6
     vireo \
