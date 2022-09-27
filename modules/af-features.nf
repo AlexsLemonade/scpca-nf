@@ -113,14 +113,14 @@ workflow map_quant_feature{
     index_feature(feature_barcodes_ch)
 
     // create tuple of [metadata, [Read1 files], [Read2 files]]
-    // We start by including the feature_barcode file so we can join to the indices, but that will be removed
+    // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
     feature_reads_ch = feature_channel
       .map{meta -> tuple(meta.feature_barcode_file,
                          meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
                          file("${meta.files_directory}/*_R2_*.fastq.gz")
                         )}
-      .join(index_feature.out, by: 0) // join by the feature_barcode_file
+      .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
       .map{ it.drop(1)} // remove the first element (feature_barcode_file)
 
     cellbarcode_ch = feature_channel
