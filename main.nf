@@ -131,7 +131,7 @@ workflow {
   // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
-    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, remainder: true, failOnDuplicate: true) // join by library_id
+    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: true) // join by library_id
     .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
@@ -158,7 +158,7 @@ workflow {
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
     .map{[it[0]["library_id"]] + it }
-    .join(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0, remainder: true, failOnDuplicate: true)
+    .join(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: true)
     .map{it.drop(1)}
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)

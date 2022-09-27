@@ -63,9 +63,9 @@ workflow cellsnp_vireo {
     mpileup_ch = mpileup_vcf_ch
       .map{[it[0].multiplex_library_id] + it} // pull out library id for combining
     star_mpileup_ch = starsolo_bam_ch.map{[it[0].library_id] + it} // add library id at start
-      .join(starsolo_quant_ch.map{[it[0].library_id] + it}, by: 0, failOnDuplicate: true) // join starsolo outs by library_id
+      .join(starsolo_quant_ch.map{[it[0].library_id] + it}, by: 0, failOnDuplicate: true, failOnMismatch: true) // join starsolo outs by library_id
       .map{[it[0], it[1], it[2], it[3], it[5]]} // remove redundant meta
-      .join(mpileup_ch, by: 0, failOnDuplicate: true) // join starsolo and mpileup by library id
+      .join(mpileup_ch, by: 0, failOnDuplicate: true, failOnMismatch: true) // join starsolo and mpileup by library id
       .map{it.drop(1)} // drop library id
       //result: [meta, star_bam, star_bai, star_quant, meta_mpileup, vcf_file]
 
