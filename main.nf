@@ -84,13 +84,13 @@ workflow {
       slide_section: it.slide_section
     ]}
 
- runs_ch = unfiltered_runs_ch 
+ runs_ch = unfiltered_runs_ch
     // only technologies we know how to process
-    .filter{it.technology in all_techs} 
+    .filter{it.technology in all_techs}
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
-    .filter{run_all 
-             || (it.run_id in run_ids) 
+    .filter{run_all
+             || (it.run_id in run_ids)
              || (it.library_id in run_ids)
              || (it.sample_id in run_ids)
              || (it.submitter == params.project)
@@ -99,7 +99,7 @@ workflow {
      .branch{
        bulk: it.technology in bulk_techs
        feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
-       rna: it.technology in rna_techs 
+       rna: it.technology in rna_techs
        spatial: it.technology in spatial_techs
      }
   // generate lists of library ids for feature libraries & RNA-only
@@ -112,12 +112,12 @@ workflow {
     .filter{it.sample_id.contains(",")}
     .collect{it.library_id}
 
-  // **** Process Bulk RNA-seq data *** 
+  // **** Process Bulk RNA-seq data ***
   bulk_quant_rna(runs_ch.bulk)
 
   // **** Process RNA-seq data ****
   map_quant_rna(runs_ch.rna)
-  
+
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
@@ -127,12 +127,12 @@ workflow {
 
   // **** Process feature data ****
   map_quant_feature(runs_ch.feature)
-  
-  // combine feature & RNA quants for feature reads
+
+  // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
-    .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id 
-    .map{it.subList(1, it.size())} // remove library_id index
+    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, remainder: true, failOnDuplicate: true) // join by library_id
+    .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
     .branch{ // branch cellhash libs
@@ -152,14 +152,14 @@ workflow {
 
   // **** Perform Genetic Demultiplexing ****
   multiplex_run_ch = runs_ch.rna
-    .filter{it.library_id in multiplex_libs.getVal()} 
+    .filter{it.library_id in multiplex_libs.getVal()}
   genetic_demux_vireo(multiplex_run_ch, unfiltered_runs_ch)
-  // combine demux result with SCE output
+  // join demux result with SCE output
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
     .map{[it[0]["library_id"]] + it }
-    .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
-    .map{it.subList(1, it.size())}
+    .join(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0, remainder: true, failOnDuplicate: true)
+    .map{it.drop(1)}
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 
