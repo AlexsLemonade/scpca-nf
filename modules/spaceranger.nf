@@ -120,6 +120,7 @@ workflow spaceranger_quant{
         spaceranger(spaceranger_reads, params.cellranger_index)
 
         // gather spaceranger output for completed libraries
+        // make a tuple of metadata (read from prior output) and prior results directory
         spaceranger_quants_ch = spatial_channel.has_spatial
           .map{meta -> tuple(Utils.readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
                              file("${meta.spaceranger_results_dir}")

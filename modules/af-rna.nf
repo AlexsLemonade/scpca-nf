@@ -100,7 +100,7 @@ workflow map_quant_rna {
           make_rad: true
        }
 
-    // If We need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
+    // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
@@ -108,7 +108,7 @@ workflow map_quant_rna {
                         )}
 
     // if the rad directory has been created and repeat_mapping is set to false
-    // create tuple of (metdata map, rad_directory) to be used directly as input to alevin-fry quantification
+    // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
                          file(meta.rad_dir)
