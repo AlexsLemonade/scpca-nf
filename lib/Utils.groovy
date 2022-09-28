@@ -3,14 +3,15 @@
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
+
 class Utils {
-  def readMeta(path) {
-    meta = new JsonSlurper().parse(file(path))
+  static def readMeta(file) {
+    def meta = new JsonSlurper().parse(file)
     return(meta)
   }
 
-  def makeJson(meta) {
-    meta_json = JsonOutput.toJson(meta)
+  static def makeJson(meta) {
+    def meta_json = JsonOutput.toJson(meta)
     meta_json = JsonOutput.prettyPrint(meta_json)
     return(meta_json)
   }
