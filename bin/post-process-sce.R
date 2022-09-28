@@ -95,7 +95,14 @@ if(all(is.na(sce$prob_compromised))){
 }
 
 # filter sce using criteria in ccdl_filter 
-filtered_sce <- sce[, sce$ccdl_filter == "Keep"]
+filtered_sce <- sce[, which(sce$ccdl_filter == "Keep")]
+
+# replace existing stats with recalculated gene stats
+drop_cols = colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
+rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
+
+filtered_sce <- filtered_sce |>
+  scuttle::addPerFeatureQCMetrics()
 
 # cluster prior to normalization 
 qclust <- NULL
@@ -118,33 +125,30 @@ if (is.null(qclust)) {
 }
 
 # Normalize and log transform
-normalized_sce <- scater::logNormCounts(filtered_sce)
-
-# remove filtered SCE to save space 
-rm(filtered_sce)
+filtered_sce <- scater::logNormCounts(filtered_sce)
 
 # model gene variance using `scran:modelGeneVar()`
-gene_variance <- scran::modelGeneVar(normalized_sce)
+gene_variance <- scran::modelGeneVar(filtered_sce)
 
 # select the most variable genes
 var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
 
 # save the most variable genes to the metadata
-metadata(normalized_sce)$highly_variable_genes <- var_genes
+metadata(filtered_sce)$highly_variable_genes <- var_genes
 
 # dimensionality reduction 
 # highly variable genes are used as input to PCA 
-normalized_sce <- scater::runPCA(normalized_sce, 
-                                 n_components = opt$n_pcs,
-                                 subset_row = var_genes)
+filtered_sce <- scater::runPCA(filtered_sce, 
+                               n_components = opt$n_pcs,
+                               subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
-normalized_sce <- scater::runUMAP(normalized_sce, 
-                                  dimred = "PCA")
+filtered_sce <- scater::runUMAP(filtered_sce, 
+                                dimred = "PCA")
 
 # write out original SCE with additional filtering column
 readr::write_rds(sce, opt$input_sce_file)
 
 # write out processed SCE 
-readr::write_rds(normalized_sce, opt$output_sce_file)
+readr::write_rds(filtered_sce, opt$output_sce_file)
 
