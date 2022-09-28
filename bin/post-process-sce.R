@@ -118,10 +118,8 @@ tryCatch({
 })
 
 if (is.null(qclust)) {
-  
   # Include note in metadata re: failed clustering
   metadata(filtered_sce)$normalization <- "log-normalization"
-  
 }
 
 # Normalize and log transform
