@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 process spaceranger{
   container params.SPACERANGER_CONTAINER
   publishDir "${meta.spaceranger_publish_dir}"
-  tag "${meta.run_id}-spatial" 
+  tag "${meta.run_id}-spatial"
   label 'cpus_12'
   label 'mem_24'
   label 'disk_big'
@@ -14,7 +14,7 @@ process spaceranger{
   output:
     tuple val(meta), path(out_id)
   script:
-    out_id = "${meta.run_id}-spatial"
+    out_id = file(meta.spaceranger_results_dir).name
     meta.cellranger_index = index.fileName
     """
     spaceranger count \
@@ -26,7 +26,10 @@ process spaceranger{
       --localmem=${task.memory.toGiga()} \
       --image=${image_file} \
       --slide=${meta.slide_serial_number} \
-      --area=${meta.slide_section} 
+      --area=${meta.slide_section}
+
+    # write metadata
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
 
     # remove bam and bai files
     rm ${out_id}/outs/*.bam*
@@ -44,13 +47,13 @@ process spaceranger_publish{
   script:
     spatial_publish_dir = "${meta.library_id}_spatial"
     meta.cellranger_index = file(index).name
-    metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json" 
+    metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
-    # make a new directory to hold only the outs file we want to publish 
+    # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
 
-    # move over needed files to outs directory 
+    # move over needed files to outs directory
     mv ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
     mv ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
     mv ${spatial_out}/outs/spatial ${spatial_publish_dir}
@@ -75,7 +78,7 @@ process spaceranger_publish{
 }
 
 def getCRsamples(files_dir){
-  // takes the path to the directory holding the fastq files for each sample 
+  // takes the path to the directory holding the fastq files for each sample
   // returns just the 'sample info' portion of the file names,
   // as spaceranger would interpret them, comma separated
   fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
@@ -92,9 +95,9 @@ def getCRsamples(files_dir){
 
 
 workflow spaceranger_quant{
-    take: spatial_channel 
-    // a channel with a map of metadata for each spatial library to process 
-    main: 
+    take: spatial_channel
+    // a channel with a map of metadata for each spatial library to process
+    main:
         spatial_channel = spatial_channel
         // add sample names and spatial output directory to metadata
           .map{it.cr_samples = getCRsamples(it.files_directory);
@@ -118,7 +121,7 @@ workflow spaceranger_quant{
 
         // gather spaceranger output for completed libraries
         spaceranger_quants_ch = spatial_channel.has_spatial
-          .map{meta -> tuple(meta,
+          .map{meta -> tuple(Utils.readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
                              file("${meta.spaceranger_results_dir}")
                              )}
 
@@ -129,5 +132,5 @@ workflow spaceranger_quant{
 
     // tuple of metadata, path to spaceranger output directory, and path to metadata json file
     emit: spaceranger_publish.out
-  
+
 }
