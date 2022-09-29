@@ -68,7 +68,7 @@ workflow {
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    // convert row data to a metadata map, keeping only columns we will need (& some renaming)
+    // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
@@ -86,7 +86,9 @@ workflow {
       ref_fasta: params.ref_fasta,
       ref_gtf: params.ref_gtf,
       salmon_splici_index: params.splici_index,
+      t2g_3col_path: params.t2g_3col_path,
       salmon_bulk_index: params.bulk_index,
+      t2g_bulk_path: params.t2g_bulk_path,
       cellranger_index: params.cellranger_index,
       star_index: params.star_index,
       scpca_version: workflow.manifest.version,

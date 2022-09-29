@@ -52,8 +52,7 @@ process fry_quant_rna{
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
 
   input:
-    tuple val(meta), path(run_dir), path(barcode_file)
-    path tx2gene_3col
+    tuple val(meta), path(run_dir), path(barcode_file), path(tx2gene_3col)
   output:
     tuple val(meta), path(run_dir)
 
@@ -117,12 +116,13 @@ workflow map_quant_rna {
     // run Alevin for mapping on libraries that don't have RAD directory already created
     alevin_rad(rna_reads_ch, params.splici_index)
 
-    // combine ouput from running alevin step with channel containing libraries that skipped creating a RAD file
+    // combine output from running alevin step with channel containing libraries that skipped creating a RAD file
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
-      .map{it.toList() << file(it[0].barcode_file)} // add barcode file to channel to use in fry_quant_rna process
+      // add barcode and t2g files to channel to use in fry_quant_rna process
+      .map{it.toList() += [file(it[0].barcode_file), file(it[0].t2g_3col_path)]}
 
     // quantify with alevin-fry
-    fry_quant_rna(all_rad_ch, params.t2g_3col_path)
+    fry_quant_rna(all_rad_ch)
 
   emit: fry_quant_rna.out
   // a tuple of meta and the alevin-fry output directory
