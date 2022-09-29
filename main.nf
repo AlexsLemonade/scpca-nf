@@ -131,7 +131,8 @@ workflow {
   // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
-    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: true) // join by library_id
+    // join rna quant to feature quant by library_id; expect mismatches for rna-only, so don't fail
+    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
