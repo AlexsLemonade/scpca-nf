@@ -100,10 +100,21 @@ workflow bulk_quant_rna {
                it.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
                it}
           // split based on whether repeat_mapping is false and the salmon quant.sf file exists
+          // and whether the assembly matches the current assembly
           .branch{
-              has_quants: !params.repeat_mapping && file(it.salmon_results_dir).exists()
+              has_quants: (!params.repeat_mapping
+                           && file(it.salmon_results_dir).exists()
+                           && Utils.getJsonVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") == params.assembly
+                          )
               make_quants: true
           }
+
+        // If the quants are current and repeat_mapping is false
+        // create tuple of metadata map (read from output), salmon output directory to use as input to merge_bulk_quants
+        quants_ch = bulk_channel.has_quants
+          .map{meta -> tuple(Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
+                             file(meta.salmon_results_dir)
+                             )}
 
         // If we need to run salmon, create tuple of (metadata map, [Read 1 files], [Read 2 files])
         bulk_reads_ch = bulk_channel.make_quants
@@ -111,14 +122,6 @@ workflow bulk_quant_rna {
                              file("${meta.files_directory}/*_R1_*.fastq.gz"),
                              file("${meta.files_directory}/*_R2_*.fastq.gz")
                              )}
-
-        // If the quant.sf file from salmon exits and repeat_mapping is false
-        // create tuple of metadata map (read from output), salmon output directory to use as input to merge_bulk_quants
-        quants_ch = bulk_channel.has_quants
-          .map{meta -> tuple(Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
-                             file(meta.salmon_results_dir)
-                             )}
-
 
         // run fastp and salmon for libraries that are not skipping salmon
         fastp(bulk_reads_ch)

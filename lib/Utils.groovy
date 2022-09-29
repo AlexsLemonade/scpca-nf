@@ -15,4 +15,9 @@ class Utils {
     meta_json = JsonOutput.prettyPrint(meta_json)
     return(meta_json)
   }
+
+  static def getJsonVal(file, key){
+    def obj = new JsonSlurper().parse(file)
+    return(obj[key])
+  }
 }
