@@ -62,7 +62,6 @@ process filter_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     tag "${meta.library_id}"
-    publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
     input:
         tuple val(meta), path(unfiltered_rds)
     output:
@@ -81,7 +80,6 @@ process genetic_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(unfiltered_rds), path(filtered_rds)
@@ -104,7 +102,6 @@ process cellhash_demux_sce{
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
   input:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     path cellhash_pool_file
