@@ -5,7 +5,7 @@ process make_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     tag "${meta.library_id}"
-    input: 
+    input:
         tuple val(meta), path(alevin_dir)
         path(mito)
         path(gtf)
@@ -31,7 +31,7 @@ process make_merged_unfiltered_sce{
     label 'mem_8'
     tag "${meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
-    input: 
+    input:
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
         path(mito)
         path(gtf)
@@ -42,7 +42,7 @@ process make_merged_unfiltered_sce{
         // add feature metadata as an element of the main meta object
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
-        
+
         """
         generate_unfiltered_sce.R \
           --seq_unit ${meta.seq_unit} \
@@ -63,7 +63,7 @@ process filter_sce{
     label 'mem_8'
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
-    input: 
+    input:
         tuple val(meta), path(unfiltered_rds)
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
@@ -89,14 +89,14 @@ process genetic_demux_sce{
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
   script:
     // output will be same as input, with replacement of the filtered_rds file
-    // demultiplex results will be added to the SCE object colData 
+    // demultiplex results will be added to the SCE object colData
     """
     mv ${filtered_rds} filtered_nodemux.rds
     add_demux_sce.R \
       --sce_file filtered_nodemux.rds \
       --output_sce_file ${filtered_rds} \
       --library_id ${meta.library_id} \
-      --vireo_dir ${vireo_dir} 
+      --vireo_dir ${vireo_dir}
     """
 }
 
@@ -112,7 +112,7 @@ process cellhash_demux_sce{
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
   script:
     // output will be same as input, with replacement of the filtered_rds file
-    // demultiplex results will be added to the SCE object colData 
+    // demultiplex results will be added to the SCE object colData
     """
     mv ${filtered_rds} filtered_nodemux.rds
     add_demux_sce.R \
@@ -123,6 +123,29 @@ process cellhash_demux_sce{
       --hash_demux \
       --seurat_demux
     """
+}
+
+process post_process_sce{
+    container params.SCPCATOOLS_CONTAINER
+    label 'mem_8'
+    tag "${meta.library_id}"
+    publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
+    input:
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+    output:
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+    script:
+        processed_rds = "${meta.library_id}_processed.rds"
+        """
+        post_process_sce.R \
+          --input_sce_file ${filtered_rds} \
+          --output_sce_file ${processed_rds} \
+          --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
+          --gene_cutoff ${params.gene_cutoff} \
+          --n_hvg ${params.num_hvg} \
+          --n_pcs ${params.num_pcs} \
+          ${params.seed ? "--random_seed ${params.seed}" : ""}
+        """
 }
 
 workflow generate_sce {
