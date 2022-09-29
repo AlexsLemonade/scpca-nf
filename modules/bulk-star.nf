@@ -26,10 +26,10 @@ process bulkmap_star{
 }
 
 workflow star_bulk{
-  take: 
+  take:
     bulk_channel // a channel with a map of metadata for each rna library to process
-    
-  main: 
+
+  main:
     // create tuple of (metadata map, [Read 1 files], [Read 2 files])
     bulk_reads_ch = bulk_channel
         .map{meta -> tuple(meta,
@@ -38,7 +38,7 @@ workflow star_bulk{
     // map and index
     bulkmap_star(bulk_reads_ch, file(params.star_index)) \
     | index_bam
-  
-  emit: 
+
+  emit:
     index_bam.out
 }
