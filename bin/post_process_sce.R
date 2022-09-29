@@ -104,6 +104,16 @@ rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
+# replace existing stats from altExp if any 
+for (alt in altExpNames(filtered_sce)) {
+  # remove old row data
+  drop_cols = colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
+  rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
+  
+  # add alt experiment features stats for filtered data
+  altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
+}
+
 # cluster prior to normalization 
 qclust <- NULL
 tryCatch({
