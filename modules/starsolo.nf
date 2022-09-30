@@ -10,7 +10,7 @@ process starsolo{
   input:
     tuple val(meta), path(read1), path(read2), path(barcode_file)
     path star_index
-    
+
   output:
     tuple val(meta), path(output_dir), emit: starsolo_dir
     tuple val(meta), path(output_bam), emit: star_bam
@@ -22,7 +22,7 @@ process starsolo{
     features_flag = meta.seq_unit == "nucleus" ? "--soloFeatures Gene GeneFull" : "--soloFeatures Gene"
     output_dir = "${meta.run_id}_star"
     output_bam = "${meta.run_id}.sorted.bam"
-    
+
     """
     mkdir -p ${output_dir}/Solo.out/Gene/raw
     STAR \
@@ -51,7 +51,7 @@ workflow starsolo_map{
   take:
     singlecell_ch
 
-  main: 
+  main:
     sc_reads_ch = singlecell_ch
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
@@ -60,7 +60,7 @@ workflow starsolo_map{
                          )}
     starsolo(sc_reads_ch, file(params.star_index))
     index_bam(starsolo.out.star_bam)
-  
+
   emit:
     bam = index_bam.out
     quant = starsolo.out.starsolo_dir

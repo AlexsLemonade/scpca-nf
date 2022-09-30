@@ -68,7 +68,7 @@ workflow {
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    // convert row data to a metadata map, keeping only columns we will need (& some renaming)
+    // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
@@ -81,7 +81,18 @@ workflow {
       feature_barcode_geom: it.feature_barcode_geom,
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
-      slide_section: it.slide_section
+      slide_section: it.slide_section,
+      ref_assembly: params.assembly,
+      ref_fasta: params.ref_fasta,
+      ref_gtf: params.ref_gtf,
+      salmon_splici_index: params.splici_index,
+      t2g_3col_path: params.t2g_3col_path,
+      salmon_bulk_index: params.bulk_index,
+      t2g_bulk_path: params.t2g_bulk_path,
+      cellranger_index: params.cellranger_index,
+      star_index: params.star_index,
+      scpca_version: workflow.manifest.version,
+      nextflow_version: nextflow.version
     ]}
 
  runs_ch = unfiltered_runs_ch
@@ -128,11 +139,12 @@ workflow {
   // **** Process feature data ****
   map_quant_feature(runs_ch.feature)
 
-  // combine feature & RNA quants for feature reads
+  // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
-    .combine(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0) // combine by library_id
-    .map{it.subList(1, it.size())} // remove library_id index
+    // join rna quant to feature quant by library_id; expect mismatches for rna-only, so don't fail
+    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
+    .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
     .branch{ // branch cellhash libs
@@ -154,12 +166,12 @@ workflow {
   multiplex_run_ch = runs_ch.rna
     .filter{it.library_id in multiplex_libs.getVal()}
   genetic_demux_vireo(multiplex_run_ch, unfiltered_runs_ch)
-  // combine demux result with SCE output
+  // join demux result with SCE output
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
     .map{[it[0]["library_id"]] + it }
-    .combine(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0)
-    .map{it.subList(1, it.size())}
+    .join(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: true)
+    .map{it.drop(1)}
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 

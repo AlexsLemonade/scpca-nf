@@ -14,7 +14,7 @@ process mpileup{
     # create sample file to use for header
     echo "${meta.sample_ids.join('\n')}" > samples.txt
 
-    # call genotypes against reference, filter sites with missing genotypes 
+    # call genotypes against reference, filter sites with missing genotypes
     # & use sample names for header (replacing file names)
     bcftools mpileup -Ou \
       --fasta-ref ${ref_fasta} \
@@ -30,17 +30,17 @@ workflow pileup_multibulk{
   take:
     multiplex_ch // a channel of multiplex meta objects, with sample_ids joined by `,` in their ids
     bulk_mapped_ch // output of bulk mapping: [meta, bamfile, bamfile_index]
-  
+
   main:
     //pull sample to front of bulk_mapped_ch
     sample_bulk_ch = bulk_mapped_ch
-      .map{[it[0].sample_id] + it} 
+      .map{[it[0].sample_id] + it}
 
-    pileup_ch = multiplex_ch 
+    pileup_ch = multiplex_ch
       .map{[it.sample_id.tokenize(","), it.library_id, it]} // split out sample ids into a tuple, add library_id separately
       .transpose() // one element per sample (library & meta objects repeated)
-      .combine(sample_bulk_ch, by: 0) // combine by individual sample ids
-      .groupTuple(by: 1) // group by library id 
+      .combine(sample_bulk_ch, by: 0) // combine by individual sample ids (use combine because of repeated values)
+      .groupTuple(by: 1) // group by library id
       .map{[
         [ // create a meta object for each group of samples
           sample_ids: it[0],
@@ -58,7 +58,7 @@ workflow pileup_multibulk{
       ]}
 
     mpileup(pileup_ch, [params.ref_fasta, params.ref_fasta_index])
-  
+
   emit:
     mpileup.out
 
