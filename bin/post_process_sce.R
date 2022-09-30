@@ -147,7 +147,7 @@ metadata(filtered_sce)$highly_variable_genes <- var_genes
 # dimensionality reduction 
 # highly variable genes are used as input to PCA 
 filtered_sce <- scater::runPCA(filtered_sce, 
-                               n_components = opt$n_pcs,
+                               ncomponents = opt$n_pcs,
                                subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
