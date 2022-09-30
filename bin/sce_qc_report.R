@@ -184,7 +184,7 @@ if(multiplexed){
 }
 
 # Output metadata as JSON
-jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
+jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE, pretty = TRUE)
 
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
