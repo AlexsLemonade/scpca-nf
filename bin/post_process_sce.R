@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script takes a SingleCellExperiment stored in a .rds file with empty droplets removed 
+# This script takes a SingleCellExperiment stored in a .rds file with empty droplets removed
 # and removes low quality cells, performs normalization, and dimensionality reduction.
 
 # import libraries
@@ -44,7 +44,7 @@ option_list <- list(
     opt_str = c("--n_pcs"),
     type = "integer",
     default = 50,
-    help = "Number of principal components to retain in the returned SingleCellExperiment object 
+    help = "Number of principal components to retain in the returned SingleCellExperiment object
       when using scater::runPCA; the default is n_pcs = 50",
   ),
   make_option(
@@ -86,15 +86,15 @@ if(all(is.na(sce$prob_compromised))){
 } else {
   # remove cells with >= probability compromised cutoff + min gene cutoff
   colData(sce)$ccdl_filter <- ifelse(
-    sce$prob_compromised < opt$prob_compromised_cutoff & 
-      sce$detected >= opt$gene_cutoff, 
-    "Keep", 
+    sce$prob_compromised < opt$prob_compromised_cutoff &
+      sce$detected >= opt$gene_cutoff,
+    "Keep",
     "Remove"
   )
   metadata(sce)$ccdl_filter_method <- "miQC"
 }
 
-# filter sce using criteria in ccdl_filter 
+# filter sce using criteria in ccdl_filter
 filtered_sce <- sce[, which(sce$ccdl_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
@@ -104,25 +104,25 @@ rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
-# replace existing stats from altExp if any 
+# replace existing stats from altExp if any
 for (alt in altExpNames(filtered_sce)) {
   # remove old row data
   drop_cols = colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
   rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
-  
+
   # add alt experiment features stats for filtered data
   altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
 }
 
-# cluster prior to normalization 
+# cluster prior to normalization
 qclust <- NULL
 tryCatch({
   # Cluster similar cells
-  qclust <- scran::quickCluster(filtered_sce) 
-  
+  qclust <- scran::quickCluster(filtered_sce)
+
   # Compute sum factors for each cell cluster grouping
   filtered_sce <- scran::computeSumFactors(filtered_sce, clusters = qclust)
-  
+
   # Include note in metadata re: clustering before computing sum factors
   metadata(filtered_sce)$normalization <- "deconvolution"
 })
@@ -144,19 +144,19 @@ var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
 # save the most variable genes to the metadata
 metadata(filtered_sce)$highly_variable_genes <- var_genes
 
-# dimensionality reduction 
-# highly variable genes are used as input to PCA 
-filtered_sce <- scater::runPCA(filtered_sce, 
+# dimensionality reduction
+# highly variable genes are used as input to PCA
+filtered_sce <- scater::runPCA(filtered_sce,
                                ncomponents = opt$n_pcs,
                                subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
-filtered_sce <- scater::runUMAP(filtered_sce, 
+filtered_sce <- scater::runUMAP(filtered_sce,
                                 dimred = "PCA")
 
 # write out original SCE with additional filtering column
-readr::write_rds(sce, opt$input_sce_file)
+readr::write_rds(sce, opt$input_sce_file, compress = "gz")
 
-# write out processed SCE 
-readr::write_rds(filtered_sce, opt$output_sce_file)
+# write out processed SCE
+readr::write_rds(filtered_sce, opt$output_sce_file, compress = "gz")
 
