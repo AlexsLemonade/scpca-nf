@@ -3,6 +3,8 @@ set -euo pipefail
 
 dest_dir=${1:-"scpca-references"}
 
+
+containerfile_url="https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/config/containers.config"
 aws_root="https://scpca-references.s3.amazonaws.com"
 
 ref_dir="homo_sapiens/ensembl-104"
@@ -91,3 +93,9 @@ do
     echo "Getting $path"
     curl -s --create-dirs "$aws_root/$path" -o "$dest_dir/$path"
 done
+
+
+containers=`curl -s https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/config/containers.config \
+    | grep CONTAINER \
+    | cut -d"'" -f 2 \
+    | grep -v "^$" `
