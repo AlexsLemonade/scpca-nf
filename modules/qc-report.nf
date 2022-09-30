@@ -5,8 +5,8 @@ process sce_qc_report{
     container params.SCPCATOOLS_CONTAINER
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
-    input: 
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+    input:
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     output:
         tuple val(meta), path(qc_report), path(metadata_json)
     script:
