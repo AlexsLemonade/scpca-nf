@@ -31,7 +31,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce } from './modules/sce-processing.nf'
+include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 // parameter checks
@@ -179,8 +179,8 @@ workflow {
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
   all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
-  sce_qc_report(all_sce_ch)
-
+  post_process_sce(all_sce_ch) \
+    | sce_qc_report
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
