@@ -30,7 +30,7 @@ process cellsnp{
 }
 
 process vireo{
-  container params.CONDA_CONTAINER
+  container params.VIREO_CONTAINER
   publishDir "${meta.vireo_publish_dir}"
   tag "${meta.run_id}"
   label 'cpus_8'
@@ -43,7 +43,6 @@ process vireo{
     outdir = file(meta.vireo_dir).name
     meta_json = Utils.makeJson(meta)
     """
-    pip install vireoSNP==0.5.6
     vireo \
       --cellData ${cellsnp_dir} \
       --donorFile ${vcf_file}  \
