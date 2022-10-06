@@ -92,7 +92,7 @@ workflow {
       cellranger_index: params.cellranger_index,
       star_index: params.star_index,
       scpca_version: workflow.manifest.version,
-      nextflow_version: nextflow.version
+      nextflow_version: nextflow.version.toString()
     ]}
 
  runs_ch = unfiltered_runs_ch
