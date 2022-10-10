@@ -92,7 +92,11 @@ if(all(is.na(sce$prob_compromised))){
     "Remove"
   )
   metadata(sce)$ccdl_filter_method <- "miQC"
+  metadata(sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
 }
+
+# add min gene cutoff to metadata
+metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 
 # filter sce using criteria in ccdl_filter
 filtered_sce <- sce[, which(sce$ccdl_filter == "Keep")]
