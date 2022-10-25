@@ -6,11 +6,11 @@ process fastp{
     label 'cpus_8'
     label 'mem_8'
     tag "${meta.library_id}-bulk"
-    input: 
+    input:
         tuple val(meta), path(read1), path(read2)
-    output: 
+    output:
         tuple val(meta), path(trimmed_reads)
-    script: 
+    script:
         trimmed_reads = "${meta.library_id}_trimmed"
         fastp_report = "${meta.library_id}_fastp.html"
         """
@@ -29,24 +29,28 @@ process salmon{
     label 'mem_24'
     tag "${meta.library_id}-bulk"
     publishDir "${meta.salmon_publish_dir}"
-    input: 
+    input:
         tuple val(meta), path(read_dir)
         path (index)
-    output: 
-        tuple val(meta), path(salmon_results_dir)
+    output:
+        tuple val(meta), path(salmon_dir)
     script:
-        salmon_results_dir = "${meta.library_id}"
+        salmon_dir = file(meta.salmon_results_dir).name
+        // get meta to write as file
+        meta_json = Utils.makeJson(meta)
         """
         salmon quant -i ${index} \
         -l A \
         ${meta.technology == 'paired_end' ? "-1": "-r"} ${read_dir}/*_R1_*.fastq.gz \
         ${meta.technology == 'paired_end' ? "-2 ${read_dir}/*_R2_*.fastq.gz" : "" } \
-        -o ${salmon_results_dir} \
+        -o ${salmon_dir} \
         --validateMappings \
         --rangeFactorizationBins 4 \
         --gcBias \
         --seqBias \
         --threads ${task.cpus}
+
+        echo '${meta_json}' > ${salmon_dir}/scpca-meta.json
         """
 
 }
@@ -87,20 +91,32 @@ process merge_bulk_quants {
 }
 
 workflow bulk_quant_rna {
-    take: bulk_channel 
+    take: bulk_channel
     // a channel with a map of metadata for each rna library to process
-    main: 
+    main:
         bulk_channel = bulk_channel
-          // add salmon directory and salmon file location to meta 
+          // add salmon directory and salmon file location to meta
           .map{it.salmon_publish_dir = "${params.checkpoints_dir}/salmon";
                it.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
                it}
-          // split based on whether repeat_mapping is false and the salmon quant.sf file exists 
+          // split based on whether repeat_mapping is false and the salmon quant.sf file exists
+          // and whether the assembly matches the current assembly
           .branch{
-              has_quants: !params.repeat_mapping && file(it.salmon_results_dir).exists()
+              has_quants: (!params.repeat_mapping
+                           && file(it.salmon_results_dir).exists()
+                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") == params.assembly
+                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") == params.t2g_bulk_path
+                          )
               make_quants: true
           }
-        
+
+        // If the quants are current and repeat_mapping is false
+        // create tuple of metadata map (read from output), salmon output directory to use as input to merge_bulk_quants
+        quants_ch = bulk_channel.has_quants
+          .map{meta -> tuple(Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
+                             file(meta.salmon_results_dir)
+                             )}
+
         // If we need to run salmon, create tuple of (metadata map, [Read 1 files], [Read 2 files])
         bulk_reads_ch = bulk_channel.make_quants
           .map{meta -> tuple(meta,
@@ -108,14 +124,6 @@ workflow bulk_quant_rna {
                              file("${meta.files_directory}/*_R2_*.fastq.gz")
                              )}
 
-        // If the quant.sf file from salmon exits and repeat_mapping is false 
-        // create tuple of metadata map, salmon output directory to use as input to merge_bulk_quants
-        quants_ch = bulk_channel.has_quants
-          .map{meta -> tuple(meta,
-                             file(meta.salmon_results_dir)
-                             )}
-
-        
         // run fastp and salmon for libraries that are not skipping salmon
         fastp(bulk_reads_ch)
         salmon(fastp.out, params.bulk_index)
@@ -128,7 +136,7 @@ workflow bulk_quant_rna {
         // create tsv file and combined metadata for each project containing all libraries
         merge_bulk_quants(grouped_salmon_ch, params.t2g_bulk_path, params.run_metafile)
 
-    emit: 
+    emit:
         bulk_counts = merge_bulk_quants.out.bulk_counts
         bulk_metadata = merge_bulk_quants.out.bulk_metadata
 }
