@@ -17,8 +17,8 @@ parser.add_argument("--replace",
                     action = "store_true",
                     help = "replace previously downloaded files")
 parser.add_argument("--paramfile", type=str,
-                    default="",
-                    help = "nextflow param file to write")
+                    default="local_refs.params",
+                    help = "nextflow param file to write (default: `local_refs.params`)")
 parser.add_argument("--revision", type=str,
                     default="main",
                     metavar = "vX.X.X",
