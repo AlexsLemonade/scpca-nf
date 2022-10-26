@@ -187,7 +187,7 @@ if args.singularity:
         os.environ['SINGULARITY_CACHEDIR'] = os.path.abspath(args.singularity_cache)
     for loc in containers.values():
         subprocess.run(
-            ["singularity", "pull", f"docker://{loc}"],
+            ["singularity", "pull", "--force", f"docker://{loc}"],
             env = os.environ
         )
     print("Done pulling singularity images")
