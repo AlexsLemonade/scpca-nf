@@ -23,6 +23,9 @@ parser.add_argument("--revision", type=str,
                     default="main",
                     metavar = "vX.X.X",
                     help = "tag for a specific workflow version (defaults to latest revision)")
+parser.add_argument("--star_index",
+                    action = "store_true",
+                    help = "get STAR index (required for genetic demultiplexing)")
 parser.add_argument("--docker",
                     action = "store_true",
                     help = "pull and cache images for docker")
@@ -100,7 +103,8 @@ star_index_files = [
 ]
 
 star_dir = genome_dir/ "star_index/Homo_sapiens.GRCh38.104.star_idx"
-ref_paths += [star_dir / f for f in star_index_files]
+if args.star_index:
+    ref_paths += [star_dir / f for f in star_index_files]
 
 # get barcode file paths
 barcode_dir = pathlib.Path("barcodes/10X")
