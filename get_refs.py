@@ -152,7 +152,7 @@ if args.paramfile:
             f.write(f"{key}: {value}\n")
 
 if args.singularity or args.docker:
-    print("getting list of required containers")
+    print("Getting list of required containers")
     containers = {}
     try:
         container_file =  urllib.request.urlopen(containerfile_url)
@@ -171,15 +171,22 @@ if args.singularity or args.docker:
 
 # pull docker images
 if args.docker:
+    print("Pulling docker images...")
     for loc in containers.values():
         subprocess.run(["docker", "pull", loc])
+    print("Done pulling docker images\n")
 
-# pull singularity images (with cache location)
+# pull singularity images (to optionally specified cache location)
 if args.singularity:
+    print("Pulling singularity images...")
     if args.singularity_cache:
-        os.environ['SINGULARITY_CACHEDIR'] = args.singularity_cache
+        os.environ['SINGULARITY_CACHEDIR'] = os.path.abspath(args.singularity_cache)
     for loc in containers.values():
         subprocess.run(
             ["singularity", "pull", f"docker://{loc}"],
             env = os.environ
         )
+    print("Done pulling singularity images")
+    if args.singularity_cache:
+        print(f"Singularity images located at {os.environ['SINGULARITY_CACHEDIR']}")
+    print()
