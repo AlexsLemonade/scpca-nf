@@ -3,7 +3,9 @@
 import argparse
 import os
 import pathlib
+import re
 import shutil
+import subprocess
 import sys
 import urllib.request
 
@@ -21,9 +23,19 @@ parser.add_argument("--revision", type=str,
                     default="main",
                     metavar = "vX.X.X",
                     help = "tag for a specific workflow version (defaults to latest revision)")
-
+parser.add_argument("--docker",
+                    action = "store_true",
+                    help = "pull and cache images for docker")
+parser.add_argument("--singularity",
+                    action = "store_true",
+                    help = "pull and cache images for singularity")
+parser.add_argument("--singularity_cache", type=str,
+                    metavar = "CACHE_DIR",
+                    help = "cache directory for singularity"
+)
 args = parser.parse_args()
 
+# scpca-nf resource urls
 aws_root = "https://scpca-references.s3.amazonaws.com"
 containerfile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/containers.config"
 
@@ -115,14 +127,13 @@ for path in ref_paths[0:2]:
     file_url = f"{aws_root}/{path}"
     try:
         urllib.request.urlretrieve(file_url, outfile)
-    except urllib.error.URLError:
+    except urllib.error.URLError as e:
+        print(e.reason)
         print(f"The file download failed for {file_url}, please check the URL for errors",
               file = sys.stderr)
         exit(1)
 print("Done with reference file downloads\n"
       f"Reference files can be found at '{args.refdir}'\n")
-
-
 
 if args.paramfile:
     pfile = pathlib.Path(args.paramfile)
@@ -140,3 +151,35 @@ if args.paramfile:
         for key, value in nf_params.items():
             f.write(f"{key}: {value}\n")
 
+if args.singularity or args.docker:
+    print("getting list of required containers")
+    containers = {}
+    try:
+        container_file =  urllib.request.urlopen(containerfile_url)
+    except urllib.error.URLError as e:
+        print(e.reason)
+        print(f"The file download failed for {container_url}, please check the URL for errors")
+        print(f"Is `{args.revision}` a valid release tag?")
+        exit(1)
+
+    # pattern match to find container id & location
+    container_re = re.compile(r'(?P<id>.+_CONTAINER)\s*=\s*([\'"])(?P<loc>.+)\2')
+    for line in container_file:
+        match = container_re.search(line.decode())
+        if match:
+            containers[match.group('id')] = match.group('loc')
+
+# pull docker images
+if args.docker:
+    for loc in containers.values():
+        subprocess.run(["docker", "pull", loc])
+
+# pull singularity images (with cache location)
+if args.singularity:
+    if args.singularity_cache:
+        os.environ['SINGULARITY_CACHEDIR'] = args.singularity_cache
+    for loc in containers.values():
+        subprocess.run(
+            ["singularity", "pull", f"docker://{loc}"],
+            env = os.environ
+        )
