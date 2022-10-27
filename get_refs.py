@@ -17,7 +17,7 @@ parser.add_argument("--replace",
                     action = "store_true",
                     help = "replace previously downloaded files")
 parser.add_argument("--paramfile", type=str,
-                    default="local_refs.params",
+                    default="local_refs.yaml",
                     help = "nextflow param file to write (default: `local_refs.params`)")
 parser.add_argument("--revision", type=str,
                     default="main",
@@ -26,6 +26,9 @@ parser.add_argument("--revision", type=str,
 parser.add_argument("--star_index",
                     action = "store_true",
                     help = "get STAR index (required for genetic demultiplexing)")
+parser.add_argument("--cellranger_index",
+                    action = "store_true",
+                    help = "get Cell Ranger index (required for spatial data)")
 parser.add_argument("--docker",
                     action = "store_true",
                     help = "pull and cache images for docker")
@@ -34,8 +37,7 @@ parser.add_argument("--singularity",
                     help = "pull and cache images for singularity")
 parser.add_argument("--singularity_cache", type=str,
                     metavar = "CACHE_DIR",
-                    help = "cache directory for singularity"
-)
+                    help = "cache directory for singularity")
 args = parser.parse_args()
 
 # scpca-nf resource urls
@@ -53,7 +55,6 @@ ref_subdirs =[
     "annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv",
     "annotation/Homo_sapiens.GRCh38.104.spliced_cdna.tx2gene.tsv"
 ]
-
 ref_paths = [genome_dir / sd for sd in ref_subdirs]
 
 # salmon index files
@@ -102,11 +103,37 @@ star_index_files = [
     "transcriptInfo.tab"
 ]
 
-star_dir = genome_dir/ "star_index/Homo_sapiens.GRCh38.104.star_idx"
+star_dir = genome_dir / "star_index/Homo_sapiens.GRCh38.104.star_idx"
 if args.star_index:
     ref_paths += [star_dir / f for f in star_index_files]
 
-# get barcode file paths
+# Cell Ranger index files
+cr_index_files = [
+    "reference.json",
+    "fasta/genome.fa",
+    "fasta/genome.fa.fai",
+    "genes/genes.gtf.gz",
+    "star/chrLength.txt",
+    "star/chrName.txt",
+    "star/chrNameLength.txt",
+    "star/chrStart.txt",
+    "star/exonGeTrInfo.tab",
+    "star/exonInfo.tab",
+    "star/geneInfo.tab",
+    "star/Genome",
+    "star/genomeParameters.txt",
+    "star/SA",
+    "star/SAindex",
+    "star/sjdbInfo.txt",
+    "star/sjdbList.fromGTF.out.tab",
+    "star/sjdbList.out.tab",
+    "star/transcriptInfo.tab"
+]
+cr_dir = genome_dir / "cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full"
+if args.cellranger_index:
+    ref_paths += [cr_dir / f for f in cr_index_files]
+
+# barcode file paths
 barcode_dir = pathlib.Path("barcodes/10X")
 barcode_files = [
     "3M-february-2018.txt",
@@ -118,7 +145,7 @@ barcode_files = [
 
 ref_paths += [barcode_dir / f for f in barcode_files]
 
-# download all the files and put them in the correct locations
+## download all the files and put them in the correct locations ##
 print("Downloading reference files...")
 for path in ref_paths[0:2]:
     outfile = args.refdir / path
@@ -139,6 +166,7 @@ for path in ref_paths[0:2]:
 print("Done with reference file downloads\n"
       f"Reference files can be found at '{args.refdir}'\n")
 
+# write param file if requested
 if args.paramfile:
     pfile = pathlib.Path(args.paramfile)
     # check if paramfile exists & move old if needed
@@ -155,6 +183,7 @@ if args.paramfile:
         for key, value in nf_params.items():
             f.write(f"{key}: {value}\n")
 
+## Get docker containers from workflow
 if args.singularity or args.docker:
     print("Getting list of required containers")
     containers = {}
@@ -173,7 +202,7 @@ if args.singularity or args.docker:
         if match:
             containers[match.group('id')] = match.group('loc')
 
-# pull docker images
+# pull docker images ##
 if args.docker:
     print("Pulling docker images...")
     for loc in containers.values():
