@@ -2,12 +2,13 @@
 
 import argparse
 import os
-import pathlib
 import re
 import shutil
 import subprocess
 import sys
 import urllib.request
+
+from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--refdir", type=str,
@@ -17,8 +18,8 @@ parser.add_argument("--replace",
                     action = "store_true",
                     help = "replace previously downloaded files")
 parser.add_argument("--paramfile", type=str,
-                    default="local_refs.yaml",
-                    help = "nextflow param file to write (default: `local_refs.params`)")
+                    default="localref_params.yaml",
+                    help = "nextflow param file to write (default: `localref_params.yaml`)")
 parser.add_argument("--revision", type=str,
                     default="main",
                     metavar = "vX.X.X",
@@ -41,21 +42,64 @@ parser.add_argument("--singularity_cache", type=str,
 args = parser.parse_args()
 
 # scpca-nf resource urls
-aws_root = "https://scpca-references.s3.amazonaws.com"
+reffile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/reference_paths.config"
 containerfile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/containers.config"
 
-# genome reference files
-assembly = "Homo_sapiens.GRCh38.104"
-genome_dir = pathlib.Path("homo_sapiens/ensembl-104")
-ref_subdirs =[
-    "fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
-    "fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
-    "annotation/Homo_sapiens.GRCh38.104.gtf.gz",
-    "annotation/Homo_sapiens.GRCh38.104.mitogenes.txt",
-    "annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv",
-    "annotation/Homo_sapiens.GRCh38.104.spliced_cdna.tx2gene.tsv"
+# download reference file
+print("Getting list of required reference files")
+refs = {}
+try:
+    ref_file =  urllib.request.urlopen(reffile_url)
+except urllib.error.URLError as e:
+    print(e.reason)
+    print(f"The file download failed for {reffile_url}, please check the URL for errors")
+    print(f"Is `{args.revision}` a valid release tag?")
+    exit(1)
+
+# parse reference file
+ref_re = re.compile(r'(?P<id>.+?)\s*=\s*([\'"])(?P<loc>.+)\2')
+for line in ref_file:
+    match = ref_re.search(line.decode())
+    if match:
+        refs[match.group('id')] = match.group('loc')
+
+# regular expressions for parameter expansion
+root_re = re.compile(r'\$\{?(params.)?ref_rootdir\}?$')
+refdir_re = re.compile(r'\$\{?(params.)?ref_dir\}?$')
+
+# get assembly and root location
+assembly = refs.get("assembly", "NA")
+root_parts = refs.get("ref_rootdir").split('://')
+if root_parts[0] == 's3':
+    url_root = f"https://{root_parts[1]}.s3.amazonaws.com"
+elif root_parts[0] in ['http', 'https', 'ftp']:
+    url_root = refs.get("ref_rootdir")
+else:
+    print("The `ref_rootdir` is not a supported remote location.")
+    exit(1)
+
+
+
+# set the base directory (usually corresponding to a genome version)
+genome_dir = Path(refs.get("ref_dir"))
+# remove the first element if it is a variable
+if root_re.match(genome_dir.parts[0]):
+    genome_dir = genome_dir.relative_to(genome_dir.parts[0])
+
+# single-file references
+ref_keys =[
+    "ref_fasta",
+    "ref_fasta_index",
+    "ref_gtf",
+    "mito_file",
+    "t2g_3col_path",
+    "t2g_bulk_path"
 ]
-ref_paths = [genome_dir / sd for sd in ref_subdirs]
+ref_paths = [Path(refs.get(k)) for k in ref_keys]
+# replace initial part of path if it is `$params.ref_dir` or similar
+ref_paths = [genome_dir / p.relative_to(p.parts[0])
+             if refdir_re.match(p.parts[0]) else p
+             for p in ref_paths]
 
 # salmon index files
 salmon_index_files = [
@@ -75,12 +119,14 @@ salmon_index_files = [
     "seq.bin",
     "versionInfo.json"
 ]
-
-salmon_index_dirs = [
-    genome_dir / "salmon_index/Homo_sapiens.GRCh38.104.spliced_intron.txome",
-    genome_dir / "salmon_index/Homo_sapiens.GRCh38.104.spliced_cdna.txome"
+salmon_keys = [
+    "splici_index",
+    "bulk_index"
 ]
-for sa_dir in salmon_index_dirs:
+for k in salmon_keys:
+    sa_dir = Path(refs.get(k))
+    if refdir_re.match(sa_dir.parts[0]):
+        sa_dir = genome_dir / sa_dir.relative_to(sa_dir.parts[0])
     ref_paths += [sa_dir / f for f in salmon_index_files]
 
 # star index files
@@ -102,8 +148,9 @@ star_index_files = [
     "sjdbList.out.tab",
     "transcriptInfo.tab"
 ]
-
-star_dir = genome_dir / "star_index/Homo_sapiens.GRCh38.104.star_idx"
+star_dir = Path(refs.get("star_index"))
+if refdir_re.match(star_dir.parts[0]):
+    star_dir = genome_dir / star_dir.relative_to(star_dir.parts[0])
 if args.star_index:
     ref_paths += [star_dir / f for f in star_index_files]
 
@@ -129,12 +176,13 @@ cr_index_files = [
     "star/sjdbList.out.tab",
     "star/transcriptInfo.tab"
 ]
-cr_dir = genome_dir / "cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full"
+cr_dir = Path(refs.get("cellranger_index"))
+if refdir_re.match(cr_dir.parts[0]):
+    cr_dir = genome_dir / cr_dir.relative_to(cr_dir.parts[0])
 if args.cellranger_index:
     ref_paths += [cr_dir / f for f in cr_index_files]
 
-# barcode file paths
-barcode_dir = pathlib.Path("barcodes/10X")
+# barcode files
 barcode_files = [
     "3M-february-2018.txt",
     "737K-august-2016.txt",
@@ -142,12 +190,14 @@ barcode_files = [
     "visium-v1.txt",
     "visium-v2.txt"
 ]
-
+barcode_dir = Path(refs.get("barcode_dir"))
+if root_re.match(barcode_dir.parts[0]):
+    barcode_dir = barcode_dir.relative_to(barcode_dir.parts[0])
 ref_paths += [barcode_dir / f for f in barcode_files]
 
 ## download all the files and put them in the correct locations ##
 print("Downloading reference files...")
-for path in ref_paths[0:2]:
+for path in ref_paths:
     outfile = args.refdir / path
     if outfile.exists() and not args.replace:
         continue
@@ -155,7 +205,7 @@ for path in ref_paths[0:2]:
     # make parents
     outfile.parent.mkdir(exist_ok=True, parents = True)
     # download and write
-    file_url = f"{aws_root}/{path}"
+    file_url = f"{url_root}/{path}"
     try:
         urllib.request.urlretrieve(file_url, outfile)
     except urllib.error.URLError as e:
@@ -168,7 +218,7 @@ print("Done with reference file downloads\n"
 
 # write param file if requested
 if args.paramfile:
-    pfile = pathlib.Path(args.paramfile)
+    pfile = Path(args.paramfile)
     # check if paramfile exists & move old if needed
     if pfile.exists():
         print(f"A file already exists at `{pfile}`, renaming previous file to `{pfile.name}.bak`")
