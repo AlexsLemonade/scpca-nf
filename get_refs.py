@@ -56,6 +56,8 @@ except urllib.error.URLError as e:
     exit(1)
 
 # parse reference file
+# gets all of the `param` variables that are set in `reference_paths.config`
+# and stores then in a dict
 refs = {}
 ref_re = re.compile(r'(?P<id>.+?)\s*=\s*([\'"])(?P<loc>.+)\2')
 for line in ref_file:
@@ -93,6 +95,7 @@ if root_re.match(genome_dir.parts[0]):
     genome_dir = genome_dir.relative_to(genome_dir.parts[0])
 
 # single-file references
+# the keys here are the param variables we will be downloading
 ref_keys =[
     "ref_fasta",
     "ref_fasta_index",
@@ -107,7 +110,7 @@ ref_paths = [genome_dir / p.relative_to(p.parts[0])
              if refdir_re.match(p.parts[0]) else p
              for p in ref_paths]
 
-# salmon index files
+# salmon index files within index dir (must be downloaded individually through http)
 salmon_index_files = [
     "complete_ref_lens.bin",
     "ctable.bin",
@@ -125,6 +128,7 @@ salmon_index_files = [
     "seq.bin",
     "versionInfo.json"
 ]
+# param variables that are salmon index directories
 salmon_keys = [
     "splici_index",
     "bulk_index"
@@ -135,7 +139,7 @@ for k in salmon_keys:
         sa_dir = genome_dir / sa_dir.relative_to(sa_dir.parts[0])
     ref_paths += [sa_dir / f for f in salmon_index_files]
 
-# star index files
+# star index files within index dir (must be downloaded individually through http)
 star_index_files = [
     "chrLength.txt",
     "chrName.txt",
@@ -160,7 +164,7 @@ if refdir_re.match(star_dir.parts[0]):
 if args.star_index:
     ref_paths += [star_dir / f for f in star_index_files]
 
-# Cell Ranger index files
+# Cell Ranger index files within index dir (must be downloaded individually through http)
 cr_index_files = [
     "reference.json",
     "fasta/genome.fa",
@@ -188,7 +192,7 @@ if refdir_re.match(cr_dir.parts[0]):
 if args.cellranger_index:
     ref_paths += [cr_dir / f for f in cr_index_files]
 
-# barcode files
+# barcode files on S3 within the barcode_dir (must be downloaded individually through http)
 barcode_files = [
     "3M-february-2018.txt",
     "737K-august-2016.txt",
@@ -258,14 +262,14 @@ if args.singularity or args.docker:
         if match:
             containers[match.group('id')] = match.group('loc')
 
-# pull docker images ##
+# pull docker images if requested
 if args.docker:
     print("Pulling docker images...")
     for loc in containers.values():
         subprocess.run(["docker", "pull", loc])
     print("Done pulling docker images\n")
 
-# pull singularity images (to optionally specified cache location)
+# pull singularity images if requested (to optionally specified cache location)
 if args.singularity:
     print("Pulling singularity images...")
     if args.singularity_cache:
