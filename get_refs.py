@@ -47,7 +47,6 @@ containerfile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{
 
 # download reference file
 print("Getting list of required reference files")
-refs = {}
 try:
     ref_file =  urllib.request.urlopen(reffile_url)
 except urllib.error.URLError as e:
@@ -57,6 +56,7 @@ except urllib.error.URLError as e:
     exit(1)
 
 # parse reference file
+refs = {}
 ref_re = re.compile(r'(?P<id>.+?)\s*=\s*([\'"])(?P<loc>.+)\2')
 for line in ref_file:
     match = ref_re.search(line.decode())
