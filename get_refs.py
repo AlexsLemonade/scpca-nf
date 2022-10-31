@@ -14,12 +14,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--refdir", type=str,
                     default="scpca-references",
                     help = "destination directory for downloaded reference files")
-parser.add_argument("--replace",
-                    action = "store_true",
-                    help = "replace previously downloaded files")
 parser.add_argument("--paramfile", type=str,
                     default="localref_params.yaml",
-                    help = "nextflow param file to write (default: `localref_params.yaml`)")
+                    help = "path to nextflow param file to write (default: `localref_params.yaml`)")
+parser.add_argument("--overwrite_refs",
+                    action = "store_true",
+                    help = "replace previously downloaded files")
 parser.add_argument("--revision", type=str,
                     default="main",
                     metavar = "vX.X.X",
@@ -52,7 +52,7 @@ try:
     ref_file =  urllib.request.urlopen(reffile_url)
 except urllib.error.URLError as e:
     print(e.reason)
-    print(f"The file download failed for {reffile_url}, please check the URL for errors")
+    print(f"The file download failed for {reffile_url}; please check the URL for errors")
     print(f"Is `{args.revision}` a valid release tag?")
     exit(1)
 
@@ -202,10 +202,10 @@ if root_re.match(barcode_dir.parts[0]):
 ref_paths += [barcode_dir / f for f in barcode_files]
 
 ## download all the files and put them in the correct locations ##
-print("Downloading reference files...")
+print("Downloading reference files... (This might take a while)")
 for path in ref_paths:
     outfile = args.refdir / path
-    if outfile.exists() and not args.replace:
+    if outfile.exists() and not args.overwrite_refs:
         continue
     print(f"Getting {path}")
     # make parents
@@ -216,7 +216,7 @@ for path in ref_paths:
         urllib.request.urlretrieve(file_url, outfile)
     except urllib.error.URLError as e:
         print(e.reason)
-        print(f"The file download failed for {file_url}, please check the URL for errors",
+        print(f"The file download failed for {file_url}; please check the URL for errors",
               file = sys.stderr)
         exit(1)
 print("Done with reference file downloads\n"
@@ -227,7 +227,7 @@ if args.paramfile:
     pfile = Path(args.paramfile)
     # check if paramfile exists & move old if needed
     if pfile.exists():
-        print(f"A file already exists at `{pfile}`, renaming previous file to `{pfile.name}.bak`")
+        print(f"A file already exists at `{pfile}`; renaming previous file to `{pfile.name}.bak`")
         shutil.move(pfile, str(pfile) + ".bak")
     # create parameter dictionary
     nf_params = {
@@ -247,7 +247,7 @@ if args.singularity or args.docker:
         container_file =  urllib.request.urlopen(containerfile_url)
     except urllib.error.URLError as e:
         print(e.reason)
-        print(f"The file download failed for {container_url}, please check the URL for errors")
+        print(f"The file download failed for {container_url}; please check the URL for errors")
         print(f"Is `{args.revision}` a valid release tag?")
         exit(1)
 
