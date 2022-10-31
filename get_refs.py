@@ -69,13 +69,19 @@ refdir_re = re.compile(r'\$\{?(params.)?ref_dir\}?$')
 
 # get assembly and root location
 assembly = refs.get("assembly", "NA")
-root_parts = refs.get("ref_rootdir").split('://')
+# split out protocol from the root URI
+root_parts = refs.get("ref_rootdir").split('://', maxsplit = 1)
 if root_parts[0] == 's3':
-    url_root = f"https://{root_parts[1]}.s3.amazonaws.com"
+    # if S3, convert bucket path to https:// url
+    bucket_path = root_parts[1].split("/", maxsplit = 1)
+    url_root = f"https://{bucket_path[0]}.s3.amazonaws.com"
+    if len(bucket_path) > 1:
+        url_root += f"/{bucket_path[1]}"
 elif root_parts[0] in ['http', 'https', 'ftp']:
+    # otherwise, just get the location
     url_root = refs.get("ref_rootdir")
 else:
-    print("The `ref_rootdir` is not a supported remote location.")
+    print("`ref_rootdir` is not a supported remote location.")
     exit(1)
 
 
