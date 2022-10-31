@@ -10,6 +10,8 @@
   - [Configuration files](#configuration-files)
   - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
   - [Using `scpca-nf` with AWS Batch](#using-scpca-nf-with-aws-batch)
+  - [Using `scpca-nf` on nodes without direct internet access](#using-scpca-nf-on-nodes-without-direct-internet-access)
+    - [Downloading container files](#downloading-container-files)
 - [Repeating mapping steps](#repeating-mapping-steps)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (CITE-seq or cellhash)](#libraries-with-additional-feature-data-cite-seq-or-cellhash)
@@ -199,6 +201,41 @@ Currently, our default queue is configured with a disk size of 128 GB for each n
 The queue used by each process is determined by Nextflow labels and associated profile settings.
 
 The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf/blob/main/config/profile_awsbatch.config) may be helpful as a reference for creating a profile for use with AWS, but note that the queues and file locations listed there are not publicly available, so these will need to be set to different values your own profile.
+
+### Using `scpca-nf` on nodes without direct internet access
+
+Some HPC systems limit the network traffic of compute nodes for security reasons.
+The standard configuration of the `scpca-nf`, however, expects that reference files and container images (for docker or singularity) can be downloaded as needed.
+If your system does not allow direct internet access, you will need to pre-download the required reference files to a local directory and adjust parameters to direct the workflow to use the local files.
+
+We provide the script [`get_refs.py`](get_refs.py) to download these reference files and optionally pull container images to the location of your choice.
+If you have downloaded the full `scpca-nf` repository, this script is included in the base directory.
+Alternatively, you can download and run this script on its own with the following commands from the location of your choice.
+
+<!-- TODO: Update to `main` before merging -->
+```
+curl -O https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/development/get_refs.py
+chmod +x get_refs.py
+./get_refs.py
+```
+
+By default, this will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location, as well as a parameter file named `localref_params.yaml` that sets the `ref_rootdir` and `assembly` nextflow parameters.
+
+You can then direct nextflow to use these parameters with a command such as the following:
+
+```
+nextflow run AlexsLemonade/scpca-nf \
+  -params-file localref_params.yaml \
+  -config user_template.config \
+  -profile cluster
+```
+
+Note that other configuration settings such as [profiles](#setting-up-a-profile-in-the-configuration-file), must still be set in the configuration file directly.
+However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://www.nextflow.io/docs/latest/config.html#configuration-file).
+The `ref_rootdir` parameter should *only* be specified in a parameter file or at the command line with the `--ref_rootdir` argument.
+
+#### Downloading container files
+
 
 ## Repeating mapping steps
 
