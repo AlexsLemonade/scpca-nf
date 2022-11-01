@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+# Download reference files for the scpca-nf nextflow workflow to enable running
+# the workflow without internet access by compute nodes. Optionally pulls
+# container images for singularity or docker.
+#
+# Example usage:
+# python3 get_refs.py --singularity
+
+
 import argparse
 import os
 import re
