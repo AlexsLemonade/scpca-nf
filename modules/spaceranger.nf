@@ -16,6 +16,7 @@ process spaceranger{
   script:
     out_id = file(meta.spaceranger_results_dir).name
     meta.cellranger_index = index.fileName
+    meta_json = Utils.makeJson(meta)
     """
     spaceranger count \
       --id=${out_id} \
