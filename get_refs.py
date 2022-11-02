@@ -28,7 +28,7 @@ parser.add_argument("--paramfile", type=str,
 parser.add_argument("--overwrite_refs",
                     action = "store_true",
                     help = "replace previously downloaded files")
-parser.add_argument("--revision", type=str,
+parser.add_argument("-r", "--revision", type=str,
                     default="main",
                     metavar = "vX.X.X",
                     help = "tag for a specific workflow version (defaults to latest revision)")

@@ -250,6 +250,10 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 #### Downloading container images
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
+When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.3.4`, then you will want to set `-r v0.3.4` for `get_refs.py` as well to be sure you have the correct containers.
+Be default,  `get_refs.py` will download files and images associated with the latest release.
+
 If your system uses Docker, you can add the `--docker` flag:
 
 ```
