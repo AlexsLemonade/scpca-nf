@@ -44,9 +44,9 @@ parser.add_argument("--docker",
 parser.add_argument("--singularity",
                     action = "store_true",
                     help = "pull and cache images for singularity")
-parser.add_argument("--singularity_cache", type=str,
-                    metavar = "CACHE_DIR",
-                    help = "cache directory for singularity")
+parser.add_argument("--singularity_dir", type=str,
+                    default = "singularity",
+                    help = "directory to store singularity image files (default: `singularity`)")
 args = parser.parse_args()
 
 # scpca-nf resource urls
@@ -280,14 +280,21 @@ if args.docker:
 # pull singularity images if requested (to optionally specified cache location)
 if args.singularity:
     print("Pulling singularity images...")
-    if args.singularity_cache:
-        os.environ['SINGULARITY_CACHEDIR'] = os.path.abspath(args.singularity_cache)
+    image_dir = Path(args.singularity_dir)
+    image_dir.mkdir(parents=True, exist_ok=True)
     for loc in containers.values():
-        subprocess.run(
-            ["singularity", "pull", "--force", f"docker://{loc}"],
-            env = os.environ
-        )
+        # create image file name from location for nextflow
+        image_file = loc.replace("/", "-").replace(":", "-") + ".img"
+        print(image_file)
+        image_path = image_dir / image_file
+        print(image_path)
+        if image_path.exists():
+            image_path.unlink()
+        subprocess.run([
+            "singularity", "pull",
+            "--name", image_path,
+            f"docker://{loc}"
+        ])
     print("Done pulling singularity images")
-    if args.singularity_cache:
-        print(f"Singularity images located at {os.environ['SINGULARITY_CACHEDIR']}")
+    print(f"Singularity images located at {image_dir.absolute()}")
     print()
