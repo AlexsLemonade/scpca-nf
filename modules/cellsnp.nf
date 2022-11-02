@@ -31,7 +31,7 @@ process cellsnp{
 
 process vireo{
   container params.VIREO_CONTAINER
-  publishDir "${meta.vireo_publish_dir}"
+  publishDir "${meta.vireo_publish_dir}", mode: 'copy'
   tag "${meta.run_id}"
   label 'cpus_8'
   label 'mem_16'

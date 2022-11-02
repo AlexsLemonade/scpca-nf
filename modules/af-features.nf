@@ -25,7 +25,7 @@ process alevin_feature{
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.checkpoints_dir}/rad/${meta.library_id}", enabled: params.publish_fry_outs
+  publishDir "${params.checkpoints_dir}/rad/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
     tuple val(meta),
           path(read1), path(read2),
@@ -65,7 +65,7 @@ process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
+  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
     tuple val(meta),
           path(run_dir)

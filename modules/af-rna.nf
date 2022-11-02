@@ -7,7 +7,7 @@ process alevin_rad{
   label 'mem_24'
   label 'disk_big'
   tag "${meta.run_id}-rna"
-  publishDir "${meta.rad_publish_dir}"
+  publishDir "${meta.rad_publish_dir}", mode: 'copy'
   input:
     tuple val(meta),
           path(read1), path(read2)
@@ -49,7 +49,7 @@ process fry_quant_rna{
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-rna"
-  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
+  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
 
   input:
     tuple val(meta), path(run_dir), path(barcode_file), path(tx2gene_3col)
