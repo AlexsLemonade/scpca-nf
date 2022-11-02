@@ -296,5 +296,5 @@ if args.singularity:
             f"docker://{loc}"
         ])
     print("Done pulling singularity images")
-    print(f"Singularity images located at {image_dir.absolute()}")
+    print(f"Singularity images located at {image_dir.absolute()}; be sure to set `singularity.cacheDir` in your configuration file to this value")
     print()

@@ -11,7 +11,8 @@
   - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
   - [Using `scpca-nf` with AWS Batch](#using-scpca-nf-with-aws-batch)
   - [Using `scpca-nf` on nodes without direct internet access](#using-scpca-nf-on-nodes-without-direct-internet-access)
-    - [Downloading container files](#downloading-container-files)
+    - [Additional reference files](#additional-reference-files)
+    - [Downloading container images](#downloading-container-images)
 - [Repeating mapping steps](#repeating-mapping-steps)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (CITE-seq or cellhash)](#libraries-with-additional-feature-data-cite-seq-or-cellhash)
@@ -219,9 +220,10 @@ chmod +x get_refs.py
 ./get_refs.py
 ```
 
-By default, this will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location, as well as a parameter file named `localref_params.yaml` that sets the `ref_rootdir` and `assembly` nextflow parameters.
+By default, this will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
+The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` and `assembly` Nextflow parameter variables required to use these local data files.
 
-You can then direct nextflow to use these parameters with a command such as the following:
+You can then direct Nextflow to use these parameters using the `-params-file` argument in a command such as the following:
 
 ```
 nextflow run AlexsLemonade/scpca-nf \
@@ -234,8 +236,35 @@ Note that other configuration settings such as [profiles](#setting-up-a-profile-
 However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://www.nextflow.io/docs/latest/config.html#configuration-file).
 The `ref_rootdir` parameter should *only* be specified in a parameter file or at the command line with the `--ref_rootdir` argument.
 
-#### Downloading container files
+#### Additional reference files
 
+If you wil be performing genetic demultiplexing for hashed samples, you will need STAR index files as well as the ones included by default.
+To obtain these files, you can add the `--star_index` flag:
+
+```
+./get_refs.py --star_index
+```
+
+If you will be analyzing spatial expression data, you will also need the Cell Ranger index as well, which can be obtained by adding the `--cellranger_index` flag.
+
+#### Downloading container images
+
+If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
+If your system uses Docker, you can add the `--docker` flag:
+
+```
+./get_refs.py --docker
+```
+
+For Singularity, you can similarly use the `--singularity` flag to pull images and cache them for use by Nextflow.
+These images will be placed by default in a `singularity` directory at your current location.
+If you would like to store them in a different location, use the `--singularity_dir` argument to specify that path.
+The example below stores the image files in `$HOME/singularity`.
+You will also need to set the `singularity.cacheDir` variable to match this location in your [configuration file profile](#setting-up-a-profile-in-the-configuration-file).
+
+```
+./get_refs.py --singularity --singularity_dir "$HOME/singularity"
+```
 
 ## Repeating mapping steps
 
