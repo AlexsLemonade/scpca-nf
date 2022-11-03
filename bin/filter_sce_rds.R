@@ -76,7 +76,7 @@ miQC_worked <- FALSE
 try({
   filtered_sce <- scpcaTools::add_miQC(filtered_sce,
                                        posterior_cutoff = opt$prob_compromised_cutoff)
-  metadata(sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
+  metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
   miQC_worked <- TRUE
  })
  
@@ -85,7 +85,7 @@ if (!miQC_worked){
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
   filtered_sce$miQC_pass <- "miQC_failed"
-  metadata(sce)$prob_compromised_cutoff <- NA
+  metadata(filtered_sce)$prob_compromised_cutoff <- NA
 }
 
 # grab names of altExp, if any
