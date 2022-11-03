@@ -84,7 +84,7 @@ try({
 if (!miQC_worked){
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
-  filtered_sce$miQC_pass <- "miQC_failed"
+  filtered_sce$miQC_pass <- NA_real_
   metadata(filtered_sce)$prob_compromised_cutoff <- NA
 }
 
