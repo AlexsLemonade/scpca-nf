@@ -66,13 +66,13 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 sce <- readr::read_rds(opt$input_sce_file)
 
 # create ccdl_filter column
-if(all(is.na(sce$prob_compromised))){
+if(all(is.na(sce$miQC_pass))){
   colData(sce)$ccdl_filter <- ifelse(
     sce$detected >= opt$gene_cutoff, "Keep", "Remove"
   )
   metadata(sce)$ccdl_filter_method <- "Minimum_gene_cutoff"
 } else {
-  # remove cells that passed miQC + min gene cutoff
+  # create filter using miQC and min gene cutoff
   colData(sce)$ccdl_filter <- ifelse(
     sce$miQC_pass & sce$detected >= opt$gene_cutoff,
     "Keep",
