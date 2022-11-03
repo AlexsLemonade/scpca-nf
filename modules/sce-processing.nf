@@ -72,6 +72,7 @@ process filter_sce{
         filter_sce_rds.R \
           --unfiltered_file ${unfiltered_rds} \
           --filtered_file ${filtered_rds} \
+          --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
         """
 }
@@ -137,7 +138,6 @@ process post_process_sce{
         post_process_sce.R \
           --input_sce_file ${filtered_rds} \
           --output_sce_file ${processed_rds} \
-          --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
           --gene_cutoff ${params.gene_cutoff} \
           --n_hvg ${params.num_hvg} \
           --n_pcs ${params.num_pcs} \
