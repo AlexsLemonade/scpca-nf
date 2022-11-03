@@ -21,13 +21,6 @@ option_list <- list(
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
   make_option(
-    opt_str = c("--prob_compromised_cutoff"),
-    type = "double",
-    default = 0.75,
-    help = "probability compromised cutoff used for filtering cells with miQC",
-    metavar = "double"
-  ),
-  make_option(
     opt_str = c("--gene_cutoff"),
     type = "integer",
     default = 200,
@@ -72,28 +65,20 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 # read in input rds file
 sce <- readr::read_rds(opt$input_sce_file)
 
-# check that prob compromised cutoff is between 0-1
-if(!dplyr::between(opt$prob_compromised_cutoff, 0, 1)){
-  stop("--prob_compromised_cutoff must be a number between 0 to 1")
-}
-
 # create ccdl_filter column
 if(all(is.na(sce$prob_compromised))){
   colData(sce)$ccdl_filter <- ifelse(
     sce$detected >= opt$gene_cutoff, "Keep", "Remove"
   )
   metadata(sce)$ccdl_filter_method <- "Minimum_gene_cutoff"
-  metadata(sce)$prob_compromised_cutoff <- NA
 } else {
-  # remove cells with >= probability compromised cutoff + min gene cutoff
+  # remove cells that passed miQC + min gene cutoff
   colData(sce)$ccdl_filter <- ifelse(
-    sce$prob_compromised < opt$prob_compromised_cutoff &
-      sce$detected >= opt$gene_cutoff,
+    sce$miQC_pass & sce$detected >= opt$gene_cutoff,
     "Keep",
     "Remove"
   )
   metadata(sce)$ccdl_filter_method <- "miQC"
-  metadata(sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
 }
 
 # add min gene cutoff to metadata
