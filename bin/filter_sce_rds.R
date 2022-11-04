@@ -24,8 +24,7 @@ option_list <- list(
     opt_str = c("--prob_compromised_cutoff"),
     type = "double",
     default = 0.75,
-    help = "probability compromised cutoff used for filtering cells with miQC",
-    metavar = "double"
+    help = "probability compromised cutoff used for filtering cells with miQC"
   ),
   make_option(
    opt_str = c("-r", "--random_seed"),
@@ -84,7 +83,7 @@ try({
 if (!miQC_worked){
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
-  filtered_sce$miQC_pass <- NA_real_
+  filtered_sce$miQC_pass <- NA
   metadata(filtered_sce)$prob_compromised_cutoff <- NA
 }
 
