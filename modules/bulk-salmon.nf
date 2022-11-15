@@ -28,7 +28,7 @@ process salmon{
     label 'cpus_12'
     label 'mem_24'
     tag "${meta.library_id}-bulk"
-    publishDir "${meta.salmon_publish_dir}"
+    publishDir "${meta.salmon_publish_dir}", mode: 'copy'
     input:
         tuple val(meta), path(read_dir)
         path (index)
@@ -57,7 +57,7 @@ process salmon{
 
 process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
-    publishDir "${params.results_dir}/${project_id}"
+    publishDir "${params.results_dir}/${project_id}", mode: 'copy'
     input:
         tuple val(project_id), path(salmon_directories)
         path(tx2gene)

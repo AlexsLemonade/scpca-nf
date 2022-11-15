@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 
 process spaceranger{
   container params.SPACERANGER_CONTAINER
-  publishDir "${meta.spaceranger_publish_dir}"
+  publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
   label 'mem_24'
@@ -39,7 +39,7 @@ process spaceranger{
 
 process spaceranger_publish{
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}"
+  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
     tuple val(meta), path(spatial_out)
     val index
