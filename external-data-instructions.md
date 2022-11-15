@@ -31,10 +31,13 @@ Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
 You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow:
-    - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
-    - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation)
+    - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that scpca-nf relies on.
+    This can be downloaded and installed by any user, with minimal external requirements.
+    - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
+    These usually require installation by system administrators, but most HPC systems have one available (usually Singularity).
+    - Other software dependencies are handled by Nextflow, which will download Docker or Singularity images as required
 
-2. **Organize your files.**
+1. **Organize your files.**
 You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
@@ -42,13 +45,16 @@ See the [section below on file organization](#file-organization) for more inform
 Create a TSV (tab-separated values) file with one sequencing library per row and pertinent information related to that sequencing run in each column.
 See the [section below on preparing a metadata file](#prepare-the-metadata-file) for more information on creating a metadata file for your samples.
 
-4. **Create a [config file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).**
+4. **Create a [configuration file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).**
 Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow.
 See the [section below on configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment) for more information on setting up the configuration files to run Nextflow on your system.
 
-Once you have set up your environment and created these files you will be able to start your run as follows, adding any additional optional parameters that you may choose:
+The standard configuration the `scpca-nf` workflow expects that compute nodes will have direct access to the internet, and will download reference files and container images with ane required software as required.
+If your HPC system does not allow internet access from compute nodes, you will need to download the required reference files and software before running, [following the instructions we have provided](#using-scpca-nf-on-nodes-without-direct-internet-access).
 
-```bash
+Once you have set up your environment and created the metadata and configuration files, you will be able to start your run as follows, adding any additional optional parameters that you may choose:
+
+```sh
 nextflow run AlexsLemonade/scpca-nf \
   -config <path to config file>  \
   -profile <name of profile>
@@ -64,7 +70,7 @@ To update to the latest released version you can run `nextflow pull AlexsLemonad
 To  be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
 Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
-```bash
+```sh
 nextflow run AlexsLemonade/scpca-nf \
   -r v0.3.4 \
   -config <path to config file>  \
@@ -211,21 +217,28 @@ If your system does not allow direct internet access, you will need to pre-downl
 
 We provide the script [`get_refs.py`](get_refs.py) to download these reference files and optionally pull container images to the location of your choice.
 If you have downloaded the full `scpca-nf` repository, this script is included in the base directory.
-Alternatively, you can download and run this script on its own with the following commands from the location of your choice.
+Alternatively, you can download and this script on its own to the location of your choice with the following commands:
 
 <!-- TODO: Update to `main` before merging -->
-```
-curl -O https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/development/get_refs.py
+```sh
+wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/development/get_refs.py
 chmod +x get_refs.py
+```
+
+
+Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
+The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` and `assembly` Nextflow parameter variables required to use these local data files.
+To run with these settings
+
+```sh
 ./get_refs.py
 ```
 
-By default, this will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
-The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` and `assembly` Nextflow parameter variables required to use these local data files.
 
-You can then direct Nextflow to use these parameters using the `-params-file` argument in a command such as the following:
 
-```
+You can then direct Nextflow to use the parameters stored in `localref_params.yaml` by using the `-params-file` argument in a command such as the following:
+
+```sh
 nextflow run AlexsLemonade/scpca-nf \
   -params-file localref_params.yaml \
   -config user_template.config \
@@ -241,7 +254,7 @@ The `ref_rootdir` parameter should *only* be specified in a parameter file or at
 If you wil be performing genetic demultiplexing for hashed samples, you will need STAR index files as well as the ones included by default.
 To obtain these files, you can add the `--star_index` flag:
 
-```
+```sh
 ./get_refs.py --star_index
 ```
 
@@ -256,7 +269,7 @@ Be default,  `get_refs.py` will download files and images associated with the la
 
 If your system uses Docker, you can add the `--docker` flag:
 
-```
+```sh
 ./get_refs.py --docker
 ```
 
@@ -266,7 +279,7 @@ If you would like to store them in a different location, use the `--singularity_
 The example below stores the image files in `$HOME/singularity`.
 You will also need to set the `singularity.cacheDir` variable to match this location in your [configuration file profile](#setting-up-a-profile-in-the-configuration-file).
 
-```
+```sh
 ./get_refs.py --singularity --singularity_dir "$HOME/singularity"
 ```
 
@@ -393,7 +406,7 @@ Within `scpca-nf`, the [counts matrix output from `alevin-fry`](https://alevin-f
 If you would like to obtain all files typically output from running `alevin-fry`, you may run the workflow with the `--publish_fry_outs` option at the command line.
 This will tell the workflow to save the `alevin-fry` outputs to a folder labeled `alevinfry` nested inside the `checkpoints` folder.
 
-```bash
+```sh
 nextflow run AlexsLemonade/scpca-nf \
   -config <path to config file>  \
   -profile <name of profile> \
