@@ -37,7 +37,7 @@ You will need to make sure you have the following software installed on your HPC
     These usually require installation by system administrators, but most HPC systems have one available (usually Singularity).
     - Other software dependencies are handled by Nextflow, which will download Docker or Singularity images as required
 
-1. **Organize your files.**
+2. **Organize your files.**
 You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
