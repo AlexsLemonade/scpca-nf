@@ -65,27 +65,27 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 # read in input rds file
 sce <- readr::read_rds(opt$input_sce_file)
 
-# create ccdl_filter column
+# create scpca_filter column
 if(all(is.na(sce$miQC_pass))){
-  colData(sce)$ccdl_filter <- ifelse(
+  colData(sce)$scpca_filter <- ifelse(
     sce$detected >= opt$gene_cutoff, "Keep", "Remove"
   )
-  metadata(sce)$ccdl_filter_method <- "Minimum_gene_cutoff"
+  metadata(sce)$scpca_filter_method <- "Minimum_gene_cutoff"
 } else {
   # create filter using miQC and min gene cutoff
-  colData(sce)$ccdl_filter <- ifelse(
+  colData(sce)$scpca_filter <- ifelse(
     sce$miQC_pass & sce$detected >= opt$gene_cutoff,
     "Keep",
     "Remove"
   )
-  metadata(sce)$ccdl_filter_method <- "miQC"
+  metadata(sce)$scpca_filter_method <- "miQC"
 }
 
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 
-# filter sce using criteria in ccdl_filter
-filtered_sce <- sce[, which(sce$ccdl_filter == "Keep")]
+# filter sce using criteria in scpca_filter
+filtered_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
 drop_cols = colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
