@@ -36,6 +36,9 @@ process merge_sce {
     echo $scpca_nf_file |
       tr -s ' ' '\n' > $merged_sce_file
 
+    # would then add in a call to merging script with the text file as input
+    # the merging script would output the merged_sce_file
+
     """
 
 }
@@ -76,7 +79,7 @@ workflow {
       // create tuple of just integration group and output file from scpca_nf
       .map{[
         it[1].integration_group,
-        it[2].scpca_nf_file
+        file(it[2].scpca_nf_file)
         ]}
       // grouped tuple of [integration_group, [file1, file2, file3, ...]]
       .groupTuple(by: 0)
