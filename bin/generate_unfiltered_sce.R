@@ -93,16 +93,12 @@ mito_genes <- unique(scan(opt$mito_file, what = "character"))
 # read in gtf file (genes only for speed)
 gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 
-# convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
-which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
-                                 opt$seq_unit == "nucleus" ~ "unspliced")
-
 # parse sample id list
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
-                              which_counts = which_counts,
+                              include_unspliced = TRUE,
                               usa_mode = TRUE,
                               tech_version = opt$technology,
                               library_id = opt$library_id,
@@ -112,7 +108,8 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             mtx_format = TRUE,
+                             include_unspliced = TRUE,
+                             usa_mode = TRUE,
                              library_id = opt$library_id,
                              sample_id = sample_ids)
 
