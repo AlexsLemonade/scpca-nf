@@ -12,11 +12,6 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-s", "--seq_unit"),
-    type = "character",
-    help = "`cell` or `nucleus`, which will determine whether to include counts for spliced cDNA only (cell) or unspliced and spliced cDNA (nucleus)"
-  ),
-  make_option(
     opt_str = c("-a", "--alevin_dir"),
     type = "character",
     help = "directory with alevin output files for RNA-seq quantification"
@@ -66,11 +61,6 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
-
-# check for compatible sequencing unit types
-if(!(opt$seq_unit %in% c("cell", "nucleus"))){
-  stop("Sequencing unit must be of type cell or nucleus")
-}
 
 # check that output file name ends in .rds
 if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
