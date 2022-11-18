@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// integration specific parameters
 params.integration_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
 params.integration_group = "All"
 
@@ -21,17 +22,20 @@ if(param_error){
   System.exit(1)
 }
 
+// merge individual SCE objects into one SCE object
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.checkpoints_dir}/merged_sces"
   input:
-    tuple val(int_group), path(scpca_nf_file), val(library_ids), val(sample_ids)
+    tuple val(int_group), path(scpca_nf_file)
   output:
     path merged_sce_file
   script:
-    merged_sce_file = "${int_group}_merged.rds"
+    merged_sce_file = "${int_group}_merged.txt"
     """
-    echo $scpca_nf_file > $merged_sce_file
+    echo $scpca_nf_file |
+      tr -s ' ' '\n' > $merged_sce_file
+
     """
 
 }
@@ -59,7 +63,7 @@ workflow {
         library_id: it.scpca_library_id,
         run_id: it.scpca_run_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
-        scpca_nf_file: "${params.outdir}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
+        scpca_nf_file: "${params.results_dir}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
       .map{meta -> tuple(meta,
                          scpca_nf_file: file(meta.scpca_nf_file)
@@ -72,11 +76,9 @@ workflow {
       // create tuple of just integration group and output file from scpca_nf
       .map{[
         it[1].integration_group,
-        it[2].scpca_nf_file,
-        it[3].library_id,
-        it[3].sample_id]}
-      // grouped tuple of [integration_group, [file1, file2, file3, ...],
-      //                    [library1, library2, library3...], [sample1, sample2, sample3...]]
+        it[2].scpca_nf_file
+        ]}
+      // grouped tuple of [integration_group, [file1, file2, file3, ...]]
       .groupTuple(by: 0)
 
     merge_sce(all_meta_ch)
