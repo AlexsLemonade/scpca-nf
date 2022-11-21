@@ -33,7 +33,7 @@ process merge_sce {
   script:
     input_sces = scpca_nf_file.join(',')
     input_library_ids = library_ids.join(',')
-    merged_sce_file = "${integration_group}_merged.txt"
+    merged_sce_file = "${integration_group}_merged.rds"
     """
     merge_sces.R \
       --input_library_ids "${input_library_ids} \

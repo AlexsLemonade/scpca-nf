@@ -38,7 +38,5 @@ input_library_ids <- stringr::str_split(opt$library_ids, ',')
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
 names(sce_list) <- input_library_ids
 
-merged_sce <- sce_list[[1]]
-
 # write out merged sce file 
-readr::write_rds(merged_sce, opt$output_sce_file)
+readr::write_rds(sce_list, opt$output_sce_file)
