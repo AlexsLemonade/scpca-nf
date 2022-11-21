@@ -62,6 +62,8 @@ workflow {
     // channel with run metadata, keeping only the columns we need
     runs_ch = Channel.fromPath(params.run_metafile)
       .splitCsv(header: true, sep: '\t')
+      // only include single-cell/single-nuclei and make sure no CITE-seq/ hashing libraries
+      .filter{it.technology in ['10Xv2', '10Xv2_5prime', '10Xv3', '10Xv3.1']}
       .map{[
         library_id: it.scpca_library_id,
         scpca_nf_file: "${params.results_dir}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
