@@ -66,7 +66,7 @@ workflow {
       .filter{it.technology in ['10Xv2', '10Xv2_5prime', '10Xv3', '10Xv3.1']}
       .map{[
         library_id: it.scpca_library_id,
-        scpca_nf_file: "${params.results_dir}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
+        scpca_nf_file: "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
 
     all_meta_ch = integration_meta_ch
