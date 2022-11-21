@@ -27,15 +27,15 @@ process merge_sce {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.checkpoints_dir}/merged_sces"
   input:
-    tuple val(int_group), path(scpca_nf_file)
+    tuple val(integration_group), val(library_ids), path(scpca_nf_file)
   output:
     path merged_sce_file
   script:
-    merged_sce_file = "${int_group}_merged.txt"
+    input_sces = scpca_nf_file.join(',')
+    input_library_ids = library_ids.join(',')
+    merged_sce_file = "${integration_group}_merged.txt"
     """
-    echo $scpca_nf_file |
-      tr -s ' ' '\n' > $merged_sce_file
-
+    echo $library_ids $input_sces > $merged_sce_file
     # would then add in a call to merging script with the text file as input
     # the merging script would output the merged_sce_file
 
@@ -46,8 +46,8 @@ process merge_sce {
 workflow {
 
     // select projects to integrate from params
-    int_groups = params.integration_group?.tokenize(',') ?: []
-    int_groups_all = int_groups[0] == "All" // create logical for including all groups or not when filtering later
+    integration_groups = params.integration_group?.tokenize(',') ?: []
+    integration_groups_all = integration_groups[0] == "All" // create logical for including all groups or not when filtering later
 
     // create channel of integration group and libraries to integrate
     integration_meta_ch = Channel.fromPath(params.integration_metafile)
@@ -57,29 +57,24 @@ workflow {
         integration_group: it.integration_group,
         submitter: it.submitter
       ]}
-      .filter{int_groups_all  || (it.integration_group in int_groups)}
+      .filter{integration_groups_all  || (it.integration_group in integration_groups)}
 
     // channel with run metadata, keeping only the columns we need
     runs_ch = Channel.fromPath(params.run_metafile)
       .splitCsv(header: true, sep: '\t')
       .map{[
         library_id: it.scpca_library_id,
-        run_id: it.scpca_run_id,
-        sample_id: it.scpca_sample_id.split(";").sort().join(","),
         scpca_nf_file: "${params.results_dir}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
-      .map{meta -> tuple(meta,
-                         scpca_nf_file: file(meta.scpca_nf_file)
-                         )}
 
     all_meta_ch = integration_meta_ch
       .map{[it["library_id"]] + it }
       // pull out library_id from meta and use to join
-      .join(runs_ch.map{[it[1]["library_id"]] + it }, by: 0)
-      // create tuple of just integration group and output file from scpca_nf
+      .combine(runs_ch.map{[it["library_id"]] + it }, by: 0)
+      // create tuple of integration group, library ID, and output file from scpca_nf
       .map{[
         it[1].integration_group,
-        it[0],
+        it[0], // library_id
         file(it[2].scpca_nf_file)
         ]}
       // grouped tuple of [integration_group, [file1, file2, file3, ...]]
