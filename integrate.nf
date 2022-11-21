@@ -35,10 +35,10 @@ process merge_sce {
     input_library_ids = library_ids.join(',')
     merged_sce_file = "${integration_group}_merged.txt"
     """
-    echo $library_ids $input_sces > $merged_sce_file
-    # would then add in a call to merging script with the text file as input
-    # the merging script would output the merged_sce_file
-
+    merge_sces.R \
+      --input_library_ids "${input_library_ids} \
+      --input_sce_files "${input_sces} \
+      --output_sce_file ${merged_sce_file}
     """
 
 }
