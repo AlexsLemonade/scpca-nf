@@ -36,8 +36,8 @@ process merge_sce {
     merged_sce_file = "${integration_group}_merged.rds"
     """
     merge_sces.R \
-      --input_library_ids "${input_library_ids} \
-      --input_sce_files "${input_sces} \
+      --input_library_ids "${input_library_ids}" \
+      --input_sce_files "${input_sces}" \
       --output_sce_file ${merged_sce_file}
     """
 
