@@ -79,6 +79,7 @@ workflow {
       // create tuple of just integration group and output file from scpca_nf
       .map{[
         it[1].integration_group,
+        it[0],
         file(it[2].scpca_nf_file)
         ]}
       // grouped tuple of [integration_group, [file1, file2, file3, ...]]
