@@ -21,7 +21,8 @@ process make_unfiltered_sce{
           --gtf_file ${gtf} \
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}"
+          --sample_id "${meta.sample_id}" \
+          ${params.spliced_only ? '--spliced_only' : ''}
         """
 }
 

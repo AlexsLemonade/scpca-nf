@@ -57,6 +57,11 @@ option_list <- list(
     opt_str = c("--sample_id"),
     type = "character",
     help = "sample id(s). If more than one, separated by commas and/or semicolons."
+  ),
+  make_option(
+    opt_str = c("--spliced_only"),
+    action = "store_true",
+    help = "include only the spliced counts as the main counts assay in the returned SCE object"
   )
 )
 
@@ -86,9 +91,16 @@ gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 # parse sample id list
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
+# set include unspliced for non feature data
+if(!is.null(spliced_only)){
+  include_unspliced <- FALSE
+} else {
+  include_unspliced <- TRUE
+}
+
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
-                              include_unspliced = TRUE,
+                              include_unspliced = include_unspliced,
                               fry_mode = TRUE,
                               tech_version = opt$technology,
                               library_id = opt$library_id,
