@@ -89,7 +89,7 @@ sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               include_unspliced = TRUE,
-                              usa_mode = TRUE,
+                              fry_mode = TRUE,
                               tech_version = opt$technology,
                               library_id = opt$library_id,
                               sample_id = sample_ids)
@@ -98,8 +98,9 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             include_unspliced = TRUE,
-                             usa_mode = TRUE,
+                             include_unspliced = FALSE,
+                             fry_mode = TRUE,
+                             feature_data = TRUE,
                              library_id = opt$library_id,
                              sample_id = sample_ids)
 
