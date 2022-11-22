@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 
 # import libraries
-library(magrittr)
 library(optparse)
 library(SingleCellExperiment)
 
