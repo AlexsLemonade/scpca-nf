@@ -31,9 +31,9 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that file extension for output file is correct 
 
-# list of paths to salmon files 
+# list of paths to sce files 
 input_sce_files <- unlist(stringr::str_split(opt$input_sce_files, ','))
-# pull library ids from list of 
+# pull library ids from list 
 input_library_ids <- unlist(stringr::str_split(opt$input_library_ids, ','))
 
 # check that input files exist 

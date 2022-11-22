@@ -31,14 +31,14 @@ process merge_sce {
   output:
     path merged_sce_file
   script:
-    input_sces = scpca_nf_file.join(',')
     input_library_ids = library_ids.join(',')
+    input_sces = scpca_nf_file.join(',')
     merged_sce_file = "${integration_group}_merged.rds"
     """
     merge_sces.R \
       --input_library_ids "${input_library_ids}" \
       --input_sce_files "${input_sces}" \
-      --output_sce_file ${merged_sce_file}
+      --output_sce_file "${merged_sce_file}"
     """
 
 }
@@ -70,16 +70,16 @@ workflow {
       ]}
 
     all_meta_ch = integration_meta_ch
-      .map{[it["library_id"]] + it }
+      .map{[it.library_id, it]}
       // pull out library_id from meta and use to join
-      .combine(runs_ch.map{[it["library_id"]] + it }, by: 0)
+      .combine(runs_ch.map{[it.library_id, it]}, by: 0)
       // create tuple of integration group, library ID, and output file from scpca_nf
       .map{[
-        it[1].integration_group,
+        it[1].integration_group, // from integration_meta_ch
         it[0], // library_id
-        file(it[2].scpca_nf_file)
+        file(it[2].scpca_nf_file) // from runs_ch
         ]}
-      // grouped tuple of [integration_group, [file1, file2, file3, ...]]
+      // grouped tuple of [integration_group, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
       .groupTuple(by: 0)
 
     merge_sce(all_meta_ch)
