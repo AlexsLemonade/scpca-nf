@@ -15,14 +15,14 @@ process make_unfiltered_sce{
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         generate_unfiltered_sce.R \
-          --seq_unit ${meta.seq_unit} \
           --alevin_dir ${alevin_dir} \
           --unfiltered_file ${unfiltered_rds} \
           --mito_file ${mito} \
           --gtf_file ${gtf} \
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}"
+          --sample_id "${meta.sample_id}" \
+          ${params.spliced_only ? '--spliced_only' : ''}
         """
 }
 
