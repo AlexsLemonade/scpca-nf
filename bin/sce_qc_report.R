@@ -159,7 +159,7 @@ metadata_list <- list(
   has_cellhash = has_cellhash,
   filtered_cells = ncol(filtered_sce),
   unfiltered_cells = ncol(unfiltered_sce),
-  empty_drops_filtering_method = filtered_sce_meta$filtering_method,
+  droplet_filtering_method = filtered_sce_meta$filtering_method,
   total_reads = sce_meta$total_reads,
   mapped_reads = sce_meta$mapped_reads,
   genome_assembly = opt$genome_assembly,
