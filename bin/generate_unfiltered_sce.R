@@ -92,7 +92,7 @@ gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # set include unspliced for non feature data
-include_unspliced <- !opts$spliced_only
+include_unspliced <- !opt$spliced_only
 }
 
 # get unfiltered sce
