@@ -61,6 +61,7 @@ option_list <- list(
   make_option(
     opt_str = c("--spliced_only"),
     action = "store_true",
+    default = FALSE,
     help = "include only the spliced counts as the main counts assay in the returned SCE object"
   )
 )
@@ -93,7 +94,6 @@ sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # set include unspliced for non feature data
 include_unspliced <- !opt$spliced_only
-}
 
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
