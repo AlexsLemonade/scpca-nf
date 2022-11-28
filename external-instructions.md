@@ -37,6 +37,7 @@ You will need to make sure you have the following software installed on your HPC
     These usually require installation by system administrators, but most HPC systems have one available (usually Singularity).
     - Other software dependencies, as well as the workflow files themselves, are handled by Nextflow, which will download Docker or Singularity images as required.
     The `scpca-nf` workflow does not need to be downloaded separately.
+    However, if nodes on your HPC do no not have direct internet access, you will need to follow [our instructions to download reference files and container images](#using-scpca-nf-on-nodes-without-direct-internet-access).
 
 2. **Organize your files.**
 You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
