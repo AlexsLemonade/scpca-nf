@@ -2,7 +2,7 @@
 
 This repository holds a [Nextflow](https://www.nextflow.io) workflow (`scpca-nf`) that is used to process 10X single-cell data as part of the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 All dependencies for the workflow outside of the Nextflow workflow engine itself are handled automatically; setup generally requires only organizing the input files and configuring Nextflow for your computing environment.
-Nextflow will also will handle parallelizing sample processing as allowed by your environment, minimizing total run time.
+Nextflow will also handle parallelizing sample processing as allowed by your environment, minimizing total run time.
 
 The workflow processes fastq files from single-cell and single-nuclei RNA-seq samples using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create gene by cell matrices as [`SingleCellExperiment` objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 Reads from samples are aligned using selective alignment, to an index with transcripts corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as `splici`.
