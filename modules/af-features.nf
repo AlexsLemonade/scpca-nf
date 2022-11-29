@@ -42,6 +42,8 @@ process alevin_feature{
                     '10Xv3.1': '1[17-28]']
     tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
+    // get meta to write as file
+    meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${run_dir}
     salmon alevin \
@@ -57,6 +59,8 @@ process alevin_feature{
       -p ${task.cpus}
 
     cp ${feature_index}/t2g.tsv ${run_dir}/t2g.tsv
+
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
 
@@ -75,6 +79,8 @@ process fry_quant_feature{
           path(run_dir)
 
   script:
+    // get meta to write as file
+    meta_json = Utils.makeJson(meta)
     """
     alevin-fry generate-permit-list \
       -i ${run_dir} \
@@ -97,6 +103,8 @@ process fry_quant_feature{
 
     # remove large files
     rm ${run_dir}/*.rad ${run_dir}/*.bin
+
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
 

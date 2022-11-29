@@ -57,6 +57,8 @@ process fry_quant_rna{
     tuple val(meta), path(run_dir)
 
   script:
+    // get meta to write as file
+    meta_json = Utils.makeJson(meta)
     """
     alevin-fry generate-permit-list \
       -i ${run_dir} \
@@ -79,6 +81,8 @@ process fry_quant_rna{
 
     # remove large files
     rm ${run_dir}/*.rad ${run_dir}/*.bin
+
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
 
