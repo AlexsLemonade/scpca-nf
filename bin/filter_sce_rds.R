@@ -27,6 +27,12 @@ option_list <- list(
     help = "probability compromised cutoff used for filtering cells with miQC"
   ),
   make_option(
+    opt_str = c("--enforce_left_cutoff"),
+    action = "store_true",
+    default = FALSE,
+    help = "flag to set the miQC's enforce_left_cutoff option to TRUE"
+  ),
+  make_option(
    opt_str = c("-r", "--random_seed"),
    type = "integer",
    help = "A random seed for reproducibility."
@@ -74,11 +80,12 @@ filtered_sce <- filtered_sce |>
 miQC_worked <- FALSE
 try({
   filtered_sce <- scpcaTools::add_miQC(filtered_sce,
-                                       posterior_cutoff = opt$prob_compromised_cutoff)
+                                       posterior_cutoff = opt$prob_compromised_cutoff,
+                                       enforce_left_cutoff = opt$enforce_left_cutoff)
   metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
   miQC_worked <- TRUE
  })
- 
+
 # set prob_compromised to NA if miQC failed
 if (!miQC_worked){
   warning("miQC failed. Setting `prob_compromised` to NA.")
