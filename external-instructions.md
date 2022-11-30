@@ -364,22 +364,23 @@ Within the `outdir`, two folders will be present, `results` and `checkpoints`.
 The `results` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal.
 
 Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
-All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_metadata.json`, and `_qc.html`.
-The `_unfiltered.rds` and `_filtered.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_processed.rds`, `_metadata.json`, and `_qc.html`.
+The `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
 
 See below for the expected structure of the `results` folder:
 
 ```
-publish
+results
 └── sample_id
     ├── library_id_filtered.rds
     ├── library_id_metadata.json
+    ├── library_id_processed.rds
     ├── library_id_qc.html
     └── library_id_unfiltered.rds
 ```
 
-If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `publish` directory.
+If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
 
 The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`.
 The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
