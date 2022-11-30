@@ -371,7 +371,7 @@ For more information on the contents of these files, see the [ScPCA portal docs 
 See below for the expected structure of the `results` folder:
 
 ```
-publish
+results
 └── sample_id
     ├── library_id_filtered.rds
     ├── library_id_metadata.json
@@ -380,7 +380,7 @@ publish
     └── library_id_unfiltered.rds
 ```
 
-If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `publish` directory.
+If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
 
 The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`.
 The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
