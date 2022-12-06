@@ -1,18 +1,18 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// generate fasta and annotation files with spliced cDNA + intronic reads 
+// generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference{
   container params.SCPCATOOLS_CONTAINER
-  // publish fasta and annotation files within reference directory 
-  publishDir params.ref_dir
+  // publish fasta and annotation files within reference directory
+  publishDir params.ref_dir, mode: 'copy'
   label 'mem_32'
   maxRetries 1
   input:
     path fasta
     path gtf
     val assembly
-  output: 
+  output:
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
@@ -25,7 +25,7 @@ process generate_reference{
       --fasta_output fasta \
       --annotation_output annotation \
       --assembly ${assembly}
-    
+
     gzip annotation/*.gtf
     """
 }
@@ -38,9 +38,9 @@ process salmon_index{
   label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
-    path genome 
+    path genome
   output:
-    path splici_index_dir 
+    path splici_index_dir
     path spliced_cdna_index_dir
   script:
     splici_index_dir = "${splici_fasta}".split("\\.(fasta|fa)")[0]
@@ -74,7 +74,7 @@ process cellranger_index{
   input:
     path fasta
     path gtf
-    val assembly 
+    val assembly
   output:
     path cellranger_index
   script:
@@ -82,7 +82,7 @@ process cellranger_index{
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
-    
+
     cellranger mkref \
       --genome=${cellranger_index} \
       --fasta=genome.fasta \
@@ -118,7 +118,7 @@ process index_star{
       --sjdbGTFfile ${assembly}.gtf \
       --sjdbOverhang 100 \
       --limitGenomeGenerateRAM 64000000000
-    
+
     # clean up
     rm ${assembly}.fa
     rm ${assembly}.gtf
@@ -130,7 +130,7 @@ workflow {
   generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
   // create index using reference fastas
   salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
-  // create cellranger index 
+  // create cellranger index
   cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
   // create star index
   star_index(params.ref_fasta, params.ref_gtf, params.assembly)

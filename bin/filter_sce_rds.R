@@ -21,6 +21,18 @@ option_list <- list(
     help = "path to output filtered rds file. Must end in .rds"
   ),
   make_option(
+    opt_str = c("--prob_compromised_cutoff"),
+    type = "double",
+    default = 0.75,
+    help = "probability compromised cutoff used for filtering cells with miQC"
+  ),
+  make_option(
+    opt_str = c("--enforce_left_cutoff"),
+    action = "store_true",
+    default = FALSE,
+    help = "flag to set the miQC's enforce_left_cutoff option to TRUE"
+  ),
+  make_option(
    opt_str = c("-r", "--random_seed"),
    type = "integer",
    help = "A random seed for reproducibility."
@@ -40,6 +52,11 @@ if(!file.exists(opt$unfiltered_file)){
 # check that output file name ends in .rds
 if(!(stringr::str_ends(opt$filtered_file, ".rds"))){
   stop("filtered file name must end in .rds")
+}
+
+# check that prob compromised cutoff is between 0-1
+if(!dplyr::between(opt$prob_compromised_cutoff, 0, 1)){
+  stop("--prob_compromised_cutoff must be a number between 0 to 1")
 }
 
 # read in unfiltered rds file
@@ -62,14 +79,19 @@ filtered_sce <- filtered_sce |>
 # since this can fail, we will check for success
 miQC_worked <- FALSE
 try({
-  filtered_sce <- scpcaTools::add_miQC(filtered_sce)
+  filtered_sce <- scpcaTools::add_miQC(filtered_sce,
+                                       posterior_cutoff = opt$prob_compromised_cutoff,
+                                       enforce_left_cutoff = opt$enforce_left_cutoff)
+  metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
   miQC_worked <- TRUE
  })
- 
+
 # set prob_compromised to NA if miQC failed
 if (!miQC_worked){
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
+  filtered_sce$miQC_pass <- NA
+  metadata(filtered_sce)$prob_compromised_cutoff <- NA
 }
 
 # grab names of altExp, if any

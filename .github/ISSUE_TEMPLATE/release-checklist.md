@@ -13,9 +13,9 @@ assignees: ''
 
 - [ ] Are all of the issues planned for this release resolved? If there are any issues that are unresolved, mark this issue as blocked by those on ZenHub.
 - [ ] Update code and documentation with the latest version number in the `development` branch:
-  - [ ] [nextflow.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/nextflow.config) 
-  - [ ] [README.md](https://github.com/AlexsLemonade/scpca-nf/blob/main/README.md)
-  - [ ] [external-data-instructions.md](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-data-instructions.md)
+  - [ ] [nextflow.config](https://github.com/AlexsLemonade/scpca-nf/blob/main/nextflow.config)
+  - [ ] [internal-instructions.md](https://github.com/AlexsLemonade/scpca-nf/blob/main/internal-instructions.md)
+  - [ ] [external-instructions.md](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md)
 - [ ] Test that the workflow is in good working order with `nextflow run alexslemonade/scpca-nf -latest -r development`
 - [ ] File a PR from the `development` branch to the `main` branch. This should include all of the changes that will be associated with the next release.
 

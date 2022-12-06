@@ -19,6 +19,11 @@ option_list <- list(
     help = "path to rds file with filtered sce object"
   ),
   make_option(
+    opt_str = c("-p", "--processed_sce"),
+    type = "character",
+    help = "path to rds file with processed sce object"
+  ),
+  make_option(
     opt_str = c("-l", "--library_id"),
     type = "character",
     help = "Library identifier for report and metadata file"
@@ -113,10 +118,12 @@ if (opt$workflow_commit == "null"){
 # read sce files
 unfiltered_sce <- readr::read_rds(opt$unfiltered_sce)
 filtered_sce <- readr::read_rds(opt$filtered_sce)
+processed_sce <- readr::read_rds(opt$processed_sce)
 
 # Compile metadata for output files
 sce_meta <- metadata(unfiltered_sce)
 filtered_sce_meta <- metadata(filtered_sce)
+processed_sce_meta <- metadata(processed_sce)
 
 # Parse sample ids
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
@@ -152,12 +159,16 @@ metadata_list <- list(
   has_cellhash = has_cellhash,
   filtered_cells = ncol(filtered_sce),
   unfiltered_cells = ncol(unfiltered_sce),
-  filtering_method = filtered_sce_meta$filtering_method,
+  droplet_filtering_method = filtered_sce_meta$filtering_method,
   total_reads = sce_meta$total_reads,
   mapped_reads = sce_meta$mapped_reads,
   genome_assembly = opt$genome_assembly,
   mapping_index = sce_meta$reference_index,
   transcript_type = sce_meta$transcript_type,
+  cell_filtering_method = processed_sce_meta$scpca_filter_method,
+  normalization_method = processed_sce_meta$normalization,
+  min_gene_cutoff = processed_sce_meta$min_gene_cutoff,
+  prob_compromised_cutoff = processed_sce_meta$prob_compromised_cutoff,
   date_processed = lubridate::format_ISO8601(lubridate::now(tzone = "UTC"), usetz = TRUE),
   salmon_version = sce_meta$salmon_version,
   alevin_fry_version = sce_meta$alevinfry_version,
@@ -184,12 +195,13 @@ if(multiplexed){
 }
 
 # Output metadata as JSON
-jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
+jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE, pretty = TRUE)
 
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
+  processed_sce = processed_sce,
   output = opt$qc_report_file
 )
 

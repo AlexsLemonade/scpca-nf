@@ -2,7 +2,7 @@
 //index a feature barcode file
 process index_feature{
   container params.SALMON_CONTAINER
-  
+
   input:
     tuple val(id), path(feature_file)
   output:
@@ -13,7 +13,7 @@ process index_feature{
       -t ${feature_file} \
       -i feature_index \
       --features \
-      -k 7 
+      -k 7
 
     awk '{print \$1"\\t"\$1;}' ${feature_file} > feature_index/t2g.tsv
     """
@@ -25,10 +25,10 @@ process alevin_feature{
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.checkpoints_dir}/rad/${meta.library_id}", enabled: params.publish_fry_outs
+  publishDir "${params.checkpoints_dir}/rad/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
-    tuple val(meta), 
-          path(read1), path(read2), 
+    tuple val(meta),
+          path(read1), path(read2),
           path(feature_index)
   output:
     tuple val(meta),
@@ -42,6 +42,8 @@ process alevin_feature{
                     '10Xv3.1': '1[17-28]']
     tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
+    // get meta to write as file
+    meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${run_dir}
     salmon alevin \
@@ -57,6 +59,8 @@ process alevin_feature{
       -p ${task.cpus}
 
     cp ${feature_index}/t2g.tsv ${run_dir}/t2g.tsv
+
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
 
@@ -65,7 +69,7 @@ process fry_quant_feature{
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", enabled: params.publish_fry_outs
+  publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
     tuple val(meta),
           path(run_dir)
@@ -73,8 +77,10 @@ process fry_quant_feature{
   output:
     tuple val(meta),
           path(run_dir)
-  
-  script: 
+
+  script:
+    // get meta to write as file
+    meta_json = Utils.makeJson(meta)
     """
     alevin-fry generate-permit-list \
       -i ${run_dir} \
@@ -86,7 +92,7 @@ process fry_quant_feature{
       --input-dir ${run_dir} \
       --rad-dir ${run_dir} \
       -t ${task.cpus}
-    
+
     alevin-fry quant \
       --input-dir ${run_dir} \
       --tg-map ${run_dir}/t2g.tsv \
@@ -96,7 +102,9 @@ process fry_quant_feature{
       -t ${task.cpus} \
 
     # remove large files
-    rm ${run_dir}/*.rad ${run_dir}/*.bin 
+    rm ${run_dir}/*.rad ${run_dir}/*.bin
+
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
 
@@ -113,24 +121,24 @@ workflow map_quant_feature{
     index_feature(feature_barcodes_ch)
 
     // create tuple of [metadata, [Read1 files], [Read2 files]]
-    // We start by including the feature_barcode file so we can join to the indices, but that will be removed
+    // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
     feature_reads_ch = feature_channel
       .map{meta -> tuple(meta.feature_barcode_file,
                          meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
                          file("${meta.files_directory}/*_R2_*.fastq.gz")
                         )}
-      .combine(index_feature.out, by: 0) // combine by the feature_barcode_file
-      .map{ it.subList(1, it.size())} // remove the first element (feature_barcode_file)
-    
+      .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
+      .map{ it.drop(1)} // remove the first element (feature_barcode_file)
+
     cellbarcode_ch = feature_channel
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
 
     // run Alevin on feature reads
     alevin_feature(feature_reads_ch)
-    // quantify feature reads 
+    // quantify feature reads
     fry_quant_feature(alevin_feature.out, cellbarcode_ch)
-  
+
   emit: fry_quant_feature.out
   // a tuple of metadata map and the alevin-fry output directory
 }

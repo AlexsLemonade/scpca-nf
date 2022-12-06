@@ -12,11 +12,6 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-s", "--seq_unit"),
-    type = "character",
-    help = "`cell` or `nucleus`, which will determine whether to include counts for spliced cDNA only (cell) or unspliced and spliced cDNA (nucleus)"
-  ),
-  make_option(
     opt_str = c("-a", "--alevin_dir"),
     type = "character",
     help = "directory with alevin output files for RNA-seq quantification"
@@ -62,15 +57,16 @@ option_list <- list(
     opt_str = c("--sample_id"),
     type = "character",
     help = "sample id(s). If more than one, separated by commas and/or semicolons."
+  ),
+  make_option(
+    opt_str = c("--spliced_only"),
+    action = "store_true",
+    default = FALSE,
+    help = "include only the spliced counts as the main counts assay in the returned SCE object"
   )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
-
-# check for compatible sequencing unit types
-if(!(opt$seq_unit %in% c("cell", "nucleus"))){
-  stop("Sequencing unit must be of type cell or nucleus")
-}
 
 # check that output file name ends in .rds
 if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
@@ -93,17 +89,16 @@ mito_genes <- unique(scan(opt$mito_file, what = "character"))
 # read in gtf file (genes only for speed)
 gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 
-# convert seq_unit to spliced or unspliced to determine which types of transcripts to include in final counts matrix
-which_counts <- dplyr::case_when(opt$seq_unit == "cell" ~ "spliced",
-                                 opt$seq_unit == "nucleus" ~ "unspliced")
-
 # parse sample id list
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
+# set include unspliced for non feature data
+include_unspliced <- !opt$spliced_only
+
 # get unfiltered sce
 unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
-                              which_counts = which_counts,
-                              usa_mode = TRUE,
+                              include_unspliced = include_unspliced,
+                              fry_mode = TRUE,
                               tech_version = opt$technology,
                               library_id = opt$library_id,
                               sample_id = sample_ids)
@@ -112,7 +107,9 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             mtx_format = TRUE,
+                             include_unspliced = FALSE,
+                             fry_mode = TRUE,
+                             feature_data = TRUE,
                              library_id = opt$library_id,
                              sample_id = sample_ids)
 
