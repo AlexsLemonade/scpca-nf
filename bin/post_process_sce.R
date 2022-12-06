@@ -106,16 +106,19 @@ for (alt in altExpNames(filtered_sce)) {
 
 # cluster prior to normalization
 qclust <- NULL
-tryCatch({
-  # Cluster similar cells
+try({
+  # try and cluster similar cells
+  # clustering will fail if < 100 cells in dataset
   qclust <- scran::quickCluster(filtered_sce)
+})
 
+if(!is.null(qclust)){
   # Compute sum factors for each cell cluster grouping
   filtered_sce <- scran::computeSumFactors(filtered_sce, clusters = qclust)
-
+  
   # Include note in metadata re: clustering before computing sum factors
-  metadata(filtered_sce)$normalization <- "deconvolution"
-})
+  metadata(filtered_sce)$normalization <- "deconvolution" 
+}
 
 if (is.null(qclust)) {
   # Include note in metadata re: failed clustering
