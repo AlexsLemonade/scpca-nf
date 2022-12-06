@@ -20,6 +20,7 @@ process sce_qc_report{
           --sample_id "${meta.sample_id}" \
           --unfiltered_sce ${unfiltered_rds} \
           --filtered_sce ${filtered_rds} \
+          --processed_sce ${processed_rds} \
           --qc_report_file ${qc_report} \
           --metadata_json ${metadata_json} \
           --technology "${meta.technology}" \

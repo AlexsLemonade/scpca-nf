@@ -35,7 +35,9 @@ You will need to make sure you have the following software installed on your HPC
     This can be downloaded and installed by any user, with minimal external requirements.
     - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
     These usually require installation by system administrators, but most HPC systems have one available (usually Singularity).
-    - Other software dependencies are handled by Nextflow, which will download Docker or Singularity images as required
+    - Other software dependencies, as well as the workflow files themselves, are handled by Nextflow, which will download Docker or Singularity images as required.
+    The `scpca-nf` workflow does not need to be downloaded separately.
+    However, if nodes on your HPC do no not have direct internet access, you will need to follow [our instructions to download reference files and container images](#using-scpca-nf-on-nodes-without-direct-internet-access).
 
 2. **Organize your files.**
 You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
@@ -61,7 +63,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
-This command will pull the `scpca-nf` workflow directly from Github, using the `v0.3.4` version, and run it based on the settings in the configuration file that you have defined.
+This command will pull the `scpca-nf` workflow directly from Github, using the `v0.4.0` version, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
 Using the above command will run the workflow from the `main` branch of the workflow repository.
@@ -72,7 +74,7 @@ Released versions can be found on the [`scpca-nf` repo releases page](https://gi
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.3.4 \
+  -r v0.4.0 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -264,7 +266,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.3.4`, then you will want to set `-r v0.3.4` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.4.0`, then you will want to set `-r v0.4.0` for `get_refs.py` as well to be sure you have the correct containers.
 Be default,  `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -362,22 +364,23 @@ Within the `outdir`, two folders will be present, `results` and `checkpoints`.
 The `results` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal.
 
 Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
-All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_metadata.json`, and `_qc.html`.
-The `_unfiltered.rds` and `_filtered.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_processed.rds`, `_metadata.json`, and `_qc.html`.
+The `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
 
 See below for the expected structure of the `results` folder:
 
 ```
-publish
+results
 └── sample_id
     ├── library_id_filtered.rds
     ├── library_id_metadata.json
+    ├── library_id_processed.rds
     ├── library_id_qc.html
     └── library_id_unfiltered.rds
 ```
 
-If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `publish` directory.
+If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
 
 The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`.
 The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
