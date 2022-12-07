@@ -109,7 +109,7 @@ multi_pca <- batchelor::multiBatchPCA(merged_sce,
 reducedDim(merged_sce, "PCA") <- multi_pca@listData[[1]]
 
 # add UMAP 
-merged_sce <- scater::runUMAP(dimred = "PCA")
+merged_sce <- scater::runUMAP(merged_sce, dimred = "PCA")
 
 # write out merged sce file 
 readr::write_rds(merged_sce, opt$output_sce_file)
