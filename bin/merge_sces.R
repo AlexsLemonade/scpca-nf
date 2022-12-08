@@ -66,7 +66,7 @@ missing_sce_files <- input_sce_files[which(!file.exists(input_sce_files))]
 if(length(missing_sce_files) > 0){
   stop(
     glue::glue(
-      "\nCannot find input file: {missing_sce_files}."
+      "\nCannot find input file(s): {missing_sce_files}."
     )
   )
 }
