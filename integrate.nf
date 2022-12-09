@@ -25,6 +25,7 @@ if(param_error){
 // merge individual SCE objects into one SCE object
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
+  label 'mem_16'
   publishDir "${params.checkpoints_dir}/merged_sces"
   input:
     tuple val(integration_group), val(library_ids), path(scpca_nf_file)
@@ -38,7 +39,8 @@ process merge_sce {
     merge_sces.R \
       --input_library_ids "${input_library_ids}" \
       --input_sce_files "${input_sces}" \
-      --output_sce_file "${merged_sce_file}"
+      --output_sce_file "${merged_sce_file}" \
+      --n_hvg ${params.num_hvg}
     """
 
 }
