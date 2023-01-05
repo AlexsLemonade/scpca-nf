@@ -144,7 +144,7 @@ filtered_sce <- scater::runPCA(filtered_sce,
 # calculate a UMAP matrix using the PCA results
 try({
   filtered_sce <- scater::runUMAP(filtered_sce,
-                                dimred = "PCA")
+                                  dimred = "PCA")
 })
 
 # write out original SCE with additional filtering column
