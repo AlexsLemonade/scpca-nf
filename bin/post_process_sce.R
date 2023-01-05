@@ -110,12 +110,12 @@ try({
   # try and cluster similar cells
   # clustering will fail if < 100 cells in dataset
   qclust <- scran::quickCluster(filtered_sce)
-  
+
   # Compute sum factors for each cell cluster grouping
   filtered_sce <- scran::computeSumFactors(filtered_sce, clusters = qclust)
-  
+
   # Include note in metadata re: clustering before computing sum factors
-  metadata(filtered_sce)$normalization <- "deconvolution" 
+  metadata(filtered_sce)$normalization <- "deconvolution"
 })
 
 if (is.null(qclust)) {
@@ -142,8 +142,10 @@ filtered_sce <- scater::runPCA(filtered_sce,
                                subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
-filtered_sce <- scater::runUMAP(filtered_sce,
-                                dimred = "PCA")
+try({
+  filtered_sce <- scater::runUMAP(filtered_sce,
+                                  dimred = "PCA")
+})
 
 # write out original SCE with additional filtering column
 readr::write_rds(sce, opt$input_sce_file, compress = "gz")
