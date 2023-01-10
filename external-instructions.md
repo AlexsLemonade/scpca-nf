@@ -63,7 +63,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
-This command will pull the `scpca-nf` workflow directly from Github, using the `v0.4.0` version, and run it based on the settings in the configuration file that you have defined.
+This command will pull the `scpca-nf` workflow directly from Github, using the `v0.4.1` version, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
 Using the above command will run the workflow from the `main` branch of the workflow repository.
@@ -74,7 +74,7 @@ Released versions can be found on the [`scpca-nf` repo releases page](https://gi
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.4.0 \
+  -r v0.4.1 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -266,7 +266,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.4.0`, then you will want to set `-r v0.4.0` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.4.1`, then you will want to set `-r v0.4.1` for `get_refs.py` as well to be sure you have the correct containers.
 Be default,  `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
