@@ -221,9 +221,8 @@ We provide the script [`get_refs.py`](get_refs.py) to download these reference f
 If you have downloaded the full `scpca-nf` repository, this script is included in the base directory.
 Alternatively, you can download and this script on its own to the location of your choice with the following commands:
 
-<!-- TODO: Update to `main` before merging -->
 ```sh
-wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/development/get_refs.py
+wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/get_refs.py
 chmod +x get_refs.py
 ```
 
