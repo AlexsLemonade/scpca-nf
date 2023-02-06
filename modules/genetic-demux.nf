@@ -13,7 +13,7 @@ workflow genetic_demux_vireo{
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
-      .map{it.vireo_publish_dir = "${params.checkpoints_dir}/vireo/";
+      .map{it.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
            it.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo";
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
