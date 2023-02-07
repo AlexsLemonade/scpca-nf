@@ -26,7 +26,7 @@ option_list <- list(
     type = "integer",
     default = 2000,
     help = "number of high variance genes to use for dimension reduction;
-            the default is n_hvg = 2000",
+            the default is n_hvg = 2000"
   )
 )
 
@@ -95,7 +95,7 @@ gene_var_block <- scran::modelGeneVar(merged_sce,
 hvg_list <- scran::getTopHVGs(gene_var_block,
                                n = opt$n_hvg)
 
-metadata(merged_sce)$merged_highly_variable_genes <- hvg_list
+metadata(merged_sce)$merged_hvgs <- hvg_list
 
 # Dim Reduction PCA and UMAP----------------------------------------------------
 
@@ -106,10 +106,13 @@ multi_pca <- batchelor::multiBatchPCA(merged_sce,
                                       preserve.single = TRUE)
 
 # add PCA results to merged SCE object 
-reducedDim(merged_sce, "PCA") <- multi_pca@listData[[1]]
+reducedDim(merged_sce, "PCA") <- multi_pca[[1]]
 
 # add UMAP 
 merged_sce <- scater::runUMAP(merged_sce, dimred = "PCA")
 
 # write out merged sce file 
-readr::write_rds(merged_sce, opt$output_sce_file)
+readr::write_rds(merged_sce, 
+                 opt$output_sce_file, 
+                 compress = "gz",
+                 compression = 2)
