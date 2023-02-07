@@ -30,7 +30,7 @@ process merge_sce {
   input:
     tuple val(integration_group), val(library_ids), path(scpca_nf_file)
   output:
-    path merged_sce_file
+    tuple val(integration_group), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -40,7 +40,8 @@ process merge_sce {
       --input_library_ids "${input_library_ids}" \
       --input_sce_files "${input_sces}" \
       --output_sce_file "${merged_sce_file}" \
-      --n_hvg ${params.num_hvg}
+      --n_hvg ${params.num_hvg} \
+      --threads ${task.cpus}
     """
   stub:
     merged_sce_file = "${integration_group}_merged.rds"
@@ -70,26 +71,27 @@ workflow {
     libraries_ch = Channel.fromPath(params.run_metafile)
       .splitCsv(header: true, sep: '\t')
       // only include single-cell/single-nuclei and make sure no CITE-seq/ hashing libraries
-      .filter{it.technology in ['10Xv2', '10Xv2_5prime', '10Xv3', '10Xv3.1']}
+      .filter{it.seq_unit in ['cell', 'nucleus']}
       .map{[
         library_id: it.scpca_library_id,
         scpca_nf_file: "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
+      .unique()
 
-    all_meta_ch = integration_meta_ch
-      .map{[it.library_id, it]}
+    grouped_meta_ch = integration_meta_ch
+      .map{[it.library_id, it.integration_group]}
       // pull out library_id from meta and use to join
-      .combine(runs_ch.map{[it.library_id, it]}, by: 0)
+      .combine(libraries_ch.map{[it.library_id, it.scpca_nf_file]}, by: 0)
       // create tuple of integration group, library ID, and output file from scpca_nf
       .map{[
-        it[1].integration_group, // from integration_meta_ch
+        it[1], // integration_group
         it[0], // library_id
-        file(it[2].scpca_nf_file) // from runs_ch
+        file(it[2]) // scpca_nf_file
         ]}
       // grouped tuple of [integration_group, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
       .groupTuple(by: 0)
 
-    merge_sce(all_meta_ch)
+    merge_sce(grouped_meta_ch)
 
 }
 
