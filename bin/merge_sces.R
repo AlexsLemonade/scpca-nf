@@ -29,7 +29,7 @@ option_list <- list(
             the default is n_hvg = 2000"
   ),
   make_option(
-    opt_str = c("t", "--threads"),
+    opt_str = c("-t", "--threads"),
     type = "integer",
     default = 1,
     help = "Number of multiprocessing threads to use"
@@ -92,9 +92,8 @@ sce_list <- purrr::map(input_sce_files, readr::read_rds)
 
 # check that all input RDS files contain SCE objects
 sce_checks <- purrr::map(sce_list,
-                         \(sce)
-                         is(sce, "SingleCellExperiment"))
-if(!any(sce_checks)){
+                         \(x) is(x, "SingleCellExperiment"))
+if(!all(sce_checks)){
   stop(
     "All input files must contain a `SingleCellExperiment` object."
   )
