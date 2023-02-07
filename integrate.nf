@@ -42,6 +42,11 @@ process merge_sce {
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg}
     """
+  stub:
+    merged_sce_file = "${integration_group}_merged.rds"
+    """
+    touch ${merged_sce_file}
+    """
 
 }
 
