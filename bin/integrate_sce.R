@@ -1,0 +1,118 @@
+# Script used to perform integration on a given merged SCE object using R-based methods
+#
+# A merged SCE file in RDS format is read in. Integration is performed with either
+# `fastMNN` or `harmony`. The integrated SCE object is saved as an RDS
+# file in the provided output file.
+#
+
+# import libraries
+library(optparse)
+
+# Set up optparse options
+option_list <- list(
+  make_option(
+    opt_str = c("-i", "--input_sce_file"),
+    type = "character",
+    default = NULL,
+    help = "Path to RDS file that contains the merged SCE object to integrate"
+  ),
+  make_option(
+    opt_str = c("-o", "--output_sce_file"),
+    type = "character",
+    default = NULL,
+    help = "Path to RDS file where the integrated SCE object will be saved"
+  ),
+  make_option(
+    opt_str = c("--method"),
+    type = "character",
+    default = NULL,
+    help = "Integration method to use, either `fastMNN` or `harmony` (case-insensitive)."
+  ),
+  make_option(
+    opt_str = c("--seed"),
+    type = "integer",
+    default = NULL,
+    help = "random seed to set during integration"
+  ),
+  make_option(
+    opt_str = c("--harmony_covariate_cols"),
+    type = "character",
+    default = NULL,
+    help = "Optional comma-separated list of columns (e.g. patient, sex) to consider as covariates
+            during integration with `harmony`."
+  )
+)
+
+# Setup ------------------------------------------------------------------------
+# Parse options
+opt <- parse_args(OptionParser(option_list = option_list))
+
+
+# Check and assign provided method based on available methods
+available_methods <- c("fastmnn", "harmony")
+
+# helper function for method check fails
+stop_method <- function() {
+  stop(
+    paste("You must specify one of the following (case-insensitive) to --method:",
+          paste(available_methods, collapse = ", ")
+    )
+  )
+}
+
+if (is.null(opt$method)) {
+  stop_method()
+} else {
+  integration_method <- tolower(opt$method)
+  if (!(integration_method %in% available_methods)) {
+    stop_method()
+  }
+}
+
+
+# Check that provided input file exists and is an RDS file
+if(is.null(opt$input_sce_file)) {
+  stop("You must provide the path to the RDS file with merged SCEs to --input_sce_file")
+} else {
+  if(!file.exists(opt$input_sce_file)) {
+    stop("Provided --input_sce_file file does not exist.")
+  }
+}
+
+# Check that both input and output files have RDS extensions
+if(!(grepl("\\.rds$", opt$input_sce_file, ignore.case = TRUE)) ||
+   !(grepl("\\.rds$", opt$output_sce_file, ignore.case = TRUE))) {
+  stop("The provided --input_sce_file and --output_sce_file files must be RDS files.")
+}
+
+# Read in SCE file -------------------------------------------------------------
+merged_sce <- readr::read_rds(opt$input_sce_file)
+
+# check that input contains a SCE object
+if(!is(merged_sce, "SingleCellExperiment")){
+  stop("The input RDS file must contain a SingleCellExperiment object.")
+}
+
+
+# define batch column
+batch_column <- merged_sce$library_id
+
+# hvgs to use for integration
+merged_hvgs <- metadata(merged_sce_obj)$merged_hvgs
+
+# Integration ------------------------------------------------------------------
+
+# perform integration
+integrated_sce <- scpcaTools::integrate_sces(merged_sce,
+                                             integration_method = integration_method,
+                                             batch_column = batch_column,
+                                             covariate_cols = opt$harmony_covariate_cols,
+                                             subset.row = merged_hvgs,
+                                             return_corrected_expression = FALSE)
+# calculate UMAP from corrected PCA
+integrated_sce <- integrated_sce |>
+  scater::runUMAP(dimred = glue::glue("{integration_method}_PCA"),
+                  name = glue::glue("{integration_method}_UMAP"))
+
+# write out integrated object with merged data + corrected PCA and UMAP
+readr::write_rds(integrated_sce, opt$output_sce_file)
