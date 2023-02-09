@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # Script used to perform integration on a given merged SCE object using R-based methods
 #
 # A merged SCE file in RDS format is read in. Integration is performed with either
@@ -7,6 +9,7 @@
 
 # import libraries
 library(optparse)
+library(SingleCellExperiment)
 
 # Set up optparse options
 option_list <- list(
@@ -49,26 +52,11 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 
 # Check and assign provided method based on available methods
-available_methods <- c("fastmnn", "harmony")
+available_methods <- c("fastMNN", "harmony")
 
-# helper function for method check fails
-stop_method <- function() {
-  stop(
-    paste("You must specify one of the following (case-insensitive) to --method:",
-          paste(available_methods, collapse = ", ")
-    )
-  )
+if(!(opt$method %in% available_methods)){
+  stop("You must specify either `fastMNN` or `harmony` to the --method.")
 }
-
-if (is.null(opt$method)) {
-  stop_method()
-} else {
-  integration_method <- tolower(opt$method)
-  if (!(integration_method %in% available_methods)) {
-    stop_method()
-  }
-}
-
 
 # Check that provided input file exists and is an RDS file
 if(is.null(opt$input_sce_file)) {
@@ -98,13 +86,13 @@ if(!is(merged_sce, "SingleCellExperiment")){
 batch_column <- merged_sce$library_id
 
 # hvgs to use for integration
-merged_hvgs <- metadata(merged_sce_obj)$merged_hvgs
+merged_hvgs <- metadata(merged_sce)$merged_hvgs
 
 # Integration ------------------------------------------------------------------
 
 # perform integration
 integrated_sce <- scpcaTools::integrate_sces(merged_sce,
-                                             integration_method = integration_method,
+                                             integration_method = opt$method,
                                              batch_column = batch_column,
                                              covariate_cols = opt$harmony_covariate_cols,
                                              subset.row = merged_hvgs,
