@@ -39,6 +39,12 @@ option_list <- list(
             during integration with `harmony`."
   ),
   make_option(
+    opt_str = c("-t", "--threads"),
+    type = "integer",
+    default = 1,
+    help = "Number of multiprocessing threads to use"
+  ),
+  make_option(
     opt_str = c("--seed"),
     type = "integer",
     default = NULL,
@@ -68,11 +74,6 @@ if(is.null(opt$input_sce_file)) {
   }
 }
 
-# Check that both input and output files have RDS extensions
-if(!(grepl("\\.rds$", opt$input_sce_file, ignore.case = TRUE)) ||
-   !(grepl("\\.rds$", opt$output_sce_file, ignore.case = TRUE))) {
-  stop("The provided --input_sce_file and --output_sce_file files must be RDS files.")
-}
 
 # Read in SCE file -------------------------------------------------------------
 merged_sce <- readr::read_rds(opt$input_sce_file)
@@ -97,8 +98,8 @@ integrated_sce <- scpcaTools::integrate_sces(merged_sce,
                                              seed = opt$seed)
 # calculate UMAP from corrected PCA
 integrated_sce <- integrated_sce |>
-  scater::runUMAP(dimred = glue::glue("{integration_method}_PCA"),
-                  name = glue::glue("{integration_method}_UMAP"))
+  scater::runUMAP(dimred = glue::glue("{opt$method}_PCA"),
+                  name = glue::glue("{opt$method}_UMAP"))
 
 # write out integrated object with merged data + corrected PCA and UMAP
 readr::write_rds(integrated_sce, opt$output_sce_file)
