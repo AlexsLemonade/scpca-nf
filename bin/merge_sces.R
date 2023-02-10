@@ -41,7 +41,7 @@ option_list <- list(
 # Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# check that file extension for output file is correct 
+# check that file extension for output file is correct
 if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
   stop("output file name must end in .rds")
 }
@@ -50,8 +50,8 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 if(is.null(opt$input_sce_files)){
   stop("List of input files containing individual SCE objects to merge is missing.")
 } else {
-  # list of paths to sce files 
-  input_sce_files <- unlist(stringr::str_split(opt$input_sce_files, ',')) 
+  # list of paths to sce files
+  input_sce_files <- unlist(stringr::str_split(opt$input_sce_files, ','))
 }
 
 if(length(input_sce_files) == 1){
@@ -63,11 +63,14 @@ if(is.null(opt$input_library_ids)){
   # extract library ids from filename
   input_library_ids <- stringr::word(basename(input_sce_files), 1, sep = "_")
 } else {
-  # pull library ids from list 
-  input_library_ids <- unlist(stringr::str_split(opt$input_library_ids, ',')) 
+  # pull library ids from list
+  input_library_ids <- unlist(stringr::str_split(opt$input_library_ids, ','))
 }
 
-# check that input files exist 
+# create named list of sce files with library ids
+names(input_sce_files) <- input_library_ids
+
+# check that input files exist
 missing_sce_files <- input_sce_files[which(!file.exists(input_sce_files))]
 if(length(missing_sce_files) > 0){
   stop(
@@ -88,7 +91,6 @@ if(opt$threads > 1){
 
 # get list of sces
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
-
 
 # check that all input RDS files contain SCE objects
 sce_checks <- purrr::map(sce_list,
@@ -130,16 +132,16 @@ multi_pca <- batchelor::multiBatchPCA(merged_sce,
                                       preserve.single = TRUE,
                                       BPPARAM = bp_param)
 
-# add PCA results to merged SCE object 
+# add PCA results to merged SCE object
 reducedDim(merged_sce, "PCA") <- multi_pca[[1]]
 
-# add UMAP 
+# add UMAP
 merged_sce <- scater::runUMAP(merged_sce,
                               dimred = "PCA",
                               BPPARAM = bp_param)
 
-# write out merged sce file 
-readr::write_rds(merged_sce, 
+# write out merged sce file
+readr::write_rds(merged_sce,
                  opt$output_sce_file,
                  compress = "gz",
                  compression = 2)
