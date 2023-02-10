@@ -32,17 +32,17 @@ option_list <- list(
     help = "Integration method to use, either `fastMNN` or `harmony` (case-insensitive)."
   ),
   make_option(
-    opt_str = c("--seed"),
-    type = "integer",
-    default = NULL,
-    help = "random seed to set during integration"
-  ),
-  make_option(
     opt_str = c("--harmony_covariate_cols"),
     type = "character",
     default = NULL,
     help = "Optional comma-separated list of columns (e.g. patient, sex) to consider as covariates
             during integration with `harmony`."
+  ),
+  make_option(
+    opt_str = c("--seed"),
+    type = "integer",
+    default = NULL,
+    help = "random seed to set during integration"
   )
 )
 
@@ -50,6 +50,7 @@ option_list <- list(
 # Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
 
+set.seed(opt$seed)
 
 # Check and assign provided method based on available methods
 available_methods <- c("fastMNN", "harmony")
@@ -81,10 +82,6 @@ if(!is(merged_sce, "SingleCellExperiment")){
   stop("The input RDS file must contain a SingleCellExperiment object.")
 }
 
-
-# define batch column
-batch_column <- merged_sce$library_id
-
 # hvgs to use for integration
 merged_hvgs <- metadata(merged_sce)$merged_hvgs
 
@@ -93,10 +90,11 @@ merged_hvgs <- metadata(merged_sce)$merged_hvgs
 # perform integration
 integrated_sce <- scpcaTools::integrate_sces(merged_sce,
                                              integration_method = opt$method,
-                                             batch_column = batch_column,
+                                             batch_column = "library_id",
                                              covariate_cols = opt$harmony_covariate_cols,
-                                             subset.row = merged_hvgs,
-                                             return_corrected_expression = FALSE)
+                                             hv_genes = merged_hvgs,
+                                             return_corrected_expression = FALSE,
+                                             seed = opt$seed)
 # calculate UMAP from corrected PCA
 integrated_sce <- integrated_sce |>
   scater::runUMAP(dimred = glue::glue("{integration_method}_PCA"),
