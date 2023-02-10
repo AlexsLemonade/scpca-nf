@@ -29,7 +29,7 @@ option_list <- list(
     opt_str = c("--method"),
     type = "character",
     default = NULL,
-    help = "Integration method to use, either `fastMNN` or `harmony` (case-insensitive)."
+    help = "Integration method to use, either `fastMNN` or `harmony` (case-sensitive)."
   ),
   make_option(
     opt_str = c("--harmony_covariate_cols"),
@@ -74,6 +74,12 @@ if(is.null(opt$input_sce_file)) {
   }
 }
 
+# set up multiprocessing params
+if(opt$threads > 1){
+  bp_param = BiocParallel::MulticoreParam(opt$threads)
+} else {
+  bp_param = BiocParallel::SerialParam()
+}
 
 # Read in SCE file -------------------------------------------------------------
 merged_sce <- readr::read_rds(opt$input_sce_file)
@@ -88,14 +94,34 @@ merged_hvgs <- metadata(merged_sce)$merged_hvgs
 
 # Integration ------------------------------------------------------------------
 
+# create list of arguments for either integration method
+integration_args <- list(
+  sce = merged_sce,
+  integration_method = opt$method,
+  batch_column = "library_id",
+  seed = opt$seed,
+  return_corrected_expression = FALSE
+)
+
+# append fastMNN only args
+if(opt$method == "fastMNN"){
+  integration_args <- append(integration_args,
+                             list(
+                               subset.row = merged_hvgs,
+                               auto.merge = TRUE,
+                               BPPARAM = bp_param
+                             ))
+}
+
+# append harmony only args
+if(opt$method == "harmony"){
+  integration_arts <- append(integration_args,
+                             covariate_cols = opt$harmony_covariate_cols)
+}
+
 # perform integration
-integrated_sce <- scpcaTools::integrate_sces(merged_sce,
-                                             integration_method = opt$method,
-                                             batch_column = "library_id",
-                                             covariate_cols = opt$harmony_covariate_cols,
-                                             hv_genes = merged_hvgs,
-                                             return_corrected_expression = FALSE,
-                                             seed = opt$seed)
+integrated_sce <- do.call(scpcaTools::integrate_sces, integration_args)
+
 # calculate UMAP from corrected PCA
 integrated_sce <- integrated_sce |>
   scater::runUMAP(dimred = glue::glue("{opt$method}_PCA"),
