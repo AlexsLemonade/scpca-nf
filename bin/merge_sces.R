@@ -58,17 +58,14 @@ if(length(input_sce_files) == 1){
   stop("Only 1 input file provided, no merging or integration will be performed for this group")
 }
 
-# set up library ids
+# use library ids to name list of input files
 if(is.null(opt$input_library_ids)){
   # extract library ids from filename
-  input_library_ids <- stringr::word(basename(input_sce_files), 1, sep = "_")
+  names(input_sce_files) <- stringr::word(basename(input_sce_files), 1, sep = "_")
 } else {
   # pull library ids from list
-  input_library_ids <- unlist(stringr::str_split(opt$input_library_ids, ','))
+  names(input_sce_files) <- unlist(stringr::str_split(opt$input_library_ids, ','))
 }
-
-# create named list of sce files with library ids
-names(input_sce_files) <- input_library_ids
 
 # check that input files exist
 missing_sce_files <- input_sce_files[which(!file.exists(input_sce_files))]
