@@ -96,7 +96,7 @@ merged_hvgs <- metadata(merged_sce)$merged_hvgs
 
 # create list of arguments for either integration method
 integration_args <- list(
-  sce = merged_sce,
+  merged_sce = merged_sce,
   integration_method = opt$method,
   batch_column = "library_id",
   seed = opt$seed,
