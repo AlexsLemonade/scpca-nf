@@ -55,6 +55,7 @@ process merge_sce {
 process integrate_fastmnn {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_16'
+  label 'cpus_4'
   input:
     tuple val(integration_group), path(merged_sce_file)
   output:
@@ -66,7 +67,8 @@ process integrate_fastmnn {
       --input_sce_file "${merged_sce_file}" \
       --output_sce_file "${fastmnn_sce_file}" \
       --method "fastMNN" \
-      --seed ${params.seed}
+      --seed ${params.seed} \
+      --threads ${task.cpus}
     """
   stub:
     fastmnn_sce_file = "${integration_group}_fastmnn.rds"
