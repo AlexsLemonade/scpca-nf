@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 // integration specific parameters
 params.integration_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
 params.integration_group = "All"
+params.harmony_covariates = ""
 
 // parameter checks
 param_error = false
@@ -77,6 +78,31 @@ process integrate_fastmnn {
     """
 }
 
+// integrate with fastMNN
+process integrate_harmony {
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_16'
+  input:
+    tuple val(integration_group), path(merged_sce_file)
+  output:
+    tuple val(integration_group), path(harmony_sce_file)
+  script:
+    harmony_sce_file = "${integration_group}_harmony.rds"
+    """
+    integrate_sce.R \
+      --input_sce_file "${merged_sce_file}" \
+      --output_sce_file "${harmony_sce_file}" \
+      --method "harmony" \
+      --harmony_covariate_cols ${params.harmony_covariates}
+      --seed ${params.seed}
+    """
+  stub:
+    harmony_sce_file = "${integration_group}_harmony.rds"
+    """
+    touch ${harmony_sce_file}
+    """
+}
+
 workflow {
 
     // select projects to integrate from params
@@ -121,5 +147,8 @@ workflow {
 
     // integrate using fastmnn
     integrate_fastmnn(merge_sce.out)
+
+    // integrate using harmony
+    integrate_harmony(merge_sce.out)
 }
 
