@@ -4,7 +4,6 @@ nextflow.enable.dsl=2
 // integration specific parameters
 params.integration_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
 params.integration_group = "All"
-params.harmony_covariates = "NULL"
 
 // parameter checks
 param_error = false
@@ -93,7 +92,6 @@ process integrate_harmony {
       --input_sce_file "${merged_sce_file}" \
       --output_sce_file "${harmony_sce_file}" \
       --method "harmony" \
-      --harmony_covariate_cols ${params.harmony_covariates} \
       --seed ${params.seed}
     """
   stub:
