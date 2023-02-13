@@ -105,18 +105,22 @@ integration_args <- list(
 
 # append fastMNN only args
 if(opt$method == "fastMNN"){
-  integration_args <- append(integration_args,
-                             list(
-                               subset.row = merged_hvgs,
-                               auto.merge = TRUE,
-                               BPPARAM = bp_param
-                             ))
+  integration_args <-  append(
+    integration_args,
+    list(
+      subset.row = merged_hvgs,
+      auto.merge = TRUE,
+      BPPARAM = bp_param
+   ))
 }
 
 # append harmony only args
 if(opt$method == "harmony"){
-  integration_arts <- append(integration_args,
-                             covariate_cols = opt$harmony_covariate_cols)
+  integration_arts <- append(
+    integration_args,
+    list(
+      covariate_cols = opt$harmony_covariate_cols
+    ))
 }
 
 # perform integration
