@@ -67,6 +67,9 @@ if(is.null(opt$input_library_ids)){
   names(input_sce_files) <- unlist(stringr::str_split(opt$input_library_ids, ','))
 }
 
+# sort inputs by library id
+input_sce_files <- input_sce_files[order(names(input_sce_files))]
+
 # check that input files exist
 missing_sce_files <- input_sce_files[which(!file.exists(input_sce_files))]
 if(length(missing_sce_files) > 0){
