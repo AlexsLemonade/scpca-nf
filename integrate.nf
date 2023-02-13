@@ -51,6 +51,32 @@ process merge_sce {
 
 }
 
+// integrate with fastMNN
+process integrate_fastmnn {
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_16'
+  label 'cpus_4'
+  input:
+    tuple val(integration_group), path(merged_sce_file)
+  output:
+    tuple val(integration_group), path(fastmnn_sce_file)
+  script:
+    fastmnn_sce_file = "${integration_group}_fastmnn.rds"
+    """
+    integrate_sce.R \
+      --input_sce_file "${merged_sce_file}" \
+      --output_sce_file "${fastmnn_sce_file}" \
+      --method "fastMNN" \
+      --seed ${params.seed} \
+      --threads ${task.cpus}
+    """
+  stub:
+    fastmnn_sce_file = "${integration_group}_fastmnn.rds"
+    """
+    touch ${fastmnn_sce_file}
+    """
+}
+
 workflow {
 
     // select projects to integrate from params
@@ -93,5 +119,7 @@ workflow {
 
     merge_sce(grouped_meta_ch)
 
+    // integrate using fastmnn
+    integrate_fastmnn(merge_sce.out)
 }
 
