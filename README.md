@@ -15,7 +15,7 @@ For more information on the contents of the output files and the processing of a
 
 The default configuration of the `scpca-nf` workflow is currently set up to process samples as part of [the ScPCA portal](https://scpca.alexslemonade.org/) and requires access to AWS through the Data Lab.
 For all other users, `scpca-nf` can be set up for your computing environment with a few configuration files.
-|[Instructions for using `scpca-nf` with external systems](external-instructions.md)|
+|[Instructions for using `scpca-nf`](external-instructions.md)|
 |---|
 
 :warning: Please note that processing single-cell and single-nuclei RNA-seq samples requires access to a high performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.
