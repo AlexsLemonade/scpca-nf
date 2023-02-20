@@ -1,9 +1,11 @@
 #!/usr/bin/env Rscript
 
-# This script is used to build and train a model to be used for SingleR. 
+# This script is used to build and train a model to be used for SingleR.
 # The expected input is a SummarizedExperiment containing a reference dataset and a
 # 3-column, transcript to gene tsv file (as used with Alevin-fry), to provide the expected
-# geneset to be used for training the reference dataset. 
+# geneset to be used for training the reference dataset. The 3 columns in this file should
+# contain the transcript id, gene id, and the transcript type in that order, but need not
+# contain column names.
 
 # import libraries
 suppressPackageStartupMessages({
@@ -16,17 +18,19 @@ option_list <- list(
   make_option(
     opt_str = c("--ref_file"),
     type = "character",
-    help = "path to rds file with input sce object to be processed"
+    help = "path to rds file with reference dataset to use for cell type annotation.
+      These reference datasets must contain annotations labeld with `label.fine` and `label.main`."
   ),
   make_option(
     opt_str = c("--output_file"),
     type = "character",
-    help = "path to output rds file to store processed sce object. Must have `.rds` extension."
+    help = "path to output rds file to store trained model for reference dataset"
   ),
   make_option(
     opt_str = c("--fry_tx2gene"),
     type = "character",
-    help = "path to "
+    help = "path to tsv file containing three columns with transcript id, gene id, and
+      type of transcript (either spliced or unspliced)."
   ),
   make_option(
     opt_str = c("-r", "--random_seed"),
@@ -42,6 +46,8 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
+
+opt$ref_file <- "/Users/allyhawkins/Documents/ALSF/git_repos/ScPCA-admin/sample_info/celltype_annotation/references/celldex-blueprint_encode.rds"
 
 # Set up -----------------------------------------------------------------------
 
@@ -64,14 +70,19 @@ if(opt$threads > 1){
   bp_param = BiocParallel::SerialParam()
 }
 
-# read in model 
+# read in model
 ref_data <- readr::read_rds(opt$ref_file)
 
-# read in tx2gene 
+# check that ref data contains correct labels
+if(!all(c("label.main", "label.fine") %in% colnames(colData(ref_data)))){
+  stop("Reference dataset must contain `label.main` and `label.fine` in `colData`.")
+}
+
+# read in tx2gene
 tx2gene <- readr::read_tsv(opt$fry_tx2gene,
                            col_names = c("transcript", "gene", "transcript_type"))
 
-# select genes to use for model restriction 
+# select genes to use for model restriction
 gene_ids <- unique(tx2gene$gene)
 
 # Train models -----------------------------------------------------------------
@@ -80,25 +91,25 @@ gene_ids <- unique(tx2gene$gene)
 fine_model <- SingleR::trainSingleR(
   ref_data,
   labels = ref_data$label.fine,
-  genes = "de", 
-  # only use genes found in index 
+  genes = "de",
+  # only use genes found in index
   restrict = gene_ids,
   BPPARAM = bp_param
-) 
+)
 
-# train using main labels 
+# train using main labels
 main_model <- SingleR::trainSingleR(
   ref_data,
   labels = ref_data$label.main,
-  genes = "de", 
-  # only use genes found in index 
+  genes = "de",
+  # only use genes found in index
   restrict = gene_ids,
   BPPARAM = bp_param
-) 
+)
 
-# combine into one object 
+# combine into one object
 all_models <- list(fine = fine_model,
-     main = main_model)
+                   main = main_model)
 
 # export models
 readr::write_rds(all_models, opt$output_file)
