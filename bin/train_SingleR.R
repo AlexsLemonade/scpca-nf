@@ -21,7 +21,7 @@ option_list <- list(
   make_option(
     opt_str = c("--output_file"),
     type = "character",
-    help = "path to output rds file to store processed sce object. Must end in .rds"
+    help = "path to output rds file to store processed sce object. Must have `.rds` extension."
   ),
   make_option(
     opt_str = c("--fry_tx2gene"),
@@ -72,9 +72,7 @@ tx2gene <- readr::read_tsv(opt$fry_tx2gene,
                            col_names = c("transcript", "gene", "transcript_type"))
 
 # select genes to use for model restriction 
-gene_ids <- tx2gene |>
-  dplyr::select(gene) |>
-  unique()
+gene_ids <- unique(tx2gene$gene)
 
 # Train models -----------------------------------------------------------------
 
