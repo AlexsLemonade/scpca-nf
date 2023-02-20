@@ -1,0 +1,116 @@
+---
+params:
+  integration_group: "example_group"
+  merged_sce: NULL
+  fastmnn_sce: NULL
+  harmony_sce: NULL
+  batch_column: "batch"
+
+title: "`r glue::glue('Integration report for {params$integration_group}')`"
+author: "CCDL"
+date: "`r params$date`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+---
+
+```{r setup, message = FALSE, echo = FALSE}
+# knitr options
+knitr::opts_chunk$set(
+  echo = FALSE
+)
+
+library(SingleCellExperiment)
+library(ggplot2)
+
+# Set default ggplot theme
+theme_set(theme_bw() + 
+          theme(plot.margin = margin(rep(20, 4))))
+```
+
+```{r}
+# check that input files are provided 
+if(is.null(params$merged_sce)){
+  stop("Must provide a path to a RDS file containing a merged SCE object.")
+}
+
+if(is.null(params$fastmnn_sce)){
+  stop("Must provide a path to a RDS file containing a SCE object post integration with fastMNN.")
+}
+
+if(is.null(params$harmony_sce)){
+  stop("Must provide a path to a RDS file containing a SCE object post integration with harmony.")
+}
+
+# define batch column 
+batch_column <- params$batch_column
+```
+
+
+```{r}
+integrated_sce_files <- list(fastmnn = params$fastmnn_sce,
+                             harmony = params$harmony_sce)
+
+# only load in the embeddings since we don't need to store the entire object 
+integrated_embeddings <- purrr::map(integrated_sce_files, readr::read_rds) |>
+  purrr::map(reducedDims) |> 
+  # select only those that have a method and then dimreduction name
+  purrr::map(~.x[grep("_PCA$|_UMAP$", names(.x))]) |>
+  # convert from SimpleList and then flatten
+  purrr::map(as.list) |> 
+  purrr::flatten()
+```
+
+
+```{r}
+# read in merged object
+merged_sce <- readr::read_rds(params$merged_sce)
+
+# get list of methods and dimreductions to be added
+methods <- c("fastmnn", "harmony")
+pca_names <- glue::glue("{methods}_PCA")
+umap_names <- glue::glue("{methods}_UMAP")
+dimred_names <- c(pca_names, umap_names)
+
+# add dimreductions to merged sce 
+for(name in dimred_names){
+  reducedDim(merged_sce, name) <- integrated_embeddings[[name]]
+}
+```
+
+UMAP showing batches before and after integration.
+
+```{r}
+# randomly shuffle cells prior to plotting
+col_order <- sample(ncol(merged_sce))
+shuffled_sce <- merged_sce[,col_order]
+
+# set plot colors 
+num_colors <- length(unique(sce_coldata[[batch_column]]))
+plot_colors <- rainbow(num_colors)    
+
+umap_plot_names <- c("UMAP", umap_names)
+
+batch_umaps <- purrr::map(umap_names, \(name){
+  scater::plotReducedDim(shuffled_sce,
+                         dimred = name,
+                         colour_by = batch_column,
+                         point_size = 0.1,
+                         point_alpha = 0.4) +
+    scale_color_manual(values = plot_colors, 
+                       name = "Batch ID") +
+    # relabel legend and resize dots
+    guides(color = guide_legend(override.aes = list(size = 3),
+                                label.theme = element_text(size = 10))) 
+})
+
+patchwork::wrap_plots(batch_umaps, ncol = 2,
+                      guides = "collect")
+```
+
+```{r}
+sessioninfo::session_info()
+```
+
