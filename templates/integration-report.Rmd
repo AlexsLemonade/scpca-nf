@@ -89,12 +89,12 @@ col_order <- sample(ncol(merged_sce))
 shuffled_sce <- merged_sce[,col_order]
 
 # set plot colors 
-num_colors <- length(unique(sce_coldata[[batch_column]]))
+num_colors <- length(unique(merged_sce[[batch_column]]))
 plot_colors <- rainbow(num_colors)    
 
 umap_plot_names <- c("UMAP", umap_names)
 
-batch_umaps <- purrr::map(umap_names, \(name){
+batch_umaps <- purrr::map(umap_plot_names, \(name){
   scater::plotReducedDim(shuffled_sce,
                          dimred = name,
                          colour_by = batch_column,
@@ -112,6 +112,7 @@ patchwork::wrap_plots(batch_umaps, ncol = 2,
 ```
 
 ```{r}
+# export single object with merged data and integrated embeddings 
 readr::write_rds(merged_sce, params$output_file)
 ```
 

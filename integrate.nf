@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 // integration specific parameters
 params.integration_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
 params.integration_group = "All"
-params.integration_template = "${projectDir}/bin/integration-report.Rmd"
+params.integration_template = "${projectDir}/templates/integration-report.Rmd"
 
 // parameter checks
 param_error = false
