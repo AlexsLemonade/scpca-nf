@@ -54,12 +54,13 @@ process merge_sce {
 // integrate with fastMNN
 process integrate_fastmnn {
   container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.checkpoints_dir}/integrated_sces/fastmnn"
   label 'mem_16'
   label 'cpus_4'
   input:
     tuple val(integration_group), path(merged_sce_file)
   output:
-    tuple val(integration_group), path(fastmnn_sce_file)
+    tuple val(integration_group), path(merged_sce_file), path(fastmnn_sce_file)
   script:
     fastmnn_sce_file = "${integration_group}_fastmnn.rds"
     """
@@ -80,11 +81,12 @@ process integrate_fastmnn {
 // integrate with fastMNN
 process integrate_harmony {
   container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.checkpoints_dir}/integrated_sces/harmony"
   label 'mem_16'
   input:
     tuple val(integration_group), path(merged_sce_file)
   output:
-    tuple val(integration_group), path(harmony_sce_file)
+    tuple val(integration_group), path(merged_sce_file), path(harmony_sce_file)
   script:
     harmony_sce_file = "${integration_group}_harmony.rds"
     """
@@ -99,6 +101,32 @@ process integrate_harmony {
     """
     touch ${harmony_sce_file}
     """
+}
+
+// create single object with merged and integrated results
+process integration_report {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.results_dir}/integration"
+  label 'mem_16'
+  input:
+    tuple val(integration_group), path(merged_sce_file), path(fastmnn_sce_file), path(harmony_sce_file)
+  output:
+    tuple path(integrated_sce), path(integration_report)
+  script:
+    report_template = "${projectDir}/bin/integration-report.Rmd"
+    integrated_sce = "${integration_group}.rds"
+    integration_report = "${integration_group}_summary_report.html"
+    """
+    Rscript -e "rmarkdown::render('${report_template}', \
+                                  output_file = '${integration_report}', \
+                                  params = list(integration_group = '${integration_group}', \
+                                                merged_sce = '${merged_sce_file}', \
+                                                fastmnn_sce = '${fastmnn_sce_file}', \
+                                                harmony_sce = '${harmony_sce_file}', \
+                                                output_file = '${integrated_sce}', \
+                                                batch_column = "library_id"))"
+    """
+
 }
 
 workflow {
@@ -148,5 +176,10 @@ workflow {
 
     // integrate using harmony
     integrate_harmony(merge_sce.out)
+
+    // join together by integration group and merged sce file
+    // result is a tuple of [ integration group, merged sce file, fastmnn sce file, harmony sce file ]
+    integrate_fastmnn.out.join(integrate_harmony.out, by: [0,1]) \
+      | integration_report
 }
 
