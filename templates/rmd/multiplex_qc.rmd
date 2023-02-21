@@ -1,0 +1,102 @@
+# Multiplexing Experiment Summary
+
+## Multiplexing Statistics
+
+```{r}
+# add rowData if missing
+if (is.null(rowData(multiplex_exp)$detected)){
+  multiplex_exp <- scuttle::addPerFeatureQCMetrics(multiplex_exp)
+}
+
+cell_hto_counts <- Matrix::colSums(counts(multiplex_exp))
+
+hto_information <- tibble::tibble(
+  "Number of HTOs assayed" = 
+    format(nrow(multiplex_exp), big.mark = ',', scientific = FALSE),
+  "Multiplex reads sequenced" = 
+    format(multiplex_meta$total_reads, big.mark = ',', scientific = FALSE),
+  "Percent multiplex reads mapped to ADTs" = 
+    paste0(round(multiplex_meta$mapped_reads/multiplex_meta$total_reads * 100, digits = 2), "%"),
+  "Percent of HTOs in cells" = 
+    paste0(round(sum(cell_hto_counts)/multiplex_meta$mapped_reads * 100, digits = 2), "%"),
+  "Percent of cells with HTOs" = 
+    paste0(round(sum(cell_hto_counts > 0)/length(cell_hto_counts) * 100, digits = 2), "%"),
+  "Median HTO UMIs per cell" = 
+    format(median(cell_hto_counts), big.mark = ',', scientific = FALSE)
+  )|>
+  t()
+
+knitr::kable(hto_information, align = 'r') |>
+  kableExtra::kable_styling(bootstrap_options = "striped",
+                            full_width = FALSE,
+                            position = "left") |>
+  kableExtra::column_spec(2, monospace = TRUE)
+```
+
+## Hashtag Oligos (HTOs) Statistics
+
+```{r}
+hto_tags <- as.data.frame(rowData(multiplex_exp)) |>
+  tibble::rownames_to_column("Hashtag Oligo (HTO)") |>
+  arrange(desc(mean)) |>
+  select("Hashtag Oligo (HTO)",
+         "Mean UMI count per cell" = mean,
+         "Percent of cells detected" = detected)
+
+knitr::kable(hto_tags, digits = 2) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "condensed"),
+                            full_width = FALSE,
+                            position = "left",
+                            ) |>
+  kableExtra::column_spec(2:3, monospace = TRUE) 
+```
+
+## Demultiplexing Sample Calls 
+
+Demultiplexing was performed using both [DropletUtils::hashedDrops](https://rdrr.io/github/MarioniLab/DropletUtils/man/hashedDrops.html) and [Seurat::HTOdemux](https://rdrr.io/github/satijalab/seurat/man/HTODemux.html) only on the _filtered_ cells, using default parameters for each.
+
+For multiplex libraries where bulk RNA-seq data is available for the individual samples, we also performed demultiplexing analysis using genotype data following the methods described in [Weber _et al._ (2021)](https://doi.org/10.1093/gigascience/giab062). 
+The genetic demultiplexing results are reported under the `vireo` column in the below table.   
+
+**Note:** We have reported the demultiplexed sample calls for each of the above mentioned algorithms, but the multiplexed library has not been separated into individual samples. 
+
+```{r, results='asis'}
+# grab columns that have demuxing results as not all methods could be present
+# e.g. vireo is only used if a matching bulk RNA seq library is there, 
+# otherwise those calls will not be present
+demux_methods <- c("hashedDrops_sampleid", "HTODemux_sampleid", "vireo_sampleid")
+demux_columns <- colnames(colData(filtered_sce)) %in% demux_methods
+
+if(any(demux_columns)){
+ # create a table summarizing demuxing calls for each method used 
+  demux_calls <- as.data.frame(colData(filtered_sce)[, demux_columns]) |>
+    # remove _sampleid at the end of the column names
+    dplyr::rename_with(~stringr::str_remove(., "_sampleid")) |>
+    tidyr::pivot_longer(cols = everything(),
+                        names_to = "demux_method",
+                        values_to = "Sample") |>
+    dplyr::count(Sample, demux_method) |>
+    tidyr::pivot_wider(names_from = demux_method,
+                       values_from = n)
+  
+  
+  knitr::kable(demux_calls, digits = 2) |>
+    kableExtra::kable_styling(bootstrap_options = c("striped", "condensed"),
+                              full_width = FALSE,
+                              position = "left",
+    ) |>
+    kableExtra::column_spec(2:ncol(demux_calls), monospace = TRUE)  
+}else{
+  glue::glue("
+    <div class=\"alert alert-info\">
+    
+    Demultiplexing was not applied to this library using any of the above mentioned methods.
+    Sample calls cannot be reported.
+    
+    </div>
+  ")
+}
+
+```
+
+

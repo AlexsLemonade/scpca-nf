@@ -179,8 +179,8 @@ workflow {
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
   all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
-  post_process_sce(all_sce_ch) \
-    | sce_qc_report
+  post_process_sce(all_sce_ch)
+  sce_qc_report(post_process_sce.out, file("${projectDir}/templates/rmd", type: 'dir'))
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)

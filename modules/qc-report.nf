@@ -7,15 +7,18 @@ process sce_qc_report{
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+        path template_dir
     output:
         tuple val(meta), path(qc_report), path(metadata_json)
     script:
         qc_report = "${meta.library_id}_qc.html"
+        template_file = "${template_dir}/qc_report.rmd"
         metadata_json = "${meta.library_id}_metadata.json"
         workflow_url = workflow.repository ?: workflow.manifest.homePage
         workflow_version = workflow.revision ?: workflow.manifest.version
         """
         sce_qc_report.R \
+          --report_template "${template_file}" \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           --unfiltered_sce ${unfiltered_rds} \

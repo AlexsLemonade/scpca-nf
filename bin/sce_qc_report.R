@@ -9,6 +9,12 @@ suppressPackageStartupMessages(library(SingleCellExperiment))
 # set up arguments
 option_list <- list(
   make_option(
+    opt_str = c("--report_template"),
+    type = "character",
+    default = NULL,
+    help = "path to rmd template file for report"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     type = "character",
     help = "path to rds file with unfiltered sce object"
@@ -93,7 +99,12 @@ opt <- parse_args(OptionParser(option_list = option_list))
 if(is.null(opt$library_id)){
   stop("A `library_id` is required.")
 }
-# check that input files exist
+
+# check that template file, if given, exists
+if(!is.null(opt$report_template) && !file.exists(opt$report_template)){
+  stop("Specified `report_template` could not be found.")
+}
+
 if(is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)){
   stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
 }
@@ -150,6 +161,7 @@ has_cellhash <- "cellhash" %in% alt_expts
 
 
 metadata_list <- list(
+  report_template = opt$report_template,
   library_id = opt$library_id,
   sample_id = opt$sample_id,
   technology = opt$technology,
