@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 // integration specific parameters
 params.integration_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
 params.integration_group = "All"
+params.integration_template = "${projectDir}/bin/integration-report.Rmd"
 
 // parameter checks
 param_error = false
@@ -110,10 +111,10 @@ process integration_report {
   label 'mem_16'
   input:
     tuple val(integration_group), path(merged_sce_file), path(fastmnn_sce_file), path(harmony_sce_file)
+    path(report_template)
   output:
     tuple path(integrated_sce), path(integration_report)
   script:
-    report_template = "${projectDir}/bin/integration-report.Rmd"
     integrated_sce = "${integration_group}.rds"
     integration_report = "${integration_group}_summary_report.html"
     """
@@ -181,6 +182,6 @@ workflow {
     // result is a tuple of [ integration group, merged sce file, fastmnn sce file, harmony sce file ]
     all_integrated_ch = merge_sce.out.combine(integrate_fastmnn.out, by: 0)
       .combine(integrate_harmony.out, by: 0)
-    integration_report(all_integrated_ch)
+    integration_report(all_integrated_ch, params.integration_template)
 }
 
