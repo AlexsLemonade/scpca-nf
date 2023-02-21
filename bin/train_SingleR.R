@@ -54,7 +54,7 @@ set.seed(opt$random_seed)
 
 # check that input files exist
 if(!file.exists(opt$ref_file)){
-  stop("Missing input file with cell type reference.")
+  stop("Missing input file with cell type reference (`ref_file`).")
 }
 
 if(!file.exists(opt$fry_tx2gene)){
