@@ -60,7 +60,7 @@ process integrate_fastmnn {
   input:
     tuple val(integration_group), path(merged_sce_file)
   output:
-    tuple val(integration_group), path(merged_sce_file), path(fastmnn_sce_file)
+    tuple val(integration_group), path(fastmnn_sce_file)
   script:
     fastmnn_sce_file = "${integration_group}_fastmnn.rds"
     """
@@ -86,7 +86,7 @@ process integrate_harmony {
   input:
     tuple val(integration_group), path(merged_sce_file)
   output:
-    tuple val(integration_group), path(merged_sce_file), path(harmony_sce_file)
+    tuple val(integration_group), path(harmony_sce_file)
   script:
     harmony_sce_file = "${integration_group}_harmony.rds"
     """
@@ -103,7 +103,7 @@ process integrate_harmony {
     """
 }
 
-// create single object with merged and integrated results
+// create integrated report and single object
 process integration_report {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.results_dir}/integration"
@@ -179,7 +179,8 @@ workflow {
 
     // join together by integration group and merged sce file
     // result is a tuple of [ integration group, merged sce file, fastmnn sce file, harmony sce file ]
-    integrate_fastmnn.out.join(integrate_harmony.out, by: [0,1]) \
-      | integration_report
+    all_integrated_ch = merge_sce.out.combine(integrate_fastmnn.out, by: 0)
+      .combine(integrate_harmony.out, by: 0)
+    integration_report(all_integrated_ch)
 }
 
