@@ -24,7 +24,7 @@ option_list <- list(
   make_option(
     opt_str = c("--output_file"),
     type = "character",
-    help = "path to output rds file to store trained model for reference dataset"
+    help = "path to output rds file to store trained model for reference dataset."
   ),
   make_option(
     opt_str = c("--fry_tx2gene"),
@@ -41,13 +41,11 @@ option_list <- list(
     opt_str = c("-t", "--threads"),
     type = "integer",
     default = 1,
-    help = "Number of multiprocessing threads to use"
+    help = "Number of multiprocessing threads to use."
   )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
-
-opt$ref_file <- "/Users/allyhawkins/Documents/ALSF/git_repos/ScPCA-admin/sample_info/celltype_annotation/references/celldex-blueprint_encode.rds"
 
 # Set up -----------------------------------------------------------------------
 
@@ -84,6 +82,11 @@ tx2gene <- readr::read_tsv(opt$fry_tx2gene,
 
 # select genes to use for model restriction
 gene_ids <- unique(tx2gene$gene)
+
+# check that genes aren't empty
+if (length(gene_ids) == 0){
+  stop("Provided tx2gene tsv file does not contain any genes.")
+}
 
 # Train models -----------------------------------------------------------------
 
