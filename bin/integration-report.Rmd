@@ -4,6 +4,7 @@ params:
   merged_sce: NULL
   fastmnn_sce: NULL
   harmony_sce: NULL
+  output_file: "example_group.rds"
   batch_column: "batch"
 
 title: "`r glue::glue('Integration report for {params$integration_group}')`"
@@ -108,6 +109,10 @@ batch_umaps <- purrr::map(umap_names, \(name){
 
 patchwork::wrap_plots(batch_umaps, ncol = 2,
                       guides = "collect")
+```
+
+```{r}
+readr::write_rds(merged_sce, params$output_file)
 ```
 
 ```{r}
