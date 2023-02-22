@@ -98,7 +98,7 @@ models <- label_cols |>
  purrr::map(\(label_col) {
    SingleR::trainSingleR(
      ref_data,
-     labels = ref_data[[label_col]],
+     labels = colData(ref_data)[, label],
      genes = "de",
      # only use genes found in index
      restrict = gene_ids,
