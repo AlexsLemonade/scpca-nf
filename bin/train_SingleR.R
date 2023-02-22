@@ -19,7 +19,8 @@ option_list <- list(
     opt_str = c("--ref_file"),
     type = "character",
     help = "path to rds file with reference dataset to use for cell type annotation.
-      These reference datasets must contain annotations labeld with `label.fine` and `label.main`."
+      These reference datasets must contain annotations labeld with 
+      `label.main`, `label.fine`, and `label.ont`."
   ),
   make_option(
     opt_str = c("--output_file"),
@@ -72,8 +73,8 @@ if(opt$threads > 1){
 ref_data <- readr::read_rds(opt$ref_file)
 
 # check that ref data contains correct labels
-if(!all(c("label.main", "label.fine") %in% colnames(colData(ref_data)))){
-  stop("Reference dataset must contain `label.main` and `label.fine` in `colData`.")
+if(!all(c("label.main", "label.fine", "label.ont") %in% colnames(colData(ref_data)))){
+  stop("Reference dataset must contain `label.main`, `label.fine`, and `label.ont` in `colData`.")
 }
 
 # read in tx2gene
@@ -90,29 +91,18 @@ if (length(gene_ids) == 0){
 
 # Train models -----------------------------------------------------------------
 
-# train using fine labels
-fine_model <- SingleR::trainSingleR(
-  ref_data,
-  labels = ref_data$label.fine,
-  genes = "de",
-  # only use genes found in index
-  restrict = gene_ids,
-  BPPARAM = bp_param
-)
+label_cols <- c("label.main", "label.fine", "label.ont")
+names(label_cols) <- label_cols
 
-# train using main labels
-main_model <- SingleR::trainSingleR(
-  ref_data,
-  labels = ref_data$label.main,
-  genes = "de",
-  # only use genes found in index
-  restrict = gene_ids,
-  BPPARAM = bp_param
-)
-
-# combine into one object
-all_models <- list(fine = fine_model,
-                   main = main_model)
+models <- label_cols |>
+ purrr::map(\(labels) {SingleR::trainSingleR(
+                   ref_data,
+                   labels = ref_data[[labels]],
+                   genes = "de",
+                   # only use genes found in index
+                   restrict = gene_ids,
+                   BPPARAM = bp_param
+                 )})
 
 # export models
-readr::write_rds(all_models, opt$output_file)
+readr::write_rds(models, opt$output_file)
