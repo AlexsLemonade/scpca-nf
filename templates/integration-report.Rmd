@@ -58,6 +58,7 @@ shuffled_sce <- integrated_sce[,col_order]
 
 # set plot colors 
 num_colors <- length(unique(integrated_sce[[batch_column]]))
+plot_colors <- rainbow(n = num_colors)
 
 # list of batch umaps for all pre/post integration
 batch_umaps <- purrr::map(umap_plot_names, \(name){
@@ -67,7 +68,7 @@ batch_umaps <- purrr::map(umap_plot_names, \(name){
                          point_size = 0.1,
                          point_alpha = 0.4) +
     scale_color_manual(values = plot_colors, 
-                       name = "Batch ID") +
+                       name = batch_column) +
     # relabel legend and resize dots
     guides(color = guide_legend(override.aes = list(size = 3),
                                 label.theme = element_text(size = 10))) 
