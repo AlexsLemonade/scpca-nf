@@ -82,7 +82,7 @@ process integrate_fastmnn {
 // integrate with fastMNN
 process integrate_harmony {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/integration"
+  publishDir "${params.results_dir}/integration/${integration_group}"
   label 'mem_16'
   input:
     tuple val(integration_group), path(merged_sce_file)
@@ -113,7 +113,7 @@ process integration_report {
     tuple val(integration_group), path(integrated_sce_file)
     path(report_template)
   output:
-    tuple path(integrated_sce), path(integration_report)
+    path(integration_report)
   script:
     integration_report = "${integration_group}_summary_report.html"
     """
