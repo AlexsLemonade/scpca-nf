@@ -131,5 +131,13 @@ integrated_sce <- integrated_sce |>
   scater::runUMAP(dimred = glue::glue("{opt$method}_PCA"),
                   name = glue::glue("{opt$method}_UMAP"))
 
+# add method to integrated sce
+existing_methods <- metadata(integrated_sce)$integration_methods
+if(!is.null(existing_methods)){
+  metadata(integrated_sce)$integration_methods <- c(existing_methods, opt$method)
+} else {
+  metadata(integrated_sce)$integration_methods <- opt$method
+}
+
 # write out integrated object with merged data + corrected PCA and UMAP
 readr::write_rds(integrated_sce, opt$output_sce_file)
