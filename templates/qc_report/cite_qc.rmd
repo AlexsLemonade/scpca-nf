@@ -1,0 +1,53 @@
+# CITE-seq Experiment Summary
+
+## CITE-seq Statistics
+
+```{r}
+# add rowData if missing
+if (is.null(rowData(cite_exp)$detected)){
+  cite_exp <- scuttle::addPerFeatureQCMetrics(cite_exp)
+}
+
+cell_adt_counts <- Matrix::colSums(counts(cite_exp))
+
+cite_information <- tibble::tibble(
+  "Number of ADTs assayed" = 
+    format(nrow(cite_exp), big.mark = ',', scientific = FALSE),
+  "CITE-seq reads sequenced" = 
+    format(cite_meta$total_reads, big.mark = ',', scientific = FALSE),
+  "Percent CITE-seq reads mapped to ADTs" = 
+    paste0(round(cite_meta$mapped_reads/cite_meta$total_reads * 100, digits = 2), "%"),
+  "Percent of ADTs in cells" = 
+    paste0(round(sum(cell_adt_counts)/cite_meta$mapped_reads * 100, digits = 2), "%"),
+  "Percent of cells with ADTs" = 
+    paste0(round(sum(cell_adt_counts > 0)/length(cell_adt_counts) * 100, digits = 2), "%"),
+  "Median ADT UMIs per cell" = 
+    format(median(cell_adt_counts), big.mark = ',', scientific = FALSE)
+  )|>
+  t()
+
+knitr::kable(cite_information, align = 'r') |>
+  kableExtra::kable_styling(bootstrap_options = "striped",
+                            full_width = FALSE,
+                            position = "left") |>
+  kableExtra::column_spec(2, monospace = TRUE)
+```
+
+## Antibody Derived Tag Statistics 
+```{r}
+antibody_tags <- as.data.frame(rowData(cite_exp)) |>
+  tibble::rownames_to_column("Antibody") |>
+  arrange(desc(mean)) |>
+  select("Antibody",
+         "Mean UMI count per cell" = mean,
+         "Percent of cells detected" = detected)
+
+knitr::kable(antibody_tags, digits = 2) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "condensed"),
+                            full_width = FALSE,
+                            position = "left",
+                            ) |>
+  kableExtra::column_spec(2:3, monospace = TRUE) 
+  
+```
+
