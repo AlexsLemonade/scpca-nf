@@ -4,7 +4,9 @@ nextflow.enable.dsl=2
 // integration specific parameters
 params.integration_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
 params.integration_group = "All"
-params.integration_template = "${projectDir}/templates/integration-report.Rmd"
+
+// define path to integration template
+integration_template = "${projectDir}/templates/integration-report.Rmd"
 
 // parameter checks
 param_error = false
@@ -55,7 +57,6 @@ process merge_sce {
 // integrate with fastMNN
 process integrate_fastmnn {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/integration"
   label 'mem_16'
   label 'cpus_4'
   input:
@@ -121,7 +122,7 @@ process integration_report {
                                   output_file = '${integration_report}', \
                                   params = list(integration_group = '${integration_group}', \
                                                 integrated_sce = '${integrated_sce_file}', \
-                                                batch_column = '"library_id"'))"
+                                                batch_column = 'library_id'))"
     """
 
 }
@@ -175,6 +176,6 @@ workflow {
     integrate_harmony(integrate_fastmnn.out)
 
     // generate integration report
-    integration_report(integrate_harmony.out, file(params.integration_template))
+    integration_report(integrate_harmony.out, file(integration_template))
 }
 

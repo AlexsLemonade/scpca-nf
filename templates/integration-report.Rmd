@@ -2,7 +2,6 @@
 params:
   integration_group: "example_group"
   integrated_sce: NULL
-  #method: !r as.vector(c("fastMNN", "harmony"))
   batch_column: "batch"
 
 title: "`r glue::glue('Integration report for {params$integration_group}')`"
@@ -45,13 +44,13 @@ batch_column <- params$batch_column
 integrated_sce <- readr::read_rds(params$integrated_sce)
 
 # get list of methods and UMAPs to grab for plotting later
-methods <- c("fastMNN", "harmony")
+methods <- metadata(integrated_sce)$integration_methods
 umap_plot_names <- c("UMAP", glue::glue("{methods}_UMAP"))
 ```
 
 UMAP showing batches before and after integration.
 
-```{r}
+```{r, message=FALSE}
 # randomly shuffle cells prior to plotting
 col_order <- sample(ncol(integrated_sce))
 shuffled_sce <- integrated_sce[,col_order]
