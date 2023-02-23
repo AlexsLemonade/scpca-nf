@@ -98,7 +98,7 @@ process integrate_harmony {
       --seed ${params.seed}
     """
   stub:
-    integrated_sce_file = "${integration_group}_harmony.rds"
+    integrated_sce_file = "${integration_group}.rds"
     """
     touch ${integrated_sce_file}
     """
@@ -174,8 +174,7 @@ workflow {
     // integrate using harmony
     integrate_harmony(integrate_fastmnn.out)
 
-    // join together by integration group and merged sce file
-    // result is a tuple of [ integration group, merged sce file, fastmnn sce file, harmony sce file ]
-    integration_report(integrate_harmony.out, params.integration_template)
+    // generate integration report
+    integration_report(integrate_harmony.out, file(params.integration_template))
 }
 

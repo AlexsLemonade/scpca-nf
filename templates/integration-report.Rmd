@@ -78,7 +78,15 @@ patchwork::wrap_plots(batch_umaps, ncol = 2,
                       guides = "collect")
 ```
 
-```{r}
-sessioninfo::session_info()
+# Session Info
+<details>
+<summary>R session information</summary>
+```{r session_info}
+if (requireNamespace("sessioninfo", quietly = TRUE)) {
+  sessioninfo::session_info()
+} else {
+  sessionInfo()
+}
 ```
+</details>
 
