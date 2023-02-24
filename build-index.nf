@@ -132,6 +132,7 @@ process train_singler_models {
   label 'mem_16'
   input:
     tuple path(celltype_ref), val(ref_name)
+    path tx2gene
   output:
     path celltype_model
   script:
@@ -140,6 +141,7 @@ process train_singler_models {
     train_SingleR.R \
       --ref_file ${celltype_ref} \
       --output_file ${celltype_model} \
+      --fry_tx2gene ${tx2gene} \
       --seed ${params.seed} \
       --threads ${task.cpus}
 
@@ -168,5 +170,5 @@ workflow {
     ]}
 
   // train cell type references using SingleR
-  train_singler_models(celltype_refs_ch)
+  train_singler_models(celltype_refs_ch, params.t2g_3col_path)
 }
