@@ -125,13 +125,48 @@ process index_star{
     """
 }
 
+process train_singler_models {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.celltype_model_dir}"
+  label 'cpus_4'
+  label 'mem_16'
+  input:
+    tuple path(celltype_ref), val(ref_name)
+  output:
+    path celltype_model
+  script:
+    celltype_model = "${ref_name}_model.rds"
+    """
+    train_SingleR.R \
+      --ref_file ${celltype_ref} \
+      --output_file ${celltype_model} \
+      --seed ${params.seed} \
+      --threads ${task.cpus}
+
+    """
+
+
+}
+
 workflow {
   // generate splici and spliced cDNA reference fasta
-  generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
+  //generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
   // create index using reference fastas
-  salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
+  //salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
   // create cellranger index
-  cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  //cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
   // create star index
-  star_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  //star_index(params.ref_fasta, params.ref_gtf, params.assembly)
+
+
+  // create channel of cell type ref files and names
+  celltype_refs_ch = Channel.fromPath(params.celltype_refs_metafile)
+    .splitCsv(header: true, sep: '\t')
+    .map{[
+      celltype_ref_file = "${params.celltype_ref_dir}/${it.filename}",
+      ref_name = it.reference
+    ]}
+
+  // train cell type references using SingleR
+  train_singler_models(celltype_refs_ch)
 }
