@@ -19,7 +19,7 @@ option_list <- list(
     opt_str = c("--ref_file"),
     type = "character",
     help = "path to rds file with reference dataset to use for cell type annotation.
-      These reference datasets must contain annotations labeld with 
+      These reference datasets must contain annotations labeled with
       `label.main`, `label.fine`, and `label.ont`."
   ),
   make_option(
@@ -98,11 +98,11 @@ models <- label_cols |>
  purrr::map(\(label_col) {
    SingleR::trainSingleR(
      ref_data,
-     labels = colData(ref_data)[, label],
+     labels = colData(ref_data)[, label_col],
      genes = "de",
      # only use genes found in index
      restrict = gene_ids,
-     BPPARAM = bp_param    
+     BPPARAM = bp_param
    )})
 
 # export models
