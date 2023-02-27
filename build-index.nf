@@ -152,13 +152,13 @@ process train_singler_models {
 
 workflow {
   // generate splici and spliced cDNA reference fasta
-  //generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
+  generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
   // create index using reference fastas
-  //salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
+  salmon_index(generate_reference.out.fasta_files, params.ref_fasta)
   // create cellranger index
-  //cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
   // create star index
-  //star_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  star_index(params.ref_fasta, params.ref_gtf, params.assembly)
 
 
   // create channel of cell type ref files and names
