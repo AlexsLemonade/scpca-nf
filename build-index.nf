@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+include { build_celltype_ref } from './modules/build-celltype-ref.nf'
+
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference{
   container params.SCPCATOOLS_CONTAINER
@@ -125,30 +127,6 @@ process index_star{
     """
 }
 
-process train_singler_models {
-  container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.celltype_model_dir}"
-  label 'cpus_4'
-  label 'mem_16'
-  input:
-    tuple path(celltype_ref), val(ref_name)
-    path tx2gene
-  output:
-    path celltype_model
-  script:
-    celltype_model = "${ref_name}_model.rds"
-    """
-    train_SingleR.R \
-      --ref_file ${celltype_ref} \
-      --output_file ${celltype_model} \
-      --fry_tx2gene ${tx2gene} \
-      --seed ${params.seed} \
-      --threads ${task.cpus}
-    """
-
-
-}
-
 workflow {
   // generate splici and spliced cDNA reference fasta
   generate_reference(params.ref_fasta, params.ref_gtf, params.assembly)
@@ -157,17 +135,11 @@ workflow {
   // create cellranger index
   cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
   // create star index
-  star_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  index_star(params.ref_fasta, params.ref_gtf, params.assembly)
 
-
-  // create channel of cell type ref files and names
+  // build celltype references
   celltype_refs_ch = Channel.fromPath(params.celltype_refs_metafile)
-    .splitCsv(header: true, sep: '\t')
-    .map{[
-      celltype_ref_file = "${params.celltype_ref_dir}/${it.filename}",
-      ref_name = it.reference
-    ]}
+        .splitCsv(header: true, sep: '\t')
 
-  // train cell type references using SingleR
-  train_singler_models(celltype_refs_ch, params.t2g_3col_path)
+  build_celltype_ref(celltype_refs_ch)
 }
