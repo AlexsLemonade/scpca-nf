@@ -144,7 +144,6 @@ process train_singler_models {
       --fry_tx2gene ${tx2gene} \
       --seed ${params.seed} \
       --threads ${task.cpus}
-
     """
 
 
