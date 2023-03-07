@@ -138,8 +138,5 @@ workflow {
   index_star(params.ref_fasta, params.ref_gtf, params.assembly)
 
   // build celltype references
-  celltype_refs_ch = Channel.fromPath(params.celltype_refs_metafile)
-        .splitCsv(header: true, sep: '\t')
-
-  build_celltype_ref(celltype_refs_ch)
+  build_celltype_ref()
 }

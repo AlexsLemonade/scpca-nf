@@ -24,16 +24,19 @@ process train_singler_models {
 }
 
 workflow build_celltype_ref {
-  take: celltype_refs_file
 
-  main:
-    // create channel of cell type ref files and names
-    celltype_refs_ch = celltype_refs_file
-        .map{[
-        celltype_ref_file = "${params.celltype_ref_dir}/${it.filename}",
-        ref_name = it.reference
-        ]}
+  // create channel of cell type ref files and names
+  celltype_refs_ch = Channel.fromPath(params.celltype_refs_metafile)
+    .splitCsv(header: true, sep: '\t')
+    .map{[
+      celltype_ref_file = "${params.celltype_ref_dir}/${it.filename}",
+      ref_name = it.reference
+      ]}
 
-    // train cell type references using SingleR
-    train_singler_models(celltype_refs_ch, params.t2g_3col_path)
+  // train cell type references using SingleR
+  train_singler_models(celltype_refs_ch, params.t2g_3col_path)
+}
+
+workflow {
+  build_celltype_ref()
 }
