@@ -37,6 +37,7 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
 
@@ -46,6 +47,11 @@ param_error = false
 
 if (!file(params.run_metafile).exists()) {
   log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
+  param_error = true
+}
+
+if (!file(params.project_celltype_metafile).exists()) {
+  log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
   param_error = true
 }
 
@@ -182,11 +188,23 @@ workflow {
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 
-  // **** Generate QC reports ****
+  // **** Post processing and generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
   all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
+
+  // annotate cell types
+  // create a channel with just meta and processed rds file to use as input to cell type annotation
+  celltype_ch = post_process_sce.out
+    .map{[
+      it[0], // meta
+      it[3] // processed rds
+    ]}
+
+  annotate_celltypes(celltype_ch)
+
+  // generate QC reports
   sce_qc_report(post_process_sce.out, report_template_tuple)
 
    // **** Process Spatial Transcriptomics data ****
