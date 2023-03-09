@@ -10,11 +10,12 @@ process classify_singleR {
         tuple val(meta), path(annotated_rds)
     script:
       annotated_rds = "${meta.library_id}_annotated.rds"
+      singler_list = singler_models in List ? singler_models.join(',') : singler_models
       """
       classify_SingleR.R \
         --input_sce_file ${processed_rds} \
         --output_sce_file ${annotated_rds} \
-        --singler_models ${singler_models} \
+        --singler_models ${singler_list} \
         --seed ${params.seed} \
         --threads ${task.cpus}
 

@@ -26,7 +26,7 @@ option_list <- list(
     help = "list of models generated for use with SingleR"
   ),
   make_option(
-    opt_str = c("-seed"),
+    opt_str = c("--seed"),
     type = "integer",
     help = "A random seed for reproducibility."
   ),
@@ -50,8 +50,8 @@ if(!file.exists(opt$input_sce_file)){
   stop("Missing input SCE file")
 }
 
-# check that references all exist 
-model_files <- opt$singler_models
+# check that references all exist
+model_files <- unlist(stringr::str_split(opt$singler_models, ","))
 if(!any(file.exists(model_files))){
   missing_files <- model_files[!which(file.exists(model_files))]
   glue::glue("
@@ -59,7 +59,7 @@ if(!any(file.exists(model_files))){
              ")
   stop("Please make sure that all provided SingleR models exist.")
 }
-  
+
 # set up multiprocessing params
 if(opt$threads > 1){
   bp_param = BiocParallel::MulticoreParam(opt$threads)
@@ -75,31 +75,31 @@ model_names <- stringr::str_remove(basename(model_files), "_model.rds")
 names(model_files) <- model_names
 model_list <- purrr::map(model_files, readr::read_rds) |>
   # make sure that the labels have label type before reference dataset name
-  purrr::map2(model_names, 
+  purrr::map2(model_names,
               \(model, name){
     names(model) <- glue::glue("{names(model)}-{name}")
     model
-  }) |> 
+  }) |>
   unname() |> # remove existing package names
   unlist() # need to collapse into one list of all models
 
 # SingleR classify -------------------------------------------------------------
 
-# run singleR for all provided models 
+# run singleR for all provided models
 all_singler_results <- purrr::map(model_list,
                                   \(model) SingleR::classifySingleR(
                                     sce,
                                     model,
                                     fine.tune = TRUE,
                                     BPPARAM = bp_param
-                                  )) |> 
+                                  )) |>
   purrr::set_names(names(model_list))
 
 # Annotate sce -----------------------------------------------------------------
 
-# create a dataframe with a single column of annotations for each model used 
-all_annotations_df <- purrr::map(all_singler_results, 
-                                 \(result){result$pruned.labels}) |> 
+# create a dataframe with a single column of annotations for each model used
+all_annotations_df <- purrr::map(all_singler_results,
+                                 \(result){result$pruned.labels}) |>
   dplyr::bind_cols() |>
   dplyr::mutate(barcode = colnames(sce))
 
@@ -109,8 +109,8 @@ coldata_df <- as.data.frame(colData(sce)) |>
   dplyr::left_join(all_annotations_df)
 
 # add coldata with annotations back to sce
-colData(sce) <- DataFrame(coldata_df, 
-                          row.names = coldata_df$barcode, 
+colData(sce) <- DataFrame(coldata_df,
+                          row.names = coldata_df$barcode,
                           # prevent replacing "-" in annotation columns
                           check.names = FALSE)
 
