@@ -123,5 +123,7 @@ metadata(sce)$singler_delta <- purrr::map(all_singler_results,
 
 
 # export sce with annotations added
-readr::write_rds(sce, opt$output_sce_file)
+readr::write_rds(sce,
+                 opt$output_sce_file,
+                 compress = 'gz')
 
