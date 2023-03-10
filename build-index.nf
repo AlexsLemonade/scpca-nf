@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+include { build_celltype_ref } from './build-celltype-ref.nf'
+
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference{
   container params.SCPCATOOLS_CONTAINER
@@ -133,5 +135,8 @@ workflow {
   // create cellranger index
   cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
   // create star index
-  star_index(params.ref_fasta, params.ref_gtf, params.assembly)
+  index_star(params.ref_fasta, params.ref_gtf, params.assembly)
+
+  // build celltype references
+  build_celltype_ref()
 }
