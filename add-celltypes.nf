@@ -52,8 +52,8 @@ workflow {
             }
     // tuple of meta, processed rds file to use as input to cell type annotation
     .map{meta -> tuple(meta,
-                        file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds")
-                        )}
+                       file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds")
+                       )}
 
     annotate_celltypes(processed_sce_ch)
 }

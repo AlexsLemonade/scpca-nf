@@ -34,16 +34,16 @@ workflow annotate_celltypes {
           project_id = it.scpca_project_id,
           singler_model = "${params.celltype_model_dir}/${it.celltype_ref_name}_model.rds"
         ]}
+        .groupTuple(by: 0) // group by project id
 
       // create channel with grouped meta, processed sce object, and all references to use
       grouped_celltype_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
-        .groupTuple(by: 0) // group by meta
         .map{[
           it[0], // meta
-          it[1][0], // processed rds
+          it[1], // processed rds
           it[2] // tuple of reference models
         ]}
 
