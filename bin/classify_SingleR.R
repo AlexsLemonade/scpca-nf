@@ -23,7 +23,9 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_models"),
     type = "character",
-    help = "list of models generated for use with SingleR"
+    help = "list of models generated for use with SingleR. Each input file contains 
+      a list of models generated from a single reference, one each for each label type:
+      `label.main`, `label.fine`, and `label.ont`."
   ),
   make_option(
     opt_str = c("--seed"),
@@ -70,18 +72,22 @@ if(opt$threads > 1){
 # read in input rds file
 sce <- readr::read_rds(opt$input_sce_file)
 
-# read in references as a list
+# read in references as a list of lists
+# each file contains a named list of models generated using the same reference dataset
+# but unique labels in the reference dataset
 model_names <- stringr::str_remove(basename(model_files), "_model.rds")
 names(model_files) <- model_names
 model_list <- purrr::map(model_files, readr::read_rds) |>
-  # make sure that the labels have label type before reference dataset name
-  purrr::map2(model_names,
-              \(model, name){
+  # ensure we have label type before reference name
+  # example: label.main-HumanPrimaryCellAtlasData
+  # where `label.main` is the name of the model stored in the file and
+  # `HumanPrimaryCellAtlasData` is the name of the reference used for each file containing a list of models
+  purrr::imap(\(model, name){
                 names(model) <- glue::glue("{names(model)}-{name}")
                 model
               }) |>
-  unname() |> # remove existing package names
-  unlist() # need to collapse into one list of all models
+  unname() |> # remove existing reference names from list
+  unlist() # need to collapse into one list of all models from all reference + label type combinations
 
 # SingleR classify -------------------------------------------------------------
 
