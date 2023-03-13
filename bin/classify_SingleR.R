@@ -52,10 +52,10 @@ if(!file.exists(opt$input_sce_file)){
 
 # check that references all exist
 model_files <- unlist(stringr::str_split(opt$singler_models, ","))
-if(!any(file.exists(model_files))){
-  missing_files <- model_files[!which(file.exists(model_files))]
+if(!all(file.exists(model_files))){
+  missing_files <- model_files[which(!file.exists(model_files))]
   glue::glue("
-             Missing model file: {missing_files}
+             Missing model file(s): {missing_files}
              ")
   stop("Please make sure that all provided SingleR models exist.")
 }
@@ -77,30 +77,28 @@ model_list <- purrr::map(model_files, readr::read_rds) |>
   # make sure that the labels have label type before reference dataset name
   purrr::map2(model_names,
               \(model, name){
-    names(model) <- glue::glue("{names(model)}-{name}")
-    model
-  }) |>
+                names(model) <- glue::glue("{names(model)}-{name}")
+                model
+              }) |>
   unname() |> # remove existing package names
   unlist() # need to collapse into one list of all models
 
 # SingleR classify -------------------------------------------------------------
 
+# create a partial function for mapping easily
+classify_sce <- purrr::partial(SingleR::classifySingleR, 
+                               test = sce, 
+                               fine.tune=TRUE, 
+                               BPPARAM = bp_param)
 # run singleR for all provided models
-all_singler_results <- purrr::map(model_list,
-                                  \(model) SingleR::classifySingleR(
-                                    sce,
-                                    model,
-                                    fine.tune = TRUE,
-                                    BPPARAM = bp_param
-                                  )) |>
-  purrr::set_names(names(model_list))
+all_singler_results <- model_list |>
+    purrr::map(classify_sce)
 
 # Annotate sce -----------------------------------------------------------------
 
 # create a dataframe with a single column of annotations for each model used
-all_annotations_df <- purrr::map(all_singler_results,
-                                 \(result){result$pruned.labels}) |>
-  dplyr::bind_cols() |>
+all_annotations_df <- all_singler_results |>
+  purrr::map_dfc(\(result) result$pruned.labels ) |>
   dplyr::mutate(barcode = colnames(sce))
 
 # extract coldata from sce object to join with annotations
