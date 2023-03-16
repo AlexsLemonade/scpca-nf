@@ -82,12 +82,11 @@ model_list <- purrr::map(model_files, readr::read_rds) |>
   # example: label.main-HumanPrimaryCellAtlasData
   # where `label.main` is the name of the model stored in the file and
   # `HumanPrimaryCellAtlasData` is the name of the reference used for each file containing a list of models
-  purrr::imap(\(model, name){
-                names(model) <- glue::glue("{names(model)}-{name}")
-                model
+  purrr::imap(\(model_list, ref_name){
+                names(model_list) <- glue::glue("{names(model_list)}-{ref_name}")
+                model_list
               }) |>
-  unname() |> # remove existing reference names from list
-  unlist() # need to collapse into one list of all models from all reference + label type combinations
+  purrr::flatten() 
 
 # SingleR classify -------------------------------------------------------------
 
@@ -105,25 +104,12 @@ all_singler_results <- model_list |>
 # create a dataframe with a single column of annotations for each model used
 all_annotations_df <- all_singler_results |>
   purrr::map_dfc(\(result) result$pruned.labels ) |>
-  dplyr::mutate(barcode = colnames(sce))
+  DataFrame(check.names = FALSE) # prevent replacing "-" in annotation columns
 
-# extract coldata from sce object to join with annotations
-coldata_df <- as.data.frame(colData(sce)) |>
-  tibble::rownames_to_column("barcode") |>
-  dplyr::left_join(all_annotations_df)
+colData(sce) <- cbind(colData(sce), all_annotations_df)
 
-# add coldata with annotations back to sce
-colData(sce) <- DataFrame(coldata_df,
-                          row.names = coldata_df$barcode,
-                          # prevent replacing "-" in annotation columns
-                          check.names = FALSE)
-
-# add in scores and delta to metadata of sce object
-metadata(sce)$singler_score <- purrr::map(all_singler_results,
-                                          \(result){result$scores})
-
-metadata(sce)$singler_delta <- purrr::map(all_singler_results,
-                                          \(result) {result$delta.next})
+# store results in metadata
+metadata(sce)$singler_results <- all_singler_results
 
 
 # export sce with annotations added
