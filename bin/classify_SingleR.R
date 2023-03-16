@@ -79,11 +79,11 @@ model_names <- stringr::str_remove(basename(model_files), "_model.rds")
 names(model_files) <- model_names
 model_list <- purrr::map(model_files, readr::read_rds) |>
   # ensure we have label type before reference name
-  # example: label.main-HumanPrimaryCellAtlasData
+  # example: label.main_HumanPrimaryCellAtlasData
   # where `label.main` is the name of the model stored in the file and
   # `HumanPrimaryCellAtlasData` is the name of the reference used for each file containing a list of models
   purrr::imap(\(model_list, ref_name){
-                names(model_list) <- glue::glue("{names(model_list)}-{ref_name}")
+                names(model_list) <- glue::glue("{names(model_list)}_{ref_name}")
                 model_list
               }) |>
   purrr::flatten() 
@@ -104,13 +104,12 @@ all_singler_results <- model_list |>
 # create a dataframe with a single column of annotations for each model used
 all_annotations_df <- all_singler_results |>
   purrr::map_dfc(\(result) result$pruned.labels ) |>
-  DataFrame(check.names = FALSE) # prevent replacing "-" in annotation columns
+  DataFrame()
 
 colData(sce) <- cbind(colData(sce), all_annotations_df)
 
 # store results in metadata
 metadata(sce)$singler_results <- all_singler_results
-
 
 # export sce with annotations added
 readr::write_rds(sce,
