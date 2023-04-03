@@ -29,9 +29,10 @@ workflow build_celltype_ref {
   celltype_refs_ch = Channel.fromPath(params.celltype_refs_metafile)
     .splitCsv(header: true, sep: '\t')
     .map{[
-      celltype_ref_file = "${params.celltype_ref_dir}/${it.filename}",
-      ref_name = it.reference
+      celltype_ref_file = "${params.celltype_ref_dir}/${it.celltype_singler_file}",
+      ref_name = it.celltype_ref_name
       ]}
+    .unique() // remove any duplicates
 
   // train cell type references using SingleR
   train_singler_models(celltype_refs_ch, params.t2g_3col_path)
