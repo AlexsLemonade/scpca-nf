@@ -45,7 +45,7 @@ option_list <- list(
     help = "Directory to write output transcript fasta files",
   ),
   make_option(
-    opt_str = c("-s", "--assembly"),
+    opt_str = c("-s", "--reference_name"),
     type = "character",
     help = "Prefix name containing organism and ensembl assembly version to be used for file naming"
   ),
@@ -61,17 +61,17 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # files with spliced + intron regions
-spliced_intron_fasta_file <- paste0(opt$assembly, ".spliced_intron.txome.fa.gz")
-spliced_intron_gtf_file <- paste0(opt$assembly, ".spliced_intron.txome.gtf")
-spliced_intron_tx2gene_file <- paste0(opt$assembly, ".spliced_intron.tx2gene.tsv")
-spliced_intron_tx2gene_3col_file <- paste0(opt$assembly, ".spliced_intron.tx2gene_3col.tsv")
+spliced_intron_fasta_file <- paste0(opt$reference_name, ".spliced_intron.txome.fa.gz")
+spliced_intron_gtf_file <- paste0(opt$reference_name, ".spliced_intron.txome.gtf")
+spliced_intron_tx2gene_file <- paste0(opt$reference_name, ".spliced_intron.tx2gene.tsv")
+spliced_intron_tx2gene_3col_file <- paste0(opt$reference_name, ".spliced_intron.tx2gene_3col.tsv")
 
-mito_file <- paste0(opt$assembly, ".mitogenes.txt")
+mito_file <- paste0(opt$reference_name, ".mitogenes.txt")
 
 # files with spliced cDNA only 
-spliced_cdna_fasta_file <- paste0(opt$assembly, ".spliced_cdna.txome.fa.gz")
-spliced_cdna_gtf_file <- paste0(opt$assembly, ".spliced_cdna.txome.gtf")
-spliced_cdna_tx2gene_file <- paste0(opt$assembly, ".spliced_cdna.tx2gene.tsv")
+spliced_cdna_fasta_file <- paste0(opt$reference_name, ".spliced_cdna.txome.fa.gz")
+spliced_cdna_gtf_file <- paste0(opt$reference_name, ".spliced_cdna.txome.gtf")
+spliced_cdna_tx2gene_file <- paste0(opt$reference_name, ".spliced_cdna.tx2gene.tsv")
 
 # make final output file names needed
 # splici output
@@ -164,7 +164,7 @@ readr::write_tsv(splici_tx2gene_df_3col, spliced_intron_tx2gene_3col, col_names 
 
 # reimport gtf to get list of mito genes 
 gtf <- rtracklayer::import(spliced_intron_gtf)
-mitogenes <- gtf[seqnames(gtf) == 'MT']
+mitogenes <- gtf[seqnames(gtf) == 'MT|mt']
 
 # write out mitochondrial gene list
 writeLines(unique(mitogenes$gene_id), mito_out)
