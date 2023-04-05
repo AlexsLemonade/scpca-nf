@@ -61,7 +61,8 @@ create_ref_entry <- function(organism,
                                glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
     t2g_bulk_path = file.path(ref_dir, "annotation",
                                glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv"))
-    )
+    ) |>
+    purrr::map(jsonlite::unbox)
 
     return(json_entry)
 }
@@ -72,8 +73,7 @@ all_entries <- purrr::pmap(list(ref_metadata$organism,
                                 ref_metadata$reference_name),
                            \(organism, assembly, version, reference_name)
                            create_ref_entry(organism, assembly, version, reference_name, ref_rootdir)) |>
-  purrr::set_names(ref_metadata$reference_name) |>
-  purrr::flatten()
+  purrr::set_names(ref_metadata$reference_name)
 
 # Write to JSON
 jsonlite::write_json(all_entries,
