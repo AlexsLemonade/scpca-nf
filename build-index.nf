@@ -147,5 +147,5 @@ workflow {
   index_star(ref_ch)
 
   // build celltype references
-  //build_celltype_ref()
+  build_celltype_ref()
 }
