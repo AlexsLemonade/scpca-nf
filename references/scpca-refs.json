@@ -1,28 +1,30 @@
 {
   "Homo_sapiens.GRCh38.104": {
     "reference_name": "Homo_sapiens.GRCh38.104",
-    "ref_fasta": "s3://scpca-references/homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
-    "ref_fasta_index": "s3://scpca-references/homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
-    "ref_gtf": "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz",
-    "splici_index": "s3://scpca-references/homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_intron.txome",
-    "bulk_index": "s3://scpca-references/homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_cdna.txome",
-    "cellranger_index": "s3://scpca-references/homo_sapiens/ensembl-104/cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full",
-    "star_index": "s3://scpca-references/homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx",
-    "mito_file": "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.mitogenes.txt",
-    "t2g_3col_path": "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv",
-    "t2g_bulk_path": "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_cdna.tx2gene.tsv"
+    "ref_dir": "homo_sapiens/ensembl-104",
+    "ref_fasta": "homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
+    "ref_gtf": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz",
+    "splici_index": "homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_intron.txome",
+    "bulk_index": "homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_cdna.txome",
+    "cellranger_index": "homo_sapiens/ensembl-104/cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full",
+    "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx",
+    "mito_file": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.mitogenes.txt",
+    "t2g_3col_path": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv",
+    "t2g_bulk_path": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_cdna.tx2gene.tsv"
   },
   "Mus_musculus.GRCm39.109": {
     "reference_name": "Mus_musculus.GRCm39.109",
-    "ref_fasta": "s3://scpca-references/mus_musculus/ensembl-109/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz",
-    "ref_fasta_index": "s3://scpca-references/mus_musculus/ensembl-109/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.fai",
-    "ref_gtf": "s3://scpca-references/mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.gtf.gz",
-    "splici_index": "s3://scpca-references/mus_musculus/ensembl-109/salmon_index/Mus_musculus.GRCm39.109.spliced_intron.txome",
-    "bulk_index": "s3://scpca-references/mus_musculus/ensembl-109/salmon_index/Mus_musculus.GRCm39.109.spliced_cdna.txome",
-    "cellranger_index": "s3://scpca-references/mus_musculus/ensembl-109/cellranger_index/Mus_musculus.GRCm39.109_cellranger_full",
-    "star_index": "s3://scpca-references/mus_musculus/ensembl-109/star_index/Mus_musculus.GRCm39.109.star_idx",
-    "mito_file": "s3://scpca-references/mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.mitogenes.txt",
-    "t2g_3col_path": "s3://scpca-references/mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.spliced_intron.tx2gene_3col.tsv",
-    "t2g_bulk_path": "s3://scpca-references/mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.spliced_cdna.tx2gene.tsv"
+    "ref_dir": "mus_musculus/ensembl-109",
+    "ref_fasta": "mus_musculus/ensembl-109/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "mus_musculus/ensembl-109/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.fai",
+    "ref_gtf": "mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.gtf.gz",
+    "splici_index": "mus_musculus/ensembl-109/salmon_index/Mus_musculus.GRCm39.109.spliced_intron.txome",
+    "bulk_index": "mus_musculus/ensembl-109/salmon_index/Mus_musculus.GRCm39.109.spliced_cdna.txome",
+    "cellranger_index": "mus_musculus/ensembl-109/cellranger_index/Mus_musculus.GRCm39.109_cellranger_full",
+    "star_index": "mus_musculus/ensembl-109/star_index/Mus_musculus.GRCm39.109.star_idx",
+    "mito_file": "mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.mitogenes.txt",
+    "t2g_3col_path": "mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.spliced_intron.tx2gene_3col.tsv",
+    "t2g_bulk_path": "mus_musculus/ensembl-109/annotation/Mus_musculus.GRCm39.109.spliced_cdna.tx2gene.tsv"
   }
 }

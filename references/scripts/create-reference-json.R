@@ -1,3 +1,10 @@
+#!/usr/bin/env Rscript
+
+# Script for creating json file to hold path to reference files for organisms that can be
+# used with scpca-nf. The output of this script will create a json file where each key corresponds
+# to an organism and contains a dictionary of reference paths. The paths included here are specific
+# to the organization used for storing references in `s3://scpca-references`
+# To create the JSON file use a TSV file that contains three columns, `organism`, `assembly`, and `version`
 
 library(optparse)
 project_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
@@ -18,6 +25,9 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
+# Set up -----------------------------------------------------------------------
+
+# check that input metadata exists and read in
 if(!file.exists(opt$ref_metadata)){
   stop("ref_metadata file does not exist.")
 }
@@ -25,22 +35,20 @@ if(!file.exists(opt$ref_metadata)){
 ref_metadata <- readr::read_tsv(opt$ref_metadata) |>
   dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
 
-# check for columns
-
-ref_rootdir <- file.path("s3://scpca-references")
-
+# function to create individual json entries containing individual reference paths
 create_ref_entry <- function(organism,
                              assembly,
                              version,
-                             reference_name,
-                             ref_rootdir){
+                             reference_name){
 
-  ref_dir <- file.path(ref_rootdir,
-                       tolower(organism),
+  # create base reference directory
+  ref_dir <- file.path(tolower(organism),
                        glue::glue("ensembl-{version}"))
 
+  # create a single json entry containing all necessary file paths
   json_entry <- list(
     reference_name = reference_name,
+    ref_dir = ref_dir,
     ref_fasta = file.path(ref_dir, "fasta",
                            glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.gz")),
     ref_fasta_index = file.path(ref_dir, "fasta",
@@ -62,17 +70,19 @@ create_ref_entry <- function(organism,
     t2g_bulk_path = file.path(ref_dir, "annotation",
                                glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv"))
     ) |>
+    # unbox length one vectors
     purrr::map(jsonlite::unbox)
 
     return(json_entry)
 }
 
+# get entries for all organisms provided
 all_entries <- purrr::pmap(list(ref_metadata$organism,
                                 ref_metadata$assembly,
                                 ref_metadata$version,
                                 ref_metadata$reference_name),
                            \(organism, assembly, version, reference_name)
-                           create_ref_entry(organism, assembly, version, reference_name, ref_rootdir)) |>
+                           create_ref_entry(organism, assembly, version, reference_name)) |>
   purrr::set_names(ref_metadata$reference_name)
 
 # Write to JSON
