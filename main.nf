@@ -79,6 +79,8 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
+  ref_paths = Utils.readMeta(file(params.ref_json))
+
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
@@ -95,15 +97,15 @@ workflow {
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
       slide_section: it.slide_section,
-      ref_assembly: params.assembly,
-      ref_fasta: params.ref_fasta,
-      ref_gtf: params.ref_gtf,
-      salmon_splici_index: params.splici_index,
-      t2g_3col_path: params.t2g_3col_path,
-      salmon_bulk_index: params.bulk_index,
-      t2g_bulk_path: params.t2g_bulk_path,
-      cellranger_index: params.cellranger_index,
-      star_index: params.star_index,
+      reference_name: ref_paths[it.sample_reference].reference_name,
+      ref_fasta: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].ref_fasta}"),
+      ref_gtf: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].ref_gtf}"),
+      salmon_splici_index: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].splici_index}"),
+      t2g_3col_path: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].t2g_3col_path}"),
+      salmon_bulk_index: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].bulk_index}"),
+      t2g_bulk_path: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].t2g_bulk_path}"),
+      cellranger_index: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].cellranger_index}"),
+      star_index: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].star_index}"),
       scpca_version: workflow.manifest.version,
       nextflow_version: nextflow.version.toString()
     ]}
