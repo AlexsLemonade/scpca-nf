@@ -7,11 +7,11 @@ include { build_celltype_ref } from './build-celltype-ref.nf'
 process generate_reference{
   container params.SCPCATOOLS_CONTAINER
   // publish fasta and annotation files within reference directory
-  publishDir "${ref_dir}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}", mode: 'copy'
   label 'mem_32'
   maxRetries 1
   input:
-    tuple val(ref_name), path(fasta), path(gtf), path(ref_dir)
+    tuple val(ref_name), path(fasta), path(gtf), val(meta)
   output:
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
@@ -33,7 +33,7 @@ process generate_reference{
 
 process salmon_index{
   container params.SALMON_CONTAINER
-  publishDir "${meta.ref_dir}/salmon_index", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:
@@ -68,7 +68,7 @@ process salmon_index{
 
 process cellranger_index{
   container params.CELLRANGER_CONTAINER
-  publishDir "${meta.ref_dir}/cellranger_index", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
   input:
@@ -91,7 +91,7 @@ process cellranger_index{
 
 process index_star{
   container params.STAR_CONTAINER
-  publishDir "${meta.ref_dir}/star_index", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
   input:
@@ -133,19 +133,19 @@ workflow {
       it[0],
       ref_fasta = file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"),
       ref_gtf = file("${params.ref_rootdir}/${it[1]["ref_gtf"]}"),
-      ref_dir = file("${params.ref_rootdir}/${it[1]["ref_dir"]}", type: 'dir')
+      ref_meta = it[1]
     ]}
 
 
   // generate splici and spliced cDNA reference fasta
   generate_reference(ref_ch)
   // create index using reference fastas
-  // salmon_index(generate_reference.out.fasta_files, ref_ch)
-  // // create cellranger index
-  // cellranger_index(ref_ch)
-  // // create star index
-  // index_star(ref_ch)
+  salmon_index(generate_reference.out.fasta_files, ref_ch)
+  // create cellranger index
+  cellranger_index(ref_ch)
+  // create star index
+  index_star(ref_ch)
 
-  // // build celltype references
-  // build_celltype_ref()
+  // build celltype references
+  //build_celltype_ref()
 }
