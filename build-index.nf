@@ -123,17 +123,19 @@ process index_star{
 
 workflow {
 
+  // read in metadata with all organisms to create references for
   ref_ch = Channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .map{[
       reference_name = "${it.organism}.${it.assembly}.${it.version}",
+      // parse json file and grab file paths for each organism
       ref_meta = Utils.getMetaVal(file(params.ref_json), reference_name)
     ]}
     .map{[
-      it[0],
-      ref_fasta = file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"),
-      ref_gtf = file("${params.ref_rootdir}/${it[1]["ref_gtf"]}"),
-      ref_meta = it[1]
+      it[0], // reference name
+      ref_fasta = file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
+      ref_gtf = file("${params.ref_rootdir}/${it[1]["ref_gtf"]}"), // path to gtf
+      ref_meta = it[1] // tuple containing all info for organism, including directory to store references
     ]}
 
 
