@@ -89,7 +89,7 @@ process cellranger_index{
     """
 }
 
-process index_star{
+process star_index{
   container params.STAR_CONTAINER
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
@@ -146,7 +146,7 @@ workflow {
   // create cellranger index
   cellranger_index(ref_ch)
   // create star index
-  index_star(ref_ch)
+  star_index(ref_ch)
 
   // build celltype references
   build_celltype_ref()

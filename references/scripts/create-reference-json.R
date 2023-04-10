@@ -3,8 +3,8 @@
 # Script for creating json file to hold path to reference files for organisms that can be
 # used with scpca-nf. The output of this script will create a json file where each key corresponds
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
-# to the organization used for storing references in `s3://scpca-references`
-# To create the JSON file use a TSV file that contains three columns, `organism`, `assembly`, and `version`
+# to the organization used for storing references in `s3://scpca-references`.
+# To create the json file, use a TSV file that contains three columns, `organism`, `assembly`, and `version`
 
 library(optparse)
 project_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
