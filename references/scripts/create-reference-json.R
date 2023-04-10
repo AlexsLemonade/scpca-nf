@@ -57,7 +57,7 @@ create_ref_entry <- function(organism,
                         glue::glue("{reference_name}.gtf.gz")),
     splici_index = file.path(ref_dir, "salmon_index",
                              glue::glue("{reference_name}.spliced_intron.txome")),
-    bulk_index = file.path(ref_dir, "salmon_index",
+    salmon_bulk_index = file.path(ref_dir, "salmon_index",
                             glue::glue("{reference_name}.spliced_cdna.txome")),
     cellranger_index = file.path(ref_dir, "cellranger_index",
                                   glue::glue("{reference_name}_cellranger_full")),
@@ -77,12 +77,8 @@ create_ref_entry <- function(organism,
 }
 
 # get entries for all organisms provided
-all_entries <- purrr::pmap(list(ref_metadata$organism,
-                                ref_metadata$assembly,
-                                ref_metadata$version,
-                                ref_metadata$reference_name),
-                           \(organism, assembly, version, reference_name)
-                           create_ref_entry(organism, assembly, version, reference_name)) |>
+all_entries <- ref_metadata |>
+  purrr::pmap(create_ref_entry) |>
   purrr::set_names(ref_metadata$reference_name)
 
 # Write to JSON

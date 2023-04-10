@@ -11,13 +11,14 @@ process generate_reference{
   label 'mem_32'
   maxRetries 1
   input:
-    tuple val(ref_name), path(fasta), path(gtf), val(meta)
+    tuple val(ref_name), val(meta), path(fasta), path(gtf)
   output:
+    tuple val(ref_name), val(meta), path(fasta), path(gtf), emit: ref_info
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
-    splici_fasta="fasta/${ref_name}.spliced_intron.txome.fa.gz"
-    spliced_cdna_fasta="fasta/${ref_name}.spliced_cdna.txome.fa.gz"
+    splici_fasta = "fasta/" + file(meta.splici_fasta).name
+    spliced_cdna_fasta =  "fasta/" + file(meta.splici_cdna_fasta).name
     """
     make_reference_fasta.R \
       --gtf ${gtf} \
@@ -38,7 +39,7 @@ process salmon_index{
   label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
-    tuple val(ref_name), path(fasta), path(gtf), val(meta)
+    tuple val(ref_name), val(meta), path(fasta), path(gtf)
   output:
     path splici_index_dir
     path spliced_cdna_index_dir
@@ -68,15 +69,15 @@ process salmon_index{
 
 process cellranger_index{
   container params.CELLRANGER_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
+  publishDir file(meta.cellranger_index).parent, mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
   input:
-    tuple val(ref_name), path(fasta), path(gtf), val(meta)
+    tuple val(ref_name), val(meta), path(fasta), path(gtf)
   output:
     path cellranger_index
   script:
-    cellranger_index = "${ref_name}_cellranger_full"
+    cellranger_index = file(meta.cellranger_index).name
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
@@ -91,15 +92,15 @@ process cellranger_index{
 
 process star_index{
   container params.STAR_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
+  publishDir file(meta.star_index).parent, mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
   input:
-    tuple val(ref_name), path(fasta), path(gtf), val(meta)
+    tuple val(ref_name), val(meta), path(fasta), path(gtf)
   output:
     path output_dir
   script:
-    output_dir = "${ref_name}.star_idx"
+    output_dir = file(meta.star_index).name
     """
     mkdir ${output_dir}
 
@@ -129,13 +130,11 @@ workflow {
     .map{[
       reference_name = "${it.organism}.${it.assembly}.${it.version}",
       // parse json file and grab file paths for each organism
-      ref_meta = Utils.getMetaVal(file(params.ref_json), reference_name)
+      Utils.getMetaVal(file(params.ref_json), reference_name)
     ]}
-    .map{[
-      it[0], // reference name
-      ref_fasta = file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
-      ref_gtf = file("${params.ref_rootdir}/${it[1]["ref_gtf"]}"), // path to gtf
-      ref_meta = it[1] // tuple containing all info for organism, including directory to store references
+    .map{ it + [
+      file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
+      file("${params.ref_rootdir}/${it[1]["ref_gtf"]}") // path to gtf
     ]}
 
 

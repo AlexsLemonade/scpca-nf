@@ -97,7 +97,7 @@ workflow {
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
       slide_section: it.slide_section,
-      reference_name: ref_paths[it.sample_reference].reference_name,
+      reference_name: it.sample_reference,
       ref_fasta: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].ref_fasta}"),
       ref_gtf: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].ref_gtf}"),
       salmon_splici_index: file("${params.ref_rootdir}/${ref_paths[it.sample_reference].splici_index}"),
