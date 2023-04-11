@@ -44,31 +44,35 @@ create_ref_entry <- function(organism,
   # create base reference directory
   ref_dir <- file.path(tolower(organism),
                        glue::glue("ensembl-{version}"))
+  fasta_dir <- file.path(ref_dir, "fasta")
+  annotation_dir <- file.path(ref_dir, "annotation")
 
   # create a single json entry containing all necessary file paths
   json_entry <- list(
-    reference_name = reference_name,
     ref_dir = ref_dir,
-    ref_fasta = file.path(ref_dir, "fasta",
+    ref_fasta = file.path(fasta_dir,
                            glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.gz")),
-    ref_fasta_index = file.path(ref_dir, "fasta",
+    ref_fasta_index = file.path(fasta_dir,
                                  glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.fai")),
-    ref_gtf = file.path(ref_dir, "annotation",
+    ref_gtf = file.path(annotation_dir,
                         glue::glue("{reference_name}.gtf.gz")),
+    mito_file = file.path(annotation_dir,
+                           glue::glue("{reference_name}.mitogenes.txt")),
+    t2g_3col_path = file.path(annotation_dir,
+                               glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
+    t2g_bulk_path = file.path(annotation_dir,
+                               glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")),
+    salmon_dir = file.path(ref_dir, "salmon_index"),
     splici_index = file.path(ref_dir, "salmon_index",
                              glue::glue("{reference_name}.spliced_intron.txome")),
     salmon_bulk_index = file.path(ref_dir, "salmon_index",
-                            glue::glue("{reference_name}.spliced_cdna.txome")),
+                                  glue::glue("{reference_name}.spliced_cdna.txome")),
+    cellranger_dir = file.path(ref_dir, "cellranger_index"),
     cellranger_index = file.path(ref_dir, "cellranger_index",
-                                  glue::glue("{reference_name}_cellranger_full")),
+                                 glue::glue("{reference_name}_cellranger_full")),
+    star_dir = file.path(ref_dir, "star_index"),
     star_index = file.path(ref_dir, "star_index",
-                            glue::glue("{reference_name}.star_idx")),
-    mito_file = file.path(ref_dir, "annotation",
-                           glue::glue("{reference_name}.mitogenes.txt")),
-    t2g_3col_path = file.path(ref_dir, "annotation",
-                               glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
-    t2g_bulk_path = file.path(ref_dir, "annotation",
-                               glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv"))
+                           glue::glue("{reference_name}.star_idx"))
     ) |>
     # unbox length one vectors
     purrr::map(jsonlite::unbox)
