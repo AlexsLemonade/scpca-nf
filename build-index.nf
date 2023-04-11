@@ -17,8 +17,8 @@ process generate_reference{
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
-    splici_fasta = "fasta/" + file(meta.splici_fasta).name
-    spliced_cdna_fasta =  "fasta/" + file(meta.splici_cdna_fasta).name
+    splici_fasta = "fasta/" + file("${meta.splici_fasta}").name
+    spliced_cdna_fasta =  "fasta/" + file("${meta.splici_cdna_fasta}").name
     """
     make_reference_fasta.R \
       --gtf ${gtf} \
@@ -34,7 +34,7 @@ process generate_reference{
 
 process salmon_index{
   container params.SALMON_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.salmon_dir}", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:
@@ -44,8 +44,8 @@ process salmon_index{
     path splici_index_dir
     path spliced_cdna_index_dir
   script:
-    splici_index_dir = "${splici_fasta}".split("\\.(fasta|fa)")[0]
-    spliced_cdna_index_dir = "${spliced_cdna_fasta}".split("\\.(fasta|fa)")[0]
+    splici_index_dir = file("${meta.splici_index}").name
+    spliced_cdna_index_dir = file("${meta.salmon_bulk_index}").name
     """
     salmon index \
       -t ${splici_fasta} \
@@ -69,7 +69,7 @@ process salmon_index{
 
 process cellranger_index{
   container params.CELLRANGER_CONTAINER
-  publishDir file(meta.cellranger_index).parent, mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.cellranger_dir}", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
   input:
@@ -77,7 +77,7 @@ process cellranger_index{
   output:
     path cellranger_index
   script:
-    cellranger_index = file(meta.cellranger_index).name
+    cellranger_index = file("${meta.cellranger_index}").name
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
@@ -92,7 +92,7 @@ process cellranger_index{
 
 process star_index{
   container params.STAR_CONTAINER
-  publishDir file(meta.star_index).parent, mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.star_dir}", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
   input:
@@ -100,7 +100,7 @@ process star_index{
   output:
     path output_dir
   script:
-    output_dir = file(meta.star_index).name
+    output_dir = file("${meta.star_index}").name
     """
     mkdir ${output_dir}
 
@@ -132,7 +132,7 @@ workflow {
       // parse json file and grab file paths for each organism
       Utils.getMetaVal(file(params.ref_json), reference_name)
     ]}
-    .map{ it + [
+    .map{it +[
       file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
       file("${params.ref_rootdir}/${it[1]["ref_gtf"]}") // path to gtf
     ]}
