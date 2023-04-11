@@ -25,43 +25,35 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# Set up -----------------------------------------------------------------------
-
-# check that input metadata exists and read in
-if(!file.exists(opt$ref_metadata)){
-  stop("ref_metadata file does not exist.")
-}
-
-ref_metadata <- readr::read_tsv(opt$ref_metadata) |>
-  dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
+# Function for creating json entry ---------------------------------------------
 
 # function to create individual json entries containing individual reference paths
 create_ref_entry <- function(organism,
                              assembly,
                              version,
                              reference_name){
-
+  
   # create base reference directory
   ref_dir <- file.path(tolower(organism),
                        glue::glue("ensembl-{version}"))
   fasta_dir <- file.path(ref_dir, "fasta")
   annotation_dir <- file.path(ref_dir, "annotation")
-
+  
   # create a single json entry containing all necessary file paths
   json_entry <- list(
     ref_dir = ref_dir,
     ref_fasta = file.path(fasta_dir,
-                           glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.gz")),
+                          glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.gz")),
     ref_fasta_index = file.path(fasta_dir,
-                                 glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.fai")),
+                                glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.fai")),
     ref_gtf = file.path(annotation_dir,
                         glue::glue("{reference_name}.gtf.gz")),
     mito_file = file.path(annotation_dir,
-                           glue::glue("{reference_name}.mitogenes.txt")),
+                          glue::glue("{reference_name}.mitogenes.txt")),
     t2g_3col_path = file.path(annotation_dir,
-                               glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
+                              glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
     t2g_bulk_path = file.path(annotation_dir,
-                               glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")),
+                              glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")),
     salmon_dir = file.path(ref_dir, "salmon_index"),
     splici_index = file.path(ref_dir, "salmon_index",
                              glue::glue("{reference_name}.spliced_intron.txome")),
@@ -73,12 +65,22 @@ create_ref_entry <- function(organism,
     star_dir = file.path(ref_dir, "star_index"),
     star_index = file.path(ref_dir, "star_index",
                            glue::glue("{reference_name}.star_idx"))
-    ) |>
+  ) |>
     # unbox length one vectors
     purrr::map(jsonlite::unbox)
-
-    return(json_entry)
+  
+  return(json_entry)
 }
+
+# Compile json file ------------------------------------------------------------
+
+# check that input metadata exists and read in
+if(!file.exists(opt$ref_metadata)){
+  stop("ref_metadata file does not exist.")
+}
+
+ref_metadata <- readr::read_tsv(opt$ref_metadata) |>
+  dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
 
 # get entries for all organisms provided
 all_entries <- ref_metadata |>
