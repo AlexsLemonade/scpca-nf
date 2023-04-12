@@ -34,7 +34,7 @@ process generate_reference{
 
 process salmon_index{
   container params.SALMON_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.salmon_dir}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${file(meta.splici_index).parent}", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:

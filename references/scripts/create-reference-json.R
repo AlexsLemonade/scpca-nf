@@ -79,7 +79,7 @@ if(!file.exists(opt$ref_metadata)){
   stop("ref_metadata file does not exist.")
 }
 
-ref_metadata <- readr::read_tsv(opt$ref_metadata) |>
+ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = 'c') |>
   dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
 
 # get entries for all organisms provided
@@ -90,4 +90,5 @@ all_entries <- ref_metadata |>
 # Write to JSON
 jsonlite::write_json(all_entries,
                      path = opt$ref_json,
-                     pretty = TRUE)
+                     pretty = TRUE,
+                     auto_unbox = TRUE)
