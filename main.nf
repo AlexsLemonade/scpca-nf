@@ -79,8 +79,6 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  ref_paths = Utils.readMeta(file(params.ref_json))
-
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
