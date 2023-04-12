@@ -24,9 +24,6 @@ rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
-// grab paths to all reference files
-ref_paths = Utils.readMeta(file(params.ref_json))
-
 // report template path
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
 report_template_file = "qc_report.rmd"
@@ -53,8 +50,8 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if (!file(params.celltype_refs_metafile).exists()) {
-  log.error("The 'celltype_refs_metafile' file '${params.celltype_refs_metafile}' can not be found.")
+if (!file(params.project_celltype_metafile).exists()) {
+  log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
   param_error = true
 }
 
@@ -69,7 +66,7 @@ if(param_error){
 }
 
 // Main workflow
-workflow{
+workflow {
   // select runs to use
   if (params.project){
     // projects will use all runs in the project & supersede run_ids
@@ -82,12 +79,14 @@ workflow{
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
+  ref_paths = Utils.readMeta(file(params.ref_json))
+
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-    .map{it.sample_refs = ref_paths[it.sample_reference];
-         it}
-    .map{[
+    .map{
+      sample_refs = ref_paths[it.sample_reference]
+      [
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
       sample_id: it.scpca_sample_id.split(";").sort().join(","),
