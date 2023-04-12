@@ -54,20 +54,15 @@ create_ref_entry <- function(organism,
                               glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
     t2g_bulk_path = file.path(annotation_dir,
                               glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")),
-    salmon_dir = file.path(ref_dir, "salmon_index"),
     splici_index = file.path(ref_dir, "salmon_index",
                              glue::glue("{reference_name}.spliced_intron.txome")),
     salmon_bulk_index = file.path(ref_dir, "salmon_index",
                                   glue::glue("{reference_name}.spliced_cdna.txome")),
-    cellranger_dir = file.path(ref_dir, "cellranger_index"),
     cellranger_index = file.path(ref_dir, "cellranger_index",
                                  glue::glue("{reference_name}_cellranger_full")),
-    star_dir = file.path(ref_dir, "star_index"),
     star_index = file.path(ref_dir, "star_index",
                            glue::glue("{reference_name}.star_idx"))
-  ) |>
-    # unbox length one vectors
-    purrr::map(jsonlite::unbox)
+  )
   
   return(json_entry)
 }

@@ -69,7 +69,7 @@ process salmon_index{
 
 process cellranger_index{
   container params.CELLRANGER_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.cellranger_dir}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${file(meta.cellranger_index).parent}", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
   input:
@@ -92,7 +92,7 @@ process cellranger_index{
 
 process star_index{
   container params.STAR_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.star_dir}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${file(meta.star_index).parent}", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
   input:
@@ -124,13 +124,15 @@ process star_index{
 
 workflow {
 
+  ref_paths = Utils.readMeta(file(params.ref_json))
+
   // read in metadata with all organisms to create references for
   ref_ch = Channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .map{[
       reference_name = "${it.organism}.${it.assembly}.${it.version}",
       // parse json file and grab file paths for each organism
-      Utils.getMetaVal(file(params.ref_json), reference_name)
+      ref_paths[reference_name]
     ]}
     .map{it +[
       file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
