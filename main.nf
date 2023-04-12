@@ -24,9 +24,6 @@ rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
-// grab paths to all reference files
-ref_paths = Utils.readMeta(file(params.ref_json))
-
 // report template path
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
 report_template_file = "qc_report.rmd"
@@ -53,8 +50,8 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if (!file(params.celltype_refs_metafile).exists()) {
-  log.error("The 'celltype_refs_metafile' file '${params.celltype_refs_metafile}' can not be found.")
+if (!file(params.project_celltype_metafile).exists()) {
+  log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
   param_error = true
 }
 
@@ -69,7 +66,7 @@ if(param_error){
 }
 
 // Main workflow
-workflow{
+workflow {
   // select runs to use
   if (params.project){
     // projects will use all runs in the project & supersede run_ids
@@ -85,8 +82,6 @@ workflow{
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-    .map{it.sample_refs = ref_paths[it.sample_reference];
-         it}
     .map{[
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
@@ -100,15 +95,15 @@ workflow{
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
       slide_section: it.slide_section,
-      reference_name: it.sample_reference,
-      ref_fasta: params.ref_rootdir + "/" + it.sample_refs["ref_fasta"],
-      ref_gtf: params.ref_rootdir + "/" + it.sample_refs["ref_gtf"],
-      salmon_splici_index: params.ref_rootdir + "/" + it.sample_refs["splici_index"],
-      t2g_3col_path: params.ref_rootdir + "/" + it.sample_refs["t2g_3col_path"],
-      salmon_bulk_index: params.ref_rootdir + "/" + it.sample_refs["salmon_bulk_index"],
-      t2g_bulk_path: params.ref_rootdir + "/" + it.sample_refs["t2g_bulk_path"],
-      cellranger_index: params.ref_rootdir + "/" + it.sample_refs["cellranger_index"],
-      star_index: params.ref_rootdir + "/" + it.sample_refs["star_index"],
+      ref_assembly: params.assembly,
+      ref_fasta: params.ref_fasta,
+      ref_gtf: params.ref_gtf,
+      salmon_splici_index: params.splici_index,
+      t2g_3col_path: params.t2g_3col_path,
+      salmon_bulk_index: params.bulk_index,
+      t2g_bulk_path: params.t2g_bulk_path,
+      cellranger_index: params.cellranger_index,
+      star_index: params.star_index,
       scpca_version: workflow.manifest.version,
       nextflow_version: nextflow.version.toString()
     ]}

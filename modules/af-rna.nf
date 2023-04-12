@@ -11,6 +11,7 @@ process alevin_rad{
   input:
     tuple val(meta),
           path(read1), path(read2)
+    path index
   output:
     tuple val(meta), path(rad_dir)
   script:
@@ -32,7 +33,7 @@ process alevin_rad{
       ${tech_flag[meta.technology]} \
       -1 ${read1} \
       -2 ${read2} \
-      -i ${meta.splici_index} \
+      -i ${index} \
       -o ${rad_dir} \
       -p ${task.cpus} \
       --dumpFeatures \
@@ -51,7 +52,7 @@ process fry_quant_rna{
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
 
   input:
-    tuple val(meta), path(run_dir), path(barcode_file)
+    tuple val(meta), path(run_dir), path(barcode_file), path(tx2gene_3col)
   output:
     tuple val(meta), path(run_dir)
 
@@ -72,7 +73,7 @@ process fry_quant_rna{
 
     alevin-fry quant \
       --input-dir ${run_dir} \
-      --tg-map ${meta.tx2gene_3col} \
+      --tg-map ${tx2gene_3col} \
       --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
@@ -117,12 +118,12 @@ workflow map_quant_rna {
                          )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
-    alevin_rad(rna_reads_ch)
+    alevin_rad(rna_reads_ch, params.splici_index)
 
     // combine output from running alevin step with channel containing libraries that skipped creating a RAD file
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
       // add barcode and t2g files to channel to use in fry_quant_rna process
-      .map{it.toList() + file(it[0].barcode_file)}
+      .map{it.toList() + [file(it[0].barcode_file), file(it[0].t2g_3col_path)]}
 
     // quantify with alevin-fry
     fry_quant_rna(all_rad_ch)

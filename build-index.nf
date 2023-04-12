@@ -124,6 +124,7 @@ process star_index{
 
 workflow {
 
+  // read in json file with all reference paths
   ref_paths = Utils.readMeta(file(params.ref_json))
 
   // read in metadata with all organisms to create references for
@@ -131,7 +132,7 @@ workflow {
     .splitCsv(header: true, sep: '\t')
     .map{[
       reference_name = "${it.organism}.${it.assembly}.${it.version}",
-      // parse json file and grab file paths for each organism
+      // grab file paths for each organism
       ref_paths[reference_name]
     ]}
     .map{it +[
