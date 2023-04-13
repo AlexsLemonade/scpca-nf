@@ -31,7 +31,6 @@ process salmon{
     publishDir "${meta.salmon_publish_dir}", mode: 'copy'
     input:
         tuple val(meta), path(read_dir)
-        path (index)
     output:
         tuple val(meta), path(salmon_dir)
     script:
@@ -39,7 +38,7 @@ process salmon{
         // get meta to write as file
         meta_json = Utils.makeJson(meta)
         """
-        salmon quant -i ${index} \
+        salmon quant -i ${meta.bulk_index} \
         -l A \
         ${meta.technology == 'paired_end' ? "-1": "-r"} ${read_dir}/*_R1_*.fastq.gz \
         ${meta.technology == 'paired_end' ? "-2 ${read_dir}/*_R2_*.fastq.gz" : "" } \
@@ -59,31 +58,30 @@ process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
     publishDir "${params.results_dir}/${project_id}", mode: 'copy'
     input:
-        tuple val(project_id), path(salmon_directories)
-        path(tx2gene)
+        tuple val(meta), path(salmon_directories)
         path(library_metadata)
     output:
         path(tximport_file), emit: bulk_counts
         path(bulk_metadata_file), emit: bulk_metadata
     script:
-        tximport_file = "${project_id}_bulk_quant.tsv"
-        bulk_metadata_file = "${project_id}_bulk_metadata.tsv"
+        tximport_file = "${meta.project_id}_bulk_quant.tsv"
+        bulk_metadata_file = "${meta.project_id}_bulk_metadata.tsv"
         workflow_url = workflow.repository ?: workflow.manifest.homePage
         """
         ls -d ${salmon_directories} > salmon_directories.txt
 
         merge_counts_tximport.R \
-          --project_id ${project_id} \
+          --project_id ${meta.project_id} \
           --salmon_dirs salmon_directories.txt \
           --output_file ${tximport_file} \
-          --tx2gene ${tx2gene}
+          --tx2gene ${meta.t2g_bulk_path}
 
         generate_bulk_metadata.R \
-         --project_id ${project_id} \
+         --project_id ${meta.project_id} \
          --salmon_dirs salmon_directories.txt \
          --library_metadata_file ${library_metadata} \
          --metadata_output ${bulk_metadata_file} \
-         --genome_assembly ${params.assembly} \
+         --genome_assembly ${meta.ref_assembly} \
          --workflow_url "${workflow_url}" \
          --workflow_version "${workflow.revision}" \
          --workflow_commit "${workflow.commitId}"
@@ -104,8 +102,8 @@ workflow bulk_quant_rna {
           .branch{
               has_quants: (!params.repeat_mapping
                            && file(it.salmon_results_dir).exists()
-                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") == params.assembly
-                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") == params.t2g_bulk_path
+                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") == it.ref_assembly
+                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") == it.t2g_bulk_path
                           )
               make_quants: true
           }
@@ -126,15 +124,18 @@ workflow bulk_quant_rna {
 
         // run fastp and salmon for libraries that are not skipping salmon
         fastp(bulk_reads_ch)
-        salmon(fastp.out, params.bulk_index)
+        salmon(fastp.out)
 
         // group libraries together by project
         grouped_salmon_ch = salmon.out.mix(quants_ch)
-            .map{[it[0]["project_id"], it[1]]}
+            .map{[[project_id: it[0].project_id,
+                   ref_assembly: it[0].ref_assembly,
+                   t2g_bulk_path: it[0].t2g_bulk_path],
+                   it[1]]}
             .groupTuple(by: 0)
 
         // create tsv file and combined metadata for each project containing all libraries
-        merge_bulk_quants(grouped_salmon_ch, params.t2g_bulk_path, params.run_metafile)
+        merge_bulk_quants(grouped_salmon_ch, params.run_metafile)
 
     emit:
         bulk_counts = merge_bulk_quants.out.bulk_counts

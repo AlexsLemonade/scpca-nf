@@ -10,7 +10,6 @@ process spaceranger{
   label 'disk_big'
   input:
     tuple val(meta), path(fastq_dir), file(image_file)
-    path index
   output:
     tuple val(meta), path(out_id)
   script:
@@ -20,7 +19,7 @@ process spaceranger{
     """
     spaceranger count \
       --id=${out_id} \
-      --transcriptome=${index} \
+      --transcriptome=${meta.cellranger_index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
@@ -68,7 +67,7 @@ process spaceranger_publish{
       --metadata_json ${metadata_json} \
       --technology ${meta.technology} \
       --seq_unit ${meta.seq_unit} \
-      --genome_assembly ${params.assembly} \
+      --genome_assembly ${meta.ref_assembly} \
       --index_filename ${meta.cellranger_index} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
@@ -116,7 +115,7 @@ workflow spaceranger_quant{
                             )}
 
         // run spaceranger
-        spaceranger(spaceranger_reads, params.cellranger_index)
+        spaceranger(spaceranger_reads)
 
         // gather spaceranger output for completed libraries
         // make a tuple of metadata (read from prior output) and prior results directory

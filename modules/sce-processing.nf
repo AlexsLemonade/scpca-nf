@@ -7,8 +7,6 @@ process make_unfiltered_sce{
     tag "${meta.library_id}"
     input:
         tuple val(meta), path(alevin_dir)
-        path(mito)
-        path(gtf)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -17,8 +15,8 @@ process make_unfiltered_sce{
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
           --unfiltered_file ${unfiltered_rds} \
-          --mito_file ${mito} \
-          --gtf_file ${gtf} \
+          --mito_file ${meta.mito_file} \
+          --gtf_file ${meta.ref_gtf} \
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
@@ -33,8 +31,6 @@ process make_merged_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINER
     input:
         tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
-        path(mito)
-        path(gtf)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -49,8 +45,8 @@ process make_merged_unfiltered_sce{
           --feature_dir ${feature_alevin_dir} \
           --feature_name ${meta.feature_type} \
           --unfiltered_file ${unfiltered_rds} \
-          --mito_file ${mito} \
-          --gtf_file ${gtf} \
+          --mito_file ${meta.mito_file} \
+          --gtf_file ${meta.ref_gtf} \
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
@@ -149,7 +145,7 @@ workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-    make_unfiltered_sce(quant_channel, params.mito_file, params.ref_gtf) \
+    make_unfiltered_sce(quant_channel) \
       | filter_sce
 
   emit: filter_sce.out
@@ -161,7 +157,7 @@ workflow generate_merged_sce {
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel
   main:
-    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file, params.ref_gtf) \
+    make_merged_unfiltered_sce(feature_quant_channel) \
       | filter_sce
 
   emit: filter_sce.out
