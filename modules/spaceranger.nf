@@ -9,17 +9,17 @@ process spaceranger{
   label 'mem_24'
   label 'disk_big'
   input:
-    tuple val(meta), path(fastq_dir), file(image_file)
+    tuple val(meta), path(fastq_dir), file(image_file), path(index)
   output:
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
-    meta.cellranger_index = index.fileName
+    meta.cellranger_index = file(meta.cellranger_index).name
     meta_json = Utils.makeJson(meta)
     """
     spaceranger count \
       --id=${out_id} \
-      --transcriptome=${meta.cellranger_index} \
+      --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
@@ -47,6 +47,7 @@ process spaceranger_publish{
     spatial_publish_dir = "${meta.library_id}_spatial"
     metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
+    cellranger_index_name = file(meta.cellranger_index).name
     """
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
@@ -68,7 +69,7 @@ process spaceranger_publish{
       --technology ${meta.technology} \
       --seq_unit ${meta.seq_unit} \
       --genome_assembly ${meta.ref_assembly} \
-      --index_filename ${meta.cellranger_index} \
+      --index_filename ${cellranger_index_name} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
@@ -111,7 +112,8 @@ workflow spaceranger_quant{
         spaceranger_reads = spatial_channel.make_spatial
           .map{meta -> tuple(meta,
                             file("${meta.files_directory}"),
-                            file("${meta.files_directory}/*.jpg")
+                            file("${meta.files_directory}/*.jpg"),
+                            "${meta.cellranger_index}"
                             )}
 
         // run spaceranger
