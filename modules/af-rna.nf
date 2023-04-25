@@ -10,7 +10,7 @@ process alevin_rad{
   publishDir "${meta.rad_publish_dir}", mode: 'copy'
   input:
     tuple val(meta),
-          path(read1), path(read2)
+          path(read1), path(read2), path(index)
   output:
     tuple val(meta), path(rad_dir)
   script:
@@ -32,7 +32,7 @@ process alevin_rad{
       ${tech_flag[meta.technology]} \
       -1 ${read1} \
       -2 ${read2} \
-      -i ${meta.splici_index} \
+      -i ${index} \
       -o ${rad_dir} \
       -p ${task.cpus} \
       --dumpFeatures \
@@ -106,7 +106,8 @@ workflow map_quant_rna {
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                         file("${meta.files_directory}/*_R2_*.fastq.gz")
+                         file("${meta.files_directory}/*_R2_*.fastq.gz"),
+                         file("${meta.salmon_splici_index}")
                         )}
 
     // if the rad directory has been created and repeat_mapping is set to false

@@ -147,12 +147,7 @@ workflow generate_sce {
   take: quant_channel
   main:
     sce_ch = quant_channel
-      .map{[
-        it[0], // rna meta
-        it[1], // fry dir
-        it[0].mito_file,
-        it[0].ref_gtf
-      ]}
+      .map{it.toList() + [file(it[0].mito_file), file(it[0].ref_gtf)]}
 
     make_unfiltered_sce(sce_ch) \
       | filter_sce
@@ -168,14 +163,7 @@ workflow generate_merged_sce {
   main:
 
     feature_sce_ch = feature_quant_channel
-      .map{[
-        it[0], //feature meta
-        it[1], // feature quant dir
-        it[2], // rna meta
-        it[3], // rna quant dir
-        it[2].mito_file,
-        it[2].ref_gtf
-      ]}
+      .map{it.toList() + [file(it[0].mito_file), file(it[0].ref_gtf)]}
 
     make_merged_unfiltered_sce(feature_sce_ch) \
       | filter_sce
