@@ -126,7 +126,7 @@ workflow bulk_quant_rna {
         // run fastp and salmon for libraries that are not skipping salmon
         fastp(bulk_reads_ch)
         salmon_ch = fastp.out
-          .map{[it, it[0]["salmon_bulk_index"]]}
+          .map{it.toList() + [file(it[0].salmon_bulk_index)]}
         salmon(salmon_ch)
 
         // group libraries together by project
