@@ -100,7 +100,7 @@ workflow {
       slide_section: it.slide_section,
       ref_assembly: it.sample_reference,
       ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
-      ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"]
+      ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
       ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
       salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
       t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
