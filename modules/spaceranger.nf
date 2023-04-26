@@ -14,7 +14,6 @@ process spaceranger{
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
-    meta.cellranger_index = file(meta.cellranger_index).name
     meta_json = Utils.makeJson(meta)
     """
     spaceranger count \
