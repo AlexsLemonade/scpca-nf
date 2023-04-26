@@ -9,7 +9,7 @@ process spaceranger{
   label 'mem_24'
   label 'disk_big'
   input:
-    tuple val(meta), path(fastq_dir), file(image_file), path(index)
+    tuple val(meta), path(fastq_dir), path(image_file), path(index)
   output:
     tuple val(meta), path(out_id)
   script:

@@ -30,8 +30,9 @@ process make_merged_unfiltered_sce{
     tag "${meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input:
-        tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir),
-          path(mito_file), path(ref_gtf)
+        tuple val(feature_meta), path(feature_alevin_dir), 
+              val (meta), path(alevin_dir),
+              path(mito_file), path(ref_gtf)
     output:
         tuple val(meta), path(unfiltered_rds)
     script:

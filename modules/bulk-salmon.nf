@@ -131,12 +131,13 @@ workflow bulk_quant_rna {
 
         // group libraries together by project
         grouped_salmon_ch = salmon.out.mix(quants_ch)
-          .map{[[project_id: it[0].project_id,
-                ref_assembly: it[0].ref_assembly,
-                t2g_bulk_path: it[0].t2g_bulk_path],
+          .map{[it[0].project_id,
+                it[0],
                 it[1]]} // salmon directories
           .groupTuple(by: 0)
-          .map{it.toList() + [file(it[0].t2g_bulk_path)]}
+          .map{it[1][0], // meta; relevant data should all be the same by project, so take the first 
+               it[2], // salmon directories
+               file(it[1][0].t2g_bulk_path)]}
 
         // create tsv file and combined metadata for each project containing all libraries
         merge_bulk_quants(grouped_salmon_ch, params.run_metafile)
