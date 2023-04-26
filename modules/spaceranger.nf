@@ -113,7 +113,7 @@ workflow spaceranger_quant{
           .map{meta -> tuple(meta,
                             file("${meta.files_directory}"),
                             file("${meta.files_directory}/*.jpg"),
-                            "${meta.cellranger_index}"
+                            file("${meta.cellranger_index}")
                             )}
 
         // run spaceranger
