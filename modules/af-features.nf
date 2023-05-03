@@ -9,8 +9,10 @@ process index_feature{
     tuple val(id), path("feature_index")
   script:
     """
+    cut -f 1,2 ${feature_file} > feature_barcodes.txt
+
     salmon index \
-      -t ${feature_file} \
+      -t feature_barcodes.txt \
       -i feature_index \
       --features \
       -k 7
