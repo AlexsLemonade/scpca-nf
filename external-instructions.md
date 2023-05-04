@@ -120,6 +120,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_project_id` | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
 | `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
+| `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.109` |
 | `files_directory` | path/uri to directory containing fastq files (unique per run) |
 
 The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or are optional and can be included in the metadata file if desired:
@@ -228,7 +229,7 @@ chmod +x get_refs.py
 
 
 Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
-The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` and `assembly` Nextflow parameter variables required to use these local data files.
+The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` Nextflow parameter required to use these local data files.
 To run with these settings
 
 ```sh
