@@ -18,8 +18,6 @@ process index_feature{
       --features \
       -k 7
 
-    # Remove "temporary" barcodes file
-    rm feature_barcodes.txt
 
     awk '{print \$1"\\t"\$1;}' ${feature_file} > feature_index/t2g.tsv
     """
