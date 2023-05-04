@@ -77,8 +77,7 @@ for line in ref_file:
 root_re = re.compile(r'\$\{?(params.)?ref_rootdir\}?$')
 refdir_re = re.compile(r'\$\{?(params.)?ref_dir\}?$')
 
-# get assembly and root location
-assembly = refs.get("assembly", "NA")
+# get root location
 # split out protocol from the root URI
 root_parts = refs.get("ref_rootdir").split('://', maxsplit = 1)
 if root_parts[0] == 's3':
@@ -243,7 +242,6 @@ if args.paramfile:
         shutil.move(pfile, str(pfile) + ".bak")
     # create parameter dictionary
     nf_params = {
-        'assembly': assembly,
         'ref_rootdir': os.path.abspath(args.refdir)
     }
     with open(pfile, 'w') as f:
