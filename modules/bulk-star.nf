@@ -6,8 +6,7 @@ process bulkmap_star{
   label 'cpus_8'
   label 'mem_24'
   input:
-    tuple val(meta), path(read1), path(read2)
-    path star_index
+    tuple val(meta), path(read1), path(read2), path(star_index)
   output:
     tuple val(meta), path(output_bam)
   script:
@@ -34,9 +33,10 @@ workflow star_bulk{
     bulk_reads_ch = bulk_channel
         .map{meta -> tuple(meta,
                            file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                           file("${meta.files_directory}/*_R2_*.fastq.gz"))}
+                           file("${meta.files_directory}/*_R2_*.fastq.gz"),
+                           file("${meta.star_index}"))}
     // map and index
-    bulkmap_star(bulk_reads_ch, file(params.star_index)) \
+    bulkmap_star(bulk_reads_ch) \
     | index_bam
 
   emit:

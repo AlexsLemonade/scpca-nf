@@ -8,9 +8,7 @@ process starsolo{
   label 'disk_big'
 
   input:
-    tuple val(meta), path(read1), path(read2), path(barcode_file)
-    path star_index
-
+    tuple val(meta), path(read1), path(read2), path(barcode_file), path(star_index)
   output:
     tuple val(meta), path(output_dir), emit: starsolo_dir
     tuple val(meta), path(output_bam), emit: star_bam
@@ -56,9 +54,10 @@ workflow starsolo_map{
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
                          file("${meta.files_directory}/*_R2_*.fastq.gz"),
-                         file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}")
+                         file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}"),
+                         file("${meta.star_index}")
                          )}
-    starsolo(sc_reads_ch, file(params.star_index))
+    starsolo(sc_reads_ch)
     index_bam(starsolo.out.star_bam)
 
   emit:
