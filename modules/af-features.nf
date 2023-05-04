@@ -9,6 +9,7 @@ process index_feature{
     tuple val(id), path("feature_index")
   script:
     """
+    # ensure salmon only gets the first 2 columns here
     cut -f 1,2 ${feature_file} > feature_barcodes.txt
 
     salmon index \
@@ -16,6 +17,9 @@ process index_feature{
       -i feature_index \
       --features \
       -k 7
+
+    # Remove "temporary" barcodes file
+    rm feature_barcodes.txt
 
     awk '{print \$1"\\t"\$1;}' ${feature_file} > feature_index/t2g.tsv
     """
