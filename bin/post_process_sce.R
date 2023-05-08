@@ -21,6 +21,26 @@ option_list <- list(
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
   make_option(
+    opt_str = c("--adt_barcode_file"),
+    type = "character",
+    default = NULL,
+    help = "Optional path to an ADT barcode file, where the third column indicates
+      the ADT type (target, negative control, or positive control)."
+  ),
+  # TODO. _For now_, assume only 1 altExp and it's CITEseq.
+  #make_option(
+  #  opt_str = c("--adt_name"),
+  #  type = "character",
+  #  default = "ALT", # same default as used in `bin/generate_unfiltered_sce.R`
+  #  help = "Name for the alternative experiment, if present, that contains ADT features"
+  #),
+  make_option(
+    opt_str = c("--adt_negative_cutoff"),
+    type = "integer",
+    default = 25, # TODO: pick a number..?
+    help = "Maximum count of negative control antibodies to use when filtering ADT counts, if present."
+  ),
+  make_option(
     opt_str = c("--gene_cutoff"),
     type = "integer",
     default = 200,
@@ -47,6 +67,7 @@ option_list <- list(
   )
 )
 
+# Parse and apply input options -------------
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # set seed
@@ -84,25 +105,97 @@ if(all(is.na(sce$miQC_pass))){
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 
+# read in ADT feature barcode file, if present
+if (!(is.null(opt$adt_barcode_file))) {
+
+  # Create data frame of ADTs and their target types
+  adt_barcode_df <- readr::read_tsv(opt$adt_barcode_file, col_names=FALSE)
+
+  # Check if 3rd column is present and assign column names, values assuming
+  #   that all ADTs are targets if there is no 3rd column
+  if (ncol(adt_barcode_df) == 2) {
+    colnames(adt_barcode_df) <- c("name", "barcode")
+    adt_barcode_df$target_type <- "target"
+  } else if (ncol(adt_barcode_df) == 3) {
+    colnames(adt_barcode_df) <- c("name", "barcode", "target_type")
+  } else {
+    stop("The ADT feature barcode file must have either 2 or 3 columns.")
+  }
+
+  # TODO: Name for _this_ alternative experiment.
+  # One this is set, apply `altexp_name` as second argument when calling `altExp()`
+  #altexp_name <- opt$adt_name
+
+  # Calculate ambient profile from unfiltered sce for later use
+  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce)) )
+
+  # define indicator for if ADTs need to be processed
+  process_adt <- TRUE
+} else {
+  process_adt <- FALSE
+}
+
+# Perform filtering -----------------
+
 # filter sce using criteria in scpca_filter
 filtered_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
-drop_cols = colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
+drop_cols <- colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
 rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
-# replace existing stats from altExp if any
+
 for (alt in altExpNames(filtered_sce)) {
   # remove old row data
-  drop_cols = colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
+  drop_cols <- colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
   rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
 
   # add alt experiment features stats for filtered data
   altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
 }
+
+# filter sce based on ADTs
+if (process_adt) {
+
+  adt_qc_df <- DropletUtils::cleanTagCounts(
+    counts(altExp(filtered_sce)),
+    ambient = ambient_profile
+  )
+
+  # Filter according to `discard`
+  filtered_sce <- filtered_sce[, which(!(adt_qc_df$discard))]
+
+  # TODO: Should we add `adt_qc_df` into the altExp? If we want it:
+  #colData(altExp(filtered_sce)) <- cbind(colData(altExp(filtered_sce)), adt_qc_df)
+
+  # Filter on negative controls, if present
+  neg_controls <- adt_barcode_df |>
+    dplyr::filter(target_type == "neg_control") |>
+    dplyr::pull(name)
+
+  if (length(neg_controls) > 0) {
+    # counts for each negative control
+    neg_control_counts <- counts(altExp(filtered_sce))[neg_controls, ]
+
+    # remove any cell with >=threshold for any given negative control
+    # first, determine which cells need to be removed
+    cells_to_remove <- purrr::map(
+      neg_controls,
+      \(x) which(neg_control_counts[x,] >= opt$adt_negative_cutoff)
+    ) |>
+    unlist() |>
+    unique()
+
+    filtered_sce <- filtered_sce[, -cells_to_remove]
+  }
+
+}
+
+
+# Perform normalization -----------------
 
 # cluster prior to normalization
 qclust <- NULL
@@ -126,6 +219,9 @@ if (is.null(qclust)) {
 # Normalize and log transform
 filtered_sce <- scater::logNormCounts(filtered_sce)
 
+
+# Perform dimension reduction --------------------
+
 # model gene variance using `scran:modelGeneVar()`
 gene_variance <- scran::modelGeneVar(filtered_sce)
 
@@ -146,6 +242,8 @@ try({
   filtered_sce <- scater::runUMAP(filtered_sce,
                                   dimred = "PCA")
 })
+
+# Export --------------
 
 # write out original SCE with additional filtering column
 readr::write_rds(sce, opt$input_sce_file, compress = "gz")
