@@ -18,7 +18,6 @@ process index_feature{
       --features \
       -k 7
 
-
     awk '{print \$1"\\t"\$1;}' ${feature_file} > feature_index/t2g.tsv
     """
 }
