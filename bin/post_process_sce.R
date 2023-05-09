@@ -180,13 +180,7 @@ if (process_adt) {
     neg_control_counts <- counts(altExp(filtered_sce, altexp_name))[neg_controls, ]
 
     # remove any cell with >=threshold for any given negative control
-    # first, determine which cells need to be removed
-    cells_to_remove <- purrr::map(
-      neg_controls,
-      \(x) which(neg_control_counts[x,] >= opt$adt_negative_cutoff)
-    ) |>
-    unlist() |>
-    unique()
+    cells_to_remove <- colSums(neg_control_counts >= opt$adt_negative_cutoff) > 0
 
     filtered_sce <- filtered_sce[, -cells_to_remove]
   }
