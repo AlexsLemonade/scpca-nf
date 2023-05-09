@@ -146,7 +146,7 @@ process post_process_sce{
         post_process_sce.R \
           --input_sce_file ${filtered_rds} \
           --output_sce_file ${processed_rds} \
-          ${adt_barcode_option_bool ? "--adt_barcode_file ${meta.feature_barcode_file}":""} \
+          ${adt_barcode_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
           --adt_name ${meta.feature_type} \
           --gene_cutoff ${params.gene_cutoff} \
           --n_hvg ${params.num_hvg} \

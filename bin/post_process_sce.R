@@ -31,7 +31,7 @@ option_list <- list(
   make_option(
     opt_str = c("--adt_name"),
     type = "character",
-    default = "ALT", # same default as used in `bin/generate_unfiltered_sce.R`
+    default = "CITEseq",
     help = "Name for the alternative experiment, if present, that contains ADT features"
   ),
   make_option(
