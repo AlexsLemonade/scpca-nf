@@ -142,6 +142,10 @@ filtered_sce <- sce[, which(sce$scpca_filter == "Keep")]
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
+# replace existing stats with recalculated gene stats
+drop_cols = colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
+rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
+
 # replace existing stats from altExp if any
 for (alt in altExpNames(filtered_sce)) {
   # remove old row data
