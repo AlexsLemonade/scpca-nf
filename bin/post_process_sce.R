@@ -147,7 +147,7 @@ rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
-
+# replace existing stats from altExp if any
 for (alt in altExpNames(filtered_sce)) {
   # remove old row data
   drop_cols <- colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
