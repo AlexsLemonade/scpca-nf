@@ -27,13 +27,13 @@ option_list <- list(
     help = "Optional path to an ADT barcode file, where the third column indicates
       the ADT type (target, negative control, or positive control)."
   ),
-  # TODO. _For now_, assume only 1 altExp and it's CITEseq.
-  #make_option(
-  #  opt_str = c("--adt_name"),
-  #  type = "character",
-  #  default = "ALT", # same default as used in `bin/generate_unfiltered_sce.R`
-  #  help = "Name for the alternative experiment, if present, that contains ADT features"
-  #),
+  # TODO: keep or remove?
+  make_option(
+    opt_str = c("--adt_name"),
+    type = "character",
+    default = "ALT", # same default as used in `bin/generate_unfiltered_sce.R`
+    help = "Name for the alternative experiment, if present, that contains ADT features"
+  ),
   make_option(
     opt_str = c("--adt_negative_cutoff"),
     type = "integer",

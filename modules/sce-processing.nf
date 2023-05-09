@@ -138,21 +138,15 @@ process post_process_sce{
         // Two checks for the feature barcode file, and provide argument if both true:
         // - technology should be CITEseq
         // - barcode file should exist
-        adt_barcode_option_bool = meta.technology ==~ '^CITEseq.+' & meta.feature_barcode_file.exists()
-
-        // *************************************************************************
-        // TODO: This is still wrong since we need to get this metadata passed into the process,
-        // but this will be the idea.
-        // For now, we will just assume the there is only 1 altExp and then circle back to this.
-        // meta['feature_type'] = feature_meta.technology.split('_')[0]
-        // meta['feature_meta'] = feature_meta
-        // *************************************************************************
+        adt_barcode_option_bool = meta.technology ==~ '^CITEseq.+' & file(meta.feature_barcode_file).exists()
+        
+        //TODO: keep or remove `--adt_name` below?
 
         """
         post_process_sce.R \
           --input_sce_file ${filtered_rds} \
           --output_sce_file ${processed_rds} \
-          ${adt_barcode_option_bool ? "--adt_barcode_file ${meta.feature_barcode_file}":""}
+          ${adt_barcode_option_bool ? "--adt_barcode_file ${meta.feature_barcode_file}":""} \
           --adt_name ${meta.feature_type} \
           --gene_cutoff ${params.gene_cutoff} \
           --n_hvg ${params.num_hvg} \
