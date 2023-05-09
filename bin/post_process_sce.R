@@ -122,12 +122,11 @@ if (!(is.null(opt$adt_barcode_file))) {
     stop("The ADT feature barcode file must have either 2 or 3 columns.")
   }
 
-  # TODO: Name for _this_ alternative experiment.
-  # One this is set, apply `altexp_name` as second argument when calling `altExp()`
-  #altexp_name <- opt$adt_name
+  # Name for this alternative experiment.
+  altexp_name <- opt$adt_name
 
   # Calculate ambient profile from unfiltered sce for later use
-  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce)) )
+  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce, altexp_name)) )
 
   # define indicator for if ADTs need to be processed
   process_adt <- TRUE
@@ -139,10 +138,6 @@ if (!(is.null(opt$adt_barcode_file))) {
 
 # filter sce using criteria in scpca_filter
 filtered_sce <- sce[, which(sce$scpca_filter == "Keep")]
-
-# replace existing stats with recalculated gene stats
-drop_cols <- colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
-rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
 filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
@@ -161,7 +156,7 @@ for (alt in altExpNames(filtered_sce)) {
 if (process_adt) {
 
   adt_qc_df <- DropletUtils::cleanTagCounts(
-    counts(altExp(filtered_sce)),
+    counts(altExp(filtered_sce, altexp_name)),
     ambient = ambient_profile
   )
 
@@ -169,7 +164,7 @@ if (process_adt) {
   filtered_sce <- filtered_sce[, which(!(adt_qc_df$discard))]
 
   # TODO: Should we add `adt_qc_df` into the altExp? If we want it:
-  #colData(altExp(filtered_sce)) <- cbind(colData(altExp(filtered_sce)), adt_qc_df)
+  #colData(altExp(filtered_sce, altexp_name)) <- cbind(colData(altExp(filtered_sce, altexp_name)), adt_qc_df)
 
   # Filter on negative controls, if present
   neg_controls <- adt_barcode_df |>
@@ -178,7 +173,7 @@ if (process_adt) {
 
   if (length(neg_controls) > 0) {
     # counts for each negative control
-    neg_control_counts <- counts(altExp(filtered_sce))[neg_controls, ]
+    neg_control_counts <- counts(altExp(filtered_sce, altexp_name))[neg_controls, ]
 
     # remove any cell with >=threshold for any given negative control
     # first, determine which cells need to be removed
