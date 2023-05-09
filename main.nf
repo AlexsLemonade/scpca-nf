@@ -50,8 +50,8 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if (!file(params.project_celltype_metafile).exists()) {
-  log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
+if (!file(params.celltype_refs_metafile).exists()) {
+  log.error("The 'celltype_refs_metafile' file '${params.celltype_refs_metafile}' can not be found.")
   param_error = true
 }
 
