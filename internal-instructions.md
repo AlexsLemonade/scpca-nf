@@ -73,6 +73,7 @@ Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
 Add these to the `S3://scpca-references` bucket with the following directory structure:
+
 ```
 homo_sapiens
 └── ensembl-104
@@ -82,6 +83,7 @@ homo_sapiens
         ├── Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai
         └── Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 ```
+
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
