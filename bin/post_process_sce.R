@@ -148,7 +148,7 @@ metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 filtered_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
-drop_cols = colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
+drop_cols <- colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
 rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
 filtered_sce <- filtered_sce |>
@@ -246,8 +246,8 @@ try({
 
 # Export --------------
 
-# write out original SCE with additional filtering column
-readr::write_rds(sce, opt$input_sce_file, compress = "gz")
+# write out _original_ filtered SCE with additional filtering column
+readr::write_rds(sce, opt$input_filtered_sce_file, compress = "gz")
 
 # write out processed SCE
 readr::write_rds(filtered_sce, opt$output_sce_file, compress = "gz")
