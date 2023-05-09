@@ -129,19 +129,17 @@ process post_process_sce{
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(feature_barcode_file)
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     script:
         processed_rds = "${meta.library_id}_processed.rds"
-
+        
         // Two checks for the feature barcode file, and provide argument if both true:
         // - technology should be CITEseq
         // - barcode file should exist
         adt_barcode_present = meta.feature_type == 'CITEseq' & feature_barcode_file.exists()
         
-        //TODO: keep or remove `--adt_name` below?
-
         """
         post_process_sce.R \
           --input_sce_file ${filtered_rds} \
