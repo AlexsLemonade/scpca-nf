@@ -11,9 +11,15 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--input_sce_file"),
+    opt_str = c("-i", "--input_filtered_sce_file"),
     type = "character",
     help = "path to rds file with input sce object to be processed"
+  ),
+  make_option(
+    opt_str = c("-u", "--input_unfiltered_sce_file"),
+    type = "character",
+    help = "path to rds file with fully unfiltered (contains empty drops) input sce object. 
+      This argument is only used if there is CITEseq data."
   ),
   make_option(
     opt_str = c("-o", "--output_sce_file"),
@@ -27,7 +33,6 @@ option_list <- list(
     help = "Optional path to an ADT barcode file, where the third column indicates
       the ADT type (target, negative control, or positive control)."
   ),
-  # TODO: keep or remove?
   make_option(
     opt_str = c("--adt_name"),
     type = "character",
@@ -73,8 +78,11 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # set seed
 set.seed(opt$random_seed)
 
-# check that input file file exists
-if(!file.exists(opt$input_sce_file)){
+# check that input files exist
+if(!file.exists(opt$input_filtered_sce_file)){
+  stop("Missing filtered.rds file")
+}
+if(!file.exists(opt$input_unfiltered_sce_file)){
   stop("Missing unfiltered.rds file")
 }
 
@@ -83,8 +91,37 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
   stop("output file name must end in .rds")
 }
 
-# read in input rds file
-sce <- readr::read_rds(opt$input_sce_file)
+
+# read in ADT feature barcode file, if present
+# perform this first since the fully unfiltered SCE will need to be read in
+if (!(is.null(opt$adt_barcode_file))) {
+  
+  # Create data frame of ADTs and their target types
+  # If `target_type` column is not present, assume all ADTs are targets
+  adt_barcode_df <- readr::read_tsv(
+    opt$adt_barcode_file, 
+    # if only 2 columns exist, only the first two col_names will be used
+    col_names = c("name", "barcode", "target_type")
+  ) 
+  if (!"target_type" %in% names(adt_barcode_df)) {
+    adt_barcode_df$target_type <- "target"
+  } 
+  
+  # Name for this alternative experiment
+  altexp_name <- opt$adt_name
+  
+  # Calculate ambient profile from unfiltered sce for later use
+  sce <- readr::read_rds(opt$input_unfiltered_sce_file)
+  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce, altexp_name)) )
+  
+  # define indicator for whether ADTs need to be processed
+  process_adt <- TRUE
+} else {
+  process_adt <- FALSE
+}
+
+# read in input rds file - this will overwrite the existing `sce`, if present
+sce <- readr::read_rds(opt$input_filtered_sce_file)
 
 # create scpca_filter column
 if(all(is.na(sce$miQC_pass))){
@@ -104,35 +141,6 @@ if(all(is.na(sce$miQC_pass))){
 
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
-
-# read in ADT feature barcode file, if present
-if (!(is.null(opt$adt_barcode_file))) {
-
-  # Create data frame of ADTs and their target types
-  adt_barcode_df <- readr::read_tsv(opt$adt_barcode_file, col_names=FALSE)
-
-  # Check if 3rd column is present and assign column names, values assuming
-  #   that all ADTs are targets if there is no 3rd column
-  if (ncol(adt_barcode_df) == 2) {
-    colnames(adt_barcode_df) <- c("name", "barcode")
-    adt_barcode_df$target_type <- "target"
-  } else if (ncol(adt_barcode_df) == 3) {
-    colnames(adt_barcode_df) <- c("name", "barcode", "target_type")
-  } else {
-    stop("The ADT feature barcode file must have either 2 or 3 columns.")
-  }
-
-  # Name for this alternative experiment.
-  altexp_name <- opt$adt_name
-
-  # Calculate ambient profile from unfiltered sce for later use
-  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce, altexp_name)) )
-
-  # define indicator for if ADTs need to be processed
-  process_adt <- TRUE
-} else {
-  process_adt <- FALSE
-}
 
 # Perform filtering -----------------
 
