@@ -72,7 +72,7 @@ This file is required as input to `scpca-nf`.
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-Add these to the `S3://scpca-references` bucket with the following directory structure:
+Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the ensembl `version`:
 
 ```
 homo_sapiens
