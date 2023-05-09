@@ -138,7 +138,7 @@ process post_process_sce{
         // Two checks for the feature barcode file, and provide argument if both true:
         // - technology should be CITEseq
         // - barcode file should exist
-        adt_barcode_option_bool = meta.technology ==~ '^CITEseq.+' & file(meta.feature_barcode_file).exists()
+        adt_barcode_present = meta.feature_type == 'CITEseq' & feature_barcode_file.exists()
         
         //TODO: keep or remove `--adt_name` below?
 
