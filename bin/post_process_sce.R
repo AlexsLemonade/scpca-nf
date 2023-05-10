@@ -18,6 +18,7 @@ option_list <- list(
   make_option(
     opt_str = c("-u", "--unfiltered_sce_file"),
     type = "character",
+    default = NULL,
     help = "path to rds file with fully unfiltered (contains empty drops) input sce object. 
       This argument is only used if there is CITEseq data."
   ),
