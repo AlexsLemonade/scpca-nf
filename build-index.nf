@@ -146,10 +146,10 @@ workflow {
   // create index using reference fastas
   salmon_index(generate_reference.out.fasta_files, ref_ch)
   // create cellranger index
-  //cellranger_index(ref_ch)
+  cellranger_index(ref_ch)
   // create star index
-  //star_index(ref_ch)
+  star_index(ref_ch)
 
   // build celltype references
-  //build_celltype_ref()
+  build_celltype_ref()
 }
