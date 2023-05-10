@@ -183,7 +183,7 @@ if (!is.null(ambient_profile)) {
   if (length(neg_controls) == 0) {
     adt_qc_df <- DropletUtils::cleanTagCounts(
       counts(altExp(filtered_sce, adt_exp)),
-      ambient = ambient_profile, 
+      ambient = ambient_profile
     )
   } else {
     adt_qc_df <- DropletUtils::cleanTagCounts(
