@@ -29,7 +29,7 @@ process alevin_feature{
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-features"
-  publishDir "${params.checkpoints_dir}/rad/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
+  publishDir "${meta.feature_rad_publish_dir}", mode: 'copy'
   input:
     tuple val(meta),
           path(read1), path(read2),
@@ -126,22 +126,41 @@ workflow map_quant_feature{
 
     // create tuple of [metadata, [Read1 files], [Read2 files]]
     // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
-    feature_reads_ch = feature_channel
+    feature_ch = feature_channel
+      .map{it.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
+           it.feature_rad_dir = "${it.feature_rad_publish_dir}/${it.run_id}-features";
+           it}
+      .branch{
+          has_rad: !params.repeat_mapping && file(it.feature_rad_dir).exists()
+          make_rad: true
+       }
+
+    // pull out files that need to be repeated
+    feature_reads_ch = feature_ch.make_rad
       .map{meta -> tuple(meta.feature_barcode_file,
                          meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
                          file("${meta.files_directory}/*_R2_*.fastq.gz")
                         )}
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
-      .map{ it.drop(1)} // remove the first element (feature_barcode_file)
+      .map{it.drop(1)} // remove the first element (feature_barcode_file)
+
+    feature_rad_ch = feature_ch.has_rad
+      .map{meta -> tuple(Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
+                         file(meta.feature_rad_dir)
+                         )}
+
+    // run Alevin on feature reads
+    alevin_feature(feature_reads_ch)
+
+    // combine output from running alevin step with channel containing libraries that skipped creating RAD file
+    all_feature_rad_ch = alevin_feature.out.mix(feature_rad_ch)
 
     cellbarcode_ch = feature_channel
       .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
 
-    // run Alevin on feature reads
-    alevin_feature(feature_reads_ch)
     // quantify feature reads
-    fry_quant_feature(alevin_feature.out, cellbarcode_ch)
+    fry_quant_feature(all_feature_rad_ch, cellbarcode_ch)
 
   emit: fry_quant_feature.out
   // a tuple of metadata map and the alevin-fry output directory
