@@ -13,7 +13,7 @@ process generate_reference{
   input:
     tuple val(ref_name), val(meta), path(fasta), path(gtf)
   output:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf), emit: ref_info
+    tuple val(ref_name), val(meta), emit: ref_info
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
