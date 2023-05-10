@@ -124,8 +124,7 @@ workflow map_quant_feature{
       .unique()
     index_feature(feature_barcodes_ch)
 
-    // create tuple of [metadata, [Read1 files], [Read2 files]]
-    // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
+    // add the publish directories to the channel and branch based on existing rad files
     feature_ch = feature_channel
       .map{it.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
            it.feature_rad_dir = "${it.feature_rad_publish_dir}/${it.run_id}-features";
@@ -137,6 +136,8 @@ workflow map_quant_feature{
 
     // pull out files that need to be repeated
     feature_reads_ch = feature_ch.make_rad
+      // create tuple of [metadata, [Read1 files], [Read2 files]]
+      // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
       .map{meta -> tuple(meta.feature_barcode_file,
                          meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
@@ -145,6 +146,8 @@ workflow map_quant_feature{
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
       .map{it.drop(1)} // remove the first element (feature_barcode_file)
 
+    // // if the rad directory has been created and repeat_mapping is set to false
+    // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     feature_rad_ch = feature_ch.has_rad
       .map{meta -> tuple(Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
                          file(meta.feature_rad_dir)
