@@ -17,8 +17,8 @@ process generate_reference{
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
-    splici_fasta = "fasta/" + file("${meta.splici_fasta}").name
-    spliced_cdna_fasta =  "fasta/" + file("${meta.splici_cdna_fasta}").name
+    splici_fasta = "fasta/" + file("${meta.splici_index}").name + ".fa.gz"
+    spliced_cdna_fasta =  "fasta/" + file("${meta.salmon_bulk_index}").name + ".fa.gz"
     """
     make_reference_fasta.R \
       --gtf ${gtf} \
@@ -34,7 +34,7 @@ process generate_reference{
 
 process salmon_index{
   container params.SALMON_CONTAINER
-  publishDir "${params.ref_rootdir}/${file(meta.splici_index).parent}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:
@@ -69,7 +69,7 @@ process salmon_index{
 
 process cellranger_index{
   container params.CELLRANGER_CONTAINER
-  publishDir "${params.ref_rootdir}/${file(meta.cellranger_index).parent}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
   input:
@@ -92,7 +92,7 @@ process cellranger_index{
 
 process star_index{
   container params.STAR_CONTAINER
-  publishDir "${params.ref_rootdir}/${file(meta.star_index).parent}", mode: 'copy'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
   input:
@@ -146,10 +146,10 @@ workflow {
   // create index using reference fastas
   salmon_index(generate_reference.out.fasta_files, ref_ch)
   // create cellranger index
-  cellranger_index(ref_ch)
+  //cellranger_index(ref_ch)
   // create star index
-  star_index(ref_ch)
+  //star_index(ref_ch)
 
   // build celltype references
-  build_celltype_ref()
+  //build_celltype_ref()
 }
