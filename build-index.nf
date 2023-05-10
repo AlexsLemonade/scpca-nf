@@ -136,7 +136,4 @@ workflow {
   cellranger_index(params.ref_fasta, params.ref_gtf, params.assembly)
   // create star index
   index_star(params.ref_fasta, params.ref_gtf, params.assembly)
-
-  // build celltype references
-  build_celltype_ref()
 }
