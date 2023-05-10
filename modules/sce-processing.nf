@@ -142,8 +142,8 @@ process post_process_sce{
         
         """
         post_process_sce.R \
-          --input_filtered_sce_file ${filtered_rds} \
-          --input_unfiltered_sce_file ${unfiltered_rds} \
+          --filtered_sce_file ${filtered_rds} \
+          --unfiltered_sce_file ${unfiltered_rds} \
           --output_sce_file ${processed_rds} \
           ${adt_barcode_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
           --adt_name ${meta.feature_type} \

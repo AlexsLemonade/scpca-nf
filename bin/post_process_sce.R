@@ -11,12 +11,12 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--input_filtered_sce_file"),
+    opt_str = c("-i", "--filtered_sce_file"),
     type = "character",
     help = "path to rds file with input sce object to be processed"
   ),
   make_option(
-    opt_str = c("-u", "--input_unfiltered_sce_file"),
+    opt_str = c("-u", "--unfiltered_sce_file"),
     type = "character",
     help = "path to rds file with fully unfiltered (contains empty drops) input sce object. 
       This argument is only used if there is CITEseq data."
@@ -38,12 +38,6 @@ option_list <- list(
     type = "character",
     default = "CITEseq",
     help = "Name for the alternative experiment, if present, that contains ADT features"
-  ),
-  make_option(
-    opt_str = c("--adt_negative_cutoff"),
-    type = "integer",
-    default = 25, # TODO: pick a number..?
-    help = "Maximum count of negative control antibodies to use when filtering ADT counts, if present."
   ),
   make_option(
     opt_str = c("--gene_cutoff"),
@@ -78,12 +72,9 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # set seed
 set.seed(opt$random_seed)
 
-# check that input files exist
-if(!file.exists(opt$input_filtered_sce_file)){
+# check that filtered SCE file exists
+if(!file.exists(opt$filtered_sce_file)){
   stop("Missing filtered.rds file")
-}
-if(!file.exists(opt$input_unfiltered_sce_file)){
-  stop("Missing unfiltered.rds file")
 }
 
 # check that output file name ends in .rds
@@ -92,9 +83,17 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 }
 
 
-# read in ADT feature barcode file, if present
-# perform this first since the fully unfiltered SCE will need to be read in
-if (!(is.null(opt$adt_barcode_file))) {
+# check for ADT files if the barcode file is given
+# if all present, prepare ambient profile
+if (is.null(opt$adt_barcode_file)) {
+  ambient_profile <- NULL
+} else { 
+  if (!file.exists(opt$adt_barcode_file)) {
+    stop("adt_barcode_file does not exist")
+  }
+  if (!file.exists(opt$unfiltered_sce_file)) {
+    stop("Missing unfiltered.rds file")
+  }
   
   # Create data frame of ADTs and their target types
   # If `target_type` column is not present, assume all ADTs are targets
@@ -108,20 +107,21 @@ if (!(is.null(opt$adt_barcode_file))) {
   } 
   
   # Name for this alternative experiment
-  altexp_name <- opt$adt_name
+  adt_exp <- opt$adt_name
   
-  # Calculate ambient profile from unfiltered sce for later use
-  sce <- readr::read_rds(opt$input_unfiltered_sce_file)
-  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce, altexp_name)) )
+  # Read in unfiltered sce, check for adt_name
+  sce <- readr::read_rds(opt$unfiltered_sce_file)
+  if (!adt_exp %in% altExpNames(sce)) {
+    stop("Given named ADT alternative experiment not present in unfiltered SCE.")
+  }
   
-  # define indicator for whether ADTs need to be processed
-  process_adt <- TRUE
-} else {
-  process_adt <- FALSE
+  # Calculate ambient profile from empty drops for later use
+  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(sce, adt_exp)) )
+  rm(sce)
 }
 
-# read in input rds file - this will overwrite the existing `sce`, if present
-sce <- readr::read_rds(opt$input_filtered_sce_file)
+# read in filtered rds file
+sce <- readr::read_rds(opt$filtered_sce_file)
 
 # create scpca_filter column
 if(all(is.na(sce$miQC_pass))){
@@ -164,37 +164,41 @@ for (alt in altExpNames(filtered_sce)) {
   altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
 }
 
-# filter sce based on ADTs
-if (process_adt) {
-
-  adt_qc_df <- DropletUtils::cleanTagCounts(
-    counts(altExp(filtered_sce, altexp_name)),
-    ambient = ambient_profile
-  )
-
-  # Filter according to `discard`
-  filtered_sce <- filtered_sce[, which(!(adt_qc_df$discard))]
-
-  # TODO: Should we add `adt_qc_df` into the altExp? If we want it:
-  #colData(altExp(filtered_sce, altexp_name)) <- cbind(colData(altExp(filtered_sce, altexp_name)), adt_qc_df)
-
-  # Filter on negative controls, if present
+# filter sce based on ADTs, if present
+if (!is.null(ambient_profile)) {
+  
+  # Again, check for ADT name in this sce
+  if (!adt_exp %in% altExpNames(filtered_sce)) {
+    stop("Given named ADT alternative experiment not present in filtered SCE.")
+  }
+  
+  # Find any negative controls
   neg_controls <- adt_barcode_df |>
     dplyr::filter(target_type == "neg_control") |>
     dplyr::pull(name)
 
-  if (length(neg_controls) > 0) {
-    # counts for each negative control
-    neg_control_counts <- counts(altExp(filtered_sce, altexp_name))[neg_controls, ]
-
-    # remove any cell with >=threshold for any given negative control
-    cells_to_remove <- colSums(neg_control_counts >= opt$adt_negative_cutoff) > 0
-
-    filtered_sce <- filtered_sce[, -cells_to_remove]
+  # Calculate QC stats, providing negative controls if present
+  # note: function fails if controls is length 0 or null, so keep the `if`
+  if (length(neg_controls) == 0) {
+    adt_qc_df <- DropletUtils::cleanTagCounts(
+      counts(altExp(filtered_sce, adt_exp)),
+      ambient = ambient_profile, 
+    )
+  } else {
+    adt_qc_df <- DropletUtils::cleanTagCounts(
+      counts(altExp(filtered_sce, adt_exp)),
+      ambient = ambient_profile, 
+      controls = neg_controls
+    )
   }
 
-}
+  # Save QC stats to the altexp sce
+  colData(altExp(filtered_sce, adt_exp)) <- cbind(colData(altExp(filtered_sce, adt_exp)), adt_qc_df)
+  
+  # Filter according to `discard`
+  filtered_sce <- filtered_sce[, which(!(adt_qc_df$discard))]
 
+}
 
 # Perform normalization -----------------
 
@@ -247,7 +251,7 @@ try({
 # Export --------------
 
 # write out _original_ filtered SCE with additional filtering column
-readr::write_rds(sce, opt$input_filtered_sce_file, compress = "gz")
+readr::write_rds(sce, opt$filtered_sce_file, compress = "gz")
 
 # write out processed SCE
 readr::write_rds(filtered_sce, opt$output_sce_file, compress = "gz")
