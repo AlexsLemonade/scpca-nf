@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import urllib.request
+import json
 
 from pathlib import Path
 
@@ -51,15 +52,18 @@ args = parser.parse_args()
 
 # scpca-nf resource urls
 reffile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/reference_paths.config"
+refjson_url = "https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/allyhawkins/support-multiple-organisms/references/scpca-refs.json"
+
 containerfile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/containers.config"
 
 # download reference file
 print("Getting list of required reference files")
 try:
     ref_file =  urllib.request.urlopen(reffile_url)
+    json_file = urllib.request.urlopen(refjson_url)
 except urllib.error.URLError as e:
     print(e.reason)
-    print(f"The file download failed for {reffile_url}; please check the URL for errors")
+    print(f"The file download failed for {reffile_url}, {refjson_url}; please check the URL for errors")
     print(f"Is `{args.revision}` a valid release tag?")
     exit(1)
 
@@ -75,7 +79,6 @@ for line in ref_file:
 
 # regular expressions for parameter expansion
 root_re = re.compile(r'\$\{?(params.)?ref_rootdir\}?$')
-refdir_re = re.compile(r'\$\{?(params.)?ref_dir\}?$')
 
 # get root location
 # split out protocol from the root URI
@@ -93,13 +96,8 @@ else:
     print("`ref_rootdir` is not a supported remote location.")
     exit(1)
 
-
-
-# set the base directory (usually corresponding to a genome version)
-genome_dir = Path(refs.get("ref_dir"))
-# remove the first element if it is a variable
-if root_re.match(genome_dir.parts[0]):
-    genome_dir = genome_dir.relative_to(genome_dir.parts[0])
+# read in json file
+json_paths = json.loads(json_file.read())
 
 # single-file references
 # the keys here are the param variables we will be downloading
@@ -111,11 +109,12 @@ ref_keys =[
     "t2g_3col_path",
     "t2g_bulk_path"
 ]
-ref_paths = [Path(refs.get(k)) for k in ref_keys]
-# replace initial part of path if it is `$params.ref_dir` or similar
-ref_paths = [genome_dir / p.relative_to(p.parts[0])
-             if refdir_re.match(p.parts[0]) else p
-             for p in ref_paths]
+
+# param variables that are salmon index directories
+salmon_keys = [
+    "splici_index",
+    "salmon_bulk_index"
+]
 
 # salmon index files within index dir (must be downloaded individually through http)
 salmon_index_files = [
@@ -135,16 +134,6 @@ salmon_index_files = [
     "seq.bin",
     "versionInfo.json"
 ]
-# param variables that are salmon index directories
-salmon_keys = [
-    "splici_index",
-    "bulk_index"
-]
-for k in salmon_keys:
-    sa_dir = Path(refs.get(k))
-    if refdir_re.match(sa_dir.parts[0]):
-        sa_dir = genome_dir / sa_dir.relative_to(sa_dir.parts[0])
-    ref_paths += [sa_dir / f for f in salmon_index_files]
 
 # star index files within index dir (must be downloaded individually through http)
 star_index_files = [
@@ -165,11 +154,6 @@ star_index_files = [
     "sjdbList.out.tab",
     "transcriptInfo.tab"
 ]
-star_dir = Path(refs.get("star_index"))
-if refdir_re.match(star_dir.parts[0]):
-    star_dir = genome_dir / star_dir.relative_to(star_dir.parts[0])
-if args.star_index:
-    ref_paths += [star_dir / f for f in star_index_files]
 
 # Cell Ranger index files within index dir (must be downloaded individually through http)
 cr_index_files = [
@@ -193,12 +177,26 @@ cr_index_files = [
     "star/sjdbList.out.tab",
     "star/transcriptInfo.tab"
 ]
-cr_dir = Path(refs.get("cellranger_index"))
-if refdir_re.match(cr_dir.parts[0]):
-    cr_dir = genome_dir / cr_dir.relative_to(cr_dir.parts[0])
-if args.cellranger_index:
-    ref_paths += [cr_dir / f for f in cr_index_files]
 
+# create a list of all paths for all organisms listed in reference json file
+ref_paths = []
+for organism in json_paths:
+    all_refs = json_paths.get(organism)
+    # add all the paths for single-file references
+    ref_paths += [Path(all_refs.get(k)) for k in ref_keys]
+
+    # get paths to salmon directories and add individual files
+    sa_dir = [Path(all_refs.get(k)) for k in salmon_keys]
+    for dir in sa_dir:
+        ref_paths += [dir / f for f in salmon_index_files] # add salmon files
+
+    # if cellranger and star index's are asked for, get individual files
+    if args.cellranger_index:
+        ref_paths += [all_refs.get("cellranger_index") / f for f in cr_index_files] # add cellranger files
+    if args.star_index:
+        ref_paths += [all_refs.get("star_index") / f for f in star_index_files] # add star index files
+
+# barcode paths are still kept in the reference config file, so add those separately
 # barcode files on S3 within the barcode_dir (must be downloaded individually through http)
 barcode_files = [
     "3M-february-2018.txt",
@@ -214,7 +212,7 @@ ref_paths += [barcode_dir / f for f in barcode_files]
 
 ## download all the files and put them in the correct locations ##
 print("Downloading reference files... (This might take a while)")
-for path in ref_paths:
+for path in ref_paths[2:3]:
     outfile = args.refdir / path
     if outfile.exists() and not args.overwrite_refs:
         continue
