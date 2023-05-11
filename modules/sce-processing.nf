@@ -161,10 +161,15 @@ workflow generate_sce {
   take: quant_channel
   main:
     make_unfiltered_sce(quant_channel, params.mito_file, params.ref_gtf)
-      
-    // give it a third file, which won't get used but needs to exist.........
+  
+    //NOPE!
+    empty_file = file("${projectDir}/assets/NO_FILE.txt")
+    print(empty_file)
+    
+    // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + it[0].barcode_file}
+      .map{it.toList() + empty_file}
+
 
     filter_sce(unfiltered_sce_ch)
     
@@ -178,7 +183,7 @@ workflow generate_merged_sce {
   take: feature_quant_channel
   main:
     make_merged_unfiltered_sce(feature_quant_channel, params.mito_file, params.ref_gtf)
-    
+
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
       .map{it.toList() + it[0]["feature_meta"].feature_barcode_file}
