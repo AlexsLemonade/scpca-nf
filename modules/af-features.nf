@@ -128,6 +128,7 @@ workflow map_quant_feature{
     feature_ch = feature_channel
       .map{it.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
            it.feature_rad_dir = "${it.feature_rad_publish_dir}/${it.run_id}-features";
+           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
       .branch{
           has_rad: !params.repeat_mapping && file(it.feature_rad_dir).exists()
@@ -158,12 +159,11 @@ workflow map_quant_feature{
 
     // combine output from running alevin step with channel containing libraries that skipped creating RAD file
     all_feature_rad_ch = alevin_feature.out.mix(feature_rad_ch)
+      .map{it.toList() + it[0].barcode_file}
 
-    cellbarcode_ch = feature_channel
-      .map{file("${params.barcode_dir}/${params.cell_barcodes[it.technology]}")}
 
     // quantify feature reads
-    fry_quant_feature(all_feature_rad_ch, cellbarcode_ch)
+    fry_quant_feature(all_feature_rad_ch)
 
   emit: fry_quant_feature.out
   // a tuple of metadata map and the alevin-fry output directory
