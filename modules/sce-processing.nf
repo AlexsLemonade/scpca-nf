@@ -160,20 +160,17 @@ workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-  
     make_unfiltered_sce(quant_channel, params.mito_file, params.ref_gtf)
-    
-    // Add empty string for third input, expected by `filter_sce()`
+      
+    // give it a third file, which won't get used but needs to exist.........
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + ""}
-    
+      .map{it.toList() + it[0].barcode_file}
 
     filter_sce(unfiltered_sce_ch)
-
+    
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
-
 
 workflow generate_merged_sce {
   // generate rds files for feature + quant samples
