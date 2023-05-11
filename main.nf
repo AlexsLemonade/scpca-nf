@@ -192,8 +192,6 @@ workflow {
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
   all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out) 
-    // add feature barcode file to channel for post-processing
-    .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file)]}
   post_process_sce(all_sce_ch)
 
   // annotate cell types
@@ -203,7 +201,7 @@ workflow {
       it[0], // meta
       it[3] // processed rds
     ]}
-
+  
   annotate_celltypes(celltype_ch)
 
   // generate QC reports
