@@ -150,6 +150,4 @@ workflow {
   // create star index
   star_index(ref_ch)
 
-  // build celltype references
-  build_celltype_ref()
 }
