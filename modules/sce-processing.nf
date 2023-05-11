@@ -70,10 +70,13 @@ process filter_sce{
     script:
         filtered_rds = "${meta.library_id}_filtered.rds"
         
-        // Two checks for whether we have ADT data:
+        // Three checks for whether we have ADT data:
         // - technology should be CITEseq
         // - barcode file should exist
-        adt_present = meta.feature_type == 'CITEseq' & feature_barcode_file.exists()
+        // - barcode file should _not_ be the empty file NO_FILE.txt
+        adt_present = meta.feature_type == 'CITEseq' & 
+          feature_barcode_file.exists() &
+          feature_barcode_file.name != "NO_FILE.txt"
         
         """
         filter_sce_rds.R \
@@ -162,14 +165,11 @@ workflow generate_sce {
   main:
     make_unfiltered_sce(quant_channel, params.mito_file, params.ref_gtf)
   
-    //NOPE!
     empty_file = file("${projectDir}/assets/NO_FILE.txt")
-    print(empty_file)
-    
+
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + empty_file}
-
+      .map{it.toList() + [empty_file]}
 
     filter_sce(unfiltered_sce_ch)
     
