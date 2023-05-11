@@ -32,7 +32,7 @@ process make_merged_unfiltered_sce{
     tag "${meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input:
-        tuple val(feature_meta), path(feature_alevin_dir), val (meta), path(alevin_dir)
+        tuple val(feature_meta), path(feature_alevin_dir), val(meta), path(alevin_dir)
         path(mito)
         path(gtf)
     output:
@@ -42,6 +42,7 @@ process make_merged_unfiltered_sce{
         // add feature metadata as an element of the main meta object
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
+  
 
         """
         generate_unfiltered_sce.R \
@@ -63,15 +64,23 @@ process filter_sce{
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(unfiltered_rds)
+        tuple val(meta), path(unfiltered_rds), path(feature_barcode_file)
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     script:
         filtered_rds = "${meta.library_id}_filtered.rds"
+        
+        // Two checks for whether we have ADT data:
+        // - technology should be CITEseq
+        // - barcode file should exist
+        adt_present = meta.feature_type == 'CITEseq' & feature_barcode_file.exists()
+        
         """
         filter_sce_rds.R \
           --unfiltered_file ${unfiltered_rds} \
           --filtered_file ${filtered_rds} \
+          ${adt_present ? "--adt_name ${meta.feature_type}":""} \
+          ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
           --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
         """
@@ -129,23 +138,16 @@ process post_process_sce{
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(feature_barcode_file)
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     script:
         processed_rds = "${meta.library_id}_processed.rds"
         
-        // Two checks for the feature barcode file, and provide argument if both true:
-        // - technology should be CITEseq
-        // - barcode file should exist
-        adt_barcode_present = meta.feature_type == 'CITEseq' & feature_barcode_file.exists()
-        
         """
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
-          --unfiltered_sce_file ${unfiltered_rds} \
           --output_sce_file ${processed_rds} \
-          ${adt_barcode_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
           --adt_name ${meta.feature_type} \
           --gene_cutoff ${params.gene_cutoff} \
           --n_hvg ${params.num_hvg} \
@@ -158,20 +160,33 @@ workflow generate_sce {
   // generate rds files for RNA-only samples
   take: quant_channel
   main:
-    make_unfiltered_sce(quant_channel, params.mito_file, params.ref_gtf) \
-      | filter_sce
+  
+    make_unfiltered_sce(quant_channel, params.mito_file, params.ref_gtf)
+    
+    // Add empty string for third input, expected by `filter_sce()`
+    unfiltered_sce_ch = make_unfiltered_sce.out
+      .map{it.toList() + ""}
+    
+
+    filter_sce(unfiltered_sce_ch)
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
+
 
 workflow generate_merged_sce {
   // generate rds files for feature + quant samples
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take: feature_quant_channel
   main:
-    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file, params.ref_gtf) \
-      | filter_sce
+    make_merged_unfiltered_sce(feature_quant_channel, params.mito_file, params.ref_gtf)
+    
+    // append the feature barcode file
+    unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
+      .map{it.toList() + it[0]["feature_meta"].feature_barcode_file}
+
+    filter_sce(unfiltered_merged_sce_ch)
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
