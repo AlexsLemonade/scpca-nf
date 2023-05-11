@@ -75,13 +75,9 @@ process fry_quant_feature{
   tag "${meta.run_id}-features"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
-    tuple val(meta),
-          path(run_dir)
-    path barcode_file
+    tuple val(meta), path(run_dir), path(barcode_file)
   output:
-    tuple val(meta),
-          path(run_dir)
-
+    tuple val(meta), path(run_dir)
   script:
     // get meta to write as file
     meta_json = Utils.makeJson(meta)
@@ -159,7 +155,7 @@ workflow map_quant_feature{
 
     // combine output from running alevin step with channel containing libraries that skipped creating RAD file
     all_feature_rad_ch = alevin_feature.out.mix(feature_rad_ch)
-      .map{it.toList() + it[0].barcode_file}
+      .map{it.toList() + [file(it[0].barcode_file)]}
 
 
     // quantify feature reads
