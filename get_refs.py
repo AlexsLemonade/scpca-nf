@@ -212,7 +212,7 @@ ref_paths += [barcode_dir / f for f in barcode_files]
 
 ## download all the files and put them in the correct locations ##
 print("Downloading reference files... (This might take a while)")
-for path in ref_paths[2:3]:
+for path in ref_paths:
     outfile = args.refdir / path
     if outfile.exists() and not args.overwrite_refs:
         continue
