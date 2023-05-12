@@ -50,14 +50,11 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-<<<<<<< HEAD
 if (!file(params.celltype_refs_metafile).exists()) {
   log.error("The 'celltype_refs_metafile' file '${params.celltype_refs_metafile}' can not be found.")
   param_error = true
 }
 
-=======
->>>>>>> development
 resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
 if (!resolution_strategies.contains(params.af_resolution)) {
   log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
@@ -194,10 +191,9 @@ workflow {
   // **** Post processing and generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
-  all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out) 
+  all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
 
-<<<<<<< HEAD
   // annotate cell types
   // create a channel with just meta and processed rds file to use as input to cell type annotation
   celltype_ch = post_process_sce.out
@@ -205,11 +201,9 @@ workflow {
       it[0], // meta
       it[3] // processed rds
     ]}
-  
+
   annotate_celltypes(celltype_ch)
 
-=======
->>>>>>> development
   // generate QC reports
   sce_qc_report(post_process_sce.out, report_template_tuple)
 
