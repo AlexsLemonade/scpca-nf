@@ -4,8 +4,7 @@ process mpileup{
   label 'cpus_2'
   tag "${meta.multiplex_run_id}"
   input:
-    tuple val(meta), path(bamfiles), path(bamfiles_index)
-    tuple path(ref_fasta), path(ref_index)
+    tuple val(meta), path(bamfiles), path(bamfiles_index), path(ref_fasta), path(ref_index)
   output:
     tuple val(meta), path(mpileup_file)
   script:
@@ -54,10 +53,12 @@ workflow pileup_multibulk{
           bulk_library_ids: it[3].collect{it.library_id}
         ],
         it[4], // bamfiles
-        it[5]  // bamfile indexes
+        it[5],  // bamfile indexes
+        file(it[2][0].ref_fasta),
+        file(it[2][0].ref_fasta_index)
       ]}
 
-    mpileup(pileup_ch, [params.ref_fasta, params.ref_fasta_index])
+    mpileup(pileup_ch)
 
   emit:
     mpileup.out
