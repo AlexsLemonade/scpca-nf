@@ -184,7 +184,7 @@ workflow generate_merged_sce {
   take: feature_quant_channel
   main:
     feature_sce_ch = feature_quant_channel
-      # RNA meta is in the third slot here
+      // RNA meta is in the third slot here
       .map{it.toList() + [file(it[2].mito_file), file(it[2].ref_gtf)]}
       
     make_merged_unfiltered_sce(feature_sce_ch)
