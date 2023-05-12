@@ -96,9 +96,6 @@ else:
     print("`ref_rootdir` is not a supported remote location.")
     exit(1)
 
-# read in json file
-json_paths = json.loads(json_file.read())
-
 # single-file references
 # the keys here are the param variables we will be downloading
 ref_keys =[
@@ -181,20 +178,20 @@ cr_index_files = [
 # create a list of all paths for all organisms listed in reference json file
 json_paths = json.load(json_file)
 ref_paths = []
-for all_refs in json_paths.values():
+for organism_refs in json_paths.values():
     # add all the paths for single-file references
-    ref_paths += [Path(all_refs.get(k)) for k in ref_keys]
+    ref_paths += [Path(organism_refs.get(k)) for k in ref_keys]
 
     # get paths to salmon directories and add individual files
-    sa_dir = [Path(all_refs.get(k)) for k in salmon_keys]
+    sa_dir = [Path(organism_refs.get(k)) for k in salmon_keys]
     for dir in sa_dir:
         ref_paths += [dir / f for f in salmon_index_files] # add salmon files
 
     # if cellranger and star index's are asked for, get individual files
     if args.cellranger_index:
-        ref_paths += [Path(all_refs.get("cellranger_index")) / f for f in cr_index_files] # add cellranger files
+        ref_paths += [Path(organism_refs.get("cellranger_index")) / f for f in cr_index_files] # add cellranger files
     if args.star_index:
-        ref_paths += [Path(all_refs.get("star_index")) / f for f in star_index_files] # add star index files
+        ref_paths += [Path(organism_refs.get("star_index")) / f for f in star_index_files] # add star index files
 
 # barcode paths are still kept in the reference config file, so add those separately
 # barcode files on S3 within the barcode_dir (must be downloaded individually through http)
