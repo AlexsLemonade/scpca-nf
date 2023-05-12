@@ -107,7 +107,7 @@ if(all(is.na(sce$miQC_pass))){
 }
 
 # include ADT filtering information
-colData(sce)$scpca_filter[adt_discard_rows] <- "Remove"
+sce$scpca_filter[adt_discard_rows] <- "Remove"
 metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method, 
                                             adt_filter_string)
 

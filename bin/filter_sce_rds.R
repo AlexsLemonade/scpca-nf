@@ -42,7 +42,7 @@ option_list <- list(
   make_option(
     opt_str = c("--adt_name"),
     type = "character",
-    default = NULL,
+    default = "CITEseq",
     help = "Name for the alternative experiment, if present, that contains ADT features"
   ),
   make_option(
@@ -79,7 +79,12 @@ unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 if (is.null(opt$adt_barcode_file)) {
   ambient_profile <- NULL
 } else { 
-
+  # assign and check name for this alternative experiment
+  adt_exp <- opt$adt_name
+  if (!adt_exp %in% altExpNames(unfiltered_sce)) {
+    stop("Given named ADT alternative experiment not present in unfiltered SCE.")
+  }
+  
   # Create data frame of ADTs and their target types
   # If `target_type` column is not present, assume all ADTs are targets
   adt_barcode_df <- readr::read_tsv(
@@ -91,11 +96,6 @@ if (is.null(opt$adt_barcode_file)) {
     adt_barcode_df$target_type <- "target"
   } 
 
-  # assign and check name for this alternative experiment
-  adt_exp <- opt$adt_name
-  if (!adt_exp %in% altExpNames(unfiltered_sce)) {
-    stop("Given named ADT alternative experiment not present in unfiltered SCE.")
-  }
   # Calculate ambient profile from empty drops for later use
   ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(unfiltered_sce, adt_exp)) )
 }
