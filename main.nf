@@ -66,10 +66,13 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
+  ref_paths = Utils.readMeta(file(params.ref_json))
+
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-    .map{[
+    .map{sample_refs = ref_paths[it.sample_reference]
+    [
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
       sample_id: it.scpca_sample_id.split(";").sort().join(","),
@@ -82,15 +85,17 @@ workflow {
       files_directory: it.files_directory,
       slide_serial_number: it.slide_serial_number,
       slide_section: it.slide_section,
-      ref_assembly: params.assembly,
-      ref_fasta: params.ref_fasta,
-      ref_gtf: params.ref_gtf,
-      salmon_splici_index: params.splici_index,
-      t2g_3col_path: params.t2g_3col_path,
-      salmon_bulk_index: params.bulk_index,
-      t2g_bulk_path: params.t2g_bulk_path,
-      cellranger_index: params.cellranger_index,
-      star_index: params.star_index,
+      ref_assembly: it.sample_reference,
+      ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
+      ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
+      ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
+      salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
+      t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
+      mito_file: params.ref_rootdir + "/" + sample_refs["mito_file"],
+      salmon_bulk_index: params.ref_rootdir + "/" + sample_refs["salmon_bulk_index"],
+      t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
+      cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
+      star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
       scpca_version: workflow.manifest.version,
       nextflow_version: nextflow.version.toString()
     ]}

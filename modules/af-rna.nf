@@ -10,8 +10,7 @@ process alevin_rad{
   publishDir "${meta.rad_publish_dir}", mode: 'copy'
   input:
     tuple val(meta),
-          path(read1), path(read2)
-    path index
+          path(read1), path(read2), path(index)
   output:
     tuple val(meta), path(rad_dir)
   script:
@@ -52,7 +51,7 @@ process fry_quant_rna{
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
 
   input:
-    tuple val(meta), path(run_dir), path(barcode_file), path(tx2gene_3col)
+    tuple val(meta), path(run_dir), path(barcode_file), path(t2g_3col)
   output:
     tuple val(meta), path(run_dir)
 
@@ -73,7 +72,7 @@ process fry_quant_rna{
 
     alevin-fry quant \
       --input-dir ${run_dir} \
-      --tg-map ${tx2gene_3col} \
+      --tg-map ${t2g_3col} \
       --resolution ${params.af_resolution} \
       -o ${run_dir} \
       --use-mtx \
@@ -107,7 +106,8 @@ workflow map_quant_rna {
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                         file("${meta.files_directory}/*_R2_*.fastq.gz")
+                         file("${meta.files_directory}/*_R2_*.fastq.gz"),
+                         file("${meta.salmon_splici_index}")
                         )}
 
     // if the rad directory has been created and repeat_mapping is set to false
@@ -118,7 +118,7 @@ workflow map_quant_rna {
                          )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
-    alevin_rad(rna_reads_ch, params.splici_index)
+    alevin_rad(rna_reads_ch)
 
     // combine output from running alevin step with channel containing libraries that skipped creating a RAD file
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)

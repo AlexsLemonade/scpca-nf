@@ -1,0 +1,28 @@
+{
+  "Homo_sapiens.GRCh38.104": {
+    "ref_dir": "homo_sapiens/ensembl-104",
+    "ref_fasta": "homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "homo_sapiens/ensembl-104/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
+    "ref_gtf": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz",
+    "mito_file": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.mitogenes.txt",
+    "t2g_3col_path": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv",
+    "t2g_bulk_path": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_cdna.tx2gene.tsv",
+    "splici_index": "homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_intron.txome",
+    "salmon_bulk_index": "homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_cdna.txome",
+    "cellranger_index": "homo_sapiens/ensembl-104/cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full",
+    "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx"
+  },
+  "Mus_musculus.GRCm39.104": {
+    "ref_dir": "mus_musculus/ensembl-104",
+    "ref_fasta": "mus_musculus/ensembl-104/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "mus_musculus/ensembl-104/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.fai",
+    "ref_gtf": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104.gtf.gz",
+    "mito_file": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104.mitogenes.txt",
+    "t2g_3col_path": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104.spliced_intron.tx2gene_3col.tsv",
+    "t2g_bulk_path": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104.spliced_cdna.tx2gene.tsv",
+    "splici_index": "mus_musculus/ensembl-104/salmon_index/Mus_musculus.GRCm39.104.spliced_intron.txome",
+    "salmon_bulk_index": "mus_musculus/ensembl-104/salmon_index/Mus_musculus.GRCm39.104.spliced_cdna.txome",
+    "cellranger_index": "mus_musculus/ensembl-104/cellranger_index/Mus_musculus.GRCm39.104_cellranger_full",
+    "star_index": "mus_musculus/ensembl-104/star_index/Mus_musculus.GRCm39.104.star_idx"
+  }
+}
