@@ -11,6 +11,8 @@ These matrices are filtered and additional processing is performed to calculate 
 
 For more information on the contents of the output files and the processing of all modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/).
 
+![Overview of Workflow](./diagrams/scpca-nf-overview.png)
+
 ## Using scpca-nf to process your samples
 
 The default configuration of the `scpca-nf` workflow is currently set up to process samples as part of [the ScPCA portal](https://scpca.alexslemonade.org/) and requires access to AWS through the Data Lab.
