@@ -52,7 +52,7 @@ args = parser.parse_args()
 
 # scpca-nf resource urls
 reffile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/reference_paths.config"
-refjson_url = "https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/allyhawkins/support-multiple-organisms/references/scpca-refs.json"
+refjson_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/references/scpca-refs.json"
 
 containerfile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/containers.config"
 
@@ -63,7 +63,7 @@ try:
     json_file = urllib.request.urlopen(refjson_url)
 except urllib.error.URLError as e:
     print(e.reason)
-    print(f"The file download failed for {reffile_url}, {refjson_url}; please check the URL for errors")
+    print(f"The file download failed for {reffile_url} and/or {refjson_url}; please check the URLs for errors")
     print(f"Is `{args.revision}` a valid release tag?")
     exit(1)
 
@@ -179,9 +179,9 @@ cr_index_files = [
 ]
 
 # create a list of all paths for all organisms listed in reference json file
+json_paths = json.load(json_file)
 ref_paths = []
-for organism in json_paths:
-    all_refs = json_paths.get(organism)
+for all_refs in json_paths.values():
     # add all the paths for single-file references
     ref_paths += [Path(all_refs.get(k)) for k in ref_keys]
 
@@ -192,9 +192,9 @@ for organism in json_paths:
 
     # if cellranger and star index's are asked for, get individual files
     if args.cellranger_index:
-        ref_paths += [all_refs.get("cellranger_index") / f for f in cr_index_files] # add cellranger files
+        ref_paths += [Path(all_refs.get("cellranger_index")) / f for f in cr_index_files] # add cellranger files
     if args.star_index:
-        ref_paths += [all_refs.get("star_index") / f for f in star_index_files] # add star index files
+        ref_paths += [Path(all_refs.get("star_index")) / f for f in star_index_files] # add star index files
 
 # barcode paths are still kept in the reference config file, so add those separately
 # barcode files on S3 within the barcode_dir (must be downloaded individually through http)
