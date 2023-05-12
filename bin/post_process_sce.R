@@ -72,25 +72,10 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 # read in filtered rds file
 sce <- readr::read_rds(opt$filtered_sce_file)
 
-# create scpca_filter column ------------
+# create scpca_filter column -----------
 
-# first, check for CITEseq data and set up indices to filter out
-#  and string to include in `scpca_filter_method`
-alt_exp <- opt$adt_name
-if (!(alt_exp %in% altExpNames(sce))) {
-  adt_discard_rows <- c()
-  adt_filter_string <- ""
-} else {
-  adt_discard_rows <- which(colData(altExp(sce, alt_exp))$discard)
-  adt_filter_string <- ";cleanTagCounts"
-  
-}
-
-#processed_sce <- processed_sce[, -discard_rows]
-
-# create scpca_filter column
 if(all(is.na(sce$miQC_pass))){
-  colData(sce)$scpca_filter <- ifelse(
+  sce$scpca_filter <- ifelse(
     sce$detected >= opt$gene_cutoff, 
     "Keep", 
     "Remove"
@@ -98,7 +83,7 @@ if(all(is.na(sce$miQC_pass))){
   metadata(sce)$scpca_filter_method <- "Minimum_gene_cutoff"
 } else {
   # create filter using miQC and min gene cutoff
-  colData(sce)$scpca_filter <- ifelse(
+  sce$scpca_filter <- ifelse(
     sce$miQC_pass & sce$detected >= opt$gene_cutoff,
     "Keep",
     "Remove"
@@ -106,7 +91,17 @@ if(all(is.na(sce$miQC_pass))){
   metadata(sce)$scpca_filter_method <- "miQC"
 }
 
-# include ADT filtering information
+# if present, add ADT filtering to `scpca_filter` and 
+# setup associated metadata string
+alt_exp <- opt$adt_name
+if (!(alt_exp %in% altExpNames(sce))) {
+  adt_discard_rows <- c()
+  adt_filter_string <- ""
+} else {
+  adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
+  adt_filter_string <- ";cleanTagCounts"
+  
+}
 sce$scpca_filter[adt_discard_rows] <- "Remove"
 metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method, 
                                             adt_filter_string)
