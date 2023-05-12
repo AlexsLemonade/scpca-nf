@@ -147,7 +147,7 @@ if (!is.null(ambient_profile)) {
   if (!"target_type" %in% names(adt_barcode_df)) {
     adt_barcode_df$target_type <- "target"
   } 
-  if ( !all.equal( sort(adt_barcode_df$names), sort(rownames(altExp(filtered_sce, adt_exp))) )) {
+  if ( !all.equal( sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))) )) {
     stop("Mismatch between provided ADT barcode file and ADTs in SCE.")
   }
   # Find any negative controls
