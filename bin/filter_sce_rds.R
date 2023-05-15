@@ -134,8 +134,15 @@ for (alt in alt_names) {
 }
 
 
-# calculate filtering QC from ADTs, if present
+# calculate filtering QC and scaling factors for later
+# normalization from ADTs, if present
 if (!is.null(ambient_profile)) {
+  
+  # Calculate median size factors from the ambient profile
+  altExp(filtered_sce, adt_exp) <- scuttle::computeMedianFactors(
+    altExp(filtered_sce, adt_exp),
+    reference = ambient_profile
+  )
   
   # Create data frame of ADTs and their target types
   # If `target_type` column is not present, assume all ADTs are targets

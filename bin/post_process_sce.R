@@ -100,7 +100,6 @@ if (!(alt_exp %in% altExpNames(sce))) {
 } else {
   adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
   adt_filter_string <- ";cleanTagCounts"
-  
 }
 sce$scpca_filter[adt_discard_rows] <- "Remove"
 metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method, 
@@ -133,7 +132,7 @@ for (alt in altExpNames(processed_sce)) {
 
 # Perform normalization -----------------
 
-# cluster prior to normalization
+# cluster prior to RNA normalization
 qclust <- NULL
 try({
   # try and cluster similar cells
@@ -152,8 +151,20 @@ if (is.null(qclust)) {
   metadata(processed_sce)$normalization <- "log-normalization"
 }
 
-# Normalize and log transform
+# Normalize and log transform RNA counts
 processed_sce <- scater::logNormCounts(processed_sce)
+
+# Try to normalize ADT counts, if present
+if (alt_exp %in% altExpNames(processed_sce)) {
+  
+  # Only perform normalization if size factors are all > 0
+  if ( any( altExp(processed_sce, alt_exp)$sizeFactor == 0 ) ) {
+    warn("Failed to normalize ADT counts.")
+  } else {
+    # Apply normalization 
+    altExp(processed_sce, alt_exp) <- scuttle::logNormCounts(altExp(processed_sce, alt_exp))
+  }
+}
 
 
 # Perform dimension reduction --------------------
