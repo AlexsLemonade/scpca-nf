@@ -42,6 +42,13 @@ process starsolo{
 
     mv ${output_dir}/Aligned.sortedByCoord.out.bam ${output_bam}
     """
+  stub:
+    output_dir = "${meta.run_id}_star"
+    output_bam = "${meta.run_id}.sorted.bam"
+    """
+    mkdir -p ${output_dir}
+    touch ${output_bam}
+    """
 }
 
 
