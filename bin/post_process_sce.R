@@ -11,7 +11,7 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--input_sce_file"),
+    opt_str = c("-i", "--filtered_sce_file"),
     type = "character",
     help = "path to rds file with input sce object to be processed"
   ),
@@ -19,6 +19,12 @@ option_list <- list(
     opt_str = c("-o", "--output_sce_file"),
     type = "character",
     help = "path to output rds file to store processed sce object. Must end in .rds"
+  ),
+  make_option(
+    opt_str = c("--adt_name"),
+    type = "character",
+    default = "CITEseq",
+    help = "Name for the alternative experiment, if present, that contains ADT features"
   ),
   make_option(
     opt_str = c("--gene_cutoff"),
@@ -47,14 +53,15 @@ option_list <- list(
   )
 )
 
+# Parse and apply input options -------------
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # set seed
 set.seed(opt$random_seed)
 
-# check that input file file exists
-if(!file.exists(opt$input_sce_file)){
-  stop("Missing unfiltered.rds file")
+# check that filtered SCE file exists
+if(!file.exists(opt$filtered_sce_file)){
+  stop("Missing filtered.rds file")
 }
 
 # check that output file name ends in .rds
@@ -62,18 +69,21 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
   stop("output file name must end in .rds")
 }
 
-# read in input rds file
-sce <- readr::read_rds(opt$input_sce_file)
+# read in filtered rds file
+sce <- readr::read_rds(opt$filtered_sce_file)
 
-# create scpca_filter column
+# create scpca_filter column -----------
+
 if(all(is.na(sce$miQC_pass))){
-  colData(sce)$scpca_filter <- ifelse(
-    sce$detected >= opt$gene_cutoff, "Keep", "Remove"
+  sce$scpca_filter <- ifelse(
+    sce$detected >= opt$gene_cutoff, 
+    "Keep", 
+    "Remove"
   )
   metadata(sce)$scpca_filter_method <- "Minimum_gene_cutoff"
 } else {
   # create filter using miQC and min gene cutoff
-  colData(sce)$scpca_filter <- ifelse(
+  sce$scpca_filter <- ifelse(
     sce$miQC_pass & sce$detected >= opt$gene_cutoff,
     "Keep",
     "Remove"
@@ -81,75 +91,99 @@ if(all(is.na(sce$miQC_pass))){
   metadata(sce)$scpca_filter_method <- "miQC"
 }
 
+# if present, add ADT filtering to `scpca_filter` and 
+# setup associated metadata string
+alt_exp <- opt$adt_name
+if (!(alt_exp %in% altExpNames(sce))) {
+  adt_discard_rows <- c()
+  adt_filter_string <- ""
+} else {
+  adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
+  adt_filter_string <- ";cleanTagCounts"
+  
+}
+sce$scpca_filter[adt_discard_rows] <- "Remove"
+metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method, 
+                                            adt_filter_string)
+
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 
+# Perform filtering -----------------
+
 # filter sce using criteria in scpca_filter
-filtered_sce <- sce[, which(sce$scpca_filter == "Keep")]
+processed_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
-drop_cols = colnames(rowData(filtered_sce, alt)) %in% c('mean', 'detected')
-rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
+drop_cols <- colnames(rowData(processed_sce, alt)) %in% c('mean', 'detected')
+rowData(processed_sce) <- rowData(processed_sce)[!drop_cols]
 
-filtered_sce <- filtered_sce |>
+processed_sce <- processed_sce |>
   scuttle::addPerFeatureQCMetrics()
 
 # replace existing stats from altExp if any
-for (alt in altExpNames(filtered_sce)) {
+for (alt in altExpNames(processed_sce)) {
   # remove old row data
-  drop_cols = colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
-  rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
-
+  drop_cols <- colnames(rowData(altExp(processed_sce, alt))) %in% c('mean', 'detected')
+  rowData(altExp(processed_sce, alt)) <- rowData(altExp(processed_sce, alt))[!drop_cols]
+  
   # add alt experiment features stats for filtered data
-  altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
+  altExp(processed_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(processed_sce, alt))
 }
+
+# Perform normalization -----------------
 
 # cluster prior to normalization
 qclust <- NULL
 try({
   # try and cluster similar cells
   # clustering will fail if < 100 cells in dataset
-  qclust <- scran::quickCluster(filtered_sce)
+  qclust <- scran::quickCluster(processed_sce)
 
   # Compute sum factors for each cell cluster grouping
-  filtered_sce <- scran::computeSumFactors(filtered_sce, clusters = qclust)
+  processed_sce <- scran::computeSumFactors(processed_sce, clusters = qclust)
 
   # Include note in metadata re: clustering before computing sum factors
-  metadata(filtered_sce)$normalization <- "deconvolution"
+  metadata(processed_sce)$normalization <- "deconvolution"
 })
 
 if (is.null(qclust)) {
   # Include note in metadata re: failed clustering
-  metadata(filtered_sce)$normalization <- "log-normalization"
+  metadata(processed_sce)$normalization <- "log-normalization"
 }
 
 # Normalize and log transform
-filtered_sce <- scater::logNormCounts(filtered_sce)
+processed_sce <- scater::logNormCounts(processed_sce)
+
+
+# Perform dimension reduction --------------------
 
 # model gene variance using `scran:modelGeneVar()`
-gene_variance <- scran::modelGeneVar(filtered_sce)
+gene_variance <- scran::modelGeneVar(processed_sce)
 
 # select the most variable genes
 var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
 
 # save the most variable genes to the metadata
-metadata(filtered_sce)$highly_variable_genes <- var_genes
+metadata(processed_sce)$highly_variable_genes <- var_genes
 
 # dimensionality reduction
 # highly variable genes are used as input to PCA
-filtered_sce <- scater::runPCA(filtered_sce,
+processed_sce <- scater::runPCA(processed_sce,
                                ncomponents = opt$n_pcs,
                                subset_row = var_genes)
 
 # calculate a UMAP matrix using the PCA results
 try({
-  filtered_sce <- scater::runUMAP(filtered_sce,
+  processed_sce <- scater::runUMAP(processed_sce,
                                   dimred = "PCA")
 })
 
-# write out original SCE with additional filtering column
-readr::write_rds(sce, opt$input_sce_file, compress = "gz")
+# Export --------------
+
+# write out _original_ filtered SCE with additional filtering column
+readr::write_rds(sce, opt$filtered_sce_file, compress = "gz")
 
 # write out processed SCE
-readr::write_rds(filtered_sce, opt$output_sce_file, compress = "gz")
+readr::write_rds(processed_sce, opt$output_sce_file, compress = "gz")
 
