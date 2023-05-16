@@ -127,7 +127,7 @@ The following columns may be necessary for running other data modalities (CITE-s
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples); for CITE-seq samples, this file can optionally indicate whether antibodies are targets or controls.  |
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
@@ -313,6 +313,18 @@ For example:
 TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
+
+For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate whether the given antibody is a true target (`target`) or a control, either a spike-in positive control (`pos_control`) or negative control (`neg_control`).
+
+For example, the following shows that two antibodies are targets and one is a negative control:
+
+```
+TAG01	CATGTGAGCT	target
+TAG02	TGTGAGGGTG	neg_control
+TAG03	GTAGCTCCAA	target
+```
+
+If negative control antibodies are indicated, this information will be considered during post-processing filtering and normalization.
 
 
 ### Multiplexed (cellhash) libraries
