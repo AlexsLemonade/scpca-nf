@@ -157,13 +157,13 @@ if (is.null(qclust)) {
 }
 
 # Normalize and log transform RNA counts
-processed_sce <- scater::logNormCounts(processed_sce)
+processed_sce <- scuttle::logNormCounts(processed_sce)
 
 # Try to normalize ADT counts, if present
 if (alt_exp %in% altExpNames(processed_sce)) {
 
   # Only perform normalization if size factors are all > 0
-  if ( any( altExp(processed_sce, alt_exp)$sizeFactor == 0 ) ) {
+  if ( any( altExp(processed_sce, alt_exp)$sizeFactor <= 0 ) ) {
     warn("Failed to normalize ADT counts.")
   } else {
     # Apply normalization
