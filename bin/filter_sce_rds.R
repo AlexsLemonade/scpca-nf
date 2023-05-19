@@ -78,15 +78,16 @@ unfiltered_sce <- readr::read_rds(opt$unfiltered_file)
 # check if ADT data is present, and prep if so
 if (is.null(opt$adt_barcode_file)) {
   ambient_profile <- NULL
-} else { 
+} else {
   # assign and check name for this alternative experiment
   adt_exp <- opt$adt_name
   if (!adt_exp %in% altExpNames(unfiltered_sce)) {
     stop("Given named ADT alternative experiment not present in unfiltered SCE.")
   }
 
-  # Calculate ambient profile from empty drops for later use
+  # Calculate ambient profile from empty drops for later use, and save to altExp metadata
   ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(unfiltered_sce, adt_exp)) )
+  metadata(altExp(unfiltered_sce, adt_exp))$ambient_profile <- ambient_profile
 }
 
 # filter sce
@@ -137,23 +138,17 @@ for (alt in alt_names) {
 # calculate filtering QC and scaling factors for later
 # normalization from ADTs, if present
 if (!is.null(ambient_profile)) {
-  
-  # Calculate median size factors from the ambient profile
-  altExp(filtered_sce, adt_exp) <- scuttle::computeMedianFactors(
-    altExp(filtered_sce, adt_exp),
-    reference = ambient_profile
-  )
-  
+
   # Create data frame of ADTs and their target types
   # If `target_type` column is not present, assume all ADTs are targets
   adt_barcode_df <- readr::read_tsv(
-    opt$adt_barcode_file, 
+    opt$adt_barcode_file,
     # if only 2 columns exist, only the first two col_names will be used
     col_names = c("name", "barcode", "target_type")
-  ) 
+  )
   if (!"target_type" %in% names(adt_barcode_df)) {
     adt_barcode_df$target_type <- "target"
-  } 
+  }
   if ( !all.equal( sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))) )) {
     stop("Mismatch between provided ADT barcode file and ADTs in SCE.")
   }
@@ -161,7 +156,7 @@ if (!is.null(ambient_profile)) {
   neg_controls <- adt_barcode_df |>
     dplyr::filter(target_type == "neg_control") |>
     dplyr::pull(name)
-  
+
   # Calculate QC stats, providing negative controls if present
   # note: function fails if controls is length 0 or null, so keep the `if`
   if (length(neg_controls) == 0) {
@@ -172,15 +167,15 @@ if (!is.null(ambient_profile)) {
   } else {
     adt_qc_df <- DropletUtils::cleanTagCounts(
       counts(altExp(filtered_sce, adt_exp)),
-      ambient = ambient_profile, 
+      ambient = ambient_profile,
       controls = neg_controls
     )
   }
-  
+
   # Save QC stats to the altexp
-  colData(altExp(filtered_sce, adt_exp)) <- cbind(colData(altExp(filtered_sce, adt_exp)), 
+  colData(altExp(filtered_sce, adt_exp)) <- cbind(colData(altExp(filtered_sce, adt_exp)),
                                                   adt_qc_df)
-  
+
   # Add `target_type` to rowData
   rowData(altExp(filtered_sce, adt_exp))$target_type <- adt_barcode_df$target_type
 }

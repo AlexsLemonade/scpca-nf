@@ -99,14 +99,10 @@ if (!(alt_exp %in% altExpNames(sce))) {
   adt_filter_string <- ""
 } else {
   adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
+  sce$scpca_filter[adt_discard_rows] <- "Remove"
   adt_filter_string <- ";cleanTagCounts"
-
-  # Go ahead and remove the `discard` column now; after filtering,
-  #  this column will just be all `FALSE`
-  drop_discard_col <- colnames(colData(altExp(sce, alt_exp))) == "discard"
-  colData(altExp(sce, alt_exp)) <- colData(altExp(sce, alt_exp))[!drop_discard_col]
 }
-sce$scpca_filter[adt_discard_rows] <- "Remove"
+
 metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method,
                                             adt_filter_string)
 
@@ -162,7 +158,13 @@ processed_sce <- scuttle::logNormCounts(processed_sce)
 # Try to normalize ADT counts, if present
 if (alt_exp %in% altExpNames(processed_sce)) {
 
-  # Only perform normalization if size factors are all > 0
+  # Calculate median size factors from the ambient profile
+  altExp(filtered_sce, adt_exp) <- scuttle::computeMedianFactors(
+    altExp(filtered_sce, adt_exp),
+    reference = metadata(altExp(filtered_sce, adt_exp))$ambient_profile
+  )
+
+  # Only perform normalization if size factors are all positive
   if ( any( altExp(processed_sce, alt_exp)$sizeFactor <= 0 ) ) {
     warn("Failed to normalize ADT counts.")
   } else {
