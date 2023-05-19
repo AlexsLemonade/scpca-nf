@@ -95,14 +95,12 @@ if(all(is.na(sce$miQC_pass))){
 # setup associated metadata string
 alt_exp <- opt$adt_name
 if (!(alt_exp %in% altExpNames(sce))) {
-  adt_discard_rows <- c()
   adt_filter_string <- ""
 } else {
   adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
   sce$scpca_filter[adt_discard_rows] <- "Remove"
   adt_filter_string <- ";cleanTagCounts"
 }
-
 metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method,
                                             adt_filter_string)
 
