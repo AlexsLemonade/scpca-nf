@@ -160,11 +160,11 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     altExp(filtered_sce, adt_exp) <- scuttle::computeMedianFactors(
       altExp(filtered_sce, adt_exp),
       reference = metadata(altExp(filtered_sce, adt_exp))$ambient_profile
+    )
   } else {
     # if ambient profile is not present, set sizeFactor to 0 for later warning.
     altExp(processed_sce, alt_exp)$sizeFactor <- 0
   }
-  )
 
   # Only perform normalization if size factors are all positive
   if ( any( altExp(processed_sce, alt_exp)$sizeFactor <= 0 ) ) {
