@@ -135,8 +135,7 @@ for (alt in alt_names) {
 }
 
 
-# calculate filtering QC and scaling factors for later
-# normalization from ADTs, if present
+# calculate filtering QC from ADTs, if present
 if (!is.null(ambient_profile)) {
 
   # Create data frame of ADTs and their target types
