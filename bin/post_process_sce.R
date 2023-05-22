@@ -155,11 +155,12 @@ processed_sce <- scuttle::logNormCounts(processed_sce)
 
 # Try to normalize ADT counts, if present
 if (alt_exp %in% altExpNames(processed_sce)) {
-  if( !is.na(metadata(altExp(filtered_sce, adt_exp))$ambient_profile)){
+  # need `all()` since present this is an array
+  if( !all(is.null(metadata(altExp(processed_sce, alt_exp))$ambient_profile))){
     # Calculate median size factors from the ambient profile
-    altExp(filtered_sce, adt_exp) <- scuttle::computeMedianFactors(
-      altExp(filtered_sce, adt_exp),
-      reference = metadata(altExp(filtered_sce, adt_exp))$ambient_profile
+    altExp(processed_sce, alt_exp) <- scuttle::computeMedianFactors(
+      altExp(processed_sce, alt_exp),
+      reference = metadata(altExp(processed_sce, alt_exp))$ambient_profile
     )
   } else {
     # if ambient profile is not present, set sizeFactor to 0 for later warning.
