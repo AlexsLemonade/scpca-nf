@@ -41,6 +41,7 @@ process alevin_rad{
     echo '${meta_json}' > ${rad_dir}/scpca-meta.json
     """
   stub:
+    rad_dir = file(meta.rad_dir).name
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${rad_dir}
