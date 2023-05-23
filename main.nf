@@ -70,6 +70,7 @@ workflow {
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
+    .filter{it.sample_reference in ref_paths}
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
     .map{sample_refs = ref_paths[it.sample_reference]
     [
