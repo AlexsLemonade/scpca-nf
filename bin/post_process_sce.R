@@ -76,8 +76,8 @@ sce <- readr::read_rds(opt$filtered_sce_file)
 
 if(all(is.na(sce$miQC_pass))){
   sce$scpca_filter <- ifelse(
-    sce$detected >= opt$gene_cutoff, 
-    "Keep", 
+    sce$detected >= opt$gene_cutoff,
+    "Keep",
     "Remove"
   )
   metadata(sce)$scpca_filter_method <- "Minimum_gene_cutoff"
@@ -91,19 +91,17 @@ if(all(is.na(sce$miQC_pass))){
   metadata(sce)$scpca_filter_method <- "miQC"
 }
 
-# if present, add ADT filtering to `scpca_filter` and 
+# if present, add ADT filtering to `scpca_filter` and
 # setup associated metadata string
 alt_exp <- opt$adt_name
 if (!(alt_exp %in% altExpNames(sce))) {
-  adt_discard_rows <- c()
   adt_filter_string <- ""
 } else {
   adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
+  sce$scpca_filter[adt_discard_rows] <- "Remove"
   adt_filter_string <- ";cleanTagCounts"
-  
 }
-sce$scpca_filter[adt_discard_rows] <- "Remove"
-metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method, 
+metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method,
                                             adt_filter_string)
 
 # add min gene cutoff to metadata
@@ -126,14 +124,14 @@ for (alt in altExpNames(processed_sce)) {
   # remove old row data
   drop_cols <- colnames(rowData(altExp(processed_sce, alt))) %in% c('mean', 'detected')
   rowData(altExp(processed_sce, alt)) <- rowData(altExp(processed_sce, alt))[!drop_cols]
-  
+
   # add alt experiment features stats for filtered data
   altExp(processed_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(processed_sce, alt))
 }
 
 # Perform normalization -----------------
 
-# cluster prior to normalization
+# cluster prior to RNA normalization
 qclust <- NULL
 try({
   # try and cluster similar cells
@@ -152,8 +150,31 @@ if (is.null(qclust)) {
   metadata(processed_sce)$normalization <- "log-normalization"
 }
 
-# Normalize and log transform
-processed_sce <- scater::logNormCounts(processed_sce)
+# Normalize and log transform RNA counts
+processed_sce <- scuttle::logNormCounts(processed_sce)
+
+# Try to normalize ADT counts, if present
+if (alt_exp %in% altExpNames(processed_sce)) {
+  # need `all()` since,if present, this is an array
+  if( !all(is.null(metadata(altExp(processed_sce, alt_exp))$ambient_profile))){
+    # Calculate median size factors from the ambient profile
+    altExp(processed_sce, alt_exp) <- scuttle::computeMedianFactors(
+      altExp(processed_sce, alt_exp),
+      reference = metadata(altExp(processed_sce, alt_exp))$ambient_profile
+    )
+  } else {
+    # if ambient profile is not present, set sizeFactor to 0 for later warning.
+    altExp(processed_sce, alt_exp)$sizeFactor <- 0
+  }
+
+  # Only perform normalization if size factors are all positive
+  if ( any( altExp(processed_sce, alt_exp)$sizeFactor <= 0 ) ) {
+    warn("Failed to normalize ADT counts.")
+  } else {
+    # Apply normalization
+    altExp(processed_sce, alt_exp) <- scuttle::logNormCounts(altExp(processed_sce, alt_exp))
+  }
+}
 
 
 # Perform dimension reduction --------------------
