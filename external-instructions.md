@@ -167,8 +167,8 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 // my_config.config
 params.run_metafile = '<path to run_metafile>'
 params.outdir = '<path to output>'
-params.max_cpus = 12
-params.max_memory = 24.GB
+params.max_cpus = 24
+params.max_memory = 96.GB
 ```
 
 The `max_cpus` and `max_memory` parameters should reflect the maximum number of CPUs and memory available for a single process in your environment.
