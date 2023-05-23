@@ -47,7 +47,7 @@ process starsolo{
     """
     mkdir -p ${output_dir}
     touch ${output_bam}
-    sleep 10
+    sleep 5
     """
 }
 

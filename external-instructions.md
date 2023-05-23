@@ -25,7 +25,8 @@
 
  ## Overview
 
-Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can ideally accommodate up to 24 GB of RAM and 12 CPUs.
+Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
+Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
 While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
 After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
@@ -150,7 +151,7 @@ Note that *workflow* parameters such as `--run_metafile` and `--outdir` are deno
 
 There are also a number of optional parameters that can be set, either at the command line or in a configuration file, including:
 
-- `max_cpus`: the maximum number of CPUs to use for a single process (default: 24)
+- `max_cpus`: the maximum number of CPU cores to use for a single process (default: 24)
 - `max_memory`: the maximum amount of memory to use for a single process (default: `96.GB`)
 
 Other customizable parameters can be found in the `nextflow.config` file in the repository.
