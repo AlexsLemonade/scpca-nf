@@ -33,4 +33,11 @@ process sce_qc_report{
           --workflow_version "${workflow_version}" \
           --workflow_commit "${workflow.commitId}"
         """
+    stub:
+        qc_report = "${meta.library_id}_qc.html"
+        metadata_json = "${meta.library_id}_metadata.json"
+        """
+        touch ${qc_report}
+        echo '{}' > ${metadata_json}
+        """
 }

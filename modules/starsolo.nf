@@ -20,7 +20,6 @@ process starsolo{
     features_flag = meta.seq_unit == "nucleus" ? "--soloFeatures Gene GeneFull" : "--soloFeatures Gene"
     output_dir = "${meta.run_id}_star"
     output_bam = "${meta.run_id}.sorted.bam"
-
     """
     mkdir -p ${output_dir}/Solo.out/Gene/raw
     STAR \
@@ -41,6 +40,14 @@ process starsolo{
       --outFileNamePrefix ${output_dir}/
 
     mv ${output_dir}/Aligned.sortedByCoord.out.bam ${output_bam}
+    """
+  stub:
+    output_dir = "${meta.run_id}_star"
+    output_bam = "${meta.run_id}.sorted.bam"
+    """
+    mkdir -p ${output_dir}
+    touch ${output_bam}
+    sleep 5
     """
 }
 
