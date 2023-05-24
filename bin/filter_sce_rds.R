@@ -145,12 +145,31 @@ if (!is.null(ambient_profile)) {
     # if only 2 columns exist, only the first two col_names will be used
     col_names = c("name", "barcode", "target_type")
   )
+
+  # Assign default of `target` if no third column provided
   if (!"target_type" %in% names(adt_barcode_df)) {
     adt_barcode_df$target_type <- "target"
   }
+  # Check for valid target types and warn if invalid found
+  allowed_adt_values <- c("target", "neg_control", "pos_control")
+  if (!all(adt_barcode_df$target_type) %in% allowed_adt_values) {
+    warn("Warning: Invalid target type values provided in the ADT barcode file.
+         These ADTs will be assumed to be targets.")
+
+    # Set all invalid values to "target" default
+    adt_barcode_df <- adt_barcode_df |>
+      dplyr::mutate(target_type == ifelse(
+        target_type %in% allowed_adt_values,
+        target_type,
+        "target"
+      ))
+  }
+
+  # Check that barcode file ADTs match SCE ADTs
   if ( !all.equal( sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))) )) {
     stop("Mismatch between provided ADT barcode file and ADTs in SCE.")
   }
+
   # Find any negative controls
   neg_controls <- adt_barcode_df |>
     dplyr::filter(target_type == "neg_control") |>
