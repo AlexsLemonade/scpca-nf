@@ -328,7 +328,8 @@ TAG02	TGTGAGGGTG	neg_control
 TAG03	GTAGCTCCAA	target
 ```
 
-If negative control antibodies are indicated, this information will be considered during post-processing filtering and normalization.
+If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
+Positive controls are currently unused, but this label will be included in final output files.
 
 
 ### Multiplexed (cellhash) libraries
