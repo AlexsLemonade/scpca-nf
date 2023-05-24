@@ -33,13 +33,6 @@ process spaceranger{
     # remove bam and bai files
     rm ${out_id}/outs/*.bam*
     """
-  stub:
-    out_id = file(meta.spaceranger_results_dir).name
-    meta_json = Utils.makeJson(meta)
-    """
-    mkdir -p ${out_id}/outs
-    echo '${meta_json}' > ${out_id}/scpca-meta.json
-    """
 }
 
 process spaceranger_publish{
@@ -79,13 +72,6 @@ process spaceranger_publish{
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow.revision}" \
       --workflow_commit "${workflow.commitId}"
-    """
-  stub:
-    spatial_publish_dir = "${meta.library_id}_spatial"
-    metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json"
-    """
-    mkdir -p ${spatial_publish_dir}
-    echo '{}' > ${metadata_json}
     """
 }
 

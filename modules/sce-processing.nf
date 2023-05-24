@@ -22,12 +22,6 @@ process make_unfiltered_sce{
           --sample_id "${meta.sample_id}" \
           ${params.spliced_only ? '--spliced_only' : ''}
         """
-    stub:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-        """
-        touch "${meta.library_id}_unfiltered.rds"
-        """
-
 }
 
 // channels with RNA and feature data
@@ -36,7 +30,7 @@ process make_merged_unfiltered_sce{
     tag "${meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input:
-        tuple val(feature_meta), path(feature_alevin_dir),
+        tuple val(feature_meta), path(feature_alevin_dir), 
               val (meta), path(alevin_dir),
               path(mito_file), path(ref_gtf)
     output:
@@ -46,7 +40,6 @@ process make_merged_unfiltered_sce{
         // add feature metadata as an element of the main meta object
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
-
 
         """
         generate_unfiltered_sce.R \
@@ -60,13 +53,6 @@ process make_merged_unfiltered_sce{
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           ${params.spliced_only ? '--spliced_only' : ''}
-        """
-    stub:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-        meta['feature_type'] = feature_meta.technology.split('_')[0]
-        meta['feature_meta'] = feature_meta
-        """
-        touch "${meta.library_id}_unfiltered.rds"
         """
 }
 
@@ -86,11 +72,6 @@ process filter_sce{
           --filtered_file ${filtered_rds} \
           --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
-        """
-    stub:
-        filtered_rds = "${meta.library_id}_filtered.rds"
-        """
-        touch ${filtered_rds}
         """
 }
 
@@ -113,10 +94,6 @@ process genetic_demux_sce{
       --output_sce_file ${filtered_rds} \
       --library_id ${meta.library_id} \
       --vireo_dir ${vireo_dir}
-    """
-  stub:
-    """
-    touch ${filtered_rds}
     """
 }
 
@@ -142,10 +119,6 @@ process cellhash_demux_sce{
       --hash_demux \
       --seurat_demux
     """
-  stub:
-    """
-    touch ${filtered_rds}
-    """
 }
 
 process post_process_sce{
@@ -167,11 +140,6 @@ process post_process_sce{
           --n_hvg ${params.num_hvg} \
           --n_pcs ${params.num_pcs} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
-        """
-    stub:
-        processed_rds = "${meta.library_id}_processed.rds"
-        """
-        touch ${processed_rds}
         """
 }
 

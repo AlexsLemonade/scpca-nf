@@ -23,11 +23,6 @@ process mpileup{
     | bcftools reheader -s samples.txt \
     > ${mpileup_file}
     """
-  stub:
-    mpileup_file = "${meta.multiplex_library_id}.vcf.gz"
-    """
-    touch ${mpileup_file}
-    """
 }
 
 workflow pileup_multibulk{

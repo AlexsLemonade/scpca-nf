@@ -40,13 +40,6 @@ process alevin_rad{
 
     echo '${meta_json}' > ${rad_dir}/scpca-meta.json
     """
-  stub:
-    rad_dir = file(meta.rad_dir).name
-    meta_json = Utils.makeJson(meta)
-    """
-    mkdir -p ${rad_dir}
-    echo '${meta_json}' > ${rad_dir}/scpca-meta.json
-    """
 }
 
 // quantify rna from RAD input
@@ -88,11 +81,6 @@ process fry_quant_rna{
     # remove large files
     rm ${run_dir}/*.rad ${run_dir}/*.bin
 
-    echo '${meta_json}' > ${run_dir}/scpca-meta.json
-    """
-  stub:
-    meta_json = Utils.makeJson(meta)
-    """
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
