@@ -328,7 +328,7 @@ TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
 
-For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three allowed values:
+For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
 
 - `target`:  antibody is a true target
 - `neg_control`: a negative control antibody
