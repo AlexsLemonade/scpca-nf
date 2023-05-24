@@ -20,6 +20,10 @@ process index_feature{
 
     awk '{print \$1"\\t"\$1;}' ${feature_file} > feature_index/t2g.tsv
     """
+  stub:
+    """
+    mkdir -p feature_index
+    """
 }
 
 // generates RAD file for alevin feature matrix using alevin
@@ -65,6 +69,14 @@ process alevin_feature{
 
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
+  stub:
+    run_dir = "${meta.run_id}-features"
+    meta_json = Utils.makeJson(meta)
+    """
+    mkdir -p ${run_dir}
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    """
+
 }
 
 // quantify features from rad input
@@ -103,6 +115,11 @@ process fry_quant_feature{
     # remove large files
     rm ${run_dir}/*.rad ${run_dir}/*.bin
 
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    """
+  stub:
+    meta_json = Utils.makeJson(meta)
+    """
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }

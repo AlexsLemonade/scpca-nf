@@ -10,4 +10,9 @@ process index_bam{
     """
     samtools index ${bamfile} ${bamfile_index}
     """
+  stub:
+    bamfile_index = "${bamfile}.bai"
+    """
+    touch ${bamfile_index}
+    """
 }
