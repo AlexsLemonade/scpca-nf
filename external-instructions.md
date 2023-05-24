@@ -314,7 +314,11 @@ TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
 
-For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate whether the given antibody is a true target (`target`) or a control, either a spike-in positive control (`pos_control`) or negative control (`neg_control`).
+For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
+
+- `target`:  antibody is a true target 
+- `neg_control`: a negative control antibody
+- `pos_control`: a spike-in positive control
 
 For example, the following shows that two antibodies are targets and one is a negative control:
 
