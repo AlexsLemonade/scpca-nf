@@ -342,8 +342,8 @@ TAG02	TGTGAGGGTG	neg_control
 TAG03	GTAGCTCCAA	target
 ```
 
-If this third column is not provided, all antibodies will be assumed to be targets.
-Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibody/ies will be assumed to be target(s).
+If this third column is not provided, all antibodies will be treated as targets.
+Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibody/ies will be treated as target(s).
 
 If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
 Positive controls are currently unused, but if provided, this label will be included in final output files.
