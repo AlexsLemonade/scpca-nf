@@ -129,7 +129,7 @@ The following columns may be necessary for running other data modalities (CITE-s
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples); for CITE-seq samples, this file can optionally indicate whether antibodies are targets or controls.  |
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
@@ -327,6 +327,26 @@ For example:
 TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
+
+For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
+
+- `target`:  antibody is a true target
+- `neg_control`: a negative control antibody
+- `pos_control`: a spike-in positive control
+
+For example, the following shows that two antibodies are targets and one is a negative control:
+
+```
+TAG01	CATGTGAGCT	target
+TAG02	TGTGAGGGTG	neg_control
+TAG03	GTAGCTCCAA	target
+```
+
+If this third column is not provided, all antibodies will be treated as targets.
+Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibody/ies will be treated as target(s).
+
+If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
+Positive controls are currently unused, but if provided, this label will be included in final output files.
 
 
 ### Multiplexed (cellhash) libraries
