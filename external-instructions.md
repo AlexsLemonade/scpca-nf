@@ -314,9 +314,9 @@ TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
 
-For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
+For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three allowed values:
 
-- `target`:  antibody is a true target 
+- `target`:  antibody is a true target
 - `neg_control`: a negative control antibody
 - `pos_control`: a spike-in positive control
 
@@ -328,8 +328,11 @@ TAG02	TGTGAGGGTG	neg_control
 TAG03	GTAGCTCCAA	target
 ```
 
+If this third column is not provided, all antibodies will be assumed to be targets.
+Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibody/ies will be assumed to be target(s).
+
 If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
-Positive controls are currently unused, but this label will be included in final output files.
+Positive controls are currently unused, but if provided, this label will be included in final output files.
 
 
 ### Multiplexed (cellhash) libraries
