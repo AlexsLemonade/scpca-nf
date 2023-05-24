@@ -22,6 +22,11 @@ process bulkmap_star{
 
     mv Aligned.sortedByCoord.out.bam ${output_bam}
     """
+  stub:
+    output_bam = "${meta.run_id}.sorted.bam"
+    """
+    touch ${output_bam}
+    """
 }
 
 workflow star_bulk{
