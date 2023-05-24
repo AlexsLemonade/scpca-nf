@@ -155,21 +155,13 @@ if (!is.null(ambient_profile)) {
   if (!all(adt_barcode_df$target_type %in% allowed_adt_values)) {
     warning(
       glue::glue(
-        "Warning: Invalid target type values provided in the ADT barcode file. Allowed values are:
+        "Warning: Invalid ADT type values provided in the ADT barcode file. Expected values are:
         - target
         - neg_control
         - pos_control
-       Incorrectly specified ADTs will be assumed to be targets."
+      Unknown ADT types will be treated as targets."
       )
     )
-
-    # Set all invalid values to "target" default
-    adt_barcode_df <- adt_barcode_df |>
-      dplyr::mutate(target_type == ifelse(
-        target_type %in% allowed_adt_values,
-        target_type,
-        "target"
-      ))
   }
 
   # Check that barcode file ADTs match SCE ADTs
