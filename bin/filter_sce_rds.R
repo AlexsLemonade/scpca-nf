@@ -152,9 +152,16 @@ if (!is.null(ambient_profile)) {
   }
   # Check for valid target types and warn if invalid found
   allowed_adt_values <- c("target", "neg_control", "pos_control")
-  if (!all(adt_barcode_df$target_type) %in% allowed_adt_values) {
-    warn("Warning: Invalid target type values provided in the ADT barcode file.
-         These ADTs will be assumed to be targets.")
+  if (!all(adt_barcode_df$target_type %in% allowed_adt_values)) {
+    warning(
+      glue::glue(
+        "Warning: Invalid target type values provided in the ADT barcode file. Allowed values are:
+        - target
+        - neg_control
+        - pos_control
+       Incorrectly specified ADTs will be assumed to be targets."
+      )
+    )
 
     # Set all invalid values to "target" default
     adt_barcode_df <- adt_barcode_df |>
