@@ -1,0 +1,33 @@
+
+name: Check nextflow stub
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+
+jobs:
+  nf-stub-check:
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Check Nextflow workflow
+        uses: docker://nextflow/nextflow:21.10.6
+        with:
+          args: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
+
+      - name: Check Nextflow with checkpoints from previous run
+        uses: docker://nextflow/nextflow:21.10.6
+        with:
+          args: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
+
+      - name: Upload nextflow log
+        if: ${{ always() }}
+        uses:  actions/upload-artifact@v3
+        with:
+          name: nextflow-log
+          path: stub-run.log

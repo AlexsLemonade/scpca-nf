@@ -1,0 +1,4 @@
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	seq_unit	sample_reference	files_directory	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number
+STUBR01	STUBL01	STUBS01	STUBP01	10Xv2	cell	stub	test/runs/STUBR01	NA	NA	NA	NA
+STUBR02	STUBL02	STUBS02	STUBP02	10Xv3.1	cell	stub	test/runs/STUBR01	NA	NA	NA	NA
+STUBR03	STUBL02	STUBS02	STUBP02	CITEseq_10Xv3	cell	stub	test/runs/STUBR02	test/references/barcodes/adt.stub.tsv	2[1-15]	NA	NA
