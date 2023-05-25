@@ -222,7 +222,7 @@ workflow generate_merged_sce {
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
-      .map{it.toList() + it[0]["feature_meta"].feature_barcode_file}
+      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file)]}
 
     filter_sce(unfiltered_merged_sce_ch)
 
