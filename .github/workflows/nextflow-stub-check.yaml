@@ -19,6 +19,11 @@ jobs:
         uses: docker://nextflow/nextflow:21.10.6
         with:
           args: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
+    
+     - name: Check Nextflow with checkpoints from previous run
+        uses: docker://nextflow/nextflow:21.10.6
+        with:
+          args: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
       
       - name: Upload nextflow log
         if: ${{ always() }}
