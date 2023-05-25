@@ -19,7 +19,7 @@ workflow genetic_demux_vireo{
            it}
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_demux: !params.repeat_gdemux && file(it.vireo_dir).exists()
+          has_demux: !params.repeat_genetic_demux && file(it.vireo_dir).exists()
           make_demux: true
        }
 
@@ -27,8 +27,7 @@ workflow genetic_demux_vireo{
     // get the bulk samples that correspond to multiplexed samples
     bulk_samples = multiplex_ch.make_demux
       .map{[it.sample_id.tokenize(",")]} // split out sample ids into a tuple
-      .transpose() // one element per sample (meta objects repeated)
-      .map{it[0]} // get sample ids
+      .transpose() // one element per sample id
       .collect()
 
     // make a channel of the bulk samples we need to process

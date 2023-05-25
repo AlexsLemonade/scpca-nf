@@ -70,6 +70,7 @@ workflow {
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
+    .filter{it.sample_reference in ref_paths}
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
     .map{sample_refs = ref_paths[it.sample_reference]
     [
@@ -128,6 +129,17 @@ workflow {
     .filter{it.sample_id.contains(",")}
     .collect{it.library_id}
 
+  // get list of samples with bulk RNA-seq
+  bulk_samples = runs_ch.bulk
+    .collect{it.sample_id}
+
+  // get genetic multiplex libs with all bulk samples present
+  genetic_multiplex_libs = runs_ch.rna
+    .filter{!params.skip_genetic_demux} // empty channel if skipping genetic demux
+    .filter{it.sample_id.contains(",")}
+    .filter{it.sample_id.tokenize(",").every{it in bulk_samples.getVal()}}
+    .collect{it.library_id}
+
   // **** Process Bulk RNA-seq data ***
   bulk_quant_rna(runs_ch.bulk)
 
@@ -160,22 +172,25 @@ workflow {
   cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
   merged_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
-  // join SCE outputs and branch by multiplexing
+  // join SCE outputs and branch by genetic multiplexing
   sce_ch = rna_sce_ch.mix(merged_sce_ch)
     .branch{
-      multiplex: it[0]["library_id"] in multiplex_libs.getVal()
-      single: true
+      genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
+      no_genetic: true
     }
 
   // **** Perform Genetic Demultiplexing ****
-  multiplex_run_ch = runs_ch.rna
-    .filter{it.library_id in multiplex_libs.getVal()}
-  genetic_demux_vireo(multiplex_run_ch, unfiltered_runs_ch)
-  // join demux result with SCE output
+  genetic_multiplex_run_ch = runs_ch.rna
+    .filter{it.library_id in genetic_multiplex_libs.getVal()}
+  genetic_demux_vireo(genetic_multiplex_run_ch, unfiltered_runs_ch)
+
+
+  // join demux result with SCE output (fail if there are any missing or extra libraries)
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
     .map{[it[0]["library_id"]] + it }
-    .join(sce_ch.multiplex.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: true)
+    .join(sce_ch.genetic_multiplex.map{[it[0]["library_id"]] + it },
+          by: 0, failOnDuplicate: true, failOnMismatch: true)
     .map{it.drop(1)}
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
@@ -183,7 +198,7 @@ workflow {
   // **** Generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
-  all_sce_ch = sce_ch.single.mix(genetic_demux_sce.out)
+  all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch) \
     | sce_qc_report
 
