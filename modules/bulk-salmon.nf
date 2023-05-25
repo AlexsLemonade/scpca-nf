@@ -160,7 +160,7 @@ workflow bulk_quant_rna {
                 file(it[1][0].t2g_bulk_path)]}
 
         // create tsv file and combined metadata for each project containing all libraries
-        merge_bulk_quants(grouped_salmon_ch, params.run_metafile)
+        merge_bulk_quants(grouped_salmon_ch, file(params.run_metafile))
 
     emit:
         bulk_counts = merge_bulk_quants.out.bulk_counts
