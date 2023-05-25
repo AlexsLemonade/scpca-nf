@@ -22,7 +22,7 @@ jobs:
       - name: Check Nextflow workflow
         uses: docker://nextflow/nextflow:21.10.6
         with:
-          args: nextflow -q run main.nf -stub -profile stub -log stub-run.log
+          args: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
       
       - name: Upload nextflow log
         if: ${{ always() }}
