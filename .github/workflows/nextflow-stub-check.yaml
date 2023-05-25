@@ -1,19 +1,22 @@
 
-name: Check nextflow config
+name: Check nextflow stub
 
 on:
   pull_request:
     branches:
       - main
       - development
+  push:
+    branches:
+      - jashapiro/stub-config
 
 
 jobs:
-  nf-config-check:
+  nf-stub-check:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - name: Check nextflow params
+      - name: Check Nextflow workflow
         uses: docker://nextflow/nextflow:21.10.6
         with:
-          args: nextflow config
+          args: nextflow run main.nf -stub -profile stub
