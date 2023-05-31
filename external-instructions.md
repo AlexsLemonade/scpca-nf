@@ -317,15 +317,18 @@ TAG02	TGTGAGGGTG
 
 ### Multiplexed (cellhash) libraries
 
-When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform both cellhash-based demultiplexing and genetic demultiplexing.
+When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform cellhash-based demultiplexing for all libraries and genetic demultiplexing when reference bulk RNA-seq data is available.
 
-To support both of these demultiplexing strategies, we currently require *ALL* of the following for multiplexed libraries:
+To support demultiplexing, we currently require *ALL* of the following for multiplexed libraries:
 
 - A single-cell RNA-seq run of the pooled samples
 - A matched cellhash sequencing run for the pooled samples
-- Separate bulk RNA-seq libraries for each sample in the pool*
 - A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences.
 - A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
+
+For genetic demultiplexing, we also require:
+
+- Separate bulk RNA-seq libraries for each sample in the pool
 
 If any sample in a pool is missing a matched bulk RNA-seq library, then genetic demultiplexing will be skipped and only cellhash-based demultiplexing will be performed.
 
