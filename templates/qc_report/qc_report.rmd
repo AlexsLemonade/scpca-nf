@@ -79,18 +79,18 @@ if (is.null(metadata(filtered_sce)$miQC_model) & !skip_miQC){
 modalities <- c("RNA-seq")
 
 has_cite <- "CITEseq" %in% altExpNames(filtered_sce)
-if (has_cite){
+if (has_cite) {
   modalities <- c(modalities, "CITE-seq")
 }
 
 # check for cellhash to add to list of modalities
 has_cellhash <- "cellhash" %in% altExpNames(filtered_sce)
-if(has_cellhash){
+if (has_cellhash) {
   modalities <- c(modalities, "Multiplex")
 }
 
 # check for umap, need to be sure that processed_sce exists first
-if(has_processed){
+if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
 } else {
   has_umap <- FALSE
@@ -104,7 +104,7 @@ if(has_processed){
 # only print out multiplexed warning if more than one sample is present
 has_multiplex <- length(sample_id) > 1
 
-if(has_multiplex){
+if (has_multiplex) {
   # convert sample id to bullet separated list 
   multiplex_samples <- paste0("<li>", paste(sample_id, collapse = '</li><li>', "</li>"))
   glue::glue("
@@ -141,7 +141,7 @@ sample_information <- tibble::tibble(
   "Percent RNA-seq reads mapped to transcripts" = 
     paste0(round((unfiltered_meta$mapped_reads/unfiltered_meta$total_reads) *100, 2), "%")
 )
-if (has_cite){
+if (has_cite) {
   cite_exp <- altExp(filtered_sce, "CITEseq")
   cite_meta <- metadata(cite_exp)
   
@@ -155,7 +155,7 @@ if (has_cite){
         paste0(round(cite_meta$mapped_reads/cite_meta$total_reads * 100, digits = 2), "%")
     )
 }
-if (has_cellhash){
+if (has_cellhash) {
   multiplex_exp <- altExp(filtered_sce, "cellhash")
   multiplex_meta <- metadata(multiplex_exp)
   
@@ -227,18 +227,33 @@ basic_statistics <- tibble::tibble(
   )
 
 # if processed sce exists add filtering and normalization table
-if(has_processed){
+if (has_processed) {
   processed_meta <- metadata(processed_sce)
+  
+  # TODO: Do we want to separate RNA and ADT rows? ADT is always the same, so may not be needed, but 
+  # might be a good indicator that filtering was also performed based on ADTs.
+  # Other approach is just to split out the first string in `scpca_filter_method`, which won't need an `if` here. 
+  if (has_cite) {
+    split_methods <- stringr::str_split(processed_meta$scpca_filter_method, ";")[[1]]
+    basic_statistics <- basic_statistics |>
+    mutate(
+      "Method used to filter low quality cells (RNA)" = format(split_methods[1]),
+      "Method used to filter low quality cells (ADT)" = format(split_methods[2]),
+    )
+  } else {
+    basic_statistics <- basic_statistics |>
+    mutate(
+      "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method)
+    )
+  }
   
   basic_statistics <- basic_statistics |>
     mutate(
-      "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method),
       "Cells after filtering low quality cells" = format(dim(processed_sce)[2], big.mark = ',', scientific = FALSE),
       "Normalization method"                    = format(processed_meta$normalization),
       "Minimum genes per cell cutoff"           = format(processed_meta$min_gene_cutoff)
-    
     )
-  if(processed_meta$scpca_filter_method == "miQC") {
+  if (processed_meta$scpca_filter_method == "miQC") {
     basic_statistics <- basic_statistics |>
       mutate(
         "Probability of compromised cell cutoff" = format(processed_meta$prob_compromised_cutoff, big.mark = ",", scientific = FALSE)
@@ -261,8 +276,8 @@ knitr::kable(basic_statistics, align = 'r') |>
 ```
 
 ```{r, results='asis'}
-if(has_filtered &&
-   (metadata(filtered_sce)$filtering_method == "UMI cutoff")){
+if (has_filtered &&
+   (metadata(filtered_sce)$filtering_method == "UMI cutoff")) {
   glue::glue("
     <div class=\"alert alert-warning\">
     
@@ -426,26 +441,31 @@ In such situations, the calculated probability of compromise may not be valid (s
 ## Removing low quality cells
 
 The below plot highlights cells that were removed prior to normalization and dimensionality reduction.
-Cells that should be removed are those that are identified to be low quality cells, such as cells with high probability of being compromised, calculated by `miQC`.
+Cells that should be removed based on RNA counts are those that are identified to be low quality cells, such as cells with high probability of being compromised.
 The method of filtering is indicated above the plot as either `miQC` or `Minimum gene cutoff`. 
 If `miQC`, cells below the specified probability compromised cutoff and above the minimum number of unique genes identified are kept for downstream analyses. 
 If only a `Minimum gene cutoff` is used, then `miQC` is not used and only those cells that pass the minimum number of unique genes identified threshold are retained. 
 The dotted vertical line indicates the minimum gene cutoff used for filtering. 
 
+```{r eval = has_cite, results='asis'}
+glue::glue(
+"Next, additional low quality cells were removed based on ADT counts (<code>cleanTagCounts</code>), such that cells with high levels of ambient contamination and/or isotype control tags (if present) were removed."
+)
+```
+
 ```{r results='asis'}
-if(has_filtered & has_processed){
+if (has_filtered & has_processed) {
   
   # grab cutoffs and filtering method from processed sce
   min_gene_cutoff <- processed_meta$min_gene_cutoff
-  filter_method <- processed_meta$scpca_filter_method
+  
+  # clean string to indicate RNA and ADT filtering (if no ADT, string will be unaffected)
+  filter_method <- stringr::str_replace(processed_meta$scpca_filter_method, ";", " and ")
   
   # add column to coldata labeling cells to keep/remove based on filtering method
   filtered_coldata_df <- colData(filtered_sce) |>
     as.data.frame() |>
-    tibble::rownames_to_column("barcode") |>
-    dplyr::mutate(scpca_filter = ifelse(barcode %in%  colnames(processed_sce), 
-                                       "Keep", 
-                                       "Remove")) 
+    tibble::rownames_to_column("barcode")
   
   ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = scpca_filter)) + 
     geom_point(alpha = 0.5, size = 1) +

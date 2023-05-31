@@ -40,7 +40,8 @@ antibody_tags <- as.data.frame(rowData(cite_exp)) |>
   arrange(desc(mean)) |>
   select("Antibody",
          "Mean UMI count per cell" = mean,
-         "Percent of cells detected" = detected)
+         "Percent of cells detected" = detected, 
+         "ADT target type" =  target_type)
 
 knitr::kable(antibody_tags, digits = 2) |>
   kableExtra::kable_styling(bootstrap_options = c("striped", "condensed"),
