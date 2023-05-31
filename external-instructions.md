@@ -361,7 +361,7 @@ To support both of these demultiplexing strategies, we currently require *ALL* o
 - A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences.
 - A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
 
-*If a matching bulk RNA-seq library is not present for all matching samples in a given pool, then genetic demultiplexing will be skipped and only cellhash-based demultiplexing will be performed.
+If any sample in a pool is missing a matched bulk RNA-seq library, then genetic demultiplexing will be skipped and only cellhash-based demultiplexing will be performed.
 
 To skip genetic demultiplexing for all libraries and perform cellhash-based demultiplexing _only_ use the `--skip_genetic_demux` flag at the command line:
 
