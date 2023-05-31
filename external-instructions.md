@@ -357,9 +357,18 @@ To support both of these demultiplexing strategies, we currently require *ALL* o
 
 - A single-cell RNA-seq run of the pooled samples
 - A matched cellhash sequencing run for the pooled samples
-- Separate bulk RNA-seq libraries for each sample in the pool
+- Separate bulk RNA-seq libraries for each sample in the pool*
 - A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences.
 - A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
+
+*If a matching bulk RNA-seq library is not present for all matching samples in a given pool, then genetic demultiplexing will be skipped and only cellhash-based demultiplexing will be performed.
+
+To skip genetic demultiplexing for all libraries and perform cellhash-based demultiplexing _only_ use the `--skip_genetic_demux` flag at the command line:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --skip_genetic_demux
+```
 
 The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file).
 
