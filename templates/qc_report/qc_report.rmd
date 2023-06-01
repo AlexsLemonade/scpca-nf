@@ -449,7 +449,8 @@ The dotted vertical line indicates the minimum gene cutoff used for filtering.
 
 ```{r eval = has_cite, results='asis'}
 glue::glue(
-"Next, additional low quality cells were removed based on ADT counts (<code>cleanTagCounts</code>), such that cells with high levels of ambient contamination and/or isotype control tags (if present) were removed."
+"Next, additional low quality cells were removed based on ADT counts ([`DropletUtils::cleanTagCounts()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html)).
+Cells with high levels of ambient contamination and/or isotype control tags (if present) were removed."
 )
 ```
 
