@@ -89,11 +89,10 @@ if(all(is.na(sce$miQC_pass))){
   )
   metadata(sce)$scpca_filter_method <- "miQC"
 }
-metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method)
+metadata(sce)$scpca_filter_method <- metadata(sce)$scpca_filter_method
 
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
-
 
 # create adt_filter column, if CITEseq ----------
 alt_exp <- opt$adt_name
