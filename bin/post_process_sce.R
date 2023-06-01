@@ -94,15 +94,16 @@ if(all(is.na(sce$miQC_pass))){
 # if present, add ADT filtering to `scpca_filter` and
 # setup associated metadata string
 alt_exp <- opt$adt_name
-if (!(alt_exp %in% altExpNames(sce))) {
-  adt_filter_string <- ""
-} else {
-  adt_discard_rows <- which(altExp(sce, alt_exp)$discard)
-  sce$scpca_filter[adt_discard_rows] <- "Remove"
-  adt_filter_string <- ";cleanTagCounts"
+if (alt_exp %in% altExpNames(sce)) {
+  # Add column for whether cells are "recommended" to be removed
+  #  based on ADT stats
+  sce$adt_filter <-  ifelse(
+    altExp(sce, alt_exp)$discard,
+    "Remove",
+    "Keep"
+  )
 }
-metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method,
-                                            adt_filter_string)
+metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method)
 
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
@@ -169,7 +170,7 @@ if (alt_exp %in% altExpNames(processed_sce)) {
 
   # Only perform normalization if size factors are all positive
   if ( any( altExp(processed_sce, alt_exp)$sizeFactor <= 0 ) ) {
-    warn("Failed to normalize ADT counts.")
+    warning("Failed to normalize ADT counts.")
   } else {
     # Apply normalization
     altExp(processed_sce, alt_exp) <- scuttle::logNormCounts(altExp(processed_sce, alt_exp))
