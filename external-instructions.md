@@ -65,7 +65,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
-This command will pull the `scpca-nf` workflow directly from Github, using the `v0.5.0` version, and run it based on the settings in the configuration file that you have defined.
+This command will pull the `scpca-nf` workflow directly from Github, using the `v0.5.1` version, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
 Using the above command will run the workflow from the `main` branch of the workflow repository.
@@ -76,7 +76,7 @@ Released versions can be found on the [`scpca-nf` repo releases page](https://gi
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.5.0 \
+  -r v0.5.1 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -280,7 +280,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.5.0`, then you will want to set `-r v0.5.0` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.5.1`, then you will want to set `-r v0.5.1` for `get_refs.py` as well to be sure you have the correct containers.
 Be default,  `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -351,15 +351,27 @@ Positive controls are currently unused, but if provided, this label will be incl
 
 ### Multiplexed (cellhash) libraries
 
-When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform both cellhash-based demultiplexing and genetic demultiplexing.
+When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform cellhash-based demultiplexing for all libraries and genetic demultiplexing when reference bulk RNA-seq data is available.
 
-To support both of these demultiplexing strategies, we currently require *ALL* of the following for multiplexed libraries:
+To support demultiplexing, we currently require *ALL* of the following for multiplexed libraries:
 
 - A single-cell RNA-seq run of the pooled samples
 - A matched cellhash sequencing run for the pooled samples
-- Separate bulk RNA-seq libraries for each sample in the pool
 - A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences.
 - A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
+
+For genetic demultiplexing, we also require:
+
+- Separate bulk RNA-seq libraries for each sample in the pool
+
+If any sample in a pool is missing a matched bulk RNA-seq library, then genetic demultiplexing will be skipped and only cellhash-based demultiplexing will be performed.
+
+To skip genetic demultiplexing for all libraries and perform cellhash-based demultiplexing _only_ use the `--skip_genetic_demux` flag at the command line:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --skip_genetic_demux
+```
 
 The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file).
 
