@@ -168,7 +168,7 @@ if (alt_exp %in% altExpNames(processed_sce)) {
   # Perform filtering specifically to allow for normalization
   adt_sce <- altExp(processed_sce, alt_exp)
   adt_sce <- adt_sce[,adt_sce$discard == FALSE]
-  
+
   # Only perform normalization if size factors are all positive
   # Use the `adt_sce` variable here, since that's what we'll be normalizing
   if ( any( adt_sce$sizeFactor <= 0 ) ) {
@@ -178,35 +178,23 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     adt_sce <- scuttle::logNormCounts(adt_sce)    
 
     # Add this logcounts matrix with NA values added for cells not included in normalization
-    na_barcodes <- altExp(processed_sce, alt_exp)[,altExp(processed_sce, alt_exp)$discard]
-    # First, create matrix of NA values with barcode column names
-    na_matrix <- matrix(NA, 
-           nrow = nrow(altExp(processed_sce, alt_exp)), 
-           ncol = ncol(na_barcodes)
-    )
-    colnames(na_matrix) <- colnames(na_barcodes)
     
-    # Combine matrices and reorder columns to match SCE object (row order already matches)
-    combined_matrix <- logcounts(adt_sce) |>
-      as.matrix() |>
-      cbind(na_matrix) 
-    combined_matrix <- combined_matrix[, colnames(altExp(processed_sce, alt_exp))]
+    # first, get the counts matrix and make it NA
+    result_matrix <- counts(altExp(processed_sce, alt_exp))
+    result_matrix[TRUE] <- NA
     
-    # Check dimensions
-    if (nrow(combined_matrix) != nrow(altExp(processed_sce, alt_exp)) | 
-        ncol(combined_matrix) != ncol(altExp(processed_sce, alt_exp))) {
-      stop("ADT normalization error.")
-    }
+    # now get the computed logcounts & fill them in
+    result_matrix[, colnames(adt_sce)] <- as.matrix(logcounts(adt_sce))
     
     # Check correct number of NAs:
-    observed_na_count <- sum(is.na(combined_matrix))
+    observed_na_count <- sum(is.na(result_matrix))
     expected_na_count <- nrow(adt_sce) * (ncol(altExp(processed_sce, alt_exp)) - ncol(adt_sce))
     if (observed_na_count != expected_na_count) {
       stop("Incorrect number of normalized NAs recovered during ADT normalization.")
     }
 
-    # Add combined_matrix back into correct SCE as logcounts assay
-    logcounts(altExp(processed_sce, alt_exp)) <- Matrix::Matrix(combined_matrix, sparse = TRUE)
+    # Add result_matrix back into correct SCE as logcounts assay
+    logcounts(altExp(processed_sce, alt_exp)) <- Matrix::Matrix(result_matrix, sparse = TRUE)
   }
 }
 
