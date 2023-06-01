@@ -73,7 +73,6 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 sce <- readr::read_rds(opt$filtered_sce_file)
 
 # create scpca_filter column -----------
-
 if(all(is.na(sce$miQC_pass))){
   sce$scpca_filter <- ifelse(
     sce$detected >= opt$gene_cutoff,
@@ -90,27 +89,25 @@ if(all(is.na(sce$miQC_pass))){
   )
   metadata(sce)$scpca_filter_method <- "miQC"
 }
+metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method)
 
-# if present, add ADT filtering to `scpca_filter` and
-# setup associated metadata string
+# add min gene cutoff to metadata
+metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
+
+
+# create adt_filter column, if CITEseq ----------
 alt_exp <- opt$adt_name
 if (alt_exp %in% altExpNames(sce)) {
-  # Add column for whether cells are "recommended" to be removed
-  #  based on ADT stats
   sce$adt_filter <-  ifelse(
     altExp(sce, alt_exp)$discard,
     "Remove",
     "Keep"
   )
 }
-metadata(sce)$scpca_filter_method <- paste0(metadata(sce)$scpca_filter_method)
-
-# add min gene cutoff to metadata
-metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 
 # Perform filtering -----------------
 
-# filter sce using criteria in scpca_filter
+# filter sce using criteria in scpca_filter (not adt_filter)
 processed_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
@@ -156,6 +153,7 @@ processed_sce <- scuttle::logNormCounts(processed_sce)
 
 # Try to normalize ADT counts, if present
 if (alt_exp %in% altExpNames(processed_sce)) {
+  
   # need `all()` since,if present, this is an array
   if( !all(is.null(metadata(altExp(processed_sce, alt_exp))$ambient_profile))){
     # Calculate median size factors from the ambient profile
@@ -167,13 +165,49 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     # if ambient profile is not present, set sizeFactor to 0 for later warning.
     altExp(processed_sce, alt_exp)$sizeFactor <- 0
   }
-
+  
+  # Perform filtering specifically to allow for normalization
+  adt_sce <- altExp(processed_sce, alt_exp)
+  adt_sce <- adt_sce[,adt_sce$discard == FALSE]
+  
   # Only perform normalization if size factors are all positive
-  if ( any( altExp(processed_sce, alt_exp)$sizeFactor <= 0 ) ) {
+  # Use the `adt_sce` variable here, since that's what we'll be normalizing
+  if ( any( adt_sce$sizeFactor <= 0 ) ) {
     warning("Failed to normalize ADT counts.")
   } else {
     # Apply normalization
-    altExp(processed_sce, alt_exp) <- scuttle::logNormCounts(altExp(processed_sce, alt_exp))
+    adt_sce <- scuttle::logNormCounts(adt_sce)    
+
+    # Add this logcounts matrix with NA values added for cells not included in normalization
+    na_barcodes <- altExp(processed_sce, alt_exp)[,altExp(processed_sce, alt_exp)$discard]
+    # First, create matrix of NA values with barcode column names
+    na_matrix <- matrix(NA, 
+           nrow = nrow(altExp(processed_sce, alt_exp)), 
+           ncol = ncol(na_barcodes)
+    )
+    colnames(na_matrix) <- colnames(na_barcodes)
+    
+    # Combine matrices and reorder columns to match SCE object (row order already matches)
+    combined_matrix <- logcounts(adt_sce) |>
+      as.matrix() |>
+      cbind(na_matrix) 
+    combined_matrix <- combined_matrix[, colnames(altExp(processed_sce, alt_exp))]
+    
+    # Check dimensions
+    if (nrow(combined_matrix) != nrow(altExp(processed_sce, alt_exp)) | 
+        ncol(combined_matrix) != ncol(altExp(processed_sce, alt_exp))) {
+      stop("ADT normalization error.")
+    }
+    
+    # Check correct number of NAs:
+    observed_na_count <- sum(is.na(combined_matrix))
+    expected_na_count <- nrow(adt_sce) * (ncol(altExp(processed_sce, alt_exp)) - ncol(adt_sce))
+    if (observed_na_count != expected_na_count) {
+      stop("Incorrect number of normalized NAs recovered during ADT normalization.")
+    }
+
+    # Add combined_matrix back into correct SCE as logcounts assay
+    logcounts(altExp(processed_sce, alt_exp)) <- Matrix::Matrix(combined_matrix, sparse = TRUE)
   }
 }
 
