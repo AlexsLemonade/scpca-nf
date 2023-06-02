@@ -21,7 +21,7 @@ workflow genetic_demux_vireo{
       .branch{
           has_demux: (!params.repeat_genetic_demux
                       && file(it.vireo_dir).exists()
-                      && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "star_index") == "${it.star_index}"
+                      && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
                      )
           make_demux: true
        }
