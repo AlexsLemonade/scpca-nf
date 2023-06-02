@@ -123,7 +123,8 @@ workflow bulk_quant_rna {
           .branch{
               has_quants: (!params.repeat_mapping
                            && file(it.salmon_results_dir).exists()
-                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "salmon_bulk_index") == "${it.salmon_bulk_index}"
+                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                           && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") == "${it.t2g_bulk_path}"
                           )
               make_quants: true
           }
