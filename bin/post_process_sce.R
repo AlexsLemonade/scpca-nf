@@ -181,10 +181,10 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     
     # first, get the counts matrix and make it NA
     result_matrix <- counts(altExp(processed_sce, alt_exp))
-    result_matrix[TRUE] <- NA
+    result_matrix[,] <- NA
     
     # now get the computed logcounts & fill them in
-    result_matrix[, colnames(adt_sce)] <- as.matrix(logcounts(adt_sce))
+    result_matrix[, colnames(adt_sce)] <- logcounts(adt_sce)
     
     # Check correct number of NAs:
     observed_na_count <- sum(is.na(result_matrix))
@@ -194,7 +194,7 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     }
 
     # Add result_matrix back into correct SCE as logcounts assay
-    logcounts(altExp(processed_sce, alt_exp)) <- Matrix::Matrix(result_matrix, sparse = TRUE)
+    logcounts(altExp(processed_sce, alt_exp)) <- result_matrix
   }
 }
 
