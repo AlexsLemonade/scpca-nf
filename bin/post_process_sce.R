@@ -94,10 +94,10 @@ metadata(sce)$scpca_filter_method <- metadata(sce)$scpca_filter_method
 # add min gene cutoff to metadata
 metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 
-# create adt_filter column, if CITEseq ----------
+# create adt_scpca_filter column, if CITEseq ----------
 alt_exp <- opt$adt_name
 if (alt_exp %in% altExpNames(sce)) {
-  sce$adt_filter <-  ifelse(
+  sce$adt_scpca_filter <-  ifelse(
     altExp(sce, alt_exp)$discard,
     "Remove",
     "Keep"
@@ -106,7 +106,7 @@ if (alt_exp %in% altExpNames(sce)) {
 
 # Perform filtering -----------------
 
-# filter sce using criteria in scpca_filter (not adt_filter)
+# filter sce using criteria in scpca_filter (not adt_scpca_filter)
 processed_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
