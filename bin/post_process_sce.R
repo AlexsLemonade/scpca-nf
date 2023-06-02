@@ -101,7 +101,15 @@ if (alt_exp %in% altExpNames(sce)) {
     "Remove",
     "Keep"
   )
-  metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts"
+  
+  # assign `adt_scpca_filter_method` metadata based on colData contents
+  if ("sum.controls" %in% names(colData(altExp(sce, alt_exp)))) {
+    metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts with isotype controls"
+  } else if ("ambient.scale" %in% names(colData(altExp(sce, alt_exp)))) {
+    metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts without isotype controls"
+  } else {
+    stop("Error in ADT filtering.")
+  }
 }
 
 # Perform filtering -----------------
