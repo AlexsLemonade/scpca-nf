@@ -42,7 +42,7 @@ option_list <- list(
   make_option(
     opt_str = c("--adt_name"),
     type = "character",
-    default = "CITEseq",
+    default = "adt",
     help = "Name for the alternative experiment, if present, that contains ADT features"
   ),
   make_option(
