@@ -48,7 +48,9 @@ process make_merged_unfiltered_sce{
         meta['feature_meta'] = feature_meta
         
         // If feature_type is "CITEseq", make it "adt"
-        meta['feature_type'] = meta['feature_type'] == "CITEseq" ? "adt":meta['feature_type']
+        if (meta['feature_type'] == "CITEseq") {
+          meta['feature_type'] = "adt"
+        }
 
         """
         generate_unfiltered_sce.R \
