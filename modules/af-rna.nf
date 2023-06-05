@@ -113,7 +113,6 @@ workflow map_quant_rna {
           has_rad: (!params.repeat_mapping
                     && file(it.rad_dir).exists()
                     && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
-                    && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "t2g_3col_path") == "${it.t2g_3col_path}"
                     )
           make_rad: true
        }
