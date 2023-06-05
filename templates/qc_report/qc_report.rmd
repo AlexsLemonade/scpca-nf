@@ -78,9 +78,9 @@ if (is.null(metadata(filtered_sce)$miQC_model) & !skip_miQC){
 ## Check for additional modalities
 modalities <- c("RNA-seq")
 
-has_cite <- "CITEseq" %in% altExpNames(filtered_sce)
+has_cite <- "adt" %in% altExpNames(filtered_sce)
 if (has_cite){
-  modalities <- c(modalities, "CITE-seq")
+  modalities <- c(modalities, "ADT")
 }
 
 # check for cellhash to add to list of modalities
@@ -142,16 +142,16 @@ sample_information <- tibble::tibble(
     paste0(round((unfiltered_meta$mapped_reads/unfiltered_meta$total_reads) *100, 2), "%")
 )
 if (has_cite){
-  cite_exp <- altExp(filtered_sce, "CITEseq")
+  cite_exp <- altExp(filtered_sce, "adt")
   cite_meta <- metadata(cite_exp)
   
   sample_information <- sample_information |>
     mutate(
       "Number of ADTs assayed" = 
         format(nrow(cite_exp), big.mark = ',', scientific = FALSE),
-      "CITE-seq reads sequenced" = 
+      "ADT reads sequenced" = 
         format(cite_meta$total_reads, big.mark = ',', scientific = FALSE),
-      "Percent CITE-seq reads mapped to ADTs" = 
+      "Percent reads mapped to ADTs" = 
         paste0(round(cite_meta$mapped_reads/cite_meta$total_reads * 100, digits = 2), "%")
     )
 }
@@ -443,7 +443,7 @@ if(has_filtered & has_processed){
   filtered_coldata_df <- colData(filtered_sce) |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
-    dplyr::mutate(scpca_filter = ifelse(barcode %in%  colnames(processed_sce), 
+    dplyr::mutate(scpca_filter = ifelse(barcode %in% colnames(processed_sce), 
                                        "Keep", 
                                        "Remove")) 
   
