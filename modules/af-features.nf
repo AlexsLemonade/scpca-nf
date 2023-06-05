@@ -143,7 +143,10 @@ workflow map_quant_feature{
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
       .branch{
-          has_rad: !params.repeat_mapping && file(it.feature_rad_dir).exists()
+          has_rad: (!params.repeat_mapping
+                    && file(it.feature_rad_dir).exists()
+                    && Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                    )
           make_rad: true
        }
 
