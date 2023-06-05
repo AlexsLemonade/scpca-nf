@@ -163,9 +163,9 @@ if (has_cellhash){
     mutate(
       "Number of HTOs assayed" = 
         format(nrow(multiplex_exp), big.mark = ',', scientific = FALSE),
-      "Number of multiplex reads sequenced" = 
+      "Number of cellhash reads sequenced" = 
         format(multiplex_meta$total_reads, big.mark = ',', scientific = FALSE),
-      "Percent of multiplex reads mapped to HTOs" = 
+      "Percent of cellhash reads mapped to HTOs" = 
         paste0(round(multiplex_meta$mapped_reads/multiplex_meta$total_reads * 100, digits = 2), "%")
     )
 }
