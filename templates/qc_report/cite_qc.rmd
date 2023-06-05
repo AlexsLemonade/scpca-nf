@@ -6,21 +6,21 @@ This section details quality control statistics from the ADT (antibody-derived t
 
 ```{r}
 # add rowData if missing
-if (is.null(rowData(cite_exp)$detected)){
-  cite_exp <- scuttle::addPerFeatureQCMetrics(cite_exp)
+if (is.null(rowData(adt_exp)$detected)){
+  adt_exp <- scuttle::addPerFeatureQCMetrics(adt_exp)
 }
 
-cell_adt_counts <- Matrix::colSums(counts(cite_exp))
+cell_adt_counts <- Matrix::colSums(counts(adt_exp))
 
-cite_information <- tibble::tibble(
+adt_information <- tibble::tibble(
   "Number of ADTs assayed" = 
-    format(nrow(cite_exp), big.mark = ',', scientific = FALSE),
+    format(nrow(adt_exp), big.mark = ',', scientific = FALSE),
   "Number of reads sequenced" = 
-    format(cite_meta$total_reads, big.mark = ',', scientific = FALSE),
+    format(adt_meta$total_reads, big.mark = ',', scientific = FALSE),
   "Percent reads mapped to ADTs" = 
-    paste0(round(cite_meta$mapped_reads/cite_meta$total_reads * 100, digits = 2), "%"),
+    paste0(round(adt_meta$mapped_reads/adt_meta$total_reads * 100, digits = 2), "%"),
   "Percent of ADTs in cells" = 
-    paste0(round(sum(cell_adt_counts)/cite_meta$mapped_reads * 100, digits = 2), "%"),
+    paste0(round(sum(cell_adt_counts)/adt_meta$mapped_reads * 100, digits = 2), "%"),
   "Percent of cells with ADTs" = 
     paste0(round(sum(cell_adt_counts > 0)/length(cell_adt_counts) * 100, digits = 2), "%"),
   "Median ADT UMIs per cell" = 
@@ -28,7 +28,7 @@ cite_information <- tibble::tibble(
   )|>
   t()
 
-knitr::kable(cite_information, align = 'r') |>
+knitr::kable(adt_information, align = 'r') |>
   kableExtra::kable_styling(bootstrap_options = "striped",
                             full_width = FALSE,
                             position = "left") |>
@@ -37,7 +37,7 @@ knitr::kable(cite_information, align = 'r') |>
 
 ## Antibody-Derived Tag Statistics 
 ```{r}
-antibody_tags <- as.data.frame(rowData(cite_exp)) |>
+antibody_tags <- as.data.frame(rowData(adt_exp)) |>
   tibble::rownames_to_column("Antibody") |>
   arrange(desc(mean)) |>
   select("Antibody",
