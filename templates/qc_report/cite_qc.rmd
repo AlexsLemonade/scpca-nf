@@ -1,5 +1,7 @@
 # CITE-seq Experiment Summary
 
+This section details quality control statistics from the ADT (antibody-derived tag) component of CITE-seq experiments.
+
 ## CITE-seq Statistics
 
 ```{r}
@@ -13,9 +15,9 @@ cell_adt_counts <- Matrix::colSums(counts(cite_exp))
 cite_information <- tibble::tibble(
   "Number of ADTs assayed" = 
     format(nrow(cite_exp), big.mark = ',', scientific = FALSE),
-  "CITE-seq reads sequenced" = 
+  "Number of reads sequenced" = 
     format(cite_meta$total_reads, big.mark = ',', scientific = FALSE),
-  "Percent CITE-seq reads mapped to ADTs" = 
+  "Percent reads mapped to ADTs" = 
     paste0(round(cite_meta$mapped_reads/cite_meta$total_reads * 100, digits = 2), "%"),
   "Percent of ADTs in cells" = 
     paste0(round(sum(cell_adt_counts)/cite_meta$mapped_reads * 100, digits = 2), "%"),
@@ -33,7 +35,7 @@ knitr::kable(cite_information, align = 'r') |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## Antibody Derived Tag Statistics 
+## Antibody-Derived Tag Statistics 
 ```{r}
 antibody_tags <- as.data.frame(rowData(cite_exp)) |>
   tibble::rownames_to_column("Antibody") |>
@@ -48,6 +50,4 @@ knitr::kable(antibody_tags, digits = 2) |>
                             position = "left",
                             ) |>
   kableExtra::column_spec(2:3, monospace = TRUE) 
-  
 ```
-
