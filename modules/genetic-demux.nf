@@ -19,7 +19,10 @@ workflow genetic_demux_vireo{
            it}
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_demux: !params.repeat_genetic_demux && file(it.vireo_dir).exists()
+          has_demux: (!params.repeat_genetic_demux
+                      && file(it.vireo_dir).exists()
+                      && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                     )
           make_demux: true
        }
 

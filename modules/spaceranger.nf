@@ -117,7 +117,10 @@ workflow spaceranger_quant{
                it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
                it}
           .branch{
-            has_spatial: !params.repeat_mapping & file(it.spaceranger_results_dir).exists()
+            has_spatial: (!params.repeat_mapping
+                          && file(it.spaceranger_results_dir).exists()
+                          && Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                         )
             make_spatial: true
            }
 

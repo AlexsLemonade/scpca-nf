@@ -110,7 +110,10 @@ workflow map_quant_rna {
            it}
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_rad: !params.repeat_mapping && file(it.rad_dir).exists()
+          has_rad: (!params.repeat_mapping
+                    && file(it.rad_dir).exists()
+                    && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                    )
           make_rad: true
        }
 
