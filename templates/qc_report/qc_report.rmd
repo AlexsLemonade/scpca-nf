@@ -232,7 +232,7 @@ if (has_processed) {
 
   basic_statistics <- basic_statistics |>
     mutate(
-      "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method)
+      "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method),
       "Cells after filtering low quality cells" = format(dim(processed_sce)[2], big.mark = ',', scientific = FALSE),
       "Normalization method"                    = format(processed_meta$normalization),
       "Minimum genes per cell cutoff"           = format(processed_meta$min_gene_cutoff)
@@ -430,18 +430,14 @@ If `miQC`, cells below the specified probability compromised cutoff and above th
 If only a `Minimum gene cutoff` is used, then `miQC` is not used and only those cells that pass the minimum number of unique genes identified threshold are retained.
 The dotted vertical line indicates the minimum gene cutoff used for filtering.
 
-```{r eval = has_adt, results='asis'}
-glue::glue(
-"Next, additional low quality cells were removed based on ADT counts ([`DropletUtils::cleanTagCounts()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html)).
-Cells with high levels of ambient contamination and/or isotype control tags (if present) were removed."
-)
-```
 
 ```{r results='asis'}
 if (has_filtered & has_processed) {
 
   # grab cutoffs and filtering method from processed sce
   min_gene_cutoff <- processed_meta$min_gene_cutoff
+
+  filter_method <- processed_meta$scpca_filter_method
 
   # add column to coldata labeling cells to keep/remove based on filtering method
   filtered_coldata_df <- colData(filtered_sce) |>
@@ -454,7 +450,7 @@ if (has_filtered & has_processed) {
     labs(x = "Number of genes detected",
          y = "Mitochondrial percentage",
          color = "Filter",
-         title = stringr::str_replace(processed_meta$scpca_filter_method, "_", " ")) +
+         title = stringr::str_replace(filter_method, "_", " ")) +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = c(1, 1),
           legend.justification = c(1,1),
