@@ -2,7 +2,7 @@
 
 This section details quality control statistics from the ADT (antibody-derived tag) component of CITE-seq experiments.
 
-## CITE-seq Statistics
+## CITE-seq Experiment Statistics
 
 ```{r}
 # add rowData if missing
@@ -13,17 +13,17 @@ if (is.null(rowData(adt_exp)$detected)){
 cell_adt_counts <- Matrix::colSums(counts(adt_exp))
 
 adt_information <- tibble::tibble(
-  "Number of ADTs assayed" = 
+  "Number of ADTs assayed" =
     format(nrow(adt_exp), big.mark = ',', scientific = FALSE),
-  "Number of reads sequenced" = 
+  "Number of reads sequenced" =
     format(adt_meta$total_reads, big.mark = ',', scientific = FALSE),
-  "Percent reads mapped to ADTs" = 
+  "Percent reads mapped to ADTs" =
     paste0(round(adt_meta$mapped_reads/adt_meta$total_reads * 100, digits = 2), "%"),
-  "Percent of ADTs in cells" = 
+  "Percent of ADTs in cells" =
     paste0(round(sum(cell_adt_counts)/adt_meta$mapped_reads * 100, digits = 2), "%"),
-  "Percent of cells with ADTs" = 
+  "Percent of cells with ADTs" =
     paste0(round(sum(cell_adt_counts > 0)/length(cell_adt_counts) * 100, digits = 2), "%"),
-  "Median ADT UMIs per cell" = 
+  "Median ADT UMIs per cell" =
     format(median(cell_adt_counts), big.mark = ',', scientific = FALSE)
   )|>
   t()
@@ -35,14 +35,14 @@ knitr::kable(adt_information, align = 'r') |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## Antibody-Derived Tag Statistics 
+## ADT Statistics
 ```{r}
 antibody_tags <- as.data.frame(rowData(adt_exp)) |>
   tibble::rownames_to_column("Antibody") |>
   arrange(desc(mean)) |>
   select("Antibody",
          "Mean UMI count per cell" = mean,
-         "Percent of cells detected" = detected, 
+         "Percent of cells detected" = detected,
          "ADT target type" =  target_type)
 
 knitr::kable(antibody_tags, digits = 2) |>
@@ -50,5 +50,27 @@ knitr::kable(antibody_tags, digits = 2) |>
                             full_width = FALSE,
                             position = "left",
                             ) |>
-  kableExtra::column_spec(2:3, monospace = TRUE) 
+  kableExtra::column_spec(2:3, monospace = TRUE)
+```
+
+## ADT Post-processing Statistics
+
+```{r}
+
+filtered_cell_count <- sum(processed_sce$adt_scpca_filter_method == "Remove")
+
+basic_statistics <- basic_statistics |>
+  mutate(
+    "Method used to identify cells targeted for filtering" = format(processed_meta$adt_scpca_filter_method)
+    "Number of cells targeted for filtering"  = format(filtered_cell_count),
+    "Percent of cells targeted for filtering" =
+      paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%")
+  )
+
+  # TODO: check rendering here & tweak kable settings
+  knitr::kable(basic_statistics, align = 'r') |>
+  kableExtra::kable_styling(bootstrap_options = "striped",
+                            full_width = FALSE,
+                            position = "left") |>
+  kableExtra::column_spec(2, monospace = TRUE)
 ```
