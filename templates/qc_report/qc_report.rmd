@@ -233,7 +233,7 @@ if (has_processed) {
   # TODO: Do we want to separate RNA and ADT rows? ADT is always the same, so may not be needed, but
   # might be a good indicator that filtering was also performed based on ADTs.
   # Other approach is just to split out the first string in `scpca_filter_method`, which won't need an `if` here.
-  if (has_cite) {
+  if (has_adt) {
     split_methods <- stringr::str_split(processed_meta$scpca_filter_method, ";")[[1]]
     basic_statistics <- basic_statistics |>
     mutate(
@@ -447,7 +447,7 @@ If `miQC`, cells below the specified probability compromised cutoff and above th
 If only a `Minimum gene cutoff` is used, then `miQC` is not used and only those cells that pass the minimum number of unique genes identified threshold are retained.
 The dotted vertical line indicates the minimum gene cutoff used for filtering.
 
-```{r eval = has_cite, results='asis'}
+```{r eval = has_adt, results='asis'}
 glue::glue(
 "Next, additional low quality cells were removed based on ADT counts ([`DropletUtils::cleanTagCounts()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html)).
 Cells with high levels of ambient contamination and/or isotype control tags (if present) were removed."
