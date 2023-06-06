@@ -46,7 +46,11 @@ process make_merged_unfiltered_sce{
         // add feature metadata as an element of the main meta object
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
-
+        
+        // If feature_type is "CITEseq", make it "adt"
+        if (meta['feature_type'] == "CITEseq") {
+          meta['feature_type'] = "adt"
+        }
 
         """
         generate_unfiltered_sce.R \
@@ -82,10 +86,10 @@ process filter_sce{
         filtered_rds = "${meta.library_id}_filtered.rds"
 
         // Three checks for whether we have ADT data:
-        // - technology should be CITEseq
+        // - technology should be adt
         // - barcode file should exist
         // - barcode file should _not_ be the empty file NO_FILE.txt
-        adt_present = meta.feature_type == 'CITEseq' &
+        adt_present = meta.feature_type == 'adt' &
           feature_barcode_file.exists() &
           feature_barcode_file.name != "NO_FILE.txt"
 

@@ -78,9 +78,9 @@ if (is.null(metadata(filtered_sce)$miQC_model) & !skip_miQC){
 ## Check for additional modalities
 modalities <- c("RNA-seq")
 
-has_cite <- "CITEseq" %in% altExpNames(filtered_sce)
-if (has_cite){
-  modalities <- c(modalities, "CITE-seq")
+has_adt <- "adt" %in% altExpNames(filtered_sce)
+if (has_adt){
+  modalities <- c(modalities, "ADT")
 }
 
 # check for cellhash to add to list of modalities
@@ -136,23 +136,23 @@ sample_information <- tibble::tibble(
     format(unfiltered_meta$af_num_cells, big.mark = ',', scientific = FALSE),
   "Number of genes assayed" = 
     format(nrow(unfiltered_sce), big.mark = ',', scientific = FALSE),
-  "RNA-seq reads sequenced" = 
+  "Number of RNA-seq reads sequenced" = 
     format(unfiltered_meta$total_reads, big.mark = ',', scientific = FALSE),
-  "Percent RNA-seq reads mapped to transcripts" = 
+  "Percent of RNA-seq reads mapped to transcripts" = 
     paste0(round((unfiltered_meta$mapped_reads/unfiltered_meta$total_reads) *100, 2), "%")
 )
-if (has_cite){
-  cite_exp <- altExp(filtered_sce, "CITEseq")
-  cite_meta <- metadata(cite_exp)
+if (has_adt){
+  adt_exp <- altExp(filtered_sce, "adt")
+  adt_meta <- metadata(adt_exp)
   
   sample_information <- sample_information |>
     mutate(
-      "Number of ADTs assayed" = 
-        format(nrow(cite_exp), big.mark = ',', scientific = FALSE),
-      "CITE-seq reads sequenced" = 
-        format(cite_meta$total_reads, big.mark = ',', scientific = FALSE),
-      "Percent CITE-seq reads mapped to ADTs" = 
-        paste0(round(cite_meta$mapped_reads/cite_meta$total_reads * 100, digits = 2), "%")
+      "Number of antibodies assayed" = 
+        format(nrow(adt_exp), big.mark = ',', scientific = FALSE),
+      "Number of ADT reads sequenced" = 
+        format(adt_meta$total_reads, big.mark = ',', scientific = FALSE),
+      "Percent of ADT reads mapped to ADTs" = 
+        paste0(round(adt_meta$mapped_reads/adt_meta$total_reads * 100, digits = 2), "%")
     )
 }
 if (has_cellhash){
@@ -163,9 +163,9 @@ if (has_cellhash){
     mutate(
       "Number of HTOs assayed" = 
         format(nrow(multiplex_exp), big.mark = ',', scientific = FALSE),
-      "Multiplex reads sequenced" = 
+      "Number of cellhash reads sequenced" = 
         format(multiplex_meta$total_reads, big.mark = ',', scientific = FALSE),
-      "Percent of multiplex reads mapped to HTOs" = 
+      "Percent of cellhash reads mapped to HTOs" = 
         paste0(round(multiplex_meta$mapped_reads/multiplex_meta$total_reads * 100, digits = 2), "%")
     )
 }
@@ -443,7 +443,7 @@ if(has_filtered & has_processed){
   filtered_coldata_df <- colData(filtered_sce) |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
-    dplyr::mutate(scpca_filter = ifelse(barcode %in%  colnames(processed_sce), 
+    dplyr::mutate(scpca_filter = ifelse(barcode %in% colnames(processed_sce), 
                                        "Keep", 
                                        "Remove")) 
   
@@ -478,7 +478,7 @@ The raw counts from all cells that remain after filtering low quality cells are 
 ```
 
 <!-- Next section included only if CITE-seq data is present -->
-```{r, child='cite_qc.rmd', eval = has_cite}
+```{r, child='cite_qc.rmd', eval = has_adt}
 ```
 
 <!-- Next section only included if multiplex data is present --> 
