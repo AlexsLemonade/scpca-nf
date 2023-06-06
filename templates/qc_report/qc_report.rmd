@@ -230,25 +230,9 @@ basic_statistics <- tibble::tibble(
 if (has_processed) {
   processed_meta <- metadata(processed_sce)
 
-  # TODO: Do we want to separate RNA and ADT rows? ADT is always the same, so may not be needed, but
-  # might be a good indicator that filtering was also performed based on ADTs.
-  # Other approach is just to split out the first string in `scpca_filter_method`, which won't need an `if` here.
-  if (has_adt) {
-    split_methods <- stringr::str_split(processed_meta$scpca_filter_method, ";")[[1]]
-    basic_statistics <- basic_statistics |>
-    mutate(
-      "Method used to filter low quality cells (RNA)" = format(split_methods[1]),
-      "Method used to filter low quality cells (ADT)" = format(split_methods[2]),
-    )
-  } else {
-    basic_statistics <- basic_statistics |>
-    mutate(
-      "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method)
-    )
-  }
-
   basic_statistics <- basic_statistics |>
     mutate(
+      "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method)
       "Cells after filtering low quality cells" = format(dim(processed_sce)[2], big.mark = ',', scientific = FALSE),
       "Normalization method"                    = format(processed_meta$normalization),
       "Minimum genes per cell cutoff"           = format(processed_meta$min_gene_cutoff)
@@ -260,7 +244,6 @@ if (has_processed) {
       )
   }
 }
-
 
 basic_statistics <- basic_statistics |>
   mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
@@ -460,9 +443,6 @@ if (has_filtered & has_processed) {
   # grab cutoffs and filtering method from processed sce
   min_gene_cutoff <- processed_meta$min_gene_cutoff
 
-  # clean string to indicate RNA and ADT filtering (if no ADT, string will be unaffected)
-  filter_method <- stringr::str_replace(processed_meta$scpca_filter_method, ";", " and ")
-
   # add column to coldata labeling cells to keep/remove based on filtering method
   filtered_coldata_df <- colData(filtered_sce) |>
     as.data.frame() |>
@@ -474,7 +454,7 @@ if (has_filtered & has_processed) {
     labs(x = "Number of genes detected",
          y = "Mitochondrial percentage",
          color = "Filter",
-         title = stringr::str_replace(filter_method, "_", " ")) +
+         title = stringr::str_replace(processed_meta$scpca_filter_method, "_", " ")) +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = c(1, 1),
           legend.justification = c(1,1),
