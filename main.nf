@@ -37,6 +37,7 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 
@@ -211,6 +212,9 @@ workflow {
 
   // generate QC reports
   sce_qc_report(post_process_sce.out, report_template_tuple)
+
+  // convert to anndata
+  sce_to_anndata(post_process_sce.out)
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
