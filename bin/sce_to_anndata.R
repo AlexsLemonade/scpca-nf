@@ -22,19 +22,25 @@ option_list <- list(
   )
 )
 
-# Parse and apply input options -------------
 opt <- parse_args(OptionParser(option_list = option_list))
+
+# Set up -----------------------------------------------------------------------
 
 # check that filtered SCE file exists
 if(!file.exists(opt$input_sce_file)){
   stop(glue::glue("{opt$input_sce_file} does not exist."))
 }
 
-# check that output file name ends in .rds
+# check that output file is h5
 if(!(stringr::str_ends(opt$output_h5_file, ".hdf5|.h5"))){
   stop("output file name must end in .hdf5 or .h5")
 }
 
+# Convert to AnnData -----------------------------------------------------------
+
+# read in sce
 sce <- readr::read_rds(opt$input_sce_file)
+
+# export sce as anndata object
 scpcaTools::sce_to_anndata(sce,
                            anndata_file = opt$output_h5_file)
