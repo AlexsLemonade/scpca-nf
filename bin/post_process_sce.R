@@ -203,6 +203,12 @@ if (alt_exp %in% altExpNames(processed_sce)) {
 
     # Add result_matrix back into correct SCE as logcounts assay
     logcounts(altExp(processed_sce, alt_exp)) <- result_matrix
+    
+    # Also, calculate & save most variable ADTs from `adt_sce` 
+    top_adts <- adt_sce |>
+      scran::modelGeneVar() |>
+      scran::getTopHVGs()
+    metadata(processed_sce)$highly_variable_adts <- top_adts
   }
 }
 
