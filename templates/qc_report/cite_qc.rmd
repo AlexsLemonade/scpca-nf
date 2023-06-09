@@ -56,7 +56,7 @@ knitr::kable(antibody_tags, digits = 2) |>
 
 ```{r}
 
-filtered_cell_count <- sum(filtered_sce$adt_scpca_filter_method == "Remove")
+filtered_cell_count <- sum(filtered_sce$adt_scpca_filter == "Remove")
 
 basic_statistics <- tibble::tibble(
     "Method used to identify cells targeted for filtering" = format(processed_meta$adt_scpca_filter_method),
@@ -82,7 +82,7 @@ ADT.
 The ADTs chosen for plotting are the top 4 most variable ADTs in the library.
 
 
-```{r message=FALSE, results='asis'}
+```{r fig.height=5, fig.width=6, message=FALSE, results='asis'}
 # only create plot if variable ADTs are present
 if (!is.null(processed_meta$highly_variable_adts)) {
   
@@ -120,7 +120,7 @@ if (!is.null(processed_meta$highly_variable_adts)) {
   
   
   ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
-    geom_point(alpha = 0.1, size = 0.001) + 
+    geom_point(alpha = 0.1, size = 0.075) + 
     facet_wrap(vars(ADT)) +
     scale_color_viridis_c() +
     labs(
