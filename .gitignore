@@ -4,6 +4,5 @@
 # ignore work directory
 work/
 
-# ignore contents of scpca-references
+# ignore scpca-references
 scpca-references/
-!scpca-references/.gitkeep
