@@ -79,7 +79,7 @@ if (is.null(metadata(filtered_sce)$miQC_model) & !skip_miQC){
 modalities <- c("RNA-seq")
 
 has_adt <- "adt" %in% altExpNames(filtered_sce)
-if (has_adt){
+if (has_adt) {
   modalities <- c(modalities, "ADT")
 }
 
@@ -141,8 +141,9 @@ sample_information <- tibble::tibble(
   "Percent of RNA-seq reads mapped to transcripts" =
     paste0(round((unfiltered_meta$mapped_reads/unfiltered_meta$total_reads) *100, 2), "%")
 )
-if (has_adt){
-  adt_exp <- altExp(filtered_sce, "adt")
+
+if (has_adt) {
+  adt_exp <- altExp(processed_sce, "adt")
   adt_meta <- metadata(adt_exp)
 
   sample_information <- sample_information |>
@@ -155,6 +156,7 @@ if (has_adt){
         paste0(round(adt_meta$mapped_reads/adt_meta$total_reads * 100, digits = 2), "%")
     )
 }
+
 if (has_cellhash) {
   multiplex_exp <- altExp(filtered_sce, "cellhash")
   multiplex_meta <- metadata(multiplex_exp)
@@ -169,7 +171,6 @@ if (has_cellhash) {
         paste0(round(multiplex_meta$mapped_reads/multiplex_meta$total_reads * 100, digits = 2), "%")
     )
 }
-
 
 sample_information <- sample_information |>
   mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
@@ -385,7 +386,7 @@ Cells with low UMI counts and high mitochondrial percentages may require further
 ## miQC Model Diagnostics
 
 ```{r, fig.alt="miQC model diagnostics plot", results='asis', warning=FALSE}
-if(skip_miQC){
+if (skip_miQC) {
   cat("miQC model not created, skipping miQC plot. Usually this is because mitochondrial gene data was not available.")
 }else{
   # remove prob_compromised if it exists, as this will cause errors with plotModel

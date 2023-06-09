@@ -24,11 +24,11 @@ If gene symbols are not available, the Ensembl id will be shown.
 
 ```{r message=FALSE, results='asis'}
 # only create plot if variable genes are present
-if(!is.null(processed_meta$highly_variable_genes)){
+if (!is.null(processed_meta$highly_variable_genes)) {
   
   # select top genes to plot 
   top_genes <- processed_meta$highly_variable_genes |>
-    head(n=12)
+    head( n = 12)
   
   # grab expression for top genes from counts
   var_gene_exp <- logcounts(processed_sce[top_genes,]) |>
@@ -75,7 +75,7 @@ if(!is.null(processed_meta$highly_variable_genes)){
   
   ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = gene_expression)) + 
     geom_point(alpha = 0.1, size = 0.001) + 
-    facet_wrap(~ gene_symbol) +
+    facet_wrap(vars(gene_symbol)) +
     scale_color_viridis_c() +
     labs(
       color = "Log-normalized gene expression"
