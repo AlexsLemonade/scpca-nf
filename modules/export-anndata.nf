@@ -17,6 +17,11 @@ process export_anndata{
         --input_sce_file ${sce_file} \
         --output_h5_file ${hdf5_file}
       """
+    stub:
+      hdf5_file = "${meta.library_id}_${file_type}.hdf5"
+      """
+      touch ${hdf5_file}
+      """
 }
 
 
