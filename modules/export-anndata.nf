@@ -40,7 +40,7 @@ workflow sce_to_anndata{
       export_anndata(sce_ch)
 
       // combine all anndata files by library id
-      // creates anndata channel with [meta, unfiltered, filtered, processed]
+      // creates anndata channel with [library_id, unfiltered, filtered, processed]
       anndata_ch = export_anndata.out
         .map{ [it[0]["library_id"], it[0], it[1]] }
         .groupTuple(by: 0, size: 3, remainder: true)

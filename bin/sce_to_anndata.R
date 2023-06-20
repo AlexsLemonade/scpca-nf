@@ -42,5 +42,7 @@ if(!(stringr::str_ends(opt$output_h5_file, ".hdf5|.h5"))){
 sce <- readr::read_rds(opt$input_sce_file)
 
 # export sce as anndata object
-scpcaTools::sce_to_anndata(sce,
-                           anndata_file = opt$output_h5_file)
+scpcaTools::sce_to_anndata(
+  sce,
+  anndata_file = opt$output_h5_file
+)
