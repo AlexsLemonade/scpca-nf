@@ -2,7 +2,7 @@
 // process for converting rds files containing sce to h5 containing anndata
 process export_anndata{
     container params.SCPCATOOLS_CONTAINER
-    label 'mem_8'
+    label 'mem_16'
     tag "${meta.library_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
@@ -43,8 +43,8 @@ workflow sce_to_anndata{
       // creates anndata channel with [meta, unfiltered, filtered, processed]
       anndata_ch = export_anndata.out
         .map{ [it[0]["library_id"], it[0], it[1]] }
-        .groupTuple(by: 0)
-        .map{it.drop(1)}
+        .groupTuple(by: 0, size: 3, remainder: true)
+        .map{ [it[1][0]] +  it[2] }
 
     emit: anndata_ch
 
