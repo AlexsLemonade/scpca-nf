@@ -1,5 +1,5 @@
 
-// process for converting rds files containing sce to h5 containing anndata
+// process for converting rds files containing an SCE to h5 containing anndata containing the RNA data
 process export_anndata{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_16'

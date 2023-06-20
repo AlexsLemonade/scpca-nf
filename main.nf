@@ -213,7 +213,7 @@ workflow {
   // generate QC reports
   sce_qc_report(post_process_sce.out, report_template_tuple)
 
-  // convert to anndata
+  // convert RNA component of SCE object to anndata
   sce_to_anndata(post_process_sce.out)
 
    // **** Process Spatial Transcriptomics data ****

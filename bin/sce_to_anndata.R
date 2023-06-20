@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
-# This script takes a SingleCellExperiment stored in a .rds file and converts it
-# to an AnnData object saved as an hdf5 file
+# This script takes a SingleCellExperiment stored in a .rds file and converts the main experiment
+# (usually RNA) to an AnnData object saved as an hdf5 file
 
 # import libraries
 suppressPackageStartupMessages({
