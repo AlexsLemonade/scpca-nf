@@ -28,6 +28,7 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 
 # Set default ggplot theme
 theme_set(theme_bw() +
@@ -476,7 +477,7 @@ glue::glue("
   ")
 
 
-if (has_adt & has_filtered & has_processed) { 
+if ((has_adt & has_filtered) & has_processed) { 
   
   glue::glue("
 
