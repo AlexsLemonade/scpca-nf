@@ -62,7 +62,7 @@ if (has_processed) {
   filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
   
   basic_statistics <- tibble::tibble(
-    # Note that the `adt_scpca_filter_method` column is only present in the `processed_sce` object
+    # Note that the adt_scpca_filter_method column is only present in the processed_sce object
     "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method),
     "Number of cells that pass filtering threshold"  = format(filtered_cell_count),
     "Percent of cells that pass filtering threshold" =
@@ -88,14 +88,16 @@ if (has_processed) {
 
 ```
 
+
 ## Expression of highly variable ADTs
 
-The plots below show UMAP embeddings calculated from RNA expression where each cell is colored by the expression level of the labeled 
-ADT. 
-The ADTs chosen for plotting are the top 4 most variable ADTs in the library.
+The plots below show visualizations of the top 4 most variable ADTS in the library.
+
+First, ridgeplots showing normalized expression of these 4 ADTs are shown.
+Second, UMAP embeddings calculated from RNA expression are shown, where each cell is colored by the expression level of the given ADT. 
 
 
-```{r fig.height=5, fig.width=6, message=FALSE, results='asis'}
+```{r fig.height=10, fig.width=8, message=FALSE, warning=FALSE, results='asis'}
 if (has_processed) {
   
   # only create plot if variable ADTs are present
@@ -108,13 +110,26 @@ if (has_processed) {
       head(n = 4)
     
     # grab expression for top ADTs from counts
-    var_adt_exp <- logcounts(adt_exp_processed[top_adts,]) |>
+    var_adt_exp_df <- logcounts(adt_exp_processed[top_adts,]) |>
       as.matrix() |>
       t() |>
       as.data.frame() |>
-      tibble::rownames_to_column("barcode")
+      tibble::rownames_to_column("barcode") |>
+      # combine all ADTs into a single column for easy faceting 
+      tidyr::pivot_longer(cols = starts_with("CD"),
+                            names_to = "ADT",
+                            values_to = "adt_expression")
     
-    # extract umap embeddings as a dataframe
+    # First, expression ridgeplot ridgeplots
+    adt_ridgeplot <- ggplot(var_adt_exp_df, 
+           aes(y = ADT, x = adt_expression, fill = ADT)) + 
+      ggridges::geom_density_ridges(alpha = 0.5) + 
+      scale_fill_viridis_d() + 
+      labs(x = "Log-normalized ADT expression") +
+      theme(legend.position = "none") 
+    
+    
+    # Next, extract umap embeddings as a dataframe
     umap_df <- reducedDim(processed_sce, "UMAP") |>
       as.data.frame() |>
       tibble::rownames_to_column("barcode") |>
@@ -125,19 +140,14 @@ if (has_processed) {
     coldata_df <- colData(processed_sce) |>
       as.data.frame() |>
       tibble::rownames_to_column("barcode") |>
-      # TODO: FILTER TO ONLY ADTS WHOSE KEEP==TRUE???
       # combine with gene expression
-      left_join(var_adt_exp, by = "barcode") |>
+      left_join(var_adt_exp_df, by = "barcode") |>
       # combine with umap embeddings 
-      left_join(umap_df, by = "barcode") |>
-      # combine all ADTs into a single column for easy faceting 
-      tidyr::pivot_longer(cols = starts_with("CD"),
-                          names_to = "ADT",
-                          values_to = "adt_expression")
+      left_join(umap_df, by = "barcode")
     
     
-    ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
-      geom_point(alpha = 0.1, size = 0.075) + 
+    adt_umap <- ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
+      geom_point(alpha = 0.1, size = 0.1) + 
       facet_wrap(vars(ADT)) +
       scale_color_viridis_c() +
       labs(
@@ -150,7 +160,10 @@ if (has_processed) {
             strip.background = element_rect(fill = 'transparent'),
             legend.title = element_text(size = 8),
             legend.text = element_text(size = 8)) + 
-      guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
+      guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5)) 
+    
+    # Combine with patchwork so that both plots are reliably printed
+    adt_ridgeplot / adt_umap
     
   } else {
     glue::glue("
