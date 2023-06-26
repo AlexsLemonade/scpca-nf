@@ -21,6 +21,11 @@ option_list <- list(
     help = "path to output hdf5 file to store RNA counts as AnnData object. Must end in .hdf5 or .h5"
   ),
   make_option(
+    opt_str = c("--feature_name"),
+    type = "character",
+    help = "Feature type. Must match the altExp name, if present."
+  ),
+  make_option(
     opt_str = c("--output_feat_h5"),
     type = "character",
     help = "path to output hdf5 file to store feature counts as AnnData object. 
@@ -53,11 +58,13 @@ scpcaTools::sce_to_anndata(
   anndata_file = opt$output_rna_h5
 )
 
-# check for altExp
-alt_name <- altExpNames(sce)
-
-# if altExp exists then export as hdf5
-if(!is.null(alt_name) & length(alt_name) == 1){
+# if feature data exists, grab it and export to AnnData 
+if(!is.null(opt$feature_name)){
+  
+  # make sure the feature data is present 
+  if(!(opt$feature_name %in% altExpNames(sce))){
+    stop("feature_name must match name of altExp in provided SCE object.")
+  }
   
   # check for output file 
   if(!(stringr::str_ends(opt$output_feat_h5, ".hdf5|.h5"))){
@@ -65,7 +72,7 @@ if(!is.null(alt_name) & length(alt_name) == 1){
   }
   
   # extract altExp 
-  alt_sce <- altExp(sce, alt_name)
+  alt_sce <- altExp(sce, opt$feature_name)
   
   # export altExp sce as anndata object
   scpcaTools::sce_to_anndata(
@@ -73,9 +80,4 @@ if(!is.null(alt_name) & length(alt_name) == 1){
     anndata_file = opt$output_feat_h5
   )
   
-}
-
-# warn that only one altExp will be exported 
-if (!is.null(alt_name) & length(alt_name) > 1){
-  warning("Only 1 altExp named with {alt_name[1]} will be exported to HDF5")
 }

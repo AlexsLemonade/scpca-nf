@@ -13,12 +13,13 @@ process export_anndata{
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_feature.hdf5"
-
+      feature_present = meta.feature_type in ["adt", "cellhash"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
-        --output_feat_h5 ${feature_hdf5_file}
+        --output_feat_h5 ${feature_hdf5_file} \
+        ${feature_present ? "--feature_name ${meta.feature_type}" : ''}
       """
     stub:
       hdf5_file = "${meta.library_id}_${file_type}.hdf5"
