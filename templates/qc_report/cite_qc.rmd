@@ -56,12 +56,12 @@ knitr::kable(antibody_tags, digits = 2) |>
 
 ```{r}
 
-filtered_cell_count <- sum(filtered_sce$adt_scpca_filter == "Remove")
+filtered_cell_count <- sum(filtered_sce$adt_scpca_filter == "Keep")
 
 basic_statistics <- tibble::tibble(
     "Method used to identify cells targeted for filtering" = format(processed_meta$adt_scpca_filter_method),
-    "Number of cells targeted for filtering"  = format(filtered_cell_count),
-    "Percent of cells targeted for filtering" =
+    "Number of cells that pass filtering thresholds"  = format(filtered_cell_count),
+    "Percent of cells that pass filtering thresholds" =
       paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%")
   ) |>
   mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
