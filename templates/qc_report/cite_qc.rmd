@@ -54,26 +54,39 @@ knitr::kable(antibody_tags, digits = 2) |>
 
 ## ADT Post-processing Statistics
 
+Note that low-quality cells as identified by ADT counts are not actually filtered from the SCE object.
+Instead, cells that passed the filter threshold are labeled as `"Keep"` within the SCE object, and conversely cells that failed to pass the filtered are labeled as `"Remove"`.
+
 ```{r}
+if (has_processed) {
+  filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
+  
+  basic_statistics <- tibble::tibble(
+    # Note that the `adt_scpca_filter_method` column is only present in the `processed_sce` object
+    "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method),
+    "Number of cells that pass filtering threshold"  = format(filtered_cell_count),
+    "Percent of cells that pass filtering threshold" =
+        paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%")
+    ) |>
+    mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
+    t()
+  
+  knitr::kable(basic_statistics, align = 'r') |>
+    kableExtra::kable_styling(bootstrap_options = "striped",
+                              full_width = FALSE,
+                              position = "left") |>
+    kableExtra::column_spec(2, monospace = TRUE)
+} else {
+    glue::glue("
+    <div class=\"alert alert-warning\">
 
-filtered_cell_count <- sum(filtered_sce$adt_scpca_filter == "Keep")
+    No ADT post-processing was performed on this library.
 
-basic_statistics <- tibble::tibble(
-    "Method used to identify cells targeted for filtering" = format(processed_meta$adt_scpca_filter_method),
-    "Number of cells that pass filtering thresholds"  = format(filtered_cell_count),
-    "Percent of cells that pass filtering thresholds" =
-      paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%")
-  ) |>
-  mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
-  t()
+    </div>
+  ")
+}
 
-knitr::kable(basic_statistics, align = 'r') |>
-  kableExtra::kable_styling(bootstrap_options = "striped",
-                            full_width = FALSE,
-                            position = "left") |>
-  kableExtra::column_spec(2, monospace = TRUE)
 ```
-
 
 ## Expression of highly variable ADTs
 
@@ -83,64 +96,77 @@ The ADTs chosen for plotting are the top 4 most variable ADTs in the library.
 
 
 ```{r fig.height=5, fig.width=6, message=FALSE, results='asis'}
-# only create plot if variable ADTs are present
-if (!is.null(processed_meta$highly_variable_adts)) {
+if (has_processed) {
   
-  # select top ADTs to plot 
-  top_adts <- processed_meta$highly_variable_adts |>
-    head(n = 4)
-  
-  # grab expression for top ADTs from counts
-  var_adt_exp <- logcounts(adt_exp[top_adts,]) |>
-    as.matrix() |>
-    t() |>
-    as.data.frame() |>
-    tibble::rownames_to_column("barcode")
-  
-  # extract umap embeddings as a dataframe
-  umap_df <- reducedDim(processed_sce, "UMAP") |>
-    as.data.frame() |>
-    tibble::rownames_to_column("barcode") |>
-    rename("UMAP1" = "V1",
-           "UMAP2" = "V2") 
-  
-  # combine ADT expression with coldata, umap embeddings, and create data frame to use for plotting
-  coldata_df <- colData(processed_sce) |>
-    as.data.frame() |>
-    tibble::rownames_to_column("barcode") |>
-    # TODO: FILTER TO ONLY ADTS WHOSE KEEP==TRUE???
-    # combine with gene expression
-    left_join(var_adt_exp, by = "barcode") |>
-    # combine with umap embeddings 
-    left_join(umap_df, by = "barcode") |>
-    # combine all ADTs into a single column for easy faceting 
-    tidyr::pivot_longer(cols = starts_with("CD"),
-                        names_to = "ADT",
-                        values_to = "adt_expression")
-  
-  
-  ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
-    geom_point(alpha = 0.1, size = 0.075) + 
-    facet_wrap(vars(ADT)) +
-    scale_color_viridis_c() +
-    labs(
-      color = "Log-normalized ADT expression"
-    ) +
-    theme(legend.position = "bottom", 
-          axis.text = element_text(size = 8, color = "black"),
-          axis.title = element_text(size = 8, color = "black"),
-          strip.text = element_text(size = 8),
-          strip.background = element_rect(fill = 'transparent'),
-          legend.title = element_text(size = 8),
-          legend.text = element_text(size = 8)) + 
-    guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
-  
+  # only create plot if variable ADTs are present
+  if (!is.null(processed_meta$highly_variable_adts)) {
+    
+    adt_exp_processed <- altExp(processed_sce)
+    
+    # select top ADTs to plot 
+    top_adts <- processed_meta$highly_variable_adts |>
+      head(n = 4)
+    
+    # grab expression for top ADTs from counts
+    var_adt_exp <- logcounts(adt_exp_processed[top_adts,]) |>
+      as.matrix() |>
+      t() |>
+      as.data.frame() |>
+      tibble::rownames_to_column("barcode")
+    
+    # extract umap embeddings as a dataframe
+    umap_df <- reducedDim(processed_sce, "UMAP") |>
+      as.data.frame() |>
+      tibble::rownames_to_column("barcode") |>
+      rename("UMAP1" = "V1",
+             "UMAP2" = "V2") 
+    
+    # combine ADT expression with coldata, umap embeddings, and create data frame to use for plotting
+    coldata_df <- colData(processed_sce) |>
+      as.data.frame() |>
+      tibble::rownames_to_column("barcode") |>
+      # TODO: FILTER TO ONLY ADTS WHOSE KEEP==TRUE???
+      # combine with gene expression
+      left_join(var_adt_exp, by = "barcode") |>
+      # combine with umap embeddings 
+      left_join(umap_df, by = "barcode") |>
+      # combine all ADTs into a single column for easy faceting 
+      tidyr::pivot_longer(cols = starts_with("CD"),
+                          names_to = "ADT",
+                          values_to = "adt_expression")
+    
+    
+    ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
+      geom_point(alpha = 0.1, size = 0.075) + 
+      facet_wrap(vars(ADT)) +
+      scale_color_viridis_c() +
+      labs(
+        color = "Log-normalized ADT expression"
+      ) +
+      theme(legend.position = "bottom", 
+            axis.text = element_text(size = 8, color = "black"),
+            axis.title = element_text(size = 8, color = "black"),
+            strip.text = element_text(size = 8),
+            strip.background = element_rect(fill = 'transparent'),
+            legend.title = element_text(size = 8),
+            legend.text = element_text(size = 8)) + 
+      guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
+    
+  } else {
+    glue::glue("
+      <div class=\"alert alert-warning\">
+      
+      This library does not contain a set of highly variable ADTs. 
+      
+      </div>
+    ")
+  }
 } else {
   glue::glue("
     <div class=\"alert alert-warning\">
-    
-    This library does not contain a set of highly variable ADTs. 
-    
+
+    No ADT post-processing was performed on this library.
+
     </div>
   ")
 }

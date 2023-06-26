@@ -143,7 +143,7 @@ sample_information <- tibble::tibble(
 )
 
 if (has_adt) {
-  adt_exp <- altExp(processed_sce, "adt")
+  adt_exp <- altExp(filtered_sce, "adt") # must be filtered_sce in case has_processed is FALSE
   adt_meta <- metadata(adt_exp)
 
   sample_information <- sample_information |>
@@ -468,7 +468,65 @@ if (has_filtered & has_processed) {
 }
 ```
 
-The raw counts from all cells that remain after filtering low quality cells are then normalized prior to selection of highly variable genes and dimensionality reduction.
+```{r results='asis'}
+
+glue::glue("
+  This glue is OUTSIDE the if and it prints just fine. 
+  Where are my glues INSIDE the ifs? :( 
+  ")
+
+
+if (has_adt & has_filtered & has_processed) { 
+  
+  glue::glue("
+
+    The below plot is the same as above, but cells are colored based on both RNA count and ADT count filtering.
+    Specifically, cells are labeled as one of the following:
+    - 'Keep': This cell is retained based on both RNA and ADT counts.
+    - 'Filter (RNA & ADT)': This cell is filtered based on both RNA and ADT counts.
+    - 'Filter (RNA only) ': This cell is filtered based on only RNA counts.
+    - 'Filter (ADT only)': This cell is filtered based on only ADT counts.
+    
+    Each panel is labeled with the given category of cells as well as the total number of cells in that category.
+  ")
+
+  filter_levels <- c("Keep", "Filter (RNA & ADT)", "Filter (RNA only)", "Filter (ADT only)")
+  filtered_coldata_df <- filtered_coldata_df |>
+    # add column to represent filtering on both RNA and ADT counts
+    mutate(filter_summary = case_when(
+      scpca_filter == "Keep"   & adt_scpca_filter == "Keep"   ~ filter_levels[1],
+      scpca_filter == "Remove" & adt_scpca_filter == "Remove" ~ filter_levels[2],
+      scpca_filter == "Remove" & adt_scpca_filter == "Keep"   ~ filter_levels[3],
+      scpca_filter == "Keep"   & adt_scpca_filter == "Remove" ~ filter_levels[4],
+      TRUE ~ "Error"
+    ))  |>
+    # now, add a count to each label and factor in count order
+    add_count(filter_summary) |>
+    mutate(filter_summary = glue::glue("{filter_summary}\nN={n}"), 
+           filter_summary = forcats::fct_infreq(filter_summary)) |>
+    select(-n)
+
+  if (sum(stringr::str_detect(filtered_coldata_df$filter_summary, "Error")) != 0) {
+    stop("Processing error when evaluating CITE-seq filtering.")
+  }
+
+  
+  ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = filter_summary)) +
+    geom_point(alpha = 0.5, size = 1) +
+    geom_vline(xintercept = min_gene_cutoff, linetype = "dashed") +
+    labs(x = "Number of genes detected",
+         y = "Mitochondrial percentage",
+         title = "Combined RNA and ADT filters") +
+    scale_color_viridis_d(direction = -1) +
+    facet_wrap(vars(filter_summary)) +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "none")
+}
+```
+
+The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
+
+
 
 <!-- Next section include only if UMAP is present -->
 ```{r, child='umap_qc.rmd', eval = has_umap}
