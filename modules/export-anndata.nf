@@ -22,7 +22,7 @@ process export_anndata{
         ${feature_present ? "--feature_name ${meta.feature_type}" : ''}
       """
     stub:
-      hdf5_file = "${meta.library_id}_${file_type}.hdf5"
+      rna_hdf5_file = "${meta.library_id}_${file_type}.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_feature.hdf5"
       """
       touch ${rna_hdf5_file}
