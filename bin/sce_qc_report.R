@@ -156,7 +156,7 @@ if (!is.null(sce_meta$library_id)){
 
 # check for alt experiments (CITE-seq, etc)
 alt_expts <- altExpNames(unfiltered_sce)
-has_citeseq <- "CITEseq" %in% alt_expts
+has_citeseq <- "adt" %in% alt_expts
 has_cellhash <- "cellhash" %in% alt_expts
 
 
