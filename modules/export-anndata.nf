@@ -50,10 +50,9 @@ workflow sce_to_anndata{
       anndata_ch = export_anndata.out.rna_anndata.mix(export_anndata.out.feature_anndata)
         .map{ meta, hdf5_file -> tuple(
           groupKey(meta.library_id, meta.feature_type in ["adt", "cellhash"]? 6 : 3),
-          meta, 
+          meta,
           hdf5_file)
         }
-        .groupTuple(by: 0, size: 6, remainder: true)
         .map{ [it[1][0]] +  it[2] }
 
     emit: anndata_ch
