@@ -32,8 +32,9 @@ library(patchwork)
 
 # Set default ggplot theme
 theme_set(
-  theme_bw() +theme(plot.margin = margin(rep(20, 4)), 
-                    strip.background = element_rect(fill = 'transparent'))
+  theme_bw() +
+  theme(plot.margin = margin(rep(20, 4)), 
+        strip.background = element_rect(fill = 'transparent'))
 )
 ```
 

@@ -193,8 +193,8 @@ if (has_processed) {
 
   # grab expression for top ADTs from counts
   var_adt_exp_df <- logcounts(altExp(processed_sce))[top_adts,] |>
-    as.matrix() |>
     t() |>
+    as.matrix() |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
     # combine all ADTs into a single column for  faceting 
