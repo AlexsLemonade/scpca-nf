@@ -153,8 +153,6 @@ Each panel is labeled with the given category of cells as well as the total numb
 
 The plots in this section visualize the top four most variable ADTS in the library.
 
-The plot below displays normalized expression of these four ADTs, with one ADT shown per panel.
-
 
 ```{r}
 # Calculate ADT variance
@@ -184,7 +182,7 @@ if (has_processed) {
 ```
 
 
-The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT. 
+The plot below displays normalized expression of these four ADTs, with one ADT shown per panel.
 
 
 ```{r fig.alt="Density plot showing normalized expression of highly variable ADTs", warning = FALSE}
@@ -209,6 +207,8 @@ if (has_processed) {
     theme(legend.position = "none") 
 } 
 ```
+
+The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT. 
 
 
 ```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6}
