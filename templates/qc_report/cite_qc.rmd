@@ -165,7 +165,6 @@ if (has_processed) {
   # Calculate variance for each ADT
   adt_var <- altExp(processed_sce) |>
     logcounts() |>
-    as.matrix() |> 
     apply(1, var, na.rm=TRUE) 
   
   # Get the top 4
@@ -188,7 +187,7 @@ if (has_processed) {
 The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT. 
 
 
-```{r fig.alt="UMAP colored by expression of highly variable ADTs", warning = FALSE}
+```{r fig.alt="Density plot showing normalized expression of highly variable ADTs", warning = FALSE}
 if (has_processed) {
 
   # grab expression for top ADTs from counts
@@ -212,7 +211,7 @@ if (has_processed) {
 ```
 
 
-```{r fig.alt="UMAP colored by expression of highly variable ADTs"}
+```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6}
 if (has_processed) {
   # create data frame of UMAPs and expression 
    umap_df <- scuttle::makePerCellDF(processed_sce) |>
@@ -233,8 +232,13 @@ if (has_processed) {
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) + 
     scale_y_continuous(labels = NULL, breaks = NULL) + 
-    theme(legend.position = "bottom")  + 
-    guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5)) 
+    coord_fixed() +
+    theme(legend.position = "bottom",
+          axis.title = element_text(size = 8, color = "black"),
+          strip.text = element_text(size = 8),
+          legend.title = element_text(size = 9),
+          legend.text = element_text(size = 8)) +
+    guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
 }
 ```
 
