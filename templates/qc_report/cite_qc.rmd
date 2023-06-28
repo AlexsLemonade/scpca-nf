@@ -2,7 +2,7 @@
 
 This section details quality control statistics from the ADT (antibody-derived tag) component of CITE-seq experiments.
 
-## CITE-seq Statistics
+## CITE-seq Experiment Statistics
 
 ```{r}
 # add rowData if missing
@@ -13,17 +13,17 @@ if (is.null(rowData(adt_exp)$detected)){
 cell_adt_counts <- Matrix::colSums(counts(adt_exp))
 
 adt_information <- tibble::tibble(
-  "Number of ADTs assayed" = 
+  "Number of ADTs assayed" =
     format(nrow(adt_exp), big.mark = ',', scientific = FALSE),
-  "Number of reads sequenced" = 
+  "Number of reads sequenced" =
     format(adt_meta$total_reads, big.mark = ',', scientific = FALSE),
-  "Percent reads mapped to ADTs" = 
+  "Percent reads mapped to ADTs" =
     paste0(round(adt_meta$mapped_reads/adt_meta$total_reads * 100, digits = 2), "%"),
-  "Percent of ADTs in cells" = 
+  "Percent of ADTs in cells" =
     paste0(round(sum(cell_adt_counts)/adt_meta$mapped_reads * 100, digits = 2), "%"),
-  "Percent of cells with ADTs" = 
+  "Percent of cells with ADTs" =
     paste0(round(sum(cell_adt_counts > 0)/length(cell_adt_counts) * 100, digits = 2), "%"),
-  "Median ADT UMIs per cell" = 
+  "Median ADT UMIs per cell" =
     format(median(cell_adt_counts), big.mark = ',', scientific = FALSE)
   )|>
   t()
@@ -35,19 +35,210 @@ knitr::kable(adt_information, align = 'r') |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## Antibody-Derived Tag Statistics 
+## ADT Statistics
 ```{r}
 antibody_tags <- as.data.frame(rowData(adt_exp)) |>
   tibble::rownames_to_column("Antibody") |>
   arrange(desc(mean)) |>
   select("Antibody",
          "Mean UMI count per cell" = mean,
-         "Percent of cells detected" = detected)
+         "Percent of cells detected" = detected,
+         "ADT target type" =  target_type)
 
 knitr::kable(antibody_tags, digits = 2) |>
   kableExtra::kable_styling(bootstrap_options = c("striped", "condensed"),
                             full_width = FALSE,
                             position = "left",
-                            ) |>
-  kableExtra::column_spec(2:3, monospace = TRUE) 
+                            ) 
 ```
+
+## ADT Post-processing Statistics
+
+Note that low-quality cells as identified by ADT counts are not actually filtered from the SCE object.
+Instead, cells that passed the filter threshold are labeled as `"Keep"` within the SCE object, and conversely cells that failed to pass the filtered are labeled as `"Remove"`.
+
+```{r}
+
+if (has_processed) {
+  filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
+  
+  basic_statistics <- tibble::tibble(
+    # Note that the adt_scpca_filter_method column is only present in the processed_sce object
+    "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method),
+    "Number of cells that pass filtering threshold"  = format(filtered_cell_count),
+    "Percent of cells that pass filtering threshold" =
+        paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%"), 
+    "Normalization method" = format(processed_meta$adt_normalization)
+    ) |>
+    mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
+    t()
+  
+  knitr::kable(basic_statistics, align = 'r') |>
+    kableExtra::kable_styling(bootstrap_options = "striped",
+                              full_width = FALSE,
+                              position = "left") |>
+    kableExtra::column_spec(2, monospace = TRUE)
+} else {
+    glue::glue("
+    <div class=\"alert alert-warning\">
+
+    No ADT post-processing was performed on this library.
+
+    </div>
+  ")
+}
+
+```
+
+## Removing low quality cells based on ADT counts
+
+
+```{r fig.alt="Cell filtering based on both ADT and RNA counts", results='asis'}
+if (has_processed) { 
+  
+  # DO NOT TAB TEXT IN, for formatting reasons
+  glue::glue("
+The plot below displays an overall view of cell filtering based on both ADT and RNA counts. Cells are labeled as one of the following:\n\n
+
+- 'Keep': This cell is retained based on both RNA and ADT counts.\n
+- 'Filter (RNA only) ': This cell is filtered based on only RNA counts.\n
+- 'Filter (ADT only)': This cell is filtered based on only ADT counts.\n\n
+- 'Filter (RNA & ADT)': This cell is filtered based on both RNA and ADT counts.\n
+
+Each panel is labeled with the given category of cells as well as the total number of cells in that category.
+  ")  |> print()
+  
+  filter_levels <- c("Keep", "Filter (RNA & ADT)", "Filter (RNA only)", "Filter (ADT only)")
+  filtered_coldata_df <- filtered_coldata_df |>
+    # add column to represent filtering on both RNA and ADT counts
+    mutate(filter_summary = case_when(
+      scpca_filter == "Keep"   & adt_scpca_filter == "Keep"   ~ filter_levels[1],
+      scpca_filter == "Remove" & adt_scpca_filter == "Remove" ~ filter_levels[2],
+      scpca_filter == "Remove" & adt_scpca_filter == "Keep"   ~ filter_levels[3],
+      scpca_filter == "Keep"   & adt_scpca_filter == "Remove" ~ filter_levels[4],
+      TRUE ~ "Error"
+    ))  |>
+    # now, add a count to each label and factor in count order
+    # add `keep_column` for use in plotting for colors
+    add_count(filter_summary) |>
+    mutate(filter_summary = glue::glue("{filter_summary}\nN={n}"), 
+           filter_summary = forcats::fct_infreq(filter_summary), 
+           keep_column = ifelse(
+             stringr::str_starts(filter_summary, "Keep"), 
+             "Keep", 
+             "Remove"
+           )) |>
+    select(-n)
+
+  if (sum(stringr::str_detect(filtered_coldata_df$filter_summary, "Error")) != 0) {
+    stop("Processing error when evaluating CITE-seq filtering.")
+  }
+
+  
+  ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = keep_column)) +
+    geom_point(alpha = 0.5, size = 1) +
+    geom_vline(xintercept = min_gene_cutoff, linetype = "dashed") +
+    labs(x = "Number of genes detected",
+         y = "Mitochondrial percentage",
+         title = "Combined RNA and ADT filters") +
+    facet_wrap(vars(filter_summary)) +
+    theme(plot.title = element_text(hjust = 0.5), 
+          legend.position = "none")
+}
+```
+
+
+
+## Expression of highly variable ADTs
+
+The plots in this section visualize the top four most variable ADTS in the library.
+
+
+```{r}
+# Calculate ADT variance
+if (has_processed) {
+  
+  top_n <- 4 # we want the top 4 ADTs
+
+  # Calculate variance for each ADT
+  adt_var <- altExp(processed_sce) |>
+    logcounts() |>
+    apply(1, var, na.rm=TRUE) 
+  
+  # Get the top 4
+  top_adts <- adt_var[ order(adt_var, decreasing=TRUE)[1:top_n] ] |>
+    names()
+
+} else {
+  # This warning also handles "else" conditions for the next two chunks
+  glue::glue("
+    <div class=\"alert alert-warning\">
+
+    No ADT post-processing was performed on this library.
+
+    </div>
+  ")
+}
+```
+
+
+The plot below displays normalized expression of these four ADTs, with one ADT shown per panel.
+
+
+```{r fig.alt="Density plot showing normalized expression of highly variable ADTs", warning = FALSE}
+if (has_processed) {
+
+  # grab expression for top ADTs from counts
+  var_adt_exp_df <- logcounts(altExp(processed_sce))[top_adts,] |>
+    t() |>
+    as.matrix() |>
+    as.data.frame() |>
+    tibble::rownames_to_column("barcode") |>
+    # combine all ADTs into a single column for  faceting 
+    tidyr::pivot_longer(!barcode,
+                        names_to = "ADT",
+                        values_to = "adt_expression")
+  
+  # expression density plots
+  ggplot(var_adt_exp_df, aes(x = adt_expression, fill = ADT)) + 
+    geom_density() + 
+    facet_wrap(vars(ADT), nrow = 2) +
+    labs(x = "Log-normalized ADT expression") +
+    theme(legend.position = "none") 
+} 
+```
+
+The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT. 
+
+
+```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6}
+if (has_processed) {
+  # create data frame of UMAPs and expression 
+   umap_df <- scuttle::makePerCellDF(processed_sce) |>
+      tibble::rownames_to_column("barcode") |>
+      select(barcode, 
+             UMAP1 = UMAP.1, 
+             UMAP2 = UMAP.2) |> 
+    # combine with gene expression
+    left_join(var_adt_exp_df, by = "barcode")
+  
+  ggplot(umap_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
+    geom_point(alpha = 0.1, size = 0.1) + 
+    facet_wrap(vars(ADT)) +
+    scale_color_viridis_c() +
+    labs(
+      color = "Log-normalized ADT expression"
+    ) +
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) + 
+    scale_y_continuous(labels = NULL, breaks = NULL) + 
+    coord_fixed() +
+    theme(legend.position = "bottom",
+          axis.title = element_text(size = 8, color = "black"),
+          strip.text = element_text(size = 8),
+          legend.title = element_text(size = 9),
+          legend.text = element_text(size = 8)) +
+    guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
+}
+```
+
