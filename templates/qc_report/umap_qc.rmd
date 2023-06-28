@@ -8,8 +8,10 @@ scater::plotUMAP(processed_sce,
                  point_size = 0.3,
                  point_alpha = 0.5,
                  colour_by = "detected") +
-  scale_color_viridis_c()+
-  theme_bw() + 
+  scale_color_viridis_c() +
+  # remove axis numbers and background grid
+  scale_x_continuous(labels = NULL, breaks = NULL) + 
+  scale_y_continuous(labels = NULL, breaks = NULL) + 
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
   )
@@ -80,13 +82,15 @@ if (!is.null(processed_meta$highly_variable_genes)) {
     labs(
       color = "Log-normalized gene expression"
     ) +
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) + 
+    scale_y_continuous(labels = NULL, breaks = NULL) + 
     theme(legend.position = "bottom", 
           axis.text = element_text(size = 8, color = "black"),
           axis.title = element_text(size = 8, color = "black"),
           strip.text = element_text(size = 8),
-          strip.background = element_rect(fill = 'transparent'),
           legend.title = element_text(size = 8),
-          legend.text = element_text(size = 8)) + 
+          legend.text = element_text(size = 8)) +
     guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
   
 } else {
