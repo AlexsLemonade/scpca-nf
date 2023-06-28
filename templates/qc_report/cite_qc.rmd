@@ -58,6 +58,7 @@ Note that low-quality cells as identified by ADT counts are not actually filtere
 Instead, cells that passed the filter threshold are labeled as `"Keep"` within the SCE object, and conversely cells that failed to pass the filtered are labeled as `"Remove"`.
 
 ```{r}
+
 if (has_processed) {
   filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
   
@@ -66,7 +67,8 @@ if (has_processed) {
     "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method),
     "Number of cells that pass filtering threshold"  = format(filtered_cell_count),
     "Percent of cells that pass filtering threshold" =
-        paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%")
+        paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%"), 
+    "Normalization method" = format(processed_meta$adt_normalization)
     ) |>
     mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
     t()
@@ -90,26 +92,22 @@ if (has_processed) {
 
 ## Removing low quality cells based on ADT counts
 
-```{r results='asis'}
 
-glue::glue("
-  This glue is OUTSIDE the if and it prints just fine. 
-  Where are my glues INSIDE the ifs? :( 
-  ")
-
-
-if (has_filtered & has_processed) { 
+```{r fig.alt="Cell filtering based on both ADT and RNA counts", results='asis'}
+if (has_processed) { 
   
+  # DO NOT TAB TEXT IN, for formatting reasons
   glue::glue("
-    The plot below displays an overall view of cell filtering based on both ADT and RNA counts. Cells are labeled as one of the following:
-    - 'Keep': This cell is retained based on both RNA and ADT counts.
-    - 'Filter (RNA & ADT)': This cell is filtered based on both RNA and ADT counts.
-    - 'Filter (RNA only) ': This cell is filtered based on only RNA counts.
-    - 'Filter (ADT only)': This cell is filtered based on only ADT counts.
-    
-    Each panel is labeled with the given category of cells as well as the total number of cells in that category.
-  ")
+The plot below displays an overall view of cell filtering based on both ADT and RNA counts. Cells are labeled as one of the following:\n\n
 
+- 'Keep': This cell is retained based on both RNA and ADT counts.\n
+- 'Filter (RNA only) ': This cell is filtered based on only RNA counts.\n
+- 'Filter (ADT only)': This cell is filtered based on only ADT counts.\n\n
+- 'Filter (RNA & ADT)': This cell is filtered based on both RNA and ADT counts.\n
+
+Each panel is labeled with the given category of cells as well as the total number of cells in that category.
+  ")  |> print()
+  
   filter_levels <- c("Keep", "Filter (RNA & ADT)", "Filter (RNA only)", "Filter (ADT only)")
   filtered_coldata_df <- filtered_coldata_df |>
     # add column to represent filtering on both RNA and ADT counts
@@ -121,9 +119,15 @@ if (has_filtered & has_processed) {
       TRUE ~ "Error"
     ))  |>
     # now, add a count to each label and factor in count order
+    # add `keep_column` for use in plotting for colors
     add_count(filter_summary) |>
     mutate(filter_summary = glue::glue("{filter_summary}\nN={n}"), 
-           filter_summary = forcats::fct_infreq(filter_summary)) |>
+           filter_summary = forcats::fct_infreq(filter_summary), 
+           keep_column = ifelse(
+             stringr::str_starts(filter_summary, "Keep"), 
+             "Keep", 
+             "Remove"
+           )) |>
     select(-n)
 
   if (sum(stringr::str_detect(filtered_coldata_df$filter_summary, "Error")) != 0) {
@@ -131,15 +135,14 @@ if (has_filtered & has_processed) {
   }
 
   
-  ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = filter_summary)) +
+  ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = keep_column)) +
     geom_point(alpha = 0.5, size = 1) +
     geom_vline(xintercept = min_gene_cutoff, linetype = "dashed") +
     labs(x = "Number of genes detected",
          y = "Mitochondrial percentage",
          title = "Combined RNA and ADT filters") +
-    scale_color_viridis_d(direction = -1) +
     facet_wrap(vars(filter_summary)) +
-    theme(plot.title = element_text(hjust = 0.5),
+    theme(plot.title = element_text(hjust = 0.5), 
           legend.position = "none")
 }
 ```
@@ -148,90 +151,29 @@ if (has_filtered & has_processed) {
 
 ## Expression of highly variable ADTs
 
-The plots below show visualizations of the top 4 most variable ADTS in the library.
+The plots in this section visualize the top four most variable ADTS in the library.
 
-First, ridgeplots showing normalized expression of these 4 ADTs are shown.
-Second, UMAP embeddings calculated from RNA expression are shown, where each cell is colored by the expression level of the given ADT. 
+The plot below displays normalized expression of these four ADTs, with one ADT shown per panel.
 
 
-```{r fig.height=10, fig.width=8, message=FALSE, warning=FALSE, results='asis'}
+```{r}
+# Calculate ADT variance
 if (has_processed) {
   
-  # only create plot if variable ADTs are present
-  if (!is.null(processed_meta$highly_variable_adts)) {
-    
-    adt_exp_processed <- altExp(processed_sce)
-    
-    # select top ADTs to plot 
-    top_adts <- processed_meta$highly_variable_adts |>
-      head(n = 4)
-    
-    # grab expression for top ADTs from counts
-    var_adt_exp_df <- logcounts(adt_exp_processed[top_adts,]) |>
-      as.matrix() |>
-      t() |>
-      as.data.frame() |>
-      tibble::rownames_to_column("barcode") |>
-      # combine all ADTs into a single column for easy faceting 
-      tidyr::pivot_longer(cols = starts_with("CD"),
-                            names_to = "ADT",
-                            values_to = "adt_expression")
-    
-    # First, expression ridgeplot ridgeplots
-    adt_ridgeplot <- ggplot(var_adt_exp_df, 
-           aes(y = ADT, x = adt_expression, fill = ADT)) + 
-      ggridges::geom_density_ridges(alpha = 0.5) + 
-      scale_fill_viridis_d() + 
-      labs(x = "Log-normalized ADT expression") +
-      theme(legend.position = "none") 
-    
-    
-    # Next, extract umap embeddings as a dataframe
-    umap_df <- reducedDim(processed_sce, "UMAP") |>
-      as.data.frame() |>
-      tibble::rownames_to_column("barcode") |>
-      rename("UMAP1" = "V1",
-             "UMAP2" = "V2") 
-    
-    # combine ADT expression with coldata, umap embeddings, and create data frame to use for plotting
-    coldata_df <- colData(processed_sce) |>
-      as.data.frame() |>
-      tibble::rownames_to_column("barcode") |>
-      # combine with gene expression
-      left_join(var_adt_exp_df, by = "barcode") |>
-      # combine with umap embeddings 
-      left_join(umap_df, by = "barcode")
-    
-    
-    adt_umap <- ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
-      geom_point(alpha = 0.1, size = 0.1) + 
-      facet_wrap(vars(ADT)) +
-      scale_color_viridis_c() +
-      labs(
-        color = "Log-normalized ADT expression"
-      ) +
-      theme(legend.position = "bottom", 
-            axis.text = element_text(size = 8, color = "black"),
-            axis.title = element_text(size = 8, color = "black"),
-            strip.text = element_text(size = 8),
-            strip.background = element_rect(fill = 'transparent'),
-            legend.title = element_text(size = 8),
-            legend.text = element_text(size = 8)) + 
-      guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5)) 
-    
-    # Combine with patchwork so that both plots are reliably printed
-    adt_ridgeplot / adt_umap
-    
-  } else {
-    glue::glue("
-      <div class=\"alert alert-warning\">
-      
-      This library does not contain a set of highly variable ADTs. 
-      
-      </div>
-    ")
-  }
+  top_n <- 4 # we want the top 4 ADTs
+
+  # Calculate variance for each ADT
+  adt_var <- altExp(processed_sce) |>
+    logcounts() |>
+    as.matrix() |> 
+    apply(1, var, na.rm=TRUE) 
+  
+  # Get the top 4
+  top_adts <- adt_var[ order(adt_var, decreasing=TRUE)[1:top_n] ] |>
+    names()
+
 } else {
+  # This warning also handles "else" conditions for the next two chunks
   glue::glue("
     <div class=\"alert alert-warning\">
 
@@ -239,6 +181,60 @@ if (has_processed) {
 
     </div>
   ")
+}
+```
+
+
+The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT. 
+
+
+```{r fig.alt="UMAP colored by expression of highly variable ADTs", warning = FALSE}
+if (has_processed) {
+
+  # grab expression for top ADTs from counts
+  var_adt_exp_df <- logcounts(altExp(processed_sce))[top_adts,] |>
+    as.matrix() |>
+    t() |>
+    as.data.frame() |>
+    tibble::rownames_to_column("barcode") |>
+    # combine all ADTs into a single column for  faceting 
+    tidyr::pivot_longer(!barcode,
+                        names_to = "ADT",
+                        values_to = "adt_expression")
+  
+  # expression density plots
+  ggplot(var_adt_exp_df, aes(x = adt_expression, fill = ADT)) + 
+    geom_density() + 
+    facet_wrap(vars(ADT), nrow = 2) +
+    labs(x = "Log-normalized ADT expression") +
+    theme(legend.position = "none") 
+} 
+```
+
+
+```{r fig.alt="UMAP colored by expression of highly variable ADTs"}
+if (has_processed) {
+  # create data frame of UMAPs and expression 
+   umap_df <- scuttle::makePerCellDF(processed_sce) |>
+      tibble::rownames_to_column("barcode") |>
+      select(barcode, 
+             UMAP1 = UMAP.1, 
+             UMAP2 = UMAP.2) |> 
+    # combine with gene expression
+    left_join(var_adt_exp_df, by = "barcode")
+  
+  ggplot(umap_df, aes(x = UMAP1, y = UMAP2, color = adt_expression)) + 
+    geom_point(alpha = 0.1, size = 0.1) + 
+    facet_wrap(vars(ADT)) +
+    scale_color_viridis_c() +
+    labs(
+      color = "Log-normalized ADT expression"
+    ) +
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) + 
+    scale_y_continuous(labels = NULL, breaks = NULL) + 
+    theme(legend.position = "bottom")  + 
+    guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5)) 
 }
 ```
 
