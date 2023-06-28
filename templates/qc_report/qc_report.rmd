@@ -31,8 +31,10 @@ library(ggplot2)
 library(patchwork)
 
 # Set default ggplot theme
-theme_set(theme_bw() +
-          theme(plot.margin = margin(rep(20, 4))))
+theme_set(
+  theme_bw() +theme(plot.margin = margin(rep(20, 4)), 
+                    strip.background = element_rect(fill = 'transparent'))
+)
 ```
 
 ```{r sce_setup}
@@ -389,15 +391,15 @@ Cells with low UMI counts and high mitochondrial percentages may require further
 ```{r, fig.alt="miQC model diagnostics plot", results='asis', warning=FALSE}
 if (skip_miQC) {
   cat("miQC model not created, skipping miQC plot. Usually this is because mitochondrial gene data was not available.")
-}else{
+} else {
   # remove prob_compromised if it exists, as this will cause errors with plotModel
   filtered_sce$prob_compromised <- NULL
   miQC_model <- metadata(filtered_sce)$miQC_model
 
-  if (is.null(miQC_model) || length(miQC_model@components) < 2){
+  if (is.null(miQC_model) || length(miQC_model@components) < 2) {
     # model didn't fit, just plot metrics
     miQC_plot <- miQC::plotMetrics(filtered_sce)
-  }else{
+  } else {
     miQC_plot <- miQC::plotModel(filtered_sce, model = miQC_model)
   }
 
