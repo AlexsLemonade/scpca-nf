@@ -12,6 +12,7 @@ scater::plotUMAP(processed_sce,
   # remove axis numbers and background grid
   scale_x_continuous(labels = NULL, breaks = NULL) + 
   scale_y_continuous(labels = NULL, breaks = NULL) + 
+  coord_fixed() + 
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
   )
@@ -24,7 +25,7 @@ The genes chosen for plotting are the 12 most variable genes identified in the l
 Gene symbols are used when available to label the UMAP plots.
 If gene symbols are not available, the Ensembl id will be shown.
 
-```{r message=FALSE, results='asis'}
+```{r message=FALSE, results='asis', fig.height = 8}
 # only create plot if variable genes are present
 if (!is.null(processed_meta$highly_variable_genes)) {
   
@@ -85,11 +86,11 @@ if (!is.null(processed_meta$highly_variable_genes)) {
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) + 
     scale_y_continuous(labels = NULL, breaks = NULL) + 
+    coord_fixed() + 
     theme(legend.position = "bottom", 
-          axis.text = element_text(size = 8, color = "black"),
           axis.title = element_text(size = 8, color = "black"),
           strip.text = element_text(size = 8),
-          legend.title = element_text(size = 8),
+          legend.title = element_text(size = 9),
           legend.text = element_text(size = 8)) +
     guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
   
