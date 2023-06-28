@@ -190,8 +190,18 @@ metadata_list <- list(
 ) |>
   purrr::map(\(x) {if(is.null(x)) NA else x}) # convert any NULLS to NA
 
+# add adt methods if citeseq
+if (has_citeseq) {
+  metadata_list <- append(
+    metadata_list,
+    list(adt_filtering_method = processed_sce_meta$adt_scpca_filter_method,
+         adt_normalization_method = processed_sce_meta$adt_normalization)
+  )
+}
+
+
 # estimate cell counts for multiplexed samples
-if(multiplexed){
+if (multiplexed) {
   demux_column <- paste0(opt$demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
     table() |>
