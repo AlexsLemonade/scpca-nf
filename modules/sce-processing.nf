@@ -179,7 +179,6 @@ process post_process_sce{
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
           --output_sce_file ${processed_rds} \
-          --adt_name ${meta.feature_type} \
           --gene_cutoff ${params.gene_cutoff} \
           --n_hvg ${params.num_hvg} \
           --n_pcs ${params.num_pcs} \
