@@ -9,7 +9,7 @@ params:
 title: "`r glue::glue('ScPCA QC report for {params$library}')`"
 author: "Childhood Cancer Data Lab"
 date: "`r params$date`"
-output: 
+output:
   html_document:
     toc: true
     toc_depth: 2
@@ -28,10 +28,14 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 
 # Set default ggplot theme
-theme_set(theme_bw() + 
-          theme(plot.margin = margin(rep(20, 4))))
+theme_set(
+  theme_bw() +
+  theme(plot.margin = margin(rep(20, 4)), 
+        strip.background = element_rect(fill = 'transparent'))
+)
 ```
 
 ```{r sce_setup}
@@ -79,18 +83,18 @@ if (is.null(metadata(filtered_sce)$miQC_model) & !skip_miQC){
 modalities <- c("RNA-seq")
 
 has_adt <- "adt" %in% altExpNames(filtered_sce)
-if (has_adt){
+if (has_adt) {
   modalities <- c(modalities, "ADT")
 }
 
 # check for cellhash to add to list of modalities
 has_cellhash <- "cellhash" %in% altExpNames(filtered_sce)
-if(has_cellhash){
+if (has_cellhash) {
   modalities <- c(modalities, "Multiplex")
 }
 
 # check for umap, need to be sure that processed_sce exists first
-if(has_processed){
+if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
 } else {
   has_umap <- FALSE
@@ -104,17 +108,17 @@ if(has_processed){
 # only print out multiplexed warning if more than one sample is present
 has_multiplex <- length(sample_id) > 1
 
-if(has_multiplex){
-  # convert sample id to bullet separated list 
+if (has_multiplex) {
+  # convert sample id to bullet separated list
   multiplex_samples <- paste0("<li>", paste(sample_id, collapse = '</li><li>', "</li>"))
   glue::glue("
     <div class=\"alert alert-warning\">
-    
-    This library is multiplexed and contains data from more than one sample.  
+
+    This library is multiplexed and contains data from more than one sample.
     Data from the following samples are included in this library:
-    
+
     {multiplex_samples}
-    
+
     </div>
   ")
 }
@@ -125,51 +129,52 @@ if(has_multiplex){
 
 ```{r }
 # extract sce metadata containing processing information as table
-unfiltered_meta <- metadata(unfiltered_sce) 
+unfiltered_meta <- metadata(unfiltered_sce)
 
 sample_information <- tibble::tibble(
   "Library id" = library_id,
   "Sample id" = paste(sample_id, collapse = ", "),
   "Tech version" = format(unfiltered_meta$tech_version), # format to keep nulls
   "Data modalities" = paste(modalities, collapse = ", "),
-  "Cells reported by alevin-fry" = 
+  "Cells reported by alevin-fry" =
     format(unfiltered_meta$af_num_cells, big.mark = ',', scientific = FALSE),
-  "Number of genes assayed" = 
+  "Number of genes assayed" =
     format(nrow(unfiltered_sce), big.mark = ',', scientific = FALSE),
-  "Number of RNA-seq reads sequenced" = 
+  "Number of RNA-seq reads sequenced" =
     format(unfiltered_meta$total_reads, big.mark = ',', scientific = FALSE),
-  "Percent of RNA-seq reads mapped to transcripts" = 
+  "Percent of RNA-seq reads mapped to transcripts" =
     paste0(round((unfiltered_meta$mapped_reads/unfiltered_meta$total_reads) *100, 2), "%")
 )
-if (has_adt){
-  adt_exp <- altExp(filtered_sce, "adt")
+
+if (has_adt) {
+  adt_exp <- altExp(filtered_sce, "adt") # must be filtered_sce in case has_processed is FALSE
   adt_meta <- metadata(adt_exp)
-  
+
   sample_information <- sample_information |>
     mutate(
-      "Number of antibodies assayed" = 
+      "Number of antibodies assayed" =
         format(nrow(adt_exp), big.mark = ',', scientific = FALSE),
-      "Number of ADT reads sequenced" = 
+      "Number of ADT reads sequenced" =
         format(adt_meta$total_reads, big.mark = ',', scientific = FALSE),
-      "Percent of ADT reads mapped to ADTs" = 
+      "Percent of ADT reads mapped to ADTs" =
         paste0(round(adt_meta$mapped_reads/adt_meta$total_reads * 100, digits = 2), "%")
     )
 }
-if (has_cellhash){
+
+if (has_cellhash) {
   multiplex_exp <- altExp(filtered_sce, "cellhash")
   multiplex_meta <- metadata(multiplex_exp)
-  
+
   sample_information <- sample_information |>
     mutate(
-      "Number of HTOs assayed" = 
+      "Number of HTOs assayed" =
         format(nrow(multiplex_exp), big.mark = ',', scientific = FALSE),
-      "Number of cellhash reads sequenced" = 
+      "Number of cellhash reads sequenced" =
         format(multiplex_meta$total_reads, big.mark = ',', scientific = FALSE),
-      "Percent of cellhash reads mapped to HTOs" = 
+      "Percent of cellhash reads mapped to HTOs" =
         paste0(round(multiplex_meta$mapped_reads/multiplex_meta$total_reads * 100, digits = 2), "%")
     )
 }
-
 
 sample_information <- sample_information |>
   mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
@@ -194,7 +199,7 @@ processing_info <- tibble::tibble(
   "Alevin-fry version"   = format(unfiltered_meta$alevinfry_version),
   "Transcriptome index"  = format(unfiltered_meta$reference_index),
   "Alevin-fry droplet detection"  = format(unfiltered_meta$af_permit_type),
-  "Resolution"           = format(unfiltered_meta$af_resolution), 
+  "Resolution"           = format(unfiltered_meta$af_resolution),
   "Transcripts included" = dplyr::case_when(
       transcript_type == "total spliced" ~ "Total and spliced only",
       transcript_type == "spliced" ~ "Spliced only",
@@ -212,13 +217,13 @@ knitr::kable(processing_info, align = 'r') |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-# RNA-seq Experiment Summary 
+# RNA-seq Experiment Summary
 
-## Cell Statistics 
+## Cell Statistics
 
 ```{r}
 basic_statistics <- tibble::tibble(
-  "Method used to filter empty droplets"          = metadata(filtered_sce)$filtering_method, 
+  "Method used to filter empty droplets"          = metadata(filtered_sce)$filtering_method,
   "Number of cells post filtering empty droplets" = format(ncol(filtered_sce), big.mark = ","),
   "Percent of reads in cells"                     = paste0(round((sum(filtered_sce$sum)/sum(unfiltered_sce$sum))*100,2),"%"),
   "Median UMI count per cell"                     = format(median(filtered_sce$sum), big.mark = ","),
@@ -227,25 +232,23 @@ basic_statistics <- tibble::tibble(
   )
 
 # if processed sce exists add filtering and normalization table
-if(has_processed){
+if (has_processed) {
   processed_meta <- metadata(processed_sce)
-  
+
   basic_statistics <- basic_statistics |>
     mutate(
       "Method used to filter low quality cells" = format(processed_meta$scpca_filter_method),
       "Cells after filtering low quality cells" = format(dim(processed_sce)[2], big.mark = ',', scientific = FALSE),
       "Normalization method"                    = format(processed_meta$normalization),
       "Minimum genes per cell cutoff"           = format(processed_meta$min_gene_cutoff)
-    
     )
-  if(processed_meta$scpca_filter_method == "miQC") {
+  if (processed_meta$scpca_filter_method == "miQC") {
     basic_statistics <- basic_statistics |>
       mutate(
         "Probability of compromised cell cutoff" = format(processed_meta$prob_compromised_cutoff, big.mark = ",", scientific = FALSE)
       )
   }
 }
-
 
 basic_statistics <- basic_statistics |>
   mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
@@ -261,14 +264,14 @@ knitr::kable(basic_statistics, align = 'r') |>
 ```
 
 ```{r, results='asis'}
-if(has_filtered &&
-   (metadata(filtered_sce)$filtering_method == "UMI cutoff")){
+if (has_filtered &&
+   (metadata(filtered_sce)$filtering_method == "UMI cutoff")) {
   glue::glue("
     <div class=\"alert alert-warning\">
-    
-    This library may contain a low number of cells and was unable to be filtered using `DropletUtils`. 
+
+    This library may contain a low number of cells and was unable to be filtered using `DropletUtils`.
     Droplets with a total UMI count ≥ {metadata(filtered_sce)$umi_cutoff} are included in the filtered `SingleCellExperiment` object.
-    
+
     </div>
   ")
 }
@@ -281,13 +284,13 @@ if(has_filtered){
   if(ncol(filtered_sce) < min_filtered){
     glue::glue("
       <div class=\"alert alert-warning\">
-      
+
       This library contains fewer than {min_filtered} cells in the filtered `SingleCellExperiment` object.
       This may affect the interpretation of results.
-      
+
       </div>
     ")
-  } 
+  }
 }
 
 # check for number of cells post processing
@@ -296,13 +299,13 @@ if(has_processed){
   if(ncol(processed_sce) < min_processed){
     glue::glue("
       <div class=\"alert alert-warning\">
-      
+
       This library contains fewer than {min_processed} cells in the processed `SingleCellExperiment` object after removal of low quality cells.
       UMAP is unable to be calculated and plots will not be shown.
-      
+
       </div>
     ")
-  }  
+  }
 }
 ```
 
@@ -311,7 +314,7 @@ if(has_processed){
 ```{r, fig.alt="Smoothed knee plot of filtered and unfiltered droplets"}
 unfiltered_celldata <- data.frame(colData(unfiltered_sce)) |>
   mutate(
-    rank = rank(- unfiltered_sce$sum, ties.method = "first"), # using full spec for clarity 
+    rank = rank(- unfiltered_sce$sum, ties.method = "first"), # using full spec for clarity
     filter_pass = colnames(unfiltered_sce) %in% colnames(filtered_sce)
   ) |>
   select(sum, rank, filter_pass) |>
@@ -325,55 +328,55 @@ grouped_celldata <- unfiltered_celldata |>
     med_sum = median(sum),
     med_rank = median(rank),
     pct_passed = sum(filter_pass) / n() * 100
-  ) 
+  )
 
 top_celldata <- unfiltered_celldata |>
   filter(rank <= 50) |>
   mutate(filter_pct = ifelse(filter_pass, 100, 0))
 
-ggplot(grouped_celldata, aes(x = med_rank, y = med_sum, color = pct_passed)) + 
+ggplot(grouped_celldata, aes(x = med_rank, y = med_sum, color = pct_passed)) +
   geom_point(mapping = aes(x = rank, y = sum, color = filter_pct),
              data = top_celldata,
-             alpha = 0.5) + 
+             alpha = 0.5) +
   geom_line(size = 2, lineend = "round", linejoin= "round") +
   scale_x_log10(labels = scales::label_number(accuracy = 1)) +
-  scale_y_log10(labels = scales::label_number(accuracy = 1)) + 
-  scale_color_gradient2(low = "grey70", 
-                        mid = "forestgreen", 
-                        high = "darkgreen", 
+  scale_y_log10(labels = scales::label_number(accuracy = 1)) +
+  scale_color_gradient2(low = "grey70",
+                        mid = "forestgreen",
+                        high = "darkgreen",
                         midpoint = 50) +
   labs(
-    x = "Rank", 
+    x = "Rank",
     y = "Total UMI count",
     color = "% passing\ncell filter"
-  ) + 
+  ) +
   theme(legend.position = c(0, 0),
         legend.justification = c(0,0),
         legend.background = element_rect(color = "grey20", size = 0.25),
         legend.box.margin = margin(rep(5, 4)))
 ```
 
-The total UMI count of each droplet (barcode) plotted against the rank of that droplet allows visualization of the distribution of sequencing depth across droplets. 
+The total UMI count of each droplet (barcode) plotted against the rank of that droplet allows visualization of the distribution of sequencing depth across droplets.
 The droplets that are expected to contain cells were identified with [`DropletUtils::emptyDropsCellRanger()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html), unless otherwise specified in the `Cell Statistics` table, which uses both the total UMI counts and expressed gene content (adapted from [Lun  _et al._ 2019](https://doi.org/10.1186/s13059-019-1662-y)).
 As the boundary between droplets passing and failing this filter is not solely dependent on total UMI count, some regions contain droplets in both categories.
 The color in this plot indicates the percentage of droplets in a region passing the filter.
 
-## Cell Read Metrics 
+## Cell Read Metrics
 
 ```{r, fig.alt="Total UMI x genes expressed"}
-filtered_celldata <- data.frame(colData(filtered_sce)) 
+filtered_celldata <- data.frame(colData(filtered_sce))
 
-ggplot(filtered_celldata, 
+ggplot(filtered_celldata,
        aes (x = sum,
-            y = detected, 
+            y = detected,
             color = subsets_mito_percent)) +
   geom_point(alpha = 0.3) +
-  scale_color_viridis_c(limits = c(0, 100)) + 
+  scale_color_viridis_c(limits = c(0, 100)) +
   scale_x_continuous(labels = scales::label_number(accuracy = 1)) +
   scale_y_continuous(labels = scales::label_number(accuracy = 1)) +
   labs(x = "Total UMI count",
        y = "Number of genes detected",
-       color = "Percent reads\nmitochondrial") + 
+       color = "Percent reads\nmitochondrial") +
   theme(legend.position = c(0, 1),
         legend.justification = c(0,1),
         legend.background = element_rect(color = "grey20", size = 0.25),
@@ -387,21 +390,21 @@ Cells with low UMI counts and high mitochondrial percentages may require further
 ## miQC Model Diagnostics
 
 ```{r, fig.alt="miQC model diagnostics plot", results='asis', warning=FALSE}
-if(skip_miQC){
+if (skip_miQC) {
   cat("miQC model not created, skipping miQC plot. Usually this is because mitochondrial gene data was not available.")
-}else{
+} else {
   # remove prob_compromised if it exists, as this will cause errors with plotModel
   filtered_sce$prob_compromised <- NULL
   miQC_model <- metadata(filtered_sce)$miQC_model
-  
-  if (is.null(miQC_model) || length(miQC_model@components) < 2){
+
+  if (is.null(miQC_model) || length(miQC_model@components) < 2) {
     # model didn't fit, just plot metrics
     miQC_plot <- miQC::plotMetrics(filtered_sce)
-  }else{
+  } else {
     miQC_plot <- miQC::plotModel(filtered_sce, model = miQC_model)
   }
-  
-  miQC_plot + 
+
+  miQC_plot +
     coord_cartesian(ylim = c(0,100)) +
     scale_x_continuous(labels = scales::label_number(accuracy = 1)) +
     labs(x = "Number of genes detected",
@@ -426,28 +429,27 @@ In such situations, the calculated probability of compromise may not be valid (s
 ## Removing low quality cells
 
 The below plot highlights cells that were removed prior to normalization and dimensionality reduction.
-Cells that should be removed are those that are identified to be low quality cells, such as cells with high probability of being compromised, calculated by `miQC`.
-The method of filtering is indicated above the plot as either `miQC` or `Minimum gene cutoff`. 
-If `miQC`, cells below the specified probability compromised cutoff and above the minimum number of unique genes identified are kept for downstream analyses. 
-If only a `Minimum gene cutoff` is used, then `miQC` is not used and only those cells that pass the minimum number of unique genes identified threshold are retained. 
-The dotted vertical line indicates the minimum gene cutoff used for filtering. 
+Cells that should be removed based on RNA counts are those that are identified to be low quality cells, such as cells with high probability of being compromised.
+The method of filtering is indicated above the plot as either `miQC` or `Minimum gene cutoff`.
+If `miQC`, cells below the specified probability compromised cutoff and above the minimum number of unique genes identified are kept for downstream analyses.
+If only a `Minimum gene cutoff` is used, then `miQC` is not used and only those cells that pass the minimum number of unique genes identified threshold are retained.
+The dotted vertical line indicates the minimum gene cutoff used for filtering.
+
 
 ```{r results='asis'}
-if(has_filtered & has_processed){
-  
+if (has_filtered & has_processed) {
+
   # grab cutoffs and filtering method from processed sce
   min_gene_cutoff <- processed_meta$min_gene_cutoff
+
   filter_method <- processed_meta$scpca_filter_method
-  
+
   # add column to coldata labeling cells to keep/remove based on filtering method
   filtered_coldata_df <- colData(filtered_sce) |>
     as.data.frame() |>
-    tibble::rownames_to_column("barcode") |>
-    dplyr::mutate(scpca_filter = ifelse(barcode %in% colnames(processed_sce), 
-                                       "Keep", 
-                                       "Remove")) 
-  
-  ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = scpca_filter)) + 
+    tibble::rownames_to_column("barcode")
+
+  ggplot(filtered_coldata_df, aes(x = detected, y = subsets_mito_percent, color = scpca_filter)) +
     geom_point(alpha = 0.5, size = 1) +
     geom_vline(xintercept = min_gene_cutoff, linetype = "dashed") +
     labs(x = "Number of genes detected",
@@ -462,15 +464,17 @@ if(has_filtered & has_processed){
 } else {
   glue::glue("
     <div class=\"alert alert-warning\">
-    
+
     No filtering of low quality cells was performed on this library.
-    
+
     </div>
   ")
 }
 ```
 
-The raw counts from all cells that remain after filtering low quality cells are then normalized prior to selection of highly variable genes and dimensionality reduction. 
+The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
+
+
 
 <!-- Next section include only if UMAP is present -->
 ```{r, child='umap_qc.rmd', eval = has_umap}
@@ -481,7 +485,7 @@ The raw counts from all cells that remain after filtering low quality cells are 
 ```{r, child='cite_qc.rmd', eval = has_adt}
 ```
 
-<!-- Next section only included if multiplex data is present --> 
+<!-- Next section only included if multiplex data is present -->
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
 
 ```

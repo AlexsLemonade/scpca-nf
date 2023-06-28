@@ -177,12 +177,13 @@ if (alt_exp %in% altExpNames(processed_sce)) {
   adt_sce <- altExp(processed_sce, alt_exp)
   adt_sce <- adt_sce[,adt_sce$discard == FALSE]
 
-  # Only perform normalization if size factors are all positive
-  # Use the `adt_sce` variable here, since that's what we'll be normalizing
+  # If any size factors are not positive, simply use log1p
   if ( any( adt_sce$sizeFactor <= 0 ) ) {
-    warning("Failed to normalize ADT counts.")
+    metadata(processed_sce)$adt_normalization <- "log-normalization"
+    logcounts(adt_sce) <- log1p(counts(adt_sce))
   } else {
-    # Apply normalization
+    # Apply normalization using size factors
+    metadata(processed_sce)$adt_normalization <- "median-based"
     adt_sce <- scuttle::logNormCounts(adt_sce)    
 
     # Add this logcounts matrix with NA values added for cells not included in normalization
