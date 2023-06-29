@@ -161,7 +161,6 @@ has_cellhash <- "cellhash" %in% alt_expts
 
 
 metadata_list <- list(
-  report_template = opt$report_template,
   library_id = opt$library_id,
   sample_id = opt$sample_id,
   technology = opt$technology,
@@ -220,6 +219,7 @@ if (multiplexed) {
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE, pretty = TRUE)
 
 scpcaTools::generate_qc_report(
+  report_template = opt$report_template,
   library_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
