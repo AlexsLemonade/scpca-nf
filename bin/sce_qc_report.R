@@ -161,7 +161,6 @@ has_cellhash <- "cellhash" %in% alt_expts
 
 
 metadata_list <- list(
-  report_template = opt$report_template,
   library_id = opt$library_id,
   sample_id = opt$sample_id,
   technology = opt$technology,
@@ -190,8 +189,18 @@ metadata_list <- list(
 ) |>
   purrr::map(\(x) {if(is.null(x)) NA else x}) # convert any NULLS to NA
 
+# add adt methods if citeseq
+if (has_citeseq) {
+  metadata_list <- append(
+    metadata_list,
+    list(adt_filtering_method = processed_sce_meta$adt_scpca_filter_method,
+         adt_normalization_method = processed_sce_meta$adt_normalization)
+  )
+}
+
+
 # estimate cell counts for multiplexed samples
-if(multiplexed){
+if (multiplexed) {
   demux_column <- paste0(opt$demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
     table() |>
@@ -214,6 +223,7 @@ scpcaTools::generate_qc_report(
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
   processed_sce = processed_sce,
+  report_template = opt$report_template,
   output = opt$qc_report_file
 )
 
