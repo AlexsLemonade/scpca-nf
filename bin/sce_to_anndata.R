@@ -26,7 +26,7 @@ option_list <- list(
     help = "Feature type. Must match the altExp name, if present."
   ),
   make_option(
-    opt_str = c("--output_feat_h5"),
+    opt_str = c("--output_feature_h5"),
     type = "character",
     help = "path to output hdf5 file to store feature counts as AnnData object. 
     Only used if the input SCE contains an altExp. Must end in .hdf5 or .h5"
@@ -67,7 +67,7 @@ if(!is.null(opt$feature_name)){
   }
   
   # check for output file 
-  if(!(stringr::str_ends(opt$output_feat_h5, ".hdf5|.h5"))){
+  if(!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))){
     stop("output feature file name must end in .hdf5 or .h5")
   }
   
@@ -77,7 +77,7 @@ if(!is.null(opt$feature_name)){
   # export altExp sce as anndata object
   scpcaTools::sce_to_anndata(
     alt_sce,
-    anndata_file = opt$output_feat_h5
+    anndata_file = opt$output_feature_h5
   )
   
 }

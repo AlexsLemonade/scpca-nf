@@ -12,7 +12,7 @@ process export_anndata{
       tuple val(meta), path(feature_hdf5_file), emit: feature_anndata, optional:true
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}.hdf5"
-      feature_hdf5_file = "${meta.library_id}_${file_type}_feature.hdf5"
+      feature_hdf5_file = "${meta.library_id}_${file_type}_{meta.feature_type}.hdf5"
       feature_present = meta.feature_type in ["adt", "cellhash"]
       """
       sce_to_anndata.R \
