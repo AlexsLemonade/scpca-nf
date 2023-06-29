@@ -161,7 +161,6 @@ has_cellhash <- "cellhash" %in% alt_expts
 
 
 metadata_list <- list(
-  report_template = opt$report_template,
   library_id = opt$library_id,
   sample_id = opt$sample_id,
   technology = opt$technology,
@@ -224,6 +223,7 @@ scpcaTools::generate_qc_report(
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
   processed_sce = processed_sce,
+  report_template = opt$report_template,
   output = opt$qc_report_file
 )
 
