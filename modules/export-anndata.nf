@@ -8,22 +8,21 @@ process export_anndata{
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path(rna_hdf5_file), emit: rna_anndata
-      tuple val(meta), path(feature_hdf5_file), emit: feature_anndata, optional:true
+      tuple val(meta), path("${meta.library_id}_${file_type}*.hdf5")
     script:
-      rna_hdf5_file = "${meta.library_id}_${file_type}.hdf5"
-      feature_hdf5_file = "${meta.library_id}_${file_type}_{meta.feature_type}.hdf5"
+      rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
+      feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
       feature_present = meta.feature_type in ["adt", "cellhash"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
-        --output_feat_h5 ${feature_hdf5_file} \
+        --output_feature_h5 ${feature_hdf5_file} \
         ${feature_present ? "--feature_name ${meta.feature_type}" : ''}
       """
     stub:
-      rna_hdf5_file = "${meta.library_id}_${file_type}.hdf5"
-      feature_hdf5_file = "${meta.library_id}_${file_type}_feature.hdf5"
+      rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
+      feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
       """
       touch ${rna_hdf5_file}
       touch ${feature_hdf5_file}
@@ -47,12 +46,14 @@ workflow sce_to_anndata{
 
       // combine all anndata files by library id
       // creates anndata channel with [library_id, unfiltered, filtered, processed]
-      anndata_ch = export_anndata.out.rna_anndata.mix(export_anndata.out.feature_anndata)
-        .map{ meta, hdf5_file -> tuple(
+      anndata_ch = export_anndata.out
+        .map{ meta, hdf5_files -> tuple(
           groupKey(meta.library_id, meta.feature_type in ["adt", "cellhash"]? 6 : 3),
           meta,
-          hdf5_file)
-        }
+          hdf5_files.collect()
+        )}
+        .groupTuple(by: 0, remainder: true)
+        //.groupTuple(by: 0, size: meta.feature_type in ["adt", "cellhash"]? 6 : 3, remainder: true)
         .map{ [it[1][0]] +  it[2] }
 
     emit: anndata_ch
