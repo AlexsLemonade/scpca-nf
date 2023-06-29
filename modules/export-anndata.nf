@@ -48,12 +48,11 @@ workflow sce_to_anndata{
       // creates anndata channel with [library_id, unfiltered, filtered, processed]
       anndata_ch = export_anndata.out
         .map{ meta, hdf5_files -> tuple(
-          groupKey(meta.library_id, meta.feature_type in ["adt", "cellhash"]? 6 : 3),
+          meta.library_id, 
           meta,
-          hdf5_files.collect()
+          hdf5_files
         )}
-        .groupTuple(by: 0, remainder: true)
-        //.groupTuple(by: 0, size: meta.feature_type in ["adt", "cellhash"]? 6 : 3, remainder: true)
+        .groupTuple(by: 0, size: 3, remainder: true)
         .map{ [it[1][0]] +  it[2] }
 
     emit: anndata_ch
