@@ -86,7 +86,7 @@ process filter_sce{
         filtered_rds = "${meta.library_id}_filtered.rds"
 
         // Three checks for whether we have ADT data:
-        // - technology should be adt
+        // - feature_type should be adt
         // - barcode file should exist
         // - barcode file should _not_ be the empty file NO_FILE.txt
         adt_present = meta.feature_type == 'adt' &
@@ -179,7 +179,6 @@ process post_process_sce{
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
           --output_sce_file ${processed_rds} \
-          --adt_name ${meta.feature_type} \
           --gene_cutoff ${params.gene_cutoff} \
           --n_hvg ${params.num_hvg} \
           --n_pcs ${params.num_pcs} \

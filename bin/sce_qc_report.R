@@ -156,7 +156,7 @@ if (!is.null(sce_meta$library_id)){
 
 # check for alt experiments (CITE-seq, etc)
 alt_expts <- altExpNames(unfiltered_sce)
-has_citeseq <- "CITEseq" %in% alt_expts
+has_citeseq <- "adt" %in% alt_expts
 has_cellhash <- "cellhash" %in% alt_expts
 
 
@@ -188,7 +188,7 @@ metadata_list <- list(
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
-  purrr::map(~if(is.null(.)) NA else . ) # convert any NULLS to NA
+  purrr::map(\(x) {if(is.null(x)) NA else x}) # convert any NULLS to NA
 
 # estimate cell counts for multiplexed samples
 if(multiplexed){
