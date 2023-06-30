@@ -8,19 +8,24 @@ process export_anndata{
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path(hdf5_file)
+      tuple val(meta), path("${meta.library_id}_${file_type}*.hdf5")
     script:
-      hdf5_file = "${meta.library_id}_${file_type}.hdf5"
-
+      rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
+      feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
+      feature_present = meta.feature_type in ["adt", "cellhash"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
-        --output_h5_file ${hdf5_file}
+        --output_rna_h5 ${rna_hdf5_file} \
+        --output_feature_h5 ${feature_hdf5_file} \
+        ${feature_present ? "--feature_name ${meta.feature_type}" : ''}
       """
     stub:
-      hdf5_file = "${meta.library_id}_${file_type}.hdf5"
+      rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
+      feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
       """
-      touch ${hdf5_file}
+      touch ${rna_hdf5_file}
+      touch ${feature_hdf5_file}
       """
 }
 
@@ -42,7 +47,11 @@ workflow sce_to_anndata{
       // combine all anndata files by library id
       // creates anndata channel with [library_id, unfiltered, filtered, processed]
       anndata_ch = export_anndata.out
-        .map{ [it[0]["library_id"], it[0], it[1]] }
+        .map{ meta, hdf5_files -> tuple(
+          meta.library_id, 
+          meta,
+          hdf5_files
+        )}
         .groupTuple(by: 0, size: 3, remainder: true)
         .map{ [it[1][0]] +  it[2] }
 
