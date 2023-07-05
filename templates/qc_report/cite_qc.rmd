@@ -97,16 +97,16 @@ if (has_processed) {
 if (has_processed) { 
   
   # DO NOT TAB TEXT IN, for formatting reasons
-  glue::glue("
+  glue::glue('
 The plot below displays an overall view of cell filtering based on both ADT and RNA counts. Cells are labeled as one of the following:\n\n
 
-- 'Keep': This cell is retained based on both RNA and ADT counts.\n
-- 'Filter (RNA only) ': This cell is filtered based on only RNA counts.\n
-- 'Filter (ADT only)': This cell is filtered based on only ADT counts.\n\n
-- 'Filter (RNA & ADT)': This cell is filtered based on both RNA and ADT counts.\n
+- "Keep": This cell is retained based on both RNA and ADT counts.\n
+- "Filter (RNA only)": This cell is filtered based on only RNA counts.\n
+- "Filter (ADT only)" This cell is filtered based on only ADT counts.\n\n
+- "Filter (RNA & ADT)": This cell is filtered based on both RNA and ADT counts.\n
 
 Each panel is labeled with the given category of cells as well as the total number of cells in that category.
-  ")  |> print()
+  ')  |> print()
   
   filter_levels <- c("Keep", "Filter (RNA & ADT)", "Filter (RNA only)", "Filter (ADT only)")
   filtered_coldata_df <- filtered_coldata_df |>
@@ -182,16 +182,21 @@ if (has_processed) {
 ```
 
 
-The plot below displays normalized expression of these four ADTs, with one ADT shown per panel.
 
 
-```{r fig.alt="Density plot showing normalized expression of highly variable ADTs", warning = FALSE}
+```{r fig.alt="Density plot showing normalized expression of highly variable ADTs", warning = FALSE, results='asis'}
 if (has_processed) {
+  
+  glue::glue(
+"The plot below displays normalized expression of these four ADTs, with one ADT shown per panel.\n\n"
+  ) |> print() 
 
+  
   # grab expression for top ADTs from counts
   var_adt_exp_df <- logcounts(altExp(processed_sce))[top_adts,] |>
-    t() |>
+    # as.matrix needs to come _first_
     as.matrix() |>
+    t() |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
     # combine all ADTs into a single column for  faceting 
@@ -208,11 +213,16 @@ if (has_processed) {
 } 
 ```
 
-The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT. 
 
 
-```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6}
+```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6, results='asis'}
 if (has_processed) {
+    
+  glue::glue(
+"The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT.\n\n"
+  ) |> print() 
+
+  
   # create data frame of UMAPs and expression 
    umap_df <- scuttle::makePerCellDF(processed_sce) |>
       tibble::rownames_to_column("barcode") |>
