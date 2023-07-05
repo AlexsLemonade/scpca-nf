@@ -39,7 +39,12 @@ knitr::kable(adt_information, align = 'r') |>
 ```{r}
 antibody_tags <- as.data.frame(rowData(adt_exp)) |>
   tibble::rownames_to_column("Antibody") |>
-  arrange(desc(mean)) |>
+  # ensure `target` is the first level of target_type
+  mutate(target_type = forcats::fct_relevel(target_type, "target")) |>
+  # group by target_type before arranging
+  group_by(target_type) |>
+  # use .by_group = TRUE to arrange by target type first, then by mean
+  arrange(desc(mean), .by_group = TRUE) |>
   select("Antibody",
          "Mean UMI count per cell" = mean,
          "Percent of cells detected" = detected,
@@ -67,7 +72,7 @@ if (has_processed) {
     "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method),
     "Number of cells that pass filtering threshold"  = format(filtered_cell_count),
     "Percent of cells that pass filtering threshold" =
-        paste0(round(filtered_cell_count/nrow(processed_sce) * 100, digits = 2), "%"), 
+        paste0(round( filtered_cell_count/ncol(processed_sce) * 100, digits = 2), "%"), 
     "Normalization method" = format(processed_meta$adt_normalization) 
     ) |>
     reformat_nulls() |>
