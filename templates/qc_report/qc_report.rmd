@@ -28,7 +28,6 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
-library(patchwork)
 
 # Set default ggplot theme
 theme_set(
@@ -36,6 +35,15 @@ theme_set(
   theme(plot.margin = margin(rep(20, 4)), 
         strip.background = element_rect(fill = 'transparent'))
 )
+
+# Helper function to change NULL -> "N/A" in a data frame
+reformat_nulls <- function(df) {
+  df |> mutate(
+    across(everything(),
+      .fns = \(x) ifelse(x == "NULL", "N/A", x)
+    )
+  )
+}
 ```
 
 ```{r sce_setup}
@@ -177,7 +185,7 @@ if (has_cellhash) {
 }
 
 sample_information <- sample_information |>
-  mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
+  reformat_nulls() |>
   t()
 
 # make table with sample information
@@ -205,7 +213,7 @@ processing_info <- tibble::tibble(
       transcript_type == "spliced" ~ "Spliced only",
       TRUE ~ transcript_type)
   ) |>
-  mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |>
+  reformat_nulls() |>
   t()
 
 
@@ -251,7 +259,7 @@ if (has_processed) {
 }
 
 basic_statistics <- basic_statistics |>
-  mutate(across(.fns = ~ifelse(.x == "NULL", "N/A", .x))) |> # reformat nulls
+  reformat_nulls() |> # reformat nulls
   t()
 
 # make table with basic statistics
@@ -338,7 +346,7 @@ ggplot(grouped_celldata, aes(x = med_rank, y = med_sum, color = pct_passed)) +
   geom_point(mapping = aes(x = rank, y = sum, color = filter_pct),
              data = top_celldata,
              alpha = 0.5) +
-  geom_line(size = 2, lineend = "round", linejoin= "round") +
+  geom_line(linewidth = 2, lineend = "round", linejoin= "round") +
   scale_x_log10(labels = scales::label_number(accuracy = 1)) +
   scale_y_log10(labels = scales::label_number(accuracy = 1)) +
   scale_color_gradient2(low = "grey70",
@@ -352,7 +360,7 @@ ggplot(grouped_celldata, aes(x = med_rank, y = med_sum, color = pct_passed)) +
   ) +
   theme(legend.position = c(0, 0),
         legend.justification = c(0,0),
-        legend.background = element_rect(color = "grey20", size = 0.25),
+        legend.background = element_rect(color = "grey20", linewidth = 0.25),
         legend.box.margin = margin(rep(5, 4)))
 ```
 
@@ -379,11 +387,11 @@ ggplot(filtered_celldata,
        color = "Percent reads\nmitochondrial") +
   theme(legend.position = c(0, 1),
         legend.justification = c(0,1),
-        legend.background = element_rect(color = "grey20", size = 0.25),
+        legend.background = element_rect(color = "grey20", linewidth = 0.25),
         legend.box.margin = margin(rep(5, 4)))
 ```
 
-The above plot of cell metrics includes only droplets which have passed the `emptyDrops()` filter.
+The above plot of cell metrics includes only droplets which have passed the `emptyDropsCellRanger()` filter.
 The plot will usually display a strong (but curved) relationship between the total UMI count and the number of genes detected.
 Cells with low UMI counts and high mitochondrial percentages may require further filtering.
 
@@ -411,7 +419,7 @@ if (skip_miQC) {
          y = "Percent reads mitochondrial") +
     theme(legend.position = c(1, 1),
           legend.justification = c(1,1),
-          legend.background = element_rect(color = "grey20", size = 0.25),
+          legend.background = element_rect(color = "grey20", linewidth = 0.25),
           legend.box.margin = margin(rep(5, 4)))
 }
 ```
@@ -459,7 +467,7 @@ if (has_filtered & has_processed) {
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = c(1, 1),
           legend.justification = c(1,1),
-          legend.background = element_rect(color = "grey20", size= 0.25),
+          legend.background = element_rect(color = "grey20", linewidth = 0.25),
           legend.title = element_text(hjust = 0.5))
 } else {
   glue::glue("
