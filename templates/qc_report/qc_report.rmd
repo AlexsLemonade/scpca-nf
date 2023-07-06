@@ -39,9 +39,11 @@ theme_set(
 
 # Helper function to change NULL -> "N/A" in a data frame
 reformat_nulls <- function(df) {
-  df |>
-    mutate(across(everything(), 
-                  .fns = ~ifelse(.x == "NULL", "N/A", .x))) 
+  df |> mutate(
+    across(everything(),
+      .fns = \(x) ifelse(x == "NULL", "N/A", x)
+    )
+  )
 }
 ```
 
