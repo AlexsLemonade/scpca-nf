@@ -218,9 +218,11 @@ if (has_processed) {
 ```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6, results='asis'}
 if (has_processed) {
     
-  # 2 \n\n here avoids text wrapping the plot in wide screens
+  # Extra blank line here keeps the plot in a separate paragraph
   glue::glue(
-  "The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT.\n\n"
+    "The plot below displays UMAP embeddings calculated from RNA expression, where each cell is colored by the expression level of the given ADT.
+    
+    "
   ) |> print() 
 
   
