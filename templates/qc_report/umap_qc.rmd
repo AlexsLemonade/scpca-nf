@@ -88,7 +88,7 @@ if (!is.null(processed_meta$highly_variable_genes)) {
     scale_y_continuous(labels = NULL, breaks = NULL) + 
     coord_fixed() + 
     theme(legend.position = "bottom", 
-          axis.title = element_text(size = 8, color = "black"),
+          axis.title = element_text(size = 9, color = "black"),
           strip.text = element_text(size = 8),
           legend.title = element_text(size = 9),
           legend.text = element_text(size = 8)) +

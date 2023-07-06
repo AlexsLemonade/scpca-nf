@@ -53,7 +53,7 @@ knitr::kable(hto_tags, digits = 2) |>
 
 ## Demultiplexing Sample Calls 
 
-Demultiplexing was performed using both [DropletUtils::hashedDrops](https://rdrr.io/github/MarioniLab/DropletUtils/man/hashedDrops.html) and [Seurat::HTOdemux](https://rdrr.io/github/satijalab/seurat/man/HTODemux.html) only on the _filtered_ cells, using default parameters for each.
+Demultiplexing was performed using both [`DropletUtils::hashedDrops()`](https://rdrr.io/github/MarioniLab/DropletUtils/man/hashedDrops.html) and [`Seurat::HTOdemux()`](https://rdrr.io/github/satijalab/seurat/man/HTODemux.html) only on the _filtered_ cells, using default parameters for each.
 
 For multiplex libraries where bulk RNA-seq data is available for the individual samples, we also performed demultiplexing analysis using genotype data following the methods described in [Weber _et al._ (2021)](https://doi.org/10.1093/gigascience/giab062). 
 The genetic demultiplexing results are reported under the `vireo` column in the below table.   
