@@ -103,7 +103,7 @@ if (has_processed) {
   
     - "Keep": This cell is retained based on both RNA and ADT counts.
     - "Filter (RNA only)": This cell is filtered based on only RNA counts.
-    - "Filter (ADT only)" This cell is filtered based on only ADT counts.
+    - "Filter (ADT only)": This cell is filtered based on only ADT counts.
     - "Filter (RNA & ADT)": This cell is filtered based on both RNA and ADT counts.
   
   ')  |> print()
