@@ -9,4 +9,5 @@ scpca-references/
 
 
 # ignore template htmls
-templates/qc_report/*html
+qc_report.html
+*_qc.html
