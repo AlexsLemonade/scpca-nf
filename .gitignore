@@ -6,3 +6,7 @@ work/
 
 # ignore scpca-references
 scpca-references/
+
+
+# ignore template htmls
+templates/qc_report/*html
