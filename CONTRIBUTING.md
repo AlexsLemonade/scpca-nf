@@ -23,8 +23,9 @@ When the changes in `development` merit a new release, a pull request will be fi
 ## Stub workflows
 
 All Nextflow processes should include a [`stub` block](https://www.nextflow.io/docs/latest/process.html#stub) with a minimal script that can be run quickly to produce files in the expected output locations.
-At this stage this is purely used to allow for testing of the main workflow logic, and does not need to test internal logic of the process.
+At this stage this is purely used to allow for testing of the main workflow logic rather than the internal logic of each process.
 
-The `stub-metadata.tsv` file is used to define input libaries that will be used for testing, so any additions to the overall workflow that will allow processing of a new library type should be added there, along with the appropriate input files (usually empty files with the expected names) for that library type in the `test/runs` directory.
-If a new reference type is needed, that should be defined in the `stub-refs.json` file.
+The [`test/stub-metadata.tsv`](test/stub-metadata.tsv) file is used to define input libraries that will be used for testing.
+Any additions to the overall workflow that will allow processing of a new library type should be added into `test/stub-metadata.tsv`, along with the appropriate input files (usually empty files with the expected names) for that library type in the `test/runs/` directory.
+If a new reference type is needed, that should be defined in the [`test/stub-refs.json`](test/stub-refs.json) file.
 
