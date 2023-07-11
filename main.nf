@@ -24,6 +24,11 @@ rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
+// report template path
+report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
+report_template_file = "qc_report.rmd"
+report_template_tuple = tuple(report_template_dir, report_template_file)
+
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
@@ -32,7 +37,11 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { sce_to_anndata } from './modules/export-anndata.nf'
+include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
+
+
 
 // parameter checks
 param_error = false
@@ -195,12 +204,17 @@ workflow {
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 
-  // **** Generate QC reports ****
+  // **** Post processing and generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files & run QC report
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
-  post_process_sce(all_sce_ch) \
-    | sce_qc_report
+  post_process_sce(all_sce_ch)
+
+  // generate QC reports
+  sce_qc_report(post_process_sce.out, report_template_tuple)
+
+  // convert RNA component of SCE object to anndata
+  sce_to_anndata(post_process_sce.out)
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)

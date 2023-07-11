@@ -25,7 +25,9 @@
 
  ## Overview
 
-Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accomodate up to 24 GB of RAM and 12 CPUs.
+Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
+Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
+While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
 After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
 
@@ -63,7 +65,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
-This command will pull the `scpca-nf` workflow directly from Github, using the `v0.5.1` version, and run it based on the settings in the configuration file that you have defined.
+This command will pull the `scpca-nf` workflow directly from Github, using the `v0.5.2` version, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
 Using the above command will run the workflow from the `main` branch of the workflow repository.
@@ -74,7 +76,7 @@ Released versions can be found on the [`scpca-nf` repo releases page](https://gi
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.5.1 \
+  -r v0.5.2 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -127,7 +129,7 @@ The following columns may be necessary for running other data modalities (CITE-s
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples)  |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples); for CITE-seq samples, this file can optionally indicate whether antibodies are targets or controls.  |
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
@@ -147,6 +149,14 @@ These parameters can be set at the command line using `--run_metafile <path to r
 
 Note that *workflow* parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
+There are also a number of optional parameters that can be set, either at the command line or in a configuration file, including:
+
+- `max_cpus`: the maximum number of CPU cores to use for a single process (default: 24)
+- `max_memory`: the maximum amount of memory to use for a single process (default: `96.GB`)
+
+Other customizable parameters can be found in the `nextflow.config` file in the repository.
+Note that all parameters can be overridden with a user config file or at the command line; `nextflow.config` itself should not need modification.
+
 ### Configuration files
 
 Workflow parameters can also be set in a [configuration file](https://www.nextflow.io/docs/latest/config.html#configuration-file) by setting the values `params.run_metafile` and `params.outdir` as follows.
@@ -157,7 +167,11 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 // my_config.config
 params.run_metafile = '<path to run_metafile>'
 params.outdir = '<path to output>'
+params.max_cpus = 24
+params.max_memory = 96.GB
 ```
+
+The `max_cpus` and `max_memory` parameters should reflect the maximum number of CPUs and memory available for a single process in your environment.
 
 This file is then used with the `-config` (or `-c`) argument at the command line:
 
@@ -266,7 +280,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.5.1`, then you will want to set `-r v0.5.1` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.5.2`, then you will want to set `-r v0.5.2` for `get_refs.py` as well to be sure you have the correct containers.
 Be default,  `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -313,6 +327,26 @@ For example:
 TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
+
+For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
+
+- `target`:  antibody is a true target
+- `neg_control`: a negative control antibody
+- `pos_control`: a spike-in positive control
+
+For example, the following shows that two antibodies are targets and one is a negative control:
+
+```
+TAG01	CATGTGAGCT	target
+TAG02	TGTGAGGGTG	neg_control
+TAG03	GTAGCTCCAA	target
+```
+
+If this third column is not provided, all antibodies will be treated as targets.
+Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibody/ies will be treated as target(s).
+
+If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
+Positive controls are currently unused, but if provided, this label will be included in final output files.
 
 
 ### Multiplexed (cellhash) libraries

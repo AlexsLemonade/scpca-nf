@@ -20,7 +20,12 @@ process fastp{
         --length_required 20 \
         --thread ${task.cpus}
         """
-
+    stub:
+        trimmed_reads = "${meta.library_id}_trimmed"
+        fastp_report = "${meta.library_id}_fastp.html"
+        """
+        mkdir -p ${trimmed_reads}
+        """
 }
 
 process salmon{
@@ -49,6 +54,13 @@ process salmon{
         --seqBias \
         --threads ${task.cpus}
 
+        echo '${meta_json}' > ${salmon_dir}/scpca-meta.json
+        """
+    stub:
+        salmon_dir = file(meta.salmon_results_dir).name
+        meta_json = Utils.makeJson(meta)
+        """
+        mkdir -p ${salmon_dir}
         echo '${meta_json}' > ${salmon_dir}/scpca-meta.json
         """
 
@@ -87,6 +99,14 @@ process merge_bulk_quants {
          --workflow_version "${workflow.revision}" \
          --workflow_commit "${workflow.commitId}"
         """
+    stub:
+        tximport_file = "${meta.project_id}_bulk_quant.tsv"
+        bulk_metadata_file = "${meta.project_id}_bulk_metadata.tsv"
+        """
+        touch ${tximport_file}
+        touch ${bulk_metadata_file}
+        """
+
 }
 
 workflow bulk_quant_rna {
@@ -140,7 +160,7 @@ workflow bulk_quant_rna {
                 file(it[1][0].t2g_bulk_path)]}
 
         // create tsv file and combined metadata for each project containing all libraries
-        merge_bulk_quants(grouped_salmon_ch, params.run_metafile)
+        merge_bulk_quants(grouped_salmon_ch, file(params.run_metafile))
 
     emit:
         bulk_counts = merge_bulk_quants.out.bulk_counts

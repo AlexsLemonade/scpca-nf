@@ -40,6 +40,13 @@ process alevin_rad{
 
     echo '${meta_json}' > ${rad_dir}/scpca-meta.json
     """
+  stub:
+    rad_dir = file(meta.rad_dir).name
+    meta_json = Utils.makeJson(meta)
+    """
+    mkdir -p ${rad_dir}
+    echo '${meta_json}' > ${rad_dir}/scpca-meta.json
+    """
 }
 
 // quantify rna from RAD input
@@ -83,6 +90,11 @@ process fry_quant_rna{
 
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
+  stub:
+    meta_json = Utils.makeJson(meta)
+    """
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    """
 }
 
 
@@ -98,7 +110,10 @@ workflow map_quant_rna {
            it}
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_rad: !params.repeat_mapping && file(it.rad_dir).exists()
+          has_rad: (!params.repeat_mapping
+                    && file(it.rad_dir).exists()
+                    && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                    )
           make_rad: true
        }
 

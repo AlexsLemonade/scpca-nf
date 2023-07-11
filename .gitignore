@@ -3,3 +3,11 @@
 
 # ignore work directory
 work/
+
+# ignore scpca-references
+scpca-references/
+
+
+# ignore template htmls
+qc_report.html
+*_qc.html

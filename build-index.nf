@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+include { build_celltype_ref } from './build-celltype-ref.nf'
+
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference{
   container params.SCPCATOOLS_CONTAINER

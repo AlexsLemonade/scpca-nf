@@ -20,6 +20,10 @@ process index_feature{
 
     awk '{print \$1"\\t"\$1;}' ${feature_file} > feature_index/t2g.tsv
     """
+  stub:
+    """
+    mkdir -p feature_index
+    """
 }
 
 // generates RAD file for alevin feature matrix using alevin
@@ -65,6 +69,14 @@ process alevin_feature{
 
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
+  stub:
+    run_dir = "${meta.run_id}-features"
+    meta_json = Utils.makeJson(meta)
+    """
+    mkdir -p ${run_dir}
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    """
+
 }
 
 // quantify features from rad input
@@ -105,6 +117,11 @@ process fry_quant_feature{
 
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
+  stub:
+    meta_json = Utils.makeJson(meta)
+    """
+    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    """
 }
 
 
@@ -126,7 +143,10 @@ workflow map_quant_feature{
            it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
            it}
       .branch{
-          has_rad: !params.repeat_mapping && file(it.feature_rad_dir).exists()
+          has_rad: (!params.repeat_mapping
+                    && file(it.feature_rad_dir).exists()
+                    && Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+                    )
           make_rad: true
        }
 

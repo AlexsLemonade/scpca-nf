@@ -9,6 +9,12 @@ suppressPackageStartupMessages(library(SingleCellExperiment))
 # set up arguments
 option_list <- list(
   make_option(
+    opt_str = c("--report_template"),
+    type = "character",
+    default = NULL,
+    help = "path to rmd template file for report"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     type = "character",
     help = "path to rds file with unfiltered sce object"
@@ -93,7 +99,12 @@ opt <- parse_args(OptionParser(option_list = option_list))
 if(is.null(opt$library_id)){
   stop("A `library_id` is required.")
 }
-# check that input files exist
+
+# check that template file, if given, exists
+if(!is.null(opt$report_template) && !file.exists(opt$report_template)){
+  stop("Specified `report_template` could not be found.")
+}
+
 if(is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)){
   stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
 }
@@ -145,7 +156,7 @@ if (!is.null(sce_meta$library_id)){
 
 # check for alt experiments (CITE-seq, etc)
 alt_expts <- altExpNames(unfiltered_sce)
-has_citeseq <- "CITEseq" %in% alt_expts
+has_citeseq <- "adt" %in% alt_expts
 has_cellhash <- "cellhash" %in% alt_expts
 
 
@@ -176,10 +187,20 @@ metadata_list <- list(
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
-  purrr::map(~if(is.null(.)) NA else . ) # convert any NULLS to NA
+  purrr::map(\(x) {if(is.null(x)) NA else x}) # convert any NULLS to NA
+
+# add adt methods if citeseq
+if (has_citeseq) {
+  metadata_list <- append(
+    metadata_list,
+    list(adt_filtering_method = processed_sce_meta$adt_scpca_filter_method,
+         adt_normalization_method = processed_sce_meta$adt_normalization)
+  )
+}
+
 
 # estimate cell counts for multiplexed samples
-if(multiplexed){
+if (multiplexed) {
   demux_column <- paste0(opt$demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
     table() |>
@@ -202,6 +223,7 @@ scpcaTools::generate_qc_report(
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
   processed_sce = processed_sce,
+  report_template = opt$report_template,
   output = opt$qc_report_file
 )
 
