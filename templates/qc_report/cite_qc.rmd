@@ -56,9 +56,6 @@ knitr::kable(antibody_tags, digits = 2) |>
 
 ## ADT Post-processing Statistics
 
-Note that low-quality cells as identified by ADT counts are not actually filtered from the SCE object.
-Instead, cells that passed the filter threshold are labeled as `"Keep"` within the SCE object, and conversely cells that failed to pass the filtered are labeled as `"Remove"`.
-
 ```{r}
 
 if (has_processed) {
@@ -105,6 +102,10 @@ if (has_processed) {
 if (has_processed & !is.null(processed_sce$adt_scpca_filter)) { 
   
   glue::glue('
+    
+    Note that low-quality cells as identified by ADT counts are not actually filtered from the SCE object.
+    Instead, cells that passed the filter threshold are labeled as `"Keep"` within the SCE object, and conversely cells that failed to pass the filtered are labeled as `"Remove"`.
+
     The plot below displays an overall view of cell filtering based on both ADT and RNA counts. Cells are labeled as one of the following:
   
     - "Keep": This cell is retained based on both RNA and ADT counts.
@@ -150,6 +151,14 @@ if (has_processed & !is.null(processed_sce$adt_scpca_filter)) {
     facet_wrap(vars(filter_summary)) +
     theme(plot.title = element_text(hjust = 0.5), 
           legend.position = "none")
+} else {
+  glue::glue("
+    <div class=\"alert alert-warning\">
+
+    No ADT filtering was performed on this library.
+
+    </div>
+  ")
 }
 ```
 
