@@ -62,16 +62,22 @@ Instead, cells that passed the filter threshold are labeled as `"Keep"` within t
 ```{r}
 
 if (has_processed) {
-  filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
   
   basic_statistics <- tibble::tibble(
-    # Note that the adt_scpca_filter_method column is only present in the processed_sce object
-    "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method),
-    "Number of cells that pass filtering threshold"  = format(filtered_cell_count),
-    "Percent of cells that pass filtering threshold" =
-        paste0(round( filtered_cell_count/ncol(processed_sce) * 100, digits = 2), "%"), 
-    "Normalization method" = format(processed_meta$adt_normalization) 
-    ) |>
+      "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method)
+    )
+  
+  if (!is.null(processed_sce$adt_scpca_filter)) {
+    filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
+  
+    basic_statistics <- basic_statistics |>
+      # Note that the adt_scpca_filter_method column is only present in the processed_sce object
+      mutate("Number of cells that pass filtering threshold"  = format(filtered_cell_count),
+             "Percent of cells that pass filtering threshold" = paste0(round( filtered_cell_count/ncol(processed_sce) * 100, digits = 2), "%")
+      )
+  }
+  basic_statistics <- basic_statistics |>
+    mutate("Normalization method" = format(processed_meta$adt_normalization)) |>
     reformat_nulls() |>
     t()
   
@@ -96,7 +102,7 @@ if (has_processed) {
 
 
 ```{r fig.alt="Cell filtering based on both ADT and RNA counts", results='asis'}
-if (has_processed) { 
+if (has_processed & !is.null(processed_sce$adt_scpca_filter)) { 
   
   glue::glue('
     The plot below displays an overall view of cell filtering based on both ADT and RNA counts. Cells are labeled as one of the following:

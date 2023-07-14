@@ -96,20 +96,43 @@ metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 # create adt_scpca_filter column, if CITEseq ----------
 alt_exp <- opt$adt_name
 if (alt_exp %in% altExpNames(sce)) {
-  sce$adt_scpca_filter <-  ifelse(
-    altExp(sce, alt_exp)$discard,
-    "Remove",
-    "Keep"
-  )
   
-  # assign `adt_scpca_filter_method` metadata based on colData contents
-  if ("sum.controls" %in% names(colData(altExp(sce, alt_exp)))) {
-    metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts with isotype controls"
-  } else if ("ambient.scale" %in% names(colData(altExp(sce, alt_exp)))) {
-    metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts without isotype controls"
+  # check for NAs in filtering columns
+  use_discard <- sum(is.na(altExp(sce, alt_exp)$discard)) == 0
+  use_zero.ambient <- sum(is.na(altExp(sce, alt_exp)$zero.ambient)) == 0
+  
+  # Fail right away if both are FALSE
+  if (!use_discard & !use_zero.ambient) {
+    warning("Failed to filter ADT data.")
+    sce$adt_scpca_filter <- NULL
+    metadata(sce)$adt_scpca_filter_method <- "No filter"
   } else {
-    stop("Error in ADT filtering.")
+    # Set up filtering based on either discard or zero.ambient
+    if (use_discard) {
+      sce$adt_scpca_filter <-  ifelse(
+        altExp(sce, alt_exp)$discard,
+        "Remove",
+        "Keep"
+      )
+    } else if (use_zero.ambient) {
+      # use _opposite_ logic from `discard` column
+      sce$adt_scpca_filter <-  ifelse(
+        altExp(sce, alt_exp)$zero.ambient,
+        "Keep",
+        "Remove"
+      )
+    }
+    # Now that filtering has actually been applied, assign 
+    #  `adt_scpca_filter_method` metadata based on colData contents
+    if ("sum.controls" %in% names(colData(altExp(sce, alt_exp)))) {
+      metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts with isotype controls"
+    } else if ("ambient.scale" %in% names(colData(altExp(sce, alt_exp)))) {
+      metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts without isotype controls"
+    } else {
+      stop("Error in ADT filtering.")
+    }
   }
+
 }
 
 # Perform filtering -----------------
@@ -173,38 +196,40 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     altExp(processed_sce, alt_exp)$sizeFactor <- 0
   }
   
-  # Perform filtering specifically to allow for normalization
   adt_sce <- altExp(processed_sce, alt_exp)
-  adt_sce <- adt_sce[,adt_sce$discard == FALSE]
-
-  # If any size factors are not positive, simply use log1p
-  if ( any( adt_sce$sizeFactor <= 0 ) ) {
+  # Perform filtering specifically to allow for normalization
+  if (!is.null(processed_sce$adt_scpca_filter)) {
+    adt_sce <- adt_sce[,processed_sce$adt_scpca_filter == "Keep"]
+  }
+  
+  # If any size factors are not positive or filtering is null, simply use log1p
+  if ( any( adt_sce$sizeFactor <= 0 )  | is.null(processed_sce$adt_scpca_filter)) {
     metadata(processed_sce)$adt_normalization <- "log-normalization"
     logcounts(adt_sce) <- log1p(counts(adt_sce))
   } else {
     # Apply normalization using size factors
     metadata(processed_sce)$adt_normalization <- "median-based"
     adt_sce <- scuttle::logNormCounts(adt_sce)    
-
-    # Add this logcounts matrix with NA values added for cells not included in normalization
-    
-    # first, get the counts matrix and make it NA
-    result_matrix <- counts(altExp(processed_sce, alt_exp))
-    result_matrix[,] <- NA
-    
-    # now get the computed logcounts & fill them in
-    result_matrix[, colnames(adt_sce)] <- logcounts(adt_sce)
-    
-    # Check correct number of NAs:
-    observed_na_count <- sum(is.na(result_matrix))
-    expected_na_count <- nrow(adt_sce) * (ncol(altExp(processed_sce, alt_exp)) - ncol(adt_sce))
-    if (observed_na_count < expected_na_count) {
-      stop("Incorrect number of NAs recovered during ADT normalization.")
-    }
-
-    # Add result_matrix back into correct SCE as logcounts assay
-    logcounts(altExp(processed_sce, alt_exp)) <- result_matrix
   }
+  # Now that we have logcounts, add back to `processed_sce` but
+  #   with NA values for cells not included in normalization
+  
+  # first, get the counts matrix and make it NA
+  result_matrix <- counts(altExp(processed_sce, alt_exp))
+  result_matrix[,] <- NA
+  
+  # now get the computed logcounts & fill them in
+  result_matrix[, colnames(adt_sce)] <- logcounts(adt_sce)
+  
+  # Check correct number of NAs:
+  observed_na_count <- sum(is.na(result_matrix))
+  expected_na_count <- nrow(adt_sce) * (ncol(altExp(processed_sce, alt_exp)) - ncol(adt_sce))
+  if (observed_na_count < expected_na_count) {
+    stop("Incorrect number of NAs recovered during ADT normalization.")
+  }
+
+  # Add result_matrix back into correct SCE as logcounts assay
+  logcounts(altExp(processed_sce, alt_exp)) <- result_matrix
 }
 
 
