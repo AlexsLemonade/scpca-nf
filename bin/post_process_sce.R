@@ -104,7 +104,7 @@ if (alt_exp %in% altExpNames(sce)) {
   # Fail right away if both are FALSE
   if (!use_discard & !use_zero.ambient) {
     warning("Failed to filter ADT data.")
-    sce$adt_scpca_filter <- NULL
+    sce$adt_scpca_filter <- "Keep"
     metadata(sce)$adt_scpca_filter_method <- "No filter"
   } else {
     # Set up filtering based on either discard or zero.ambient
@@ -184,6 +184,7 @@ processed_sce <- scuttle::logNormCounts(processed_sce)
 # Try to normalize ADT counts, if present
 if (alt_exp %in% altExpNames(processed_sce)) {
   
+  
   # need `all()` since,if present, this is an array
   if( !all(is.null(metadata(altExp(processed_sce, alt_exp))$ambient_profile))){
     # Calculate median size factors from the ambient profile
@@ -202,8 +203,8 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     adt_sce <- adt_sce[,processed_sce$adt_scpca_filter == "Keep"]
   }
   
-  # If any size factors are not positive or filtering is null, simply use log1p
-  if ( any( adt_sce$sizeFactor <= 0 )  | is.null(processed_sce$adt_scpca_filter)) {
+  # If any size factors are not positive or there was no filtering, simply use log1p
+  if ( any( adt_sce$sizeFactor <= 0 )  | metadata(processed_sce)$adt_scpca_filter_method == "No filter") {
     metadata(processed_sce)$adt_normalization <- "log-normalization"
     logcounts(adt_sce) <- log1p(counts(adt_sce))
   } else {

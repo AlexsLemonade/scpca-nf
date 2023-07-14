@@ -64,7 +64,7 @@ if (has_processed) {
       "Method used to identify cells to filter" = format(processed_meta$adt_scpca_filter_method)
     )
   
-  if (!is.null(processed_sce$adt_scpca_filter)) {
+  if (!(processed_meta$adt_scpca_filter_method == "No filter")) {
     filtered_cell_count <- sum(processed_sce$adt_scpca_filter == "Keep")
   
     basic_statistics <- basic_statistics |>
@@ -99,7 +99,7 @@ if (has_processed) {
 
 
 ```{r fig.alt="Cell filtering based on both ADT and RNA counts", results='asis'}
-if (has_processed & !is.null(processed_sce$adt_scpca_filter)) { 
+if (has_processed & !(processed_meta$adt_scpca_filter_method == "No filter")) { 
   
   glue::glue('
     
