@@ -13,11 +13,13 @@ option_list <- list(
   make_option(
     opt_str = c("-i", "--filtered_sce_file"),
     type = "character",
+    default = "SCPCL000706_filtered.rds",
     help = "path to rds file with input sce object to be processed"
   ),
   make_option(
     opt_str = c("-o", "--output_sce_file"),
     type = "character",
+    default ="SCPCL000706_final.rds",
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
   make_option(
@@ -97,6 +99,21 @@ metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 alt_exp <- opt$adt_name
 if (alt_exp %in% altExpNames(sce)) {
   
+  ########################### STRATEGY 1 ###############################
+  ### Build discard vector from one cell at a time ##
+  # Start with discard:
+  #discard_vector <- altExp(sce, alt_exp)$discard
+  # for this dataset it looks like these are actually all TRUE or NA
+  # Replace NAs with the _opposite_ of zero.ambient
+  #na_indices <- which(is.na(discard_vector))
+  #discard_vector[na_indices] <- !altExp(sce, alt_exp)$zero.ambient[na_indices]
+  # Replace TRUE/FALSE with strings
+  #discard_vector <- dplyr::case_when(
+  #  discard_vector ~ "Remove",
+  #  !discard_vector ~ "Keep",
+  #  TRUE ~ NA_character_)
+  ###################### STRATEGY 2 ######################################
+  
   # check for NAs in filtering columns
   use_discard <- sum(is.na(altExp(sce, alt_exp)$discard)) == 0
   use_zero.ambient <- sum(is.na(altExp(sce, alt_exp)$zero.ambient)) == 0
@@ -132,6 +149,11 @@ if (alt_exp %in% altExpNames(sce)) {
       stop("Error in ADT filtering.")
     }
   }
+  # Ensure there are no NAs in `adt_scpca_filter`
+  if (sum(is.na(sce$adt_scpca_filter)) != 0) {
+    stop("Bad filtering - there are still NAs.")
+  }
+  ########################## END OF STRATEGY 2 #################################
 
 }
 
