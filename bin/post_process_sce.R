@@ -126,7 +126,7 @@ if (alt_exp %in% altExpNames(sce)) {
   }
 
   # make extra sure there are no NAs in `adt_scpca_filter`
-  if (sum(is.na(sce$adt_scpca_filter)) != 0) {
+  if (any(is.na(sce$adt_scpca_filter))) {
     stop("Error in ADT filtering.")
   }
 }
