@@ -19,13 +19,19 @@ option_list <- list(
     opt_str = c("--ref_file"),
     type = "character",
     help = "path to rds file with reference dataset to use for cell type annotation.
-      These reference datasets must contain annotations labeled with
-      `label.main`, `label.fine`, and `label.ont`."
+      These reference datasets must contain annotations labeled with the given 
+      `label_name` (default 'label.ont')."
   ),
   make_option(
     opt_str = c("--output_file"),
     type = "character",
     help = "path to output rds file to store trained model for reference dataset."
+  ),
+  make_option(
+    opt_str = c("--label_name"),
+    type = "character",
+    default = "label.ont",
+    help = "name of cell type label to use for training the reference dataset."
   ),
   make_option(
     opt_str = c("--fry_tx2gene"),
@@ -72,9 +78,13 @@ if(opt$threads > 1){
 # read in model
 ref_data <- readr::read_rds(opt$ref_file)
 
-# check that ref data contains correct labels
-if(!all(c("label.main", "label.fine", "label.ont") %in% colnames(colData(ref_data)))){
-  stop("Reference dataset must contain `label.main`, `label.fine`, and `label.ont` in `colData`.")
+# check that ref data contains correct labels, and set up label column for later
+label_col <- opt$label_name
+names(label_col) <- label_col
+if(!label_col %in% colnames(colData(ref_data))){
+  stop(
+    glue::glue("Reference dataset must contain `{label_col}` in `colData`.")
+  )
 }
 
 # read in tx2gene
@@ -91,19 +101,13 @@ if (length(gene_ids) == 0){
 
 # Train models -----------------------------------------------------------------
 
-label_cols <- c("label.main", "label.fine", "label.ont")
-names(label_cols) <- label_cols
-
-models <- label_cols |>
- purrr::map(\(label_col) {
-   SingleR::trainSingleR(
-     ref_data,
-     labels = colData(ref_data)[, label_col],
-     genes = "de",
-     # only use genes found in index
-     restrict = gene_ids,
-     BPPARAM = bp_param
-   )})
-
+singler_model <- SingleR::trainSingleR(
+  ref_data,
+  labels = colData(ref_data)[, label_col],
+  genes = "de",
+  # only use genes found in index
+  restrict = gene_ids,
+  BPPARAM = bp_param
+)
 # export models
-readr::write_rds(models, opt$output_file)
+readr::write_rds(singler_model, opt$output_file)

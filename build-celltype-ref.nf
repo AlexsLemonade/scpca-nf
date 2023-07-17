@@ -2,6 +2,7 @@
 nextflow.enable.dsl=2
 
 params.t2g_3col_path = "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv"
+params.
 
 process train_singler_models {
   container params.SCPCATOOLS_CONTAINER
@@ -20,6 +21,7 @@ process train_singler_models {
       --ref_file ${celltype_ref} \
       --output_file ${celltype_model} \
       --fry_tx2gene ${tx2gene} \
+      --label_name ${params.label_name} \
       --seed ${params.seed} \
       --threads ${task.cpus}
     """
