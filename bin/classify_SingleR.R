@@ -23,15 +23,7 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
-    help = "path to file containing model generated for use with SingleR containing labels
-      for the given `label_name`."
-  ),
-  # TODO: do we even need this? We could check that the label is correct, but maybe unnecessary since only 1 is expected anyways
-  make_option(
-    opt_str = c("--label_name"),
-    type = "character",
-    default = "label.ont",
-    help = "name of cell type label to use for annotation in the reference dataset."
+    help = "path to file containing a single model generated for SingleR annotation"
   ),
   make_option(
     opt_str = c("--seed"),
