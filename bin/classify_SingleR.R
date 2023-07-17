@@ -21,11 +21,17 @@ option_list <- list(
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
   make_option(
-    opt_str = c("--singler_models"),
+    opt_str = c("--singler_model_file"),
     type = "character",
-    help = "list of models generated for use with SingleR. Each input file contains 
-      a list of models generated from a single reference, one each for each label type:
-      `label.main`, `label.fine`, and `label.ont`."
+    help = "path to file containing model generated for use with SingleR containing labels
+      for the given `label_name`."
+  ),
+  # TODO: do we even need this? We could check that the label is correct, but maybe unnecessary since only 1 is expected anyways
+  make_option(
+    opt_str = c("--label_name"),
+    type = "character",
+    default = "label.ont",
+    help = "name of cell type label to use for annotation in the reference dataset."
   ),
   make_option(
     opt_str = c("--seed"),
@@ -53,13 +59,9 @@ if(!file.exists(opt$input_sce_file)){
 }
 
 # check that references all exist
-model_files <- unlist(stringr::str_split(opt$singler_models, ","))
-if(!all(file.exists(model_files))){
-  missing_files <- model_files[which(!file.exists(model_files))]
-  glue::glue("
-             Missing model file(s): {missing_files}
-             ")
-  stop("Please make sure that all provided SingleR models exist.")
+singler_model_file <- opt$singler_model_file
+if(!file.exists(singler_model_file)) {
+  stop(glue::glue("Provided model file {singler_model_file} is missing."))
 }
 
 # set up multiprocessing params
@@ -72,44 +74,23 @@ if(opt$threads > 1){
 # read in input rds file
 sce <- readr::read_rds(opt$input_sce_file)
 
-# read in references as a list of lists
-# each file contains a named list of models generated using the same reference dataset
-# but unique labels in the reference dataset
-model_names <- stringr::str_remove(basename(model_files), "_model.rds")
-names(model_files) <- model_names
-model_list <- purrr::map(model_files, readr::read_rds) |>
-  # ensure we have label type before reference name
-  # example: label.main_HumanPrimaryCellAtlasData
-  # where `label.main` is the name of the model stored in the file and
-  # `HumanPrimaryCellAtlasData` is the name of the reference used for each file containing a list of models
-  purrr::imap(\(model_list, ref_name){
-                names(model_list) <- glue::glue("{names(model_list)}_{ref_name}")
-                model_list
-              }) |>
-  purrr::flatten() 
+# read in model
+singler_model <- readr::read_rds(singler_model_file)
 
-# SingleR classify -------------------------------------------------------------
+# SingleR classify and annotate SCE-------------------------------------------------------------
 
-# create a partial function for mapping easily
-classify_sce <- purrr::partial(SingleR::classifySingleR, 
-                               test = sce, 
-                               fine.tune=TRUE, 
-                               BPPARAM = bp_param)
-# run singleR for all provided models
-all_singler_results <- model_list |>
-    purrr::map(classify_sce)
+singler_results <- SingleR::classifySingleR(
+  ref = singler_model,
+  test = sce,
+  fine.tune = TRUE,
+  BPPARAM = bp_param
+)
 
-# Annotate sce -----------------------------------------------------------------
+# add annotations to SCE colData, simply
+sce$singler_results$pruned.labels
 
-# create a dataframe with a single column of annotations for each model used
-all_annotations_df <- all_singler_results |>
-  purrr::map_dfc(\(result) result$pruned.labels ) |>
-  DataFrame()
-
-colData(sce) <- cbind(colData(sce), all_annotations_df)
-
-# store results in metadata
-metadata(sce)$singler_results <- all_singler_results
+# store full SingleR results in metadata
+metadata(sce)$singler_results <- singler_results
 
 # export sce with annotations added
 readr::write_rds(sce,
