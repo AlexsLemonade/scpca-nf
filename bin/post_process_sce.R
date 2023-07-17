@@ -102,8 +102,8 @@ if (alt_exp %in% altExpNames(sce)) {
   sce$adt_scpca_filter[which(altExp(sce, alt_exp)$discard)] <- "Remove"
 
   # Warnings for different types of failure:
-  fail_all_removed <- sum(sce$adt_scpca_filter == "Remove") == length(sce$adt_scpca_filter)
-  fail_all_na <- sum(is.na(altExp(sce, alt_exp)$discard)) == length(sce$adt_scpca_filter)
+  fail_all_removed <- all(sce$adt_scpca_filter == "Remove")
+  fail_all_na <- all(is.na(altExp(sce, alt_exp)$discard)) 
   
   # handle failures - warnings and assign method as "No filter"
   if (fail_all_removed | fail_all_na) {
