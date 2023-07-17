@@ -13,13 +13,11 @@ option_list <- list(
   make_option(
     opt_str = c("-i", "--filtered_sce_file"),
     type = "character",
-    default = "SCPCL000706_filtered.rds",
     help = "path to rds file with input sce object to be processed"
   ),
   make_option(
     opt_str = c("-o", "--output_sce_file"),
     type = "character",
-    default ="SCPCL000706_final.rds",
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
   make_option(
@@ -99,48 +97,18 @@ metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 alt_exp <- opt$adt_name
 if (alt_exp %in% altExpNames(sce)) {
   
-  ########################### STRATEGY 1 ###############################
-  ### Build discard vector from one cell at a time ##
-  # Start with discard:
-  #discard_vector <- altExp(sce, alt_exp)$discard
-  # for this dataset it looks like these are actually all TRUE or NA
-  # Replace NAs with the _opposite_ of zero.ambient
-  #na_indices <- which(is.na(discard_vector))
-  #discard_vector[na_indices] <- !altExp(sce, alt_exp)$zero.ambient[na_indices]
-  # Replace TRUE/FALSE with strings
-  #discard_vector <- dplyr::case_when(
-  #  discard_vector ~ "Remove",
-  #  !discard_vector ~ "Keep",
-  #  TRUE ~ NA_character_)
-  ###################### STRATEGY 2 ######################################
-  
-  # check for NAs in filtering columns
-  use_discard <- sum(is.na(altExp(sce, alt_exp)$discard)) == 0
-  use_zero.ambient <- sum(is.na(altExp(sce, alt_exp)$zero.ambient)) == 0
-  
-  # Fail right away if both are FALSE
-  if (!use_discard & !use_zero.ambient) {
-    warning("Failed to filter ADT data.")
+  # set up filter with all Keep, and then override to Remove where necessary
+  sce$adt_scpca_filter <- "Keep"
+  sce$adt_scpca_filter[which(altExp(sce, alt_exp)$discard)] <- "Remove"
+
+  # if _all cells_ are slated for removal, then let's not filter anything since
+  # Filtering fails if _all_ cells are marked for removal
+  if (sum(sce$adt_scpca_filter == "Remove") == length(sce$adt_scpca_filter)) {
+    warning("Filtering on ADTs attempted to remove all cells. No cells will be removed.")
     sce$adt_scpca_filter <- "Keep"
-    metadata(sce)$adt_scpca_filter_method <- "No filter"
+    metadata(sce)$adt_scpca_filter_method <- "No filter"   
   } else {
-    # Set up filtering based on either discard or zero.ambient
-    if (use_discard) {
-      sce$adt_scpca_filter <-  ifelse(
-        altExp(sce, alt_exp)$discard,
-        "Remove",
-        "Keep"
-      )
-    } else if (use_zero.ambient) {
-      # use _opposite_ logic from `discard` column
-      sce$adt_scpca_filter <-  ifelse(
-        altExp(sce, alt_exp)$zero.ambient,
-        "Keep",
-        "Remove"
-      )
-    }
-    # Now that filtering has actually been applied, assign 
-    #  `adt_scpca_filter_method` metadata based on colData contents
+    # Assign `adt_scpca_filter_method` metadata based on colData contents
     if ("sum.controls" %in% names(colData(altExp(sce, alt_exp)))) {
       metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts with isotype controls"
     } else if ("ambient.scale" %in% names(colData(altExp(sce, alt_exp)))) {
@@ -148,13 +116,13 @@ if (alt_exp %in% altExpNames(sce)) {
     } else {
       stop("Error in ADT filtering.")
     }
+    
   }
-  # Ensure there are no NAs in `adt_scpca_filter`
-  if (sum(is.na(sce$adt_scpca_filter)) != 0) {
-    stop("Bad filtering - there are still NAs.")
-  }
-  ########################## END OF STRATEGY 2 #################################
 
+  # make extra sure there are no NAs in `adt_scpca_filter`
+  if (sum(is.na(sce$adt_scpca_filter)) != 0) {
+    stop("Error in ADT filtering.")
+  }
 }
 
 # Perform filtering -----------------
