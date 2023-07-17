@@ -101,14 +101,21 @@ if (alt_exp %in% altExpNames(sce)) {
   sce$adt_scpca_filter <- "Keep"
   sce$adt_scpca_filter[which(altExp(sce, alt_exp)$discard)] <- "Remove"
 
-  # if _all cells_ are slated for removal, then let's not filter anything since
-  # Filtering fails if _all_ cells are marked for removal
-  if (sum(sce$adt_scpca_filter == "Remove") == length(sce$adt_scpca_filter)) {
-    warning("Filtering on ADTs attempted to remove all cells. No cells will be removed.")
-    sce$adt_scpca_filter <- "Keep"
+  # Warnings for different types of failure:
+  fail_all_removed <- sum(sce$adt_scpca_filter == "Remove") == length(sce$adt_scpca_filter)
+  fail_all_na <- sum(is.na(altExp(sce, alt_exp)$discard)) == length(sce$adt_scpca_filter)
+  
+  # handle failures - warnings and assign method as "No filter"
+  if (fail_all_removed | fail_all_na) {
     metadata(sce)$adt_scpca_filter_method <- "No filter"   
+    if (fail_all_removed) {
+      sce$adt_scpca_filter <- "Keep"
+      warning("Filtering on ADTs attempted to remove all cells. No cells will be removed.")
+    } else {
+      warning("ADT filtering failed. No cells will be removed.")
+    }
   } else {
-    # Assign `adt_scpca_filter_method` metadata based on colData contents
+    # Handle successes - assign `adt_scpca_filter_method` metadata based on colData contents
     if ("sum.controls" %in% names(colData(altExp(sce, alt_exp)))) {
       metadata(sce)$adt_scpca_filter_method <- "cleanTagCounts with isotype controls"
     } else if ("ambient.scale" %in% names(colData(altExp(sce, alt_exp)))) {
@@ -116,7 +123,6 @@ if (alt_exp %in% altExpNames(sce)) {
     } else {
       stop("Error in ADT filtering.")
     }
-    
   }
 
   # make extra sure there are no NAs in `adt_scpca_filter`
