@@ -80,14 +80,14 @@ singler_model <- readr::read_rds(singler_model_file)
 # SingleR classify and annotate SCE-------------------------------------------------------------
 
 singler_results <- SingleR::classifySingleR(
-  ref = singler_model,
+  trained = singler_model,
   test = sce,
   fine.tune = TRUE,
   BPPARAM = bp_param
 )
 
 # add annotations to SCE colData, simply
-sce$singler_results$pruned.labels
+sce$pruned.labels <- singler_results$pruned.labels
 
 # store full SingleR results in metadata
 metadata(sce)$singler_results <- singler_results
