@@ -111,17 +111,13 @@ singler_model <- SingleR::trainSingleR(
 
 # If the label is `label.ont` (default), save corresponding cell label names
 if (label_col == "label.ont") {
-  cl_ont <- ontoProc::getCellOnto()
+  cl_ont <- ontoProc::getOnto("cellOnto")
 
-  # grab ontology ids from singler_model which are stored as
-  # `original.exprs` names (`original.exprs` itself is an empty list)
-  ontology_ids <- names(singler_model$original.exprs)
+  # grab ontology ids from singler_model
+  ontology_ids <- singler_model$labels$unique
 
   # grab corresponding cell names
-  cell_names <- purrr::map(
-    ontology_ids,
-    \(cl_id) cl_ont$name[cl_id]
-  ) |> unlist()
+  cell_names <- cl_ont$name[ontology_ids]
 
   # save data frame with _matching_ ontology ids and cell names to model object
   # use tibble to avoid rownames
