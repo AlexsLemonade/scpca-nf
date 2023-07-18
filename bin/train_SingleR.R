@@ -19,7 +19,7 @@ option_list <- list(
     opt_str = c("--ref_file"),
     type = "character",
     help = "path to rds file with reference dataset to use for cell type annotation.
-      These reference datasets must contain annotations labeled with the given 
+      These reference datasets must contain annotations labeled with the given
       `label_name` (default 'label.ont')."
   ),
   make_option(
@@ -80,7 +80,6 @@ ref_data <- readr::read_rds(opt$ref_file)
 
 # check that ref data contains correct labels, and set up label column for later
 label_col <- opt$label_name
-names(label_col) <- label_col
 if(!label_col %in% colnames(colData(ref_data))){
   stop(
     glue::glue("Reference dataset must contain `{label_col}` in `colData`.")
@@ -99,7 +98,7 @@ if (length(gene_ids) == 0){
   stop("Provided tx2gene tsv file does not contain any genes.")
 }
 
-# Train models -----------------------------------------------------------------
+# Train model -----------------------------------------------------------------
 
 singler_model <- SingleR::trainSingleR(
   ref_data,
@@ -109,5 +108,27 @@ singler_model <- SingleR::trainSingleR(
   restrict = gene_ids,
   BPPARAM = bp_param
 )
+
+# If the label is `label.ont` (default), save corresponding cell label names
+if (label_col == "label.ont") {
+  cl_ont <- ontoProc::getCellOnto()
+
+  # grab ontology ids from singler_model which are stored as
+  # `original.exprs` names (`original.exprs` itself is an empty list)
+  ontology_ids <- names(singler_model$original.exprs)
+
+  # grab corresponding cell names
+  cell_names <- purrr::map(
+    ontology_ids,
+    \(cl_id) cl_ont$name[cl_id]
+  ) |> unlist()
+
+  # save data frame with _matching_ ontology ids and cell names to model object
+  # use tibble to avoid rownames
+  singler_model$cell_ontology_df <- tibble::tibble(
+    ontology_id = names(cell_names),
+    ontology_cell_names = cell_names
+  )
+}
 # export models
 readr::write_rds(singler_model, opt$output_file)
