@@ -18,6 +18,11 @@ process classify_singleR {
         --seed ${params.seed} \
         --threads ${task.cpus}
       """
+    stub:
+      annotated_rds = "${meta.library_id}_annotated.rds"
+      """
+      touch "${annotated_rds}"
+      """
 }
 
 workflow annotate_celltypes {

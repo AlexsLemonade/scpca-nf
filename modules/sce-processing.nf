@@ -25,7 +25,7 @@ process make_unfiltered_sce{
     stub:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
-        touch "${meta.library_id}_unfiltered.rds"
+        touch ${unfiltered_rds}
         """
 
 }
@@ -46,7 +46,7 @@ process make_merged_unfiltered_sce{
         // add feature metadata as an element of the main meta object
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
-        
+
         // If feature_type is "CITEseq", make it "adt"
         if (meta['feature_type'] == "CITEseq") {
           meta['feature_type'] = "adt"
