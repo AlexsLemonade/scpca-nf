@@ -36,16 +36,14 @@ workflow annotate_celltypes {
           singler_model_file = "${params.celltype_model_dir}/${it.celltype_ref_name}_model.rds"
         ]}
 
-      // create channel with grouped meta, processed sce object, and all references to use
+      // create channel grouped_celltype_ch as: [meta, processed sce object, SingleR reference model]
+      // input processed_sce_channel is [meta, unfiltered, filtered, processed]
       grouped_celltype_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
-        .map{[
-          it[0], // meta
-          it[1], // processed rds
-          it[2] // reference model file
-        ]}
+        // creates [meta, processed, SingleR reference model]
+        .map{ it[0..2] }
 
       classify_singleR(grouped_celltype_ch)
 
