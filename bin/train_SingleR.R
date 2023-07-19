@@ -128,7 +128,7 @@ if (label_col == "label.ont") {
 }
 
 # Save reference name and label to model object
-singler_model$reference_name <- stringr::str_replace(opt$ref_file, "_model.rds$", "")
+singler_model$reference_name <- stringr::str_replace(opt$output_file, "_model.rds$", "")
 singler_model$reference_label <- label_col
 
 # export models
