@@ -26,6 +26,12 @@ option_list <- list(
     help = "path to file containing a single model generated for SingleR annotation"
   ),
   make_option(
+    opt_str = c("--label_name"),
+    type = "character",
+    default = "label.ont",
+    help = "label used when building the SingleR reference"
+  ),
+  make_option(
     opt_str = c("--seed"),
     type = "integer",
     help = "A random seed for reproducibility."
@@ -78,11 +84,32 @@ singler_results <- SingleR::classifySingleR(
   BPPARAM = bp_param
 )
 
-# add annotations to SCE colData, simply
-sce$pruned.labels <- singler_results$pruned.labels
+# add annotations to SCE colData
+if (opt$label_name == "label.ont") {
+  # If ontologies were used, create ontology column and join in the cell names
+  sce$singler_celltype_ontology <- singler_results$pruned.labels
 
-# store full SingleR results in metadata
+  colData(sce) <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::left_join(
+      singler_model$cell_ontology_df,
+      by = c("singler_celltype_ontology" = "ontology_id")
+    ) |>
+    # this is the new column that was joined in with the cell names
+    dplyr::rename(singler_celltype_annotation = ontology_cell_names) |>
+    DataFrame()
+
+
+} else {
+  # otherwise, just add cell names
+  sce$singler_celltype_annotation <- singler_results$pruned.labels
+}
+
+# store full SingleR results in metadata, as well as other SingleR parameters
 metadata(sce)$singler_results <- singler_results
+metadata(sce)$singler_reference <- singler_model$reference_name
+metadata(sce)$singler_reference_label <- singler_model$reference_label
+
 
 # export sce with annotations added
 readr::write_rds(sce,

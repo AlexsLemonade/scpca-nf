@@ -15,6 +15,7 @@ process classify_singleR {
         --input_sce_file ${processed_rds} \
         --output_sce_file ${annotated_rds} \
         --singler_model_file ${singler_model_file} \
+        --label_name ${params.label_name} \
         --seed ${params.seed} \
         --threads ${task.cpus}
       """

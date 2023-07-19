@@ -123,8 +123,13 @@ if (label_col == "label.ont") {
   # use tibble to avoid rownames
   singler_model$cell_ontology_df <- tibble::tibble(
     ontology_id = names(cell_names),
-    ontology_cell_names = cell_names
+    ontology_cell_names = unname(cell_names)
   )
 }
+
+# Save reference name and label to model object
+singler_model$reference_name <- stringr::str_replace(opt$ref_file, "_model.rds$", "")
+singler_model$reference_label <- label_col
+
 # export models
 readr::write_rds(singler_model, opt$output_file)
