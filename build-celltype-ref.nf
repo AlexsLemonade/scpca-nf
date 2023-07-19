@@ -20,6 +20,7 @@ process train_singler_models {
       --ref_file ${celltype_ref} \
       --output_file ${celltype_model} \
       --fry_tx2gene ${tx2gene} \
+      --label_name ${params.label_name} \
       --seed ${params.seed} \
       --threads ${task.cpus}
     """
