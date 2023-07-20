@@ -97,7 +97,8 @@ if (opt$label_name == "label.ont") {
     ) |>
     # this is the new column that was joined in with the cell names
     dplyr::rename(singler_celltype_annotation = ontology_cell_names) |>
-    DataFrame()
+    # make sure we keep rownames
+    DataFrame(row.names = colData(sce)$barcodes)
 
 
 } else {
