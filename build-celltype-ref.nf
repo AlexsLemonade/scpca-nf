@@ -18,6 +18,11 @@ process save_singler_refs {
      --ref_name ${ref_name} \
      --ref_file ${ref_file}
     """
+  stub:
+    ref_file = "${ref_database}-${ref_name}.rds"
+    """
+    touch ${ref_file}
+    """
 
 }
 
@@ -27,7 +32,7 @@ process train_singler_models {
   label 'cpus_4'
   label 'mem_16'
   input:
-    tuple val(ref_name), path(ref_file)
+    tuple val(ref_name), path(celltype_ref)
     path tx2gene
   output:
     path celltype_model
@@ -41,6 +46,11 @@ process train_singler_models {
       --label_name ${params.label_name} \
       --seed ${params.seed} \
       --threads ${task.cpus}
+    """
+  stub:
+    celltype_model = "${ref_name}_model.rds"
+    """
+    touch ${celltype_model}
     """
 }
 
@@ -75,8 +85,6 @@ workflow build_celltype_ref {
       ref_database: it.celltype_ref_database,
       organs: it.organs
     ]}
-
-  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes)
 }
 
 workflow {
