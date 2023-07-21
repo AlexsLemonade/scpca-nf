@@ -54,6 +54,30 @@ process train_singler_models {
     """
 }
 
+process generate_cellassign_refs {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.celltype_ref_dir}/cellassign_references"
+  label 'mem_8'
+  input:
+    tuple val(ref_name), val(ref_database), val(organs)
+    path(marker_gene_file)
+  output:
+    path ref_file
+  script:
+    ref_file="${ref_database}-${ref_name}.tsv"
+    """
+    generate_cellassign_refs.R \
+      --organs "${organs}" \
+      --marker_gene_file ${marker_gene_file} \
+      --ref_file ${ref_file}
+    """
+  stub:
+    ref_file="${ref_database}-${ref_name}.tsv"
+    """
+    touch ${ref_file}
+    """
+}
+
 workflow build_celltype_ref {
 
   // create channel of cell type ref files and names
