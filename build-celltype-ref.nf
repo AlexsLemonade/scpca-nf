@@ -8,18 +8,18 @@ process save_singler_refs {
   publishDir "${params.celltype_ref_dir}/singler_references"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_database)
+    tuple val(ref_name), val(ref_source)
   output:
     tuple val(ref_name), path(ref_file)
   script:
-    ref_file = "${ref_database}-${ref_name}.rds"
+    ref_file = "${ref_source}-${ref_name}.rds"
     """
     save_singler_refs.R \
      --ref_name ${ref_name} \
      --ref_file ${ref_file}
     """
   stub:
-    ref_file = "${ref_database}-${ref_name}.rds"
+    ref_file = "${ref_source}-${ref_name}.rds"
     """
     touch ${ref_file}
     """
@@ -92,7 +92,7 @@ workflow build_celltype_ref {
   singler_refs_ch = celltype_refs_ch.singler
     .map{[
       ref_name: it.celltype_ref_name,
-      ref_database: it.celltype_ref_database
+      ref_source: it.celltype_ref_source
       ]}
 
   // download and save reference files
@@ -103,10 +103,10 @@ workflow build_celltype_ref {
 
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
-    // create a channel with ref_name, database, organs
+    // create a channel with ref_name, source, organs
     .map{[
       ref_name: it.celltype_ref_name,
-      ref_database: it.celltype_ref_database,
+      ref_source: it.celltype_ref_source,
       organs: it.organs
     ]}
 }
