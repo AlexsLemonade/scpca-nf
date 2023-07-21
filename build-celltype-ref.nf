@@ -10,7 +10,7 @@ process save_singler_refs {
   input:
     tuple val(ref_name), val(ref_database)
   output:
-    path ref_file
+    tuple val(ref_name), path(ref_file)
   script:
     ref_file = "${ref_database}-${ref_name}.rds"
     """
@@ -32,7 +32,7 @@ process train_singler_models {
   label 'cpus_4'
   label 'mem_16'
   input:
-    tuple val(ref_name), path(celltype_ref)
+    tuple val(ref_name), path(ref_file)
     path tx2gene
   output:
     path celltype_model
@@ -40,7 +40,7 @@ process train_singler_models {
     celltype_model = "${ref_name}_model.rds"
     """
     train_SingleR.R \
-      --ref_file ${celltype_ref} \
+      --ref_file ${ref_file} \
       --output_file ${celltype_model} \
       --fry_tx2gene ${tx2gene} \
       --label_name ${params.label_name} \
