@@ -5,7 +5,7 @@ params.t2g_3col_path = "s3://scpca-references/homo_sapiens/ensembl-104/annotatio
 
 process save_singler_refs {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.celltype_ref_dir}/singler_references"
+  publishDir "${params.singler_references_dir}"
   label 'mem_8'
   input:
     tuple val(ref_name), val(ref_source)
@@ -28,7 +28,7 @@ process save_singler_refs {
 
 process train_singler_models {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.celltype_ref_dir}/singler_models"
+  publishDir "${params.singler_models_dir}"
   label 'cpus_4'
   label 'mem_16'
   input:
