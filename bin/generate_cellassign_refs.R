@@ -20,12 +20,14 @@ option_list <- list(
   make_option(
     opt_str = c("--cell_type_column"),
     type = "character",
-    default = "cell type"
+    default = "cell type",
+    help = "Column name in `marker_gene_file` containing cell types."
   ),
   make_option(
     opt_str = c("--gene_id_column"),
     type = "character",
-    default = "official gene symbol"
+    default = "official gene symbol",
+    help = "Column name in `marker_gene_file` containing the gene symbols."
   ),
   make_option(
     opt_str = c("--gtf_file"),
