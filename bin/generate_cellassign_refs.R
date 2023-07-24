@@ -35,7 +35,7 @@ option_list <- list(
   make_option(
     opt_str = c("--ref_mtx_file"),
     type = "character",
-    help = "path to save reference file"
+    help = "path to save reference binary matrix file"
   )
 )
 
@@ -103,11 +103,11 @@ gene_id_map <- gtf |>
     "ensembl_id" = "gene_id",
     "gene_symbol" = "gene_name"
   ) |>
-  dplyr::filter(.data$gene_symbol != "NA") |>
+  dplyr::filter(gene_symbol != "NA") |>
   dplyr::distinct() |>
   ## in case there are any duplicate gene_ids (there shouldn't be!)
-  dplyr::group_by(.data$ensembl_id) |>
-  dplyr::summarise(gene_symbol = paste(.data$gene_symbol, collapse = ";"))
+  dplyr::group_by(ensembl_id) |>
+  dplyr::summarize(gene_symbol = paste(gene_symbol, collapse = ";"))
 
 # replace gene symbols with ensembl id
 binary_mtx <- binary_mtx |>

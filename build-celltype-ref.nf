@@ -60,13 +60,13 @@ process generate_cellassign_refs {
   publishDir "${params.celltype_ref_dir}/cellassign_references"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_database), val(organs)
+    tuple val(ref_name), val(ref_source), val(organs)
     path(marker_gene_file)
     path(ref_gtf)
   output:
     path ref_file
   script:
-    ref_file="${ref_database}-${ref_name}.tsv"
+    ref_file="${ref_source}-${ref_name}.tsv"
     """
     generate_cellassign_refs.R \
       --organs "${organs}" \
@@ -75,7 +75,7 @@ process generate_cellassign_refs {
       --ref_mtx_file ${ref_file}
     """
   stub:
-    ref_file="${ref_database}-${ref_name}.tsv"
+    ref_file="${ref_source}-${ref_name}.tsv"
     """
     touch ${ref_file}
     """
