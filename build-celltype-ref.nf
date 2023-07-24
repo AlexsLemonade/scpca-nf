@@ -2,6 +2,7 @@
 nextflow.enable.dsl=2
 
 params.t2g_3col_path = "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv"
+params.ref_gtf = "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz"
 
 process save_singler_refs {
   container params.SCPCATOOLS_CONTAINER
@@ -61,6 +62,7 @@ process generate_cellassign_refs {
   input:
     tuple val(ref_name), val(ref_database), val(organs)
     path(marker_gene_file)
+    path(ref_gtf)
   output:
     path ref_file
   script:
@@ -69,7 +71,8 @@ process generate_cellassign_refs {
     generate_cellassign_refs.R \
       --organs "${organs}" \
       --marker_gene_file ${marker_gene_file} \
-      --ref_file ${ref_file}
+      --gtf_file ${ref_gtf} \
+      --ref_mtx_file ${ref_file}
     """
   stub:
     ref_file="${ref_database}-${ref_name}.tsv"
@@ -109,6 +112,9 @@ workflow build_celltype_ref {
       ref_source: it.celltype_ref_source,
       organs: it.organs
     ]}
+
+  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file, params.ref_gtf)
+
 }
 
 workflow {
