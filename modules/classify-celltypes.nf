@@ -30,7 +30,7 @@ workflow annotate_celltypes {
     take: processed_sce_channel
     main:
       // channel with celltype model and project ids
-      celltype_ch = Channel.fromPath(params.celltype_refs_metafile)
+      celltype_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
         .map{[
           project_id = it.scpca_project_id,
