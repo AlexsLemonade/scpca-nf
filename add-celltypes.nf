@@ -52,10 +52,12 @@ workflow {
              || (it.submitter == params.project)
              || (it.project_id == params.project)
             }
-    // tuple of meta, processed rds file to use as input to cell type annotation
-    .map{meta -> tuple(meta,
-                       file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds")
-                       )}
+      // tuple of meta, processed RDS file to use as input to singleR
+      .map{meta -> tuple(meta,
+                        file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds"),
+                        file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed_rna.hdf5")
+                        )}
 
     annotate_celltypes(processed_sce_ch)
+
 }
