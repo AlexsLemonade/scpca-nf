@@ -16,8 +16,8 @@ import argparse
 import re
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--input_anndata',
-                    dest = 'input_anndata',
+parser.add_argument('-i', '--input_hdf5_file',
+                    dest = 'input_hdf5_file',
                     required = True,
                     help = 'Path to HDF5 file with processed AnnData object to annotate')
 parser.add_argument('-o', '--output_predictions',
@@ -51,30 +51,24 @@ settings.num_threads = args.threads
 file_ext = re.compile(r"\.hdf5$|.h5$", re.IGNORECASE)
 
 # check that input file exists, if it does exist, make sure it's an h5 file
-if not os.path.exists(args.input_anndata):
-    raise FileExistsError("--input_anndata file not found.")
-elif not file_ext.search(args.input_anndata):
-    raise ValueError("--input_anndata must end in either .hdf5 or .h5 and contain a processed AnnData object.")
+if not os.path.exists(args.input_hdf5_file):
+    raise FileExistsError("--input_hdf5_file file not found.")
+elif not file_ext.search(args.input_hdf5_file):
+    raise ValueError("--input_hdf5_file must end in either .hdf5 or .h5 and contain a processed AnnData object.")
 
 # check that marker file exists and make sure its a csv
 if not os.path.exists(args.reference):
     raise FileExistsError("--reference file not found.")
-elif not ".csv" in args.reference:
-    raise ValueError("--reference must be a csv file")
 
 # make sure output file path is tsv file
 if not ".tsv" in args.output_predictions:
     raise ValueError("--output_predictions must provide a file path ending in tsv")
 
-# check that output file directory exists and create directory if doesn't exist
-predictions_dir = os.path.dirname(args.output_predictions)
-os.makedirs(predictions_dir, exist_ok = True)
-
 # read in references as marker gene tables
 ref_matrix = pd.read_csv(args.reference, sep = "\t", index_col='ensembl_id')
 
 # file path to annotated sce
-annotated_adata = adata.read_h5ad(args.input_anndata)
+annotated_adata = adata.read_h5ad(args.input_hdf5_file)
 
 # subset anndata to contain only genes in the reference file
 # note that the gene names must be the rownames of the reference matrix
