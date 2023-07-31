@@ -72,7 +72,9 @@ annotated_adata = adata.read_h5ad(args.input_hdf5_file)
 
 # subset anndata to contain only genes in the reference file
 # note that the gene names must be the rownames of the reference matrix
-subset_adata = annotated_adata[:, ref_matrix.index].copy()
+# first get a list of shared genes
+shared_genes = list(set(ref_matrix.index) & set(annotated_adata.var_names))
+subset_adata = annotated_adata[:, shared_genes].copy()
 subset_adata.X = subset_adata.X.tocsr()
 
 # add size factor to subset adata (calculated from full data)
