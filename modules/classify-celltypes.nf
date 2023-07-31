@@ -28,8 +28,8 @@ process classify_singleR {
 
 process predict_cellassign {
   container params.SCPCATOOLS_CONTAINER
-  label 'mem_8'
-  label 'cpus_4'
+  label 'mem_32'
+  label 'cpus_12'
   input:
     tuple val(meta), path(processed_hdf5), path(cellassign_reference_mtx)
   output:
@@ -41,6 +41,7 @@ process predict_cellassign {
       --input_hdf5_file ${processed_hdf5} \
       --output_predictions ${cellassign_predictions} \
       --reference ${cellassign_reference_mtx} \
+      --seed ${params.seed} \
       --threads ${task.cpus}
     """
   stub:
