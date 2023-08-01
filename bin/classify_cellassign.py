@@ -44,7 +44,7 @@ args = parser.parse_args()
 scvi.settings.seed = args.seed
 
 # define the number of threads to use
-settings.num_threads = args.threads
+scvi.settings.num_threads = args.threads
 
 # compile extension regex
 file_ext = re.compile(r"\.hdf5$|.h5$", re.IGNORECASE)
