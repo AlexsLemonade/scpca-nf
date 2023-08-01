@@ -1,17 +1,14 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-params.t2g_3col_path = "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.spliced_intron.tx2gene_3col.tsv"
-params.ref_gtf = "s3://scpca-references/homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104.gtf.gz"
-
 process save_singler_refs {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.singler_references_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source)
+    tuple val(ref_name), val(ref_source), path(t2g_3col_path)
   output:
-    tuple val(ref_name), path(ref_file)
+    tuple val(ref_name), path(ref_file), path(t2g_3col_path)
   script:
     ref_file = "${ref_source}-${ref_name}.rds"
     """
@@ -33,8 +30,7 @@ process train_singler_models {
   label 'cpus_4'
   label 'mem_16'
   input:
-    tuple val(ref_name), path(ref_file)
-    path tx2gene
+    tuple val(ref_name), path(ref_file), path(tx2gene)
   output:
     path celltype_model
   script:
@@ -60,9 +56,8 @@ process generate_cellassign_refs {
   publishDir "${cellassign_ref_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source), val(organs)
-    path(marker_gene_file)
-    path(ref_gtf)
+    tuple val(ref_name), val(ref_source), val(organs), path(ref_gtf)
+    path marker_gene_file
   output:
     path ref_file
   script:
@@ -83,6 +78,9 @@ process generate_cellassign_refs {
 
 workflow build_celltype_ref {
 
+  // read in json file with all reference paths
+  ref_paths = Utils.getMetaVal(file(params.ref_json), "Homo_sapiens.GRCh38.104")
+
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
@@ -95,14 +93,15 @@ workflow build_celltype_ref {
   singler_refs_ch = celltype_refs_ch.singler
     .map{[
       ref_name: it.celltype_ref_name,
-      ref_source: it.celltype_ref_source
+      ref_source: it.celltype_ref_source,
+      t2g_3col_path: file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
       ]}
 
   // download and save reference files
   save_singler_refs(singler_refs_ch)
 
   // train cell type references using SingleR
-  train_singler_models(save_singler_refs.out, params.t2g_3col_path)
+  train_singler_models(save_singler_refs.out)
 
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
@@ -110,10 +109,11 @@ workflow build_celltype_ref {
     .map{[
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source,
-      organs: it.organs
+      organs: it.organs,
+      ref_gtf: file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
     ]}
 
-  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file, params.ref_gtf)
+  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file)
 
 }
 
