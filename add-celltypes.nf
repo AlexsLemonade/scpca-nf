@@ -52,7 +52,7 @@ workflow {
              || (it.submitter == params.project)
              || (it.project_id == params.project)
             }
-      // tuple of meta, processed RDS file to use as input to singleR
+      // tuple of meta, processed RDS file, processed hdf5 file to use as input to classifying celltypes
       .map{meta -> tuple(meta,
                         file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds"),
                         file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed_rna.hdf5")

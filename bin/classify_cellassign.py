@@ -9,7 +9,6 @@ import os
 import anndata as adata
 import scvi
 from scvi.external import CellAssign
-from scvi import settings
 import pandas as pd
 import numpy as np
 import argparse
@@ -23,11 +22,11 @@ parser.add_argument('-i', '--input_hdf5_file',
 parser.add_argument('-o', '--output_predictions',
                     dest = 'output_predictions',
                     required = True,
-                    help = 'Path to directory to save the predictions, should end in tsv')
+                    help = 'Path to file to save the predictions, should end in tsv')
 parser.add_argument('-r', '--reference',
                     dest = 'reference',
                     required = True,
-                    help = 'Path to marker by cell type reference file')
+                    help = 'Path to marker by cell type reference file, should end in tsv')
 parser.add_argument('-s', '--seed',
                     dest = 'seed',
                     type=int,
@@ -56,7 +55,7 @@ if not os.path.exists(args.input_hdf5_file):
 elif not file_ext.search(args.input_hdf5_file):
     raise ValueError("--input_hdf5_file must end in either .hdf5 or .h5 and contain a processed AnnData object.")
 
-# check that marker file exists and make sure its a csv
+# check that marker file exists and make sure its a tsv
 if not os.path.exists(args.reference):
     raise FileExistsError("--reference file not found.")
 
