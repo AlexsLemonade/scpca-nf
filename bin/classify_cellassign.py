@@ -61,7 +61,7 @@ if not os.path.exists(args.reference):
     raise FileExistsError("--reference file not found.")
 
 # make sure output file path is tsv file
-if not ".tsv" in args.output_predictions:
+if not args.output_predictions.endswith(".tsv"):
     raise ValueError("--output_predictions must provide a file path ending in tsv")
 
 # read in references as marker gene tables
