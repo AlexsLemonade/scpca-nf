@@ -37,8 +37,8 @@ workflow star_bulk{
     // create tuple of (metadata map, [Read 1 files], [Read 2 files])
     bulk_reads_ch = bulk_channel
         .map{meta -> tuple(meta,
-                           file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                           file("${meta.files_directory}/*_R2_*.fastq.gz"),
+                           file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
+                         file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
                            file("${meta.star_index}"))}
     // map and index
     bulkmap_star(bulk_reads_ch) \
