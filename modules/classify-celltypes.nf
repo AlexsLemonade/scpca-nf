@@ -88,6 +88,8 @@ workflow annotate_celltypes {
 
       predict_cellassign(cellassign_input_ch)
 
-    emit: tuple(classify_singleR.out, predict_cellassign.out)
+    emit:
+      classify_singleR.out
+      predict_cellassign.out
 
 }
