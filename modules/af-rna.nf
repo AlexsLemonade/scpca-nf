@@ -120,8 +120,8 @@ workflow map_quant_rna {
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(meta,
-                         file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                         file("${meta.files_directory}/*_R2_*.fastq.gz"),
+                         file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
+                         file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
                          file("${meta.salmon_splici_index}")
                         )}
 
