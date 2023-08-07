@@ -30,8 +30,6 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  celltype_ref_paths = Utils.readMeta(file(params.celltype_ref_json))
-
   // read in metadata file and filter to libraries/ projects of interest
   processed_sce_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
