@@ -30,7 +30,7 @@ process train_singler_models {
   label 'cpus_4'
   label 'mem_16'
   input:
-    tuple val(ref_name), path(ref_file), path(tx2gene)
+    tuple val(ref_name), path(ref_file), path(t2g_3col_path)
   output:
     path celltype_model
   script:
@@ -39,7 +39,7 @@ process train_singler_models {
     train_SingleR.R \
       --ref_file ${ref_file} \
       --output_file ${celltype_model} \
-      --fry_tx2gene ${tx2gene} \
+      --fry_tx2gene ${t2g_3col_path} \
       --label_name ${params.label_name} \
       --seed ${params.seed} \
       --threads ${task.cpus}
