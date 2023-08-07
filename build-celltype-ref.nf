@@ -79,7 +79,7 @@ process generate_cellassign_refs {
 workflow build_celltype_ref {
 
   // read in json file with all reference paths
-  ref_paths = Utils.getMetaVal(file(params.ref_json), "Homo_sapiens.GRCh38.104")
+  ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
 
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
