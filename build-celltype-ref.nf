@@ -53,7 +53,7 @@ process train_singler_models {
 
 process generate_cellassign_refs {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${cellassign_ref_dir}"
+  publishDir "${params.cellassign_ref_dir}"
   label 'mem_8'
   input:
     tuple val(ref_name), val(ref_source), val(organs), path(ref_gtf)
