@@ -3,7 +3,6 @@ process classify_singleR {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     label 'cpus_4'
-    publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
         tuple val(meta), path(processed_rds), path(singler_model_file)
     output:
@@ -28,16 +27,17 @@ process classify_singleR {
 
 process predict_cellassign {
   container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   label 'mem_32'
   label 'cpus_12'
   input:
-    tuple val(meta), path(processed_hdf5), path(cellassign_reference_mtx)
+    tuple val(meta), path(processed_hdf5), path(cellassign_reference_mtx), val(ref_name)
   output:
-    tuple val(meta), path(cellassign_predictions)
+    tuple val(meta), path(cellassign_predictions), val(ref_name)
   script:
     cellassign_predictions = "${meta.library_id}_predictions.tsv"
     """
-    classify_cellassign.py \
+    predict_cellassign.py \
       --input_hdf5_file ${processed_hdf5} \
       --output_predictions ${cellassign_predictions} \
       --reference ${cellassign_reference_mtx} \
@@ -51,6 +51,27 @@ process predict_cellassign {
     """
 }
 
+process classify_cellassign {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
+  label 'mem_4'
+  label 'cpus_2'
+  input:
+    tuple val(meta), path(cellassign_predictions), path(input_rds), val(ref_name)
+  output:
+    tuple val(meta), path(annotated_rds)
+  script:
+    annotated_rds = "${meta.library_id}_annotated.rds"
+    """
+    classify_cellassign.R \
+      --input_sce_file ${input_rds} \
+      --output_sce_file ${annotated_rds} \
+      --cellassign_predictions ${cellassign_predictions} \
+      --reference_name ${ref_name}
+
+    """
+}
+
 workflow annotate_celltypes {
     take: processed_sce_channel
     main:
@@ -60,7 +81,8 @@ workflow annotate_celltypes {
         .map{[
           project_id = it.scpca_project_id,
           singler_model_file = "${params.singler_models_dir}/${it.singler_ref_file}",
-          cellassign_ref_file = "${params.cellassign_ref_dir}/${it.cellassign_ref_file}"
+          cellassign_ref_file = "${params.cellassign_ref_dir}/${it.cellassign_ref_file}",
+          cellassign_ref_name = it.cellassign_ref_name
         ]}
 
       // create channel grouped_celltype_ch as: [meta, processed sce object, SingleR reference model]
@@ -72,24 +94,33 @@ workflow annotate_celltypes {
 
       // creates [meta, processed, SingleR reference model]
       singler_input_ch = grouped_celltype_ch
-        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file -> tuple(meta,
-                                                                                                  processed_rds,
-                                                                                                  singler_model_file
-                                                                                                  )}
+        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
+                                                                                                                        processed_rds,
+                                                                                                                        singler_model_file
+                                                                                                                        )}
 
+      // creates [meta, processed hdf5, cellassign ref file, cell assign ref name]
       cellassign_input_ch = grouped_celltype_ch
-        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file -> tuple(meta,
-                                                                                                  processed_hdf5,
-                                                                                                  cellassign_ref_file
-                                                                                                  )}
+        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
+                                                                                                                        processed_hdf5,
+                                                                                                                        cellassign_ref_file,
+                                                                                                                        cellassign_ref_name
+                                                                                                                        )}
 
-
+      // get SingleR cell type assignments and add them to SCE
       classify_singleR(singler_input_ch)
 
+      // get cellassign predictions file
       predict_cellassign(cellassign_input_ch)
 
-    emit:
-      classify_singleR.out
-      predict_cellassign.out
+      // add cellassign annotations to the object with singleR results
+      all_celltype_assignments_ch = classify_singleR.out
+        // combines using meta from both singleR and cellassign, they should be the same
+        // resulting tuple should be [meta, singleR annotated rds, cellassign predictions]
+        .combine(predict_cellassign.out, by: 0)
+
+      classify_cellassign(all_celltype_assignments_ch)
+
+    emit: classify_cellassign.out
 
 }
