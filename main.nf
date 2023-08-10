@@ -36,7 +36,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf' addParams(sample_metafile: params.sample_metafile)
 include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
@@ -48,6 +48,11 @@ param_error = false
 
 if (!file(params.run_metafile).exists()) {
   log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
+  param_error = true
+}
+
+if (!file(params.sample_metafile).exists()) {
+  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
   param_error = true
 }
 

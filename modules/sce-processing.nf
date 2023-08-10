@@ -7,6 +7,7 @@ process make_unfiltered_sce{
     tag "${meta.library_id}"
     input:
         tuple val(meta), path(alevin_dir), path(mito_file), path(ref_gtf)
+        path sample_meta_file
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -20,6 +21,7 @@ process make_unfiltered_sce{
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
+          --sample_metadata_file ${sample_meta_file} \
           ${params.spliced_only ? '--spliced_only' : ''}
         """
     stub:
@@ -198,7 +200,7 @@ workflow generate_sce {
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file), file(it[0].ref_gtf)]}
 
-    make_unfiltered_sce(sce_ch)
+    make_unfiltered_sce(sce_ch, params.sample_metafile)
 
     empty_file = file("${projectDir}/assets/NO_FILE.txt")
 
