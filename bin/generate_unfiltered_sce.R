@@ -139,34 +139,12 @@ unfiltered_sce <- unfiltered_sce |>
   add_gene_symbols(gene_info = gtf) |>
   scuttle::addPerFeatureQCMetrics()
 
-# get a list of sample metadata to add
-# for each sample in the library, create an individual list of sample metadata
-sample_metadata_list <- purrr::map(sample_ids,
-                                   \(sample){
-                                     single_sample_df <- sample_metadata_df |>
-                                       dplyr::filter(scpca_sample_id %in% sample)
-                                     list(
-                                       age = single_sample_df$age,
-                                       sex = single_sample_df$sex,
-                                       diagnosis = single_sample_df$sex,
-                                       subdiagnosis = single_sample_df$subdiagnosis,
-                                       tissue_location = single_sample_df$tissue_location,
-                                       disease_timing = single_sample_df$disease_timing,
-                                       organism = single_sample_df$organism,
-                                       development_stage_ontology_term_id = single_sample_df$development_stage_ontology_term_id,
-                                       sex_ontology_term_id = single_sample_df$sex_ontology_term_id,
-                                       organism_ontology_id = single_sample_df$organism_ontology_id,
-                                       self_reported_ethnicity_ontology_term_id = single_sample_df$self_reported_ethnicity_ontology_term_id,
-                                       disease_ontology_term_id = single_sample_df$disease_ontology_term_id,
-                                       tissue_ontology_term_id = single_sample_df$tissue_ontology_term_id
-                                     )
-                                   }) |>
-  purrr::set_names(sample_ids)
+# filter the sample metadata to only include samples present in the library
+sample_metadata <- sample_metadata_df  |>
+  dplyr::filter(scpca_sample_id %in% sample_ids)
 
-# add list of sample metadata
-# access the list of sample metadata for each sample
-# with metadata(unfiltered_sce)$sample_metadata[[sample_id]]
-metadata(unfiltered_sce)$sample_metadata <- sample_metadata_list
+# add dataframe with sample metadata to sce metadata
+metadata(unfiltered_sce)$sample_metadata <- sample_metadata
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
