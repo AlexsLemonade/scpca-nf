@@ -43,9 +43,9 @@ if(!file.exists(opt$cellassign_predictions)){
   stop("Missing CellAssign predictions file")
 }
 
-# read in input files 
+# read in input files
 sce <- readr::read_rds(opt$input_sce_file)
-predictions <- readr::read_tsv(opt$cellassign_predictions) 
+predictions <- readr::read_tsv(opt$cellassign_predictions)
 
 celltype_assignments <- predictions |>
   tidyr::pivot_longer(!barcode,
@@ -55,7 +55,13 @@ celltype_assignments <- predictions |>
   dplyr::slice_max(prediction, n = 1) |>
   dplyr::ungroup()
 
-sce$cellassign_celltype_annotation <- celltype_assignments
+# join by barcode to make sure assignments are in the right order
+celltype_assignments <- data.frame(barcode = sce$barcodes) |>
+  dplyr::left_join(celltype_assignments, by = "barcode")
+
+# add into sce
+sce$cellassign_celltype_annotation <- celltype_assignments$celltype
+sce$cellassign_max_prediction <- celltype_assignments$prediction
 
 metadata(sce)$cellassign_predictions <- predictions
 metadata(sce)$cellassign_reference <- opt$reference_name
