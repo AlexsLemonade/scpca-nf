@@ -27,7 +27,7 @@ process classify_singleR {
 
 process predict_cellassign {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
+  publishDir "${params.checkpoints_dir}/celltype/${meta.library_id}", mode: 'copy'
   label 'mem_32'
   label 'cpus_12'
   input:
