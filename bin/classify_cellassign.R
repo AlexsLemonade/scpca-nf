@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script is used to read in the predictions from CellAssign and assign cell types
+# This script is used to read in the predictions from CellAssign and assign cell types in the annotated RDS file
 
 # import libraries
 suppressPackageStartupMessages({
@@ -34,15 +34,24 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# check that input file file exists
+# check that input file exists
 if(!file.exists(opt$input_sce_file)){
   stop("Missing input SCE file")
 }
 
+# check that cellassign predictions file was provided
 if(!file.exists(opt$cellassign_predictions)){
   stop("Missing CellAssign predictions file")
 }
+# check that reference_name was provided
+if (is.null(opt$reference_name)) {
+  stop("Missing reference name")
+}
 
+# check that output file ends in rds
+if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+  stop("output sce file name must end in .rds")
+}
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
 predictions <- readr::read_tsv(opt$cellassign_predictions)

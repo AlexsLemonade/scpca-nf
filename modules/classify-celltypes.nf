@@ -119,6 +119,7 @@ workflow annotate_celltypes {
         // resulting tuple should be [meta, singleR annotated rds, cellassign predictions]
         .combine(predict_cellassign.out, by: 0)
 
+      // get CellAssign cell type predictions and add them to SCE
       classify_cellassign(all_celltype_assignments_ch)
 
     emit: classify_cellassign.out
