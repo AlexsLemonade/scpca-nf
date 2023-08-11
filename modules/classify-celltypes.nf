@@ -57,7 +57,7 @@ process classify_cellassign {
   label 'mem_4'
   label 'cpus_2'
   input:
-    tuple val(meta), path(cellassign_predictions), path(input_rds), val(ref_name)
+    tuple val(meta), path(input_rds), path(cellassign_predictions), val(ref_name)
   output:
     tuple val(meta), path(annotated_rds)
   script:
