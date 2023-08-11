@@ -200,7 +200,7 @@ workflow generate_sce {
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file), file(it[0].ref_gtf)]}
 
-    make_unfiltered_sce(sce_ch, params.sample_metafile)
+    make_unfiltered_sce(sce_ch, file(params.sample_metafile))
 
     empty_file = file("${projectDir}/assets/NO_FILE.txt")
 
