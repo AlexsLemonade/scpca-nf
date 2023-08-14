@@ -35,12 +35,12 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that input file exists
-if(!file.exists(opt$input_sce_file)){
+if (!file.exists(opt$input_sce_file)){
   stop("Missing input SCE file")
 }
 
 # check that cellassign predictions file was provided
-if(!file.exists(opt$cellassign_predictions)){
+if (!file.exists(opt$cellassign_predictions)){
   stop("Missing CellAssign predictions file")
 }
 # check that reference_name was provided

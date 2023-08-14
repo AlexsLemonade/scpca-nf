@@ -57,7 +57,7 @@ if(!file.exists(opt$input_sce_file)){
 }
 
 # check that output file ends in rds
-if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))){
   stop("output sce file name must end in .rds")
 }
 
