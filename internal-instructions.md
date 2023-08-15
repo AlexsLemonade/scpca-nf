@@ -67,6 +67,17 @@ See [instructions for adding additional organisms](#adding-additional-organisms)
 For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
 This file is required as input to `scpca-nf`.
 
+3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type assignment using `add-celltypes.nf`.
+For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
+For all references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+This should be a comma separated list of all organs to include.
+To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+
+4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
+This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+
 ### Adding additional organisms
 
 Follow the below steps to add support for additional references:
