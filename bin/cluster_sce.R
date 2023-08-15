@@ -74,18 +74,15 @@ if (!opt$pca_name %in% reducedDimNames(sce)) {
 # Perform clustering ----------------
 
 # extract the principal components matrix
-pca_matrix <- reducedDim(sce, opt$pca_name)
-
-# cluster with specified algorithm
-clusters <- bluster::clusterRows(
-  pca_matrix,
-  bluster::NNGraphParam(
+clusters <- scran::clusterCells(
+  sce, 
+  use.dimred = opt$pca_name, 
+  BLUSPARAM = bluster::NNGraphParam(
     k = opt$nearest_neighbors,
     type = opt$cluster_weighting,
     cluster.fun = opt$cluster_algorithm
   )
-) 
-# TODO: may wish to modify additional cluster parameters depending on cluster algorithm
+)
 
 # add clusters and associated parameters to SCE object
 sce$clusters <- clusters
