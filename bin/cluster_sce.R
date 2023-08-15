@@ -16,8 +16,7 @@ option_list <- list(
   make_option(
     opt_str = c("-i", "--processed_sce_file"),
     type = "character",
-    default = "~/sce.rds",
-    help = "Path to RDS file that contains the processedsce SCE object to cluster."
+    help = "Path to RDS file that contains the processed sce SCE object to cluster."
   ),
   make_option(
     opt_str = c("--pca_name"),
