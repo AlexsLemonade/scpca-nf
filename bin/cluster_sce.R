@@ -16,7 +16,8 @@ option_list <- list(
   make_option(
     opt_str = c("-i", "--input_sce_file"),
     type = "character",
-    help = "Path to RDS file that contains the processed sce SCE object to cluster."
+    help = "Path to RDS file that contains the processed SCE object to cluster.
+      Must contain a PCA matrix to calculate clusters from."
   ),
   make_option(
     opt_str = c("--pca_name"),
