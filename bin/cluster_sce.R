@@ -28,9 +28,9 @@ option_list <- list(
   make_option(
     opt_str = c("--cluster_algorithm"),
     type = "character",
-    default = "leiden",
+    default = "louvain",
     help = "Clustering algorithm to use. Must be one of the options available in bluster.
-      Default is 'leiden'."
+      Default is 'louvain'."
   ),
   make_option(
     opt_str = c("--nearest_neighbors"),
@@ -52,10 +52,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$seed)
 
 # check and read in SCE file
-if (!file.exists(opt$processed_sce_file)) {
-  stop("Input `sce_file` is missing.")
+if (!file.exists(opt$input_sce_file)) {
+  stop("Input `input_sce_file` is missing.")
 }
-sce <- readr::read_rds(opt$processed_sce_file)
+sce <- readr::read_rds(opt$input_sce_file)
 
 
 # check pca_name is present
@@ -73,6 +73,7 @@ clusters <- bluster::clusterRows(
   pca_matrix,
   bluster::NNGraphParam(
     k = opt$nearest_neighbors,
+    type = "jaccard",
     cluster.fun = opt$cluster_algorithm
   )
 ) 
@@ -84,4 +85,5 @@ metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
 metadata(sce)$cluster_nn <- opt$nearest_neighbors
 
 # export -------------------
-readr::write_rds(sce, opt$processed_sce_file)
+# we are overwriting the input file here:
+readr::write_rds(sce, opt$input_sce_file)
