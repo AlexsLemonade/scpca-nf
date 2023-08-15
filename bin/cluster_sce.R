@@ -2,7 +2,7 @@
 
 # Script used to perform clustering on a given SCE object
 # 
-# This script reads in an RDS file containing an SCE, and performed
+# This script reads in an RDS file containing an SCE, and performs
 #  graph-based clustering using the specified algorithm. Cluster identities are 
 #  stored in the SCE's colData slot, and the SCE is written back out to the
 #  original RDS file.
@@ -14,7 +14,7 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--processed_sce_file"),
+    opt_str = c("-i", "--input_sce_file"),
     type = "character",
     help = "Path to RDS file that contains the processed sce SCE object to cluster."
   ),
