@@ -14,8 +14,9 @@ process cluster_sce{
     script:
         """
         cluster_sce.R \
-          --input_sce_file ${processed_rds} \
+          --processed_sce_file ${processed_rds} \
           --cluster_algorithm ${params.cluster_algorithm} \
+          --cluster_weighting ${params.cluster_weighting} \
           --nearest_neighbors ${params.nearest_neighbors} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
         """
