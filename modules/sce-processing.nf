@@ -167,7 +167,6 @@ process post_process_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     tag "${meta.library_id}"
-    publishDir "${params.checkpoints_dir}/post_processed/${meta.sample_id}", mode: 'copy'
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     output:
