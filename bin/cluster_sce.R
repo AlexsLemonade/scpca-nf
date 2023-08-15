@@ -14,7 +14,7 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--input_sce_file"),
+    opt_str = c("--processed_sce_file"),
     type = "character",
     help = "Path to RDS file that contains the processed SCE object to cluster.
       Must contain a PCA matrix to calculate clusters from."
@@ -34,10 +34,17 @@ option_list <- list(
       Default is 'louvain'."
   ),
   make_option(
+    opt_str = c("--cluster_weighting"),
+    type = "character",
+    default = "jaccard",
+    help = "The type of weighting scheme to use for shared neighbors when performing
+      graph-based clustering. Default is 'jaccard'."
+  ),
+  make_option(
     opt_str = c("--nearest_neighbors"),
     type = "integer",
-    default = 15, 
-    help = "Nearest neighbors parameter to set for graph-based clustering."
+    default = 20, 
+    help = "Nearest neighbors parameter to set for graph-based clustering. Default is 20."
   ),
   make_option(
     opt_str = c("--random_seed"),
@@ -53,10 +60,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$seed)
 
 # check and read in SCE file
-if (!file.exists(opt$input_sce_file)) {
-  stop("Input `input_sce_file` is missing.")
+if (!file.exists(opt$processed_sce_file)) {
+  stop("Input `processed_sce_file` is missing.")
 }
-sce <- readr::read_rds(opt$input_sce_file)
+sce <- readr::read_rds(opt$processed_sce_file)
 
 
 # check pca_name is present
@@ -74,7 +81,7 @@ clusters <- bluster::clusterRows(
   pca_matrix,
   bluster::NNGraphParam(
     k = opt$nearest_neighbors,
-    type = "jaccard",
+    type = opt$cluster_weighting,
     cluster.fun = opt$cluster_algorithm
   )
 ) 
@@ -83,8 +90,9 @@ clusters <- bluster::clusterRows(
 # add clusters and associated parameters to SCE object
 sce$clusters <- clusters
 metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
+metadata(sce)$cluster_weighting <- opt$cluster_weighting
 metadata(sce)$cluster_nn <- opt$nearest_neighbors
 
 # export -------------------
-# we are overwriting the input file here:
-readr::write_rds(sce, opt$input_sce_file)
+# we are overwriting the `processed_sce_file` here
+readr::write_rds(sce, opt$processed_sce_file)
