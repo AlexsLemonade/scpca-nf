@@ -14,9 +14,10 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--sce_file"),
+    opt_str = c("-i", "--processed_sce_file"),
     type = "character",
-    help = "Path to RDS file that contains the SCE object to cluster."
+    default = "~/sce.rds",
+    help = "Path to RDS file that contains the processedsce SCE object to cluster."
   ),
   make_option(
     opt_str = c("--pca_name"),
@@ -33,13 +34,13 @@ option_list <- list(
       Default is 'leiden'."
   ),
   make_option(
-    opt_str = c("--nn"),
+    opt_str = c("--nearest_neighbors"),
     type = "integer",
     default = 15, 
     help = "Nearest neighbors parameter to set for graph-based clustering."
   ),
   make_option(
-    opt_str = c("--seed"),
+    opt_str = c("--random_seed"),
     type = "integer",
     help = "random seed to set during clustering."
   )
@@ -52,10 +53,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$seed)
 
 # check and read in SCE file
-if (!file.exists(opt$sce_file)) {
+if (!file.exists(opt$processed_sce_file)) {
   stop("Input `sce_file` is missing.")
 }
-sce <- readr::read_rds(opt$sce_file)
+sce <- readr::read_rds(opt$processed_sce_file)
 
 
 # check pca_name is present
@@ -71,17 +72,17 @@ pca_matrix <- reducedDim(sce, opt$pca_name)
 # cluster with specified algorithm
 clusters <- bluster::clusterRows(
   pca_matrix,
-  bluster::SNNGraphParam(
-    k = opt$nn,
+  bluster::NNGraphParam(
+    k = opt$nearest_neighbors,
     cluster.fun = opt$cluster_algorithm
   )
-)
+) 
+# TODO: may wish to modify additional cluster parameters depending on cluster algorithm
 
 # add clusters and associated parameters to SCE object
 sce$clusters <- clusters
 metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
-metadata(sce)$cluster_nn <- opt$nn
-
+metadata(sce)$cluster_nn <- opt$nearest_neighbors
 
 # export -------------------
-readr::write_rds(sce, opt$sce_file)
+readr::write_rds(sce, opt$processed_sce_file)
