@@ -73,6 +73,7 @@ All references obtained from the `PanglaoDB` source also require an `organs` col
 This should be a comma-separated list of all organs to include.
 To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
 This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
 4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
 This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
@@ -99,3 +100,11 @@ homo_sapiens
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
+
+## Adding additional cell type references
+
+Follow the below steps to add suppor for additional cell type references:
+
+1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
+2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
+3. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references/celltype`).
