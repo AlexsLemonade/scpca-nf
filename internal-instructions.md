@@ -103,7 +103,8 @@ homo_sapiens
 
 ## Adding additional cell type references
 
-Follow the below steps to add suppor for additional cell type references:
+Follow the below steps to add support for additional cell type references.
+We currently only support `celldex` and `PanglaoDB` for reference sources.
 
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
 2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
