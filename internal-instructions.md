@@ -69,8 +69,8 @@ This file is required as input to `scpca-nf`.
 
 3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type assignment using `add-celltypes.nf`.
 For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
-For all references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
-This should be a comma separated list of all organs to include.
+All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+This should be a comma-separated list of all organs to include.
 To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
 This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
 
