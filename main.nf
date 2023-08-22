@@ -40,7 +40,7 @@ include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_s
 include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
-
+include { cluster_sce } from './modules/cluster-sce.nf'
 
 
 // parameter checks
@@ -211,12 +211,15 @@ workflow {
 
   // **** Post processing and generate QC reports ****
   // combine all SCE outputs
-  // Make channel for all library sce files & run QC report
+  // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
+  
+  // Cluster SCE and export RDS files to publishDir
+  cluster_sce(post_process_sce.out)
 
   // generate QC reports
-  sce_qc_report(post_process_sce.out, report_template_tuple)
+  sce_qc_report(cluster_sce.out, report_template_tuple)
 
   // convert RNA component of SCE object to anndata
   sce_to_anndata(post_process_sce.out)

@@ -56,6 +56,11 @@ if(!file.exists(opt$input_sce_file)){
   stop("Missing input SCE file")
 }
 
+# check that output file ends in rds
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+  stop("output sce file name must end in .rds")
+}
+
 # check that references all exist
 singler_model_file <- opt$singler_model_file
 if(!file.exists(singler_model_file)) {
