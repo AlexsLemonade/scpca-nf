@@ -36,7 +36,7 @@ include { map_quant_feature } from './modules/af-features.nf' addParams(cell_bar
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf' addParams(sample_metafile: params.sample_metafile)
+include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
@@ -164,7 +164,7 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = generate_sce(rna_quant_ch)
+  rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
 
 
   // **** Process feature data ****
@@ -177,7 +177,7 @@ workflow {
     .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
-  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, file(params.sample_metafile))
     .branch{ // branch cellhash libs
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
@@ -214,7 +214,7 @@ workflow {
   // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
-  
+
   // Cluster SCE and export RDS files to publishDir
   cluster_sce(post_process_sce.out)
 

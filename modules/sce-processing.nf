@@ -7,7 +7,7 @@ process make_unfiltered_sce{
     tag "${meta.library_id}"
     input:
         tuple val(meta), path(alevin_dir), path(mito_file), path(ref_gtf)
-        path sample_meta_file
+        path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -21,7 +21,7 @@ process make_unfiltered_sce{
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
-          --sample_metadata_file ${sample_meta_file} \
+          --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
         """
     stub:
@@ -41,6 +41,7 @@ process make_merged_unfiltered_sce{
         tuple val(feature_meta), path(feature_alevin_dir),
               val (meta), path(alevin_dir),
               path(mito_file), path(ref_gtf)
+        path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -65,6 +66,7 @@ process make_merged_unfiltered_sce{
           --technology ${meta.technology} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
+          --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
         """
     stub:
@@ -194,12 +196,14 @@ process post_process_sce{
 
 workflow generate_sce {
   // generate rds files for RNA-only samples
-  take: quant_channel
+  take:
+    quant_channel
+    sample_metafile
   main:
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file), file(it[0].ref_gtf)]}
 
-    make_unfiltered_sce(sce_ch, file(params.sample_metafile))
+    make_unfiltered_sce(sce_ch, sample_metafile)
 
     empty_file = file("${projectDir}/assets/NO_FILE.txt")
 
@@ -216,13 +220,15 @@ workflow generate_sce {
 workflow generate_merged_sce {
   // generate rds files for feature + quant samples
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
-  take: feature_quant_channel
+  take:
+    feature_quant_channel
+    sample_metafile
   main:
     feature_sce_ch = feature_quant_channel
       // RNA meta is in the third slot here
       .map{it.toList() + [file(it[2].mito_file), file(it[2].ref_gtf)]}
 
-    make_merged_unfiltered_sce(feature_sce_ch)
+    make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
