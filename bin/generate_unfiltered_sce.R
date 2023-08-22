@@ -102,10 +102,6 @@ gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
 # parse sample id list
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
-# read in sample metadata and filter to sample ids
-sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
-  dplyr::filter(scpca_sample_id %in% sample_ids)
-
 # set include unspliced for non feature data
 include_unspliced <- !opt$spliced_only
 
@@ -139,12 +135,14 @@ unfiltered_sce <- unfiltered_sce |>
   add_gene_symbols(gene_info = gtf) |>
   scuttle::addPerFeatureQCMetrics()
 
-# filter the sample metadata to only include samples present in the library
-sample_metadata <- sample_metadata_df  |>
-  dplyr::filter(scpca_sample_id %in% sample_ids)
+# read in sample metadata and filter to sample ids
+sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |> 
+  # rename sample id column
+  dplyr::rename(sample_id = "scpca_sample_id")
 
 # add dataframe with sample metadata to sce metadata
-metadata(unfiltered_sce)$sample_metadata <- sample_metadata
+unfiltered_sce <- add_sample_metadata(sce = unfiltered_sce,
+                                      metadata_df = sample_metadata_df)
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
