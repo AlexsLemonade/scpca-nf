@@ -51,7 +51,8 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if (!file(params.sample_metafile).exists()) {
+sample_metafile = file(params.sample_metafile)
+if (!sample_metafile.exists()) {
   log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
   param_error = true
 }
@@ -164,7 +165,7 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
+  rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
 
 
   // **** Process feature data ****
@@ -177,7 +178,7 @@ workflow {
     .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
-  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, file(params.sample_metafile))
+  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
