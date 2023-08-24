@@ -136,9 +136,10 @@ unfiltered_sce <- unfiltered_sce |>
   scuttle::addPerFeatureQCMetrics()
 
 # read in sample metadata and filter to sample ids
-sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |> 
+sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
   # rename sample id column
-  dplyr::rename("sample_id" = "scpca_sample_id")
+  dplyr::rename("sample_id" = "scpca_sample_id",
+                "library_id" = "scpca_library_id")
 
 # add dataframe with sample metadata to sce metadata
 unfiltered_sce <- add_sample_metadata(sce = unfiltered_sce,
