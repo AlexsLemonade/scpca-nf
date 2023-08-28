@@ -52,14 +52,17 @@ if(!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))){
 # read in sce
 sce <- readr::read_rds(opt$input_sce_file)
 
+# grab sample metadata
+sample_metadata <- metadata(sce)$sample_metadata
+
 # add library id as a column to the sce object
 sce$library_id <- metadata(sce)$library_id
 
-# add sample metadata to sce
+# add sample metadata to colData sce
 sce <- scpcaTools::metadata_to_coldata(sce,
-                                       batch_column = "library_id")
+                                       join_columns = "library_id")
 # remove sample metadata from metadata, otherwise conflicts with converting object
-metadata(sce) <- metadata(sce)[!names(metadata(sce)) %in% "sample_metadata"]
+metadata(sce) <- metadata(sce)[!metadata(sce) %in% sample_metadata]
 
 # export sce as anndata object
 scpcaTools::sce_to_anndata(
@@ -82,6 +85,19 @@ if(!is.null(opt$feature_name)){
 
   # extract altExp
   alt_sce <- altExp(sce, opt$feature_name)
+
+  # add library ID to colData
+  metadata(alt_sce)$library_id <- metadata(sce)$library_id
+
+  # add sample metadata to alt sce metadata
+  metadata(alt_sce)$sample_metadata <- sample_metadata
+
+  # add sample metadata to alt sce coldata
+  alt_sce <- scpcaTools::metadata_to_coldata(alt_sce,
+                                             join_columns = "library_id")
+
+  # remove sample metadata from metadata, otherwise conflicts with converting object
+  metadata(sce) <- metadata(sce)[!metadata(sce) %in% sample_metadata]
 
   # export altExp sce as anndata object
   scpcaTools::sce_to_anndata(
