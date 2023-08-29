@@ -152,6 +152,5 @@ create_celltype_cluster_heatmap(
   celltype_df$clusters, 
   "Submitter-provided annotations"
 )
-
 ```
 
