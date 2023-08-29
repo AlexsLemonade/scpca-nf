@@ -11,7 +11,7 @@ Marker genes for celltyping were obtained from [PanglaoDB](https://panglaodb.se/
 
 Cells annotated as "Unknown cell type" represent cells which could not be confidently identified using the given annotation method. 
 
-If available, these results will be compared to celltype annotations provided by the data's originating research group. 
+If available, these results will be compared to celltype annotations provided by the data's originating research group ("submitter-provided celltype annotations".)
 
 ## Celltype annotation summary
 
@@ -66,14 +66,14 @@ create_celltype_n_table <- function(df, celltype_column) {
 }
 ```
 
-##### `SingleR`
+### `SingleR` celltype annotations
 
 ```{r}
 create_celltype_n_table(celltype_df, singler_celltype_annotation)
 ```
 
 
-##### `CellAssign`
+### `CellAssign` celltype annotations
 
 ```{r}
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
@@ -81,7 +81,7 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 
 
 ```{r, eval = has_submitter_celltypes}
-asis_output("##### Submitter-provided annotations\n")
+asis_output("### Submitter-provided celltype annotations\n")
 # TODO: check column name once submitter annotations are actually added to workflow
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
