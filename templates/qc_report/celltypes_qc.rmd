@@ -145,3 +145,13 @@ create_celltype_cluster_heatmap(
   "CellAssign annotations"
 )
 ```
+
+```{r, eval = has_submitter_celltypes, fig.height=5, fig.width=7}
+create_celltype_cluster_heatmap(
+  celltype_df$submitter_celltype_annotation, 
+  celltype_df$clusters, 
+  "Submitter-provided annotations"
+)
+
+```
+
