@@ -22,21 +22,26 @@ celltype_df <- colData(processed_sce) |>
   # barcodes to a column
   tibble::rownames_to_column(var = "barcode") |>
   # `celltype_cols` was defined in the main qc_report.rmd
-  dplyr::select(barcode, all_of(celltype_cols))
-
-
+  dplyr::select(barcode, all_of(celltype_cols)) |>
+  # change NA/other to "Unknown cell type"
+  dplyr::mutate(
+    singler_celltype_annotation = ifelse(
+      is.na(singler_celltype_annotation),
+      "Unknown cell type", 
+      singler_celltype_annotation
+    ),
+     cellassign_celltype_annotation = ifelse(
+      cellassign_celltype_annotation == "other",
+      "Unknown cell type", 
+      cellassign_celltype_annotation
+    )
+  )
+    
 # Define a helper function to create tables for singler and cellassign annotations
 create_celltype_n_table <- function(df, celltype_column) {
   df |>
     # create column with better name 
     dplyr::rename(`Annotated celltype` = {{celltype_column}}) |>
-    # unified name for unknown cells
-    dplyr::mutate(`Annotated celltype` = ifelse(
-      # singler gives NA and cellassign (as we wrote it) gives "other" for unknown
-      is.na(`Annotated celltype`) | `Annotated celltype` == "other", 
-      "Unknown cell type",
-      `Annotated celltype`)
-    ) |>
     dplyr::count(`Annotated celltype`) |>
     dplyr::arrange(-n) |>
     # make this column a factor with unknown at the end
