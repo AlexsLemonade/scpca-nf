@@ -62,7 +62,7 @@ sce$library_id <- metadata(sce)$library_id
 sce <- scpcaTools::metadata_to_coldata(sce,
                                        join_columns = "library_id")
 # remove sample metadata from metadata, otherwise conflicts with converting object
-metadata(sce) <- metadata(sce)[!metadata(sce) %in% sample_metadata]
+metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
 
 # export sce as anndata object
 scpcaTools::sce_to_anndata(
@@ -87,7 +87,7 @@ if(!is.null(opt$feature_name)){
   alt_sce <- altExp(sce, opt$feature_name)
 
   # add library ID to colData
-  metadata(alt_sce)$library_id <- metadata(sce)$library_id
+  alt_sce$library_id <- metadata(sce)$library_id
 
   # add sample metadata to alt sce metadata
   metadata(alt_sce)$sample_metadata <- sample_metadata

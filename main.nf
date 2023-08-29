@@ -225,7 +225,7 @@ workflow {
   // convert SCE object to anndata
   // do this for everything but multiplexed libraries
   anndata_ch = post_process_sce.out
-    .filter{!(it[0]["library_id"] in genetic_multiplex_libs.getVal())}
+    .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
    // **** Process Spatial Transcriptomics data ****
