@@ -21,8 +21,9 @@ celltype_df <- colData(processed_sce) |>
   as.data.frame() |>
   # barcodes to a column
   tibble::rownames_to_column(var = "barcode") |>
-  # `celltype_cols` was defined in the main qc_report.rmd
-  dplyr::select(barcode, all_of(celltype_cols)) |>
+  # keep only cell name, celltyping, and clusters
+  # note that `celltype_cols` was defined in the main qc_report.rmd
+  dplyr::select(barcode, all_of(celltype_cols), clusters) |>
   # change NA/other to "Unknown cell type"
   dplyr::mutate(
     singler_celltype_annotation = ifelse(
@@ -89,4 +90,58 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 asis_output("### Submitter-provided celltype annotations\n")
 # TODO: check column name once submitter annotations are actually added to workflow
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
+```
+
+
+## Celltype annotations and clusters
+
+Below, we show heatmaps comparing celltype annotations (along the y-axis) to clustering results (along the x-axis).
+Clusters were obtained using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
+
+```{r}
+# Helper function for making a heatmap
+create_celltype_cluster_heatmap <- function(celltype_vector,
+                                            cluster_vector, 
+                                            title) {
+  
+  # Ensure factor order: descending order with unknown at the end
+  celltype_vector <- celltype_vector |>
+    forcats::fct_infreq() |>
+    forcats::fct_relevel("Unknown cell type", after = Inf)
+  
+    # build a matrix with cluster identity as rows and celltype as columns
+    label_mtx <- table(celltype_vector,
+                       cluster_vector,
+                       useNA = "ifany") |> 
+      log1p() # log transform for visualization
+    
+    # heatmap
+    ComplexHeatmap::pheatmap(label_mtx,
+                       # TODO: cluster or specify row order based on number of cells?
+                       cluster_rows = FALSE, 
+                       cluster_cols = FALSE,
+                       row_order = rownames(label_mtx), # use factor levels
+                       row_names_side = "left", # show cell type labels on left
+                       fontsize_col = 12,    # font size for clusters types
+                       fontsize_row = 7,    # font size for celltypes
+                       angle_col = "0", # don't rotate column names (clusters)
+                       heatmap_legend_param = list(title = "Log(Number of cells)", 
+                                                   legend_height = unit(4, "cm")),
+                       main = title)
+}
+```
+
+
+```{r fig.height=5, fig.width=7}
+create_celltype_cluster_heatmap(
+  celltype_df$singler_celltype_annotation, 
+  celltype_df$clusters, 
+  "SingleR annotations"
+)
+
+create_celltype_cluster_heatmap(
+  celltype_df$cellassign_celltype_annotation, 
+  celltype_df$clusters, 
+  "CellAssign annotations"
+)
 ```
