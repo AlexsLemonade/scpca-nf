@@ -1,0 +1,87 @@
+# Celltype annotation results
+
+This section details results from performing celltype annotation.
+Two complementary methods were used to perform celltyping:
+
+* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
+The [`BlueprintEncode` reference](https://rdrr.io/github/LTLA/celldex/man/BlueprintEncodeData.html) from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) was used as the reference dataset.
+This reference contains stroma and immune cells identified by Blueprint and Encode.
+* [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
+Marker genes for celltyping were obtained from [PanglaoDB](https://panglaodb.se/).
+
+Cells annotated as "Unknown cell type" represent cells which could not be confidently identified using the given annotation method. 
+
+If available, these results will be compared to celltype annotations provided by the data's originating research group. 
+
+## Celltype annotation summary
+
+```{r}
+# Create data frame of celltypes
+celltype_df <- colData(processed_sce) |>
+  as.data.frame() |>
+  # barcodes to a column
+  tibble::rownames_to_column(var = "barcode") |>
+  # `celltype_cols` was defined in the main qc_report.rmd
+  dplyr::select(barcode, all_of(celltype_cols))
+
+
+# Define a helper function to create tables for singler and cellassign annotations
+create_celltype_n_table <- function(df, celltype_column) {
+  df |>
+    # create column with better name 
+    dplyr::rename(`Annotated celltype` = {{celltype_column}}) |>
+    # unified name for unknown cells
+    dplyr::mutate(`Annotated celltype` = ifelse(
+      # singler gives NA and cellassign (as we wrote it) gives "other" for unknown
+      is.na(`Annotated celltype`) | `Annotated celltype` == "other", 
+      "Unknown cell type",
+      `Annotated celltype`)
+    ) |>
+    dplyr::count(`Annotated celltype`) |>
+    dplyr::arrange(-n) |>
+    # make this column a factor with unknown at the end
+    dplyr::mutate(
+      # Add percentage column
+      `Percent of cells` =  paste0(round(n/sum(n) * 100, digits = 2), "%"),
+      # set column order in descending order of n, but with unknown at the end
+      `Annotated celltype` = forcats::fct_reorder(`Annotated celltype`, n, .desc=TRUE),
+      `Annotated celltype` = forcats::fct_relevel(`Annotated celltype`, 
+                                                  "Unknown cell type", 
+                                                   after = Inf)
+    ) |>
+    # arrange on `Annotated celltype`
+    dplyr::arrange(`Annotated celltype`) |>
+    # set column order
+    dplyr::select(
+      `Annotated celltype`,
+      `Number of cells` = n,
+      `Percent of cells`
+    ) |>
+    # kable formatting
+    knitr::kable(align = 'r') |>
+    kableExtra::kable_styling(bootstrap_options = "striped",
+                             full_width = FALSE,
+                             position = "left") |>
+    kableExtra::column_spec(2, monospace = TRUE)
+}
+```
+
+##### `SingleR`
+
+```{r}
+create_celltype_n_table(celltype_df, singler_celltype_annotation)
+```
+
+
+##### `CellAssign`
+
+```{r}
+create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
+```
+
+
+```{r, eval = has_submitter_celltypes}
+asis_output("##### Submitter-provided annotations\n")
+# TODO: check column name once submitter annotations are actually added to workflow
+create_celltype_n_table(celltype_df, submitter_celltype_annotation)
+```
