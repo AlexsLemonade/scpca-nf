@@ -58,11 +58,23 @@ sample_metadata <- metadata(sce)$sample_metadata
 # add library id as a column to the sce object
 sce$library_id <- metadata(sce)$library_id
 
+# add is_primary_data column only needed for anndata objects
+sce$is_primary_data <- FALSE
+
 # add sample metadata to colData sce
 sce <- scpcaTools::metadata_to_coldata(sce,
                                        join_columns = "library_id")
 # remove sample metadata from sce metadata, otherwise conflicts with converting object
 metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
+
+# modify rowData
+# we don't do any gene filtering between normalized and raw counts matrix
+rowData(sce)$feature_is_filtered <- FALSE
+
+# paste X to reduced dim names if present
+if(!is.null(reducedDimNames(sce))){
+  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+}
 
 # export sce as anndata object
 scpcaTools::sce_to_anndata(
@@ -97,7 +109,10 @@ if(!is.null(opt$feature_name)){
                                              join_columns = "library_id")
 
   # remove sample metadata from metadata, otherwise conflicts with converting object
-  metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
+  metadata(alt_sce) <- metadata(alt_sce)[names(metadata(alt_sce)) != "sample_metadata"]
+
+  # add feature is filtered column
+  rowData(alt_sce)$feature_is_filtered <- FALSE
 
   # export altExp sce as anndata object
   scpcaTools::sce_to_anndata(
