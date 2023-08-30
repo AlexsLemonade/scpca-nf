@@ -104,11 +104,14 @@ if (has_cellhash) {
 # check for umap and celltypes, but need to be sure that processed_sce exists first
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
+  
   # these metadata fields are only present if celltyping has been performed:
-  has_celltypes <- all(c("has_singler", "has_cellassign") %in% names(metadata(processed_sce)))
+  has_singler <- "has_singler" %in% names(metadata(processed_sce))
+  has_cellassign <- "has_cellassign" %in% names(metadata(processed_sce))
+  
 } else {
   has_umap <- FALSE
-  has_celltypes <- FALSE
+  has_celltypes <- FALSE # use overall variable here for QC report logic
 }
 
 # Note: later, we will also check for submitter-provided annotations
