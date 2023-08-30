@@ -1,4 +1,4 @@
-# Celltype annotation results
+# Celltype Annotation Summary
 
 This section details results from performing celltype annotation.
 Two complementary methods were used to perform celltyping:
@@ -13,7 +13,7 @@ Cells annotated as "Unknown cell type" represent cells which could not be confid
 
 If available, these results will be compared to celltype annotations provided by the data's originating research group ("submitter-provided celltype annotations".)
 
-## Celltype annotation summary
+## Celltype Annotation Statistics
 
 ```{r}
 # Create data frame of celltypes
