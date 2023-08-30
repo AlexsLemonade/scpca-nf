@@ -76,5 +76,10 @@ sce$cellassign_max_prediction <- celltype_assignments$prediction
 metadata(sce)$cellassign_predictions <- predictions
 metadata(sce)$cellassign_reference <- opt$reference_name
 
-# export annotated object with cellassign assignments 
+# add cellassign as celltype method
+# note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+#  come out to just the string "cellassign"
+metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
+
+# export annotated object with cellassign assignments
 readr::write_rds(sce, opt$output_sce_file)

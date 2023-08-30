@@ -101,11 +101,26 @@ if (has_cellhash) {
   modalities <- c(modalities, "Multiplex")
 }
 
-# check for umap, need to be sure that processed_sce exists first
+# check for umap and celltypes, but need to be sure that processed_sce exists first
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
+  
+  has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
+  has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+  
+  # Note: later, we will also check for submitter-provided annotations
+  # for now, we will say this is false
+  has_submitter_celltypes <- FALSE
+  
+  # If at least 1 is present, we have cell type annotations.
+  if ( any(c(has_singler, has_cellassign, has_submitter_celltypes))) {
+    # use overall variable here for QC report logic
+    has_celltypes <- TRUE 
+  }
+  
 } else {
   has_umap <- FALSE
+  has_celltypes <- FALSE
 }
 ```
 
@@ -495,6 +510,11 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 
 <!-- Next section only included if multiplex data is present -->
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
+
+```
+
+<!-- Next section only included if celltype annotations are present -->
+```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 
 ```
 
