@@ -135,28 +135,32 @@ All other cell types are grouped together and labeled "Other cell type" (not to 
 
 
 ```{r}
-# Create dataset for plotting UMAPs with collapsed cell types
-n_celltypes <- 8
-
+# Create dataset for plotting UMAPs with lumped cell types
 umap_df <- tibble::tibble(
   UMAP1 = unname(reducedDim(processed_sce, "UMAP")[,1]),
   UMAP2 = unname(reducedDim(processed_sce, "UMAP")[,2]),
   clusters = processed_sce$clusters
 )
 
-if (has_singler) {
-  umap_df <- umap_df |>
-    dplyr::mutate(singler = celltype_df$singler_celltype_annotation,
+# helper function for lumping cell types
+lump_celltypes <- function(umap_df, 
+                           orginal_column_string, 
+                           new_column, 
+                           n_celltypes = 8) {
+  umap_df |>
+    dplyr::mutate({{new_column}} := celltype_df[[orginal_column_string]],
                   # lump the top 10
-                  singler = forcats::fct_lump_n(singler, n_celltypes, other_level = "Other cell type")
+                  {{new_column}} := forcats::fct_lump_n({{new_column}},
+                                                        n_celltypes, 
+                                                        other_level = "Other cell type")
                   )
 }
+
+if (has_singler) {
+  umap_df <- lump_celltypes(umap_df, "singler_celltype_annotation", singler)
+}
 if (has_cellassign) {
-  umap_df <- umap_df |>
-    dplyr::mutate(cellassign = celltype_df$cellassign_celltype_annotation,
-                  # lump the top 10
-                  cellassign = forcats::fct_lump_n(cellassign, n_celltypes, other_level = "Other cell type")
-                  )
+  umap_df <- lump_celltypes(umap_df, "cellassign_celltype_annotation", cellassign)
 }
 # Note that later, we will want to do this with submitter cell types too, if present.
 ```
