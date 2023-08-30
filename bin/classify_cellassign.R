@@ -69,7 +69,7 @@ celltype_assignments <- data.frame(barcode = sce$barcodes) |>
   dplyr::left_join(celltype_assignments, by = "barcode")
 
 # add cell type and prediction to colData
-sce$cellassign_celltype_annotation <- celltype_assignments
+sce$cellassign_celltype_annotation <- celltype_assignments$celltype
 sce$cellassign_max_prediction <- celltype_assignments$prediction
 
 # add entire predictions matrix and ref name to metadata
