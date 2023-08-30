@@ -222,8 +222,11 @@ workflow {
   // generate QC reports
   sce_qc_report(cluster_sce.out, report_template_tuple)
 
-  // convert RNA component of SCE object to anndata
-  sce_to_anndata(post_process_sce.out)
+  // convert SCE object to anndata
+  // do this for everything but multiplexed libraries
+  anndata_ch = post_process_sce.out
+    .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
+  sce_to_anndata(anndata_ch)
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
