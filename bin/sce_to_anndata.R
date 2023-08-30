@@ -61,7 +61,7 @@ sce$library_id <- metadata(sce)$library_id
 # add sample metadata to colData sce
 sce <- scpcaTools::metadata_to_coldata(sce,
                                        join_columns = "library_id")
-# remove sample metadata from metadata, otherwise conflicts with converting object
+# remove sample metadata from sce metadata, otherwise conflicts with converting object
 metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
 
 # export sce as anndata object
