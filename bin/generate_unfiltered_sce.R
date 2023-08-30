@@ -136,7 +136,9 @@ sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
   # we need this so we are able to merge sample metadata with colData later
   dplyr::mutate(library_id = opt$library_id) |>
   # remove upload date as we don't provide this on the portal
-  dplyr::select(-upload_date)
+  dplyr::select(-upload_date) |>
+  # rename to donor id
+  dplyr::rename("donor_id" = "participant_id")
 
 # add per cell and per gene statistics to colData and rowData
 unfiltered_sce <- unfiltered_sce |>
