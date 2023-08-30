@@ -97,7 +97,7 @@ if(!is.null(opt$feature_name)){
                                              join_columns = "library_id")
 
   # remove sample metadata from metadata, otherwise conflicts with converting object
-  metadata(sce) <- metadata(sce)[!metadata(sce) %in% sample_metadata]
+  metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
 
   # export altExp sce as anndata object
   scpcaTools::sce_to_anndata(
