@@ -119,10 +119,116 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
 
+
+
+
 ## Cell type annotations and clusters
 
+
+### UMAPs
+
+In this section, we show UMAPs colored by clusters and cell types, for each cell typing method used.
+Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
+
+For legibility, only the eight most common cell types are shown.
+All other cell types are grouped together and labeled "Other cell type" (not to be confused with "Unknown cell types," which represent cells that could not be classified).
+
+
+```{r}
+# Create dataset for plotting UMAPs with collapsed cell types
+n_celltypes <- 8
+
+umap_df <- tibble::tibble(
+  UMAP1 = unname(reducedDim(processed_sce, "UMAP")[,1]),
+  UMAP2 = unname(reducedDim(processed_sce, "UMAP")[,2]),
+  clusters = processed_sce$clusters
+)
+
+if (has_singler) {
+  umap_df <- umap_df |>
+    dplyr::mutate(singler = celltype_df$singler_celltype_annotation,
+                  # lump the top 10
+                  singler = forcats::fct_lump_n(singler, n_celltypes, other_level = "Other cell type")
+                  )
+}
+if (has_cellassign) {
+  umap_df <- umap_df |>
+    dplyr::mutate(cellassign = celltype_df$cellassign_celltype_annotation,
+                  # lump the top 10
+                  cellassign = forcats::fct_lump_n(cellassign, n_celltypes, other_level = "Other cell type")
+                  )
+}
+# Note that later, we will want to do this with submitter cell types too, if present.
+```
+
+
+```{r}
+# Define helper function for making UMAPs in this section
+#  this function uses the default palette, which can be customized when
+#  calling the function
+plot_umap <- function(umap_df, 
+                      color_variable,
+                      legend_title, 
+                      legend_nrow = 2) {
+  
+  ggplot(umap_df) + 
+    aes(x = UMAP1, 
+        y = UMAP2, 
+        color = {{color_variable}}) + 
+    geom_point(size = 0.3,
+               alpha = 0.5) + 
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) + 
+    scale_y_continuous(labels = NULL, breaks = NULL) + 
+    coord_fixed() + 
+    guides(
+      color = guide_legend(title = legend_title, 
+                           nrow = legend_nrow,
+                           # more visible points in legend
+                           override.aes = list(alpha = 1,
+                                               size = 1.5))) + 
+    theme(legend.position = "bottom")
+}
+```
+
+<!-- First UMAP: clusters --> 
+```{r message=FALSE, warning=FALSE}
+plot_umap(umap_df, 
+          clusters,
+          "Clusters") +
+  ggtitle("UMAP colored by clusters")
+```
+
+<!-- Now, UMAPs of cell types, where present -->
+
+```{r eval=has_singler, message=FALSE, warning=FALSE}
+plot_umap(umap_df, 
+          singler,
+          "Cell types",
+          legend_nrow = 4) +
+  ggtitle("UMAP colored by SingleR annotations")
+```
+
+
+```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
+knitr::asis_output("##### CellAssign cell types")
+
+plot_umap(umap_df, 
+          cellassign,
+          "Cell types",
+          legend_nrow = 4) +
+  ggtitle("UMAP colored by SingleR annotations")
+```
+
+
+```{r eval=has_submitter_celltypes, message=FALSE, warning=FALSE}
+knitr::asis_output("#### Submitter-provided cell types")
+# Nothing in this chunk yet - it's a placeholder
+```
+
+### Heatmaps
+
 Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
-Clusters were obtained using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
 
 ```{r}
 # Helper function for making a heatmap
