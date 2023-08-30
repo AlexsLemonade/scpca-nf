@@ -108,10 +108,14 @@ if (has_processed) {
   # these metadata fields are only present if celltyping has been performed:
   has_singler <- "has_singler" %in% names(metadata(processed_sce))
   has_cellassign <- "has_cellassign" %in% names(metadata(processed_sce))
+  if (has_singler | has_cellassign) {
+    # use overall variable here for QC report logic
+    has_celltypes <- TRUE 
+  }
   
 } else {
   has_umap <- FALSE
-  has_celltypes <- FALSE # use overall variable here for QC report logic
+  has_celltypes <- FALSE
 }
 
 # Note: later, we will also check for submitter-provided annotations
