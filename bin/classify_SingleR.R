@@ -115,8 +115,12 @@ if (opt$label_name == "label.ont") {
 metadata(sce)$singler_results <- singler_results
 metadata(sce)$singler_reference <- singler_model$reference_name
 metadata(sce)$singler_reference_label <- singler_model$reference_label
-# add indicator variable that singler predictions are present
-metadata(sce)$has_singler <- TRUE
+
+# add singler as celltype method
+# note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+#  come out to just the string "singler"
+metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
+
 
 # export sce with annotations added
 readr::write_rds(sce,
