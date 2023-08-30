@@ -40,20 +40,29 @@ celltype_df <- colData(processed_sce) |>
   tibble::rownames_to_column(var = "barcode") |>
   dplyr::select(barcode, 
                 contains("singler"),
-                contains("cellassign")) |>
-  # change NA/other to "Unknown cell type"
+                contains("cellassign"))
+
+# Reformat NA (singler) and other (cellassign) to "Unknown cell type"
+if (has_singler) {
+celltype_df <- celltype_df |>
   dplyr::mutate(
     singler_celltype_annotation = ifelse(
       is.na(singler_celltype_annotation),
       "Unknown cell type", 
       singler_celltype_annotation
-    ),
+    )
+  )
+}
+if (has_cellassign) {
+  celltype_df <- celltype_df |>
+    dplyr::mutate(
      cellassign_celltype_annotation = ifelse(
       cellassign_celltype_annotation == "other",
       "Unknown cell type", 
       cellassign_celltype_annotation
     )
   )
+}
     
 # Define a helper function to create tables for singler and cellassign annotations
 create_celltype_n_table <- function(df, celltype_column) {
