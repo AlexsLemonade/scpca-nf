@@ -7,19 +7,22 @@ The following method(s) were used to perform cell typing:
 
 ```{r, eval = has_singler}
 knitr::asis_output(
-"
-* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
-The folllowing reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used:
-")
-metadata(processed_sce)$singler_reference # TODO: format??
+  glue::glue(
+  "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
+  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
+  )
+)
 ```
+
 
 ```{r, eval = has_cellassign}
 knitr::asis_output(
-"
-* [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
-Marker genes for celltyping were obtained from [PanglaoDB](https://panglaodb.se/).
-")
+  glue::glue(
+  "
+  * [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
+  Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
+  ")
+)
 ```
 
 
