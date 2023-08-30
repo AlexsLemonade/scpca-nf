@@ -59,6 +59,11 @@ option_list <- list(
     help = "sample id(s). If more than one, separated by commas and/or semicolons."
   ),
   make_option(
+    opt_str = c("--sample_metadata_file"),
+    type = "character",
+    help = "path to tsv file containing sample metadata"
+  ),
+  make_option(
     opt_str = c("--spliced_only"),
     action = "store_true",
     default = FALSE,
@@ -83,6 +88,11 @@ if(!file.exists(opt$gtf_file)){
   stop("gtf file not found.")
 }
 
+# check that sample metadata file exists
+if(!file.exists(opt$sample_metadata_file)){
+  stop("sample metadata file not found.")
+}
+
 # read in mitochondrial gene list
 mito_genes <- unique(scan(opt$mito_file, what = "character"))
 
@@ -103,7 +113,6 @@ unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
                               library_id = opt$library_id,
                               sample_id = sample_ids)
 
-
 # read and merge feature counts if present
 if (opt$feature_dir != ""){
   feature_sce <- read_alevin(quant_dir = opt$feature_dir,
@@ -118,12 +127,25 @@ if (opt$feature_dir != ""){
   altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
 }
 
+
+# read in sample metadata and filter to sample ids
+sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
+  # rename sample id column
+  dplyr::rename("sample_id" = "scpca_sample_id") |>
+  # add library ID as column in sample metadata
+  # we need this so we are able to merge sample metadata with colData later
+  dplyr::mutate(library_id = opt$library_id) |>
+  # remove upload date as we don't provide this on the portal
+  dplyr::select(-upload_date)
+
 # add per cell and per gene statistics to colData and rowData
 unfiltered_sce <- unfiltered_sce |>
   add_cell_mito_qc(mito = mito_genes) |>
  # add gene symbols to rowData
   add_gene_symbols(gene_info = gtf) |>
-  scuttle::addPerFeatureQCMetrics()
+  scuttle::addPerFeatureQCMetrics() |>
+  # add dataframe with sample metadata to sce metadata
+  add_sample_metadata(metadata_df = sample_metadata_df)
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")

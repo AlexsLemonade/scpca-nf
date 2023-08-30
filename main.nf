@@ -51,6 +51,12 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
+sample_metafile = file(params.sample_metafile)
+if (!sample_metafile.exists()) {
+  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
+  param_error = true
+}
+
 resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
 if (!resolution_strategies.contains(params.af_resolution)) {
   log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
@@ -159,7 +165,7 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = generate_sce(rna_quant_ch)
+  rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
 
 
   // **** Process feature data ****
@@ -172,7 +178,7 @@ workflow {
     .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
-  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
@@ -209,15 +215,18 @@ workflow {
   // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
-  
+
   // Cluster SCE and export RDS files to publishDir
   cluster_sce(post_process_sce.out)
 
   // generate QC reports
   sce_qc_report(cluster_sce.out, report_template_tuple)
 
-  // convert RNA component of SCE object to anndata
-  sce_to_anndata(post_process_sce.out)
+  // convert SCE object to anndata
+  // do this for everything but multiplexed libraries
+  anndata_ch = post_process_sce.out
+    .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
+  sce_to_anndata(anndata_ch)
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
