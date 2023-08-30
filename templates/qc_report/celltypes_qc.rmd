@@ -211,18 +211,15 @@ plot_umap(umap_df,
 
 
 ```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
-knitr::asis_output("##### CellAssign cell types")
-
 plot_umap(umap_df, 
           cellassign,
           "Cell types",
           legend_nrow = 4) +
-  ggtitle("UMAP colored by SingleR annotations")
+  ggtitle("UMAP colored by CellAssign annotations")
 ```
 
 
 ```{r eval=has_submitter_celltypes, message=FALSE, warning=FALSE}
-knitr::asis_output("#### Submitter-provided cell types")
 # Nothing in this chunk yet - it's a placeholder
 ```
 
