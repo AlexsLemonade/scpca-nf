@@ -69,12 +69,14 @@ celltype_assignments <- data.frame(barcode = sce$barcodes) |>
   dplyr::left_join(celltype_assignments, by = "barcode")
 
 # add cell type and prediction to colData
-sce$cellassign_celltype_annotation <- celltype_assignments
+sce$cellassign_celltype_annotation <- celltype_assignments$celltype
 sce$cellassign_max_prediction <- celltype_assignments$prediction
 
 # add entire predictions matrix and ref name to metadata
 metadata(sce)$cellassign_predictions <- predictions
 metadata(sce)$cellassign_reference <- opt$reference_name
+# add indicator variable that cellassign predictions are present
+metadata(sce)$has_cellassign <- TRUE
 
-# export annotated object with cellassign assignments 
+# export annotated object with cellassign assignments
 readr::write_rds(sce, opt$output_sce_file)

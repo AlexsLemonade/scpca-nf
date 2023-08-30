@@ -115,7 +115,8 @@ if (opt$label_name == "label.ont") {
 metadata(sce)$singler_results <- singler_results
 metadata(sce)$singler_reference <- singler_model$reference_name
 metadata(sce)$singler_reference_label <- singler_model$reference_label
-
+# add indicator variable that singler predictions are present
+metadata(sce)$has_singler <- TRUE
 
 # export sce with annotations added
 readr::write_rds(sce,

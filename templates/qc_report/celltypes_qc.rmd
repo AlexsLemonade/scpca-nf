@@ -1,29 +1,48 @@
-# Celltype annotation results
+# Cell type Annotation Summary
 
-This section details results from performing celltype annotation.
-Two complementary methods were used to perform celltyping:
+This section details results from performing cell type annotation.
+The following method(s) were used to perform cell typing:
 
-* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
-The [`BlueprintEncode` reference](https://rdrr.io/github/LTLA/celldex/man/BlueprintEncodeData.html) from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) was used as the reference dataset.
-This reference contains stroma and immune cells identified by Blueprint and Encode.
-* [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
-Marker genes for celltyping were obtained from [PanglaoDB](https://panglaodb.se/).
+<!-- Background depends on which cell type methods were used -->
+
+```{r, eval = has_singler}
+knitr::asis_output(
+  glue::glue(
+  "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
+  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
+  )
+)
+```
+
+
+```{r, eval = has_cellassign}
+knitr::asis_output(
+  glue::glue(
+  "
+  * [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
+  Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
+  ")
+)
+```
+
 
 Cells annotated as "Unknown cell type" represent cells which could not be confidently identified using the given annotation method. 
 
-If available, these results will be compared to celltype annotations provided by the data's originating research group ("submitter-provided celltype annotations".)
+If available, these results will be compared to cell type annotations provided by the data's originating research group ("submitter-provided cell type annotations".)
 
-## Celltype annotation summary
+## Cell type Annotation Statistics
 
 ```{r}
-# Create data frame of celltypes
+# Create data frame of cell types
 celltype_df <- colData(processed_sce) |>
   as.data.frame() |>
   # barcodes to a column
   tibble::rownames_to_column(var = "barcode") |>
   # keep only cell name, celltyping, and clusters
-  # note that `celltype_cols` was defined in the main qc_report.rmd
-  dplyr::select(barcode, all_of(celltype_cols), clusters) |>
+  dplyr::select(barcode, 
+                clusters,
+                contains("singler"),
+                contains("cellassign")) |>
   # change NA/other to "Unknown cell type"
   dplyr::mutate(
     singler_celltype_annotation = ifelse(
@@ -41,25 +60,24 @@ celltype_df <- colData(processed_sce) |>
 # Define a helper function to create tables for singler and cellassign annotations
 create_celltype_n_table <- function(df, celltype_column) {
   df |>
-    # create column with better name 
-    dplyr::rename(`Annotated celltype` = {{celltype_column}}) |>
-    dplyr::count(`Annotated celltype`) |>
-    dplyr::arrange(-n) |>
+    # rename column with user-facing name 
+    dplyr::rename(`Annotated cell type` = {{celltype_column}}) |>
+    dplyr::count(`Annotated cell type`) |>
     # make this column a factor with unknown at the end
     dplyr::mutate(
       # Add percentage column
       `Percent of cells` =  paste0(round(n/sum(n) * 100, digits = 2), "%"),
       # set column order in descending order of n, but with unknown at the end
-      `Annotated celltype` = forcats::fct_reorder(`Annotated celltype`, n, .desc=TRUE),
-      `Annotated celltype` = forcats::fct_relevel(`Annotated celltype`, 
+      `Annotated cell type` = forcats::fct_reorder(`Annotated cell type`, n, .desc=TRUE),
+      `Annotated cell type` = forcats::fct_relevel(`Annotated cell type`, 
                                                   "Unknown cell type", 
                                                    after = Inf)
     ) |>
-    # arrange on `Annotated celltype`
-    dplyr::arrange(`Annotated celltype`) |>
+    # arrange on `Annotated cell type` now that factor levels have been specified
+    dplyr::arrange(`Annotated cell type`) |>
     # set column order
     dplyr::select(
-      `Annotated celltype`,
+      `Annotated cell type`,
       `Number of cells` = n,
       `Percent of cells`
     ) |>
@@ -72,23 +90,22 @@ create_celltype_n_table <- function(df, celltype_column) {
 }
 ```
 
-### `SingleR` celltype annotations
 
-```{r}
+
+```{r, eval = has_singler}
+knitr::asis_output("### `SingleR` cell type annotations\n")
 create_celltype_n_table(celltype_df, singler_celltype_annotation)
 ```
 
-
-### `CellAssign` celltype annotations
-
-```{r}
+```{r, eval = has_cellassign}
+knitr::asis_output("### `CellAssign` cell type annotations\n")
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 ```
 
-
 ```{r, eval = has_submitter_celltypes}
-asis_output("### Submitter-provided celltype annotations\n")
-# TODO: check column name once submitter annotations are actually added to workflow
+knitr::asis_output("### Submitter-provided cell type annotations\n")
+# Note: submitter annotations have not yet been added to the workflow, 
+#  so this variable name `submitter_celltype_annotation` is just a placeholder
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
@@ -153,4 +170,3 @@ create_celltype_cluster_heatmap(
   "Submitter-provided annotations"
 )
 ```
-
