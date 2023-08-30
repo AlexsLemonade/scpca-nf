@@ -102,16 +102,10 @@ if (has_cellhash) {
 }
 
 # check for umap and celltypes, but need to be sure that processed_sce exists first
-# for celltypes, we expect these four columns. 
-# TODO: do we need to check for all 4?
-celltype_cols <- c("singler_celltype_ontology",
-                   "singler_celltype_annotation",
-                   "cellassign_celltype_annotation",
-                   "cellassign_max_prediction")
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
-  has_celltypes <- all(celltype_cols %in% names(colData(processed_sce)))
-
+  # these metadata fields are only present if celltyping has been performed:
+  has_celltypes <- all(c("has_singler", "has_cellassign") %in% names(metadata(processed_sce)))
 } else {
   has_umap <- FALSE
   has_celltypes <- FALSE
