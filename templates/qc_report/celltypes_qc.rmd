@@ -127,7 +127,8 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 
 ### UMAPs
 
-In this section, we show UMAPs colored by clusters and cell types, for each cell typing method used.
+In this section, we show UMAPs colored by clusters and cell types.
+A separate UMAP is shown for each cell typing method used.
 Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
 
 For legibility, only the seven most common cell types are shown.
