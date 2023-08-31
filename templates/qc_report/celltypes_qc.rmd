@@ -230,6 +230,8 @@ plot_umap(umap_df,
 ### Heatmaps
 
 Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
+Heatmap colors represent the log number of cells present in both the given cell type and cluster.
+
 
 ```{r}
 # Helper function for making a heatmap
@@ -242,8 +244,7 @@ create_celltype_cluster_heatmap <- function(celltype_vector,
     log1p() # log transform for visualization
     
   # Define CVD-friendly palette 
-  # TODO: what palette? 
-  heatmap_palette <- RColorBrewer::brewer.pal(n = 7, name = "BrBG")
+  heatmap_palette <- viridisLite::inferno(7, alpha = 1, begin = 0, end = 1, direction = 1)
   
   # heatmap
   heat <- ComplexHeatmap::Heatmap(celltype_cluster_mtx,
