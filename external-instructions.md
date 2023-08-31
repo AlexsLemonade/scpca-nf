@@ -33,7 +33,7 @@ Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
 You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow:
-    - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that scpca-nf relies on.
+    - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that `scpca-nf` relies on.
     This can be downloaded and installed by any user, with minimal external requirements.
     - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
     These usually require installation by system administrators, but most HPC systems have one available (usually Singularity).
@@ -53,7 +53,7 @@ See the [section below on preparing a metadata file](#prepare-the-metadata-file)
 Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow.
 See the [section below on configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment) for more information on setting up the configuration files to run Nextflow on your system.
 
-The standard configuration the `scpca-nf` workflow expects that compute nodes will have direct access to the internet, and will download reference files and container images with ane required software as required.
+The standard configuration the `scpca-nf` workflow expects that compute nodes will have direct access to the internet, and will download reference files and container images with any required software as required.
 If your HPC system does not allow internet access from compute nodes, you will need to download the required reference files and software before running, [following the instructions we have provided](#using-scpca-nf-on-nodes-without-direct-internet-access).
 
 Once you have set up your environment and created the metadata and configuration files, you will be able to start your run as follows, adding any additional optional parameters that you may choose:
@@ -72,7 +72,7 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To  be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-Released versions can be found on the [`scpca-nf` repo releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
+Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
@@ -89,7 +89,7 @@ For a complete description of the expected output files, see the section describ
 You will need to have files organized so that all the sequencing files for each library are in their own directory or folder.
 Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-metadata-file).
 Any sequencing runs that contain multiple libraries must be demultiplexed and FASTQ files must be placed into separate distinct folders, with distinct run IDs as the folder name.
-If the same sequencing library was sequenced across multiple flowcells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
+If the same sequencing library was sequenced across multiple flow cells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
 If a library has a corresponding CITE-seq library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the CITE-seq library should be in their own folder, with a unique run ID.
 
 ## Prepare the metadata file
@@ -215,13 +215,13 @@ We encourage you to read the official Nextflow instructions for [running pipelin
 
 To run `scpca-nf`, you will need to set up at least one batch queue and an associated compute environment configured with a custom Amazon Machine Image (AMI) prepared according to the [Nextflow instructions](https://www.nextflow.io/docs/latest/awscloud.html#custom-ami).
 You will also need an [S3 bucket](https://aws.amazon.com/s3/) path to use as the Nextflow `work` directory for intermediate files.
-As the intermediate files can get quite large, you will likely want to set up a [lifecycle rule](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) to delete files from this location after a fixed period of time (e.g., 30 days).
+As the intermediate files can get quite large, you will likely want to set up a [life cycle rule](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) to delete files from this location after a fixed period of time (e.g., 30 days).
 
 
 In most Batch queue setups, each AWS compute node has a fixed amount of disk space.
 We found it useful to have two queues: one for general use and one for jobs that may require larger amounts of disk space.
 The two compute environments use the same AMI, but use [Launch Templates](https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html) to configure the nodes on launch with different amounts of disk space.
-Currently, our default queue is configured with a disk size of 128 GB for each node, and our "bigdisk" queue has 1000 GB of disk space.
+Currently, our default queue is configured with a disk size of 128 GB for each node, and our `"bigdisk"` queue has 1000 GB of disk space.
 The queue used by each process is determined by Nextflow labels and associated profile settings.
 
 The Data Lab's [AWS Batch config file](https://github.com/AlexsLemonade/scpca-nf/blob/main/config/profile_awsbatch.config) may be helpful as a reference for creating a profile for use with AWS, but note that the queues and file locations listed there are not publicly available, so these will need to be set to different values your own profile.
@@ -267,7 +267,7 @@ The `ref_rootdir` parameter should *only* be specified in a parameter file or at
 
 #### Additional reference files
 
-If you wil be performing genetic demultiplexing for hashed samples, you will need STAR index files as well as the ones included by default.
+If you will be performing genetic demultiplexing for hashed samples, you will need STAR index files as well as the ones included by default.
 To obtain these files, you can add the `--star_index` flag:
 
 ```sh
@@ -343,7 +343,7 @@ TAG03	GTAGCTCCAA	target
 ```
 
 If this third column is not provided, all antibodies will be treated as targets.
-Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibody/ies will be treated as target(s).
+Similarly, if information in this column is _not_ one of the allowed values, a warning will be printed, and the given antibodies will be treated as target(s).
 
 If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
 Positive controls are currently unused, but if provided, this label will be included in final output files.
