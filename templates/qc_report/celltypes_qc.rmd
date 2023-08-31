@@ -123,6 +123,72 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
 
+## Cell type annotation assessment
+
+In this section, we assess the reliability of cell type annotations using diagnostic plots.
+
+
+```{r, eval = has_singler, warning=FALSE, fig.height = 6, fig.width = 9}
+knitr::asis_output("
+### `SingleR` assessment
+
+`SingleR` assigns cell types using on score based on Spearman correlations across features in the reference dataset.
+We evaluate the reliability of cell type annotations using the per-cell _delta median_ statistic, which is the difference between the score for the cell's assigned label and the median score of all labels for the given cell.
+Higher _delta median_ values indicate more confidence in the cell type annotation.
+For more information, refer to the [`Singler` book section on 'Annotation diagnostics'](https://bioconductor.org/packages/release/bioc/vignettes/SingleR/inst/doc/SingleR.html#4_Annotation_diagnostics).
+
+In the plot, each black point corresponds to the _delta median_ statistic a cell with the given cell type annotation. 
+The red points with error bars represent the median ± interquartile range (IQR).
+")
+
+# Prepare SingleR scores for plot
+
+# extract scores into matrix
+singler_scores <- metadata(processed_sce)$singler_result$scores |>
+  as.matrix()
+
+
+# Create data frame for plotting with delta median and wrapped levels
+ delta_median_df <- celltype_df |>
+  dplyr::mutate(
+    delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores)
+  )
+
+delta_median_df$annotation_wrapped <- factor(
+  delta_median_df$singler_celltype_annotation,
+  levels = levels(delta_median_df$singler_celltype_annotation),
+  labels = stringr::str_wrap(levels(celltype_df$singler_celltype_annotation), 30)
+)
+ 
+# Plot the scores across celltypes
+ggplot(delta_median_df) + 
+  aes(x = annotation_wrapped, y = delta_median) + 
+  ggforce::geom_sina(size = 0.2, 
+                     alpha = 0.5) +
+    stat_summary(
+      color = "red",
+      # median and quartiles for point range
+      fun = "median",
+      fun.min = function(x) {
+        quantile(x, 0.25)
+      },
+      fun.max = function(x) {
+        quantile(x, 0.75)
+      },
+      geom = "pointrange",
+      position = position_dodge(width = 0.9),
+      size = 0.1
+    ) + 
+  labs(
+    x = "Cell type annotation",
+    y = "Delta median statistic"
+  ) + 
+  theme(
+    axis.text.x = element_text(angle = 55, hjust = 1)
+  )
+```
+
+
 ## Cell type annotations and clusters
 
 
