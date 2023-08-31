@@ -44,6 +44,9 @@ reformat_nulls <- function(df) {
     )
   )
 }
+
+# Set seed
+set.seed(2023)
 ```
 
 ```{r sce_setup}
