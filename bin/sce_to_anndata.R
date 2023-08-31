@@ -86,6 +86,21 @@ format_czi <- function(sce){
 # read in sce
 sce <- readr::read_rds(opt$input_sce_file)
 
+# grab sample metadata
+# we need this if we have any feature data that we need to add it o
+sample_metadata <- metadata(sce)$sample_metadata
+
+# MainExp to AnnData -----------------------------------------------------------
+
+# make main sce czi compliant
+sce <- format_czi(sce)
+
+# export sce as anndata object
+scpcaTools::sce_to_anndata(
+  sce,
+  anndata_file = opt$output_rna_h5
+)
+
 # if feature data exists, grab it and export to AnnData
 if(!is.null(opt$feature_name)){
 
@@ -103,7 +118,7 @@ if(!is.null(opt$feature_name)){
   alt_sce <- altExp(sce, opt$feature_name)
 
   # add sample metadata from main sce to alt sce metadata
-  metadata(alt_sce)$sample_metadata <- metadata(sce)$sample_metadata
+  metadata(alt_sce)$sample_metadata <- sample_metadata
 
   # make sce czi compliant
   alt_sce <- format_czi(alt_sce)
@@ -115,14 +130,3 @@ if(!is.null(opt$feature_name)){
   )
 
 }
-
-# MainExp to AnnData -----------------------------------------------------------
-
-# make main sce czi compliant
-sce <- format_czi(sce)
-
-# export sce as anndata object
-scpcaTools::sce_to_anndata(
-  sce,
-  anndata_file = opt$output_rna_h5
-)
