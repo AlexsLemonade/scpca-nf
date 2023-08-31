@@ -38,7 +38,9 @@ celltype_df <- colData(processed_sce) |>
   as.data.frame() |>
   # barcodes to a column
   tibble::rownames_to_column(var = "barcode") |>
+  # keep only cell name, celltyping, and clusters
   dplyr::select(barcode, 
+                clusters,
                 contains("singler"),
                 contains("cellassign"))
 
@@ -114,4 +116,73 @@ knitr::asis_output("### Submitter-provided cell type annotations\n")
 # Note: submitter annotations have not yet been added to the workflow, 
 #  so this variable name `submitter_celltype_annotation` is just a placeholder
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
+```
+
+
+## Cell type annotations and clusters
+
+Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
+Heatmap colors represent the log number of cells present in both the given cell type and cluster.
+Clusters were obtained using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
+
+```{r}
+# Helper function for making a heatmap
+create_celltype_cluster_heatmap <- function(celltype_vector,
+                                            cluster_vector) {
+  
+  # build a matrix with cluster identity as rows and celltype as columns
+  celltype_cluster_mtx <- table(celltype_vector,
+                                cluster_vector) |> 
+    log1p() # log transform for visualization
+    
+  # Define CVD-friendly palette 
+  heatmap_palette <- viridisLite::inferno(7, alpha = 1, begin = 0, end = 1, direction = 1)
+  
+  # heatmap
+  heat <- ComplexHeatmap::Heatmap(celltype_cluster_mtx,
+                                  # Overall heatmap parameters
+                                  col = heatmap_palette,
+                                  # Column parameters
+                                  column_title = "Clusters",
+                                  column_title_side = "bottom", 
+                                  column_dend_side = "top",
+                                  column_names_rot = 0,
+                                  # Row parameters
+                                  row_dend_side = "left",
+                                  row_names_gp = grid::gpar(fontsize = 8),
+                                  # Legend parameters
+                                  heatmap_legend_param = list(
+                                    title = "Log(Number of cells)",
+                                    title_position = "leftcenter-rot",
+                                    legend_height = unit(4, "cm")
+                                    )
+                                  )
+  # draw with legend on left for spacing
+  ComplexHeatmap::draw(heat, heatmap_legend_side = "left")
+}
+```
+
+
+```{r, eval = has_singler, fig.height=5, fig.width=7}
+knitr::asis_output("### `SingleR` cluster and cell type heatmap\n")
+create_celltype_cluster_heatmap(
+  celltype_df$singler_celltype_annotation, 
+  celltype_df$clusters
+)
+```
+
+```{r, eval = has_cellassign, fig.height=5, fig.width=7}
+knitr::asis_output("### `CellAssign` cluster and cell type heatmap\n")
+create_celltype_cluster_heatmap(
+  celltype_df$cellassign_celltype_annotation, 
+  celltype_df$clusters
+)
+```
+
+```{r, eval = has_submitter_celltypes, fig.height=5, fig.width=7}
+knitr::asis_output("### Submitter-provided cluster and cell type heatmap\n")
+create_celltype_cluster_heatmap(
+  celltype_df$submitter_celltype_annotation, 
+  celltype_df$clusters
+)
 ```
