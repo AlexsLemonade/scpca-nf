@@ -51,12 +51,13 @@ if(!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))){
 
 # this function applies any necessary reformatting or changes needed to make
 # sure that the sce that is getting converted to AnnData is compliant with CZI
+# CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
 format_czi <- function(sce){
 
-  # add library id as a column to the sce object
+  # add library_id as an sce colData column
   sce$library_id <- metadata(sce)$library_id
 
-  # add is_primary_data column only needed for anndata objects
+  # add is_primary_data column; only needed for anndata objects
   sce$is_primary_data <- FALSE
 
   # add sample metadata to colData sce
@@ -72,7 +73,7 @@ format_czi <- function(sce){
   rowData(sce)$feature_is_filtered <- FALSE
 
   # paste X to reduced dim names if present
-  if(!is.null(reducedDimNames(sce))){
+  if (!is.null(reducedDimNames(sce))) {
     reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
   }
 
