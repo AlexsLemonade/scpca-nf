@@ -47,22 +47,53 @@ if(!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))){
   stop("output rna file name must end in .hdf5 or .h5")
 }
 
-# Convert to AnnData -----------------------------------------------------------
+# CZI compliance function ------------------------------------------------------
+
+# this function applies any necessary reformatting or changes needed to make
+# sure that the sce that is getting converted to AnnData is compliant with CZI
+# CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
+format_czi <- function(sce){
+
+  # add library_id as an sce colData column
+  sce$library_id <- metadata(sce)$library_id
+
+  # add is_primary_data column; only needed for anndata objects
+  sce$is_primary_data <- FALSE
+
+  # add sample metadata to colData sce
+  sce <- scpcaTools::metadata_to_coldata(sce,
+                                         join_columns = "library_id")
+
+  # remove sample metadata from sce metadata, otherwise conflicts with converting object
+  metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
+
+  # modify rowData
+  # we don't do any gene filtering between normalized and raw counts matrix
+  # so everything gets set to false
+  rowData(sce)$feature_is_filtered <- FALSE
+
+  # paste X to reduced dim names if present
+  if (!is.null(reducedDimNames(sce))) {
+    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  }
+
+  return(sce)
+
+}
+
+# AltExp to AnnData -----------------------------------------------------------
 
 # read in sce
 sce <- readr::read_rds(opt$input_sce_file)
 
 # grab sample metadata
+# we need this if we have any feature data that we need to add it o
 sample_metadata <- metadata(sce)$sample_metadata
 
-# add library id as a column to the sce object
-sce$library_id <- metadata(sce)$library_id
+# MainExp to AnnData -----------------------------------------------------------
 
-# add sample metadata to colData sce
-sce <- scpcaTools::metadata_to_coldata(sce,
-                                       join_columns = "library_id")
-# remove sample metadata from sce metadata, otherwise conflicts with converting object
-metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
+# make main sce czi compliant
+sce <- format_czi(sce)
 
 # export sce as anndata object
 scpcaTools::sce_to_anndata(
@@ -86,18 +117,11 @@ if(!is.null(opt$feature_name)){
   # extract altExp
   alt_sce <- altExp(sce, opt$feature_name)
 
-  # add library ID to colData
-  alt_sce$library_id <- metadata(sce)$library_id
-
-  # add sample metadata to alt sce metadata
+  # add sample metadata from main sce to alt sce metadata
   metadata(alt_sce)$sample_metadata <- sample_metadata
 
-  # add sample metadata to alt sce coldata
-  alt_sce <- scpcaTools::metadata_to_coldata(alt_sce,
-                                             join_columns = "library_id")
-
-  # remove sample metadata from metadata, otherwise conflicts with converting object
-  metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
+  # make sce czi compliant
+  alt_sce <- format_czi(alt_sce)
 
   # export altExp sce as anndata object
   scpcaTools::sce_to_anndata(
