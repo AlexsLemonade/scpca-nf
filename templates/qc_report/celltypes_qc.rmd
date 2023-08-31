@@ -130,7 +130,7 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 In this section, we show UMAPs colored by clusters and cell types, for each cell typing method used.
 Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
 
-For legibility, only the eight most common cell types are shown.
+For legibility, only the seven most common cell types are shown.
 All other cell types are grouped together and labeled "Other cell type" (not to be confused with "Unknown cell types," which represent cells that could not be classified).
 
 
@@ -146,7 +146,7 @@ umap_df <- tibble::tibble(
 lump_celltypes <- function(umap_df, 
                            orginal_column_string, 
                            new_column, 
-                           n_celltypes = 8) {
+                           n_celltypes = 7) {
   umap_df |>
     dplyr::mutate({{new_column}} := celltype_df[[orginal_column_string]],
                   # lump the top 10
@@ -197,10 +197,21 @@ plot_umap <- function(umap_df,
 
 <!-- First UMAP: clusters --> 
 ```{r message=FALSE, warning=FALSE}
-plot_umap(umap_df, 
+clusters_plot <- plot_umap(umap_df, 
           clusters,
           "Clusters") +
   ggtitle("UMAP colored by clusters")
+
+# Determine palette based on number of levels.
+# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors). 
+#  Otherwise, we will use the default palette.
+if (length(levels(umap_df$clusters)) <= 8) {
+  clusters_plot + 
+    scale_color_brewer(palette =  "Set2")
+} else {
+  clusters_plot
+}
+  
 ```
 
 <!-- Now, UMAPs of cell types, where present -->
@@ -210,7 +221,8 @@ plot_umap(umap_df,
           singler,
           "Cell types",
           legend_nrow = 4) +
-  ggtitle("UMAP colored by SingleR annotations")
+  ggtitle("UMAP colored by SingleR annotations") + 
+  scale_color_brewer(palette = "Dark2")
 ```
 
 
@@ -219,7 +231,8 @@ plot_umap(umap_df,
           cellassign,
           "Cell types",
           legend_nrow = 4) +
-  ggtitle("UMAP colored by CellAssign annotations")
+  ggtitle("UMAP colored by CellAssign annotations")  + 
+  scale_color_brewer(palette = "Dark2")
 ```
 
 
