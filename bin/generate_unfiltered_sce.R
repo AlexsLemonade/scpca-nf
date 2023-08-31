@@ -137,7 +137,7 @@ sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
   dplyr::mutate(library_id = opt$library_id) |>
   # remove upload date as we don't provide this on the portal
   dplyr::select(-upload_date) |>
-  # rename to donor id
+  # rename to donor id for czi compliance
   dplyr::rename("donor_id" = "participant_id")
 
 # add per cell and per gene statistics to colData and rowData
