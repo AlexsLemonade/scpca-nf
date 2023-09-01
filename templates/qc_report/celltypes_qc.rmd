@@ -321,7 +321,10 @@ Heatmap colors represent the log number of cells present in both the given cell 
 create_celltype_heatmap <- function(x_vector,
                                     y_vector, 
                                     x_label = "",
-                                    y_label = "") {
+                                    y_label = "", 
+                                    column_names_rotation = 0,
+                                    row_font_size = 8, 
+                                    column_font_size = 10) {
   
   # build a matrix for making a heatmap
   celltype_mtx <- table(x_vector,
@@ -339,11 +342,13 @@ create_celltype_heatmap <- function(x_vector,
                                   column_title = y_label,
                                   column_title_side = "bottom", 
                                   column_dend_side = "top",
-                                  column_names_rot = 0,
+                                  column_names_rot = column_names_rotation,
+                                  column_names_gp = grid::gpar(fontsize = column_font_size),
                                   # Row parameters
                                   row_dend_side = "left",
+                                  row_title_side = "right", 
                                   row_title = x_label,
-                                  row_names_gp = grid::gpar(fontsize = 8),
+                                  row_names_gp = grid::gpar(fontsize = row_font_size),
                                   # Legend parameters
                                   heatmap_legend_param = list(
                                     title = "Log(Number of cells)",
@@ -360,28 +365,46 @@ create_celltype_heatmap <- function(x_vector,
 ```{r, eval = has_singler, fig.height=5, fig.width=7}
 knitr::asis_output("### `SingleR` cluster and cell type heatmap\n")
 create_celltype_heatmap(
-  celltype_df$singler_celltype_annotation, 
-  celltype_df$clusters, 
-  "Clusters"
+  x_vector = celltype_df$singler_celltype_annotation, 
+  y_vector = celltype_df$clusters, 
+  y_label = "Clusters"
 )
 ```
 
 ```{r, eval = has_cellassign, fig.height=5, fig.width=7}
 knitr::asis_output("### `CellAssign` cluster and cell type heatmap\n")
 create_celltype_heatmap(
-  celltype_df$cellassign_celltype_annotation, 
-  celltype_df$clusters, 
-  "Clusters"
+  x_vector = celltype_df$cellassign_celltype_annotation, 
+  y_vector = celltype_df$clusters, 
+  y_label = "Clusters"
 )
 ```
 
 ```{r, eval = has_submitter_celltypes, fig.height=5, fig.width=7}
 knitr::asis_output("### Submitter-provided cluster and cell type heatmap\n")
 create_celltype_heatmap(
-  celltype_df$submitter_celltype_annotation, 
-  celltype_df$clusters, 
-  "Clusters"
+  x_vector = celltype_df$submitter_celltype_annotation, 
+  y_vector = celltype_df$clusters, 
+  y_label = "Clusters"
 )
 ```
 
 
+<!-- Use large height/width to accommodate cell type labels --> 
+```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
+knitr::asis_output("
+### Comparison between cell type annotations
+
+Below, we show a heatmap directly comparing `SingleR` and `CellAssign`cell type annotations.
+Note that due to different annotations references, these methods may use different names for similar cell types.
+")
+
+create_celltype_heatmap(
+  x_vector = celltype_df$singler_celltype_annotation, 
+  y_vector = celltype_df$cellassign_celltype_annotation, 
+  x_label = "SingleR annotations",
+  y_label = "CellAssign annotations",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
