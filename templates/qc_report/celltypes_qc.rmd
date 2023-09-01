@@ -194,7 +194,8 @@ ggplot(delta_median_df) +
 
 ### UMAPs
 
-In this section, we show UMAPs colored by clusters and cell types, for each cell typing method used.
+In this section, we show UMAPs colored by clusters and cell types.
+A separate UMAP is shown for each cell typing method used.
 Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
 
 For legibility, only the seven most common cell types are shown.
@@ -211,23 +212,25 @@ umap_df <- tibble::tibble(
 
 # helper function for lumping cell types
 lump_celltypes <- function(umap_df, 
-                           orginal_column_string, 
-                           new_column, 
+                           celltype_df,
+                           celltype_method,
                            n_celltypes = 7) {
+  
   umap_df |>
-    dplyr::mutate({{new_column}} := celltype_df[[orginal_column_string]],
-                  # lump the top 10
-                  {{new_column}} := forcats::fct_lump_n({{new_column}},
-                                                        n_celltypes, 
-                                                        other_level = "Other cell type")
-                  )
+    dplyr::mutate(
+      celltypes =  celltype_df[[glue::glue("{celltype_method}_celltype_annotation")]],
+      celltypes = forcats::fct_lump_n(celltypes,
+                                      n_celltypes, 
+                                      other_level = "Other cell type")) |>
+    # finally, rename temporary `celltypes` column to the provided method
+    dplyr::rename({{celltype_method}} := celltypes)
 }
 
 if (has_singler) {
-  umap_df <- lump_celltypes(umap_df, "singler_celltype_annotation", singler)
+  umap_df <- lump_celltypes(umap_df, celltype_df, "singler")
 }
 if (has_cellassign) {
-  umap_df <- lump_celltypes(umap_df, "cellassign_celltype_annotation", cellassign)
+  umap_df <- lump_celltypes(umap_df, celltype_df, "cellassign")
 }
 # Note that later, we will want to do this with submitter cell types too, if present.
 ```
