@@ -30,7 +30,7 @@ Cells annotated as "Unknown cell type" represent cells which could not be confid
 
 If available, these results will be compared to cell type annotations provided by the data's originating research group ("submitter-provided cell type annotations".)
 
-## Cell type Annotation Statistics
+## Statistics
 
 ```{r}
 # This chunk defines a helper function to reformat annotations:
@@ -123,7 +123,7 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
 
-## Cell type Annotation Assessment
+## Annotation Assessment
 
 In this section, we assess the reliability of cell type annotations using diagnostic plots.
 
@@ -189,7 +189,7 @@ ggplot(delta_median_df) +
 ```
 
 
-## Cell type Annotations and Clusters
+## Comparison with clusterss
 
 
 ### UMAPs
@@ -393,7 +393,7 @@ create_celltype_heatmap(
 <!-- Use large height/width to accommodate cell type labels --> 
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
-## Cell Type Annotation Comparison
+## Comparison between annotations
 
 Below, we show a heatmap directly comparing `SingleR` and `CellAssign`cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
