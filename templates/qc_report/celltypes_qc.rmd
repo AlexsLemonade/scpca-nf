@@ -189,7 +189,7 @@ ggplot(delta_median_df) +
 ```
 
 
-## Comparison with clusterss
+## Comparison with Clusters
 
 
 ### UMAPs
@@ -393,7 +393,7 @@ create_celltype_heatmap(
 <!-- Use large height/width to accommodate cell type labels --> 
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
-## Comparison between annotations
+## Comparison Between Annotations
 
 Below, we show a heatmap directly comparing `SingleR` and `CellAssign`cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
