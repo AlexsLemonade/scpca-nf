@@ -186,6 +186,20 @@ ggplot(delta_median_df) +
   theme(
     axis.text.x = element_text(angle = 55, hjust = 1)
   )
+
+
+# Now, as ridgeplot:
+ggplot(delta_median_df) + 
+  aes(x = delta_median, y = annotation_wrapped) + 
+  ggridges::geom_density_ridges2() + 
+  ggridges::stat_density_ridges(quantile_lines = TRUE, quantiles = 2) +
+  labs(
+    x = "Delta median statistic",
+    y = "Cell type annotation"
+  ) + 
+  theme(
+    axis.text.y = element_text(size = 7)
+  )
 ```
 
 
