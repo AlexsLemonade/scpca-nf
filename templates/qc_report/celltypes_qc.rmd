@@ -119,11 +119,135 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
 
+
+
+
 ## Cell type annotations and clusters
+
+
+### UMAPs
+
+In this section, we show UMAPs colored by clusters and cell types.
+A separate UMAP is shown for each cell typing method used.
+Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
+
+For legibility, only the seven most common cell types are shown.
+All other cell types are grouped together and labeled "Other cell type" (not to be confused with "Unknown cell types," which represent cells that could not be classified).
+
+
+```{r}
+# Create dataset for plotting UMAPs with lumped cell types
+umap_df <- tibble::tibble(
+  UMAP1 = unname(reducedDim(processed_sce, "UMAP")[,1]),
+  UMAP2 = unname(reducedDim(processed_sce, "UMAP")[,2]),
+  clusters = processed_sce$clusters
+)
+
+# helper function for lumping cell types
+lump_celltypes <- function(umap_df, 
+                           celltype_df,
+                           celltype_method,
+                           n_celltypes = 7) {
+  
+  umap_df |>
+    dplyr::mutate(
+      celltypes =  celltype_df[[glue::glue("{celltype_method}_celltype_annotation")]],
+      celltypes = forcats::fct_lump_n(celltypes,
+                                      n_celltypes, 
+                                      other_level = "Other cell type")) |>
+    # finally, rename temporary `celltypes` column to the provided method
+    dplyr::rename({{celltype_method}} := celltypes)
+}
+
+if (has_singler) {
+  umap_df <- lump_celltypes(umap_df, celltype_df, "singler")
+}
+if (has_cellassign) {
+  umap_df <- lump_celltypes(umap_df, celltype_df, "cellassign")
+}
+# Note that later, we will want to do this with submitter cell types too, if present.
+```
+
+
+```{r}
+# Define helper function for making UMAPs in this section
+#  this function uses the default palette, which can be customized when
+#  calling the function
+plot_umap <- function(umap_df, 
+                      color_variable,
+                      legend_title, 
+                      legend_nrow = 2) {
+  
+  ggplot(umap_df) + 
+    aes(x = UMAP1, 
+        y = UMAP2, 
+        color = {{color_variable}}) + 
+    geom_point(size = 0.3,
+               alpha = 0.5) + 
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) + 
+    scale_y_continuous(labels = NULL, breaks = NULL) + 
+    coord_fixed() + 
+    guides(
+      color = guide_legend(title = legend_title, 
+                           nrow = legend_nrow,
+                           # more visible points in legend
+                           override.aes = list(alpha = 1,
+                                               size = 1.5))) + 
+    theme(legend.position = "bottom")
+}
+```
+
+<!-- First UMAP: clusters --> 
+```{r message=FALSE, warning=FALSE}
+clusters_plot <- plot_umap(umap_df, 
+          clusters,
+          "Clusters") +
+  ggtitle("UMAP colored by clusters")
+
+# Determine palette based on number of levels.
+# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors). 
+#  Otherwise, we will use the default palette.
+if (length(levels(umap_df$clusters)) <= 8) {
+  clusters_plot + 
+    scale_color_brewer(palette =  "Set2")
+} else {
+  clusters_plot
+}
+  
+```
+
+<!-- Now, UMAPs of cell types, where present -->
+
+```{r eval=has_singler, message=FALSE, warning=FALSE}
+plot_umap(umap_df, 
+          singler,
+          "Cell types",
+          legend_nrow = 4) +
+  ggtitle("UMAP colored by SingleR annotations") + 
+  scale_color_brewer(palette = "Dark2")
+```
+
+
+```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
+plot_umap(umap_df, 
+          cellassign,
+          "Cell types",
+          legend_nrow = 4) +
+  ggtitle("UMAP colored by CellAssign annotations")  + 
+  scale_color_brewer(palette = "Dark2")
+```
+
+
+```{r eval=has_submitter_celltypes, message=FALSE, warning=FALSE}
+# Nothing in this chunk yet - it's a placeholder
+```
+
+### Heatmaps
 
 Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
 Heatmap colors represent the log number of cells present in both the given cell type and cluster.
-Clusters were obtained using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
+
 
 ```{r}
 # Helper function for making a heatmap
