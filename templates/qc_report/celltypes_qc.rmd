@@ -134,7 +134,7 @@ In this section, we assess the reliability of cell type annotations using diagno
 knitr::asis_output("
 ### `SingleR` assessment
 
-`SingleR` assigns cell types using on score based on Spearman correlations across features in the reference dataset.
+`SingleR` assigns cell type scores based on Spearman correlations across features in the reference dataset.
 We evaluate the reliability of cell type annotations using the per-cell _delta median_ statistic, which is the difference between the score for the cell's assigned label and the median score of all labels for the given cell.
 Higher _delta median_ values indicate more confidence in the cell type annotation, although there is no specific threshold for calling absolute high vs. low confidence.
 For more information, refer to the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
