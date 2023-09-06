@@ -214,6 +214,111 @@ ggplot(delta_median_df) +
   )
 ```
 
+
+
+
+```{r, eval = has_cellassign}
+knitr::asis_output("
+### `CellAssign` assessment
+
+`CellAssign` computes the probability that each cell is one of the provided cell types and ultimately annotates cells based on the highest probability.
+We therefore expect that cell-level probabilities that correspond to the annotated cell types will be high.
+Conversely, we expect that cell-level probabilities that correspond to annotated cell types will be low.
+
+In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type (excluding unknown cell types).
+Colors represent whether the probabilities correspond to a cell with that given annotation: Purple distributions represent probabilities for cells that _were not_ annotated as the given cell type.
+Yellow distribution represent probabilies for cells that _were_ annotated as the given cell type.
+For distributions with fewer than three points, density plots cannot be calculated.
+In these cases, we directly show values for individual cell probabilities as points.
+")
+```
+
+
+```{r, eval = has_cellassign, warning=FALSE, message=FALSE,fig.height = 7, fig.width = 8}
+
+# Prepare CellAssign scores for plot
+cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |> 
+  tidyr::pivot_longer(
+    -barcode, 
+    names_to = "celltype", 
+    values_to = "probability"
+  ) |>
+  # remove cell types that were not annotated
+  # bonus: ths will also remove the "other" level, which we don't want to show anyways
+  dplyr::filter(celltype %in% celltype_df$cellassign_celltype_annotation) |>
+  # join with actual annotations
+  # but use inner_join to avoid bringing back the others
+  dplyr::inner_join(
+    tibble::tibble(
+      cellassign_celltype_annotation = celltype_df$cellassign_celltype_annotation, 
+      barcode = colData(processed_sce)$barcodes # plural!
+    )
+  ) |>
+  # remove all the unknown cell types from this plot
+  dplyr::filter(
+    cellassign_celltype_annotation != "Unknown cell type"
+  ) |>
+  # add indicator for whether the celltype matches the annotation
+  dplyr::mutate(
+    annotated = cellassign_celltype_annotation == celltype
+  )
+
+# remove "Unknown cell type" from levels, and wrap the labels
+new_levels <- levels(cellassign_prob_df$cellassign_celltype_annotation)
+new_levels <- rev(new_levels[-length(new_levels)]) # reverse for ridgeplot
+cellassign_prob_df$annotation_wrapped <- factor(
+  cellassign_prob_df$celltype,
+  levels = new_levels,
+  labels = stringr::str_wrap(new_levels, 30)
+)
+
+# find groups with <=2 cells to add back into plot
+# These will always be `annotated = TRUE`
+celltypes_leq2_cells <- cellassign_prob_df |>
+  dplyr::count(annotation_wrapped, annotated) |>
+  dplyr::filter(n <= 2) |>
+  dplyr::pull(annotation_wrapped)
+
+# data frame for adding those points back
+leq2_probabilities_df <- cellassign_prob_df |>
+  dplyr::filter(
+    annotation_wrapped %in% celltypes_leq2_cells, 
+    annotated
+  ) |>
+  dplyr::select(annotation_wrapped, probability, annotated)
+
+# Finally, the plot:
+ggplot(cellassign_prob_df) +
+  aes(x = probability,
+      y = annotation_wrapped, 
+      fill = annotated) + 
+  ggridges::stat_density_ridges(quantile_lines = TRUE,
+                                quantiles = 2, 
+                                alpha = 0.6) +
+  scale_fill_viridis_d() +
+  labs(
+    x = "CellAssign probability",
+    y = "Annotated cell type", 
+    fill = "Cell annotated as given cell type"
+  ) +
+  theme(
+    axis.text.y = element_text(size = 9)
+  ) +
+  # add back points for leq2 cells
+  geom_point(
+    data = leq2_probabilities_df,
+    aes(
+      x = probability,
+      y = annotation_wrapped
+    ),
+    size = 1.5, pch = 23, color = "black", linewidth = 0.1,
+    position = position_nudge(y = 0.075), # place point slightly above the axis line
+    show.legend = FALSE
+  )
+```
+
+
+
 ## Cell type annotations and clusters
 
 
