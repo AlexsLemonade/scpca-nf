@@ -32,7 +32,8 @@ process sce_qc_report{
           --genome_assembly "${meta.ref_assembly}" \
           --workflow_url "${workflow_url}" \
           --workflow_version "${workflow_version}" \
-          --workflow_commit "${workflow.commitId}"
+          --workflow_commit "${workflow.commitId}" \
+          --seed "${params.seed}"
         """
     stub:
         qc_report = "${meta.library_id}_qc.html"
