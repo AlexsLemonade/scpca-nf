@@ -47,12 +47,9 @@ prepare_annotation_values <- function(df, annotation_column) {
         {{annotation_column}} == "other" ~ "Unknown cell type",
         # otherwise, keep it
         TRUE ~ {{annotation_column}}
-        
-      ),
-      {{annotation_column}} := forcats::fct_infreq({{annotation_column}}),
-      {{annotation_column}} := forcats::fct_relevel({{annotation_column}},
-                                                    "Unknown cell type",
-                                                    after = Inf)
+      ) |>
+      forcats::fct_infreq() |>
+      forcats::fct_relevel("Unknown cell type", after = Inf)
     )
 }
 ```
@@ -158,21 +155,31 @@ singler_scores <- metadata(processed_sce)$singler_result$scores
 delta_median_df <- tibble::tibble(
   delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores),
   # Need to grab the non-pruned label for this plot
-  ontology = metadata(processed_sce)$singler_result$labels,
+  full_labels = metadata(processed_sce)$singler_result$labels,
   # TRUE pruned values ==> low confidence
   # so, negate for this variable:
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
-) |>
-  # Map ontologies and celltype labels for plot labeling
+)
+
+# If ontologies were used for `full_labels`, we'll need to map back to cell names
+#  for the plot itself.
+if ("singler_celltype_ontology" %in% names(celltype_df)) {
+
   # we use inner_join b/c the above tibble does NOT contain "Unknown cell type", which
   #  we do not want to display here
-  dplyr::inner_join(
+  delta_median_df <- delta_median_df |>
+   dplyr::inner_join(
     tibble::tibble(
-      ontology = celltype_df$singler_celltype_ontology,
+      full_labels = celltype_df$singler_celltype_ontology,
       celltype = celltype_df$singler_celltype_annotation
     ) |> dplyr::distinct()
   ) |>
-  dplyr::select(celltype, confident, delta_median)
+    dplyr::select(-full_labels)
+} else {
+  # otherwise, full_labels already contain what we want to plot, so just rename it 
+  delta_median_df <- delta_median_df |>
+    dplyr::rename(celltype = full_labels)
+}
 
 # Ensure we have no "Unknown cell type" values left:
 if (sum(delta_median_df$celltype == "Unknown cell type") > 0) {
