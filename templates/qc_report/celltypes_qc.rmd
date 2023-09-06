@@ -47,12 +47,9 @@ prepare_annotation_values <- function(df, annotation_column) {
         {{annotation_column}} == "other" ~ "Unknown cell type",
         # otherwise, keep it
         TRUE ~ {{annotation_column}}
-        
-      ),
-      {{annotation_column}} := forcats::fct_infreq({{annotation_column}}),
-      {{annotation_column}} := forcats::fct_relevel({{annotation_column}},
-                                                    "Unknown cell type",
-                                                    after = Inf)
+      ) |>
+      forcats::fct_infreq() |>
+      forcats::fct_relevel("Unknown cell type", after = Inf)
     )
 }
 ```
@@ -79,7 +76,9 @@ if (has_cellassign) {
   celltype_df <- celltype_df |>
     prepare_annotation_values(cellassign_celltype_annotation)
 } 
-    
+```
+
+```{r}
 # Define a helper function to create tables for singler and cellassign annotations
 create_celltype_n_table <- function(df, celltype_column) {
   df |>
@@ -128,68 +127,112 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 In this section, we assess the reliability of cell type annotations using diagnostic plots.
 
 
-```{r, eval = has_singler, warning=FALSE, fig.height = 6, fig.width = 9}
+```{r, eval = has_singler}
 knitr::asis_output("
 ### `SingleR` assessment
 
-`SingleR` assigns cell types using on score based on Spearman correlations across features in the reference dataset.
+`SingleR` assigns cell type scores based on Spearman correlations across features in the reference dataset.
 We evaluate the reliability of cell type annotations using the per-cell _delta median_ statistic, which is the difference between the score for the cell's assigned label and the median score of all labels for the given cell.
-Higher _delta median_ values indicate more confidence in the cell type annotation.
-For more information, refer to the [`Singler` book section on 'Annotation diagnostics'](https://bioconductor.org/packages/release/bioc/vignettes/SingleR/inst/doc/SingleR.html#4_Annotation_diagnostics).
+Higher _delta median_ values indicate more confidence in the cell type annotation, although there is no specific threshold for calling absolute high vs. low confidence.
+For more information, refer to the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
-In the plot, each black point corresponds to the _delta median_ statistic a cell with the given cell type annotation. 
-The red points with error bars represent the median ± interquartile range (IQR).
+
+In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation. 
+Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in blue.
+All blue points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
+The red overlayed boxes represent the median ± interquartile range (IQR), specifically for high-quality annotations.
 ")
+```
 
+
+```{r, eval = has_singler, warning=FALSE, message=FALSE,fig.height = 6, fig.width = 8}
 # Prepare SingleR scores for plot
 
 # extract scores into matrix
-singler_scores <- metadata(processed_sce)$singler_result$scores |>
-  as.matrix()
+singler_scores <- metadata(processed_sce)$singler_result$scores 
 
-
-# Create data frame for plotting with delta median and wrapped levels
- delta_median_df <- celltype_df |>
-  dplyr::mutate(
-    delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores)
-  )
-
-delta_median_df$annotation_wrapped <- factor(
-  delta_median_df$singler_celltype_annotation,
-  levels = levels(delta_median_df$singler_celltype_annotation),
-  labels = stringr::str_wrap(levels(celltype_df$singler_celltype_annotation), 30)
+# Create data frame for plotting with delta median and the full *non-pruned* cell labels
+delta_median_df <- tibble::tibble(
+  delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores),
+  # Need to grab the non-pruned label for this plot
+  full_labels = metadata(processed_sce)$singler_result$labels,
+  # TRUE pruned values ==> low confidence
+  # so, negate for this variable:
+  confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
 )
+
+# If ontologies were used for `full_labels`, we'll need to map back to cell names
+#  for the plot itself.
+if ("singler_celltype_ontology" %in% names(celltype_df)) {
+
+  # we use inner_join b/c the above tibble does NOT contain "Unknown cell type", which
+  #  we do not want to display here
+  delta_median_df <- delta_median_df |>
+   dplyr::inner_join(
+    tibble::tibble(
+      full_labels = celltype_df$singler_celltype_ontology,
+      celltype = celltype_df$singler_celltype_annotation
+    ) |> dplyr::distinct()
+  ) |>
+    dplyr::select(-full_labels)
+} else {
+  # otherwise, full_labels already contain what we want to plot, so just rename it 
+  delta_median_df <- delta_median_df |>
+    dplyr::rename(celltype = full_labels)
+}
+
+# Ensure we have no "Unknown cell type" values left:
+if (sum(delta_median_df$celltype == "Unknown cell type") > 0) {
+  stop("Failed to process SingleR data for diagnostic plot.")
+}
+
+# add column with ordered levels with wrapped labels for visualization
+delta_median_df$annotation_wrapped <- factor(
+  delta_median_df$celltype,
+  levels = levels(delta_median_df$celltype),
+  labels = stringr::str_wrap(levels(delta_median_df$celltype), 30)
+)
+
+# Subset the data to just confident points for median+/-IQR
+delta_median_confident_df <- delta_median_df |>
+  dplyr::filter(confident)
  
-# Plot the scores across celltypes
+# Plot delta_median across celltypes colored by pruning
 ggplot(delta_median_df) + 
-  aes(x = annotation_wrapped, y = delta_median) + 
-  ggforce::geom_sina(size = 0.2, 
-                     alpha = 0.5) +
-    stat_summary(
-      color = "red",
-      # median and quartiles for point range
-      fun = "median",
-      fun.min = function(x) {
-        quantile(x, 0.25)
-      },
-      fun.max = function(x) {
-        quantile(x, 0.75)
-      },
-      geom = "pointrange",
-      position = position_dodge(width = 0.9),
-      size = 0.1
-    ) + 
+  aes(x = annotation_wrapped, 
+      y = delta_median, 
+      color = confident) + 
+  ggforce::geom_sina(size = 0.75, 
+                     alpha = 0.5, 
+                     # Keep red points mostly in line with black
+                     position = position_dodge(width = 0.05)) +
   labs(
     x = "Cell type annotation",
-    y = "Delta median statistic"
+    y = "Delta median statistic",
+    color = "Confident cell type assignment"
   ) + 
+  scale_color_manual(values = c("blue", "black")) +
+  # add median/IQR
+  stat_summary(
+    data = delta_median_confident_df, # only use black points for median
+    color = "red",
+    geom = "crossbar",
+    width = 0.4,
+    size = 0.2
+  ) + 
+  guides(
+    color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
+  ) +
   theme(
-    axis.text.x = element_text(angle = 55, hjust = 1)
+    axis.text.x = element_text(angle = 55, hjust = 1, size = rel(0.85)), 
+    legend.title = element_text(size = rel(0.75)),
+    legend.text = element_text(size = rel(0.75)),
+    legend.position = "bottom"
   )
 ```
 
 
-## Comparison with Clusters
+## Comparison with clusters
 
 
 ### UMAPs

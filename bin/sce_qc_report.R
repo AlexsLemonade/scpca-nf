@@ -92,6 +92,12 @@ option_list <- list(
     type = "character",
     default = "vireo",
     help = "Demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
+  ),
+  make_option(
+    opt_str = "--seed",
+    type = "integer",
+    default = NULL,
+    help = "Optional random seed used in certain QC report visualizations."
   )
 )
 
@@ -224,6 +230,7 @@ scpcaTools::generate_qc_report(
   filtered_sce = filtered_sce,
   processed_sce = processed_sce,
   report_template = opt$report_template,
-  output = opt$qc_report_file
+  output = opt$qc_report_file,
+  extra_params = list(seed = opt$seed)
 )
 
