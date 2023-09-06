@@ -231,6 +231,6 @@ scpcaTools::generate_qc_report(
   processed_sce = processed_sce,
   report_template = opt$report_template,
   output = opt$qc_report_file,
-  seed = opt$seed
+  extra_params = list(seed = opt$seed)
 )
 
