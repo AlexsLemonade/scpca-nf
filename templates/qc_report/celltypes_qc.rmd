@@ -178,14 +178,11 @@ if (sum(delta_median_df$celltype == "Unknown cell type") > 0) {
   stop("Failed to process SingleR data for diagnostic plot.")
 }
 
-
-# remove "Unknown cell type" from levels, and wrap the labels
-new_levels <- levels(delta_median_df$celltype)
-new_levels <- new_levels[-length(new_levels)]
+# add column with ordered levels with wrapped labels for visualization
 delta_median_df$annotation_wrapped <- factor(
   delta_median_df$celltype,
-  levels = new_levels,
-  labels = stringr::str_wrap(new_levels, 30)
+  levels = levels(delta_median_df$celltype),
+  labels = stringr::str_wrap(levels(delta_median_df$celltype), 30)
 )
  
 # Plot delta_median across celltypes colored by pruning
