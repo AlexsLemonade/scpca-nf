@@ -141,8 +141,9 @@ For more information, refer to the [`SingleR` book section on 'Annotation diagno
 
 
 In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation. 
-Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in red.
-All red points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
+Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in blue.
+All blue points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
+The red overlayed boxes represent the median ± interquartile range (IQR), specifically for high-quality annotations.
 ")
 ```
 
@@ -184,13 +185,17 @@ delta_median_df$annotation_wrapped <- factor(
   levels = levels(delta_median_df$celltype),
   labels = stringr::str_wrap(levels(delta_median_df$celltype), 30)
 )
+
+# Subset the data to just confident points for median+/-IQR
+delta_median_confident_df <- delta_median_df |>
+  dplyr::filter(confident)
  
 # Plot delta_median across celltypes colored by pruning
 ggplot(delta_median_df) + 
   aes(x = annotation_wrapped, 
       y = delta_median, 
       color = confident) + 
-  ggforce::geom_sina(size = 0.5, 
+  ggforce::geom_sina(size = 0.75, 
                      alpha = 0.5, 
                      # Keep red points mostly in line with black
                      position = position_dodge(width = 0.05)) +
@@ -199,7 +204,15 @@ ggplot(delta_median_df) +
     y = "Delta median statistic",
     color = "Confident cell type assignment"
   ) + 
-  scale_color_manual(values = c("red", "black")) +
+  scale_color_manual(values = c("blue", "black")) +
+  # add median/IQR
+  stat_summary(
+    data = delta_median_confident_df, # only use black points for median
+    color = "red",
+    geom = "crossbar",
+    width = 0.4,
+    size = 0.2
+  ) + 
   guides(
     color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
   ) +
