@@ -142,12 +142,12 @@ For more information, refer to the [`SingleR` book section on 'Annotation diagno
 
 In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation. 
 Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in red.
-All red points correspond to cells labeled as `Unknown cell type` in the tables above.
+All red points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
 ")
 ```
 
 
-```{r, eval = has_singler, warning=FALSE, fig.height = 6, fig.width = 8}
+```{r, eval = has_singler, warning=FALSE, message=FALSE,fig.height = 6, fig.width = 8}
 # Prepare SingleR scores for plot
 
 # extract scores into matrix
