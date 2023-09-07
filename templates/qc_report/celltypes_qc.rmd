@@ -241,7 +241,7 @@ knitr::asis_output("
 We therefore expect that cell-level probabilities that correspond to the annotated cell types will be high.
 Conversely, we expect that cell-level probabilities that correspond to annotated cell types will be low.
 
-In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type.
+In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type, where the median is shown as a vertical line in each.
 Colors represent whether the probabilities correspond to a cell with that given annotation: Purple distributions represent probabilies for cells that _were_ annotated as the given cell type.
 Yellow distributions represent probabilities for cells that _were not_ annotated as the given cell type.
 For distributions with fewer than three points, density plots cannot be calculated.
@@ -250,7 +250,7 @@ In these cases, we directly show values for individual cell probabilities as lin
 ```
 
 
-```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = 6, fig.width = 8}
+```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = 8, fig.width = 7}
 
 # Prepare CellAssign scores for plot
 cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |> 
@@ -315,7 +315,8 @@ ggplot(cellassign_prob_df) +
     fill = "Cell annotated as given cell type"
   ) +
   theme(
-    axis.text.y = element_text(size = 9)
+    axis.text.y = element_text(size = 9), 
+    legend.position = "bottom"
   ) +
   #### add line segment for N<3 distributions
   geom_segment(
