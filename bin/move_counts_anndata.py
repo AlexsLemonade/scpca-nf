@@ -1,13 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This script takes an AnnData object and checks for the `logcounts`
 # in layers. If present, `logcounts` is moved to `X` and `X` (which has the raw counts)
 # is moved to `raw.X`
 
-import os
-import anndata as adata
 import argparse
+import os
 import re
+
+import anndata as adata
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input_hdf5_file',

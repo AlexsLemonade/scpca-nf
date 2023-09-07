@@ -44,6 +44,10 @@ process move_normalized_counts{
     move_counts_anndata.py \
       --input_hdf5_file ${input_hdf5_files}
     """
+    stub:
+       """
+       # nothing to do since files don't move
+       """
 }
 
 
@@ -61,15 +65,18 @@ workflow sce_to_anndata{
       // export each anndata file
       export_anndata(sce_ch)
 
-      processed_anndata_ch = export_anndata.out
-        .filter{ it[2] == "processed"}
+     anndata_ch = export_anndata.out
+        .branch{
+          processed: it[2] == "processed"
+          other: true
+        }
 
       // move any normalized counts to X in AnnData
-      move_normalized_counts(processed_anndata_ch)
+      move_normalized_counts(anndata_ch.processed)
 
       // combine all anndata files by library id
       // creates anndata channel with [library_id, unfiltered, filtered, processed]
-      anndata_ch = export_anndata.out
+      anndata_ch = anndata_ch.other.mix(move_normalized_counts.out)
         // remove any files that were processed and went through reorganization
         .filter{ it[2] != "processed" }
         // mix with output from moving counts
