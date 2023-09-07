@@ -31,7 +31,7 @@ process export_anndata{
 
 process move_normalized_counts{
   container params.SCPCATOOLS_CONTAINER
-  label 'mem_4'
+  label 'mem_8'
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
@@ -70,7 +70,10 @@ workflow sce_to_anndata{
       // combine all anndata files by library id
       // creates anndata channel with [library_id, unfiltered, filtered, processed]
       anndata_ch = export_anndata.out
-        .join(move_normalized_counts.out, by: [0-2])
+        // remove any files that were processed and went through reorganization
+        .filter{ it[2] != "processed" }
+        // mix with output from moving counts
+        .mix(move_normalized_counts.out)
         .map{ meta, hdf5_files, file_type -> tuple(
           meta.library_id,
           meta,
