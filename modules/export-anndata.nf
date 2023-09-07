@@ -39,10 +39,11 @@ process move_normalized_counts{
   output:
     tuple val(meta), path(processed_hdf5), val(file_type)
   script:
-    input_hdf5_files = processed_hdf5.join(',')
     """
-    move_counts_anndata.py \
-      --input_hdf5_file ${input_hdf5_files}
+    for file in ${processed_hdf5}; do
+      move_counts_anndata.py \
+        --anndata_file \${file}
+    done
     """
     stub:
        """
@@ -75,18 +76,19 @@ workflow sce_to_anndata{
       move_normalized_counts(anndata_ch.processed)
 
       // combine all anndata files by library id
-      // creates anndata channel with [library_id, unfiltered, filtered, processed]
       anndata_ch = anndata_ch.other.mix(move_normalized_counts.out)
-        // remove any files that were processed and went through reorganization
-        .filter{ it[2] != "processed" }
         // mix with output from moving counts
         .mix(move_normalized_counts.out)
         .map{ meta, hdf5_files, file_type -> tuple(
-          meta.library_id,
+          meta.library_id, // pull out library id for grouping
           meta,
-          hdf5_files
+          hdf5_files // either rna.hdf5 or [ rna.hdf5, feature.hdf5 ]
         )}
+        // group by library id result is
+        // [library id, [meta, meta, meta], [hdf5 files]]
         .groupTuple(by: 0, size: 3, remainder: true)
+        // pull out just 1 meta object and hdf5 files
+        // [meta, [hdf5 files]]
         .map{ [it[1][0]] +  it[2] }
 
     emit: anndata_ch
