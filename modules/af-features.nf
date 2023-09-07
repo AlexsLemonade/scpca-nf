@@ -166,7 +166,7 @@ workflow map_quant_feature{
     // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     feature_rad_ch = feature_ch.has_rad
       .map{meta -> tuple(Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
-                         file(meta.feature_rad_dir)
+                         file(meta.feature_rad_dir, type: 'dir')
                          )}
 
     // run Alevin on feature reads

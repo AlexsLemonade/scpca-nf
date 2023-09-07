@@ -122,14 +122,14 @@ workflow map_quant_rna {
       .map{meta -> tuple(meta,
                          file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
                          file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
-                         file("${meta.salmon_splici_index}")
+                         file(meta.salmon_splici_index, type: 'dir')
                         )}
 
     // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
-                         file(meta.rad_dir)
+                         file(meta.rad_dir, type: 'dir')
                          )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
