@@ -62,7 +62,7 @@ workflow starsolo_map{
                          file("${meta.files_directory}/*_R1_*.fastq.gz"),
                          file("${meta.files_directory}/*_R2_*.fastq.gz"),
                          file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}"),
-                         file("${meta.star_index}")
+                         file(meta.star_index, type: 'dir')
                          )}
     starsolo(sc_reads_ch)
     index_bam(starsolo.out.star_bam)
