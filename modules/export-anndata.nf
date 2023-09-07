@@ -8,7 +8,7 @@ process export_anndata{
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path("${meta.library_id}_${file_type}*.hdf5")
+      tuple val(meta), path("${meta.library_id}_${file_type}*.hdf5"), val(file_type)
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
@@ -35,9 +35,9 @@ process move_normalized_counts{
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
-    tuple val(meta), path(unfiltered_hdf5), path(filtered_hdf5), path(processed_hdf5)
+    tuple val(meta), path(processed_hdf5), val(file_type)
   output:
-    tuple val(meta), path(unfiltered_hdf5), path(filtered_hdf5), path(processed_hdf5)
+    tuple val(meta), path(processed_hdf5), val(file_type)
   script:
     input_hdf5_files = processed_hdf5.join(',')
     """
@@ -61,10 +61,17 @@ workflow sce_to_anndata{
       // export each anndata file
       export_anndata(sce_ch)
 
+      processed_anndata_ch = export_anndata.out
+        .filter{ it[2] == "processed"}
+
+      // move any normalized counts to X in AnnData
+      move_normalized_counts(processed_anndata_ch)
+
       // combine all anndata files by library id
       // creates anndata channel with [library_id, unfiltered, filtered, processed]
       anndata_ch = export_anndata.out
-        .map{ meta, hdf5_files -> tuple(
+        .join(move_normalized_counts.out, by: [0-2])
+        .map{ meta, hdf5_files, file_type -> tuple(
           meta.library_id,
           meta,
           hdf5_files
@@ -72,9 +79,6 @@ workflow sce_to_anndata{
         .groupTuple(by: 0, size: 3, remainder: true)
         .map{ [it[1][0]] +  it[2] }
 
-      // move any normalized counts to X in AnnData
-      move_normalized_counts(anndata_ch)
-
-    emit: move_normalized_counts.out
+    emit: anndata_ch
 
 }
