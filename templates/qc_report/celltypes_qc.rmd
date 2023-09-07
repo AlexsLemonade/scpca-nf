@@ -239,7 +239,7 @@ knitr::asis_output("
 
 `CellAssign` computes the probability that each cell in the library is one of the provided cell types in the reference and ultimately annotates cells by assigning the cell type with the highest probability.
 We therefore expect that cell-level probabilities that correspond to the annotated cell types will be high.
-Conversely, we expect that cell-level probabilities that correspond to annotated cell types will be low.
+Conversely, we expect that cell-level probabilities that correspond to unannotated cell types will be low.
 
 In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type, where the median is shown as a vertical line in each.
 Colors represent whether the probabilities correspond to a cell with that given annotation: Purple distributions represent probabilies for cells that _were_ annotated as the given cell type.
