@@ -38,8 +38,9 @@ workflow star_bulk{
     bulk_reads_ch = bulk_channel
         .map{meta -> tuple(meta,
                            file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
-                         file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
-                           file("${meta.star_index}"))}
+                           file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
+                           file(meta.star_index, type: 'dir')
+                           )}
     // map and index
     bulkmap_star(bulk_reads_ch) \
     | index_bam
