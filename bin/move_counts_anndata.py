@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # This script takes an AnnData object and checks for the `logcounts`
 # in layers. If present, `logcounts` is moved to `X` and `X` (which has the raw counts)
