@@ -237,13 +237,13 @@ ggplot(delta_median_df) +
 knitr::asis_output("
 ### `CellAssign` assessment
 
-`CellAssign` computes the probability that each cell is one of the provided cell types and ultimately annotates cells based on the highest probability.
+`CellAssign` computes the probability that each cell in the library is one of the provided cell types in the reference and ultimately annotates cells by assigning the cell type with the highest probability.
 We therefore expect that cell-level probabilities that correspond to the annotated cell types will be high.
 Conversely, we expect that cell-level probabilities that correspond to annotated cell types will be low.
 
 In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type (excluding unknown cell types).
-Colors represent whether the probabilities correspond to a cell with that given annotation: Purple distributions represent probabilities for cells that _were not_ annotated as the given cell type.
-Yellow distribution represent probabilies for cells that _were_ annotated as the given cell type.
+Colors represent whether the probabilities correspond to a cell with that given annotation: Yellow distribution represent probabilies for cells that _were_ annotated as the given cell type.
+Purple distributions represent probabilities for cells that _were not_ annotated as the given cell type.
 For distributions with fewer than three points, density plots cannot be calculated.
 In these cases, we directly show values for individual cell probabilities as points.
 ")
