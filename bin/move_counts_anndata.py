@@ -35,12 +35,12 @@ for file in input_files:
 
     # if logcounts is present
     if "logcounts" in object.layers.keys():
-        # move X to raw.X, first we need to initialize the raw.X
+        # move X to raw.X by creating the raw object
         object.raw = object
-        object.raw.X = object.X
 
-        # move logcounts to X
+        # move logcounts to X and rename
         object.X = object.layers["logcounts"]
+        object.uns["X_name"] = "logcounts"
 
         # export object
         object.write_h5ad(file)
