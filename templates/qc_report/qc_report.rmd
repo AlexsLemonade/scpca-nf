@@ -5,6 +5,7 @@ params:
   filtered_sce: NULL
   processed_sce: NULL
   date: !r Sys.Date()
+  seed: NULL
 
 title: "`r glue::glue('ScPCA QC report for {params$library}')`"
 author: "Childhood Cancer Data Lab"
@@ -44,6 +45,9 @@ reformat_nulls <- function(df) {
     )
   )
 }
+
+# Set seed
+set.seed(params$seed)
 ```
 
 ```{r sce_setup}
