@@ -216,12 +216,15 @@ ggplot(delta_median_df) +
   ) + 
   scale_color_manual(values = c("blue", "black")) +
   # add median/IQR
-  stat_summary(
+  geom_boxplot(
     data = delta_median_confident_df, # only use black points for median
     color = "red",
-    geom = "crossbar",
-    width = 0.4,
-    size = 0.2
+    width = 0.2,
+    size = 0.3, 
+    alpha = 0,
+    # remove whiskers, outliers
+    outlier.shape = 0,
+    coef = 0
   ) + 
   guides(
     color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
