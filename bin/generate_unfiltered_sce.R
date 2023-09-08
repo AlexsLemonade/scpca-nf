@@ -74,22 +74,22 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$unfiltered_file, ".rds"))){
+if (!(stringr::str_ends(opt$unfiltered_file, ".rds"))) {
   stop("unfiltered file name must end in .rds")
 }
 
 # check that mitochondrial gene list exists
-if(!file.exists(opt$mito_file)){
+if (!file.exists(opt$mito_file)) {
   stop("Mitochondrial gene list file not found.")
 }
 
 # check that gtf file exists
-if(!file.exists(opt$gtf_file)){
+if (!file.exists(opt$gtf_file)) {
   stop("gtf file not found.")
 }
 
 # check that sample metadata file exists
-if(!file.exists(opt$sample_metadata_file)){
+if (!file.exists(opt$sample_metadata_file)) {
   stop("sample metadata file not found.")
 }
 
@@ -106,21 +106,25 @@ sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 include_unspliced <- !opt$spliced_only
 
 # get unfiltered sce
-unfiltered_sce <- read_alevin(quant_dir = opt$alevin_dir,
-                              include_unspliced = include_unspliced,
-                              fry_mode = TRUE,
-                              tech_version = opt$technology,
-                              library_id = opt$library_id,
-                              sample_id = sample_ids)
+unfiltered_sce <- read_alevin(
+  quant_dir = opt$alevin_dir,
+  include_unspliced = include_unspliced,
+  fry_mode = TRUE,
+  tech_version = opt$technology,
+  library_id = opt$library_id,
+  sample_id = sample_ids
+)
 
 # read and merge feature counts if present
-if (opt$feature_dir != ""){
-  feature_sce <- read_alevin(quant_dir = opt$feature_dir,
-                             include_unspliced = FALSE,
-                             fry_mode = TRUE,
-                             feature_data = TRUE,
-                             library_id = opt$library_id,
-                             sample_id = sample_ids)
+if (opt$feature_dir != "") {
+  feature_sce <- read_alevin(
+    quant_dir = opt$feature_dir,
+    include_unspliced = FALSE,
+    fry_mode = TRUE,
+    feature_data = TRUE,
+    library_id = opt$library_id,
+    sample_id = sample_ids
+  )
 
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
   # add alt experiment features stats
@@ -143,7 +147,7 @@ sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
 # add per cell and per gene statistics to colData and rowData
 unfiltered_sce <- unfiltered_sce |>
   add_cell_mito_qc(mito = mito_genes) |>
- # add gene symbols to rowData
+  # add gene symbols to rowData
   add_gene_symbols(gene_info = gtf) |>
   scuttle::addPerFeatureQCMetrics() |>
   # add dataframe with sample metadata to sce metadata
@@ -151,4 +155,3 @@ unfiltered_sce <- unfiltered_sce |>
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
-

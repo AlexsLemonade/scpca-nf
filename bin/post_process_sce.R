@@ -60,12 +60,12 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
 # check that filtered SCE file exists
-if(!file.exists(opt$filtered_sce_file)){
+if (!file.exists(opt$filtered_sce_file)) {
   stop("Missing filtered.rds file")
 }
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
   stop("output file name must end in .rds")
 }
 
@@ -73,7 +73,7 @@ if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
 sce <- readr::read_rds(opt$filtered_sce_file)
 
 # create scpca_filter column -----------
-if(all(is.na(sce$miQC_pass))){
+if (all(is.na(sce$miQC_pass))) {
   sce$scpca_filter <- ifelse(
     sce$detected >= opt$gene_cutoff,
     "Keep",
@@ -96,18 +96,17 @@ metadata(sce)$min_gene_cutoff <- opt$gene_cutoff
 # create adt_scpca_filter column, if CITEseq ----------
 alt_exp <- opt$adt_name
 if (alt_exp %in% altExpNames(sce)) {
-  
   # set up filter with all Keep, and then override to Remove where necessary
   sce$adt_scpca_filter <- "Keep"
   sce$adt_scpca_filter[which(altExp(sce, alt_exp)$discard)] <- "Remove"
 
   # Warnings for different types of failure:
   fail_all_removed <- all(sce$adt_scpca_filter == "Remove")
-  fail_all_na <- all(is.na(altExp(sce, alt_exp)$discard)) 
-  
+  fail_all_na <- all(is.na(altExp(sce, alt_exp)$discard))
+
   # handle failures - warnings and assign method as "No filter"
-  if (fail_all_removed | fail_all_na) {
-    metadata(sce)$adt_scpca_filter_method <- "No filter"   
+  if (fail_all_removed || fail_all_na) {
+    metadata(sce)$adt_scpca_filter_method <- "No filter"
     if (fail_all_removed) {
       sce$adt_scpca_filter <- "Keep"
       warning("Filtering on ADTs attempted to remove all cells. No cells will be removed.")
@@ -137,7 +136,7 @@ if (alt_exp %in% altExpNames(sce)) {
 processed_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
 # replace existing stats with recalculated gene stats
-drop_cols <- colnames(rowData(processed_sce, alt)) %in% c('mean', 'detected')
+drop_cols <- colnames(rowData(processed_sce, alt)) %in% c("mean", "detected")
 rowData(processed_sce) <- rowData(processed_sce)[!drop_cols]
 
 processed_sce <- processed_sce |>
@@ -146,7 +145,7 @@ processed_sce <- processed_sce |>
 # replace existing stats from altExp if any
 for (alt in altExpNames(processed_sce)) {
   # remove old row data
-  drop_cols <- colnames(rowData(altExp(processed_sce, alt))) %in% c('mean', 'detected')
+  drop_cols <- colnames(rowData(altExp(processed_sce, alt))) %in% c("mean", "detected")
   rowData(altExp(processed_sce, alt)) <- rowData(altExp(processed_sce, alt))[!drop_cols]
 
   # add alt experiment features stats for filtered data
@@ -179,10 +178,8 @@ processed_sce <- scuttle::logNormCounts(processed_sce)
 
 # Try to normalize ADT counts, if present
 if (alt_exp %in% altExpNames(processed_sce)) {
-  
-  
   # need `all()` since,if present, this is an array
-  if( !all(is.null(metadata(altExp(processed_sce, alt_exp))$ambient_profile))){
+  if (!all(is.null(metadata(altExp(processed_sce, alt_exp))$ambient_profile))) {
     # Calculate median size factors from the ambient profile
     altExp(processed_sce, alt_exp) <- scuttle::computeMedianFactors(
       altExp(processed_sce, alt_exp),
@@ -192,32 +189,32 @@ if (alt_exp %in% altExpNames(processed_sce)) {
     # if ambient profile is not present, set sizeFactor to 0 for later warning.
     altExp(processed_sce, alt_exp)$sizeFactor <- 0
   }
-  
+
   adt_sce <- altExp(processed_sce, alt_exp)
   # Perform filtering specifically to allow for normalization
   if (!is.null(processed_sce$adt_scpca_filter)) {
-    adt_sce <- adt_sce[,processed_sce$adt_scpca_filter == "Keep"]
+    adt_sce <- adt_sce[, processed_sce$adt_scpca_filter == "Keep"]
   }
-  
+
   # If any size factors are not positive or there was no filtering, simply use log1p
-  if ( any( adt_sce$sizeFactor <= 0 )  | metadata(processed_sce)$adt_scpca_filter_method == "No filter") {
+  if (any(adt_sce$sizeFactor <= 0) || metadata(processed_sce)$adt_scpca_filter_method == "No filter") {
     metadata(processed_sce)$adt_normalization <- "log-normalization"
     logcounts(adt_sce) <- log1p(counts(adt_sce))
   } else {
     # Apply normalization using size factors
     metadata(processed_sce)$adt_normalization <- "median-based"
-    adt_sce <- scuttle::logNormCounts(adt_sce)    
+    adt_sce <- scuttle::logNormCounts(adt_sce)
   }
   # Now that we have logcounts, add back to `processed_sce` but
   #   with NA values for cells not included in normalization
-  
+
   # first, get the counts matrix and make it NA
   result_matrix <- counts(altExp(processed_sce, alt_exp))
-  result_matrix[,] <- NA
-  
+  result_matrix[, ] <- NA
+
   # now get the computed logcounts & fill them in
   result_matrix[, colnames(adt_sce)] <- logcounts(adt_sce)
-  
+
   # Check correct number of NAs:
   observed_na_count <- sum(is.na(result_matrix))
   expected_na_count <- nrow(adt_sce) * (ncol(altExp(processed_sce, alt_exp)) - ncol(adt_sce))
@@ -243,14 +240,17 @@ metadata(processed_sce)$highly_variable_genes <- var_genes
 
 # dimensionality reduction
 # highly variable genes are used as input to PCA
-processed_sce <- scater::runPCA(processed_sce,
-                               ncomponents = opt$n_pcs,
-                               subset_row = var_genes)
+processed_sce <- scater::runPCA(
+  processed_sce,
+  ncomponents = opt$n_pcs,
+  subset_row = var_genes
+)
 
 # calculate a UMAP matrix using the PCA results
 try({
   processed_sce <- scater::runUMAP(processed_sce,
-                                  dimred = "PCA")
+    dimred = "PCA"
+  )
 })
 
 # Export --------------
@@ -260,4 +260,3 @@ readr::write_rds(sce, opt$filtered_sce_file, compress = "gz")
 
 # write out processed SCE
 readr::write_rds(processed_sce, opt$output_sce_file, compress = "gz")
-

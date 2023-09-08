@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
 # Script used to perform clustering on a given SCE object
-# 
+#
 # This script reads in an RDS file containing an SCE, and performs
-#  graph-based clustering using the specified algorithm. Cluster identities are 
+#  graph-based clustering using the specified algorithm. Cluster identities are
 #  stored in the SCE's colData slot, and the SCE is written back out to the
 #  original RDS file.
 
@@ -25,7 +25,7 @@ option_list <- list(
     default = "PCA",
     help = "Name of the PCA reduced dimensionality representation to perform
       clustering on."
-  ), 
+  ),
   make_option(
     opt_str = c("--cluster_algorithm"),
     type = "character",
@@ -43,7 +43,7 @@ option_list <- list(
   make_option(
     opt_str = c("--nearest_neighbors"),
     type = "integer",
-    default = 20, 
+    default = 20,
     help = "Nearest neighbors parameter to set for graph-based clustering. Default is 20."
   ),
   make_option(
@@ -75,8 +75,8 @@ if (!opt$pca_name %in% reducedDimNames(sce)) {
 
 # extract the principal components matrix
 clusters <- scran::clusterCells(
-  sce, 
-  use.dimred = opt$pca_name, 
+  sce,
+  use.dimred = opt$pca_name,
   BLUSPARAM = bluster::NNGraphParam(
     k = opt$nearest_neighbors,
     type = opt$cluster_weighting,

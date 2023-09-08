@@ -22,12 +22,12 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that provided ref name is in celldex package
-if(! opt$ref_name %in% ls("package:celldex")){
+if (!opt$ref_name %in% ls("package:celldex")) {
   stop(glue::glue("Provided `ref_name` `{opt$ref_name}` does not match a celldex dataset."))
-} 
+}
 
 # get a reference library from celldex:
 ref <- do.call(`::`, args = list("celldex", opt$ref_name))(ensembl = TRUE)
 
-# export ref data 
+# export ref data
 readr::write_rds(ref, opt$ref_file, compress = "gz")
