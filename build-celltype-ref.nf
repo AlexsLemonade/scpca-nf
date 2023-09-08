@@ -40,7 +40,7 @@ process train_singler_models {
       --ref_file ${ref_file} \
       --output_file ${celltype_model} \
       --fry_tx2gene ${t2g_3col_path} \
-      --label_name ${params.label_name} \
+      --label_name ${params.singler_label_name} \
       --seed ${params.seed} \
       --threads ${task.cpus}
     """
