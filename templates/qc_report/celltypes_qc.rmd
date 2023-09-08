@@ -9,7 +9,7 @@ The following method(s) were used to perform cell typing:
 knitr::asis_output(
   glue::glue(
   "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
-  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
+  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex`](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
   )
 )
 ```
