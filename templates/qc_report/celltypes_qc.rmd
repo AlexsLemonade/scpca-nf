@@ -179,6 +179,9 @@ if ("singler_celltype_ontology" %in% names(celltype_df)) {
   # otherwise, full_labels already contain what we want to plot, so just rename it 
   delta_median_df <- delta_median_df |>
     dplyr::rename(celltype = full_labels)
+  # still need to add levels though:
+  # unknown will still be present, but it's not in the data, so it won't matter
+  levels(delta_median_df$celltype) <- levels(celltype_df$singler_celltype_annotation)
 }
 
 # Ensure we have no "Unknown cell type" values left:
