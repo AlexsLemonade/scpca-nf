@@ -11,10 +11,13 @@ import re
 import anndata as adata
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--anndata_file',
-                    dest = 'anndata_file',
-                    required = True,
-                    help = 'Path to HDF5 file with processed AnnData object')
+parser.add_argument(
+    "-i",
+    "--anndata_file",
+    dest="anndata_file",
+    required=True,
+    help="Path to HDF5 file with processed AnnData object",
+)
 
 args = parser.parse_args()
 
@@ -25,7 +28,9 @@ file_ext = re.compile(r"\.hdf5$|.h5$", re.IGNORECASE)
 if not os.path.exists(args.anndata_file):
     raise FileExistsError("`input_anndata` does not exist.")
 elif not file_ext.search(args.anndata_file):
-    raise ValueError("--input_anndata must end in either .hdf5 or .h5 and contain a processed AnnData object.")
+    raise ValueError(
+        "--input_anndata must end in either .hdf5 or .h5 and contain a processed AnnData object."
+    )
 
 # read in anndata
 object = adata.read_h5ad(args.anndata_file)
@@ -37,5 +42,9 @@ if "logcounts" in object.layers.keys():
     # move logcounts to X and rename
     object.X = object.layers["logcounts"]
     object.uns["X_name"] = "logcounts"
+
+    # add schema to uns
+    object.uns["schema_version"] = "3.0.0"
+
     # export object
     object.write_h5ad(args.anndata_file)
