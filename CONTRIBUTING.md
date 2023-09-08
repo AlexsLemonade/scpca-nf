@@ -34,8 +34,8 @@ If a new reference type is needed, that should be defined in the [`test/stub-ref
 While there is not necessarily an established code style for nextflow code, we try to keep code neat and readable.
 Line length should generally be kept under 100 characters, and indentation should be consistent.
 
-For R code, we try to follow [tidyverse style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
+For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
 
 For python code, we encourage the use of the `black` code formatter to ensure consistent formatting.
 The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
-Alternatively, if you use VSCode, you can install the [black extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+Alternatively, if you use [Visual Studio Code](https://code.visualstudio.com), you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
