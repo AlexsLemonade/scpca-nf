@@ -8,7 +8,7 @@ The following method(s) were used to perform cell typing:
 ```{r, eval = has_singler}
 knitr::asis_output(
   glue::glue(
-  "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
+    "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
   The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
   )
 )
@@ -18,15 +18,16 @@ knitr::asis_output(
 ```{r, eval = has_cellassign}
 knitr::asis_output(
   glue::glue(
-  "
+    "
   * [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
   Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
-  ")
+  "
+  )
 )
 ```
 
 
-Cells annotated as "Unknown cell type" represent cells which could not be confidently identified using the given annotation method. 
+Cells annotated as "Unknown cell type" represent cells which could not be confidently identified using the given annotation method.
 
 If available, these results will be compared to cell type annotations provided by the data's originating research group ("submitter-provided cell type annotations".)
 
@@ -34,22 +35,22 @@ If available, these results will be compared to cell type annotations provided b
 
 ```{r}
 # This chunk defines a helper function to reformat annotations:
-#  * Annotations that are `NA`/"other" are changed to "Unknown cell type" 
-#  * Annotations are converted to a factor ordered by frequency, but with 
+#  * Annotations that are `NA`/"other" are changed to "Unknown cell type"
+#  * Annotations are converted to a factor ordered by frequency, but with
 #    "Unknown cell type" always last.
 prepare_annotation_values <- function(df, annotation_column) {
   df |>
     dplyr::mutate(
-      {{annotation_column}} := dplyr::case_when(
+      {{ annotation_column }} := dplyr::case_when(
         # singler condition
-        is.na({{annotation_column}}) ~ "Unknown cell type",
+        is.na({{ annotation_column }}) ~ "Unknown cell type",
         # cellassign conditon
-        {{annotation_column}} == "other" ~ "Unknown cell type",
+        {{ annotation_column }} == "other" ~ "Unknown cell type",
         # otherwise, keep it
-        TRUE ~ {{annotation_column}}
+        TRUE ~ {{ annotation_column }}
       ) |>
-      forcats::fct_infreq() |>
-      forcats::fct_relevel("Unknown cell type", after = Inf)
+        forcats::fct_infreq() |>
+        forcats::fct_relevel("Unknown cell type", after = Inf)
     )
 }
 ```
@@ -61,10 +62,12 @@ celltype_df <- colData(processed_sce) |>
   # barcodes to a column
   tibble::rownames_to_column(var = "barcode") |>
   # keep only cell name, celltyping, and clusters
-  dplyr::select(barcode, 
-                clusters,
-                contains("singler"),
-                contains("cellassign"))
+  dplyr::select(
+    barcode,
+    clusters,
+    contains("singler"),
+    contains("cellassign")
+  )
 
 
 
@@ -75,29 +78,31 @@ if (has_singler) {
 if (has_cellassign) {
   celltype_df <- celltype_df |>
     prepare_annotation_values(cellassign_celltype_annotation)
-} 
+}
 ```
 
 ```{r}
 # Define a helper function to create tables for singler and cellassign annotations
 create_celltype_n_table <- function(df, celltype_column) {
   df |>
-    dplyr::count({{celltype_column}}) |>
+    dplyr::count({{ celltype_column }}) |>
     # Add percentage column
     dplyr::mutate(
-      `Percent of cells` =  paste0(round(n/sum(n) * 100, digits = 2), "%")
+      `Percent of cells` = paste0(round(n / sum(n) * 100, digits = 2), "%")
     ) |>
     # set column order & rename
     dplyr::select(
-      `Annotated cell type` = {{celltype_column}},
+      `Annotated cell type` = {{ celltype_column }},
       `Number of cells` = n,
       `Percent of cells`
     ) |>
     # kable formatting
-    knitr::kable(align = 'r') |>
-    kableExtra::kable_styling(bootstrap_options = "striped",
-                             full_width = FALSE,
-                             position = "left") |>
+    knitr::kable(align = "r") |>
+    kableExtra::kable_styling(
+      bootstrap_options = "striped",
+      full_width = FALSE,
+      position = "left"
+    ) |>
     kableExtra::column_spec(2, monospace = TRUE)
 }
 ```
@@ -116,7 +121,7 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 
 ```{r, eval = has_submitter_celltypes}
 knitr::asis_output("### Submitter-provided cell type annotations\n")
-# Note: submitter annotations have not yet been added to the workflow, 
+# Note: submitter annotations have not yet been added to the workflow,
 #  so this variable name `submitter_celltype_annotation` is just a placeholder
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
@@ -137,7 +142,7 @@ Higher _delta median_ values indicate more confidence in the cell type annotatio
 For more information, refer to the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
 
-In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation. 
+In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation.
 Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in blue.
 All blue points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
 The red overlayed boxes represent the median ± interquartile range (IQR), specifically for high-quality annotations.
@@ -149,7 +154,7 @@ The red overlayed boxes represent the median ± interquartile range (IQR), speci
 # Prepare SingleR scores for plot
 
 # extract scores into matrix
-singler_scores <- metadata(processed_sce)$singler_result$scores 
+singler_scores <- metadata(processed_sce)$singler_result$scores
 
 # Create data frame for plotting with delta median and the full *non-pruned* cell labels
 delta_median_df <- tibble::tibble(
@@ -164,19 +169,18 @@ delta_median_df <- tibble::tibble(
 # If ontologies were used for `full_labels`, we'll need to map back to cell names
 #  for the plot itself.
 if ("singler_celltype_ontology" %in% names(celltype_df)) {
-
   # we use inner_join b/c the above tibble does NOT contain "Unknown cell type", which
   #  we do not want to display here
   delta_median_df <- delta_median_df |>
-   dplyr::inner_join(
-    tibble::tibble(
-      full_labels = celltype_df$singler_celltype_ontology,
-      celltype = celltype_df$singler_celltype_annotation
-    ) |> dplyr::distinct()
-  ) |>
+    dplyr::inner_join(
+      tibble::tibble(
+        full_labels = celltype_df$singler_celltype_ontology,
+        celltype = celltype_df$singler_celltype_annotation
+      ) |> dplyr::distinct()
+    ) |>
     dplyr::select(-full_labels)
 } else {
-  # otherwise, full_labels already contain what we want to plot, so just rename it 
+  # otherwise, full_labels already contain what we want to plot, so just rename it
   delta_median_df <- delta_median_df |>
     dplyr::rename(celltype = full_labels)
 }
@@ -196,21 +200,25 @@ delta_median_df$annotation_wrapped <- factor(
 # Subset the data to just confident points for median+/-IQR
 delta_median_confident_df <- delta_median_df |>
   dplyr::filter(confident)
- 
+
 # Plot delta_median across celltypes colored by pruning
-ggplot(delta_median_df) + 
-  aes(x = annotation_wrapped, 
-      y = delta_median, 
-      color = confident) + 
-  ggforce::geom_sina(size = 0.75, 
-                     alpha = 0.5, 
-                     # Keep red points mostly in line with black
-                     position = position_dodge(width = 0.05)) +
+ggplot(delta_median_df) +
+  aes(
+    x = annotation_wrapped,
+    y = delta_median,
+    color = confident
+  ) +
+  ggforce::geom_sina(
+    size = 0.75,
+    alpha = 0.5,
+    # Keep red points mostly in line with black
+    position = position_dodge(width = 0.05)
+  ) +
   labs(
     x = "Cell type annotation",
     y = "Delta median statistic",
     color = "Confident cell type assignment"
-  ) + 
+  ) +
   scale_color_manual(values = c("blue", "black")) +
   # add median/IQR
   stat_summary(
@@ -219,12 +227,12 @@ ggplot(delta_median_df) +
     geom = "crossbar",
     width = 0.4,
     size = 0.2
-  ) + 
+  ) +
   guides(
     color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
   ) +
   theme(
-    axis.text.x = element_text(angle = 55, hjust = 1, size = rel(0.85)), 
+    axis.text.x = element_text(angle = 55, hjust = 1, size = rel(0.85)),
     legend.title = element_text(size = rel(0.75)),
     legend.text = element_text(size = rel(0.75)),
     legend.position = "bottom"
@@ -251,14 +259,13 @@ In these cases, we directly show values for individual cell probabilities as lin
 
 
 ```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = 8, fig.width = 7}
-
 # Prepare CellAssign scores for plot
-cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |> 
+cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |>
   # Change "other" to "Unknown cell type"
   dplyr::rename(`Unknown cell type` = other) |>
   tidyr::pivot_longer(
-    -barcode, 
-    names_to = "celltype", 
+    -barcode,
+    names_to = "celltype",
     values_to = "probability"
   ) |>
   # remove cell types that were not annotated
@@ -266,7 +273,7 @@ cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |>
   # join with actual annotations
   dplyr::inner_join(
     tibble::tibble(
-      cellassign_celltype_annotation = celltype_df$cellassign_celltype_annotation, 
+      cellassign_celltype_annotation = celltype_df$cellassign_celltype_annotation,
       barcode = colData(processed_sce)$barcodes # plural!
     )
   ) |>
@@ -293,29 +300,33 @@ celltypes_leq2_cells <- cellassign_prob_df |>
 # data frame for adding those points back
 leq2_probabilities_df <- cellassign_prob_df |>
   dplyr::filter(
-    annotation_wrapped %in% celltypes_leq2_cells, 
-    annotated 
+    annotation_wrapped %in% celltypes_leq2_cells,
+    annotated
   ) |>
   dplyr::select(annotation_wrapped, probability, annotated)
 
 # Finally, the plot:
 ggplot(cellassign_prob_df) +
-  aes(x = probability,
-      y = annotation_wrapped, 
-      fill = annotated) + 
-  ggridges::stat_density_ridges(quantile_lines = TRUE,
-                                quantiles = 2, 
-                                alpha = 0.6,
-                                # avoid overlap to extent possible in a template - 
-                                scale = 0.85) +
+  aes(
+    x = probability,
+    y = annotation_wrapped,
+    fill = annotated
+  ) +
+  ggridges::stat_density_ridges(
+    quantile_lines = TRUE,
+    quantiles = 2,
+    alpha = 0.6,
+    # avoid overlap to extent possible in a template -
+    scale = 0.85
+  ) +
   scale_fill_viridis_d(direction = -1) +
   labs(
     x = "CellAssign probability",
-    y = "Annotated cell type", 
+    y = "Annotated cell type",
     fill = "Cell annotated as given cell type"
   ) +
   theme(
-    axis.text.y = element_text(size = 9), 
+    axis.text.y = element_text(size = 9),
     legend.position = "bottom"
   ) +
   #### add line segment for N<3 distributions
@@ -329,7 +340,7 @@ ggplot(cellassign_prob_df) +
       color = annotated
     ),
     show.legend = FALSE
-  ) + 
+  ) +
   scale_color_viridis_d()
 ```
 
@@ -349,25 +360,26 @@ All other cell types are grouped together and labeled "Other cell type" (not to 
 ```{r}
 # Create dataset for plotting UMAPs with lumped cell types
 umap_df <- tibble::tibble(
-  UMAP1 = unname(reducedDim(processed_sce, "UMAP")[,1]),
-  UMAP2 = unname(reducedDim(processed_sce, "UMAP")[,2]),
+  UMAP1 = unname(reducedDim(processed_sce, "UMAP")[, 1]),
+  UMAP2 = unname(reducedDim(processed_sce, "UMAP")[, 2]),
   clusters = processed_sce$clusters
 )
 
 # helper function for lumping cell types
-lump_celltypes <- function(umap_df, 
+lump_celltypes <- function(umap_df,
                            celltype_df,
                            celltype_method,
                            n_celltypes = 7) {
-  
   umap_df |>
     dplyr::mutate(
-      celltypes =  celltype_df[[glue::glue("{celltype_method}_celltype_annotation")]],
-      celltypes = forcats::fct_lump_n(celltypes,
-                                      n_celltypes, 
-                                      other_level = "Other cell type")) |>
+      celltypes = celltype_df[[glue::glue("{celltype_method}_celltype_annotation")]] |>
+        forcats::fct_lump_n(
+          n_celltypes,
+          other_level = "Other cell type"
+        )
+    ) |>
     # finally, rename temporary `celltypes` column to the provided method
-    dplyr::rename({{celltype_method}} := celltypes)
+    dplyr::rename({{ celltype_method }} := celltypes)
 }
 
 if (has_singler) {
@@ -384,68 +396,79 @@ if (has_cellassign) {
 # Define helper function for making UMAPs in this section
 #  this function uses the default palette, which can be customized when
 #  calling the function
-plot_umap <- function(umap_df, 
+plot_umap <- function(umap_df,
                       color_variable,
-                      legend_title, 
+                      legend_title,
                       legend_nrow = 2) {
-  
-  ggplot(umap_df) + 
-    aes(x = UMAP1, 
-        y = UMAP2, 
-        color = {{color_variable}}) + 
-    geom_point(size = 0.3,
-               alpha = 0.5) + 
+  ggplot(umap_df) +
+    aes(
+      x = UMAP1,
+      y = UMAP2,
+      color = {{ color_variable }}
+    ) +
+    geom_point(
+      size = 0.3,
+      alpha = 0.5
+    ) +
     # remove axis numbers and background grid
-    scale_x_continuous(labels = NULL, breaks = NULL) + 
-    scale_y_continuous(labels = NULL, breaks = NULL) + 
-    coord_fixed() + 
+    scale_x_continuous(labels = NULL, breaks = NULL) +
+    scale_y_continuous(labels = NULL, breaks = NULL) +
+    coord_fixed() +
     guides(
-      color = guide_legend(title = legend_title, 
-                           nrow = legend_nrow,
-                           # more visible points in legend
-                           override.aes = list(alpha = 1,
-                                               size = 1.5))) + 
+      color = guide_legend(
+        title = legend_title,
+        nrow = legend_nrow,
+        # more visible points in legend
+        override.aes = list(
+          alpha = 1,
+          size = 1.5
+        )
+      )
+    ) +
     theme(legend.position = "bottom")
 }
 ```
 
-<!-- First UMAP: clusters --> 
+<!-- First UMAP: clusters -->
 ```{r message=FALSE, warning=FALSE}
-clusters_plot <- plot_umap(umap_df, 
-          clusters,
-          "Clusters") +
+clusters_plot <- plot_umap(
+  umap_df,
+  clusters,
+  "Clusters"
+) +
   ggtitle("UMAP colored by clusters")
 
 # Determine palette based on number of levels.
-# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors). 
+# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
 #  Otherwise, we will use the default palette.
 if (length(levels(umap_df$clusters)) <= 8) {
-  clusters_plot + 
-    scale_color_brewer(palette =  "Set2")
+  clusters_plot +
+    scale_color_brewer(palette = "Set2")
 } else {
   clusters_plot
 }
-  
 ```
 
 <!-- Now, UMAPs of cell types, where present -->
 
 ```{r eval=has_singler, message=FALSE, warning=FALSE}
-plot_umap(umap_df, 
-          singler,
-          "Cell types",
-          legend_nrow = 4) +
-  ggtitle("UMAP colored by SingleR annotations") + 
+plot_umap(umap_df,
+  singler,
+  "Cell types",
+  legend_nrow = 4
+) +
+  ggtitle("UMAP colored by SingleR annotations") +
   scale_color_brewer(palette = "Dark2")
 ```
 
 
 ```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
-plot_umap(umap_df, 
-          cellassign,
-          "Cell types",
-          legend_nrow = 4) +
-  ggtitle("UMAP colored by CellAssign annotations")  + 
+plot_umap(umap_df,
+  cellassign,
+  "Cell types",
+  legend_nrow = 4
+) +
+  ggtitle("UMAP colored by CellAssign annotations") +
   scale_color_brewer(palette = "Dark2")
 ```
 
@@ -463,43 +486,44 @@ Heatmap colors represent the log number of cells present in both the given cell 
 ```{r}
 # Helper function for making a heatmap
 create_celltype_heatmap <- function(x_vector,
-                                    y_vector, 
+                                    y_vector,
                                     x_label = "",
-                                    y_label = "", 
+                                    y_label = "",
                                     column_names_rotation = 0,
-                                    row_font_size = 8, 
+                                    row_font_size = 8,
                                     column_font_size = 10) {
-  
   # build a matrix for making a heatmap
-  celltype_mtx <- table(x_vector,
-                        y_vector) |> 
+  celltype_mtx <- table(
+    x_vector,
+    y_vector
+  ) |>
     log1p() # log transform for visualization
-    
-  # Define CVD-friendly palette 
+
+  # Define CVD-friendly palette
   heatmap_palette <- viridisLite::inferno(7, alpha = 1, begin = 0, end = 1, direction = 1)
-  
+
   # heatmap
   heat <- ComplexHeatmap::Heatmap(celltype_mtx,
-                                  # Overall heatmap parameters
-                                  col = heatmap_palette,
-                                  # Column parameters
-                                  column_title = y_label,
-                                  column_title_side = "bottom", 
-                                  column_dend_side = "top",
-                                  column_names_rot = column_names_rotation,
-                                  column_names_gp = grid::gpar(fontsize = column_font_size),
-                                  # Row parameters
-                                  row_dend_side = "left",
-                                  row_title_side = "right", 
-                                  row_title = x_label,
-                                  row_names_gp = grid::gpar(fontsize = row_font_size),
-                                  # Legend parameters
-                                  heatmap_legend_param = list(
-                                    title = "Log(Number of cells)",
-                                    title_position = "leftcenter-rot",
-                                    legend_height = unit(4, "cm")
-                                    )
-                                  )
+    # Overall heatmap parameters
+    col = heatmap_palette,
+    # Column parameters
+    column_title = y_label,
+    column_title_side = "bottom",
+    column_dend_side = "top",
+    column_names_rot = column_names_rotation,
+    column_names_gp = grid::gpar(fontsize = column_font_size),
+    # Row parameters
+    row_dend_side = "left",
+    row_title_side = "right",
+    row_title = x_label,
+    row_names_gp = grid::gpar(fontsize = row_font_size),
+    # Legend parameters
+    heatmap_legend_param = list(
+      title = "Log(Number of cells)",
+      title_position = "leftcenter-rot",
+      legend_height = unit(4, "cm")
+    )
+  )
   # draw with legend on left for spacing
   ComplexHeatmap::draw(heat, heatmap_legend_side = "left")
 }
@@ -509,8 +533,8 @@ create_celltype_heatmap <- function(x_vector,
 ```{r, eval = has_singler, fig.height=5, fig.width=7}
 knitr::asis_output("### `SingleR` cluster and cell type heatmap\n")
 create_celltype_heatmap(
-  x_vector = celltype_df$singler_celltype_annotation, 
-  y_vector = celltype_df$clusters, 
+  x_vector = celltype_df$singler_celltype_annotation,
+  y_vector = celltype_df$clusters,
   y_label = "Clusters"
 )
 ```
@@ -518,8 +542,8 @@ create_celltype_heatmap(
 ```{r, eval = has_cellassign, fig.height=5, fig.width=7}
 knitr::asis_output("### `CellAssign` cluster and cell type heatmap\n")
 create_celltype_heatmap(
-  x_vector = celltype_df$cellassign_celltype_annotation, 
-  y_vector = celltype_df$clusters, 
+  x_vector = celltype_df$cellassign_celltype_annotation,
+  y_vector = celltype_df$clusters,
   y_label = "Clusters"
 )
 ```
@@ -527,14 +551,14 @@ create_celltype_heatmap(
 ```{r, eval = has_submitter_celltypes, fig.height=5, fig.width=7}
 knitr::asis_output("### Submitter-provided cluster and cell type heatmap\n")
 create_celltype_heatmap(
-  x_vector = celltype_df$submitter_celltype_annotation, 
-  y_vector = celltype_df$clusters, 
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$clusters,
   y_label = "Clusters"
 )
 ```
 
 
-<!-- Use large height/width to accommodate cell type labels --> 
+<!-- Use large height/width to accommodate cell type labels -->
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
 ## Comparison between annotations
@@ -544,8 +568,8 @@ Note that due to different annotations references, these methods may use differe
 ")
 
 create_celltype_heatmap(
-  x_vector = celltype_df$singler_celltype_annotation, 
-  y_vector = celltype_df$cellassign_celltype_annotation, 
+  x_vector = celltype_df$singler_celltype_annotation,
+  y_vector = celltype_df$cellassign_celltype_annotation,
   x_label = "SingleR annotations",
   y_label = "CellAssign annotations",
   column_names_rotation = 55,

@@ -1,18 +1,19 @@
-## Dimensionality Reduction 
+## Dimensionality Reduction
 
 The below plot shows the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell, coloring each cell by the total number of genes detected per cell.
 
 ```{r message=FALSE}
-# create UMAP colored by number of genes detected 
+# create UMAP colored by number of genes detected
 scater::plotUMAP(processed_sce,
-                 point_size = 0.3,
-                 point_alpha = 0.5,
-                 colour_by = "detected") +
+  point_size = 0.3,
+  point_alpha = 0.5,
+  colour_by = "detected"
+) +
   scale_color_viridis_c() +
   # remove axis numbers and background grid
-  scale_x_continuous(labels = NULL, breaks = NULL) + 
-  scale_y_continuous(labels = NULL, breaks = NULL) + 
-  coord_fixed() + 
+  scale_x_continuous(labels = NULL, breaks = NULL) +
+  scale_y_continuous(labels = NULL, breaks = NULL) +
+  coord_fixed() +
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
   )
@@ -28,78 +29,84 @@ If gene symbols are not available, the Ensembl id will be shown.
 ```{r message=FALSE, results='asis', fig.height = 8}
 # only create plot if variable genes are present
 if (!is.null(processed_meta$highly_variable_genes)) {
-  
-  # select top genes to plot 
+  # select top genes to plot
   top_genes <- processed_meta$highly_variable_genes |>
-    head( n = 12)
-  
+    head(n = 12)
+
   # grab expression for top genes from counts
-  var_gene_exp <- logcounts(processed_sce[top_genes,]) |>
+  var_gene_exp <- logcounts(processed_sce[top_genes, ]) |>
     as.matrix() |>
     t() |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode")
-  
+
   # grab rowdata as data frame to later combine with gene expression data
-  # rowdata contains the mapped gene symbol so can use that to label plots instead of ensembl gene id from rownames 
+  # rowdata contains the mapped gene symbol so can use that to label plots instead of ensembl gene id from rownames
   rowdata_df <- rowData(processed_sce) |>
     as.data.frame() |>
     tibble::rownames_to_column("ensembl_id") |>
     select(ensembl_id, gene_symbol) |>
     filter(ensembl_id %in% top_genes) |>
-    mutate(gene_symbol = ifelse(!is.na(gene_symbol), gene_symbol, ensembl_id),
-         ensembl_id = factor(ensembl_id, levels = top_genes)) |>
+    mutate(
+      gene_symbol = ifelse(!is.na(gene_symbol), gene_symbol, ensembl_id),
+      ensembl_id = factor(ensembl_id, levels = top_genes)
+    ) |>
     arrange(ensembl_id) |>
     mutate(gene_symbol = factor(gene_symbol, levels = gene_symbol))
-  
-  
+
+
   # extract umap embeddings as a dataframe to join with gene expression and coldata for plotting
   umap_df <- reducedDim(processed_sce, "UMAP") |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
-    rename("UMAP1" = "V1",
-           "UMAP2" = "V2")
-  
+    rename(
+      "UMAP1" = "V1",
+      "UMAP2" = "V2"
+    )
+
   # combine gene expression with coldata, umap embeddings, and rowdata and create data frame to use for plotting
   coldata_df <- colData(processed_sce) |>
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
     # combine with gene expression
     left_join(var_gene_exp, by = "barcode") |>
-    # combine with umap embeddings 
+    # combine with umap embeddings
     left_join(umap_df, by = "barcode") |>
-    # combine all genes into a single column for easy faceting 
-    tidyr::pivot_longer(cols = starts_with("ENSG"),
-                        names_to = "ensembl_id",
-                        values_to = "gene_expression") |>
-    # join with row data to add in gene symbols 
+    # combine all genes into a single column for easy faceting
+    tidyr::pivot_longer(
+      cols = starts_with("ENSG"),
+      names_to = "ensembl_id",
+      values_to = "gene_expression"
+    ) |>
+    # join with row data to add in gene symbols
     left_join(rowdata_df)
-  
-  
-  ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = gene_expression)) + 
-    geom_point(alpha = 0.1, size = 0.001) + 
+
+
+  ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = gene_expression)) +
+    geom_point(alpha = 0.1, size = 0.001) +
     facet_wrap(vars(gene_symbol)) +
     scale_color_viridis_c() +
     labs(
       color = "Log-normalized gene expression"
     ) +
     # remove axis numbers and background grid
-    scale_x_continuous(labels = NULL, breaks = NULL) + 
-    scale_y_continuous(labels = NULL, breaks = NULL) + 
-    coord_fixed() + 
-    theme(legend.position = "bottom", 
-          axis.title = element_text(size = 9, color = "black"),
-          strip.text = element_text(size = 8),
-          legend.title = element_text(size = 9),
-          legend.text = element_text(size = 8)) +
+    scale_x_continuous(labels = NULL, breaks = NULL) +
+    scale_y_continuous(labels = NULL, breaks = NULL) +
+    coord_fixed() +
+    theme(
+      legend.position = "bottom",
+      axis.title = element_text(size = 9, color = "black"),
+      strip.text = element_text(size = 8),
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8)
+    ) +
     guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
-  
 } else {
   glue::glue("
     <div class=\"alert alert-warning\">
-    
-    This library does not contain a set of highly variable genes. 
-    
+
+    This library does not contain a set of highly variable genes.
+
     </div>
   ")
 }
