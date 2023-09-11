@@ -36,7 +36,7 @@ elif not file_ext.search(args.anndata_file):
 object = adata.read_h5ad(args.anndata_file)
 
 # if logcounts is present
-if "logcounts" in object.layers.keys():
+if "logcounts" in object.layers:
     # move X to raw.X by creating the raw object
     object.raw = object
     # move logcounts to X and rename
