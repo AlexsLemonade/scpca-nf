@@ -26,7 +26,9 @@ All Nextflow processes should include a [`stub` block](https://www.nextflow.io/d
 At this stage this is purely used to allow for testing of the main workflow logic rather than the internal logic of each process.
 
 The [`test/stub-run-metadata.tsv`](test/stub-run-metadata.tsv) file is used to define input libraries that will be used for testing.
-Any additions to the overall workflow that will allow processing of a new library type should be added into `test/stub-run-metadata.tsv`, along with the appropriate input files (usually empty files with the expected names) for that library type in the `test/runs/` directory.
+Each sample ID in the `stub-run-metadata.tsv` file should have a corresponding entry in [`test/stub-sample-metadata.tsv`](test/stub-sample-metadata.tsv) (which can be filled with `NA` values).
+Any additions to the overall workflow that will allow processing of a new library type should include adding new example data.
+This will involve adding rows to `test/stub-run-metadata.tsv` and `test/stub-sample-metadata.tsv`, along with the appropriate input files (usually empty files with the expected names) for each library in the `test/runs/` directory.
 If a new reference type is needed, that should be defined in the [`test/stub-refs.json`](test/stub-refs.json) file.
 
 ## Code style
