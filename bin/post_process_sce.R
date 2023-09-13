@@ -229,14 +229,15 @@ if (alt_exp %in% altExpNames(processed_sce)) {
 
 # Perform dimension reduction --------------------
 
-# model gene variance using `scran:modelGeneVar()`
-gene_variance <- scran::modelGeneVar(processed_sce)
+try({
+  # model gene variance using `scran:modelGeneVar()`
+  gene_variance <- scran::modelGeneVar(processed_sce)
 
-# select the most variable genes
-var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
+  # select the most variable genes
+  var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
 
-# save the most variable genes to the metadata
-metadata(processed_sce)$highly_variable_genes <- var_genes
+  # save the most variable genes to the metadata
+  metadata(processed_sce)$highly_variable_genes <- var_genes
 
 # dimensionality reduction
 # highly variable genes are used as input to PCA
@@ -247,7 +248,6 @@ processed_sce <- scater::runPCA(
 )
 
 # calculate a UMAP matrix using the PCA results
-try({
   processed_sce <- scater::runUMAP(processed_sce,
     dimred = "PCA"
   )
