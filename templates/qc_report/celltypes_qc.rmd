@@ -183,6 +183,9 @@ if ("singler_celltype_ontology" %in% names(celltype_df)) {
   # otherwise, full_labels already contain what we want to plot, so just rename it
   delta_median_df <- delta_median_df |>
     dplyr::rename(celltype = full_labels)
+  # still need to add levels though:
+  # unknown will still be present, but it's not in the data, so it won't matter
+  levels(delta_median_df$celltype) <- levels(celltype_df$singler_celltype_annotation)
 }
 
 # Ensure we have no "Unknown cell type" values left:
@@ -221,13 +224,16 @@ ggplot(delta_median_df) +
   ) +
   scale_color_manual(values = c("blue", "black")) +
   # add median/IQR
-  stat_summary(
+  geom_boxplot(
     data = delta_median_confident_df, # only use black points for median
     color = "red",
-    geom = "crossbar",
-    width = 0.4,
-    size = 0.2
-  ) +
+    width = 0.2,
+    size = 0.3, 
+    alpha = 0,
+    # remove whiskers, outliers
+    outlier.shape = 0,
+    coef = 0
+  ) + 
   guides(
     color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
   ) +
