@@ -38,12 +38,12 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # Set up -----------------------------------------------------------------------
 
 # check that filtered SCE file exists
-if(!file.exists(opt$input_sce_file)){
+if (!file.exists(opt$input_sce_file)) {
   stop(glue::glue("{opt$input_sce_file} does not exist."))
 }
 
 # check that output file is h5
-if(!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))){
+if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))) {
   stop("output rna file name must end in .hdf5 or .h5")
 }
 
@@ -52,8 +52,7 @@ if(!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))){
 # this function applies any necessary reformatting or changes needed to make
 # sure that the sce that is getting converted to AnnData is compliant with CZI
 # CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
-format_czi <- function(sce){
-
+format_czi <- function(sce) {
   # add library_id as an sce colData column
   sce$library_id <- metadata(sce)$library_id
 
@@ -62,7 +61,8 @@ format_czi <- function(sce){
 
   # add sample metadata to colData sce
   sce <- scpcaTools::metadata_to_coldata(sce,
-                                         join_columns = "library_id")
+    join_columns = "library_id"
+  )
 
   # remove sample metadata from sce metadata, otherwise conflicts with converting object
   metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
@@ -78,7 +78,6 @@ format_czi <- function(sce){
   }
 
   return(sce)
-
 }
 
 # MainExp to AnnData -----------------------------------------------------------
@@ -102,15 +101,14 @@ scpcaTools::sce_to_anndata(
 # AltExp to AnnData -----------------------------------------------------------
 
 # if feature data exists, grab it and export to AnnData
-if(!is.null(opt$feature_name)){
-
+if (!is.null(opt$feature_name)) {
   # make sure the feature data is present
-  if(!(opt$feature_name %in% altExpNames(sce))){
+  if (!(opt$feature_name %in% altExpNames(sce))) {
     stop("feature_name must match name of altExp in provided SCE object.")
   }
 
   # check for output file
-  if(!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))){
+  if (!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))) {
     stop("output feature file name must end in .hdf5 or .h5")
   }
 
@@ -128,5 +126,4 @@ if(!is.null(opt$feature_name)){
     alt_sce,
     anndata_file = opt$output_feature_h5
   )
-
 }

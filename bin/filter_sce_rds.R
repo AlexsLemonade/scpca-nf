@@ -46,10 +46,10 @@ option_list <- list(
     help = "Name for the alternative experiment, if present, that contains ADT features"
   ),
   make_option(
-   opt_str = c("-r", "--random_seed"),
-   type = "integer",
-   help = "A random seed for reproducibility."
- )
+    opt_str = c("-r", "--random_seed"),
+    type = "integer",
+    help = "A random seed for reproducibility."
+  )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -58,17 +58,17 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
 # check that unfiltered file file exists
-if(!file.exists(opt$unfiltered_file)){
+if (!file.exists(opt$unfiltered_file)) {
   stop("Missing unfiltered.rds file")
 }
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$filtered_file, ".rds"))){
+if (!(stringr::str_ends(opt$filtered_file, ".rds"))) {
   stop("filtered file name must end in .rds")
 }
 
 # check that prob compromised cutoff is between 0-1
-if(!dplyr::between(opt$prob_compromised_cutoff, 0, 1)){
+if (!dplyr::between(opt$prob_compromised_cutoff, 0, 1)) {
   stop("--prob_compromised_cutoff must be a number between 0 to 1")
 }
 
@@ -86,7 +86,7 @@ if (is.null(opt$adt_barcode_file)) {
   }
 
   # Calculate ambient profile from empty drops for later use, and save to altExp metadata
-  ambient_profile <- DropletUtils::ambientProfileEmpty( counts(altExp(unfiltered_sce, adt_exp)) )
+  ambient_profile <- DropletUtils::ambientProfileEmpty(counts(altExp(unfiltered_sce, adt_exp)))
   metadata(altExp(unfiltered_sce, adt_exp))$ambient_profile <- ambient_profile
 }
 
@@ -96,7 +96,7 @@ filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 rm(unfiltered_sce)
 
 # need to remove old gene-level rowData statistics first
-drop_cols <- colnames(rowData(filtered_sce)) %in% c('mean', 'detected')
+drop_cols <- colnames(rowData(filtered_sce)) %in% c("mean", "detected")
 rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
 # recalculate rowData and add to filtered sce
@@ -108,14 +108,15 @@ filtered_sce <- filtered_sce |>
 miQC_worked <- FALSE
 try({
   filtered_sce <- scpcaTools::add_miQC(filtered_sce,
-                                       posterior_cutoff = opt$prob_compromised_cutoff,
-                                       enforce_left_cutoff = opt$enforce_left_cutoff)
+    posterior_cutoff = opt$prob_compromised_cutoff,
+    enforce_left_cutoff = opt$enforce_left_cutoff
+  )
   metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
   miQC_worked <- TRUE
- })
+})
 
 # set prob_compromised to NA if miQC failed
-if (!miQC_worked){
+if (!miQC_worked) {
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
   filtered_sce$miQC_pass <- NA
@@ -127,7 +128,7 @@ alt_names <- altExpNames(filtered_sce)
 
 for (alt in alt_names) {
   # remove old row data from unfiltered
-  drop_cols <- colnames(rowData(altExp(filtered_sce, alt))) %in% c('mean', 'detected')
+  drop_cols <- colnames(rowData(altExp(filtered_sce, alt))) %in% c("mean", "detected")
   rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
 
   # add alt experiment features stats for filtered data
@@ -137,7 +138,6 @@ for (alt in alt_names) {
 
 # calculate filtering QC from ADTs, if present
 if (!is.null(ambient_profile)) {
-
   # Create data frame of ADTs and their target types
   # If `target_type` column is not present, assume all ADTs are targets
   adt_barcode_df <- readr::read_tsv(
@@ -165,7 +165,7 @@ if (!is.null(ambient_profile)) {
   }
 
   # Check that barcode file ADTs match SCE ADTs
-  if ( !all.equal( sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))) )) {
+  if (!all.equal(sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))))) {
     stop("Mismatch between provided ADT barcode file and ADTs in SCE.")
   }
 
@@ -190,8 +190,10 @@ if (!is.null(ambient_profile)) {
   }
 
   # Save QC stats to the altexp
-  colData(altExp(filtered_sce, adt_exp)) <- cbind(colData(altExp(filtered_sce, adt_exp)),
-                                                  adt_qc_df)
+  colData(altExp(filtered_sce, adt_exp)) <- cbind(
+    colData(altExp(filtered_sce, adt_exp)),
+    adt_qc_df
+  )
 
   # Add `target_type` to rowData
   rowData(altExp(filtered_sce, adt_exp))$target_type <- adt_barcode_df$target_type
@@ -200,4 +202,3 @@ if (!is.null(ambient_profile)) {
 
 # write filtered sce to output
 readr::write_rds(filtered_sce, opt$filtered_file, compress = "gz")
-

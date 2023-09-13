@@ -61,31 +61,31 @@ set.seed(opt$seed)
 # Check and assign provided method based on available methods
 available_methods <- c("fastMNN", "harmony")
 
-if(!(opt$method %in% available_methods)){
+if (!(opt$method %in% available_methods)) {
   stop("You must specify either `fastMNN` or `harmony` to the --method.")
 }
 
 # Check that provided input file exists and is an RDS file
-if(is.null(opt$input_sce_file)) {
+if (is.null(opt$input_sce_file)) {
   stop("You must provide the path to the RDS file with merged SCEs to --input_sce_file")
 } else {
-  if(!file.exists(opt$input_sce_file)) {
+  if (!file.exists(opt$input_sce_file)) {
     stop("Provided --input_sce_file file does not exist.")
   }
 }
 
 # set up multiprocessing params
-if(opt$threads > 1){
-  bp_param = BiocParallel::MulticoreParam(opt$threads)
+if (opt$threads > 1) {
+  bp_param <- BiocParallel::MulticoreParam(opt$threads)
 } else {
-  bp_param = BiocParallel::SerialParam()
+  bp_param <- BiocParallel::SerialParam()
 }
 
 # Read in SCE file -------------------------------------------------------------
 merged_sce <- readr::read_rds(opt$input_sce_file)
 
 # check that input contains a SCE object
-if(!is(merged_sce, "SingleCellExperiment")){
+if (!is(merged_sce, "SingleCellExperiment")) {
   stop("The input RDS file must contain a SingleCellExperiment object.")
 }
 
@@ -104,23 +104,25 @@ integration_args <- list(
 )
 
 # append fastMNN only args
-if(opt$method == "fastMNN"){
-  integration_args <-  append(
+if (opt$method == "fastMNN") {
+  integration_args <- append(
     integration_args,
     list(
       subset.row = merged_hvgs,
       auto.merge = TRUE,
       BPPARAM = bp_param
-   ))
+    )
+  )
 }
 
 # append harmony only args
-if(opt$method == "harmony"){
+if (opt$method == "harmony") {
   integration_arts <- append(
     integration_args,
     list(
       covariate_cols = opt$harmony_covariate_cols
-    ))
+    )
+  )
 }
 
 # perform integration
@@ -128,8 +130,10 @@ integrated_sce <- do.call(scpcaTools::integrate_sces, integration_args)
 
 # calculate UMAP from corrected PCA
 integrated_sce <- integrated_sce |>
-  scater::runUMAP(dimred = glue::glue("{opt$method}_PCA"),
-                  name = glue::glue("{opt$method}_UMAP"))
+  scater::runUMAP(
+    dimred = glue::glue("{opt$method}_PCA"),
+    name = glue::glue("{opt$method}_UMAP")
+  )
 
 # add method to integrated sce
 existing_methods <- metadata(integrated_sce)$integration_methods

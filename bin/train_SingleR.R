@@ -60,19 +60,19 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
 # check that input files exist
-if(!file.exists(opt$ref_file)){
+if (!file.exists(opt$ref_file)) {
   stop("Missing input file with cell type reference (`ref_file`).")
 }
 
-if(!file.exists(opt$fry_tx2gene)){
+if (!file.exists(opt$fry_tx2gene)) {
   stop("Missing `fry_tx2gene` file.")
 }
 
 # set up multiprocessing params
-if(opt$threads > 1){
-  bp_param = BiocParallel::MulticoreParam(opt$threads)
+if (opt$threads > 1) {
+  bp_param <- BiocParallel::MulticoreParam(opt$threads)
 } else {
-  bp_param = BiocParallel::SerialParam()
+  bp_param <- BiocParallel::SerialParam()
 }
 
 # read in model
@@ -80,21 +80,23 @@ ref_data <- readr::read_rds(opt$ref_file)
 
 # check that ref data contains correct labels, and set up label column for later
 label_col <- opt$label_name
-if(!label_col %in% colnames(colData(ref_data))){
+if (!label_col %in% colnames(colData(ref_data))) {
   stop(
     glue::glue("Reference dataset must contain `{label_col}` in `colData`.")
   )
 }
 
 # read in tx2gene
-tx2gene <- readr::read_tsv(opt$fry_tx2gene,
-                           col_names = c("transcript", "gene", "transcript_type"))
+tx2gene <- readr::read_tsv(
+  opt$fry_tx2gene,
+  col_names = c("transcript", "gene", "transcript_type")
+)
 
 # select genes to use for model restriction
 gene_ids <- unique(tx2gene$gene)
 
 # check that genes aren't empty
-if (length(gene_ids) == 0){
+if (length(gene_ids) == 0) {
   stop("Provided tx2gene tsv file does not contain any genes.")
 }
 

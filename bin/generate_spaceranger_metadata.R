@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script generates the metadata.json file for Spatial Transcriptomics libraries. 
+# This script generates the metadata.json file for Spatial Transcriptomics libraries.
 
 # import libraries
 library(optparse)
@@ -91,55 +91,57 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check for sample and library id
-if(is.null(opt$library_id)){
+if (is.null(opt$library_id)) {
   stop("A `library_id` is required.")
 }
-if(is.null(opt$sample_id)){
+if (is.null(opt$sample_id)) {
   stop("A `sample_id` is required.")
 }
 
 # check that barcode files exist
-if(is.null(opt$unfiltered_barcodes_file) || !file.exists(opt$unfiltered_barcodes_file)){
+if (is.null(opt$unfiltered_barcodes_file) || !file.exists(opt$unfiltered_barcodes_file)) {
   stop("Unfiltered barcodes file missing or `unfiltered_barcodes_file` not specified.")
 }
-if(is.null(opt$filtered_barcodes_file) || !file.exists(opt$filtered_barcodes_file)){
+if (is.null(opt$filtered_barcodes_file) || !file.exists(opt$filtered_barcodes_file)) {
   stop("Filtered barcodes file missing or `filtered_barcodes_file` not specified.")
 }
 
-# check that metrics summary file exists 
-if(is.null(opt$metrics_summary_file) || !file.exists(opt$metrics_summary_file)){
+# check that metrics summary file exists
+if (is.null(opt$metrics_summary_file) || !file.exists(opt$metrics_summary_file)) {
   stop("Metrics summary file missing or `metrics_summary_file` not specified.")
 }
 
 # check that version file exists
-if(is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versions_file)){
+if (is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versions_file)) {
   stop("Versions file missing or `spaceranger_versions_file` not specified.")
 }
 
 # replace workflow url and commit if not provided
-if (opt$workflow_url == "null"){
+if (opt$workflow_url == "null") {
   opt$workflow_url <- NA
 }
-if (opt$workflow_version == "null"){
+if (opt$workflow_version == "null") {
   opt$workflow_version <- NA
 }
-if (opt$workflow_commit == "null"){
+if (opt$workflow_commit == "null") {
   opt$workflow_commit <- NA
 }
 
 # read in barcode files
 unfiltered_barcodes <- readr::read_tsv(opt$unfiltered_barcodes_file,
-                                       col_names = c("barcode"))
+  col_names = c("barcode")
+)
 filtered_barcodes <- readr::read_tsv(opt$filtered_barcodes_file,
-                                     col_names = c("barcode"))
+  col_names = c("barcode")
+)
 
-# read in metrics summary 
+# read in metrics summary
 metrics_summary <- readr::read_csv(opt$metrics_summary_file)
 
-# read in versions file 
+# read in versions file
 spaceranger_versions <- jsonlite::read_json(opt$spaceranger_versions_file)
 
-# compile metadata list 
+# compile metadata list
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
@@ -158,8 +160,7 @@ metadata_list <- list(
   workflow_version = opt$workflow_version,
   workflow_commit = opt$workflow_commit
 ) |>
-  purrr::map(~if(is.null(.)) NA else .) # convert any NULLS to NA
+  purrr::map(~ if (is.null(.)) NA else .) # convert any NULLS to NA
 
 # Output metadata as JSON
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
-

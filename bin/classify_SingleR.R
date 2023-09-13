@@ -52,26 +52,26 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
 # check that input file file exists
-if(!file.exists(opt$input_sce_file)){
+if (!file.exists(opt$input_sce_file)) {
   stop("Missing input SCE file")
 }
 
 # check that output file ends in rds
-if (!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
   stop("output sce file name must end in .rds")
 }
 
 # check that references all exist
 singler_model_file <- opt$singler_model_file
-if(!file.exists(singler_model_file)) {
+if (!file.exists(singler_model_file)) {
   stop(glue::glue("Provided model file {singler_model_file} is missing."))
 }
 
 # set up multiprocessing params
-if(opt$threads > 1){
-  bp_param = BiocParallel::MulticoreParam(opt$threads)
+if (opt$threads > 1) {
+  bp_param <- BiocParallel::MulticoreParam(opt$threads)
 } else {
-  bp_param = BiocParallel::SerialParam()
+  bp_param <- BiocParallel::SerialParam()
 }
 
 # read in input rds file
@@ -104,8 +104,6 @@ if (opt$label_name == "label.ont") {
     dplyr::rename(singler_celltype_annotation = ontology_cell_names) |>
     # make sure we keep rownames
     DataFrame(row.names = colData(sce)$barcodes)
-
-
 } else {
   # otherwise, just add cell names
   sce$singler_celltype_annotation <- singler_results$pruned.labels
@@ -123,7 +121,8 @@ metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
 
 
 # export sce with annotations added
-readr::write_rds(sce,
-                 opt$output_sce_file,
-                 compress = 'gz')
-
+readr::write_rds(
+  sce,
+  opt$output_sce_file,
+  compress = "gz"
+)

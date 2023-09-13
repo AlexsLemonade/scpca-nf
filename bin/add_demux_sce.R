@@ -58,30 +58,30 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 
 # check that unfiltered file file exists
-if(!file.exists(opt$sce_file)){
+if (!file.exists(opt$sce_file)) {
   stop("Can't find input SCE file")
 }
 
 # check that output file name ends in .rds
-if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
   stop("output file name must end in .rds")
 }
 
 # check for donor_ids file in vireo_dir
-if(!is.null(opt$vireo_dir)){
+if (!is.null(opt$vireo_dir)) {
   vireo_file <- file.path(opt$vireo_dir, "donor_ids.tsv")
-  if(!file.exists(vireo_file)){
+  if (!file.exists(vireo_file)) {
     stop("Can't find donor_ids.tsv file in vireo directory")
   }
 }
 
-if(is.null(opt$cellhash_pool_file)){
+if (is.null(opt$cellhash_pool_file)) {
   cellhash_df <- NULL
 } else {
-  if(!file.exists(opt$cellhash_pool_file)){
+  if (!file.exists(opt$cellhash_pool_file)) {
     stop("Can't find cellhash_pool_file")
   }
-  if(is.null(opt$library_id)){
+  if (is.null(opt$library_id)) {
     stop("Must specify library_id with cellhash_pool_file")
   }
   cellhash_df <- readr::read_tsv(opt$cellhash_pool_file) |>
@@ -93,12 +93,12 @@ if(is.null(opt$cellhash_pool_file)){
 sce <- readRDS(opt$sce_file)
 
 # check for cellhash altExp if we will use it
-if( opt$hash_demux || opt$seurat_demux ){
-  if(!"cellhash" %in% altExpNames(sce)){
+if (opt$hash_demux || opt$seurat_demux) {
+  if (!"cellhash" %in% altExpNames(sce)) {
     stop("Can't process cellhash demulitplexing without a 'cellhash' altExp")
   }
   # add cellhash sample data to SCE if present
-  if(!is.null(cellhash_df)){
+  if (!is.null(cellhash_df)) {
     sce <- scpcaTools::add_cellhash_ids(sce, cellhash_df, remove_unlabeled = TRUE)
   }
 }
@@ -106,22 +106,22 @@ if( opt$hash_demux || opt$seurat_demux ){
 cellhash_ids <- rownames(altExp(sce))
 
 # only perform demultiplexing if more than one HTO is detected
-if(length(cellhash_ids) > 1) {
+if (length(cellhash_ids) > 1) {
   # add HashedDrops results
-  if(opt$hash_demux){
+  if (opt$hash_demux) {
     sce <- scpcaTools::add_demux_hashedDrops(sce)
   }
-  
+
   # add Seurat results
-  if(opt$seurat_demux){
+  if (opt$seurat_demux) {
     sce <- scpcaTools::add_demux_seurat(sce)
   }
-  
+
   # add vireo results
-  if(!is.null(opt$vireo_dir)){
+  if (!is.null(opt$vireo_dir)) {
     vireo_table <- readr::read_tsv(vireo_file)
     sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
-  } 
+  }
 }
 
 # write filtered sce to output
