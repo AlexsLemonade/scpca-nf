@@ -30,6 +30,12 @@ option_list <- list(
     type = "character",
     help = "path to output hdf5 file to store feature counts as AnnData object.
     Only used if the input SCE contains an altExp. Must end in .hdf5 or .h5"
+  ),
+  make_option(
+    opt_str = c("--czi_schema_version"),
+    type = "character",
+    default = "3.0.0",
+    help = "Version number for CZI schema matching formatting of output AnnData objects"
   )
 )
 
@@ -58,6 +64,16 @@ format_czi <- function(sce) {
 
   # add is_primary_data column; only needed for anndata objects
   sce$is_primary_data <- FALSE
+
+  # create columns for assay and suspension ontology terms
+  sce$assay_ontology_term_id <- metadata(sce)$assay_ontology_term_id
+  sce$suspension_type <- metadata(sce)$seq_unit
+
+  # move project id to title slot in metadata list
+  metadata(sce)$title <- metadata(sce)$project_id
+
+  # add schema version
+  metadata(sce)$schema_version <- opt$czi_schema_version
 
   # add sample metadata to colData sce
   sce <- scpcaTools::metadata_to_coldata(sce,
