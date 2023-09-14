@@ -7,7 +7,6 @@ process export_anndata{
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
       tuple val(meta), path(sce_file), val(file_type)
-      val(czi_schema_version)
     output:
       tuple val(meta), path("${meta.library_id}_${file_type}*.hdf5"), val(file_type)
     script:
@@ -19,7 +18,6 @@ process export_anndata{
         --input_sce_file ${sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
         --output_feature_h5 ${feature_hdf5_file} \
-        --czi_schema_version ${czi_schema_version} \
         ${feature_present ? "--feature_name ${meta.feature_type}" : ''}
       """
     stub:
@@ -66,7 +64,7 @@ workflow sce_to_anndata{
                  ]}
 
       // export each anndata file
-      export_anndata(sce_ch, params.czi_schema_version)
+      export_anndata(sce_ch)
 
      anndata_ch = export_anndata.out
         .branch{
