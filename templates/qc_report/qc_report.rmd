@@ -59,11 +59,6 @@ unfiltered_sce <- params$unfiltered_sce
 filtered_sce <- params$filtered_sce
 processed_sce <- params$processed_sce
 
-library_id <- "SCPCL000295" 
-unfiltered_sce <- readRDS(glue::glue("{library_id}_unfiltered.rds"))
-filtered_sce <- readRDS(glue::glue("{library_id}_filtered.rds"))
-processed_sce <- readRDS(glue::glue("{library_id}_processed.rds"))
-
 has_filtered <- !is.null(filtered_sce)
 has_processed <- !is.null(processed_sce)
 
