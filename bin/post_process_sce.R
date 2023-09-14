@@ -232,27 +232,34 @@ if (alt_exp %in% altExpNames(processed_sce)) {
 try({
   # model gene variance using `scran:modelGeneVar()`
   gene_variance <- scran::modelGeneVar(processed_sce)
-
+  
   # select the most variable genes
   var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
-
+  
   # save the most variable genes to the metadata
   metadata(processed_sce)$highly_variable_genes <- var_genes
+  
+  # dimensionality reduction
+  # highly variable genes are used as input to PCA
+  processed_sce <- scater::runPCA(
+    processed_sce,
+    ncomponents = opt$n_pcs,
+    subset_row = var_genes
+  )
+})
 
-# dimensionality reduction
-# highly variable genes are used as input to PCA
-processed_sce <- scater::runPCA(
-  processed_sce,
-  ncomponents = opt$n_pcs,
-  subset_row = var_genes
-)
-
-# calculate a UMAP matrix using the PCA results
+try({
+  # calculate a UMAP matrix using the PCA results
   processed_sce <- scater::runUMAP(
     processed_sce,
     dimred = "PCA"
   )
 })
+
+# print a warning if no embeddings present
+if(length(reducedDimNames(processed_sce)) == 0){
+  warning("Reduced dimensions could not be calculated for this object.")
+}
 
 # Export --------------
 
