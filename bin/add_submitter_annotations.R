@@ -50,8 +50,9 @@ submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
     barcodes = cell_barcode,
     submitter_celltype_annotations = cell_type_assignment
   ) |>
-   # in the event of NA values, change to "Unclassified cell"
-    tidyr::replace_na(list(submitter_celltype_annotations = "Unclassified cell"))
+  # in the event of NA values, change to "Unclassified cell"
+  tidyr::replace_na(
+    list(submitter_celltype_annotations = "Unclassified cell")
   )
   
 # Join in submitter cell types
