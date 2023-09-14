@@ -65,18 +65,17 @@ format_czi <- function(sce) {
   # modify colData to be AnnData and CZI compliant
   coldata_df <- colData(sce) |>
     as.data.frame() |>
-    # make sure all colData columns have the correct NA formatting if all NA
-    # python doesn't like character NA
-    dplyr::mutate(across(where(\(x) all(is.na(x))), as.logical),
-                  # create columns for assay and suspension ontology terms
-                  assay_ontology_term_id = metadata(sce)$assay_ontology_term_id,
-                  suspension_type = metadata(sce)$seq_unit,
-                  # move project id to title slot in metadata list
-                  title = metadata(sce)$project_id,
-                  # add is_primary_data column; only needed for anndata objects
-                  is_primary_data = FALSE,
-                  # add schema version
-                  schema_version = "3.0.0")
+    dplyr::mutate(
+      # create columns for assay and suspension ontology terms
+      assay_ontology_term_id = metadata(sce)$assay_ontology_term_id,
+      suspension_type = metadata(sce)$seq_unit,
+      # move project id to title slot in metadata list
+      title = metadata(sce)$project_id,
+      # add is_primary_data column; only needed for anndata objects
+      is_primary_data = FALSE,
+      # add schema version
+      schema_version = "3.0.0"
+    )
 
   # add colData back to sce object
   colData(sce) <- DataFrame(
