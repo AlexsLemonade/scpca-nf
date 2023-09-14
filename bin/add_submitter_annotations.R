@@ -69,5 +69,9 @@ colData(sce) <- colData(sce) |>
   # make sure we keep rownames
   DataFrame(row.names = colData(sce)$barcodes)
 
+# Indicate that we have submitter celltypes in metadata, 
+#  saving in same spot as for actual celltyping
+metadata(sce)$celltype_methods <- "submitter"
+
 # Write unfiltered RDS back to file
 readr::write_rds(sce, opt$unfiltered_file, compress = "gz")
