@@ -96,7 +96,7 @@ workflow {
       submitter: it.submitter,
       technology: it.technology,
       seq_unit: it.seq_unit,
-      submitter_cell_types_file: it.submitter_cell_types_file,
+      submitter_cell_types_file: it.submitter_cell_types_file == "NA"? it.submitter_cell_types_file : ""
       feature_barcode_file: it.feature_barcode_file,
       feature_barcode_geom: it.feature_barcode_geom,
       files_directory: it.files_directory,
