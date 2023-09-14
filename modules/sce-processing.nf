@@ -50,7 +50,7 @@ process make_merged_unfiltered_sce{
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
               val (meta), path(alevin_dir),
-              path(mito_file), path(ref_gtf)
+              path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -78,6 +78,15 @@ process make_merged_unfiltered_sce{
           --sample_id "${meta.sample_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
+          
+        # Only run script if annotations are available:
+        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+          add_submitter_annotations.R \
+            --unfiltered_file ${unfiltered_rds} \
+            --library_id "${meta.library_id}" \
+            --submitter_cell_types_file ${submitter_cell_types_file}
+        fi
+
         """
     stub:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
