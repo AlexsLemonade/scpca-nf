@@ -95,6 +95,7 @@ workflow {
       project_id: it.scpca_project_id?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
+      assay_ontology_term_id: it.assay_ontology_term_id,
       seq_unit: it.seq_unit,
       feature_barcode_file: it.feature_barcode_file,
       feature_barcode_geom: it.feature_barcode_geom,
