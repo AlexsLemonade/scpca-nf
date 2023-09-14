@@ -220,13 +220,14 @@ workflow generate_sce {
     sample_metafile
   main:
     
+    // used for both submitter cell types & feature barcode files
     empty_file = file("${projectDir}/assets/NO_FILE.txt")
  
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file), 
                          file(it[0].ref_gtf), 
                          // either submitter cell type files, or empty file if not available
-                         file(it[0].submitter_cell_types_file).exists() ? file(it[0].submitter_cell_types_file) : empty_file
+                         file(it[0].submitter_cell_types_file ?: empty_file) 
                         ]}
                  
     make_unfiltered_sce(sce_ch, sample_metafile)
@@ -248,14 +249,13 @@ workflow generate_merged_sce {
     feature_quant_channel
     sample_metafile
   main:
-    empty_file = file("${projectDir}/assets/NO_FILE.txt")
- 
+
     feature_sce_ch = feature_quant_channel 
       // RNA meta is in the third slot here
       .map{it.toList() + [file(it[2].mito_file), 
                          file(it[2].ref_gtf), 
                          // either submitter cell type files, or empty file if not available
-                         file(it[2].submitter_cell_types_file).exists() ? file(it[2].submitter_cell_types_file) : empty_file
+                         file(it[2].submitter_cell_types_file ?: file("${projectDir}/assets/NO_FILE.txt")) 
                         ]}
                  
     make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
