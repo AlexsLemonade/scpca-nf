@@ -58,11 +58,7 @@ if (!is.null(processed_meta$highly_variable_genes)) {
   # extract umap embeddings as a dataframe to join with gene expression and coldata for plotting
   umap_df <- reducedDim(processed_sce, "UMAP") |>
     as.data.frame() |>
-    tibble::rownames_to_column("barcode") |>
-    rename(
-      "UMAP1" = "V1",
-      "UMAP2" = "V2"
-    )
+    tibble::rownames_to_column("barcode")
 
   # combine gene expression with coldata, umap embeddings, and rowdata and create data frame to use for plotting
   coldata_df <- colData(processed_sce) |>
