@@ -248,7 +248,8 @@ processed_sce <- scater::runPCA(
 )
 
 # calculate a UMAP matrix using the PCA results
-  processed_sce <- scater::runUMAP(processed_sce,
+  processed_sce <- scater::runUMAP(
+    processed_sce,
     dimred = "PCA"
   )
 })

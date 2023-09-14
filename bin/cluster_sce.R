@@ -67,8 +67,9 @@ sce <- readr::read_rds(opt$processed_sce_file)
 
 # only perform clustering if reduced dimension embeddings are present
 # otherwise just return the object
-if(length(reducedDimNames(sce)) > 0){
-
+if(length(reducedDimNames(sce)) == 0) {
+  warning("No reduced dimensions present, skipping clustering")
+} else {
   # check pca_name is present
   if (!opt$pca_name %in% reducedDimNames(sce)) {
     stop("Provided `pca_name` is not present in the SCE object.")
