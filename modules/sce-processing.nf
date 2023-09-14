@@ -234,7 +234,7 @@ workflow generate_sce {
  
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + [empty_file]}
+      .map{it.toList() + [file(empty_file)]}
 
     filter_sce(unfiltered_sce_ch)
 
@@ -255,7 +255,7 @@ workflow generate_merged_sce {
       .map{it.toList() + [file(it[2].mito_file), 
                          file(it[2].ref_gtf), 
                          // either submitter cell type files, or empty file if not available
-                         file(it[2].submitter_cell_types_file ?: file("${projectDir}/assets/NO_FILE.txt")) 
+                         file(it[2].submitter_cell_types_file ?: "${projectDir}/assets/NO_FILE.txt") 
                         ]}
                  
     make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
