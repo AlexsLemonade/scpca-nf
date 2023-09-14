@@ -6,7 +6,9 @@
 <!-- Submitter _only_ --> 
 ```{r, eval = has_submitter & !(has_singler | has_cellassign)}
 knitr::asis_output(
-  print("This section details cell type annotations provided by the original lab ('submitter') which generated this data.")
+  glue::glue("
+  This section details cell type annotations provided by the original lab ('submitter') which generated this data.
+  ")
 )
 ```
 
@@ -14,7 +16,7 @@ knitr::asis_output(
 <!-- At least one cell type annotation method. --> 
 ```{r, eval = has_singler | has_cellassign}
 knitr::asis_output(
-  print("
+  glue::glue("
   This section details results from performing cell type annotation.
   The following method(s) were used to perform cell typing:
  ")
@@ -47,8 +49,8 @@ knitr::asis_output(
 ```{r, eval = has_submitter & (has_singler | has_cellassign)}
 knitr::asis_output(
   glue::glue(
-  "* Cell type annotations were also provided by the original lab ('submitter') which generated this data.
-  * In these cell type annotations, the label 'Unclassified cell' indicates that submitters did not provide an annotation for the given cell. 
+  "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data. 
+  In these cell type annotations, the label `Unclassified cell` indicates that submitters did not provide an annotation for the given cell. 
   "
   )
 )
@@ -93,7 +95,8 @@ celltype_df <- colData(processed_sce) |>
     barcode,
     clusters,
     contains("singler"),
-    contains("cellassign")
+    contains("cellassign"), 
+    contains("submitter")
   )
 
 
@@ -148,16 +151,17 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 
 ```{r, eval = has_submitter}
 knitr::asis_output("### Submitter-provided cell type annotations\n")
-# Note: submitter annotations have not yet been added to the workflow,
-#  so this variable name `submitter_celltype_annotation` is just a placeholder
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
 
+```{r, eval = has_singler | has_cellassign }
+knitr::asis_output("
 ## Annotation Assessment
 
 In this section, we assess the reliability of cell type annotations using diagnostic plots.
-
+")
+```
 
 ```{r, eval = has_singler}
 knitr::asis_output("
@@ -392,11 +396,10 @@ All other cell types are grouped together and labeled "Other cell type" (not to 
 
 ```{r}
 # Create dataset for plotting UMAPs with lumped cell types
-umap_df <- tibble::tibble(
-  UMAP1 = unname(reducedDim(processed_sce, "UMAP")[, 1]),
-  UMAP2 = unname(reducedDim(processed_sce, "UMAP")[, 2]),
-  clusters = processed_sce$clusters
-)
+umap_df <- tibble::as_tibble(
+  reducedDim(processed_sce, "UMAP")
+) |>
+  dplyr::mutate(clusters = processed_sce$clusters)
 
 # helper function for lumping cell types
 lump_celltypes <- function(umap_df,
