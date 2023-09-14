@@ -29,9 +29,9 @@ process make_unfiltered_sce{
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
           add_submitter_annotations.R \
-            --sce_file ${unfiltered_rds} \
+            --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
-            --submitter_cell_types_file ${submitter_cell_types_file}
+            --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
         """
@@ -82,9 +82,9 @@ process make_merged_unfiltered_sce{
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
           add_submitter_annotations.R \
-            --sce_file ${unfiltered_rds} \
+            --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
-            --submitter_cell_types_file ${submitter_cell_types_file}
+            --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
         """
@@ -221,7 +221,7 @@ workflow generate_sce {
   main:
     
     // used for both submitter cell types & feature barcode files
-    empty_file = file("${projectDir}/assets/NO_FILE.txt")
+    empty_file = "${projectDir}/assets/NO_FILE.txt"
  
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file), 
