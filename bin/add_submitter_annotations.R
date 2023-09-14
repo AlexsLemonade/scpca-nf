@@ -29,8 +29,8 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that output file name ends in .rds
-if (!(stringr::str_ends(opt$unfiltered_file, ".rds"))) {
-  stop("unfiltered file name must end in .rds")
+if (!(stringr::str_ends(opt$sce_file, ".rds"))) {
+  stop("SingleCellExperiment file name must end in .rds")
 }
 
 
@@ -40,11 +40,12 @@ if (!file.exists(opt$submitter_cell_types_file)) {
 }
 
 
-# Read in unfiltered sce
-sce <- readr::read_rds(opt$unfiltered_file)
+# Read in sce
+sce <- readr::read_rds(opt$sce_file)
 
-# Read in celltypes, and filter to relevant information
+# Read in celltypes
 submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
+  # filter to relevant information
   dplyr::filter(scpca_library_id == opt$library_id) |>
   dplyr::select(
     barcodes = cell_barcode,
@@ -53,20 +54,27 @@ submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
   # in the event of NA values, change to "Unclassified cell"
   tidyr::replace_na(
     list(submitter_celltype_annotations = "Unclassified cell")
+  ) |>
+  # join with colData
+  dplyr::right_join(
+    colData(sce) |>
+      as.data.frame()
   )
   
-# Join in submitter cell types
-colData(sce) <- colData(sce) |>
-  as.data.frame() |>
-  dplyr::left_join(
-    submitter_cell_types_df
-  ) |>
-  # make sure we keep rownames
-  DataFrame(row.names = colData(sce)$barcodes)
+# Check rows before sending back into the SCE object
+if (nrow(submitter_cell_types_df) != ncol(sce)) {
+  stop("Could not add submitter annotations to SCE object. There should only be one annotation per cell.")
+}
+
+# Rejoin with colData, making sure we keep rownames
+colData(sce) <- DataFrame(
+  submitter_cell_types_df, 
+  row.names = colData(sce)$barcodes
+)
 
 # Indicate that we have submitter celltypes in metadata, 
 #  saving in same spot as for actual celltyping
 metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "submitter")
 
-# Write unfiltered RDS back to file
-readr::write_rds(sce, opt$unfiltered_file, compress = "gz")
+# Write SCE back to file
+readr::write_rds(sce, opt$sce_file, compress = "gz")
