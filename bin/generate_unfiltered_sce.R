@@ -145,7 +145,7 @@ if (opt$feature_dir != "") {
     seq_unit = opt$seq_unit,
     library_id = opt$library_id,
     sample_id = sample_ids,
-    project_id = project_id
+    project_id = opt$project_id
   )
 
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
