@@ -3,6 +3,8 @@
 # This script takes a SingleCellExperiment stored in a .rds file and converts the main experiment
 # (usually RNA) to an AnnData object saved as an hdf5 file
 
+# The AnnData object being exported by this script is formatted to fit CZI schema: 3.0.0
+
 # import libraries
 suppressPackageStartupMessages({
   library(optparse)
