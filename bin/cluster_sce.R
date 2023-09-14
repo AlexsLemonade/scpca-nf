@@ -65,30 +65,32 @@ if (!file.exists(opt$processed_sce_file)) {
 }
 sce <- readr::read_rds(opt$processed_sce_file)
 
+# only perform clustering if reduced dimension embeddings are present
+# otherwise just return the object
+if(!opt$pca_name %in% reducedDimNames(sce)) {
+  warning("No reduced dimensions present with provided `pca_name`, skipping clustering")
+} else {
 
-# check pca_name is present
-if (!opt$pca_name %in% reducedDimNames(sce)) {
-  stop("Provided `pca_name` is not present in the SCE object.")
-}
+  # Perform clustering ----------------
 
-# Perform clustering ----------------
-
-# extract the principal components matrix
-clusters <- scran::clusterCells(
-  sce,
-  use.dimred = opt$pca_name,
-  BLUSPARAM = bluster::NNGraphParam(
-    k = opt$nearest_neighbors,
-    type = opt$cluster_weighting,
-    cluster.fun = opt$cluster_algorithm
+  # extract the principal components matrix
+  clusters <- scran::clusterCells(
+    sce,
+    use.dimred = opt$pca_name,
+    BLUSPARAM = bluster::NNGraphParam(
+      k = opt$nearest_neighbors,
+      type = opt$cluster_weighting,
+      cluster.fun = opt$cluster_algorithm
+    )
   )
-)
 
-# add clusters and associated parameters to SCE object
-sce$clusters <- clusters
-metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
-metadata(sce)$cluster_weighting <- opt$cluster_weighting
-metadata(sce)$cluster_nn <- opt$nearest_neighbors
+  # add clusters and associated parameters to SCE object
+  sce$clusters <- clusters
+  metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
+  metadata(sce)$cluster_weighting <- opt$cluster_weighting
+  metadata(sce)$cluster_nn <- opt$nearest_neighbors
+
+}
 
 # export -------------------
 # we are overwriting the `processed_sce_file` here
