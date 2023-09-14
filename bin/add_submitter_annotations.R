@@ -11,9 +11,9 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-u", "--unfiltered_file"),
+    opt_str = c("-f", "--sce_file"),
     type = "character",
-    help = "path to output unfiltered rds file. Must end in .rds"
+    help = "path to SingleCellExperiment file to update. Must end in .rds"
   ),
   make_option(
     opt_str = c("--library_id"),
@@ -51,13 +51,8 @@ submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
     barcodes = cell_barcode,
     submitter_celltype_annotations = cell_type_assignment
   ) |>
-  # in the event of NA values, change to "Unclassified cell"
-  dplyr::mutate(
-    submitter_celltype_annotations = dplyr::if_else(
-      is.na(submitter_celltype_annotations),
-      "Unclassified cell",
-      submitter_celltype_annotations
-    )
+   # in the event of NA values, change to "Unclassified cell"
+    tidyr::replace_na(list(submitter_celltype_annotations = "Unclassified cell"))
   )
   
 # Join in submitter cell types
@@ -71,7 +66,7 @@ colData(sce) <- colData(sce) |>
 
 # Indicate that we have submitter celltypes in metadata, 
 #  saving in same spot as for actual celltyping
-metadata(sce)$celltype_methods <- "submitter"
+metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "submitter")
 
 # Write unfiltered RDS back to file
 readr::write_rds(sce, opt$unfiltered_file, compress = "gz")
