@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script adds submitter annotations, if provided, to the an SCE object's colData.
+# This script adds submitter annotations, if provided, to an SCE object's colData.
 
 # import libraries
 suppressPackageStartupMessages({
