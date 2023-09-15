@@ -50,7 +50,6 @@ knitr::asis_output(
 knitr::asis_output(
   glue::glue(
   "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data. 
-  In these cell type annotations, the label `Unclassified cell` indicates that submitters did not provide an annotation for the given cell. 
   "
   )
 )
@@ -150,7 +149,11 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 ```
 
 ```{r, eval = has_submitter}
-knitr::asis_output("### Submitter-provided cell type annotations\n")
+knitr::asis_output('
+### Submitter-provided cell type annotations\n
+
+Below, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation. 
+  ')
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
@@ -533,6 +536,7 @@ create_celltype_heatmap <- function(x_vector,
                                     y_vector,
                                     x_label = "",
                                     y_label = "",
+                                    y_title_location = "bottom",
                                     column_names_rotation = 0,
                                     row_font_size = 8,
                                     column_font_size = 10) {
@@ -552,7 +556,7 @@ create_celltype_heatmap <- function(x_vector,
     col = heatmap_palette,
     # Column parameters
     column_title = y_label,
-    column_title_side = "bottom",
+    column_title_side = y_title_location,
     column_dend_side = "top",
     column_names_rot = column_names_rotation,
     column_names_gp = grid::gpar(fontsize = column_font_size),
@@ -575,7 +579,7 @@ create_celltype_heatmap <- function(x_vector,
 
 
 ```{r, eval = has_singler, fig.height=5, fig.width=7}
-knitr::asis_output("### `SingleR` cluster and cell type heatmap\n")
+knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$singler_celltype_annotation,
   y_vector = celltype_df$clusters,
@@ -584,7 +588,7 @@ create_celltype_heatmap(
 ```
 
 ```{r, eval = has_cellassign, fig.height=5, fig.width=7}
-knitr::asis_output("### `CellAssign` cluster and cell type heatmap\n")
+knitr::asis_output("### `CellAssign` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$cellassign_celltype_annotation,
   y_vector = celltype_df$clusters,
@@ -593,7 +597,7 @@ create_celltype_heatmap(
 ```
 
 ```{r, eval = has_submitter, fig.height=5, fig.width=7}
-knitr::asis_output("### Submitter-provided cluster and cell type heatmap\n")
+knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$submitter_celltype_annotation,
   y_vector = celltype_df$clusters,
@@ -638,18 +642,22 @@ create_celltype_heatmap(
   y_vector = celltype_df$singler_celltype_annotation,
   x_label = "Submitter-provided annotations",
   y_label = "SingleR annotations",
+  y_title_location = "top",
   column_names_rotation = 55,
   column_font_size = 8
 )
 ```
 
-```{r, eval = has_submitter & has_cellassign, fig.height=7, fig.width=8}
+<!-- A little extra spacing to avoid confusion between plot labels -->
+<br>
 
+```{r, eval = has_submitter & has_cellassign, fig.height=7, fig.width=8}
 create_celltype_heatmap(
   x_vector = celltype_df$submitter_celltype_annotation,
   y_vector = celltype_df$cellassign_celltype_annotation,
   x_label = "Submitter-provided annotations",
   y_label = "CellAssign annotations",
+  y_title_location = "top",
   column_names_rotation = 55,
   column_font_size = 8
 )
