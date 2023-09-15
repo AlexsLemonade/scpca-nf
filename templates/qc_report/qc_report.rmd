@@ -113,13 +113,10 @@ if (has_processed) {
 
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-
-  # Note: later, we will also check for submitter-provided annotations
-  # for now, we will say this is false
-  has_submitter_celltypes <- FALSE
+  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 
   # If at least 1 is present, we have cell type annotations.
-  has_celltypes <- any(has_singler, has_cellassign, has_submitter_celltypes)
+  has_celltypes <- any(has_singler, has_cellassign, has_submitter)
 } else {
   has_umap <- FALSE
   has_celltypes <- FALSE

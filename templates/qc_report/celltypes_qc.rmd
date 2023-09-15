@@ -1,14 +1,33 @@
 # Cell type Annotation Summary
 
-This section details results from performing cell type annotation.
-The following method(s) were used to perform cell typing:
+<!-- Background depends on which cell types are present in the SCE. -->
 
-<!-- Background depends on which cell type methods were used -->
+
+<!-- Submitter _only_ --> 
+```{r, eval = has_submitter & !(has_singler | has_cellassign)}
+knitr::asis_output(
+  glue::glue("
+  This section details cell type annotations provided by the original lab ('submitter') which generated this data.
+  ")
+)
+```
+
+
+<!-- At least one cell type annotation method. --> 
+```{r, eval = has_singler | has_cellassign}
+knitr::asis_output(
+  glue::glue("
+  This section details results from performing cell type annotation.
+  The following method(s) were used to perform cell typing:
+ ")
+)
+```
+
 
 ```{r, eval = has_singler}
 knitr::asis_output(
   glue::glue(
-    "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
+  "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
   The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
   )
 )
@@ -18,8 +37,7 @@ knitr::asis_output(
 ```{r, eval = has_cellassign}
 knitr::asis_output(
   glue::glue(
-    "
-  * [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
+  "* [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
   Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
   "
   )
@@ -27,11 +45,21 @@ knitr::asis_output(
 ```
 
 
-Cells annotated as "Unknown cell type" represent cells which could not be confidently identified using the given annotation method.
+<!-- Submitter and at least one inference method --> 
+```{r, eval = has_submitter & (has_singler | has_cellassign)}
+knitr::asis_output(
+  glue::glue(
+  "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data. 
+  "
+  )
+)
+```
 
-If available, these results will be compared to cell type annotations provided by the data's originating research group ("submitter-provided cell type annotations".)
+
 
 ## Statistics
+
+Below, cells labeled as "Unknown cell type" are those which could not be confidently identified using the given annotation method.
 
 ```{r}
 # This chunk defines a helper function to reformat annotations:
@@ -66,7 +94,8 @@ celltype_df <- colData(processed_sce) |>
     barcode,
     clusters,
     contains("singler"),
-    contains("cellassign")
+    contains("cellassign"), 
+    contains("submitter")
   )
 
 
@@ -119,18 +148,23 @@ knitr::asis_output("### `CellAssign` cell type annotations\n")
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
 ```
 
-```{r, eval = has_submitter_celltypes}
-knitr::asis_output("### Submitter-provided cell type annotations\n")
-# Note: submitter annotations have not yet been added to the workflow,
-#  so this variable name `submitter_celltype_annotation` is just a placeholder
+```{r, eval = has_submitter}
+knitr::asis_output('
+### Submitter-provided cell type annotations\n
+
+Below, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation. 
+  ')
 create_celltype_n_table(celltype_df, submitter_celltype_annotation)
 ```
 
 
+```{r, eval = has_singler | has_cellassign }
+knitr::asis_output("
 ## Annotation Assessment
 
 In this section, we assess the reliability of cell type annotations using diagnostic plots.
-
+")
+```
 
 ```{r, eval = has_singler}
 knitr::asis_output("
@@ -365,11 +399,10 @@ All other cell types are grouped together and labeled "Other cell type" (not to 
 
 ```{r}
 # Create dataset for plotting UMAPs with lumped cell types
-umap_df <- tibble::tibble(
-  UMAP1 = unname(reducedDim(processed_sce, "UMAP")[, 1]),
-  UMAP2 = unname(reducedDim(processed_sce, "UMAP")[, 2]),
-  clusters = processed_sce$clusters
-)
+umap_df <- tibble::as_tibble(
+  reducedDim(processed_sce, "UMAP")
+) |>
+  dplyr::mutate(clusters = processed_sce$clusters)
 
 # helper function for lumping cell types
 lump_celltypes <- function(umap_df,
@@ -394,7 +427,9 @@ if (has_singler) {
 if (has_cellassign) {
   umap_df <- lump_celltypes(umap_df, celltype_df, "cellassign")
 }
-# Note that later, we will want to do this with submitter cell types too, if present.
+if (has_submitter) {
+  umap_df <- lump_celltypes(umap_df, celltype_df, "submitter")
+}
 ```
 
 
@@ -479,8 +514,14 @@ plot_umap(umap_df,
 ```
 
 
-```{r eval=has_submitter_celltypes, message=FALSE, warning=FALSE}
-# Nothing in this chunk yet - it's a placeholder
+```{r eval = has_submitter, message=FALSE, warning=FALSE}
+plot_umap(umap_df,
+  submitter,
+  "Cell types",
+  legend_nrow = 4
+) +
+  ggtitle("UMAP colored by submitter-provided annotations") +
+  scale_color_brewer(palette = "Dark2")
 ```
 
 ### Heatmaps
@@ -495,6 +536,7 @@ create_celltype_heatmap <- function(x_vector,
                                     y_vector,
                                     x_label = "",
                                     y_label = "",
+                                    y_title_location = "bottom",
                                     column_names_rotation = 0,
                                     row_font_size = 8,
                                     column_font_size = 10) {
@@ -514,7 +556,7 @@ create_celltype_heatmap <- function(x_vector,
     col = heatmap_palette,
     # Column parameters
     column_title = y_label,
-    column_title_side = "bottom",
+    column_title_side = y_title_location,
     column_dend_side = "top",
     column_names_rot = column_names_rotation,
     column_names_gp = grid::gpar(fontsize = column_font_size),
@@ -537,7 +579,7 @@ create_celltype_heatmap <- function(x_vector,
 
 
 ```{r, eval = has_singler, fig.height=5, fig.width=7}
-knitr::asis_output("### `SingleR` cluster and cell type heatmap\n")
+knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$singler_celltype_annotation,
   y_vector = celltype_df$clusters,
@@ -546,7 +588,7 @@ create_celltype_heatmap(
 ```
 
 ```{r, eval = has_cellassign, fig.height=5, fig.width=7}
-knitr::asis_output("### `CellAssign` cluster and cell type heatmap\n")
+knitr::asis_output("### `CellAssign` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$cellassign_celltype_annotation,
   y_vector = celltype_df$clusters,
@@ -554,8 +596,8 @@ create_celltype_heatmap(
 )
 ```
 
-```{r, eval = has_submitter_celltypes, fig.height=5, fig.width=7}
-knitr::asis_output("### Submitter-provided cluster and cell type heatmap\n")
+```{r, eval = has_submitter, fig.height=5, fig.width=7}
+knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$submitter_celltype_annotation,
   y_vector = celltype_df$clusters,
@@ -569,7 +611,7 @@ create_celltype_heatmap(
 knitr::asis_output("
 ## Comparison between annotations
 
-Below, we show a heatmap directly comparing `SingleR` and `CellAssign`cell type annotations.
+Below, we show a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
 ")
 
@@ -578,6 +620,44 @@ create_celltype_heatmap(
   y_vector = celltype_df$cellassign_celltype_annotation,
   x_label = "SingleR annotations",
   y_label = "CellAssign annotations",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
+
+```{r, eval = has_submitter & (has_cellassign | has_singler)}
+knitr::asis_output("
+## Comparison with submitter annotations
+
+This section shows heatmap(s) directly comparing submitter-provided cell type annotations to cell type inferred with the given method(s).
+Again, different annotations may use different names for similar cell types.
+")
+```
+
+
+```{r, eval = has_submitter & has_singler, fig.height=7, fig.width=8}
+
+create_celltype_heatmap(
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$singler_celltype_annotation,
+  x_label = "Submitter-provided annotations",
+  y_label = "SingleR annotations",
+  y_title_location = "top",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
+
+<!-- A little extra spacing to avoid confusion between plot labels -->
+<br>
+
+```{r, eval = has_submitter & has_cellassign, fig.height=7, fig.width=8}
+create_celltype_heatmap(
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$cellassign_celltype_annotation,
+  x_label = "Submitter-provided annotations",
+  y_label = "CellAssign annotations",
+  y_title_location = "top",
   column_names_rotation = 55,
   column_font_size = 8
 )
