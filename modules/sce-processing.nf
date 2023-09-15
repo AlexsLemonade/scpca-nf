@@ -114,9 +114,8 @@ process filter_sce{
     script:
         filtered_rds = "${meta.library_id}_filtered.rds"
 
-        // Three checks for whether we have ADT data:
+        // Checks for whether we have ADT data:
         // - feature_type should be adt
-        // - barcode file should exist
         // - barcode file should _not_ be the empty file NO_FILE.txt
         adt_present = meta.feature_type == 'adt' &
           feature_barcode_file.name != "NO_FILE.txt"
