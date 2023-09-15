@@ -20,8 +20,11 @@ process make_unfiltered_sce{
           --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
           --technology ${meta.technology} \
+          --assay_ontology_term_id ${meta.assay_ontology_term_id} \
+          --seq_unit ${meta.seq_unit} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
+          --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
           
@@ -29,9 +32,9 @@ process make_unfiltered_sce{
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
           add_submitter_annotations.R \
-            --unfiltered_file ${unfiltered_rds} \
+            --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
-            --submitter_cell_types_file ${submitter_cell_types_file}
+            --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
         """
@@ -74,17 +77,20 @@ process make_merged_unfiltered_sce{
           --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
           --technology ${meta.technology} \
+          --assay_ontology_term_id ${meta.assay_ontology_term_id} \
+          --seq_unit ${meta.seq_unit} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
+          --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
           
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
           add_submitter_annotations.R \
-            --unfiltered_file ${unfiltered_rds} \
+            --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
-            --submitter_cell_types_file ${submitter_cell_types_file}
+            --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
         """
@@ -220,20 +226,21 @@ workflow generate_sce {
     sample_metafile
   main:
     
-    empty_file = file("${projectDir}/assets/NO_FILE.txt")
+    // used for both submitter cell types & feature barcode files
+    empty_file = "${projectDir}/assets/NO_FILE.txt"
  
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file), 
                          file(it[0].ref_gtf), 
                          // either submitter cell type files, or empty file if not available
-                         file(it[0].submitter_cell_types_file).exists() ? file(it[0].submitter_cell_types_file) : empty_file
+                         file(it[0].submitter_cell_types_file ?: empty_file) 
                         ]}
                  
     make_unfiltered_sce(sce_ch, sample_metafile)
  
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + [empty_file]}
+      .map{it.toList() + [file(empty_file)]}
 
     filter_sce(unfiltered_sce_ch)
 
@@ -248,14 +255,13 @@ workflow generate_merged_sce {
     feature_quant_channel
     sample_metafile
   main:
-    empty_file = file("${projectDir}/assets/NO_FILE.txt")
- 
+
     feature_sce_ch = feature_quant_channel 
       // RNA meta is in the third slot here
       .map{it.toList() + [file(it[2].mito_file), 
                          file(it[2].ref_gtf), 
                          // either submitter cell type files, or empty file if not available
-                         file(it[2].submitter_cell_types_file).exists() ? file(it[2].submitter_cell_types_file) : empty_file
+                         file(it[2].submitter_cell_types_file ?: "${projectDir}/assets/NO_FILE.txt") 
                         ]}
                  
     make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)

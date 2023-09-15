@@ -3,6 +3,8 @@
 # This script takes a SingleCellExperiment stored in a .rds file and converts the main experiment
 # (usually RNA) to an AnnData object saved as an hdf5 file
 
+# The AnnData object being exported by this script is formatted to fit CZI schema: 3.0.0
+
 # import libraries
 suppressPackageStartupMessages({
   library(optparse)
@@ -54,14 +56,33 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))) {
 # CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
 format_czi <- function(sce) {
   # add library_id as an sce colData column
+  # need this column to join in the sample metadata with the colData
   sce$library_id <- metadata(sce)$library_id
-
-  # add is_primary_data column; only needed for anndata objects
-  sce$is_primary_data <- FALSE
 
   # add sample metadata to colData sce
   sce <- scpcaTools::metadata_to_coldata(sce,
     join_columns = "library_id"
+  )
+
+  # modify colData to be AnnData and CZI compliant
+  coldata_df <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::mutate(
+      # create columns for assay and suspension ontology terms
+      assay_ontology_term_id = metadata(sce)$assay_ontology_term_id,
+      suspension_type = metadata(sce)$seq_unit,
+      # move project id to title slot in metadata list
+      title = metadata(sce)$project_id,
+      # add is_primary_data column; only needed for anndata objects
+      is_primary_data = FALSE,
+      # add schema version
+      schema_version = "3.0.0"
+    )
+
+  # add colData back to sce object
+  colData(sce) <- DataFrame(
+    coldata_df,
+    row.names = coldata_df$barcodes
   )
 
   # remove sample metadata from sce metadata, otherwise conflicts with converting object

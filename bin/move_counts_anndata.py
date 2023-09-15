@@ -43,8 +43,5 @@ if "logcounts" in object.layers:
     object.X = object.layers["logcounts"]
     object.uns["X_name"] = "logcounts"
 
-    # add schema to uns
-    object.uns["schema_version"] = "3.0.0"
-
     # export object
     object.write_h5ad(args.anndata_file)
