@@ -40,4 +40,15 @@ class Utils {
     def obj = new JsonSlurper().parse(file)
     return(obj[key])
   }
+
+
+  /**
+   * Replace a string with an NA value with null
+   *
+   * @param str A string
+   * @return The input string unless it was NA or a variant thereof, in which case returns null
+   */
+   static def parseNA(str) {
+     str.toLowerCase() in ["na","n/a","nan"]? null : str
+   }
 }

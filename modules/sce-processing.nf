@@ -12,7 +12,7 @@ process make_unfiltered_sce{
         tuple val(meta), path(unfiltered_rds)
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-      
+
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -27,8 +27,8 @@ process make_unfiltered_sce{
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
-          
-          
+
+
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
           add_submitter_annotations.R \
@@ -84,7 +84,7 @@ process make_merged_unfiltered_sce{
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
-          
+
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
           add_submitter_annotations.R \
@@ -114,12 +114,10 @@ process filter_sce{
     script:
         filtered_rds = "${meta.library_id}_filtered.rds"
 
-        // Three checks for whether we have ADT data:
+        // Checks for whether we have ADT data:
         // - feature_type should be adt
-        // - barcode file should exist
         // - barcode file should _not_ be the empty file NO_FILE.txt
         adt_present = meta.feature_type == 'adt' &
-          feature_barcode_file.exists() &
           feature_barcode_file.name != "NO_FILE.txt"
 
         """
@@ -219,25 +217,26 @@ process post_process_sce{
         """
 }
 
+
+// used when a given file is not defined in the below workflows
+empty_file = "${projectDir}/assets/NO_FILE.txt"
+
 workflow generate_sce {
   // generate rds files for RNA-only samples
   take:
     quant_channel
     sample_metafile
   main:
-    
-    // used for both submitter cell types & feature barcode files
-    empty_file = "${projectDir}/assets/NO_FILE.txt"
- 
+
     sce_ch = quant_channel
-      .map{it.toList() + [file(it[0].mito_file), 
-                         file(it[0].ref_gtf), 
-                         // either submitter cell type files, or empty file if not available
-                         file(it[0].submitter_cell_types_file ?: empty_file) 
-                        ]}
-                 
+      .map{it.toList() + [file(it[0].mito_file),
+                          file(it[0].ref_gtf),
+                          // either submitter cell type files, or empty file if not available
+                          file(it[0].submitter_cell_types_file ?: empty_file)
+                         ]}
+
     make_unfiltered_sce(sce_ch, sample_metafile)
- 
+
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
       .map{it.toList() + [file(empty_file)]}
@@ -256,19 +255,19 @@ workflow generate_merged_sce {
     sample_metafile
   main:
 
-    feature_sce_ch = feature_quant_channel 
+    feature_sce_ch = feature_quant_channel
       // RNA meta is in the third slot here
-      .map{it.toList() + [file(it[2].mito_file), 
-                         file(it[2].ref_gtf), 
-                         // either submitter cell type files, or empty file if not available
-                         file(it[2].submitter_cell_types_file ?: "${projectDir}/assets/NO_FILE.txt") 
-                        ]}
-                 
+      .map{it.toList() + [file(it[2].mito_file),
+                          file(it[2].ref_gtf),
+                          // either submitter cell type files, or empty file if not available
+                          file(it[2].submitter_cell_types_file ?: empty_file)
+                         ]}
+
     make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
-      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file)]}
+      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file)]}
 
     filter_sce(unfiltered_merged_sce_ch)
 

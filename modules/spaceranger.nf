@@ -24,8 +24,8 @@ process spaceranger{
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()} \
       --image=${image_file} \
-      --slide=${meta.slide_serial_number} \
-      --area=${meta.slide_section}
+      --slide=${meta.slide_serial_number ?: "NA"} \
+      --area=${meta.slide_section ?: "NA"}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
@@ -127,9 +127,9 @@ workflow spaceranger_quant{
           // create tuple of [metadata, fastq dir, and path to image file]
         spaceranger_reads = spatial_channel.make_spatial
           .map{meta -> tuple(meta,
-                            file(meta.files_directory, type: 'dir'),
-                            file("${meta.files_directory}/*.jpg"),
-                            file(meta.cellranger_index, type: 'dir')
+                             file(meta.files_directory, type: 'dir'),
+                             file("${meta.files_directory}/*.jpg"),
+                             file(meta.cellranger_index, type: 'dir')
                             )}
 
         // run spaceranger
@@ -140,7 +140,7 @@ workflow spaceranger_quant{
         spaceranger_quants_ch = spatial_channel.has_spatial
           .map{meta -> tuple(Utils.readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
                              file(meta.spaceranger_results_dir, type: 'dir')
-                             )}
+                            )}
 
         grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
 
