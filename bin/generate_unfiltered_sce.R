@@ -49,6 +49,16 @@ option_list <- list(
     help = "sequencing technology string to store in metadata"
   ),
   make_option(
+    opt_str = c("--assay_ontology_term_id"),
+    type = "character",
+    help = "Experimental Factor Ontology term associated with provided tech_version"
+  ),
+  make_option(
+    opt_str = c("-s", "--seq_unit"),
+    type = "character",
+    help = "sequencing unit string to store in metadata (e.g., cell, nucleus)"
+  ),
+  make_option(
     opt_str = c("--library_id"),
     type = "character",
     help = "library id"
@@ -57,6 +67,11 @@ option_list <- list(
     opt_str = c("--sample_id"),
     type = "character",
     help = "sample id(s). If more than one, separated by commas and/or semicolons."
+  ),
+  make_option(
+    opt_str = c("--project_id"),
+    type = "character",
+    help = "project id"
   ),
   make_option(
     opt_str = c("--sample_metadata_file"),
@@ -111,8 +126,11 @@ unfiltered_sce <- read_alevin(
   include_unspliced = include_unspliced,
   fry_mode = TRUE,
   tech_version = opt$technology,
+  assay_ontology_term_id = opt$assay_ontology_term_id,
+  seq_unit = opt$seq_unit,
   library_id = opt$library_id,
-  sample_id = sample_ids
+  sample_id = sample_ids,
+  project_id = opt$project_id
 )
 
 # read and merge feature counts if present
@@ -122,8 +140,12 @@ if (opt$feature_dir != "") {
     include_unspliced = FALSE,
     fry_mode = TRUE,
     feature_data = TRUE,
+    tech_version = opt$technology,
+    assay_ontology_term_id = opt$assay_ontology_term_id,
+    seq_unit = opt$seq_unit,
     library_id = opt$library_id,
-    sample_id = sample_ids
+    sample_id = sample_ids,
+    project_id = opt$project_id
   )
 
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
