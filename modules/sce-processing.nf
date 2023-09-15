@@ -119,7 +119,6 @@ process filter_sce{
         // - barcode file should exist
         // - barcode file should _not_ be the empty file NO_FILE.txt
         adt_present = meta.feature_type == 'adt' &
-          feature_barcode_file.exists() &
           feature_barcode_file.name != "NO_FILE.txt"
 
         """
@@ -269,7 +268,7 @@ workflow generate_merged_sce {
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
-      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file)]}
+      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file)]}
 
     filter_sce(unfiltered_merged_sce_ch)
 

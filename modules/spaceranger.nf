@@ -24,8 +24,8 @@ process spaceranger{
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()} \
       --image=${image_file} \
-      --slide=${meta.slide_serial_number} \
-      --area=${meta.slide_section}
+      --slide=${meta.slide_serial_number ?: "NA"} \
+      --area=${meta.slide_section ?: "NA"}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
