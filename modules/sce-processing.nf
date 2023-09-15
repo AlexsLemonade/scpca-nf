@@ -6,12 +6,13 @@ process make_unfiltered_sce{
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(alevin_dir), path(mito_file), path(ref_gtf)
+        tuple val(meta), path(alevin_dir), path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+      
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -26,13 +27,22 @@ process make_unfiltered_sce{
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
+          
+          
+        # Only run script if annotations are available:
+        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+          add_submitter_annotations.R \
+            --sce_file "${unfiltered_rds}" \
+            --library_id "${meta.library_id}" \
+            --submitter_cell_types_file "${submitter_cell_types_file}"
+        fi
+
         """
     stub:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         touch ${unfiltered_rds}
         """
-
 }
 
 // channels with RNA and feature data
@@ -43,7 +53,7 @@ process make_merged_unfiltered_sce{
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
               val (meta), path(alevin_dir),
-              path(mito_file), path(ref_gtf)
+              path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -74,6 +84,15 @@ process make_merged_unfiltered_sce{
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
           ${params.spliced_only ? '--spliced_only' : ''}
+          
+        # Only run script if annotations are available:
+        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+          add_submitter_annotations.R \
+            --sce_file "${unfiltered_rds}" \
+            --library_id "${meta.library_id}" \
+            --submitter_cell_types_file "${submitter_cell_types_file}"
+        fi
+
         """
     stub:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
@@ -206,16 +225,22 @@ workflow generate_sce {
     quant_channel
     sample_metafile
   main:
+    
+    // used for both submitter cell types & feature barcode files
+    empty_file = "${projectDir}/assets/NO_FILE.txt"
+ 
     sce_ch = quant_channel
-      .map{it.toList() + [file(it[0].mito_file), file(it[0].ref_gtf)]}
-
+      .map{it.toList() + [file(it[0].mito_file), 
+                         file(it[0].ref_gtf), 
+                         // either submitter cell type files, or empty file if not available
+                         file(it[0].submitter_cell_types_file ?: empty_file) 
+                        ]}
+                 
     make_unfiltered_sce(sce_ch, sample_metafile)
-
-    empty_file = file("${projectDir}/assets/NO_FILE.txt")
-
+ 
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + [empty_file]}
+      .map{it.toList() + [file(empty_file)]}
 
     filter_sce(unfiltered_sce_ch)
 
@@ -230,10 +255,15 @@ workflow generate_merged_sce {
     feature_quant_channel
     sample_metafile
   main:
-    feature_sce_ch = feature_quant_channel
-      // RNA meta is in the third slot here
-      .map{it.toList() + [file(it[2].mito_file), file(it[2].ref_gtf)]}
 
+    feature_sce_ch = feature_quant_channel 
+      // RNA meta is in the third slot here
+      .map{it.toList() + [file(it[2].mito_file), 
+                         file(it[2].ref_gtf), 
+                         // either submitter cell type files, or empty file if not available
+                         file(it[2].submitter_cell_types_file ?: "${projectDir}/assets/NO_FILE.txt") 
+                        ]}
+                 
     make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
