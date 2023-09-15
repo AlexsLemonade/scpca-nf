@@ -49,6 +49,6 @@ class Utils {
    * @return The input string unless it was NA or a variant thereof, in which case returns null
    */
    static def parseNA(str) {
-     str.toLowerCase()in ["na","n/a","nan"]? null : str
+     str.toLowerCase() in ["na","n/a","nan"]? null : str
    }
 }
