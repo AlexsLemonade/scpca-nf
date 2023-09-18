@@ -225,8 +225,12 @@ workflow {
   sce_qc_report(cluster_sce.out, report_template_tuple)
 
   // convert SCE object to anndata
-  // do this for everything but multiplexed libraries
-  anndata_ch = post_process_sce.out
+  anndata_ch = cluster_sce.out
+    // join clustering output with qc report data
+    // we need to be able to grab the number of cells for each object from the metadata json (output from sce_qc_report)
+    // tuple of [meta, unfiltered, filtered, processed, qc report, metadata json]
+    .join(sce_qc_report.out, by: 0, failOnDuplicate: true, failOnMismatch: true)
+    // skip multiplexed libraries
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
