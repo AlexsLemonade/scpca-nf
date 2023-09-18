@@ -75,6 +75,7 @@ workflow sce_to_anndata{
       // move any normalized counts to X in AnnData
       move_normalized_counts(anndata_ch.processed)
 
+      // PENDING ACTION BELOW:
       // combine all anndata files by library id
       anndata_ch = anndata_ch.other.mix(move_normalized_counts.out)
         // mix with output from moving counts
@@ -91,6 +92,6 @@ workflow sce_to_anndata{
         // [meta, [hdf5 files]]
         .map{ [it[1][0]] +  it[2] }
 
-    emit: anndata_ch
+    emit: move_normalized_counts.out
 
 }
