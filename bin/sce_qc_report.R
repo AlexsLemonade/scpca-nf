@@ -178,6 +178,7 @@ metadata_list <- list(
   is_multiplexed = multiplexed,
   has_citeseq = has_citeseq,
   has_cellhash = has_cellhash,
+  processed_cells = ncol(processed_sce),
   filtered_cells = ncol(filtered_sce),
   unfiltered_cells = ncol(unfiltered_sce),
   droplet_filtering_method = filtered_sce_meta$filtering_method,
