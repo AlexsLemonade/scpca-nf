@@ -162,7 +162,7 @@ workflow map_quant_feature{
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
       .map{it.drop(1)} // remove the first element (feature_barcode_file)
 
-    // // if the rad directory has been created and repeat_mapping is set to false
+    // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     feature_rad_ch = feature_ch.has_rad
       .map{meta -> tuple(Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
