@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 
 process save_singler_refs {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.singler_references_dir}"
+  publishDir "${params.singler_ref_dir}"
   label 'mem_8'
   input:
     tuple val(ref_name), val(ref_source), path(t2g_3col_path)
