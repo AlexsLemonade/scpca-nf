@@ -12,14 +12,9 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--input_sce_file"),
+    opt_str = c("-i", "--sce_file"),
     type = "character",
-    help = "path to rds file with input sce object"
-  ),
-  make_option(
-    opt_str = c("-o", "--output_sce_file"),
-    type = "character",
-    help = "path to output rds file to store annotated sce object. Must end in .rds"
+    help = "path to rds file with sce object"
   ),
   make_option(
     opt_str = c("--cellassign_predictions"),
@@ -35,9 +30,9 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# check that input file exists
-if (!file.exists(opt$input_sce_file)) {
-  stop("Missing input SCE file")
+# check that sce file exists
+if (!file.exists(opt$sce_file)) {
+  stop("Missing SCE file")
 }
 
 # check that cellassign predictions file was provided
@@ -49,12 +44,8 @@ if (is.null(opt$reference_name)) {
   stop("Missing reference name")
 }
 
-# check that output file ends in rds
-if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
-  stop("output sce file name must end in .rds")
-}
 # read in input files
-sce <- readr::read_rds(opt$input_sce_file)
+sce <- readr::read_rds(opt$sce_file)
 predictions <- readr::read_tsv(opt$cellassign_predictions)
 
 celltype_assignments <- predictions |>
@@ -85,4 +76,4 @@ metadata(sce)$cellassign_reference <- opt$reference_name
 metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
 
 # export annotated object with cellassign assignments
-readr::write_rds(sce, opt$output_sce_file)
+readr::write_rds(sce, opt$sce_file, compress = "gz")
