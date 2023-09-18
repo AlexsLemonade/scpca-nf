@@ -268,7 +268,7 @@ workflow {
    // Bring back the RDS files to create a tuple of:
    // BUT THE METAS WONT MATCH, WILL IT MATTER?
    // [meta, unfiltered, filtered, processed]
-   .join(cluster_sce.out.map{[it[0]["library_id"]] + it, by: 0, failOnDuplicate: true, failOnMismatch: true)
+   .join(cluster_sce.out.map{[it[0]["library_id"]] + it}, by: 0, failOnDuplicate: true, failOnMismatch: true)
    .map{it.drop(1)}
 
   
