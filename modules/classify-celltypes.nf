@@ -6,23 +6,20 @@ process classify_singleR {
     input:
         tuple val(meta), path(processed_rds), path(singler_model_file)
     output:
-        tuple val(meta), path(annotated_rds)
+        tuple val(meta)
     script:
-      annotated_rds = "${meta.library_id}_annotated.rds"
+    
+      meta["has_singler"] = true
+      
       """
       classify_SingleR.R \
-        --input_sce_file ${processed_rds} \
-        --output_sce_file ${annotated_rds} \
+        --sce_file ${processed_rds} \
         --singler_model_file ${singler_model_file} \
         --label_name ${params.singler_label_name} \
         --seed ${params.seed} \
         --threads ${task.cpus}
       """
-    stub:
-      annotated_rds = "${meta.library_id}_annotated.rds"
-      """
-      touch "${annotated_rds}"
-      """
+
 }
 
 process predict_cellassign {
@@ -59,13 +56,15 @@ process classify_cellassign {
   input:
     tuple val(meta), path(input_rds), path(cellassign_predictions), val(ref_name)
   output:
-    tuple val(meta), path(annotated_rds)
+    tuple val(meta)
   script:
     annotated_rds = "${meta.library_id}_annotated.rds"
+    
+    meta["has_cellassign"] = true
+
     """
     classify_cellassign.R \
-      --input_sce_file ${input_rds} \
-      --output_sce_file ${annotated_rds} \
+      --sce_file ${input_rds} \
       --cellassign_predictions ${cellassign_predictions} \
       --reference_name ${ref_name}
 
@@ -73,26 +72,39 @@ process classify_cellassign {
 }
 
 workflow annotate_celltypes {
-    take: processed_sce_channel
+    take: celltype_ch
     main:
       // channel with celltype model and project ids
-      celltype_ch = Channel.fromPath(params.celltype_project_metafile)
+      celltype_model_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
         .map{[
           project_id = it.scpca_project_id,
           singler_model_file = "${params.singler_models_dir}/${it.singler_ref_file}",
           cellassign_ref_file = "${params.cellassign_ref_dir}/${it.cellassign_ref_file}",
           // add ref name for cellassign since we cannot store it in the cellassign output
-          // singler ref name does not need to be added because it is stored in the singler model
+          // note that singler ref name doesn't need to be added as it is stored in the singler model
           cellassign_ref_name = it.cellassign_ref_name
         ]}
 
-      // create channel grouped_celltype_ch as: [meta, processed sce object, SingleR reference model]
-      // input processed_sce_channel is [meta, unfiltered, filtered, processed]
-      grouped_celltype_ch = processed_sce_channel
+      // From input, create channel with grouped meta, processed sce object, and all references to use
+      // input celltype_ch is [meta, processed rds, processed hdf5]
+      grouped_celltype_ch = celltype_ch
         .map{[it[0]["project_id"]] + it}
-        .combine(celltype_ch, by: 0)
+        .combine(celltype_model_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
+        .groupTuple(by: 0) // group by meta
+        // TODO: is there a cleaner way to do the latter 5 items
+        //  but still keep meta as its own thing?
+        .map{[
+          it[0], // meta
+          it[1][0], // processed rds
+          it[2][0], // processed hdf5
+          it[3][0], // singler_model_file
+          it[4][0], // cellassign_ref_file
+          it[5][0], // cellassign_ref_name
+        ]}
+      
+      grouped_celltype_ch.view()
 
       // creates input for singleR [meta, processed, SingleR reference model]
       singler_input_ch = grouped_celltype_ch
@@ -101,7 +113,7 @@ workflow annotate_celltypes {
                                                                                                                         singler_model_file
                                                                                                                         )}
 
-      // creates input for cellassign [meta, processed hdf5, cellassign ref file, cell assign ref name]
+      // creates input for cellassign [meta, cellassign ref file, cell assign ref name]
       cellassign_input_ch = grouped_celltype_ch
         .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
                                                                                                                         processed_hdf5,
@@ -109,21 +121,28 @@ workflow annotate_celltypes {
                                                                                                                         cellassign_ref_name
                                                                                                                         )}
 
+      
       // get SingleR cell type assignments and add them to SCE
       classify_singleR(singler_input_ch)
 
+
+    ///////// COMMENT OUT CELLASSIGN FOR DEVELOPMENT ONLY ///////////
+    
       // get cellassign predictions file
-      predict_cellassign(cellassign_input_ch)
+    //  predict_cellassign(cellassign_input_ch)
 
       // add cellassign annotations to the object with singleR results
-      all_celltype_assignments_ch = classify_singleR.out
+   //   all_celltype_assignments_ch = classify_singleR.out
         // combines using meta from both singleR and cellassign, they should be the same
         // resulting tuple should be [meta, singleR annotated rds, cellassign predictions]
-        .combine(predict_cellassign.out, by: 0)
+    //    .combine(predict_cellassign.out, by: 0)
 
       // get CellAssign cell type predictions and add them to SCE
-      classify_cellassign(all_celltype_assignments_ch)
+   //   classify_cellassign(all_celltype_assignments_ch)
+      
 
-    emit: classify_cellassign.out
+
+
+      emit: classify_singleR.out //TODO!!!!!!!
 
 }

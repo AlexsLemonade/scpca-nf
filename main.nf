@@ -41,7 +41,7 @@ include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
-
+include { annotate_celltypes } from './modules/classify-celltypes.nf'
 
 // parameter checks
 param_error = false
@@ -212,7 +212,7 @@ workflow {
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 
-  // **** Post processing and generate QC reports ****
+  // **** Post processing ****
   // combine all SCE outputs
   // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
@@ -220,15 +220,61 @@ workflow {
 
   // Cluster SCE and export RDS files to publishDir
   cluster_sce(post_process_sce.out)
-
-  // generate QC reports
-  sce_qc_report(cluster_sce.out, report_template_tuple)
-
+  
   // convert SCE object to anndata
   // do this for everything but multiplexed libraries
-  anndata_ch = post_process_sce.out
+  anndata_ch = cluster_sce.out
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
+  
+  // create [library_id, [meta], processed_hdf5]
+  processed_hdf5_ch = sce_to_anndata.out
+    .map{[
+      it[0], // meta
+      it[1] // processed hdf5
+    ]}
+  
+
+  celltype_ch = cluster_sce.out // meta, unfiltered rds, filtered rds, processed rds
+     .map{[
+      it[0], // meta
+      it[3] // processed rds
+      ]}
+    // join with [meta, processed hdf5]
+    // to create tuple of [meta, processed rds, processed hdf5]
+    .join(processed_hdf5_ch, by: 0, failOnDuplicate: true, failOnMismatch: true)
+    // celltype only when relevant
+   .branch{
+     // TODO: do we want a column in the library 
+     //  metadata file for which celltype methods we intend to do?
+     repeat_celltyping: (params.repeat_celltyping
+                         || !it[0]['has_singler']
+                         || !it[0]['has_cellassign'])
+    skip_celltyping: true
+   }
+ 
+  annotate_celltypes(celltype_ch.repeat_celltyping)
+  // This meta will have additional fields for the celltyping methods, unlike the skip_celltyping ones
+  // We'll need to wrangle here to get an input channel for the QC report
+  // this needs to start with the annotate_celltypes channel to ensure the dependency, and then 
+  // using cluster_sce.out, we'll want to combine with unfiltered, filtered RDS files
+
+  // combine celltyped and skipped-celltyped channels
+ all_sce_ch = annotate_celltypes.out.mix(celltype_ch.skip_celltyping) 
+   .map{[
+      it[0]["library_id"], //library id for joining
+      it[0] //meta
+   ]}
+   // Bring back the RDS files to create a tuple of:
+   // BUT THE METAS WONT MATCH, WILL IT MATTER?
+   // [meta, unfiltered, filtered, processed]
+   .join(cluster_sce.out.map{[it[0]["library_id"]] + it, by: 0, failOnDuplicate: true, failOnMismatch: true)
+   .map{it.drop(1)}
+
+  
+  // generate QC reports
+ // sce_qc_report(all_sce_ch, report_template_tuple)
+
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
