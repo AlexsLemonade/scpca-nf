@@ -93,56 +93,48 @@ workflow annotate_celltypes {
         .combine(celltype_model_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
         .groupTuple(by: 0) // group by meta
-        // TODO: is there a cleaner way to do the latter 5 items
+        // TODO: is there a cleaner way to flatten the latter 5 items
         //  but still keep meta as its own thing?
         .map{[
           it[0], // meta
-          it[1][0], // processed rds
-          it[2][0], // processed hdf5
+          it[1][0], // processed hdf5
+          it[2][0], // processed rds
           it[3][0], // singler_model_file
           it[4][0], // cellassign_ref_file
           it[5][0], // cellassign_ref_name
         ]}
       
-      grouped_celltype_ch.view()
-
       // creates input for singleR [meta, processed, SingleR reference model]
       singler_input_ch = grouped_celltype_ch
-        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
+        .map{meta, processed_hdf5, processed_rds, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
                                                                                                                         processed_rds,
                                                                                                                         singler_model_file
                                                                                                                         )}
 
       // creates input for cellassign [meta, cellassign ref file, cell assign ref name]
       cellassign_input_ch = grouped_celltype_ch
-        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
+        .map{meta, processed_hdf5, processed_rds, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
                                                                                                                         processed_hdf5,
                                                                                                                         cellassign_ref_file,
                                                                                                                         cellassign_ref_name
                                                                                                                         )}
 
-      
       // get SingleR cell type assignments and add them to SCE
       classify_singleR(singler_input_ch)
 
-
-    ///////// COMMENT OUT CELLASSIGN FOR DEVELOPMENT ONLY ///////////
-    
       // get cellassign predictions file
-    //  predict_cellassign(cellassign_input_ch)
+      predict_cellassign(cellassign_input_ch)
 
       // add cellassign annotations to the object with singleR results
-   //   all_celltype_assignments_ch = classify_singleR.out
-        // combines using meta from both singleR and cellassign, they should be the same
-        // resulting tuple should be [meta, singleR annotated rds, cellassign predictions]
-    //    .combine(predict_cellassign.out, by: 0)
+      all_celltype_assignments_ch = classify_singleR.out
+         // combines using meta from both singleR and cellassign, they should be the same
+         // resulting tuple should be [meta, singleR annotated rds, cellassign predictions]
+        .combine(predict_cellassign.out, by: 0)
 
       // get CellAssign cell type predictions and add them to SCE
-   //   classify_cellassign(all_celltype_assignments_ch)
+      classify_cellassign(all_celltype_assignments_ch)
       
 
-
-
-      emit: classify_singleR.out //TODO!!!!!!!
+      emit: classify_cellassign.out
 
 }
