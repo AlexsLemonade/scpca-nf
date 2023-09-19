@@ -17,7 +17,10 @@ process classify_singleR {
         --seed ${params.seed} \
         --threads ${task.cpus}
       """
-
+  stub:
+  """
+  # nothing to do since files don't move
+  """
 }
 
 process predict_cellassign {
