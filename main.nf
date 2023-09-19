@@ -220,51 +220,41 @@ workflow {
 
   // Cluster SCE and export RDS files to publishDir
   cluster_sce(post_process_sce.out)
-  
+
   // convert SCE object to anndata
   // do this for everything but multiplexed libraries
   anndata_ch = cluster_sce.out
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
-  
-  // Prepare for and perform cell type annotation 
+
+  // Prepare for and perform cell type annotation
+  // Create celltype_ch as:
+  // [[meta], processed_hdf5, unfiltered_rds, filtered_rds, processed_rds]
   celltype_ch = sce_to_anndata.out
     .map{[
       it[0], // meta
       it[1]  // processed hdf5
     ]}
     // join with tuple meta, processed rds to create
-    // [meta, processed hdf5, processed rds]
-    .join(cluster_sce.out.map{[it[0], it[3]]})
-   .branch{
-     // TODO: 
-     // later, more checks can go here as needed
-     // do we want a column in the library metadata file for which celltype methods we intend to do?
-     repeat_celltyping: (params.repeat_celltyping
-                         || !it[0]['has_singler']
-                         || !it[0]['has_cellassign'])
-     skip_celltyping: true
-   }
- 
-  annotate_celltypes(celltype_ch.repeat_celltyping)
+    // [meta, processed hdf5, unfiltered_rds, filtered_rds, processed rds]
+    .join(cluster_sce.out, by: 0, failOnDuplicate: true, failOnMismatch: true)
+    .branch{
+      skip_celltyping: params.skip_celltyping
+      perform_celltyping: true
+    }
 
-  // combine celltyped and skipped-celltyped channels
-  all_sce_ch = annotate_celltypes.out.mix(celltype_ch.skip_celltyping) 
-    .map{[
-       it["library_id"], //library id for joining, since metas have diverged since clustering
-       it //meta
-    ]}
-    // Bring back the RDS files to create a tuple of:
-    // [meta, unfiltered, filtered, processed]
-   .join(
-      // get rid of this one's meta along the way:
-      cluster_sce.out.map{[it[0]["library_id"], it[1], it[2], it[3]]}, 
-      by: 0, failOnDuplicate: true, failOnMismatch: true)
-    // remove library_id used for joining
-   .map{it.drop(1)}
+  annotate_celltypes(celltype_ch.perform_celltyping)
+
+  final_sce_ch = celltype_ch.skip_celltyping
+    .map{meta, processed_hd5f, unfiltered_rds, filtered_rds, processed_rds -> tuple(meta,
+                                                                                    unfiltered_rds,
+                                                                                    filtered_rds,
+                                                                                    processed_rds
+                                                                                    )}
+    .mix(celltype_ch.skip_celltyping)
 
   // generate QC reports
-  sce_qc_report(all_sce_ch, report_template_tuple)
+  sce_qc_report(final_sce_ch, report_template_tuple)
 
 
    // **** Process Spatial Transcriptomics data ****
