@@ -41,7 +41,6 @@ include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
-include { annotate_celltypes } from './modules/classify-celltypes.nf'
 
 // parameter checks
 param_error = false
