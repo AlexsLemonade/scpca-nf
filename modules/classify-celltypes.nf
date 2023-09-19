@@ -68,6 +68,11 @@ process classify_cellassign {
 workflow annotate_celltypes {
     take: celltype_ch
     main:
+    
+      if (!file(params.celltype_project_metafile).exists()) {
+        log.error("The 'celltype_project_metafile' file '${params.celltype_project_metafile}' can not be found.
+      }
+      
       // channel with celltype model and project ids
       celltype_model_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
