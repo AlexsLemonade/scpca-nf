@@ -56,6 +56,14 @@ if (!sample_metafile.exists()) {
   param_error = true
 }
 
+// check for params.celltype_project_metafile, only if we are celltyping
+if (!params.skip_celltyping || params.repeat_celltyping) {
+  if (!file(params.celltype_project_metafile).exists()) {
+    log.error("The 'celltype_project_metafile' file '${params.celltype_project_metafile}' can not be found.")
+  param_error = true
+  }
+}
+
 resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
 if (!resolution_strategies.contains(params.af_resolution)) {
   log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
