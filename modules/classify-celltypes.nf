@@ -70,7 +70,7 @@ workflow annotate_celltypes {
     main:
     
       if (!file(params.celltype_project_metafile).exists()) {
-        log.error("The 'celltype_project_metafile' file '${params.celltype_project_metafile}' can not be found.
+        log.error("The 'celltype_project_metafile' file '${params.celltype_project_metafile}' can not be found.")
       }
       
       // channel with celltype model and project ids
