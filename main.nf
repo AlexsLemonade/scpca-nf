@@ -251,7 +251,7 @@ workflow {
                                                                                     filtered_rds,
                                                                                     processed_rds
                                                                                     )}
-    .mix(celltype_ch.skip_celltyping)
+    .mix(annotate_celltypes.out)
 
   // generate QC reports
   sce_qc_report(final_sce_ch, report_template_tuple)
