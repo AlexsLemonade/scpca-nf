@@ -227,53 +227,44 @@ workflow {
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
   
-  // create [library_id, [meta], processed_hdf5]
-  processed_hdf5_ch = sce_to_anndata.out
+  // Prepare for and perform cell type annotation 
+  celltype_ch = sce_to_anndata.out
     .map{[
       it[0], // meta
-      it[1] // processed hdf5
+      it[1]  // processed hdf5
     ]}
-  
-
-  celltype_ch = cluster_sce.out // meta, unfiltered rds, filtered rds, processed rds
-     .map{[
-      it[0], // meta
-      it[3] // processed rds
-      ]}
-    // join with [meta, processed hdf5]
-    // to create tuple of [meta, processed rds, processed hdf5]
-    .join(processed_hdf5_ch, by: 0, failOnDuplicate: true, failOnMismatch: true)
-    // celltype only when relevant
+    // join with tuple meta, processed rds to create
+    // [meta, processed hdf5, processed rds]
+    .join(cluster_sce.out.map{[it[0], it[3]]})
    .branch{
-     // TODO: do we want a column in the library 
-     //  metadata file for which celltype methods we intend to do?
+     // TODO: 
+     // later, more checks can go here as needed
+     // do we want a column in the library metadata file for which celltype methods we intend to do?
      repeat_celltyping: (params.repeat_celltyping
                          || !it[0]['has_singler']
                          || !it[0]['has_cellassign'])
-    skip_celltyping: true
+     skip_celltyping: true
    }
  
   annotate_celltypes(celltype_ch.repeat_celltyping)
-  // This meta will have additional fields for the celltyping methods, unlike the skip_celltyping ones
-  // We'll need to wrangle here to get an input channel for the QC report
-  // this needs to start with the annotate_celltypes channel to ensure the dependency, and then 
-  // using cluster_sce.out, we'll want to combine with unfiltered, filtered RDS files
 
   // combine celltyped and skipped-celltyped channels
- all_sce_ch = annotate_celltypes.out.mix(celltype_ch.skip_celltyping) 
-   .map{[
-      it[0]["library_id"], //library id for joining
-      it[0] //meta
-   ]}
-   // Bring back the RDS files to create a tuple of:
-   // BUT THE METAS WONT MATCH, WILL IT MATTER?
-   // [meta, unfiltered, filtered, processed]
-   .join(cluster_sce.out.map{[it[0]["library_id"]] + it}, by: 0, failOnDuplicate: true, failOnMismatch: true)
+  all_sce_ch = annotate_celltypes.out.mix(celltype_ch.skip_celltyping) 
+    .map{[
+       it["library_id"], //library id for joining, since metas have diverged since clustering
+       it //meta
+    ]}
+    // Bring back the RDS files to create a tuple of:
+    // [meta, unfiltered, filtered, processed]
+   .join(
+      // get rid of this one's meta along the way:
+      cluster_sce.out.map{[it[0]["library_id"], it[1], it[2], it[3]]}, 
+      by: 0, failOnDuplicate: true, failOnMismatch: true)
+    // remove library_id used for joining
    .map{it.drop(1)}
 
-  
   // generate QC reports
- // sce_qc_report(all_sce_ch, report_template_tuple)
+  sce_qc_report(all_sce_ch, report_template_tuple)
 
 
    // **** Process Spatial Transcriptomics data ****
