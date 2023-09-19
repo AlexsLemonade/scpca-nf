@@ -8,9 +8,7 @@ process classify_singleR {
     output:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     script:
-
       meta["has_singler"] = true
-
       """
       classify_SingleR.R \
         --sce_file ${processed_rds} \
@@ -54,20 +52,16 @@ process classify_cellassign {
   label 'mem_4'
   label 'cpus_2'
   input:
-    tuple val(meta), path(processed_rds), path(cellassign_predictions), val(ref_name)
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(cellassign_predictions), val(ref_name)
   output:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
   script:
-    annotated_rds = "${meta.library_id}_annotated.rds"
-
     meta["has_cellassign"] = true
-
     """
     classify_cellassign.R \
       --sce_file ${processed_rds} \
       --cellassign_predictions ${cellassign_predictions} \
       --reference_name ${ref_name}
-
     """
 }
 
@@ -93,23 +87,12 @@ workflow annotate_celltypes {
         .combine(celltype_model_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
         .groupTuple(by: 0) // group by meta
-        // TODO: is there a cleaner way to flatten the latter 5 items
-        //  but still keep meta as its own thing?
-        // comment out, should work ok?
-        //.map{[
-        //  it[0], // meta
-        //  it[1][0], // processed hdf5
-        //  it[2][0], // processed rds
-        //  it[3][0], // singler_model_file
-        //  it[4][0], // cellassign_ref_file
-        //  it[5][0], // cellassign_ref_name
-        //]}
 
       // creates input for singleR [meta, unfiltered, filtered, processed, SingleR reference model]
       singler_input_ch = grouped_celltype_ch
         .map{meta, processed_hdf5, unfiltered_rds, filtered_rds, processed_rds, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
                                                                                                                                                       unfiltered_rds,
-                                                                                                                                                      filtered_rds
+                                                                                                                                                      filtered_rds,
                                                                                                                                                       processed_rds,
                                                                                                                                                       singler_model_file
                                                                                                                                                       )}
@@ -125,9 +108,6 @@ workflow annotate_celltypes {
       // get SingleR cell type assignments and add them to SCE
       classify_singleR(singler_input_ch)
 
-
-      classify_singleR.view()
-
       // get cellassign predictions file
       predict_cellassign(cellassign_input_ch)
 
@@ -139,7 +119,6 @@ workflow annotate_celltypes {
 
       // get CellAssign cell type predictions and add them to SCE
       classify_cellassign(all_celltype_assignments_ch)
-
 
       emit: classify_cellassign.out
 
