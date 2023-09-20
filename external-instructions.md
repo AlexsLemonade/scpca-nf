@@ -412,10 +412,10 @@ The `results` folder will contain the final output files produced by the workflo
 Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
 All files in that folder will be prefixed by the library ID.
 
-The files containing the suffixes `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+The files with the suffixes `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
-the files containing the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_processed_rna.hdf5` contain the quantified gene expression data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
-If your data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided.
+The files with the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_processed_rna.hdf5` contain the quantified gene expression data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
+If the input data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided for each library.
 These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
 
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
