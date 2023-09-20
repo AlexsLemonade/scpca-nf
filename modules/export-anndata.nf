@@ -66,11 +66,7 @@ workflow sce_to_anndata{
         // number of cells are stored in each metadata.json file
         .filter{ Utils.getMetaVal(file(it[3]), "${it[2]}_cells") > 1 }
         // remove metadata.json file from tuple
-        .map{meta, sce_file, file_type, meta_json -> tuple(
-          meta,
-          sce_file,
-          file_type
-        )}
+        .map{it.dropRight(1)}
 
       // export each anndata file
       export_anndata(sce_ch)
