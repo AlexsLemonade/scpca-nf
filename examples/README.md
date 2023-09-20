@@ -16,13 +16,19 @@ We recommend using the example 10X dataset from a [human glioblastoma donor that
 The fastq files for this example data can be downloaded from the following link (**note:** These files will take approximately 10 GB of disk space upon download and expanding the tar file): [Brain_Tumor_3p_fastqs.tar](https://cf.10xgenomics.com/samples/cell-exp/6.0.0/Brain_Tumor_3p/Brain_Tumor_3p_fastqs.tar).
 
 
-Following download and unzipping of the fastq files, you will need to create a tab-separated values metadata file that looks like the following:
+Following download and unzipping of the fastq files, you will need to create a tab-separated values **run** metadata file that looks like the following:
 
-| scpca_run_id | scpca_library_id | scpca_sample_id | scpca_project_id | technology | seq_unit | sample_reference | files_directory | submitter_cell_types_file |
-| ------------ | ---------------- | --------------- | ---------------- | ---------- | -------- | ---------------- | --------------- | ------------------------ |
-| run01 | library01 | sample01 | project01 | 10Xv3.1 | cell | Homo_sapiens.GRCh38.104 | /path/to/example_fastq_files | /path/to/annotated_cell_types_file
+| scpca_run_id | scpca_library_id | scpca_sample_id | scpca_project_id | technology | assay_ontology_term_id | seq_unit | sample_reference | files_directory | submitter_cell_types_file |
+| ------------ | ---------------- | --------------- | ---------------- | ---------- | -----------------------|-------- | ---------------- | --------------- | ------------------------ |
+| run01 | library01 | sample01 | project01 | 10Xv3.1 | EFO:XXX | cell | Homo_sapiens.GRCh38.104 | /path/to/example_fastq_files | /path/to/annotated_cell_types_file
 
 Be sure to enter the **full** path to the directory containing the fastq files in the `files_directory` column, and similarly the full path for the `submitter_cell_types_file` column.
+
+You will also need to create a tab-separated values **sample** metadata file that looks like the following:
+
+| scpca_sample_id |
+| --------------- |
+| sample01 |
 
 The following command can then be used to test your configuration setup with the example data:
 
@@ -35,7 +41,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 Where `<path to config file>` is the **relative** path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files), `<name of profile>` is the name of the profile that you chose when creating a profile, and `<path to metadata file>` is the **full** path to the metadata TSV you created.
 For the [example configuration file that we provided](./user_template.config), we used the profile name `cluster` and would indicate that we would like to use that profile at the command line with `-profile cluster`.
-For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the metadata file](../external-data-instructions.md#prepare-the-metadata-file).
+For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the run metadata file](../external-data-instructions.md#prepare-the-run-metadata-file).
 
 ## Example output
 
