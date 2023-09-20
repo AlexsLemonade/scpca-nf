@@ -45,9 +45,9 @@ You will need to make sure you have the following software installed on your HPC
 You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
-3. **Create a [metadata file](#prepare-the-metadata-file).**
-Create a TSV (tab-separated values) file with one sequencing library per row and pertinent information related to that sequencing run in each column.
-See the [section below on preparing a metadata file](#prepare-the-metadata-file) for more information on creating a metadata file for your samples.
+3. **Create a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file).**
+Create two TSV (tab-separated values) files - one file with one sequencing library per row and pertinent information related to that sequencing run in each column (run metadata) and the other file with one sample per row and any relevant sample metadata (e.g., daignosis, age, sex, cell line) (sample metadata).
+See the sections below on preparing a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file) for more information on creating a metadata file for your samples.
 
 4. **Create a [configuration file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).**
 Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow.
@@ -65,13 +65,14 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
-This command will pull the `scpca-nf` workflow directly from Github, using the `v0.5.4` version, and run it based on the settings in the configuration file that you have defined.
+This command will pull the `scpca-nf` workflow directly from Github, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
 Using the above command will run the workflow from the `main` branch of the workflow repository.
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To  be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.5.4` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
@@ -92,9 +93,9 @@ Any sequencing runs that contain multiple libraries must be demultiplexed and FA
 If the same sequencing library was sequenced across multiple flow cells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
 If a library has a corresponding ADT library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the ADT library should be in their own folder, with a unique run ID.
 
-## Prepare the metadata file
+## Prepare the run metadata file
 
-Using `scpca-nf` requires a metadata file as a TSV (tab separated values) file, where each sequencing run to be processed is a row and columns contain associated information about that run.
+Using `scpca-nf` requires a run metadata file as a TSV (tab separated values) file, where each sequencing run to be processed is a row and columns contain associated information about that run.
 
 For each sequencing run, you will need to provide a Run ID (`scpca_run_id`), library ID (`scpca_library_id`), and sample ID (`scpca_sample_id`).
 The run ID will correspond to the name of the folder that contains the FASTQ files associated with the sequencing run.
@@ -134,14 +135,37 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 
-We have provided an example metadata file for reference that can be found in [`examples/example_metadata.tsv`](examples/example_metadata.tsv).
+We have provided an example run metadata file for reference.
+
+| [View example run metadata](examples/example_run_metadata.tsv) |
+| ------------------------------------------------------------------|
+
+## Prepare the sample metadata file
+
+Using `scpca-nf` requires a sample metadata file as a TSV (tab separated values) file, where each unique sample that is present in the `scpca_sample_id` column of the run metadata file is a row, and columns contain any relevant sample metadata (e.g., diagnosis, age, sex, cell line).
+For each library that is processed, the corresponding sample metadata will be added to the `SingleCellExperiment` and `AnnData` objects output by the workflow (see the section on [Output files](#output-files)).
+
+At a minimum, all sample metadata tables must contain a column with `scpca_sample_id` as the header.
+The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
+
+We encourage you to use standard terminology, such as ontology terms, to describe samples when possible.
+There is no limit to the number of columns allowed for the sample metadata, and you may include as many metadata fields as you please.
+
+We have provided an example run metadata file for reference.
+
+| [View example sample metadata](examples/example_sample_metadata.tsv) |
+| ---------------------------------------------------------------------|
+
+**Before using the workflow with data that you might plan to submit to ScPCA, please be sure to look at the [guidelines for sample metadata](https://scpca.alexslemonade.org/contribute).**
 
 ## Configuring `scpca-nf` for your environment
 
-Two workflow parameters are required for running `scpca-nf` on your own data:
+Three workflow parameters are required for running `scpca-nf` on your own data:
 
-- `run_metafile`: the metadata file with sample information, prepared according to the directions above.
+- `run_metafile`: the metadata file with **library** information, prepared according to the directions [above](#prepare-the-run-metadata-file).
   - This has a default value of `run_metadata.tsv`, but you will likely want to set your own file path.
+- `sample_metafile`: the metadata file with **sample** information, prepared according to the directions [above](#prepare-the-sample-metadata-file).
+  - This has a default value of `sample_metadata.tsv`, but you will likely want to set your own file path.
 - `outdir`: the output directory where results will be stored.
   - The default output is `scpca_out`, but again, you will likely want to customize this.
 
@@ -159,13 +183,14 @@ Note that all parameters can be overridden with a user config file or at the com
 
 ### Configuration files
 
-Workflow parameters can also be set in a [configuration file](https://www.nextflow.io/docs/latest/config.html#configuration-file) by setting the values `params.run_metafile` and `params.outdir` as follows.
+Workflow parameters can also be set in a [configuration file](https://www.nextflow.io/docs/latest/config.html#configuration-file) by setting the values `params.run_metafile`, `params.sample_metafile`, and `params.outdir` as follows.
 
 We could first create a file `my_config.config` (or a filename of your choice) with the following contents:
 
 ```groovy
 // my_config.config
 params.run_metafile = '<path to run_metafile>'
+params.sample_metafile = '<path to sample_metafile>'
 params.outdir = '<path to output>'
 params.max_cpus = 24
 params.max_memory = 96.GB
@@ -317,7 +342,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ### Libraries with additional feature data (ADT or cellhash)
 
 Libraries processed using multiple modalities, such as those that include runs with ADT or cellhash tags, will require a file containing the barcode IDs and sequences.
-The file location should be specified in the `feature_barcode_file` for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
+The file location should be specified in the `feature_barcode_file` for each library as listed in the [run metadata file](#prepare-the-run-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
 
 The `feature_barcode_file` itself is a tab separated file with one line per barcode and no header.
 The first column will contain the barcode or antibody ID and the second column the barcode nucleotide sequence.
