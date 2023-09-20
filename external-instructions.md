@@ -15,7 +15,7 @@
     - [Downloading container images](#downloading-container-images)
 - [Repeating mapping steps](#repeating-mapping-steps)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
-  - [Libraries with additional feature data (CITE-seq or cellhash)](#libraries-with-additional-feature-data-cite-seq-or-cellhash)
+  - [Libraries with additional feature data (ADT tags or cellhash)](#libraries-with-additional-feature-data-adt-tags-or-cellhash)
   - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Output files](#output-files)
@@ -90,7 +90,7 @@ You will need to have files organized so that all the sequencing files for each 
 Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-metadata-file).
 Any sequencing runs that contain multiple libraries must be demultiplexed and FASTQ files must be placed into separate distinct folders, with distinct run IDs as the folder name.
 If the same sequencing library was sequenced across multiple flow cells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
-If a library has a corresponding CITE-seq library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the CITE-seq library should be in their own folder, with a unique run ID.
+If a library has a corresponding ADT library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the ADT library should be in their own folder, with a unique run ID.
 
 ## Prepare the metadata file
 
@@ -102,7 +102,7 @@ See [the section on file organization above for more information](#file-organiza
 
 The library ID will be unique for each set of cells that have been isolated from a sample and have undergone droplet generation.
 For single-cell/single-nuclei RNA-seq runs, the library ID should be unique for each sequencing run.
-For libraries that have corresponding CITE-seq or cellhash runs, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run, indicating that the sequencing data has been generated from the same group of cells.
+For libraries that have corresponding ADT or cellhash runs, they should share the same library ID as the associated single-cell/single-nuclei RNA-seq run, indicating that the sequencing data has been generated from the same group of cells.
 
 Finally, the sample ID will indicate the unique tissue or source from which a sample was collected.
 If you have two libraries that have been generated from the same original tissue, then they will share the same sample ID.
@@ -120,7 +120,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_library_id`| A unique library ID for each unique set of cells             |
 | `scpca_sample_id` | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)          |
 | `scpca_project_id` | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
+| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT or CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
 | `files_directory` | path/uri to directory containing fastq files (unique per run) |
@@ -129,8 +129,8 @@ The following columns may be necessary for running other data modalities (CITE-s
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for CITE-seq and cellhash samples); for CITE-seq samples, this file can optionally indicate whether antibodies are targets or controls.  |
-| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for CITE-seq and cellhash samples) |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls.  |
+| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 
@@ -314,9 +314,9 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ## Special considerations for specific data types
 
-### Libraries with additional feature data (CITE-seq or cellhash)
+### Libraries with additional feature data (ADT or cellhash)
 
-Libraries processed using multiple modalities, such as those that include runs of CITE-seq or cellhash tags, will require a file containing the barcode IDs and sequences.
+Libraries processed using multiple modalities, such as those that include runs with ADT or cellhash tags, will require a file containing the barcode IDs and sequences.
 The file location should be specified in the `feature_barcode_file` for each library as listed in the [metadata file](#prepare-the-metadata-file); multiple libraries can and should use the same `feature_barcode_file` if the same feature barcode sequences are expected.
 
 The `feature_barcode_file` itself is a tab separated file with one line per barcode and no header.
@@ -328,7 +328,7 @@ TAG01	CATGTGAGCT
 TAG02	TGTGAGGGTG
 ```
 
-For CITE-seq data, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
+For libraries with ADT tags, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
 
 - `target`:  antibody is a true target
 - `neg_control`: a negative control antibody
@@ -410,8 +410,14 @@ Within the `outdir`, two folders will be present, `results` and `checkpoints`.
 The `results` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal.
 
 Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
-All files in that folder will be prefixed by library ID, with the following suffixes:  `_unfiltered.rds`, `_filtered.rds`, `_processed.rds`, `_metadata.json`, and `_qc.html`.
-The `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` files contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+All files in that folder will be prefixed by the library ID.
+
+The files containing the suffixes `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` contain the quantified gene expression data as a [`SingleCellExperiment` object](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+
+the files containing the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_processed_rna.hdf5` contain the quantified gene expression data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
+If your data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided.
+These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
+
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
 
 See below for the expected structure of the `results` folder:
@@ -419,11 +425,14 @@ See below for the expected structure of the `results` folder:
 ```
 results
 └── sample_id
+    ├── library_id_unfiltered.rds
     ├── library_id_filtered.rds
-    ├── library_id_metadata.json
     ├── library_id_processed.rds
-    ├── library_id_qc.html
-    └── library_id_unfiltered.rds
+    ├── library_id_unfiltered_rna.hdf5
+    ├── library_id_filtered_rna.hdf5
+    ├── library_id_processed_rna.hdf5
+    ├── library_id_metadata.json
+    └── library_id_qc.html
 ```
 
 If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
@@ -435,7 +444,7 @@ The `rad` folder (nested inside the `checkpoints` folder) contains the output fr
 If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed.
 
 All files pertaining to a specific library will be nested within a folder labeled with the library ID.
-Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for CITE-seq) and nested within the library ID folder.
+Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for libraries with ADT tags) and nested within the library ID folder.
 
 See below for the expected structure of the `checkpoints` folder:
 
