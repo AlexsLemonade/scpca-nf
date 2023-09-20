@@ -15,7 +15,7 @@
     - [Downloading container images](#downloading-container-images)
 - [Repeating mapping steps](#repeating-mapping-steps)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
-  - [Libraries with additional feature data (ADT tags or cellhash)](#libraries-with-additional-feature-data-adt-tags-or-cellhash)
+  - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
   - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Output files](#output-files)
