@@ -24,11 +24,18 @@ Following download and unzipping of the fastq files, you will need to create a t
 
 Be sure to enter the **full** path to the directory containing the fastq files in the `files_directory` column, and similarly the full path for the `submitter_cell_types_file` column.
 
-You will also need to create a tab-separated values **sample** metadata file that looks like the following:
+You will also need to create a tab-separated values **sample** metadata file.
+At a minimum, the sample metadata file must contain a column with `scpca_sample_id` as the header_.
+The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
 
-| scpca_sample_id |
-| --------------- |
-| sample01 |
+Below is an example of a sample metadata file:
+
+| scpca_sample_id | diagnosis | age |
+| --------------- | --------- | --- |
+| sample01 | glioblastoma | 71 |
+
+**Note that the `diagnosis` and `age` columns are shown as example sample metadata one might include in the sample metadata file.
+The metadata file that you create does not need to match this exacly, but it must contain the required `scpca_sample_id` column.**
 
 The following command can then be used to test your configuration setup with the example data:
 
@@ -36,12 +43,13 @@ The following command can then be used to test your configuration setup with the
 nextflow run AlexsLemonade/scpca-nf \
   -config <path to config file>  \
   -profile <name of profile> \
-  --run_metafile <path to metadata file>
+  --run_metafile <path to run metadata file> \
+  --sample_metafile <path to sample metadata file>
 ```
 
-Where `<path to config file>` is the **relative** path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files), `<name of profile>` is the name of the profile that you chose when creating a profile, and `<path to metadata file>` is the **full** path to the metadata TSV you created.
+Where `<path to config file>` is the **relative** path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files), `<name of profile>` is the name of the profile that you chose when creating a profile, `<path to run metadata file>` is the **full** path to the run metadata TSV you created, and `<path to sample metadata file>` is the **full** path to the sample metadata TSV you created.
 For the [example configuration file that we provided](./user_template.config), we used the profile name `cluster` and would indicate that we would like to use that profile at the command line with `-profile cluster`.
-For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the run metadata file](../external-data-instructions.md#prepare-the-run-metadata-file).
+For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the run metadata file](../external-data-instructions.md#prepare-the-run-metadata-file) and [preparing the sample metadata file](../external-instructions.md/#prepare-the-sample-metadata-file).
 
 ## Example output
 
