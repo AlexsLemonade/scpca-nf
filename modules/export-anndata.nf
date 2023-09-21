@@ -54,14 +54,21 @@ process move_normalized_counts{
 
 workflow sce_to_anndata{
     take:
+      // tuple of [meta, unfiltered rds, filtered rds, processed rds, metadata json]
       sce_files_ch
     main:
       sce_ch = sce_files_ch
-        // make tuple of [meta, sce_file, type of file]
-        .flatMap{[[it[0], it[1], "unfiltered"],
-                  [it[0], it[2], "filtered"],
-                  [it[0], it[3], "processed"]
+        // spread files so only one type of file gets passed through to the process at a time
+        // make tuple of [meta, sce_file, type of file, metadata.json]
+        .flatMap{[[it[0], it[1], "unfiltered", it[4]],
+                  [it[0], it[2], "filtered", it[4]],
+                  [it[0], it[3], "processed", it[4]]
                  ]}
+        // remove any sce files that don't have enough cells in the sce object
+        // number of cells are stored in each metadata.json file
+        .filter{ Utils.getMetaVal(file(it[3]), "${it[2]}_cells") > 1 }
+        // remove metadata.json file from tuple
+        .map{it.dropRight(1)}
 
       // export each anndata file
       export_anndata(sce_ch)
