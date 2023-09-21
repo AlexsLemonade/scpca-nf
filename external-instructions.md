@@ -147,11 +147,12 @@ We have provided an example run metadata file for reference.
 Using `scpca-nf` requires a sample metadata file as a TSV (tab separated values) file, where each unique sample that is present in the `scpca_sample_id` column of the run metadata file is a row, and columns contain any relevant sample metadata (e.g., diagnosis, age, sex, cell line).
 For each library that is processed, the corresponding sample metadata will be added to the `SingleCellExperiment` and `AnnData` objects output by the workflow (see the section on [Output files](#output-files)).
 
-At a minimum, all sample metadata tables must contain a column with `scpca_sample_id` as the header.
+_At a minimum, all sample metadata tables must contain a column with `scpca_sample_id` as the header_.
 The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
 
 We encourage you to use standard terminology, such as ontology terms, to describe samples when possible.
 There is no limit to the number of columns allowed for the sample metadata, and you may include as many metadata fields as you please.
+Some suggested columns include diagnosis, tissue, age, sex, stage of disease, cell line.
 
 We have provided an example run metadata file for reference.
 
