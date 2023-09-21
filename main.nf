@@ -225,7 +225,7 @@ workflow {
   sce_qc_report(cluster_sce.out, report_template_tuple)
 
   // convert SCE object to anndata
-  anndata_ch = sce_qc_report.out
+  anndata_ch = sce_qc_report.out.data
     // skip multiplexed libraries
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
