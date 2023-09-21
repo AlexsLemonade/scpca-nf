@@ -5,7 +5,8 @@
 
 - [Overview](#overview)
 - [File organization](#file-organization)
-- [Prepare the metadata file](#prepare-the-metadata-file)
+- [Prepare the run metadata file](#prepare-the-run-metadata-file)
+- [Prepare the sample metadata file](#prepare-the-sample-metadata-file)
 - [Configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment)
   - [Configuration files](#configuration-files)
   - [Setting up a profile in the configuration file](#setting-up-a-profile-in-the-configuration-file)
@@ -122,6 +123,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_sample_id` | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)          |
 | `scpca_project_id` | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
 | `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT or CITE-seq libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
+| `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
 | `files_directory` | path/uri to directory containing fastq files (unique per run) |
