@@ -10,7 +10,8 @@ process sce_qc_report{
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
         tuple path(template_dir), val(template_file)
     output:
-        tuple val(meta), path(qc_report), path(metadata_json)
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(metadata_json), emit: data
+        path qc_report, emit: report
     script:
         qc_report = "${meta.library_id}_qc.html"
         template_path = "${template_dir}/${template_file}"
