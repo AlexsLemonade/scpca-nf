@@ -47,7 +47,8 @@ The following command should be used to run the workflow and process the example
 nextflow run AlexsLemonade/scpca-nf \
   -profile ccdl,batch \
   --run_ids run01 \
-  --run_metafile s3://scpca-references/example-data/example_metadata.tsv \
+  --run_metafile s3://scpca-references/example-data/example_run_metadata.tsv \
+  --sample_metafile s3://scpca-references/example-data/example_sample_metadata.tsv \
   --outdir s3://scpca-references/example-data/scpca_out
 ```
 
