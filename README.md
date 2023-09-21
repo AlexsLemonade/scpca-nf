@@ -27,7 +27,7 @@ To run `scpca-nf` on your own samples, you will need to complete the following s
 
 1. [Organize your files](external-instructions.md#file-organization) so that each folder contains fastq files relevant to a single sequencing run.
 2. [Prepare a run metadata file](external-instructions.md#prepare-the-run-metadata-file) with one row per library containing all information needed to process your samples.
-3. [Prepare a sample metadata file]() with one row per sample containing any relevant metadata about each sample (e.g., diagnosis, age, sex, cell line).
+3. [Prepare a sample metadata file](external-instructions.md#prepare-the-sample-metadata-file) with one row per sample containing any relevant metadata about each sample (e.g., diagnosis, age, sex, cell line).
 4. Set up a [configuration file](external-instructions.md#configuration-files), including the [definition of a profile](external-instructions.md#setting-up-a-profile-in-the-configuration-file), dictating where nextflow should execute the workflow.
 
 You may also [test your configuration file using example data](examples/README.md).
