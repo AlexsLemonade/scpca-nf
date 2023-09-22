@@ -35,7 +35,7 @@ Below is an example of a sample metadata file:
 | sample01 | glioblastoma | 71 |
 
 **Note that the `diagnosis` and `age` columns are shown as example sample metadata one might include in the sample metadata file.
-The metadata file that you create does not need to match this exacly, but it must contain the required `scpca_sample_id` column.**
+The metadata file that you create does not need to match this exactly, but it must contain the required `scpca_sample_id` column.**
 
 The following command can then be used to test your configuration setup with the example data:
 
