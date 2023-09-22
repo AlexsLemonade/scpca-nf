@@ -5,7 +5,7 @@ All dependencies for the workflow outside of the Nextflow workflow engine itself
 Nextflow will also handle parallelizing sample processing as allowed by your environment, minimizing total run time.
 
 The workflow processes fastq files from single-cell and single-nuclei RNA-seq samples using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create gene by cell matrices.
-The workflow outputs gene expression data stored as both [`SingleCellExperiment` objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) and [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
+The workflow outputs gene expression data in two formats: as [`SingleCellExperiment` objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) and as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
 Reads from samples are aligned using selective alignment, to an index with transcripts corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as `splici`.
 These matrices are filtered and additional processing is performed to calculate quality control statistics, create reduced-dimension transformations, and create output reports.
 `scpca-nf` can also process libraries with ADT tags (e.g., CITE-seq), bulk RNA-seq, and spatial transcriptomics samples.
