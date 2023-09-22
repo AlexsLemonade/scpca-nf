@@ -47,10 +47,12 @@ The columns of these files should match the expected input columns of the workfl
 
 Additionally, the `example_run_metadata.tsv` should contain at least 1 row with `run01` in the `scpca_run_id` column and `s3://scpca-references/example-data/example_fastqs/run01` in the `files_directory` column.
 
-Once you have confirmed that the metadata looks correct, the following command should be used to run the workflow and process the example data:
+Once you have confirmed that the metadata looks correct, the following commands should be used to run the workflow and process the example data:
 
 ```sh
-nextflow run AlexsLemonade/scpca-nf \
+nextflow pull AlexsLemonade/scpca-nf -r development
+
+nextflow run AlexsLemonade/scpca-nf -r development \
   -profile ccdl,batch \
   --run_ids run01 \
   --run_metafile s3://scpca-references/example-data/example_run_metadata.tsv \
