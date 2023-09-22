@@ -419,7 +419,7 @@ If the input data contains libraries with ADT tags, three additional files with 
 These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
 
 **Note: We currently do not output `AnnData` objects (`.hdf5` files) for any multiplexed libraries.
-The output for multiplexed libraries will only contain `SingleCellExperiment` objects (`.rds` files).**
+Only `SingleCellExperiment` objects (`.rds` files) will be provided for multiplexed libraries.**
 
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
 
