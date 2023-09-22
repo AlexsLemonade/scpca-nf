@@ -418,6 +418,9 @@ The files with the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_
 If the input data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided for each library.
 These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
 
+**Note: We currently do not output `AnnData` objects (`.hdf5` files) for any multiplexed libraries.
+The output for multiplexed libraries will only contain `SingleCellExperiment` objects (`.rds` files).**
+
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
 
 See below for the expected structure of the `results` folder:
