@@ -47,7 +47,7 @@ You will need to have your files organized in a particular manner so that each f
 See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
 3. **Create a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file).**
-Create two TSV (tab-separated values) files - one file with one sequencing library per row and pertinent information related to that sequencing run in each column (run metadata) and the other file with one sample per row and any relevant sample metadata (e.g., daignosis, age, sex, cell line) (sample metadata).
+Create two TSV (tab-separated values) files - one file with one sequencing library per row and pertinent information related to that sequencing run in each column (run metadata) and the other file with one sample per row and any relevant sample metadata (e.g., diagnosis, age, sex, cell line) (sample metadata).
 See the sections below on preparing a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file) for more information on creating a metadata file for your samples.
 
 4. **Create a [configuration file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).**
