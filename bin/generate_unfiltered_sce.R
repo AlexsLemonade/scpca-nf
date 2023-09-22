@@ -172,7 +172,7 @@ if("upload_date" %in% colnames(sample_metadata_df)){
 if("participant_id" %in% colnames(sample_metadata_df)){
   sample_metadata_df <- sample_metadata_df |>
     # rename to donor id for czi compliance
-    dplyr::rename("donor_id" = "participant_id")
+    dplyr::rename(donor_id = participant_id)
 }
 
 # add per cell and per gene statistics to colData and rowData
