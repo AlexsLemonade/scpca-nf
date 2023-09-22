@@ -95,7 +95,7 @@ workflow {
       project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
       submitter: it.submitter,
       technology: it.technology,
-      assay_ontology_term_id: it.assay_ontology_term_id,
+      assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
       seq_unit: it.seq_unit,
       submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
       feature_barcode_file: Utils.parseNA(it.feature_barcode_file),

@@ -1,0 +1,8 @@
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	assay_ontology_term_id	seq_unit	sample_reference	files_directory	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	submitter_cell_types_file
+run01	library01	sample01	project01	10Xv3.1	EFO:0009922	cell	Homo_sapiens.GRCh38.104	example_fastqs/run01	NA	NA	NA	NA	NA
+run02	library01	sample01	project01	CITEseq_10Xv3	EFO:0030011	cell	Homo_sapiens.GRCh38.104	example_fastqs/run02	example_barcode_files/cite_barcodes.tsv	2[1-15]	NA	NA	NA
+run03	library02	sample02	project01	visium	EFO:0010961	spot	Homo_sapiens.GRCh38.104	example_fastqs/run03	NA	NA	A1	VXXXX-XXX	NA
+run04	library03	sample03;sample04	project01	10Xv3.1	EFO:0009922	cell	Mus_musculus.GRCm39.104	example_fastqs/run04	NA	NA	NA	NA	NA
+run05	library03	sample03;sample04	project01	cellhash_10Xv3.1	EFO:0030012	cell	Mus_musculus.GRCm39.104	example_fastqs/run05	example_barcode_files/cellhash_barcodes.tsv	2[1-10]	NA	NA	NA
+run06	library04	sample05	project01	paired_end	EFO:0003747	bulk	Mus_musculus.GRCm39.104	example_fastqs/run06	NA	NA	NA	NA	NA
+run07	library05	sample06	project01	10Xv3.1	EFO:0009922	cell	Homo_sapiens.GRCh38.104	example_fastqs/run07	NA	NA	NA	NA	example_metadata_files/submitter_celltypes.tsv

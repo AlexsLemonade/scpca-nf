@@ -13,6 +13,7 @@ data's
 demultiplexed
 demultiplexing
 Dockerfile
+EFO
 embeddings
 Ensembl
 et

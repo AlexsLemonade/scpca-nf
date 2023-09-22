@@ -20,12 +20,12 @@ process make_unfiltered_sce{
           --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
           --technology ${meta.technology} \
-          --assay_ontology_term_id ${meta.assay_ontology_term_id} \
           --seq_unit ${meta.seq_unit} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
+          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
 
@@ -77,12 +77,12 @@ process make_merged_unfiltered_sce{
           --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
           --technology ${meta.technology} \
-          --assay_ontology_term_id ${meta.assay_ontology_term_id} \
           --seq_unit ${meta.seq_unit} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
+          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
         # Only run script if annotations are available:

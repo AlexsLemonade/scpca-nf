@@ -51,6 +51,7 @@ option_list <- list(
   make_option(
     opt_str = c("--assay_ontology_term_id"),
     type = "character",
+    default = NULL,
     help = "Experimental Factor Ontology term associated with provided tech_version"
   ),
   make_option(
