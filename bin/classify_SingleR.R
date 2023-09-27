@@ -21,14 +21,14 @@ option_list <- list(
     help = "path to file containing a single model generated for SingleR annotation"
   ),
   make_option(
-    opt_str = c("--output_singler_results_file"),
-    type = "character",
-    help = "path to output RDS file that will store the SingleR results object. Must end in .rds"
-  ),
-  make_option(
     opt_str = c("--output_singler_annotations_file"),
     type = "character",
     help = "path to output TSV file that will store the SingleR annotations. Must end in .rds"
+  ),
+  make_option(
+    opt_str = c("--output_singler_results_file"),
+    type = "character",
+    help = "path to output RDS file that will store the SingleR results object. Must end in .rds"
   ),
   make_option(
     opt_str = c("--seed"),
