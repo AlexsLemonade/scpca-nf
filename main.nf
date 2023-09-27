@@ -218,7 +218,7 @@ workflow {
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
 
-  // Cluster SCE and export RDS files to publishDir
+  // Cluster SCE
   cluster_sce(post_process_sce.out)
 
   // generate QC reports

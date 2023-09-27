@@ -1,7 +1,4 @@
 // perform graph-based clustering on a processed SCE object
-// this process also does the RDS file export to the publishDir
-
-
 process cluster_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
