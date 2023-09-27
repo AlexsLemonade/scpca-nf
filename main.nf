@@ -223,15 +223,22 @@ workflow {
 
   // Perform celltyping, if specified
   // todo: add check here to not enter the process if references are missing.
-  annotate_celltypes( cluster_sce.out.map{[it[0], it[3]]} ) // only send in meta, processed sce
+  annotate_celltypes( cluster_sce.out.map{[ it[0], it[3] ]} ) // only send in meta, processed sce
+
 
   // generate QC reports
-  qc_report_ch = Channel.of(
-    annotate_celltypes.out[0], // meta
-    cluster_sce.out[1], // unfiltered
-    cluster_sce.out[2], // filtered
-    annotate_celltypes.out[3], // processed
-  )
+  qc_report_ch = annotate_celltypes.out.map{[ it[0], it[1] ]} // for now, this is meta and processed sce
+    // bring back the other 2 SCEs
+    .concat(
+      // unfiltered, filtered
+      cluster_sce.out.map{[ it[1], it[2] ]}
+    )
+    // Reorder as sce_qc_report expects
+    .map{meta, processed_rds, unfiltered_rds, filtered_rds -> tuple(meta,
+                                                                    unfiltered_rds,
+                                                                    filtered_rds,
+                                                                    processed_rds)}
+
   sce_qc_report(qc_report_ch, report_template_tuple)
 
   // convert SCE object to anndata
