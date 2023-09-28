@@ -233,6 +233,7 @@ workflow {
       // unfiltered, filtered
       cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, by: 0, failOnDuplicate:true, failOnMismatch: true
     )
+    .map{it.drop(1)}
     // Reorder as sce_qc_report expects
     .map{meta, processed_rds, unfiltered_rds, filtered_rds -> tuple(meta,
                                                                     unfiltered_rds,
