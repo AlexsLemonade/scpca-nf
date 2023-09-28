@@ -231,7 +231,7 @@ workflow {
     // bring back the other 2 SCEs
     .join(
       // unfiltered, filtered
-      cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, by: 0)
+      cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, by: 0, failOnDuplicate:true, failOnMismatch: true)
     )
     // Reorder as sce_qc_report expects
     .map{meta, processed_rds, unfiltered_rds, filtered_rds -> tuple(meta,
