@@ -161,18 +161,12 @@ sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
   dplyr::rename("sample_id" = "scpca_sample_id") |>
   # add library ID as column in sample metadata
   # we need this so we are able to merge sample metadata with colData later
-  dplyr::mutate(library_id = opt$library_id) 
+  dplyr::mutate(library_id = opt$library_id)
 
 if("upload_date" %in% colnames(sample_metadata_df)){
   sample_metadata_df <- sample_metadata_df |>
     # remove upload date as we don't provide this on the portal
     dplyr::select(-upload_date)
-}
-
-if("participant_id" %in% colnames(sample_metadata_df)){
-  sample_metadata_df <- sample_metadata_df |>
-    # rename to donor id for czi compliance
-    dplyr::rename(donor_id = participant_id)
 }
 
 # add per cell and per gene statistics to colData and rowData
