@@ -23,7 +23,7 @@ option_list <- list(
   make_option(
     opt_str = c("--output_singler_annotations_file"),
     type = "character",
-    help = "path to output TSV file that will store the SingleR annotations. Must end in .rds"
+    help = "path to output TSV file that will store the SingleR annotations. Must end in .tsv"
   ),
   make_option(
     opt_str = c("--output_singler_results_file"),
@@ -98,7 +98,7 @@ readr::write_tsv(
     barcode = rownames(singler_results),
     pruned_labels = singler_results$pruned_labels
   ),
-  output_singler_annotations_file
+  opt$output_singler_annotations_file
 )
 
 # next, the full result to a compressed rds
