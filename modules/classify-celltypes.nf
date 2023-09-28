@@ -4,7 +4,7 @@ process classify_singleR {
     publishDir (
         path: "${params.checkpoints_dir}/celltype/${meta.library_id}",
         mode:  'copy',
-        pattern: "*{results.rds,.tsv,.json}" // Everything except processed rds
+        pattern: "*{_singler.rds,.tsv,.json}" // Everything except processed rds
     )
     label 'mem_8'
     label 'cpus_4'
@@ -13,13 +13,12 @@ process classify_singleR {
     output:
         tuple val(meta), path(processed_rds), path(singler_annotations_tsv), path(singler_full_results)
     script:
-
       singler_annotations_tsv = "${meta.library_id}_singler_annotations.tsv"
-      singler_full_results = "${meta.library_id}_singler_full_results.rds"
+      singler_full_results = "${meta.library_id}_singler.rds"
       """
       classify_SingleR.R \
         --sce_file ${processed_rds} \
-        --singler_model_file ${singler_model_file} \ # todo: filename should contain celldex version
+        --singler_model_file ${singler_model_file} \
         --output_singler_annotations_file ${singler_annotations_tsv} \
         --output_singler_results_file ${singler_full_results} \
         --seed ${params.seed} \
@@ -96,11 +95,17 @@ workflow annotate_celltypes {
           cellassign_ref_name = it.cellassign_ref_name
         ]}
 
-      // create input for singleR: [meta, processed, SingleR reference model]
-      singler_input_ch = processed_sce_channel
+      celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
+        
+        
+      // create input for singleR: [meta, processed, SingleR reference model]
+      singler_input_ch = celltype_input_ch
+        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name -> tuple(meta,
+                                                                                                processed_rds,
+                                                                                                singler_model)}
 
       // perform singleR celltyping and export TSV
       classify_singleR(singler_input_ch)
