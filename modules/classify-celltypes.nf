@@ -35,6 +35,52 @@ process classify_singleR {
 }
 
 
+process predict_cellassign {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.checkpoints_dir}/celltype/${meta.library_id}", mode: 'copy'
+  label 'mem_32'
+  label 'cpus_12'
+  input:
+    tuple val(meta), path(processed_hdf5), path(cellassign_reference_mtx), val(ref_name)
+  output:
+    tuple val(meta), path(cellassign_predictions), val(ref_name)
+  script:
+    cellassign_predictions = "${meta.library_id}_predictions.tsv"
+    """
+    predict_cellassign.py \
+      --input_hdf5_file ${processed_hdf5} \
+      --output_predictions ${cellassign_predictions} \
+      --reference ${cellassign_reference_mtx} \
+      --seed ${params.seed} \
+      --threads ${task.cpus}
+    """
+  stub:
+    cellassign_predictions = "${meta.library_id}_predictions.tsv"
+    """
+    touch "${cellassign_predictions}"
+    """
+}
+
+process classify_cellassign {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
+  label 'mem_4'
+  label 'cpus_2'
+  input:
+    tuple val(meta), path(input_rds), path(cellassign_predictions), val(ref_name)
+  output:
+    tuple val(meta), path(annotated_rds)
+  script:
+    annotated_rds = "${meta.library_id}_annotated.rds"
+    """
+    classify_cellassign.R \
+      --input_sce_file ${input_rds} \
+      --output_sce_file ${annotated_rds} \
+      --cellassign_predictions ${cellassign_predictions} \
+      --reference_name ${ref_name}
+    """
+}
+
 workflow annotate_celltypes {
     take: processed_sce_channel
     main:
