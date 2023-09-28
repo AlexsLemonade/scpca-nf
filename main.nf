@@ -227,11 +227,11 @@ workflow {
 
 
   // generate QC reports
-  qc_report_ch = annotate_celltypes.out.map{[ it[0]["library_id], it[0], it[1] ]} // for now, this is meta and processed sce
+  qc_report_ch = annotate_celltypes.out.map{[ it[0]["library_id"], it[0], it[1] ]} // for now, this is meta and processed sce
     // bring back the other 2 SCEs
     .join(
       // unfiltered, filtered
-      cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, by: 0, failOnDuplicate:true, failOnMismatch: true)
+      cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, by: 0, failOnDuplicate:true, failOnMismatch: true
     )
     // Reorder as sce_qc_report expects
     .map{meta, processed_rds, unfiltered_rds, filtered_rds -> tuple(meta,
