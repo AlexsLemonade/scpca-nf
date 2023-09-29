@@ -88,18 +88,20 @@ workflow annotate_celltypes {
         .splitCsv(header: true, sep: '\t')
         .map{[
           project_id = it.scpca_project_id,
-          singler_model_file = "${params.singler_models_dir}/${it.singler_ref_file}",
-          cellassign_ref_file = "${params.cellassign_ref_dir}/${it.cellassign_ref_file}",
+          singler_model_file = "${params.singler_models_dir}/${parseNA(it.singler_ref_file)}",
+          cellassign_ref_file = "${params.cellassign_ref_dir}/${parseNA(it.cellassign_ref_file)}",
           // add ref name for cellassign since we cannot store it in the cellassign output
           // singler ref name does not need to be added because it is stored in the singler model
-          cellassign_ref_name = it.cellassign_ref_name
+          cellassign_ref_name = Utils.parseNA(it.cellassign_ref_name)
         ]}
+
 
       celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
         
+      celltype_input_ch.view()  
         
       // create input for singleR: [meta, processed, SingleR reference model]
       singler_input_ch = celltype_input_ch
@@ -111,6 +113,6 @@ workflow annotate_celltypes {
       classify_singleR(singler_input_ch)
 
     // temporary during development
-    emit: classify_singleR.out
+    emit: celltype_input_ch
 
 }
