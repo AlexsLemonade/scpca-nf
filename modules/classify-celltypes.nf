@@ -87,14 +87,15 @@ workflow annotate_celltypes {
       celltype_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
         .map{[
-         it.scpca_project_id, \\ project id
+         // project id
+         it.scpca_project_id, 
          // singler model file
          Utils.parseNA(it.singler_ref_file) ? file("${params.singler_models_dir}/${it.singler_ref_file}") : null,
          // cellassign reference file
          Utils.parseNA(it.cellassign_ref_file) ? file("${params.cellassign_ref_dir}/${it.cellassign_ref_file}") : null,
-          // add ref name for cellassign since we cannot store it in the cellassign output
-          // singler ref name does not need to be added because it is stored in the singler model
-          Utils.parseNA(it.cellassign_ref_name)
+         // add ref name for cellassign since we cannot store it in the cellassign output
+         // singler ref name does not need to be added because it is stored in the singler model
+         Utils.parseNA(it.cellassign_ref_name)
         ]}
 
 
@@ -103,13 +104,10 @@ workflow annotate_celltypes {
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
         
-      celltype_input_ch.view()  
-        
       // create input for singleR: [meta, processed, SingleR reference model]
       singler_input_ch = celltype_input_ch
-        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name -> tuple(meta,
-                                                                                                processed_rds,
-                                                                                                singler_model)}
+        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name -> 
+          [ meta, processed_rds, singler_model ]}
 
       // perform singleR celltyping and export TSV
       classify_singleR(singler_input_ch)
