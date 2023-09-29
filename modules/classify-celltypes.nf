@@ -39,18 +39,18 @@ process classify_cellassign {
     publishDir (
         path: "${params.checkpoints_dir}/celltype/${meta.library_id}",
         mode:  'copy',
-        pattern: "*{.tsv,.json}" // Only the prediction matrix (tsv) and meta
+        pattern: "*{_predictions.tsv,.json}" // Only the prediction matrix (tsv) and meta
     )
   label 'mem_32'
   label 'cpus_12'
   input:
-    tuple val(meta), path(processed_rds), path(cellassign_ref)
+    tuple val(meta), path(processed_rds), path(singler_annotations_tsv), path(singler_full_results), path(cellassign_ref)
   output:
-    tuple val(meta), path(processed_rds), path(cellassign_predictions_tsv)
+    tuple val(meta), path(processed_rds), path(singler_annotations_tsv), path(singler_full_results), path(cellassign_predictions_tsv)
   script:
     processed_hdf5 = "${meta.library_id}_processed.hdf5"
-    cellassign_predictions = "${meta.library_id}_predictions.tsv"
-
+    cellassign_predictions_tsv = "${meta.library_id}_predictions.tsv"
+    
     """
     # Convert SCE to AnnData
     sce_to_anndata.R \
@@ -67,9 +67,9 @@ process classify_cellassign {
     """
   stub:
     processed_hdf5 = "${meta.library_id}_processed.hdf5"
-    cellassign_predictions = "${meta.library_id}_predictions.tsv"
+    cellassign_predictions_tsv = "${meta.library_id}_predictions.tsv"
     """
-    touch "${cellassign_predictions}"
+    touch "${cellassign_predictions_tsv}"
     touch "${processed_hdf5}"
     """
 }
@@ -141,18 +141,20 @@ workflow annotate_celltypes {
       cellassign_ch = classify_singleR.out //  meta, processed_rds, singler_annotations_tsv singler_full_results
         .join(celltype_input_ch.run.map{[it[0], it[3]]}, // meta, cellassign_ref
               by: 0, failOnMismatch: true, failOnDuplicate: true)
-       .map{meta, processed_rds, singler_annotations_tsv, singler_full_results, cellassign_ref ->
-          [meta, processed_rds, cellassign_ref]}
+        // TODO for now I have the singler results coming along for the ride, but I can do this instead and then join back up after singler
+       //.map{meta, processed_rds, singler_annotations_tsv, singler_full_results, cellassign_ref ->
+       //    [meta, processed_rds, cellassign_ref]}
        // branch if the ref is null. This code assumes the reference name exist if the filename exists!
        .branch{
-          skip: it[2] == null
+          skip: it[4] == null  // TODO change to 2 if we dont bring files along for the ride
           run: true
         }    
       
-     // classify_cellassign(cellassign_ch.run) // output: meta, processed_rds, cellassign_predictions
+      classify_cellassign(cellassign_ch.run) // output: meta, processed_rds, singler_annotations_tsv, singler_full_results, cellassign_predictions
+
 
       // TODO mix celltyping results back up with `celltype_input_ch.skip`
-
+      
       // add back in the unchanged sce files
       // TODO update below with output channel results:
       export_channel = processed_sce_channel
