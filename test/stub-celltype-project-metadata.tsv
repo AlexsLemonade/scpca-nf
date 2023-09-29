@@ -4,5 +4,5 @@ STUBP02	singler_model_file.rds	cellassign_ref_file.tsv	tissue
 STUBP03	singler_model_file.rds	cellassign_ref_file.tsv	tissue
 STUBP04	singler_model_file.rds	cellassign_ref_file.tsv	tissue
 STUBP05	singler_model_file.rds	cellassign_ref_file.tsv	tissue
-STUBP06	singler_model_file.rds	cellassign_ref_file.tsv	tissue
-STUBP07	singler_model_file.rds	cellassign_ref_file.tsv	tissue
+STUBP06	NA	NA	NA
+STUBP07	singler_model_file.rds	NA	NA
