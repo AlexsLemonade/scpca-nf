@@ -1,4 +1,4 @@
-project_id	singler_ref_file	cellassign_ref_file	cellassign_ref_name
+scpca_project_id	singler_ref_file	cellassign_ref_file	cellassign_ref_name
 STUBP01	singler_model_file.rds	cellassign_ref_file.tsv	tissue
 STUBP02	singler_model_file.rds	cellassign_ref_file.tsv	tissue
 STUBP03	singler_model_file.rds	cellassign_ref_file.tsv	tissue

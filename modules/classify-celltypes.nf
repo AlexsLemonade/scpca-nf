@@ -87,12 +87,14 @@ workflow annotate_celltypes {
       celltype_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
         .map{[
-          project_id = it.scpca_project_id,
-          singler_model_file = "${params.singler_models_dir}/${parseNA(it.singler_ref_file)}",
-          cellassign_ref_file = "${params.cellassign_ref_dir}/${parseNA(it.cellassign_ref_file)}",
+         it.scpca_project_id, \\ project id
+         // singler model file
+         Utils.parseNA(it.singler_ref_file) ? file("${params.singler_models_dir}/${it.singler_ref_file}") : null,
+         // cellassign reference file
+         Utils.parseNA(it.cellassign_ref_file) ? file("${params.cellassign_ref_dir}/${it.cellassign_ref_file}") : null,
           // add ref name for cellassign since we cannot store it in the cellassign output
           // singler ref name does not need to be added because it is stored in the singler model
-          cellassign_ref_name = Utils.parseNA(it.cellassign_ref_name)
+          Utils.parseNA(it.cellassign_ref_name)
         ]}
 
 
