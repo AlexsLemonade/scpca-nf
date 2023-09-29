@@ -233,7 +233,7 @@ workflow {
       // library_id, unfiltered, filtered
       cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, 
       by: 0, 
-      failOnDuplicate:true, 
+      failOnDuplicate: true, 
       failOnMismatch: true
     )
     .map{it.drop(1)}
