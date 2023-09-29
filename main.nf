@@ -223,9 +223,7 @@ workflow {
   cluster_sce(post_process_sce.out)
 
   // Perform celltyping, if specified
-  // todo: add check here to not enter the process if references are missing.
   annotate_celltypes( cluster_sce.out )
-
 
   // generate QC reports
   sce_qc_report(annotate_celltypes.out, report_template_tuple)

@@ -101,12 +101,17 @@ workflow annotate_celltypes {
          Utils.parseNA(it.cellassign_ref_name)
         ]}
 
-
+      // create cell typing channel: [meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name]
       celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
-
+        // we only run celltyping for rows with a singler model file
+        .branch{
+          skip: it[2] == null
+          run: true
+        }
+      
       // create input for singleR: [meta, processed, SingleR reference model]
       singler_input_ch = celltype_input_ch
         .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name ->
@@ -114,6 +119,8 @@ workflow annotate_celltypes {
 
       // perform singleR celltyping and export TSV
       classify_singleR(singler_input_ch)
+
+      // TODO: mix celltyping results back up with `celltype_input_ch.skip`
 
       // add back in the unchanged sce files
       // TODO update below with output channel results:
