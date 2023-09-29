@@ -113,10 +113,11 @@ workflow annotate_celltypes {
         }
       
       // create input for singleR: [meta, processed, SingleR reference model]
-      singler_input_ch = celltype_input_ch
+      singler_input_ch = celltype_input_ch.run
         .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name ->
              [meta, processed_rds, singler_model]}
-
+             
+             
       // perform singleR celltyping and export TSV
       classify_singleR(singler_input_ch)
 
