@@ -1,29 +1,38 @@
 
 process classify_singleR {
     container params.SCPCATOOLS_CONTAINER
+    publishDir (
+        path: "${params.checkpoints_dir}/celltype/${meta.library_id}",
+        mode:  'copy',
+        pattern: "*{_singler.rds,.tsv,.json}" // Everything except processed rds
+    )
     label 'mem_8'
     label 'cpus_4'
     input:
         tuple val(meta), path(processed_rds), path(singler_model_file)
     output:
-        tuple val(meta), path(annotated_rds)
+        tuple val(meta), path(processed_rds), path(singler_annotations_tsv), path(singler_full_results)
     script:
-      annotated_rds = "${meta.library_id}_annotated.rds"
+      singler_annotations_tsv = "${meta.library_id}_singler_annotations.tsv"
+      singler_full_results = "${meta.library_id}_singler.rds"
       """
       classify_SingleR.R \
-        --input_sce_file ${processed_rds} \
-        --output_sce_file ${annotated_rds} \
+        --sce_file ${processed_rds} \
         --singler_model_file ${singler_model_file} \
-        --label_name ${params.singler_label_name} \
+        --output_singler_annotations_file ${singler_annotations_tsv} \
+        --output_singler_results_file ${singler_full_results} \
         --seed ${params.seed} \
         --threads ${task.cpus}
       """
     stub:
-      annotated_rds = "${meta.library_id}_annotated.rds"
+      singler_annotations_tsv = "${meta.library_id}_singler_annotations.tsv"
+      singler_full_results = "${meta.library_id}_singler_full_results.rds"
       """
-      touch "${annotated_rds}"
+      touch "${singler_annotations_tsv}"
+      touch "${singler_full_results}"
       """
 }
+
 
 process predict_cellassign {
   container params.SCPCATOOLS_CONTAINER
@@ -68,7 +77,6 @@ process classify_cellassign {
       --output_sce_file ${annotated_rds} \
       --cellassign_predictions ${cellassign_predictions} \
       --reference_name ${ref_name}
-
     """
 }
 
@@ -79,51 +87,32 @@ workflow annotate_celltypes {
       celltype_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
         .map{[
-          project_id = it.scpca_project_id,
-          singler_model_file = "${params.singler_models_dir}/${it.singler_ref_file}",
-          cellassign_ref_file = "${params.cellassign_ref_dir}/${it.cellassign_ref_file}",
-          // add ref name for cellassign since we cannot store it in the cellassign output
-          // singler ref name does not need to be added because it is stored in the singler model
-          cellassign_ref_name = it.cellassign_ref_name
+         // project id
+         it.scpca_project_id, 
+         // singler model file
+         Utils.parseNA(it.singler_ref_file) ? file("${params.singler_models_dir}/${it.singler_ref_file}") : null,
+         // cellassign reference file
+         Utils.parseNA(it.cellassign_ref_file) ? file("${params.cellassign_ref_dir}/${it.cellassign_ref_file}") : null,
+         // add ref name for cellassign since we cannot store it in the cellassign output
+         // singler ref name does not need to be added because it is stored in the singler model
+         Utils.parseNA(it.cellassign_ref_name)
         ]}
 
-      // create channel grouped_celltype_ch as: [meta, processed sce object, SingleR reference model]
-      // input processed_sce_channel is [meta, unfiltered, filtered, processed]
-      grouped_celltype_ch = processed_sce_channel
+
+      celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
+        
+      // create input for singleR: [meta, processed, SingleR reference model]
+      singler_input_ch = celltype_input_ch
+        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name -> 
+          [ meta, processed_rds, singler_model ]}
 
-      // creates input for singleR [meta, processed, SingleR reference model]
-      singler_input_ch = grouped_celltype_ch
-        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
-                                                                                                                        processed_rds,
-                                                                                                                        singler_model_file
-                                                                                                                        )}
-
-      // creates input for cellassign [meta, processed hdf5, cellassign ref file, cell assign ref name]
-      cellassign_input_ch = grouped_celltype_ch
-        .map{meta, processed_rds, processed_hdf5, singler_model_file, cellassign_ref_file, cellassign_ref_name -> tuple(meta,
-                                                                                                                        processed_hdf5,
-                                                                                                                        cellassign_ref_file,
-                                                                                                                        cellassign_ref_name
-                                                                                                                        )}
-
-      // get SingleR cell type assignments and add them to SCE
+      // perform singleR celltyping and export TSV
       classify_singleR(singler_input_ch)
 
-      // get cellassign predictions file
-      predict_cellassign(cellassign_input_ch)
-
-      // add cellassign annotations to the object with singleR results
-      all_celltype_assignments_ch = classify_singleR.out
-        // combines using meta from both singleR and cellassign, they should be the same
-        // resulting tuple should be [meta, singleR annotated rds, cellassign predictions]
-        .combine(predict_cellassign.out, by: 0)
-
-      // get CellAssign cell type predictions and add them to SCE
-      classify_cellassign(all_celltype_assignments_ch)
-
-    emit: classify_cellassign.out
+    // temporary during development
+    emit: celltype_input_ch
 
 }

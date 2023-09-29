@@ -37,10 +37,10 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
-include { sce_to_anndata } from './modules/export-anndata.nf'
+include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
-include { cluster_sce } from './modules/cluster-sce.nf'
+include { sce_to_anndata } from './modules/export-anndata.nf'
 
 
 // parameter checks
@@ -218,11 +218,30 @@ workflow {
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
 
-  // Cluster SCE and export RDS files to publishDir
+  // Cluster SCE
   cluster_sce(post_process_sce.out)
 
+  // Perform celltyping, if specified
+  // todo: add check here to not enter the process if references are missing.
+  annotate_celltypes( cluster_sce.out.map{[ it[0], it[3] ]} ) // only send in meta, processed sce
+
+
   // generate QC reports
-  sce_qc_report(cluster_sce.out, report_template_tuple)
+  qc_report_ch = annotate_celltypes.out.map{[ it[0]["library_id"], it[0], it[1] ]} // for now, this is meta and processed sce
+    // bring back the other 2 SCEs
+    .join(
+      // library_id, unfiltered, filtered
+      cluster_sce.out.map{[ it[0]["library_id"], it[1], it[2] ]}, 
+      by: 0, 
+      failOnDuplicate: true, 
+      failOnMismatch: true
+    )
+    .map{it.drop(1)}
+    // Reorder as sce_qc_report expects
+    .map{meta, processed_rds, unfiltered_rds, filtered_rds -> 
+      [meta, unfiltered_rds, filtered_rds, processed_rds]}
+
+  sce_qc_report(qc_report_ch, report_template_tuple)
 
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data
