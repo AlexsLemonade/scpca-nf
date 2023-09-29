@@ -143,8 +143,13 @@ workflow annotate_celltypes {
               by: 0, failOnMismatch: true, failOnDuplicate: true)
        .map{meta, processed_rds, singler_annotations_tsv, singler_full_results, cellassign_ref ->
           [meta, processed_rds, cellassign_ref]}
+       // branch if the ref is null. This code assumes the reference name exist if the filename exists!
+       .branch{
+          skip: it[2] == null
+          run: true
+        }    
       
-     // classify_cellassign(cellassign_ch) // output: meta, processed_rds, cellassign_predictions, cellassign_ref_name
+     // classify_cellassign(cellassign_ch.run) // output: meta, processed_rds, cellassign_predictions
 
       // TODO mix celltyping results back up with `celltype_input_ch.skip`
 
