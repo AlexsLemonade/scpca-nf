@@ -30,7 +30,7 @@ process make_unfiltered_sce{
 
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -86,7 +86,7 @@ process make_merged_unfiltered_sce{
           ${params.spliced_only ? '--spliced_only' : ''}
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -116,9 +116,9 @@ process filter_sce{
 
         // Checks for whether we have ADT data:
         // - feature_type should be adt
-        // - barcode file should _not_ be the empty file NO_FILE.txt
+        // - barcode file should _not_ be the empty file NO_FILE
         adt_present = meta.feature_type == 'adt' &
-          feature_barcode_file.name != "NO_FILE.txt"
+          feature_barcode_file.name != "NO_FILE"
 
         """
         filter_sce_rds.R \
@@ -219,7 +219,7 @@ process post_process_sce{
 
 
 // used when a given file is not defined in the below workflows
-empty_file = "${projectDir}/assets/NO_FILE.txt"
+empty_file = "${projectDir}/assets/NO_FILE"
 
 workflow generate_sce {
   // generate rds files for RNA-only samples

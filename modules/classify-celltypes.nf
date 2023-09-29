@@ -81,14 +81,17 @@ process classify_cellassign {
 }
 
 workflow annotate_celltypes {
-    take: processed_sce_channel
+    take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
     main:
+      // get just the meta and processed sce
+      processed_sce_channel = sce_files_channel.map{[it[0], it[3]]}
+
       // channel with celltype model and project ids
       celltype_ch = Channel.fromPath(params.celltype_project_metafile)
         .splitCsv(header: true, sep: '\t')
         .map{[
          // project id
-         it.scpca_project_id, 
+         it.scpca_project_id,
          // singler model file
          Utils.parseNA(it.singler_ref_file) ? file("${params.singler_models_dir}/${it.singler_ref_file}") : null,
          // cellassign reference file
@@ -103,16 +106,26 @@ workflow annotate_celltypes {
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
         .map{it.drop(1)} // remove extra project ID
-        
+
       // create input for singleR: [meta, processed, SingleR reference model]
       singler_input_ch = celltype_input_ch
-        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name -> 
-          [ meta, processed_rds, singler_model ]}
+        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name ->
+             [meta, processed_rds, singler_model]}
 
       // perform singleR celltyping and export TSV
       classify_singleR(singler_input_ch)
 
-    // temporary during development
-    emit: celltype_input_ch
+      // add back in the unchanged sce files
+      // TODO update below with output channel results:
+      export_channel = processed_sce_channel
+        .map{[it[0]["library_id"]] + it}
+        // add in unfiltered and filtered sce files
+        .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
+              by: 0, failOnMismatch: true, failOnDuplicate: true)
+        // rearrange to be [meta, unfiltered, filtered, processed]
+        .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+            [meta, unfiltered_sce, filtered_sce, processed_sce]}
+
+    emit: export_channel
 
 }
