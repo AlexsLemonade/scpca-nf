@@ -1,7 +1,11 @@
 
 process classify_singler {
     container params.SCPCATOOLS_CONTAINER
-    publishDir "${meta.celltype_publish_dir}", mode: 'copy'
+    publishDir (
+      path: "${meta.celltype_publish_dir}",
+      mode: 'copy',
+      pattern: "${singler_dir}"
+    )
     label 'mem_8'
     label 'cpus_4'
     input:
