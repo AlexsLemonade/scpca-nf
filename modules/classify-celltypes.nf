@@ -9,14 +9,13 @@ process classify_singler {
     label 'mem_8'
     label 'cpus_4'
     input:
-        tuple val(meta), path(processed_rds),
-              path(singler_model_file),
-              path(cellassign_reference_file), val(cellassign_reference_name)
+      tuple val(meta), path(processed_rds),
+            path(singler_model_file),
+            path(cellassign_reference_file), val(cellassign_reference_name)
     output:
-        tuple val(meta), path(processed_rds),
-              path(singler_model_file),
-              path(cellassign_reference_file), val(cellassign_reference_name),
-              path(singler_dir)
+      tuple val(meta), path(processed_rds),
+            path(cellassign_reference_file), val(cellassign_reference_name),
+            path(singler_dir)
     script:
       singler_dir = file(meta.singler_dir).name
       """
@@ -112,7 +111,7 @@ workflow annotate_celltypes {
          Utils.parseNA(it.cellassign_ref_name)
         ]}
 
-      // create input for typing: [meta, processed, SingleR model file, cellassign reference file, cellassign reference name]
+      // create input for typing: [meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name]
       celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
@@ -137,7 +136,9 @@ workflow annotate_celltypes {
 
       // singleR output channel
       singler_output_ch = singler_input_ch.missing_ref
-        .map{it.asList() + [file(empty_file)]} // add empty file for missing output
+        // drop singler model and add empty file for missing output (match classify_singler output)
+        .map{meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name ->
+             [meta, processed_sce, cellassign_reference_file, cellassign_reference_name, file(empty_file)]}
         // add in channel outputs
         .mix(classify_singler.out)
 
