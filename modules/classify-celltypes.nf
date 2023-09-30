@@ -133,7 +133,7 @@ workflow annotate_celltypes {
 
       // singleR output channel
       singler_output_ch = singler_input_ch.missing_ref
-        .map{it.add(file(empty_file))} // add empty file for missing output
+        .map{it.asList() + [file(empty_file)]} // add empty file for missing output
         // add in channel outputs
         .mix(classify_singler.out)
 
