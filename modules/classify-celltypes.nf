@@ -81,7 +81,6 @@ process classify_cellassign {
     """
     mkdir "${cellassign_dir}"
     echo "${Utils.makeJson(meta)}" > "${cellassign_dir}/scpca-meta.json"
-
     """
 }
 
@@ -185,10 +184,9 @@ workflow annotate_celltypes {
   
       // cellassign output channel: [library_id, cellassign_dir]
       cellassign_output_ch = cellassign_input_ch.missing_ref
-        .map{[it[0]["library_id"], "NO_NAME", file(empty_file)]}
+        .map{[it[0]["library_id"], file(empty_file)]}
         // add in channel outputs
         .mix(classify_cellassign.out) 
-      
       
       // prepare input for process to add celltypes to the processed SCE
       assignment_input_ch = processed_sce_channel
