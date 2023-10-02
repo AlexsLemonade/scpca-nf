@@ -9,13 +9,9 @@ process classify_singler {
     label 'mem_8'
     label 'cpus_4'
     input:
-      tuple val(meta), path(processed_rds),
-            path(singler_model_file),
-            path(cellassign_reference_file), val(cellassign_reference_name)
+      tuple val(meta), path(processed_rds), path(singler_model_file)
     output:
-      tuple val(meta), path(processed_rds),
-            path(cellassign_reference_file), val(cellassign_reference_name),
-            path(singler_dir)
+      tuple val(meta.library_id), path(singler_dir)
     script:
       singler_dir = file(meta.singler_dir).name
       """
@@ -103,29 +99,36 @@ workflow annotate_celltypes {
          // project id
          it.scpca_project_id,
          // singler model file
-         file(Utils.parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : empty_file),
+         Utils.parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : null,
          // cellassign reference file
-         file(Utils.parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : empty_file),
+         Utils.parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : null,
          // add ref name for cellassign since we cannot store it in the cellassign output
          // singler ref name does not need to be added because it is stored in the singler model
          Utils.parseNA(it.cellassign_ref_name)
         ]}
 
-      // create input for typing: [meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name]
+      // create input for typing: [augmented meta, processed_sce]
       celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
-        .map{it.drop(1)} // remove extra project ID
-        // add celltype_publish_dir to the meta object for later use
-        .map{
-          it[0].celltype_publish_dir = "${params.checkpoints_dir}/celltype/${it[0].library_id}";
-          it[0].singler_dir = "${it[0].celltype_publish_dir}/${it[0].library_id}_singler";
-          it[0].cellassign_dir = "${it[0].celltype_publish_dir}/${it[0].library_id}_cellassign";
-          it
+        // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name]
+        // add values to meta for later use
+        .map{ project_id, meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name ->
+          meta.celltype_publish_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
+          meta.singler_dir = "${meta.celltype_publish_dir}/${meta.library_id}_singler";
+          meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
+          meta.singler_model_file = singler_model_file;
+          meta.cellassign_reference_file = cellassign_reference_file;
+          meta.cellassign_reference_name = cellassign_reference_name;
+          // return simplified input:
+          [meta, processed_sce]
         }
 
-      // skip if no singleR model file
+
       singler_input_ch = celltype_input_ch
+        // add in singler model or empty file
+        .map{it.toList() + [file(it[0].singler_model_file ?: empty_file)]}
+        // skip if no singleR model file
         .branch{
           missing_ref: it[2].name == "NO_FILE"
           do_singler: true
@@ -134,26 +137,30 @@ workflow annotate_celltypes {
       // perform singleR celltyping and export results
       classify_singler(singler_input_ch.do_singler)
 
-      // singleR output channel
+      // singleR output channel: [library_id, singler_results]
       singler_output_ch = singler_input_ch.missing_ref
-        // drop singler model and add empty file for missing output (match classify_singler output)
-        .map{meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name ->
-             [meta, processed_sce, cellassign_reference_file, cellassign_reference_name, file(empty_file)]}
+        .map{[it[0]["library_id"], file(empty_file)]}
         // add in channel outputs
         .mix(classify_singler.out)
 
 
+      // input for rds assignment step
+      assignment_input_ch = processed_sce_channel
+        .map{[it[0]["library_id"]] + it}
+        // add in singler results
+        .join(singler_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
+
       // add back in the unchanged sce files
       // TODO update below with output channel results:
-      export_channel = processed_sce_channel
-        .map{[it[0]["library_id"]] + it}
-        // add in unfiltered and filtered sce files
-        .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
-              by: 0, failOnMismatch: true, failOnDuplicate: true)
-        // rearrange to be [meta, unfiltered, filtered, processed]
-        .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
-            [meta, unfiltered_sce, filtered_sce, processed_sce]}
+      // export_channel = processed_sce_channel
+      //   .map{[it[0]["library_id"]] + it}
+      //   // add in unfiltered and filtered sce files
+      //   .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
+      //         by: 0, failOnMismatch: true, failOnDuplicate: true)
+      //   // rearrange to be [meta, unfiltered, filtered, processed]
+      //   .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+      //       [meta, unfiltered_sce, filtered_sce, processed_sce]}
 
-    emit: export_channel
+    emit: sce_files_channel
 
 }
