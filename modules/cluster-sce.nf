@@ -17,7 +17,6 @@ process cluster_sce{
           ${params.seed ? "--random_seed ${params.seed}" : ""}
         """
     stub:
-        processed_rds = "${meta.library_id}_processed.rds"
         """
         touch ${processed_rds}
         """
