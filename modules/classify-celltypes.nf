@@ -1,35 +1,39 @@
 
-process classify_singleR {
+process classify_singler {
     container params.SCPCATOOLS_CONTAINER
     publishDir (
-        path: "${params.checkpoints_dir}/celltype/${meta.library_id}",
-        mode:  'copy',
-        pattern: "*{_singler.rds,.tsv,.json}" // Everything except processed rds
+      path: "${meta.celltype_publish_dir}",
+      mode: 'copy',
+      pattern: "${singler_dir}"
     )
     label 'mem_8'
     label 'cpus_4'
     input:
-        tuple val(meta), path(processed_rds), path(singler_model_file)
+      tuple val(meta), path(processed_rds), path(singler_model_file)
     output:
-        tuple val(meta), path(processed_rds), path(singler_annotations_tsv), path(singler_full_results)
+      tuple val(meta.library_id), path(singler_dir)
     script:
-      singler_annotations_tsv = "${meta.library_id}_singler_annotations.tsv"
-      singler_full_results = "${meta.library_id}_singler.rds"
+      singler_dir = file(meta.singler_dir).name
       """
+      # create output directory
+      mkdir "${singler_dir}"
+
       classify_SingleR.R \
-        --sce_file ${processed_rds} \
-        --singler_model_file ${singler_model_file} \
-        --output_singler_annotations_file ${singler_annotations_tsv} \
-        --output_singler_results_file ${singler_full_results} \
+        --sce_file "${processed_rds}" \
+        --singler_model_file "${singler_model_file}" \
+        --output_singler_annotations_file "${singler_dir}/singler_annotations.tsv" \
+        --output_singler_results_file "${singler_dir}/singler_results.rds" \
         --seed ${params.seed} \
         --threads ${task.cpus}
+
+      # write out meta file
+      echo "${Utils.makeJson(meta)}" > "${singler_dir}/scpca-meta.json"
       """
     stub:
-      singler_annotations_tsv = "${meta.library_id}_singler_annotations.tsv"
-      singler_full_results = "${meta.library_id}_singler_full_results.rds"
+      singler_dir = file(meta.singler_dir).name
       """
-      touch "${singler_annotations_tsv}"
-      touch "${singler_full_results}"
+      mkdir "${singler_dir}"
+      echo "${Utils.makeJson(meta)}" > "${singler_dir}/scpca-meta.json"
       """
 }
 
@@ -80,6 +84,8 @@ process classify_cellassign {
     """
 }
 
+empty_file = "${projectDir}/assets/NO_FILE"
+
 workflow annotate_celltypes {
     take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
     main:
@@ -93,39 +99,68 @@ workflow annotate_celltypes {
          // project id
          it.scpca_project_id,
          // singler model file
-         Utils.parseNA(it.singler_ref_file) ? file("${params.singler_models_dir}/${it.singler_ref_file}") : null,
+         Utils.parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : null,
          // cellassign reference file
-         Utils.parseNA(it.cellassign_ref_file) ? file("${params.cellassign_ref_dir}/${it.cellassign_ref_file}") : null,
+         Utils.parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : null,
          // add ref name for cellassign since we cannot store it in the cellassign output
          // singler ref name does not need to be added because it is stored in the singler model
          Utils.parseNA(it.cellassign_ref_name)
         ]}
 
-
+      // create input for typing: [augmented meta, processed_sce]
       celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
-        .map{it.drop(1)} // remove extra project ID
+        // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name]
+        // add values to meta for later use
+        .map{ project_id, meta, processed_sce, singler_model_file, cellassign_reference_file, cellassign_reference_name ->
+          meta.celltype_publish_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
+          meta.singler_dir = "${meta.celltype_publish_dir}/${meta.library_id}_singler";
+          meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
+          meta.singler_model_file = singler_model_file;
+          meta.cellassign_reference_file = cellassign_reference_file;
+          meta.cellassign_reference_name = cellassign_reference_name;
+          // return simplified input:
+          [meta, processed_sce]
+        }
 
-      // create input for singleR: [meta, processed, SingleR reference model]
+
       singler_input_ch = celltype_input_ch
-        .map{meta, processed_rds, singler_model, cellassign_model, cellassign_ref_name ->
-             [meta, processed_rds, singler_model]}
+        // add in singler model or empty file
+        .map{it.toList() + [file(it[0].singler_model_file ?: empty_file)]}
+        // skip if no singleR model file
+        .branch{
+          missing_ref: it[2].name == "NO_FILE"
+          do_singler: true
+        }
 
-      // perform singleR celltyping and export TSV
-      classify_singleR(singler_input_ch)
+      // perform singleR celltyping and export results
+      classify_singler(singler_input_ch.do_singler)
+
+      // singleR output channel: [library_id, singler_results]
+      singler_output_ch = singler_input_ch.missing_ref
+        .map{[it[0]["library_id"], file(empty_file)]}
+        // add in channel outputs
+        .mix(classify_singler.out)
+
+
+      // input for rds assignment step
+      assignment_input_ch = processed_sce_channel
+        .map{[it[0]["library_id"]] + it}
+        // add in singler results
+        .join(singler_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
 
       // add back in the unchanged sce files
       // TODO update below with output channel results:
-      export_channel = processed_sce_channel
-        .map{[it[0]["library_id"]] + it}
-        // add in unfiltered and filtered sce files
-        .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
-              by: 0, failOnMismatch: true, failOnDuplicate: true)
-        // rearrange to be [meta, unfiltered, filtered, processed]
-        .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
-            [meta, unfiltered_sce, filtered_sce, processed_sce]}
+      // export_channel = processed_sce_channel
+      //   .map{[it[0]["library_id"]] + it}
+      //   // add in unfiltered and filtered sce files
+      //   .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
+      //         by: 0, failOnMismatch: true, failOnDuplicate: true)
+      //   // rearrange to be [meta, unfiltered, filtered, processed]
+      //   .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+      //       [meta, unfiltered_sce, filtered_sce, processed_sce]}
 
-    emit: export_channel
+    emit: sce_files_channel
 
 }
