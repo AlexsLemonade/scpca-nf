@@ -18,7 +18,8 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
-    help = "path to file containing a single model generated for SingleR annotation"
+    help = "path to file containing a single model generated for SingleR annotation. 
+            File name is expected to be in form: <model name>_model.rds."
   ),
   make_option(
     opt_str = c("--output_singler_annotations_file"),
@@ -55,7 +56,7 @@ if (!file.exists(opt$sce_file)) {
   stop("Missing SCE file")
 }
 
-# check that output files have the righr extensions
+# check that output files have the right extensions
 if (!(stringr::str_ends(opt$output_singler_results_file, ".rds"))) {
   stop("output SingleR result file name must end in .rds")
 }
@@ -63,10 +64,19 @@ if (!(stringr::str_ends(opt$output_singler_annotations_file, ".tsv"))) {
   stop("output SingleR annotations file name must end in .tsv")
 }
 
-# check that references all exist
+# check that reference exists and filename is properly formatted
 singler_model_file <- opt$singler_model_file
 if (!file.exists(singler_model_file)) {
   stop(glue::glue("Provided model file {singler_model_file} is missing."))
+}
+if (!(stringr::str_ends(singler_model_file, "_model.rds"))) {
+  stop(glue::glue("Provided model file {singler_model_file} must end in .rds."))
+}
+
+# get & check reference name
+reference_name <- stringr::str_remove(singler_model_file, "_model.rds")
+if (reference_name == "") {
+  stop(glue::glue("Provided model file name must be formatted as `<model_name>_model.rds`"))
 }
 
 # set up multiprocessing params
@@ -90,6 +100,10 @@ singler_results <- SingleR::classifySingleR(
   BPPARAM = bp_param
 )
 
+# add reference name as metadata in singler_results DataFrame
+metadata(singler_results)$reference_name <- reference_name
+
+
 # export results
 
 # first, a stand-alone tsv of annotations with both pruned and full labels
@@ -102,6 +116,7 @@ readr::write_tsv(
 )
 
 # next, the full result to a compressed rds
+
 readr::write_rds(
   singler_results,
   opt$output_singler_results_file,
