@@ -1,0 +1,378 @@
+---
+params:
+  library: Example
+  processed_sce: NULL
+  date: !r Sys.Date()
+
+title: "`r glue::glue('ScPCA Cell type annotation supplemental QC report for {params$library}')`"
+author: "Childhood Cancer Data Lab"
+date: "`r params$date`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    number_sections: false
+    code_download: true
+---
+
+```{r setup, message = FALSE, echo = FALSE}
+# knitr options
+knitr::opts_chunk$set(
+  echo = FALSE
+)
+
+library(SingleCellExperiment)
+library(dplyr)
+library(ggplot2)
+
+# Set default ggplot theme
+theme_set(
+  theme_bw() +
+    theme(
+      plot.margin = margin(rep(20, 4)),
+      strip.background = element_rect(fill = "transparent")
+    )
+)
+
+# Source cell type functions
+source(
+  file.path("qc_utils", "celltype_functions.R")
+)
+
+# define library and sce object
+library_id <- params$library
+processed_sce <- params$processed_sce
+
+# check for annotation methods
+has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
+has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
+
+# Create data frame of cell types
+celltype_df <- create_celltype_df(processed_sce, has_singler, has_cellassign)
+```
+
+This supplemental cell type annotation report provides additional information about cell type annotation results. 
+
+
+```{r, eval = has_singler | has_cellassign }
+knitr::asis_output("
+## Annotation Assessment
+
+In this section, we assess the reliability of cell type annotations using diagnostic plots.
+")
+```
+
+```{r, eval = has_singler}
+knitr::asis_output("
+### `SingleR` assessment
+
+`SingleR` assigns cell type scores based on Spearman correlations across features in the reference dataset.
+We evaluate the reliability of cell type annotations using the per-cell _delta median_ statistic, which is the difference between the score for the cell's assigned label and the median score of all labels for the given cell.
+Higher _delta median_ values indicate more confidence in the cell type annotation, although there is no specific threshold for calling absolute high vs. low confidence.
+For more information, refer to the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
+
+
+In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation.
+Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in blue.
+All blue points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
+The red overlayed boxes represent the median ± interquartile range (IQR), specifically for high-quality annotations.
+")
+```
+
+
+```{r, eval = has_singler, warning=FALSE, message=FALSE,fig.height = 6, fig.width = 8}
+# Prepare SingleR scores for plot
+
+# extract scores into matrix
+singler_scores <- metadata(processed_sce)$singler_result$scores
+
+# Create data frame for plotting with delta median and the full *non-pruned* cell labels
+delta_median_df <- tibble::tibble(
+  delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores),
+  # Need to grab the non-pruned label for this plot
+  full_labels = metadata(processed_sce)$singler_result$labels,
+  # TRUE pruned values ==> low confidence
+  # so, negate for this variable:
+  confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
+)
+
+# If ontologies were used for `full_labels`, we'll need to map back to cell names
+#  for the plot itself.
+if ("singler_celltype_ontology" %in% names(celltype_df)) {
+  # we use inner_join b/c the above tibble does NOT contain "Unknown cell type", which
+  #  we do not want to display here
+  delta_median_df <- delta_median_df |>
+    dplyr::inner_join(
+      tibble::tibble(
+        full_labels = celltype_df$singler_celltype_ontology,
+        celltype = celltype_df$singler_celltype_annotation
+      ) |> dplyr::distinct()
+    ) |>
+    dplyr::select(-full_labels)
+} else {
+  # otherwise, full_labels already contain what we want to plot, so just rename it
+  delta_median_df <- delta_median_df |>
+    dplyr::rename(celltype = full_labels)
+  # still need to add levels though:
+  # unknown will still be present, but it's not in the data, so it won't matter
+  levels(delta_median_df$celltype) <- levels(celltype_df$singler_celltype_annotation)
+}
+
+# Ensure we have no "Unknown cell type" values left:
+if (sum(delta_median_df$celltype == "Unknown cell type") > 0) {
+  stop("Failed to process SingleR data for diagnostic plot.")
+}
+
+# add column with ordered levels with wrapped labels for visualization
+delta_median_df$annotation_wrapped <- factor(
+  delta_median_df$celltype,
+  levels = levels(delta_median_df$celltype),
+  labels = stringr::str_wrap(levels(delta_median_df$celltype), 30)
+)
+
+# Subset the data to just confident points for median+/-IQR
+delta_median_confident_df <- delta_median_df |>
+  dplyr::filter(confident)
+
+# Plot delta_median across celltypes colored by pruning
+ggplot(delta_median_df) +
+  aes(
+    x = annotation_wrapped,
+    y = delta_median,
+    color = confident
+  ) +
+  ggforce::geom_sina(
+    size = 0.75,
+    alpha = 0.5,
+    # Keep red points mostly in line with black
+    position = position_dodge(width = 0.05)
+  ) +
+  labs(
+    x = "Cell type annotation",
+    y = "Delta median statistic",
+    color = "Confident cell type assignment"
+  ) +
+  scale_color_manual(values = c("blue", "black")) +
+  # add median/IQR
+  geom_boxplot(
+    data = delta_median_confident_df, # only use black points for median
+    color = "red",
+    width = 0.2,
+    size = 0.3, 
+    alpha = 0,
+    # remove whiskers, outliers
+    outlier.shape = 0,
+    coef = 0
+  ) + 
+  guides(
+    color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 55, hjust = 1, size = rel(0.85)),
+    legend.title = element_text(size = rel(0.75)),
+    legend.text = element_text(size = rel(0.75)),
+    legend.position = "bottom"
+  )
+```
+
+
+
+```{r, eval = has_cellassign}
+knitr::asis_output("
+### `CellAssign` assessment
+
+`CellAssign` computes the probability that each cell in the library is one of the provided cell types in the reference and ultimately annotates cells by assigning the cell type with the highest probability.
+We therefore expect that cell-level probabilities that correspond to the annotated cell types will be high.
+Conversely, we expect that cell-level probabilities that correspond to unannotated cell types will be low.
+
+In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type, where the median is shown as a vertical line in each.
+Colors represent whether the probabilities correspond to a cell with that given annotation: Purple distributions represent probabilies for cells that _were_ annotated as the given cell type.
+Yellow distributions represent probabilities for cells that _were not_ annotated as the given cell type.
+For distributions with fewer than three points, density plots cannot be calculated.
+In these cases, we directly show values for individual cell probabilities as line segments.
+")
+```
+
+
+```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = 8, fig.width = 7}
+# Prepare CellAssign scores for plot
+cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |>
+  # Change "other" to "Unknown cell type"
+  dplyr::rename(`Unknown cell type` = other) |>
+  tidyr::pivot_longer(
+    -barcode,
+    names_to = "celltype",
+    values_to = "probability"
+  ) |>
+  # remove cell types that were not annotated
+  dplyr::filter(celltype %in% celltype_df$cellassign_celltype_annotation) |>
+  # join with actual annotations
+  dplyr::inner_join(
+    tibble::tibble(
+      cellassign_celltype_annotation = celltype_df$cellassign_celltype_annotation,
+      barcode = colData(processed_sce)$barcodes # plural!
+    )
+  ) |>
+  # add indicator for whether the celltype matches the annotation
+  dplyr::mutate(
+    annotated = cellassign_celltype_annotation == celltype
+  )
+
+# reverse levels for ridgeplot layout, and wrap the labels
+new_levels <- rev(levels(cellassign_prob_df$cellassign_celltype_annotation))
+cellassign_prob_df$annotation_wrapped <- factor(
+  cellassign_prob_df$celltype,
+  levels = new_levels,
+  labels = stringr::str_wrap(new_levels, 30)
+)
+
+# find groups with <=2 cells to add back into plot
+# These will always be `annotated = TRUE`
+celltypes_leq2_cells <- cellassign_prob_df |>
+  dplyr::count(annotation_wrapped, annotated) |>
+  dplyr::filter(n <= 2) |>
+  dplyr::pull(annotation_wrapped)
+
+# data frame for adding those points back
+leq2_probabilities_df <- cellassign_prob_df |>
+  dplyr::filter(
+    annotation_wrapped %in% celltypes_leq2_cells,
+    annotated
+  ) |>
+  dplyr::select(annotation_wrapped, probability, annotated)
+
+# Finally, the plot:
+ggplot(cellassign_prob_df) +
+  aes(
+    x = probability,
+    y = annotation_wrapped,
+    fill = annotated
+  ) +
+  ggridges::stat_density_ridges(
+    quantile_lines = TRUE,
+    quantiles = 2,
+    alpha = 0.6,
+    # avoid overlap to extent possible in a template -
+    scale = 0.85
+  ) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(
+    x = "CellAssign probability",
+    y = "Annotated cell type",
+    fill = "Cell annotated as given cell type"
+  ) +
+  theme(
+    axis.text.y = element_text(size = 9),
+    legend.position = "bottom"
+  ) +
+  #### add line segment for N<3 distributions
+  geom_segment(
+    data = leq2_probabilities_df,
+    aes(
+      x = probability,
+      xend = probability,
+      y = annotation_wrapped,
+      yend = as.numeric(annotation_wrapped) + 0.25,
+      color = annotated
+    ),
+    show.legend = FALSE
+  ) +
+  scale_color_viridis_d()
+```
+
+
+
+
+## Heatmaps
+
+Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
+Heatmap colors represent the log number of cells present in both the given cell type and cluster.
+
+
+```{r, eval = has_singler, fig.height=5, fig.width=7}
+knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
+create_celltype_heatmap(
+  x_vector = celltype_df$singler_celltype_annotation,
+  y_vector = celltype_df$clusters,
+  y_label = "Clusters"
+)
+```
+
+```{r, eval = has_cellassign, fig.height=5, fig.width=7}
+knitr::asis_output("### `CellAssign` cell type and cluster heatmap\n")
+create_celltype_heatmap(
+  x_vector = celltype_df$cellassign_celltype_annotation,
+  y_vector = celltype_df$clusters,
+  y_label = "Clusters"
+)
+```
+
+```{r, eval = has_submitter, fig.height=5, fig.width=7}
+knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
+create_celltype_heatmap(
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$clusters,
+  y_label = "Clusters"
+)
+```
+
+
+<!-- Use large height/width to accommodate cell type labels -->
+```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
+knitr::asis_output("
+## Comparison between annotations
+
+Below, we show a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
+Note that due to different annotations references, these methods may use different names for similar cell types.
+")
+
+create_celltype_heatmap(
+  x_vector = celltype_df$singler_celltype_annotation,
+  y_vector = celltype_df$cellassign_celltype_annotation,
+  x_label = "SingleR annotations",
+  y_label = "CellAssign annotations",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
+
+```{r, eval = has_submitter & (has_cellassign | has_singler)}
+knitr::asis_output("
+## Comparison with submitter annotations
+
+This section shows heatmap(s) directly comparing submitter-provided cell type annotations to cell type inferred with the given method(s).
+Again, different annotations may use different names for similar cell types.
+")
+```
+
+
+```{r, eval = has_submitter & has_singler, fig.height=7, fig.width=8}
+
+create_celltype_heatmap(
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$singler_celltype_annotation,
+  x_label = "Submitter-provided annotations",
+  y_label = "SingleR annotations",
+  y_title_location = "top",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
+
+<!-- A little extra spacing to avoid confusion between plot labels -->
+<br>
+
+```{r, eval = has_submitter & has_cellassign, fig.height=7, fig.width=8}
+create_celltype_heatmap(
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$cellassign_celltype_annotation,
+  x_label = "Submitter-provided annotations",
+  y_label = "CellAssign annotations",
+  y_title_location = "top",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
