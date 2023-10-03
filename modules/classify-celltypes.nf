@@ -119,28 +119,22 @@ workflow annotate_celltypes {
          it.scpca_project_id,
          // singler model file
          Utils.parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : null,
-         // singler reference name 
-         Utils.parseNA(it.singler_ref_name),       
          // cellassign reference file
-         Utils.parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : null,
-         // cellassign reference name
-         Utils.parseNA(it.cellassign_ref_name)
+         Utils.parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : null
         ]}
 
       // create input for typing: [augmented meta, processed_sce]
       celltype_input_ch = processed_sce_channel
         .map{[it[0]["project_id"]] + it}
         .combine(celltype_ch, by: 0)
-        // current contents: [project_id, meta, processed_sce, singler_model_file, singler_reference_name, cellassign_reference_file, cellassign_reference_name]
+        // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file]
         // add values to meta for later use
-        .map{ project_id, meta, processed_sce, singler_model_file, singler_reference_name, cellassign_reference_file, cellassign_reference_name ->
+        .map{ project_id, meta, processed_sce, singler_model_file, cellassign_reference_file ->
           meta.celltype_publish_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
           meta.singler_dir = "${meta.celltype_publish_dir}/${meta.library_id}_singler";
           meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
           meta.singler_model_file = singler_model_file; 
-          meta.singler_reference_name = singler_reference_name; 
           meta.cellassign_reference_file = cellassign_reference_file;
-          meta.cellassign_reference_name = cellassign_reference_name;
           // return simplified input:
           [meta, processed_sce]
         }
