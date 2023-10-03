@@ -46,13 +46,13 @@ class Utils {
    * Replace a string with an NA value with null
    *
    * @param str A string
-   * @return The input string unless it was NA or a variant thereof, in which case returns null
+   * @return The input string unless it was NA or a variant thereof, in which case returns ""
    */
   static def parseNA(str) {
     if (str){
-      str.toLowerCase() in ["na","n/a","nan"]? null : str
+      str.toLowerCase() in ["na","n/a","nan"]? "" : str
     } else {
-      null
+      ""
     }
    }
 }
