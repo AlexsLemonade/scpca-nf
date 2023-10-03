@@ -48,9 +48,9 @@ process classify_cellassign {
   label 'mem_32'
   label 'cpus_12'
   input:
-      tuple val(meta), path(processed_rds), path(cellassign_reference_file)
+    tuple val(meta), path(processed_rds), path(cellassign_reference_file)
   output:
-      tuple val(meta.library_id), path(cellassign_dir)
+    tuple val(meta.library_id), path(cellassign_dir)
   script:
     cellassign_dir = file(meta.cellassign_dir).name
 
@@ -63,12 +63,12 @@ process classify_cellassign {
     # Convert SCE to AnnData
     sce_to_anndata.R \
         --input_sce_file ${processed_rds} \
-        --output_rna_h5 ${processed_hdf5} 
+        --output_rna_h5 processed.hdf5 
         
     # Run CellAssign
     predict_cellassign.py \
-      --input_hdf5_file ${processed_hdf5} \
-      --output_predictions ${cellassign_predictions_tsv} \
+      --input_hdf5_file processed.hdf5 
+      --output_predictions ${cellassign_dir}/cellassign_predictions.tsv \
       --reference ${cellassign_ref} \
       --seed ${params.seed} \
       --threads ${task.cpus}
@@ -196,9 +196,6 @@ workflow annotate_celltypes {
         // add in cell assign results
         .join(cellassign_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
         .map{it.drop(1)} // remove library_id
-        // bring out the reference names
-        .map{meta, processed_sce, singler_dir, cellassign_dir -> 
-          [meta, processed_sce, singler_dir, meta.singler_reference_name, cellassign_dir, meta.cellassign_reference_name]}
 
 
       // Next PR:
