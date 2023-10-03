@@ -70,11 +70,11 @@ if (!file.exists(singler_model_file)) {
   stop(glue::glue("Provided model file {singler_model_file} is missing."))
 }
 if (!(stringr::str_ends(singler_model_file, "_model.rds"))) {
-  stop(glue::glue("Provided model file {singler_model_file} must end in .rds."))
+  stop(glue::glue("Provided model file {singler_model_file} must end in '_model.rds.'"))
 }
 
 # get & check reference name
-reference_name <- stringr::str_match(singler_model_file, "(\\w+)_model.rds")[2]
+reference_name <- stringr::str_remove(singler_model_file, "_model.rds$")
 if (reference_name == "") {
   stop(glue::glue("Provided model file name must be formatted as `<model_name>_model.rds`"))
 }
@@ -116,7 +116,6 @@ readr::write_tsv(
 )
 
 # next, the full result to a compressed rds
-
 readr::write_rds(
   singler_results,
   opt$output_singler_results_file,

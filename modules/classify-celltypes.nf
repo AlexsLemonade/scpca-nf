@@ -133,7 +133,7 @@ workflow annotate_celltypes {
           meta.celltype_publish_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
           meta.singler_dir = "${meta.celltype_publish_dir}/${meta.library_id}_singler";
           meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
-          meta.singler_model_file = singler_model_file; 
+          meta.singler_model_file = singler_model_file;
           meta.cellassign_reference_file = cellassign_reference_file;
           // return simplified input:
           [meta, processed_sce]
@@ -153,7 +153,6 @@ workflow annotate_celltypes {
 
       // perform singleR celltyping and export results
       classify_singler(singler_input_ch.do_singler)
-      
       // singleR output channel: [library_id, singler_results]
       singler_output_ch = singler_input_ch.missing_ref
         .map{[it[0]["library_id"], file(empty_file)]}
