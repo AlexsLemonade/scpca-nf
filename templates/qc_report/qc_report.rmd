@@ -48,6 +48,11 @@ reformat_nulls <- function(df) {
   )
 }
 
+# Source cell type functions
+source(
+  file.path("..", "qc_utils", "celltype_functions.R")
+)
+
 # Set seed
 set.seed(params$seed)
 ```
