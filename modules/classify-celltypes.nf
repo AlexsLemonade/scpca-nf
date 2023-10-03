@@ -54,8 +54,6 @@ process classify_cellassign {
   script:
     cellassign_dir = file(meta.cellassign_dir).name
 
-    processed_hdf5 = "${meta.library_id}_processed.hdf5"
-    cellassign_predictions_tsv = "${meta.library_id}_predictions.tsv"
     """
     # create output directory
     mkdir "${cellassign_dir}"
