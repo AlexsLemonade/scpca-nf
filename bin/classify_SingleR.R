@@ -74,7 +74,7 @@ if (!(stringr::str_ends(singler_model_file, "_model.rds"))) {
 }
 
 # get & check reference name
-reference_name <- stringr::str_remove(singler_model_file, "_model.rds")
+reference_name <- stringr::str_match(singler_model_file, "(\\w+)_model.rds")[2]
 if (reference_name == "") {
   stop(glue::glue("Provided model file name must be formatted as `<model_name>_model.rds`"))
 }
