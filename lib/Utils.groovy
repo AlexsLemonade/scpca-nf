@@ -38,12 +38,13 @@ class Utils {
    */
   static def getMetaVal(file, key){
     def obj = new JsonSlurper().parse(file)
-    return(obj[key])
+
+    return(obj[key] ?: "")
   }
 
 
   /**
-   * Replace a string with an NA value with "" 
+   * Replace a string with an NA value with ""
    * (which evaluates as false in boolean contexts)
    *
    * @param str A string

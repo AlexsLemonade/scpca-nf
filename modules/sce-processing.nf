@@ -121,7 +121,7 @@ process filter_sce{
           feature_barcode_file.name != "NO_FILE"
 
         """
-        filter_sce_rds.R \
+        filter_sce.R \
           --unfiltered_file ${unfiltered_rds} \
           --filtered_file ${filtered_rds} \
           ${adt_present ? "--adt_name ${meta.feature_type}":""} \
