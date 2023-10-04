@@ -175,7 +175,7 @@ knitr::asis_output(
 )
 ```
 
-For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r glue::glue("{library_id}_supplemental_celltypes_report.html")`).
+For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r params$celltype_report`).
 
 
 ## Statistics
