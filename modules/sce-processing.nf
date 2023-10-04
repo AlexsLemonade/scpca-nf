@@ -161,22 +161,21 @@ process genetic_demux_sce{
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(unfiltered_rds), path(filtered_rds)
   output:
-    tuple val(meta), path(unfiltered_rds), path(filtered_demux_rds)
+    tuple val(meta), path(unfiltered_rds), path(genetic_demux_rds)
   script:
-    // output will be same as input, with replacement of the filtered_rds file
-    // demultiplex results will be added to the SCE object colData
-    filtered_demux_rds = "${meta.library_id}_demux_filtered.rds"
+
+    genetic_demux_rds = "${meta.library_id}_genetic-demux_filtered.rds"
     """
     add_demux_sce.R \
       --sce_file ${filtered_rds} \
-      --output_sce_file ${filtered_demux_rds} \
+      --output_sce_file ${genetic_demux_rds} \
       --library_id ${meta.library_id} \
       --vireo_dir ${vireo_dir}
     """
   stub:
-    filtered_demux_rds = "${meta.library_id}_demux_filtered.rds"
+    genetic_demux_rds = "${meta.library_id}_gdemux_filtered.rds"
     """
-    touch ${filtered_demux_rds}
+    touch ${genetic_demux_rds}
     """
 }
 
@@ -188,24 +187,22 @@ process cellhash_demux_sce{
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     path cellhash_pool_file
   output:
-    tuple val(meta), path(unfiltered_rds), path(demux_rds)
+    tuple val(meta), path(unfiltered_rds), path(cellhash_demux_rds)
   script:
-    // output will be same as input, with replacement of the filtered_rds file
-    // demultiplex results will be added to the SCE object colData
-    demux_rds = "${meta.library_id}_demux_filtered.rds"
+    cellhash_demux_rds = "${meta.library_id}_cellhash-demux_filtered.rds"
     """
     add_demux_sce.R \
       --sce_file "${filtered_rds}" \
-      --output_sce_file "${demux_rds}" \
+      --output_sce_file "${cellhash_demux_rds}" \
       --library_id ${meta.library_id} \
       --cellhash_pool_file "${cellhash_pool_file}" \
       --hash_demux \
       --seurat_demux
     """
   stub:
-    demux_rds = "${meta.library_id}_demux_filtered.rds"
+    cellhash_demux_rds = "${meta.library_id}_cellhash-demux_filtered.rds"
     """
-    touch ${demux_rds}
+    touch ${cellhash_demux_rds}
     """
 }
 
@@ -216,9 +213,10 @@ process post_process_sce{
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+        tuple val(meta), path(unfiltered_rds), path(updated_filtered_rds), path(processed_rds)
     script:
         processed_rds = "${meta.library_id}_processed.rds"
+        updated_filtered_rds = "${meta.library_id}_process_filtered.rds"
         """
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
@@ -227,11 +225,14 @@ process post_process_sce{
           --n_hvg ${params.num_hvg} \
           --n_pcs ${params.num_pcs} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
+        mv ${filtered_rds} ${updated_filtered_rds}
         """
     stub:
         processed_rds = "${meta.library_id}_processed.rds"
+        updated_filtered_rds = "${meta.library_id}_process_filtered.rds"
         """
         touch ${processed_rds}
+        touch ${updated_filtered_rds}
         """
 }
 
