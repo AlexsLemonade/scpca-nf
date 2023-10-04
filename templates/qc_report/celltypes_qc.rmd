@@ -11,7 +11,7 @@ source(file.path("qc_utils", "celltype_functions.R"))
 #' @param df Data frame with cell types
 #' @param celltype_column Column with cell type annotations, not a string.
 #'
-#' @return kableExtra table with cell type counts.
+#' @return table with cell type counts
 create_celltype_n_table <- function(df, celltype_column) {
   df |>
     dplyr::count({{ celltype_column }}) |>
@@ -24,8 +24,16 @@ create_celltype_n_table <- function(df, celltype_column) {
       `Annotated cell type` = {{ celltype_column }},
       `Number of cells` = n,
       `Percent of cells`
-    ) |>
-    # kable formatting
+    ) 
+}
+
+#' Format tables of cell type counts as kable
+#'
+#' @param df Data frame to format
+#'
+#' @return kable table of cell type counts
+format_celltype_n_table <- function(df) {
+  df |>
     knitr::kable(align = "r") |>
     kableExtra::kable_styling(
       bootstrap_options = "striped",
@@ -34,7 +42,6 @@ create_celltype_n_table <- function(df, celltype_column) {
     ) |>
     kableExtra::column_spec(2, monospace = TRUE)
 }
-
 
 # Function to add a column of lumped cell types in a data frame
 #'
@@ -177,12 +184,14 @@ celltype_df <- create_celltype_df(processed_sce)
 
 ```{r, eval = has_singler}
 knitr::asis_output("### `SingleR` cell type annotations\n")
-create_celltype_n_table(celltype_df, singler_celltype_annotation)
+create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
+  format_celltype_n_table()
 ```
 
 ```{r, eval = has_cellassign}
 knitr::asis_output("### `CellAssign` cell type annotations\n")
-create_celltype_n_table(celltype_df, cellassign_celltype_annotation)
+create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
+  format_celltype_n_table()
 ```
 
 ```{r, eval = has_submitter}
@@ -191,7 +200,8 @@ knitr::asis_output('
 
 Below, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation. 
   ')
-create_celltype_n_table(celltype_df, submitter_celltype_annotation)
+create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
+  format_celltype_n_table()
 ```
 
 ## UMAPs
