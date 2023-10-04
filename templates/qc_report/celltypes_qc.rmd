@@ -171,7 +171,7 @@ Below, cells labeled as "Unknown cell type" are those which could not be confide
 
 ```{r}
 # Create data frame of cell types
-celltype_df <- create_celltype_df(processed_sce, has_singler, has_cellassign)
+celltype_df <- create_celltype_df(processed_sce)
 ```
 
 

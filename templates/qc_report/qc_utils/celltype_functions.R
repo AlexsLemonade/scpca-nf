@@ -4,12 +4,10 @@
 
 #' Create `celltype_df` data frame for use in cell type QC reports
 #'
-#' @param processed_sce The processed sce object
-#' @param has_singler Boolean for whether SingleR annotations are present
-#' @param has_cellassign Boolean for whether CellAssign annotations are present
+#' @param processed_sce The processed sce object with cell type annotations in colData
 #'
 #' @return `celltype_df` with column of cell types, as factors, for each annotation method
-create_celltype_df <- function(processed_sce, has_singler, has_cellassign) {
+create_celltype_df <- function(processed_sces) {
   celltype_df <- colData(processed_sce) |>
     as.data.frame() |>
     # barcodes to a column
@@ -23,11 +21,11 @@ create_celltype_df <- function(processed_sce, has_singler, has_cellassign) {
       contains("submitter")
     )
 
-  if (has_singler) {
+  if ("singler_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- celltype_df |>
       prepare_annotation_values(singler_celltype_annotation)
   }
-  if (has_cellassign) {
+  if ("cellassign_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- celltype_df |>
       prepare_annotation_values(cellassign_celltype_annotation)
   }
@@ -55,7 +53,7 @@ prepare_annotation_values <- function(df, annotation_column) {
         # cellassign conditon
         {{ annotation_column }} == "other" ~ "Unknown cell type",
         # otherwise, keep it
-        TRUE ~ {{ annotation_column }}
+        .default = {{ annotation_column }}
       ) |>
         forcats::fct_infreq() |>
         forcats::fct_relevel("Unknown cell type", after = Inf)
