@@ -37,9 +37,7 @@ theme_set(
 )
 
 # Source cell type functions
-source(
-  file.path("qc_utils", "celltype_functions.R")
-)
+source(file.path("qc_utils", "celltype_functions.R"))
 
 # define library and sce object
 library_id <- params$library
