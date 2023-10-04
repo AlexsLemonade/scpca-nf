@@ -223,15 +223,7 @@ All other cell types are grouped together and labeled "Other cell type" (not to 
 
 ```{r}
 # Create dataset for plotting UMAPs with lumped cell types
-umap_df <- celltype_df |>
-  dplyr::left_join(
-    tibble::as_tibble(
-      reducedDim(processed_sce, "UMAP"), 
-      rownames = "barcode"
-    ), by = "barcode"
-  ) |>
-  dplyr::mutate(clusters = processed_sce$clusters) |>
-  lump_celltypes()
+umap_df <- lump_celltypes(celltype_df)
 ```
 
 

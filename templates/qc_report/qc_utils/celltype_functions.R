@@ -7,15 +7,15 @@
 #' @param processed_sce The processed sce object with cell type annotations in colData
 #'
 #' @return `celltype_df` with column of cell types, as factors, for each annotation method
-create_celltype_df <- function(processed_sces) {
-  celltype_df <- colData(processed_sce) |>
-    as.data.frame() |>
-    # barcodes to a column
-    tibble::rownames_to_column(var = "barcode") |>
-    # keep only cell name, celltyping, and clusters
+create_celltype_df <- function(processed_sce) {
+  celltype_df <- processed_sce |>
+    scuttle::makePerCellDF(use.dimred = "UMAP") |>
+    # only keep columns of interest & rename UMAP columns
     dplyr::select(
-      barcode,
+      barcodes,
       clusters,
+      UMAP1 = UMAP.1,
+      UMAP2 = UMAP.2,
       contains("singler"),
       contains("cellassign"),
       contains("submitter")
