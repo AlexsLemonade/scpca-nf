@@ -30,7 +30,7 @@ process make_unfiltered_sce{
 
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
+        if [ "${submitter_cell_types_file.name}" != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -52,22 +52,30 @@ process make_merged_unfiltered_sce{
     container params.SCPCATOOLS_CONTAINER
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
-              val (meta), path(alevin_dir),
+              val (rna_meta), path(alevin_dir),
               path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-        // add feature metadata as an element of the main meta object
+        // add feature metadata as elements of the main meta object
+        meta = rna_meta
         meta['feature_type'] = feature_meta.technology.split('_')[0]
-        meta['feature_meta'] = feature_meta
+        meta['feature_technology'] = feature_meta.technology
+        meta['feature_run_id'] = feature_meta.run_id
+        meta['feature_library_id'] = feature_meta.library_id
+        meta['feature_sample_id'] = feature_meta.sample_id
+        meta['feature_project_id'] = feature_meta.project_id
+        meta['feature_barcode_file'] = feature_meta.feature_barcode_file
+        meta['feature_barcode_geom'] = feature_meta.feature_barcode_geom
+        meta['feature_files_directory'] = feature_meta.files_directory
 
         // If feature_type is "CITEseq", make it "adt"
         if (meta['feature_type'] == "CITEseq") {
           meta['feature_type'] = "adt"
         }
 
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -95,9 +103,18 @@ process make_merged_unfiltered_sce{
 
         """
     stub:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        meta = rna_meta
         meta['feature_type'] = feature_meta.technology.split('_')[0]
-        meta['feature_meta'] = feature_meta
+        meta['feature_technology'] = feature_meta.technology
+        meta['feature_run_id'] = feature_meta.run_id
+        meta['feature_library_id'] = feature_meta.library_id
+        meta['feature_sample_id'] = feature_meta.sample_id
+        meta['feature_project_id'] = feature_meta.project_id
+        meta['feature_barcode_file'] = feature_meta.feature_barcode_file ?: ""
+        meta['feature_barcode_geom'] = feature_meta.feature_barcode_geom ?: ""
+        meta['feature_files_directory'] = feature_meta.files_directory
+
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         touch "${meta.library_id}_unfiltered.rds"
         """
@@ -144,21 +161,22 @@ process genetic_demux_sce{
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(unfiltered_rds), path(filtered_rds)
   output:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+    tuple val(meta), path(unfiltered_rds), path(filtered_demux_rds)
   script:
     // output will be same as input, with replacement of the filtered_rds file
     // demultiplex results will be added to the SCE object colData
+    filtered_demux_rds = "${meta.library_id}_demux_filtered.rds"
     """
-    mv ${filtered_rds} filtered_nodemux.rds
     add_demux_sce.R \
-      --sce_file filtered_nodemux.rds \
-      --output_sce_file ${filtered_rds} \
+      --sce_file ${filtered_rds} \
+      --output_sce_file ${filtered_demux_rds} \
       --library_id ${meta.library_id} \
       --vireo_dir ${vireo_dir}
     """
   stub:
+    filtered_demux_rds = "${meta.library_id}_demux_filtered.rds"
     """
-    touch ${filtered_rds}
+    touch ${filtered_demux_rds}
     """
 }
 
@@ -200,7 +218,6 @@ process post_process_sce{
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     script:
         processed_rds = "${meta.library_id}_processed.rds"
-
         """
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
@@ -267,7 +284,7 @@ workflow generate_merged_sce {
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
-      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file)]}
+      .map{it.toList() + [file(it[0]["feature_barcode_file"] ?: empty_file)]}
 
     filter_sce(unfiltered_merged_sce_ch)
 
