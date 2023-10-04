@@ -183,7 +183,7 @@ workflow {
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
-      cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
+      cellhash: it[0]["feature_technology"] in cellhash_techs
       single: true
     }
   // apply cellhash demultiplexing
@@ -224,11 +224,12 @@ workflow {
 
   // Perform celltyping, if specified
   // todo: add check here to not enter the process if references are missing.
-  annotate_celltypes( cluster_sce.out )
+  annotate_celltypes(cluster_sce.out)
 
 
   // generate QC reports
   sce_qc_report(annotate_celltypes.out, report_template_tuple)
+
 
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data
