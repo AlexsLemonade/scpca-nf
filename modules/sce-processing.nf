@@ -188,23 +188,24 @@ process cellhash_demux_sce{
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     path cellhash_pool_file
   output:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+    tuple val(meta), path(unfiltered_rds), path(demux_rds)
   script:
     // output will be same as input, with replacement of the filtered_rds file
     // demultiplex results will be added to the SCE object colData
+    demux_rds = "${meta.library_id}_demux_filtered.rds"
     """
-    mv ${filtered_rds} filtered_nodemux.rds
     add_demux_sce.R \
-      --sce_file filtered_nodemux.rds \
-      --output_sce_file ${filtered_rds} \
+      --sce_file "${filtered_rds}" \
+      --output_sce_file "${demux_rds}" \
       --library_id ${meta.library_id} \
-      --cellhash_pool_file ${cellhash_pool_file} \
+      --cellhash_pool_file "${cellhash_pool_file}" \
       --hash_demux \
       --seurat_demux
     """
   stub:
+    demux_rds = "${meta.library_id}_demux_filtered.rds"
     """
-    touch ${filtered_rds}
+    touch ${demux_rds}
     """
 }
 
