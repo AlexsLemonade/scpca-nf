@@ -28,13 +28,13 @@ process classify_singler {
         --threads ${task.cpus}
 
       # write out meta file
-      echo "${Utils.makeJson(meta)}" > "${singler_dir}/scpca-meta.json"
+      echo '${Utils.makeJson(meta)}' > "${singler_dir}/scpca-meta.json"
       """
     stub:
       singler_dir = file(meta.singler_dir).name
       """
       mkdir "${singler_dir}"
-      echo "${Utils.makeJson(meta)}" > "${singler_dir}/scpca-meta.json"
+      echo '${Utils.makeJson(meta)}' > "${singler_dir}/scpca-meta.json"
       """
 }
 
@@ -74,13 +74,13 @@ process classify_cellassign {
       --threads ${task.cpus}
 
     # write out meta file
-    echo "${Utils.makeJson(meta)}" > "${cellassign_dir}/scpca-meta.json"
+    echo '${Utils.makeJson(meta)}' > "${cellassign_dir}/scpca-meta.json"
     """
   stub:
     cellassign_dir = file(meta.cellassign_dir).name
     """
     mkdir "${cellassign_dir}"
-    echo "${Utils.makeJson(meta)}" > "${cellassign_dir}/scpca-meta.json"
+    echo '${Utils.makeJson(meta)}' > "${cellassign_dir}/scpca-meta.json"
     """
 }
 
