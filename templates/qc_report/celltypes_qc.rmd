@@ -3,6 +3,9 @@
 ```{r}
 ## function definitions ##
 
+# Source functions for preparing cell type data
+source(file.path("qc_utils", "celltype_functions.R"))
+
 #' Create tables of cell type annotation counts
 #'
 #' @param df Data frame with cell types
@@ -158,7 +161,7 @@ knitr::asis_output(
 )
 ```
 
-For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](celltypes_report.html).
+For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r glue::glue("{library_id}_supplemental_celltypes_report.html")`).
 
 
 ## Statistics
