@@ -43,31 +43,38 @@ format_celltype_n_table <- function(df) {
     kableExtra::column_spec(2, monospace = TRUE)
 }
 
-# Function to add a column of lumped cell types in a data frame
+#' Function to lump celltype columns in an existing data frame for all of the 
+#'  following columns, if they exist: `<singler/cellassign/submitter>_celltype_annotation`.
+#'  The resulting lumped column will be named:
+#'  `<singler/cellassign/submitter>_celltype_annotation_lumped`.
+#' 
 #'
 #' @param df Data frame to manipulate
-#' @param celltype_df Data frame that contains column of cell types,
-#'   named `{celltype_method}_celltype_annotation`
-#' @param celltype_method Cell type method
 #' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
 #'
-#' @return Updated df with new column of lumped celltypes called `{celltype_method}`
+#' @return Updated df with new column of lumped celltypes for each present method
 lump_celltypes <- function(df,
-                           celltype_df,
-                           celltype_method,
                            n_celltypes = 7) {
-  df |>
-    dplyr::mutate(
-      celltypes = celltype_df[[glue::glue("{celltype_method}_celltype_annotation")]] |>
-        forcats::fct_lump_n(
+  
+  # Update the df for each of the following, if present
+  methods <- c("singler", "cellassign", "submitter")
+  
+  for (method in methods) {
+    colname <- glue::glue("{method}_celltype_annotation")
+    if (colname %in% names(df)) {
+      lumped_colname <- glue::glue("{colname}_lumped")
+        df[[lumped_colname]] <- forcats::fct_lump_n(
+          df[[colname]],
           n_celltypes,
           other_level = "Other cell type"
         )
-    ) |>
-    # finally, rename temporary `celltypes` column to the provided method
-    dplyr::rename({{ celltype_method }} := celltypes)
+    }
+  }
+  
+  return(df)
 }
 
+  
 
 
 
@@ -216,20 +223,15 @@ All other cell types are grouped together and labeled "Other cell type" (not to 
 
 ```{r}
 # Create dataset for plotting UMAPs with lumped cell types
-umap_df <- tibble::as_tibble(
-  reducedDim(processed_sce, "UMAP")
-) |>
-  dplyr::mutate(clusters = processed_sce$clusters)
-
-if (has_singler) {
-  umap_df <- lump_celltypes(umap_df, celltype_df, "singler")
-}
-if (has_cellassign) {
-  umap_df <- lump_celltypes(umap_df, celltype_df, "cellassign")
-}
-if (has_submitter) {
-  umap_df <- lump_celltypes(umap_df, celltype_df, "submitter")
-}
+umap_df <- celltype_df |>
+  dplyr::left_join(
+    tibble::as_tibble(
+      reducedDim(processed_sce, "UMAP"), 
+      rownames = "barcode"
+    ), by = "barcode"
+  ) |>
+  dplyr::mutate(clusters = processed_sce$clusters) |>
+  lump_celltypes()
 ```
 
 
@@ -257,7 +259,7 @@ if (length(levels(umap_df$clusters)) <= 8) {
 
 ```{r eval=has_singler, message=FALSE, warning=FALSE}
 plot_umap(umap_df,
-  singler,
+  singler_celltype_annotation_lumped,
   "Cell types",
   legend_nrow = 4
 ) +
@@ -268,7 +270,7 @@ plot_umap(umap_df,
 
 ```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
 plot_umap(umap_df,
-  cellassign,
+  cellassign_celltype_annotation_lumped,
   "Cell types",
   legend_nrow = 4
 ) +
@@ -279,7 +281,7 @@ plot_umap(umap_df,
 
 ```{r eval = has_submitter, message=FALSE, warning=FALSE}
 plot_umap(umap_df,
-  submitter,
+  submitter_celltype_annotation_lumped,
   "Cell types",
   legend_nrow = 4
 ) +
