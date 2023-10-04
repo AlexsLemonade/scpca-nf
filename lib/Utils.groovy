@@ -39,7 +39,7 @@ class Utils {
   static def getMetaVal(file, key){
     def obj = new JsonSlurper().parse(file)
 
-    return(obj[key] ?: "")
+    return(obj[key] ?: '')
   }
 
 
@@ -52,9 +52,9 @@ class Utils {
    */
   static def parseNA(str) {
     if (str){
-      str.toLowerCase() in ["na","n/a","nan"]? "" : str
+      str.toLowerCase() in ['na','n/a','nan']? '' : str
     } else {
-      ""
+      ''
     }
    }
 }
