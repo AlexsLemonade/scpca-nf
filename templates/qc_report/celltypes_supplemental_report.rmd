@@ -288,7 +288,7 @@ Below, we show heat maps comparing cell type annotations (along the y-axis) to c
 Heatmap colors represent the log number of cells present in both the given cell type and cluster.
 
 ```{r}
-# function definition:
+# heatmap function definition:
 
 #' Create a heatmap of cell type annotations with log1p transformation
 #'
@@ -301,18 +301,16 @@ Heatmap colors represent the log number of cells present in both the given cell 
 #' @param row_font_size Size of row font. Default is 8.
 #' @param column_font_size. Size of column font. Default is 10.
 #'
-#' @return
-#' @export
-#'
-#' @examples
-create_celltype_heatmap <- function(x_vector,
-                                    y_vector,
-                                    x_label = "",
-                                    y_label = "",
-                                    y_title_location = "bottom",
-                                    column_names_rotation = 0,
-                                    row_font_size = 8,
-                                    column_font_size = 10) {
+#' @return heatmap output from `ComplexHeatmap::draw()`
+create_celltype_heatmap <- function(
+    x_vector,
+    y_vector,
+    x_label = "",
+    y_label = "",
+    y_title_location = "bottom",
+    column_names_rotation = 0,
+    row_font_size = 8,
+    column_font_size = 10) {
   # build a matrix for making a heatmap
   celltype_mtx <- table(
     x_vector,
@@ -324,26 +322,26 @@ create_celltype_heatmap <- function(x_vector,
   heatmap_palette <- viridisLite::inferno(7, alpha = 1, begin = 0, end = 1, direction = 1)
 
   # heatmap
-  heat <- ComplexHeatmap::Heatmap(celltype_mtx,
-                                  # Overall heatmap parameters
-                                  col = heatmap_palette,
-                                  # Column parameters
-                                  column_title = y_label,
-                                  column_title_side = y_title_location,
-                                  column_dend_side = "top",
-                                  column_names_rot = column_names_rotation,
-                                  column_names_gp = grid::gpar(fontsize = column_font_size),
-                                  # Row parameters
-                                  row_dend_side = "left",
-                                  row_title_side = "right",
-                                  row_title = x_label,
-                                  row_names_gp = grid::gpar(fontsize = row_font_size),
-                                  # Legend parameters
-                                  heatmap_legend_param = list(
-                                    title = "Log(Number of cells)",
-                                    title_position = "leftcenter-rot",
-                                    legend_height = unit(4, "cm")
-                                  )
+  heat <- ComplexHeatmap::Heatmap(
+    celltype_mtx,
+    # Overall heatmap parameters
+    col = heatmap_palette,
+    # Column parameters
+    column_title = y_label,
+    column_title_side = y_title_location,
+    column_dend_side = "top",
+    column_names_rot = column_names_rotation,
+    column_names_gp = grid::gpar(fontsize = column_font_size),
+    row_dend_side = "left",
+    row_title_side = "right",
+    row_title = x_label,
+    row_names_gp = grid::gpar(fontsize = row_font_size),
+    # Legend parameters
+    heatmap_legend_param = list(
+      title = "Log(Number of cells)",
+      title_position = "leftcenter-rot",
+      legend_height = unit(4, "cm")
+    )
   )
   # draw with legend on left for spacing
   ComplexHeatmap::draw(heat, heatmap_legend_side = "left")
