@@ -43,7 +43,8 @@ class Utils {
 
 
   /**
-   * Replace a string with an NA value with null
+   * Replace a string with an NA value with "" 
+   * (which evaluates as false in boolean contexts)
    *
    * @param str A string
    * @return The input string unless it was NA or a variant thereof, in which case returns ""
