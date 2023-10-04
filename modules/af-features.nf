@@ -86,13 +86,15 @@ process fry_quant_feature{
   tag "${meta.run_id}-features"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
-    tuple val(meta), path(run_dir), path(barcode_file)
+    tuple val(meta), path(rad_dir), path(barcode_file)
   output:
     tuple val(meta), path(run_dir)
   script:
     // get meta to write as file
     meta_json = Utils.makeJson(meta)
+    run_dir = "${meta.run_id}-feature-quant"
     """
+    mv "${rad_dir}" "${run_dir}"
     alevin-fry generate-permit-list \
       -i ${run_dir} \
       --expected-ori fw \
@@ -119,7 +121,9 @@ process fry_quant_feature{
     """
   stub:
     meta_json = Utils.makeJson(meta)
+    run_dir = "${meta.run_id}-feature-quant"
     """
+    mkdir "${run_dir}"
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }

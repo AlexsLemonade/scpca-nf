@@ -58,14 +58,16 @@ process fry_quant_rna{
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
 
   input:
-    tuple val(meta), path(run_dir), path(barcode_file), path(t2g_3col)
+    tuple val(meta), path(rad_dir), path(barcode_file), path(t2g_3col)
   output:
     tuple val(meta), path(run_dir)
 
   script:
     // get meta to write as file
     meta_json = Utils.makeJson(meta)
+    run_dir = "${meta.run_id}-rna-quant"
     """
+    mv "${rad_dir}" "${run_dir}"
     alevin-fry generate-permit-list \
       -i ${run_dir} \
       --expected-ori ${meta.technology == '10Xv2_5prime' ? 'rc' : 'fw'} \
@@ -92,7 +94,9 @@ process fry_quant_rna{
     """
   stub:
     meta_json = Utils.makeJson(meta)
+    run_dir = "${meta.run_id}-rna-quant"
     """
+    mkdir ${run_dir}
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
     """
 }
