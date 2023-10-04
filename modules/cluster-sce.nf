@@ -6,8 +6,9 @@ process cluster_sce{
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(clustered_rds)
     script:
+        clustered_rds = "${meta.library_id}_clustered_processed.rds"
         """
         cluster_sce.R \
           --processed_sce_file ${processed_rds} \
@@ -15,9 +16,11 @@ process cluster_sce{
           --cluster_weighting ${params.cluster_weighting} \
           --nearest_neighbors ${params.nearest_neighbors} \
           ${params.seed ? "--random_seed ${params.seed}" : ""}
+        mv ${processed_rds} ${clustered_rds}
         """
     stub:
+        clustered_rds = "${meta.library_id}_clustered_processed.rds"
         """
-        touch ${processed_rds}
+        touch ${clustered_rds}
         """
 }
