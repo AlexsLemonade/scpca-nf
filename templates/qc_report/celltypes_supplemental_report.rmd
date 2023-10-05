@@ -24,7 +24,6 @@ knitr::opts_chunk$set(
 )
 
 library(SingleCellExperiment)
-library(dplyr)
 library(ggplot2)
 
 # Set default ggplot theme
@@ -376,27 +375,6 @@ create_celltype_heatmap(
 ```
 
 
-
-<!-- Use large height/width to accommodate cell type labels -->
-```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
-knitr::asis_output("
-## Comparison between annotations
-
-Below, we show a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
-Note that due to different annotations references, these methods may use different names for similar cell types.
-")
-
-create_celltype_heatmap(
-  x_vector = celltype_df$singler_celltype_annotation,
-  y_vector = celltype_df$cellassign_celltype_annotation,
-  x_label = "SingleR annotations",
-  y_label = "CellAssign annotations",
-  column_names_rotation = 55,
-  column_font_size = 8
-)
-```
-
-
 ```{r, eval = has_submitter & (has_cellassign | has_singler)}
 knitr::asis_output("
 ## Comparison with submitter annotations
@@ -433,3 +411,23 @@ create_celltype_heatmap(
   column_font_size = 8
 )
 ```
+
+<!-- Use large height/width to accommodate cell type labels -->
+```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
+knitr::asis_output("
+## Comparison between `SingleR` and `CellAssign` annotations
+
+Below is a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
+Note that due to different annotations references, these methods may use different names for similar cell types.
+")
+
+create_celltype_heatmap(
+  x_vector = celltype_df$singler_celltype_annotation,
+  y_vector = celltype_df$cellassign_celltype_annotation,
+  x_label = "SingleR annotations",
+  y_label = "CellAssign annotations",
+  column_names_rotation = 55,
+  column_font_size = 8
+)
+```
+
