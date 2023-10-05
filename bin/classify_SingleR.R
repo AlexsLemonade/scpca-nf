@@ -112,14 +112,13 @@ annotations_df <- tibble::tibble(
 
 # map ontology labels to cell type names, as needed
 # we can tell if ontologies were used because this will exist:
-cell_ontology_df <- singler_model$cell_ontology_df
-if (!is.null(cell_ontology_df)) {
+if ("cell_ontology_df" %in% names(singler_model)) {
 
   # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
   annotations_df <- annotations_df |>
     dplyr::left_join(
       # column names: ontology_id, ontology_cell_names
-      cell_ontology_df, 
+      singler_model$cell_ontology_df, 
       by = c("singler_celltype_annotation" = "ontology_id")
     ) |> 
     # rename columns
