@@ -4,7 +4,7 @@ params:
   unfiltered_sce: !r scpcaTools:::sim_sce()
   filtered_sce: NULL
   processed_sce: NULL
-  celltype_report: NULL
+  celltype_report: "celltypes_supplemental_report.rmd"
   date: !r Sys.Date()
   seed: NULL
 
