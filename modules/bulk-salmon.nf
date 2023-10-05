@@ -70,6 +70,7 @@ process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     publishDir "${params.results_dir}/${meta.project_id}", mode: 'copy'
+    tag "${meta.project_id}"
     input:
         tuple val(meta), path(salmon_directories), path(t2g_bulk)
         path(library_metadata)
