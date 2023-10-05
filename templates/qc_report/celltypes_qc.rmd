@@ -124,7 +124,7 @@ plot_umap <- function(
 ```{r, eval = has_submitter & !(has_singler | has_cellassign)}
 knitr::asis_output(
   glue::glue("
-  This section details cell type annotations provided by the original lab ('submitter') which generated this data.
+  This section details cell type annotations provided by the original lab (`submitter-provided`) which generated this data.
   ")
 )
 ```
@@ -177,34 +177,37 @@ For additional information about cell typing, including diagnostic plots and/or 
 
 ## Statistics
 
-Below, cells labeled as "Unknown cell type" are those which could not be confidently identified using the given annotation method.
-
-
 ```{r}
 # Create data frame of cell types
 celltype_df <- create_celltype_df(processed_sce)
 ```
 
 
+```{r, eval = has_submitter}
+knitr::asis_output('
+### Submitter-provided cell type annotations\n
+
+In this table, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation. 
+')
+create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
+  format_celltype_n_table()
+```
+
 ```{r, eval = has_singler}
-knitr::asis_output("### `SingleR` cell type annotations\n")
+knitr::asis_output('### `SingleR` cell type annotations\n
+                   
+In this table, cells labeled as "Unknown cell type" are those which `SingleR` could not confidently identify.               
+')
 create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
 ```{r, eval = has_cellassign}
-knitr::asis_output("### `CellAssign` cell type annotations\n")
+knitr::asis_output('### `CellAssign` cell type annotations\n
+                   
+In this table, cells labeled as "Unknown cell type" are those which `CellAssign` could not confidently identify.               
+')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
-  format_celltype_n_table()
-```
-
-```{r, eval = has_submitter}
-knitr::asis_output('
-### Submitter-provided cell type annotations\n
-
-Below, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation. 
-  ')
-create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
@@ -246,6 +249,17 @@ if (length(levels(umap_df$clusters)) <= 8) {
 
 <!-- Now, UMAPs of cell types, where present -->
 
+```{r eval = has_submitter, message=FALSE, warning=FALSE}
+plot_umap(umap_df,
+  submitter_celltype_annotation_lumped,
+  "Cell types",
+  legend_nrow = 4
+) +
+  ggtitle("UMAP colored by submitter-provided annotations") +
+  scale_color_brewer(palette = "Dark2")
+```
+
+
 ```{r eval=has_singler, message=FALSE, warning=FALSE}
 plot_umap(umap_df,
   singler_celltype_annotation_lumped,
@@ -264,16 +278,5 @@ plot_umap(umap_df,
   legend_nrow = 4
 ) +
   ggtitle("UMAP colored by CellAssign annotations") +
-  scale_color_brewer(palette = "Dark2")
-```
-
-
-```{r eval = has_submitter, message=FALSE, warning=FALSE}
-plot_umap(umap_df,
-  submitter_celltype_annotation_lumped,
-  "Cell types",
-  legend_nrow = 4
-) +
-  ggtitle("UMAP colored by submitter-provided annotations") +
   scale_color_brewer(palette = "Dark2")
 ```
