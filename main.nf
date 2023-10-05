@@ -26,7 +26,7 @@ cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 // report template path
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
-report_template_file = "qc_report.rmd"
+report_template_file = "main_qc_report.rmd"
 report_template_tuple = tuple(report_template_dir, report_template_file)
 
 

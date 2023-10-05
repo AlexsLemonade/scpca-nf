@@ -9,7 +9,8 @@ scpca-references/
 
 
 # ignore template htmls
-qc_report.html
+main_qc_report.html
+celltypes_supplemental_report.html
 *_qc.html
 
 # ignore hidden `DS_Store`

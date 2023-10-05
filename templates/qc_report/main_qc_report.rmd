@@ -4,6 +4,7 @@ params:
   unfiltered_sce: !r scpcaTools:::sim_sce()
   filtered_sce: NULL
   processed_sce: NULL
+  celltype_report: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -120,6 +121,11 @@ if (has_processed) {
 } else {
   has_umap <- FALSE
   has_celltypes <- FALSE
+}
+
+# check for celltypes_report if celltypes are present
+if (has_celltypes & is.null(params$celltype_report)) {
+  stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
 ```
 
