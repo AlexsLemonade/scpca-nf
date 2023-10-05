@@ -57,18 +57,14 @@ lump_celltypes <- function(df, n_celltypes = 7) {
   
   # Update the df for each of the following, if present
   methods <- c("singler", "cellassign", "submitter")
-  
-  for (method in methods) {
-    colname <- glue::glue("{method}_celltype_annotation")
-    if (colname %in% names(df)) {
-      lumped_colname <- glue::glue("{colname}_lumped")
-        df[[lumped_colname]] <- forcats::fct_lump_n(
-          df[[colname]],
-          n_celltypes,
-          other_level = "Other cell type"
-        )
-    }
-  }
+  df <- df |>
+    dplyr::mutate(
+      across(
+        ends_with("_celltype_annotation"),
+        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "Other cell type"),
+        .names = "{.col}_lumped"
+      )
+    )
   
   return(df)
 }
