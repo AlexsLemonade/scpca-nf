@@ -22,6 +22,12 @@ option_list <- list(
             File name is expected to be in form: <model name>_model.rds."
   ),
   make_option(
+    opt_str = c("--singler_label_name"),
+    type = "character",
+    default = "label.ont",
+    help = "label used when building the SingleR reference"
+  ),
+  make_option(
     opt_str = c("--output_singler_annotations_file"),
     type = "character",
     help = "path to output TSV file that will store the SingleR annotations. Must end in .tsv"
@@ -100,20 +106,41 @@ singler_results <- SingleR::classifySingleR(
   BPPARAM = bp_param
 )
 
-# add reference name as metadata in singler_results DataFrame
+# add reference name to singler_results DataFrame metadata
 metadata(singler_results)$reference_name <- reference_name
 
 
-# export results
-
-# first, a stand-alone tsv of annotations with both pruned and full labels
-readr::write_tsv(
-  tibble::tibble(
-    barcode = rownames(singler_results),
-    pruned_labels = singler_results$pruned_labels
-  ),
-  opt$output_singler_annotations_file
+# create data frame of annotations
+annotations_df <- tibble::tibble(
+  barcode = rownames(singler_results),
+  singler_celltype_annotation = singler_results$labels,
 )
+
+# map ontology labels to cell type names, as needed
+if (opt$singler_label_name == "label.ont") {
+  
+  # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
+  annotations_df <- annotations_df |>
+    dplyr::left_join(
+      # column names: ontology_id, ontology_cell_names
+      singler_model$cell_ontology_df, 
+      by = c("singler_celltype_annotation" = "ontology_id")
+    ) |> 
+    # rename columns
+    dplyr::rename(
+      singler_celltype_ontology = singler_celltype_annotation,
+      singler_celltype_annotation = ontology_cell_names
+    )
+  
+} 
+
+# add annotations_df to singler_results DataFrame metadata, just in case
+metadata(singler_results)$annotations_df <- annotations_df
+
+# export results ---------------
+
+# first, a stand-alone tsv of annotations
+readr::write_tsv(annotations_df, opt$output_singler_annotations_file)
 
 # next, the full result to a compressed rds
 readr::write_rds(
