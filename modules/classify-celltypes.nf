@@ -22,6 +22,7 @@ process classify_singler {
       classify_SingleR.R \
         --sce_file "${processed_rds}" \
         --singler_model_file "${singler_model_file}" \
+        --singler_label_name ${params.singler_label_name} \
         --output_singler_annotations_file "${singler_dir}/singler_annotations.tsv" \
         --output_singler_results_file "${singler_dir}/singler_results.rds" \
         --seed ${params.seed} \
