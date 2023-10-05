@@ -10,13 +10,16 @@
 create_celltype_df <- function(processed_sce) {
   celltype_df <- processed_sce |>
     scuttle::makePerCellDF(use.dimred = "UMAP") |>
-    # only keep columns of interest & rename UMAP columns
+    # rename UMAP columns as needed to remove potential period added by `scuttle::makePerCellDF`
+    dplyr::rename_with(
+      \(x) stringr::str_replace(x, "^UMAP\\.", "UMAP"),
+      starts_with("UMAP")
+    ) |>
+    # only keep columns of interest
     dplyr::select(
       barcodes,
       clusters,
-      # this renaming is necessary because of renaming by `scuttle::makePerCellDF`
-      UMAP1 = UMAP.1,
-      UMAP2 = UMAP.2,
+      contains("UMAP"),
       contains("singler"),
       contains("cellassign"),
       contains("submitter")
