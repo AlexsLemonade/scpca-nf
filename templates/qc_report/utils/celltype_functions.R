@@ -1,3 +1,5 @@
+library(SingleCellExperiment)
+
 # This script contains function definitions that are used by both
 # `main_qc_report.rmd` and `celltypes_supplemental_report.rmd` to prepare
 # cell typing results for analysis/visualization.
