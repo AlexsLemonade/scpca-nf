@@ -4,7 +4,7 @@
 ## function definitions ##
 
 # Source functions for preparing cell type data
-source(file.path("qc_utils", "celltype_functions.R"))
+source(file.path("utils", "celltype_functions.R"))
 
 #' Create tables of cell type annotation counts
 #'

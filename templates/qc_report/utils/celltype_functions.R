@@ -14,6 +14,7 @@ create_celltype_df <- function(processed_sce) {
     dplyr::select(
       barcodes,
       clusters,
+      # this renaming is necessary because of renaming by `scuttle::makePerCellDF`
       UMAP1 = UMAP.1,
       UMAP2 = UMAP.2,
       contains("singler"),

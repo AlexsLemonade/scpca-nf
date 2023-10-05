@@ -37,7 +37,7 @@ theme_set(
 )
 
 # Source functions for preparing cell type data
-source(file.path("qc_utils", "celltype_functions.R"))
+source(file.path("utils", "celltype_functions.R"))
 
 # define library and sce object
 library_id <- params$library
@@ -92,7 +92,7 @@ delta_median_df <- tibble::tibble(
   delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores),
   # Need to grab the non-pruned label for this plot
   full_labels = metadata(processed_sce)$singler_result$labels,
-  # if pruned.labes are NA ==> low confidence
+  # if pruned.labels are NA ==> low confidence
   # so, negate for this variable:
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
 )
@@ -114,8 +114,8 @@ if ("singler_celltype_ontology" %in% names(celltype_df)) {
   # otherwise, full_labels already contain what we want to plot, so just rename it
   delta_median_df <- delta_median_df |>
     dplyr::rename(celltype = full_labels)
-  # still need to add levels though:
-  # unknown will still be present, but it's not in the data, so it won't matter
+  # still need to add levels:
+  # Note that the level "Unknown cell type" will still be present, but there is no such value in the data, so it won't matter
   levels(delta_median_df$celltype) <- levels(celltype_df$singler_celltype_annotation)
 }
 
