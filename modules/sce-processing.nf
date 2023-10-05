@@ -92,14 +92,13 @@ process make_merged_unfiltered_sce{
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
-
         """
     stub:
         meta = rna_meta.clone()
-
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
+
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         touch "${meta.library_id}_unfiltered.rds"
         """
@@ -202,7 +201,6 @@ process post_process_sce{
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     script:
         processed_rds = "${meta.library_id}_processed.rds"
-
         """
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
