@@ -92,12 +92,12 @@ delta_median_df <- tibble::tibble(
   delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores),
   # Need to grab the non-pruned label for this plot
   full_labels = metadata(processed_sce)$singler_result$labels,
-  # TRUE pruned values ==> low confidence
+  # if pruned.labes are NA ==> low confidence
   # so, negate for this variable:
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
 )
 
-# If ontologies were used for `full_labels`, we'll need to map back to cell names
+# If ontologies were used for `full_labels`, we'll need to map back to cell type names
 #  for the plot itself.
 if ("singler_celltype_ontology" %in% names(celltype_df)) {
   # we use inner_join b/c the above tibble does NOT contain "Unknown cell type", which
@@ -120,7 +120,7 @@ if ("singler_celltype_ontology" %in% names(celltype_df)) {
 }
 
 # Ensure we have no "Unknown cell type" values left:
-if (sum(delta_median_df$celltype == "Unknown cell type") > 0) {
+if (any(delta_median_df$celltype == "Unknown cell type")) {
   stop("Failed to process SingleR data for diagnostic plot.")
 }
 

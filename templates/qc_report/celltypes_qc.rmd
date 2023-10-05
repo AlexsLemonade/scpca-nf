@@ -53,8 +53,7 @@ format_celltype_n_table <- function(df) {
 #' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
-lump_celltypes <- function(df,
-                           n_celltypes = 7) {
+lump_celltypes <- function(df, n_celltypes = 7) {
   
   # Update the df for each of the following, if present
   methods <- c("singler", "cellassign", "submitter")
@@ -86,10 +85,12 @@ lump_celltypes <- function(df,
 #' @param legend_nrow Number of rows in legend. Default is 2.
 #'
 #' @return UMAP plot as a ggplot2 object
-plot_umap <- function(umap_df,
-                      color_variable,
-                      legend_title,
-                      legend_nrow = 2) {
+plot_umap <- function(
+  umap_df,
+  color_variable,
+  legend_title,
+  legend_nrow = 2
+){
   ggplot(umap_df) +
     aes(
       x = UMAP1,
