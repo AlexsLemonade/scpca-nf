@@ -86,10 +86,11 @@ The red overlayed boxes represent the median ± interquartile range (IQR), speci
 # extract scores into matrix
 singler_scores <- metadata(processed_sce)$singler_result$scores
 
-# Create data frame for plotting with delta median and the full cell labels
+# Create data frame for plotting with delta median and the full *non-pruned* cell labels
 delta_median_df <- tibble::tibble(
   delta_median = rowMaxs(singler_scores) - rowMedians(singler_scores),
-  full_labels = processed_sce$singler_celltype_annotation,
+  # Need to grab the non-pruned label for this plot
+  full_labels = metadata(processed_sce)$singler_result$labels,
   # if pruned.labels are NA ==> low confidence
   # so, negate for this variable:
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
