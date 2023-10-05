@@ -12,7 +12,6 @@ process make_unfiltered_sce{
         tuple val(meta), path(unfiltered_rds)
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -48,18 +47,18 @@ process make_unfiltered_sce{
 // channels with RNA and feature data
 process make_merged_unfiltered_sce{
     label 'mem_8'
-    tag "${meta.library_id}"
+    tag "${rna_meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
-              val (meta), path(alevin_dir),
+              val(rna_meta), path(alevin_dir),
               path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-        // add feature metadata as an element of the main meta object
+        // add feature metadata as elements of the main meta object
+        meta = rna_meta.clone()
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
 
@@ -68,6 +67,7 @@ process make_merged_unfiltered_sce{
           meta['feature_type'] = "adt"
         }
 
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -95,6 +95,8 @@ process make_merged_unfiltered_sce{
 
         """
     stub:
+        meta = rna_meta.clone()
+
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
