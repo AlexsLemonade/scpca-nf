@@ -127,10 +127,11 @@ if ("cell_ontology_df" %in% names(singler_model)) {
       singler_celltype_annotation = ontology_cell_names
     )
   
+  # add cell_ontology_df to singler_results DataFrame metadata
+  metadata(singler_results)$cell_ontology_df <- singler_model$cell_ontology_df
 } 
 
-# add annotations_df to singler_results DataFrame metadata, just in case
-metadata(singler_results)$annotations_df <- annotations_df
+
 
 # export results ---------------
 
