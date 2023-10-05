@@ -132,7 +132,8 @@ workflow annotate_celltypes {
         .combine(celltype_ch, by: 0)
         // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file]
         // add values to meta for later use
-        .map{ project_id, meta, processed_sce, singler_model_file, cellassign_reference_file ->
+        .map{ project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
+          def meta = meta_in.clone(); // local copy for safe modification
           meta.celltype_publish_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
           meta.singler_dir = "${meta.celltype_publish_dir}/${meta.library_id}_singler";
           meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
