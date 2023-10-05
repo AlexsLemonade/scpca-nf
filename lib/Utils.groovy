@@ -39,7 +39,7 @@ class Utils {
   static def getMetaVal(file, key){
     def obj = new JsonSlurper().parse(file)
 
-    return(obj[key] ?: '')
+    return(obj[key])
   }
 
 
