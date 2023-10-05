@@ -44,6 +44,7 @@ process spaceranger{
 
 process spaceranger_publish{
   container params.SCPCATOOLS_CONTAINER
+  tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
     tuple val(meta), path(spatial_out)
