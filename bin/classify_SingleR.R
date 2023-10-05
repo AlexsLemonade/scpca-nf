@@ -22,12 +22,6 @@ option_list <- list(
             File name is expected to be in form: <model name>_model.rds."
   ),
   make_option(
-    opt_str = c("--singler_label_name"),
-    type = "character",
-    default = "label.ont",
-    help = "label used when building the SingleR reference"
-  ),
-  make_option(
     opt_str = c("--output_singler_annotations_file"),
     type = "character",
     help = "path to output TSV file that will store the SingleR annotations. Must end in .tsv"
@@ -113,17 +107,19 @@ metadata(singler_results)$reference_name <- reference_name
 # create data frame of annotations
 annotations_df <- tibble::tibble(
   barcode = rownames(singler_results),
-  singler_celltype_annotation = singler_results$labels,
+  singler_celltype_annotation = singler_results$pruned.labels,
 )
 
 # map ontology labels to cell type names, as needed
-if (opt$singler_label_name == "label.ont") {
-  
+# we can tell if ontologies were used because this will exist:
+cell_ontology_df <- singler_model$cell_ontology_df
+if (!is.null(cell_ontology_df)) {
+
   # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
   annotations_df <- annotations_df |>
     dplyr::left_join(
       # column names: ontology_id, ontology_cell_names
-      singler_model$cell_ontology_df, 
+      cell_ontology_df, 
       by = c("singler_celltype_annotation" = "ontology_id")
     ) |> 
     # rename columns
