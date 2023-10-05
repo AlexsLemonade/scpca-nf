@@ -100,20 +100,43 @@ singler_results <- SingleR::classifySingleR(
   BPPARAM = bp_param
 )
 
-# add reference name as metadata in singler_results DataFrame
+# add reference name to singler_results DataFrame metadata
 metadata(singler_results)$reference_name <- reference_name
 
 
-# export results
-
-# first, a stand-alone tsv of annotations with both pruned and full labels
-readr::write_tsv(
-  tibble::tibble(
-    barcode = rownames(singler_results),
-    pruned_labels = singler_results$pruned_labels
-  ),
-  opt$output_singler_annotations_file
+# create data frame of annotations
+annotations_df <- tibble::tibble(
+  barcode = rownames(singler_results),
+  singler_celltype_annotation = singler_results$pruned.labels,
 )
+
+# map ontology labels to cell type names, as needed
+# we can tell if ontologies were used because this will exist:
+if ("cell_ontology_df" %in% names(singler_model)) {
+
+  # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
+  annotations_df <- annotations_df |>
+    dplyr::left_join(
+      # column names: ontology_id, ontology_cell_names
+      singler_model$cell_ontology_df, 
+      by = c("singler_celltype_annotation" = "ontology_id")
+    ) |> 
+    # rename columns
+    dplyr::rename(
+      singler_celltype_ontology = singler_celltype_annotation,
+      singler_celltype_annotation = ontology_cell_names
+    )
+  
+  # add cell_ontology_df to singler_results DataFrame metadata
+  metadata(singler_results)$cell_ontology_df <- singler_model$cell_ontology_df
+} 
+
+
+
+# export results ---------------
+
+# first, a stand-alone tsv of annotations
+readr::write_tsv(annotations_df, opt$output_singler_annotations_file)
 
 # next, the full result to a compressed rds
 readr::write_rds(
