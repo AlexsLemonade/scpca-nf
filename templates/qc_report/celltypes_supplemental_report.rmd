@@ -348,6 +348,14 @@ create_celltype_heatmap <- function(
 }
 ```
 
+```{r, eval = has_submitter, fig.height=5, fig.width=7}
+knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
+create_celltype_heatmap(
+  x_vector = celltype_df$submitter_celltype_annotation,
+  y_vector = celltype_df$clusters,
+  y_label = "Clusters"
+)
+```
 
 ```{r, eval = has_singler, fig.height=5, fig.width=7}
 knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
@@ -367,14 +375,6 @@ create_celltype_heatmap(
 )
 ```
 
-```{r, eval = has_submitter, fig.height=5, fig.width=7}
-knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
-create_celltype_heatmap(
-  x_vector = celltype_df$submitter_celltype_annotation,
-  y_vector = celltype_df$clusters,
-  y_label = "Clusters"
-)
-```
 
 
 <!-- Use large height/width to accommodate cell type labels -->
@@ -395,6 +395,7 @@ create_celltype_heatmap(
   column_font_size = 8
 )
 ```
+
 
 ```{r, eval = has_submitter & (has_cellassign | has_singler)}
 knitr::asis_output("
