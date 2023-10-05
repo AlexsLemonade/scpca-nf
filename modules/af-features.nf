@@ -2,6 +2,7 @@
 //index a feature barcode file
 process index_feature{
   container params.SALMON_CONTAINER
+  tag "${id}"
 
   input:
     tuple val(id), path(feature_file)
