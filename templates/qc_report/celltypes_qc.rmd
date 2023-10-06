@@ -24,7 +24,7 @@ create_celltype_n_table <- function(df, celltype_column) {
       `Annotated cell type` = {{ celltype_column }},
       `Number of cells` = n,
       `Percent of cells`
-    ) 
+    )
 }
 
 #' Format tables of cell type counts as kable
@@ -43,18 +43,18 @@ format_celltype_n_table <- function(df) {
     kableExtra::column_spec(2, monospace = TRUE)
 }
 
-#' Function to lump celltype columns in an existing data frame for all of the 
+#' Function to lump celltype columns in an existing data frame for all of the
 #'  following columns, if they exist: `<singler/cellassign/submitter>_celltype_annotation`.
 #'  The resulting lumped column will be named:
 #'  `<singler/cellassign/submitter>_celltype_annotation_lumped`.
-#' 
+#'
 #'
 #' @param df Data frame to manipulate
 #' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
 lump_celltypes <- function(df, n_celltypes = 7) {
-  
+
   # Update the df for each of the following, if present
   methods <- c("singler", "cellassign", "submitter")
   df <- df |>
@@ -65,11 +65,11 @@ lump_celltypes <- function(df, n_celltypes = 7) {
         .names = "{.col}_lumped"
       )
     )
-  
+
   return(df)
 }
 
-  
+
 
 
 
@@ -120,7 +120,7 @@ plot_umap <- function(
 <!-- Background depends on which cell types are present in the SCE. -->
 
 
-<!-- Submitter _only_ --> 
+<!-- Submitter _only_ -->
 ```{r, eval = has_submitter & !(has_singler | has_cellassign)}
 knitr::asis_output(
   glue::glue("
@@ -130,7 +130,7 @@ knitr::asis_output(
 ```
 
 
-<!-- At least one cell type annotation method. --> 
+<!-- At least one cell type annotation method. -->
 ```{r, eval = has_singler | has_cellassign}
 knitr::asis_output(
   glue::glue("
@@ -162,11 +162,11 @@ knitr::asis_output(
 ```
 
 
-<!-- Submitter and at least one inference method --> 
+<!-- Submitter and at least one inference method -->
 ```{r, eval = has_submitter & (has_singler | has_cellassign)}
 knitr::asis_output(
   glue::glue(
-  "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data. 
+  "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data.
   "
   )
 )
@@ -187,7 +187,7 @@ celltype_df <- create_celltype_df(processed_sce)
 knitr::asis_output('
 ### Submitter-provided cell type annotations\n
 
-In this table, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation. 
+In this table, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation.
 ')
 create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
   format_celltype_n_table()
@@ -195,8 +195,8 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
 
 ```{r, eval = has_singler}
 knitr::asis_output('### `SingleR` cell type annotations\n
-                   
-In this table, cells labeled as "Unknown cell type" are those which `SingleR` could not confidently identify.               
+
+In this table, cells labeled as "Unknown cell type" are those which `SingleR` could not confidently identify.
 ')
 create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
   format_celltype_n_table()
@@ -204,8 +204,8 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
 
 ```{r, eval = has_cellassign}
 knitr::asis_output('### `CellAssign` cell type annotations\n
-                   
-In this table, cells labeled as "Unknown cell type" are those which `CellAssign` could not confidently identify.               
+
+In this table, cells labeled as "Unknown cell type" are those which `CellAssign` could not confidently identify.
 ')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
   format_celltype_n_table()
@@ -231,7 +231,7 @@ umap_df <- lump_celltypes(celltype_df)
 ```{r message=FALSE, warning=FALSE}
 clusters_plot <- plot_umap(
   umap_df,
-  clusters,
+  cluster,
   "Clusters"
 ) +
   ggtitle("UMAP colored by clusters")
@@ -239,7 +239,7 @@ clusters_plot <- plot_umap(
 # Determine palette based on number of levels.
 # If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
 #  Otherwise, we will use the default palette.
-if (length(levels(umap_df$clusters)) <= 8) {
+if (length(levels(umap_df$cluster)) <= 8) {
   clusters_plot +
     scale_color_brewer(palette = "Set2")
 } else {
