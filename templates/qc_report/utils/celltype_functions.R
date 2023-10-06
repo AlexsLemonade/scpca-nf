@@ -20,7 +20,7 @@ create_celltype_df <- function(processed_sce) {
     # only keep columns of interest
     dplyr::select(
       barcodes,
-      clusters,
+      cluster,
       contains("UMAP"),
       contains("singler"),
       contains("cellassign"),
