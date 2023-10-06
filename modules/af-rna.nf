@@ -105,7 +105,7 @@ workflow map_quant_rna {
     // add rad publish directory, rad directory, and barcode file to meta
     rna_channel = rna_channel
       .map{
-        meta = it.clone();
+        def meta = it.clone();
         meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
         meta.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna";
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
