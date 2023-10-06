@@ -117,7 +117,7 @@ workflow bulk_quant_rna {
         bulk_channel = bulk_channel
           // add salmon directory and salmon file location to meta
           .map{
-            meta = it.clone();
+            def meta = it.clone();
             meta.salmon_publish_dir = "${params.checkpoints_dir}/salmon";
             meta.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
             meta // return modified meta object

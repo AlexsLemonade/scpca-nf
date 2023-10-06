@@ -14,7 +14,7 @@ workflow genetic_demux_vireo{
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
       .map{
-        meta = it.clone();
+        def meta = it.clone();
         meta.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
         meta.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo";
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";

@@ -114,7 +114,7 @@ workflow spaceranger_quant{
         spatial_channel = spatial_channel
         // add sample names and spatial output directory to metadata
           .map{
-            meta = it.clone();
+            def meta = it.clone();
             meta.cr_samples = getCRsamples(it.files_directory);
             meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
             meta.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
