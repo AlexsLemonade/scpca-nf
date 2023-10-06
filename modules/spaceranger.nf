@@ -94,8 +94,8 @@ def getCRsamples(files_dir){
   // takes the path to the directory holding the fastq files for each sample
   // returns just the 'sample info' portion of the file names,
   // as spaceranger would interpret them, comma separated
-  fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
-  samples = []
+  def fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
+  def samples = []
   fastq_files.each{
     // append sample names to list, using regex to extract element before S001, etc.
     // [0] for the first match set, [1] for the first extracted element
