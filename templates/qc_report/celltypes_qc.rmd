@@ -234,7 +234,7 @@ clusters_plot <- plot_umap(
   cluster,
   "Cluster"
 ) +
-  ggtitle("UMAP colored by clusters")
+  ggtitle("UMAP colored by cluster identity")
 
 # Determine palette based on number of levels.
 # If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
