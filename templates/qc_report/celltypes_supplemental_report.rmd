@@ -352,7 +352,7 @@ knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$submitter_celltype_annotation,
   y_vector = celltype_df$cluster,
-  y_label = "Clusters"
+  y_label = "Cluster"
 )
 ```
 
