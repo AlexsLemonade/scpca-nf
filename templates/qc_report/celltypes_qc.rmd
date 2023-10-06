@@ -232,7 +232,7 @@ umap_df <- lump_celltypes(celltype_df)
 clusters_plot <- plot_umap(
   umap_df,
   cluster,
-  "Clusters"
+  "Cluster"
 ) +
   ggtitle("UMAP colored by clusters")
 
