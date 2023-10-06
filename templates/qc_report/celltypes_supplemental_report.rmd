@@ -361,7 +361,7 @@ knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$singler_celltype_annotation,
   y_vector = celltype_df$cluster,
-  y_label = "Clusters"
+  y_label = "Cluster"
 )
 ```
 
@@ -370,7 +370,7 @@ knitr::asis_output("### `CellAssign` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$cellassign_celltype_annotation,
   y_vector = celltype_df$cluster,
-  y_label = "Clusters"
+  y_label = "Cluster"
 )
 ```
 
