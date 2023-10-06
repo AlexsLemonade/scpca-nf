@@ -85,7 +85,7 @@ if(!opt$pca_name %in% reducedDimNames(sce)) {
   )
 
   # add clusters and associated parameters to SCE object
-  sce$clusters <- clusters
+  sce$cluster <- clusters
   metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
   metadata(sce)$cluster_weighting <- opt$cluster_weighting
   metadata(sce)$cluster_nn <- opt$nearest_neighbors

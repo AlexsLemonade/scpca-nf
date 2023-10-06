@@ -51,7 +51,7 @@ has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 celltype_df <- create_celltype_df(processed_sce)
 ```
 
-This supplemental cell type annotation report provides additional information about cell type annotation results. 
+This supplemental cell type annotation report provides additional information about cell type annotation results.
 
 
 ```{r, eval = has_singler | has_cellassign }
@@ -158,12 +158,12 @@ ggplot(delta_median_df) +
     data = delta_median_confident_df, # only use black points for median
     color = "red",
     width = 0.2,
-    size = 0.3, 
+    size = 0.3,
     alpha = 0,
     # remove whiskers, outliers
     outlier.shape = 0,
     coef = 0
-  ) + 
+  ) +
   guides(
     color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
   ) +
@@ -351,8 +351,8 @@ create_celltype_heatmap <- function(
 knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$submitter_celltype_annotation,
-  y_vector = celltype_df$clusters,
-  y_label = "Clusters"
+  y_vector = celltype_df$cluster,
+  y_label = "Cluster"
 )
 ```
 
@@ -360,8 +360,8 @@ create_celltype_heatmap(
 knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$singler_celltype_annotation,
-  y_vector = celltype_df$clusters,
-  y_label = "Clusters"
+  y_vector = celltype_df$cluster,
+  y_label = "Cluster"
 )
 ```
 
@@ -369,8 +369,8 @@ create_celltype_heatmap(
 knitr::asis_output("### `CellAssign` cell type and cluster heatmap\n")
 create_celltype_heatmap(
   x_vector = celltype_df$cellassign_celltype_annotation,
-  y_vector = celltype_df$clusters,
-  y_label = "Clusters"
+  y_vector = celltype_df$cluster,
+  y_label = "Cluster"
 )
 ```
 
