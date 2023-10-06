@@ -87,36 +87,38 @@ workflow {
     .splitCsv(header: true, sep: '\t')
     .filter{it.sample_reference in ref_paths}
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-    .map{sample_refs = ref_paths[it.sample_reference]
-    [
-      run_id: it.scpca_run_id,
-      library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id.split(";").sort().join(","),
-      project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
-      submitter: Utils.parseNA(it.submitter),
-      technology: it.technology,
-      assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
-      seq_unit: it.seq_unit,
-      submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
-      feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
-      feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
-      files_directory: Utils.parseNA(it.files_directory),
-      slide_serial_number: Utils.parseNA(it.slide_serial_number),
-      slide_section: Utils.parseNA(it.slide_section),
-      ref_assembly: it.sample_reference,
-      ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
-      ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
-      ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
-      salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
-      t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
-      mito_file: params.ref_rootdir + "/" + sample_refs["mito_file"],
-      salmon_bulk_index: params.ref_rootdir + "/" + sample_refs["salmon_bulk_index"],
-      t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
-      cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
-      star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
-      scpca_version: workflow.manifest.version,
-      nextflow_version: nextflow.version.toString()
-    ]}
+    .map{
+      def sample_refs = ref_paths[it.sample_reference];
+      [
+        run_id: it.scpca_run_id,
+        library_id: it.scpca_library_id,
+        sample_id: it.scpca_sample_id.split(";").sort().join(","),
+        project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
+        submitter: Utils.parseNA(it.submitter),
+        technology: it.technology,
+        assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
+        seq_unit: it.seq_unit,
+        submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
+        feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
+        feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
+        files_directory: Utils.parseNA(it.files_directory),
+        slide_serial_number: Utils.parseNA(it.slide_serial_number),
+        slide_section: Utils.parseNA(it.slide_section),
+        ref_assembly: it.sample_reference,
+        ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
+        ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
+        ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
+        salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
+        t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
+        mito_file: params.ref_rootdir + "/" + sample_refs["mito_file"],
+        salmon_bulk_index: params.ref_rootdir + "/" + sample_refs["salmon_bulk_index"],
+        t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
+        cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
+        star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
+        scpca_version: workflow.manifest.version,
+        nextflow_version: nextflow.version.toString()
+      ]
+    }
 
  runs_ch = unfiltered_runs_ch
     // only technologies we know how to process

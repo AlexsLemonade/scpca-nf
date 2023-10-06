@@ -139,10 +139,13 @@ workflow map_quant_feature{
 
     // add the publish directories to the channel and branch based on existing rad files
     feature_ch = feature_channel
-      .map{it.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
-           it.feature_rad_dir = "${it.feature_rad_publish_dir}/${it.run_id}-features";
-           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
-           it}
+      .map{
+        def meta = it.clone();
+        meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
+        meta.feature_rad_dir = "${it.feature_rad_publish_dir}/${it.run_id}-features";
+        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+        meta // return modified meta object
+      }
       .branch{
           has_rad: (!params.repeat_mapping
                     && file(it.feature_rad_dir).exists()

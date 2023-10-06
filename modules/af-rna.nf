@@ -104,10 +104,13 @@ workflow map_quant_rna {
   main:
     // add rad publish directory, rad directory, and barcode file to meta
     rna_channel = rna_channel
-      .map{it.rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
-           it.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna";
-           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
-           it}
+      .map{
+        meta = it.clone();
+        meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
+        meta.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna";
+        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+        meta // return modified meta object
+      }
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
           has_rad: (!params.repeat_mapping

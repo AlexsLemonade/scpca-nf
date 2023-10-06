@@ -113,10 +113,13 @@ workflow spaceranger_quant{
     main:
         spatial_channel = spatial_channel
         // add sample names and spatial output directory to metadata
-          .map{it.cr_samples = getCRsamples(it.files_directory);
-               it.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
-               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
-               it}
+          .map{
+            meta = it.clone();
+            meta.cr_samples = getCRsamples(it.files_directory);
+            meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
+            meta.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
+            meta // return modified meta object
+          }
           .branch{
             has_spatial: (!params.repeat_mapping
                           && file(it.spaceranger_results_dir).exists()
