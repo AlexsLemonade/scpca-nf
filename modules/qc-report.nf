@@ -26,7 +26,8 @@ process sce_qc_report{
         processed_out = "${meta.library_id}_processed.rds"
         
         // check for cell types
-        has_celltypes = params.perform_celltyping & (meta.submitter_cell_types_file | meta.singler_model_file | meta.cellassign_reference_file)
+        // TODO: add `params.perform_celltyping & ` when implemented
+        has_celltypes = (meta.submitter_cell_types_file | meta.singler_model_file | meta.cellassign_reference_file)
         celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
         celltype_template_path = "${template_dir}/${celltype_template_file}" // template input
 
@@ -69,6 +70,7 @@ process sce_qc_report{
         qc_report = "${meta.library_id}_qc.html"
         metadata_json = "${meta.library_id}_metadata.json"
         
+        // TODO: add `params.perform_celltyping & ` when implemented
         has_celltypes = params.perform_celltyping & (meta.submitter_cell_types_file | meta.singler_model_file | meta.cellassign_reference_file )
         celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
 
@@ -77,8 +79,8 @@ process sce_qc_report{
         touch ${filtered_out}
         touch ${processed_out}
         touch ${qc_report}
-        echo '{"unfiltered_cells": 10, "filtered_cells": 10, "processed_cells": 10}' > ${metadata_json}
-        
         ${has_celltypes ? "touch ${celltype_report}" : ""}
+        
+        echo '{"unfiltered_cells": 10, "filtered_cells": 10, "processed_cells": 10}' > ${metadata_json}
         """
 }
