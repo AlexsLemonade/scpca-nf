@@ -283,8 +283,8 @@ if (!(is.null(opt$celltype_report_file))) {
     input = opt$celltype_report_template,
     output_file = opt$celltype_report_file,
     params = list(
-      library: metadata_list$library_id,
-      processed_sce: processed_sce
+      library = metadata_list$library_id,
+      processed_sce = processed_sce
     )
   )
   
