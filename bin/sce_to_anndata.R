@@ -55,6 +55,10 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))) {
 # sure that the sce that is getting converted to AnnData is compliant with CZI
 # CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
 format_czi <- function(sce) {
+  
+  # add schema version
+  metadata(sce)$schema_version = "3.0.0"
+  
   # add library_id as an sce colData column
   # need this column to join in the sample metadata with the colData
   sce$library_id <- metadata(sce)$library_id
@@ -83,9 +87,6 @@ format_czi <- function(sce) {
 
   # remove sample metadata from sce metadata, otherwise conflicts with converting object
   metadata(sce) <- metadata(sce)[names(metadata(sce)) != "sample_metadata"]
-
-  # add schema version
-  metadata(sce)$schema_version = "3.0.0"
 
   # modify rowData
   # we don't do any gene filtering between normalized and raw counts matrix
