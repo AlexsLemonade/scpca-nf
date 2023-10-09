@@ -8,7 +8,7 @@ process sce_qc_report{
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
-        tuple path(template_dir), val(template_file)
+        tuple path(template_dir), val(template_file), val(celltypes_template_path)
     output:
         tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
         path qc_report, emit: report
@@ -18,10 +18,16 @@ process sce_qc_report{
         metadata_json = "${meta.library_id}_metadata.json"
         workflow_url = workflow.repository ?: workflow.manifest.homePage
         workflow_version = workflow.revision ?: workflow.manifest.version
+        
         // names for final output files
         unfiltered_out = "${meta.library_id}_unfiltered.rds"
         filtered_out = "${meta.library_id}_filtered.rds"
         processed_out = "${meta.library_id}_processed.rds"
+        
+        // check for cell types
+        has_celltypes = params.perform_celltyping & (meta.submitter_cell_types_file | meta.singler_model_file | meta.cellassign_reference_file )
+        celltype_report_path = "${meta.library_id}_celltype-report.html" // to link from main QC report
+
         """
         # move files for output
         if [ "${unfiltered_rds}" != "${unfiltered_out}" ]; then
@@ -34,7 +40,7 @@ process sce_qc_report{
             mv "${processed_rds}" "${processed_out}"
         fi
 
-        # generate report
+        # generate report and supplemental cell type report, if applicable
         sce_qc_report.R \
           --report_template "${template_path}" \
           --library_id "${meta.library_id}" \
@@ -43,6 +49,8 @@ process sce_qc_report{
           --filtered_sce ${filtered_out} \
           --processed_sce ${processed_out} \
           --qc_report_file ${qc_report} \
+          --celltypes_report_template "${celltypes_template_path}" \
+          ${has_celltypes ? "--cell_type_report_file ${celltype_report_path}" : ""} \
           --metadata_json ${metadata_json} \
           --technology "${meta.technology}" \
           --seq_unit "${meta.seq_unit}" \
