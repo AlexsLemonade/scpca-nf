@@ -3,8 +3,10 @@
 # This script generates a QC report using scpcaTools from a pair of filtered and unfiltered SCE objects
 
 # import libraries
-library(optparse)
-suppressPackageStartupMessages(library(SingleCellExperiment))
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+})
 
 # set up arguments
 option_list <- list(
@@ -260,13 +262,30 @@ scpcaTools::generate_qc_report(
   processed_sce = processed_sce,
   report_template = opt$report_template,
   output = opt$qc_report_file,
-  extra_params = list(seed = opt$seed)
+  extra_params = list(
+    seed = opt$seed,
+    # this will only be used if cell types exist
+    celltype_report = opt$cell_type_report_file
+  )
 )
 
 
 # render supplemental celltypes report, if needed
 if (!(is.null(opt$cell_type_report_file))) {
   
-  # approach forthcoming
+  # check that the template file exists
+  if (!file.exists(opt$celltypes_report_template)) {
+    stop("Supplemental cell types report template not found.")
+  }
+  
+  # render report
+  rmarkdown::render(
+    input = opt$celltypes_report_template,
+    output_file = opt$cell_type_report_file,
+    params = list(
+      library: metadata_list$library_id,
+      processed_sce: processed_sce
+    )
+  )
   
 }
