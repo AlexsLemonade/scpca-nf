@@ -8,11 +8,11 @@ process sce_qc_report{
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
-        tuple path(template_dir), val(template_file)
-        tuple path(celltype_template_dir), val(celltype_template_file)
+        tuple path(template_dir), val(template_file), val(celltype_template_file)
     output:
         tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
-        path qc_report, emit: report // TODO: CELLTYPE REPORT OUTPUT?
+        path qc_report, emit: report
+        path celltype_report, emit: celltype_report, optional: true
     script:
         qc_report = "${meta.library_id}_qc.html"
         template_path = "${template_dir}/${template_file}"
@@ -28,7 +28,7 @@ process sce_qc_report{
         // check for cell types
         has_celltypes = params.perform_celltyping & (meta.submitter_cell_types_file | meta.singler_model_file | meta.cellassign_reference_file)
         celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
-        celltype_template_path = "${celltype_template_dir}/${celltype_template_file}" // template input
+        celltype_template_path = "${template_dir}/${celltype_template_file}" // template input
 
         """
         # move files for output
@@ -79,8 +79,6 @@ process sce_qc_report{
         touch ${qc_report}
         echo '{"unfiltered_cells": 10, "filtered_cells": 10, "processed_cells": 10}' > ${metadata_json}
         
-        if [ ${has_celltypes} == "true"]; 
-          touch ${celltype_report}
-        fi
+        ${has_celltypes ? "touch ${celltype_report}" : ""}
         """
 }

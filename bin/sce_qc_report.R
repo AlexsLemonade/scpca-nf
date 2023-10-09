@@ -57,7 +57,8 @@ option_list <- list(
   make_option(
     opt_str = c("--celltype_report_file"),
     type = "character",
-    help = "path to supplemental cell type QC report output file. Only considered if not NULL."
+    default = "",
+    help = "path to supplemental cell type QC report output file. Only considered if not empty string."
   ),  
   make_option(
     opt_str = "--metadata_json",
@@ -271,7 +272,7 @@ scpcaTools::generate_qc_report(
 
 
 # render supplemental cell types report, if needed
-if (!(is.null(opt$celltype_report_file))) {
+if (opt$celltype_report_file != "") {
   
   # check that the template file exists
   if (!file.exists(opt$celltype_report_template)) {
