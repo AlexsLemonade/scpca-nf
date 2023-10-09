@@ -15,6 +15,13 @@ option_list <- list(
     help = "path to rmd template file for report"
   ),
   make_option(
+    opt_str = c("--celltypes_report_template"),
+    type = "character",
+    help = "path to template file for supplemental celltypes rmd report.
+    Only used if `cell_type_report_file` is not NULL."
+  ),
+  
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     type = "character",
     help = "path to rds file with unfiltered sce object"
@@ -45,6 +52,11 @@ option_list <- list(
     type = "character",
     help = "path to QC report output file"
   ),
+  make_option(
+    opt_str = c("--cell_type_report_file"),
+    type = "character",
+    help = "path to supplemental cell type QC report output file. Only considered if not NULL."
+  ),  
   make_option(
     opt_str = "--metadata_json",
     default = "metadata.json",
@@ -233,8 +245,14 @@ if (multiplexed) {
 }
 
 # Output metadata as JSON
-jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE, pretty = TRUE)
+jsonlite::write_json(
+  metadata_list, 
+  path = opt$metadata_json, 
+  auto_unbox = TRUE, 
+  pretty = TRUE
+)
 
+# render main QC report
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
@@ -244,3 +262,11 @@ scpcaTools::generate_qc_report(
   output = opt$qc_report_file,
   extra_params = list(seed = opt$seed)
 )
+
+
+# render supplemental celltypes report, if needed
+if (!(is.null(opt$cell_type_report_file))) {
+  
+  # approach forthcoming
+  
+}
