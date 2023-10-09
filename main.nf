@@ -225,11 +225,10 @@ workflow {
   cluster_sce(post_process_sce.out)
 
   // Perform celltyping, if specified
-  // annotate_celltypes( cluster_sce.out )
-
-
+  annotate_celltypes(cluster_sce.out)
+  
   // generate QC reports
-  sce_qc_report(cluster_sce.out, report_template_tuple, celltype_report_template_tuple)
+  sce_qc_report(annotate_celltypes.out, report_template_tuple, celltype_report_template_tuple)
 
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data
