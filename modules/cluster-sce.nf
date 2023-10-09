@@ -1,7 +1,4 @@
 // perform graph-based clustering on a processed SCE object
-// this process also does the RDS file export to the publishDir
-
-
 process cluster_sce{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
@@ -20,7 +17,6 @@ process cluster_sce{
           ${params.seed ? "--random_seed ${params.seed}" : ""}
         """
     stub:
-        processed_rds = "${meta.library_id}_processed.rds"
         """
         touch ${processed_rds}
         """

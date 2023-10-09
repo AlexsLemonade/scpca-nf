@@ -12,7 +12,6 @@ process make_unfiltered_sce{
         tuple val(meta), path(unfiltered_rds)
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -30,7 +29,7 @@ process make_unfiltered_sce{
 
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -48,18 +47,18 @@ process make_unfiltered_sce{
 // channels with RNA and feature data
 process make_merged_unfiltered_sce{
     label 'mem_8'
-    tag "${meta.library_id}"
+    tag "${rna_meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
-              val (meta), path(alevin_dir),
+              val(rna_meta), path(alevin_dir),
               path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
-        // add feature metadata as an element of the main meta object
+        // add feature metadata as elements of the main meta object
+        meta = rna_meta.clone()
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
 
@@ -68,6 +67,7 @@ process make_merged_unfiltered_sce{
           meta['feature_type'] = "adt"
         }
 
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         generate_unfiltered_sce.R \
           --alevin_dir ${alevin_dir} \
@@ -86,18 +86,19 @@ process make_merged_unfiltered_sce{
           ${params.spliced_only ? '--spliced_only' : ''}
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
-
         """
     stub:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        meta = rna_meta.clone()
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
+
+        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         touch "${meta.library_id}_unfiltered.rds"
         """
@@ -116,12 +117,12 @@ process filter_sce{
 
         // Checks for whether we have ADT data:
         // - feature_type should be adt
-        // - barcode file should _not_ be the empty file NO_FILE.txt
+        // - barcode file should _not_ be the empty file NO_FILE
         adt_present = meta.feature_type == 'adt' &
-          feature_barcode_file.name != "NO_FILE.txt"
+          feature_barcode_file.name != "NO_FILE"
 
         """
-        filter_sce_rds.R \
+        filter_sce.R \
           --unfiltered_file ${unfiltered_rds} \
           --filtered_file ${filtered_rds} \
           ${adt_present ? "--adt_name ${meta.feature_type}":""} \
@@ -200,7 +201,6 @@ process post_process_sce{
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     script:
         processed_rds = "${meta.library_id}_processed.rds"
-
         """
         post_process_sce.R \
           --filtered_sce_file ${filtered_rds} \
@@ -219,7 +219,7 @@ process post_process_sce{
 
 
 // used when a given file is not defined in the below workflows
-empty_file = "${projectDir}/assets/NO_FILE.txt"
+empty_file = "${projectDir}/assets/NO_FILE"
 
 workflow generate_sce {
   // generate rds files for RNA-only samples

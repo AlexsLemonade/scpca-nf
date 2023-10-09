@@ -44,6 +44,7 @@ process spaceranger{
 
 process spaceranger_publish{
   container params.SCPCATOOLS_CONTAINER
+  tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
     tuple val(meta), path(spatial_out)
@@ -93,8 +94,8 @@ def getCRsamples(files_dir){
   // takes the path to the directory holding the fastq files for each sample
   // returns just the 'sample info' portion of the file names,
   // as spaceranger would interpret them, comma separated
-  fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
-  samples = []
+  def fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
+  def samples = []
   fastq_files.each{
     // append sample names to list, using regex to extract element before S001, etc.
     // [0] for the first match set, [1] for the first extracted element
@@ -112,10 +113,13 @@ workflow spaceranger_quant{
     main:
         spatial_channel = spatial_channel
         // add sample names and spatial output directory to metadata
-          .map{it.cr_samples = getCRsamples(it.files_directory);
-               it.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
-               it.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
-               it}
+          .map{
+            def meta = it.clone();
+            meta.cr_samples = getCRsamples(it.files_directory);
+            meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
+            meta.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
+            meta // return modified meta object
+          }
           .branch{
             has_spatial: (!params.repeat_mapping
                           && file(it.spaceranger_results_dir).exists()

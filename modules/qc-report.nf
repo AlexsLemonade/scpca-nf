@@ -10,7 +10,7 @@ process sce_qc_report{
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
         tuple path(template_dir), val(template_file)
     output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(metadata_json), emit: data
+        tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
         path qc_report, emit: report
     script:
         qc_report = "${meta.library_id}_qc.html"
@@ -18,14 +18,30 @@ process sce_qc_report{
         metadata_json = "${meta.library_id}_metadata.json"
         workflow_url = workflow.repository ?: workflow.manifest.homePage
         workflow_version = workflow.revision ?: workflow.manifest.version
+        // names for final output files
+        unfiltered_out = "${meta.library_id}_unfiltered.rds"
+        filtered_out = "${meta.library_id}_filtered.rds"
+        processed_out = "${meta.library_id}_processed.rds"
         """
+        # move files for output
+        if [ "${unfiltered_rds}" != "${unfiltered_out}" ]; then
+            mv "${unfiltered_rds}" "${unfiltered_out}"
+        fi
+        if [ "${filtered_rds}" != "${filtered_out}" ]; then
+            mv "${filtered_rds}" "${filtered_out}"
+        fi
+        if [ "${processed_rds}" != "${processed_out}" ]; then
+            mv "${processed_rds}" "${processed_out}"
+        fi
+
+        # generate report
         sce_qc_report.R \
           --report_template "${template_path}" \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
-          --unfiltered_sce ${unfiltered_rds} \
-          --filtered_sce ${filtered_rds} \
-          --processed_sce ${processed_rds} \
+          --unfiltered_sce ${unfiltered_out} \
+          --filtered_sce ${filtered_out} \
+          --processed_sce ${processed_out} \
           --qc_report_file ${qc_report} \
           --metadata_json ${metadata_json} \
           --technology "${meta.technology}" \
@@ -37,10 +53,16 @@ process sce_qc_report{
           --seed "${params.seed}"
         """
     stub:
+        unfiltered_out = "${meta.library_id}_unfiltered.rds"
+        filtered_out = "${meta.library_id}_filtered.rds"
+        processed_out = "${meta.library_id}_processed.rds"
         qc_report = "${meta.library_id}_qc.html"
         metadata_json = "${meta.library_id}_metadata.json"
         """
+        touch ${unfiltered_out}
+        touch ${filtered_out}
+        touch ${processed_out}
         touch ${qc_report}
-        echo '{}' > ${metadata_json}
+        echo '{"unfiltered_cells": 10, "filtered_cells": 10, "processed_cells": 10}' > ${metadata_json}
         """
 }

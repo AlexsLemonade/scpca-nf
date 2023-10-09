@@ -70,6 +70,7 @@ process merge_bulk_quants {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     publishDir "${params.results_dir}/${meta.project_id}", mode: 'copy'
+    tag "${meta.project_id}"
     input:
         tuple val(meta), path(salmon_directories), path(t2g_bulk)
         path(library_metadata)
@@ -115,9 +116,12 @@ workflow bulk_quant_rna {
     main:
         bulk_channel = bulk_channel
           // add salmon directory and salmon file location to meta
-          .map{it.salmon_publish_dir = "${params.checkpoints_dir}/salmon";
-               it.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
-               it}
+          .map{
+            def meta = it.clone();
+            meta.salmon_publish_dir = "${params.checkpoints_dir}/salmon";
+            meta.salmon_results_dir = "${it.salmon_publish_dir}/${it.library_id}";
+            meta // return modified meta object
+          }
           // split based on whether repeat_mapping is false and the salmon quant.sf file exists
           // and whether the assembly matches the current assembly
           .branch{

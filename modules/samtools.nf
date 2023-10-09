@@ -1,6 +1,7 @@
 
 process index_bam{
   container params.SAMTOOLS_CONTAINER
+  tag "${meta.run_id}"
   input:
     tuple val(meta), path(bamfile)
   output:
