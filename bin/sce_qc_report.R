@@ -17,10 +17,10 @@ option_list <- list(
     help = "path to rmd template file for report"
   ),
   make_option(
-    opt_str = c("--celltypes_report_template"),
+    opt_str = c("--celltype_report_template"),
     type = "character",
-    help = "path to template file for supplemental celltypes rmd report.
-    Only used if `cell_type_report_file` is not NULL."
+    help = "path to template file for supplemental cell types rmd report.
+    Only used if `celltype_report_file` is not NULL."
   ),
   
   make_option(
@@ -55,7 +55,7 @@ option_list <- list(
     help = "path to QC report output file"
   ),
   make_option(
-    opt_str = c("--cell_type_report_file"),
+    opt_str = c("--celltype_report_file"),
     type = "character",
     help = "path to supplemental cell type QC report output file. Only considered if not NULL."
   ),  
@@ -265,23 +265,23 @@ scpcaTools::generate_qc_report(
   extra_params = list(
     seed = opt$seed,
     # this will only be used if cell types exist
-    celltype_report = opt$cell_type_report_file
+    celltype_report = opt$celltype_report_file
   )
 )
 
 
-# render supplemental celltypes report, if needed
-if (!(is.null(opt$cell_type_report_file))) {
+# render supplemental cell types report, if needed
+if (!(is.null(opt$celltype_report_file))) {
   
   # check that the template file exists
-  if (!file.exists(opt$celltypes_report_template)) {
+  if (!file.exists(opt$celltype_report_template)) {
     stop("Supplemental cell types report template not found.")
   }
   
   # render report
   rmarkdown::render(
-    input = opt$celltypes_report_template,
-    output_file = opt$cell_type_report_file,
+    input = opt$celltype_report_template,
+    output_file = opt$celltype_report_file,
     params = list(
       library: metadata_list$library_id,
       processed_sce: processed_sce

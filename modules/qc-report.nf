@@ -51,8 +51,8 @@ process sce_qc_report{
           --filtered_sce ${filtered_out} \
           --processed_sce ${processed_out} \
           --qc_report_file ${qc_report} \
-          --celltypes_report_template "${celltype_template_path}" \
-          ${has_celltypes ? "--cell_type_report_file ${celltype_report}" : ""} \
+          --celltype_report_template "${celltype_template_path}" \
+          ${has_celltypes ? "--celltype_report_file ${celltype_report}" : ""} \
           --metadata_json ${metadata_json} \
           --technology "${meta.technology}" \
           --seq_unit "${meta.seq_unit}" \

@@ -27,8 +27,9 @@ cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 // report template paths
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
 report_template_file = "main_qc_report.rmd"
-report_template_tuple = tuple(report_template_dir, report_template_file)
-celltype_report_template_tuple = tuple(report_template_dir, "celltypes_supplemental_report.rmd") // only used if cell typing is present/performed
+celltype_report_template_file = "celltypes_supplemental_report.rmd"
+report_template_tuple          = tuple(report_template_dir, report_template_file)
+celltype_report_template_tuple = tuple(report_template_dir, celltype_report_template_file) // only used if cell typing is present/performed
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
@@ -228,7 +229,11 @@ workflow {
   annotate_celltypes(cluster_sce.out)
   
   // generate QC reports
-  sce_qc_report(annotate_celltypes.out, report_template_tuple, celltype_report_template_tuple)
+  sce_qc_report(
+    annotate_celltypes.out, 
+    report_template_tuple, 
+    celltype_report_template_tuple
+  )
 
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data
