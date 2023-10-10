@@ -92,17 +92,26 @@ process add_celltypes_to_sce {
   label 'cpus_2'
   tag "${meta.library_id}"
   input:
-    tuple val(meta), path(input_rds), path(cellassign_predictions), val(ref_name)
+    tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir)
   output:
-    tuple val(meta), path(annotated_rds)
+    tuple val(meta), path(processed_rds)
   script:
-    annotated_rds = "${meta.library_id}_annotated.rds"
+    singler_present = "${singler_dir.name}" != "NO_FILE"
+    singler_results = "${singler_dir}/singler_results.rds"
+    cellassign_present = "${cellassign_dir}.name" != "NO_FILE"
+    cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
+    cellassign_ref_name = file("${meta.cellassign_reference_file}").name
     """
-    classify_cellassign.R \
-      --input_sce_file ${input_rds} \
-      --output_sce_file ${annotated_rds} \
-      --cellassign_predictions ${cellassign_predictions} \
-      --reference_name ${ref_name}
+    add_celltypes_to_sce.R \
+      --input_sce_file ${processed_rds} \
+      --output_sce_file ${processed_rds} \
+      ${singler_present ? "--singler_results  ${singler_results}" : ''} \
+      ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
+      ${cellassign_present ? "--cellassign_ref_name ${cellassign_ref_name}" : ''}
+    """
+  stub:
+    """
+    touch ${processed_rds}
     """
 }
 
@@ -184,6 +193,7 @@ workflow annotate_celltypes {
         .mix(classify_cellassign.out)
 
       // prepare input for process to add celltypes to the processed SCE
+      // result is [meta, processed rds, singler dir, cellassign dir]
       assignment_input_ch = processed_sce_channel
         .map{[it[0]["library_id"]] + it}
         // add in singler results
@@ -191,14 +201,19 @@ workflow annotate_celltypes {
         // add in cell assign results
         .join(cellassign_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
         .map{it.drop(1)} // remove library_id
+        .branch{
+          // pull out libraries that actually have at least 1 type of annotations
+          add_celltypes: (it[2].name != "NO_FILE") || (it[3].name != "NO_FILE")
+          no_celltypes: true
+        }
 
 
-      // Next PR:
-      //add_celltypes_to_sce(assignment_input_ch)
+      // incorporate annotations into SCE object
+      add_celltypes_to_sce(assignment_input_ch.add_celltypes)
 
-      // add back in the unchanged sce files
-      // TODO update below with output channel results:
-      export_channel = celltype_input_ch
+      // add back in the unchanged sce files to the results
+      export_channel = add_celltypes_to_sce.out
+        .mix(assignment_input_ch.no_celltypes.map{[it[0], it[1]]})
         .map{[it[0]["library_id"]] + it}
         // add in unfiltered and filtered sce files
         .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
