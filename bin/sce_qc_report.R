@@ -21,7 +21,7 @@ option_list <- list(
     type = "character",
     default = NULL,
     help = "path to template file for supplemental cell types rmd report.
-    Only used if `celltype_report_file` is not empty."
+    Only used if `celltype_report_file` is not empty"
   ),
   
   make_option(
@@ -42,12 +42,12 @@ option_list <- list(
   make_option(
     opt_str = c("-l", "--library_id"),
     type = "character",
-    help = "Library identifier for report and metadata file"
+    help = "library identifier for report and metadata file"
   ),
   make_option(
     opt_str = c("-s", "--sample_id"),
     type = "character",
-    help = "Sample identifier(s) for metadata file. For a multiplexed library, a comma or semicolon separated list."
+    help = "sample identifier(s) for metadata file. For a multiplexed library, a comma or semicolon separated list"
   ),
   make_option(
     opt_str = c("-q", "--qc_report_file"),
@@ -59,7 +59,7 @@ option_list <- list(
     opt_str = c("--celltype_report_file"),
     type = "character",
     default = "",
-    help = "path to supplemental cell type QC report output file. Only considered if not empty string."
+    help = "path to supplemental cell type QC report output file. Only considered if not empty string"
   ),  
   make_option(
     opt_str = "--metadata_json",
@@ -107,13 +107,13 @@ option_list <- list(
     opt_str = "--demux_method",
     type = "character",
     default = "vireo",
-    help = "Demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
+    help = "demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
   ),
   make_option(
     opt_str = "--seed",
     type = "integer",
     default = NULL,
-    help = "Optional random seed used in certain QC report visualizations."
+    help = "optional random seed used in certain QC report visualizations"
   )
 )
 
