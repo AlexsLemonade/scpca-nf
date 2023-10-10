@@ -19,8 +19,9 @@ option_list <- list(
   make_option(
     opt_str = c("--celltype_report_template"),
     type = "character",
+    default = NULL,
     help = "path to template file for supplemental cell types rmd report.
-    Only used if `celltype_report_file` is not NULL."
+    Only used if `celltype_report_file` is not empty."
   ),
   
   make_option(
@@ -282,7 +283,11 @@ if (opt$celltype_report_file != "") {
   # render report
   rmarkdown::render(
     input = opt$celltype_report_template,
-    output_file = opt$celltype_report_file,
+    output_file = basename(opt$celltype_report_file),
+    output_dir = dirname(opt$celltype_report_file),
+    intermediates_dir = tempdir(),
+    knit_root_dir = tempdir(),
+    envir = new.env(),
     params = list(
       library = metadata_list$library_id,
       processed_sce = processed_sce
