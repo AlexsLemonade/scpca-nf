@@ -4,6 +4,9 @@
 
 - [`scpca-nf` Data Lab Instructions](#scpca-nf-data-lab-instructions)
   - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
+    - [Additional flags and parameters](#additional-flags-and-parameters)
+    - [Testing the workflow](#testing-the-workflow)
+    - [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release)
     - [Processing example data](#processing-example-data)
   - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
     - [Adding additional organisms](#adding-additional-organisms)
@@ -30,6 +33,37 @@ You can then run the workflow use the following command:
 ```
 nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
 ```
+
+### Additional flags and parameters
+
+There are several flags and/or parameters which you may additionally wish to specify, as follows.
+
++ Nextflow flags:
+  + `-resume`: Resume workflow from most recent checkpoint
+  + `-with-tower`: Use `Nextflow Tower` to monitor workflow (requires separate [Nextflow Tower registration](https://tower.nf/))
++ Workflow parameters:
+  + `--run_ids list, of, ids`: A custom list of ids (run, library, sample or project) for this run.
+  [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
+  + `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
+  + `--perform_celltyping`: Use this flag to perform cell type annotation, which is turned off by default.
+  + `--repeat_celltyping`: Use this flag to repeat cell type annotation, even if results already exist.
+
+Please refer to [`nextflow.config`](nextflow.config) and [other configuration files](config/) for other parameters which can be modified.
+
+### Testing the workflow
+
+To test the workflow with the `stub`, use the following command:
+
+```
+nextflow -log stub-run.log run main.nf -stub -profile stub
+```
+
+The run log will be saved to `stub-run.log`.
+Optionally, you can also add the parameter `--outdir <name of local directory for output>` to ensure accurate contents in `checkpoints` and `results` directories.
+
+
+### Running `scpca-nf` for ScPCA Portal release
+
 
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
 
