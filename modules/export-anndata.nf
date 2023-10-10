@@ -8,7 +8,7 @@ process export_anndata{
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path("${meta.library_id}_${file_type}*.hdf5"), val(file_type)
+      tuple val(meta), path("${meta.library_id}_${file_type}_*.hdf5"), val(file_type)
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
@@ -23,9 +23,10 @@ process export_anndata{
     stub:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
+      feature_present = meta.feature_type in ["adt", "cellhash"]
       """
       touch ${rna_hdf5_file}
-      touch ${feature_hdf5_file}
+      ${feature_present ? "touch ${feature_hdf5_file}" : ''}
       """
 }
 
