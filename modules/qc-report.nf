@@ -26,7 +26,7 @@ process sce_qc_report{
         processed_out = "${meta.library_id}_processed.rds"
         
         // check for cell types
-        // TODO: add `params.perform_celltyping & ` when implemented
+        // TODO: add `params.perform_celltyping && (...)` when implemented
         has_celltypes = (meta.submitter_cell_types_file || meta.singler_model_file || meta.cellassign_reference_file)
         celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
         celltype_template_path = "${template_dir}/${celltype_template_file}" // template input
@@ -70,7 +70,7 @@ process sce_qc_report{
         qc_report = "${meta.library_id}_qc.html"
         metadata_json = "${meta.library_id}_metadata.json"
         
-        // TODO: add `params.perform_celltyping & ` when implemented
+        // TODO: add `params.perform_celltyping && (...)` when implemented
         has_celltypes = meta.submitter_cell_types_file || meta.singler_model_file || meta.cellassign_reference_file
         celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
 
