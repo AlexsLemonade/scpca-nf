@@ -24,11 +24,11 @@ rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
-// report template path
+// report template paths
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
 report_template_file = "main_qc_report.rmd"
-report_template_tuple = tuple(report_template_dir, report_template_file)
-
+celltype_report_template_file = "celltypes_supplemental_report.rmd"
+report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
@@ -225,12 +225,13 @@ workflow {
   cluster_sce(post_process_sce.out)
 
   // Perform celltyping, if specified
-  // todo: add check here to not enter the process if references are missing.
-  annotate_celltypes( cluster_sce.out )
-
-
+  annotate_celltypes(cluster_sce.out)
+  
   // generate QC reports
-  sce_qc_report(annotate_celltypes.out, report_template_tuple)
+  sce_qc_report(
+    annotate_celltypes.out, 
+    report_template_tuple
+  )
 
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data

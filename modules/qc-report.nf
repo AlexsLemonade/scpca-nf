@@ -8,20 +8,29 @@ process sce_qc_report{
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
         tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
-        tuple path(template_dir), val(template_file)
+        tuple path(template_dir), val(template_file), val(celltype_template_file)
     output:
         tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
         path qc_report, emit: report
+        path celltype_report, emit: celltype_report, optional: true
     script:
         qc_report = "${meta.library_id}_qc.html"
         template_path = "${template_dir}/${template_file}"
         metadata_json = "${meta.library_id}_metadata.json"
         workflow_url = workflow.repository ?: workflow.manifest.homePage
         workflow_version = workflow.revision ?: workflow.manifest.version
+        
         // names for final output files
         unfiltered_out = "${meta.library_id}_unfiltered.rds"
         filtered_out = "${meta.library_id}_filtered.rds"
         processed_out = "${meta.library_id}_processed.rds"
+        
+        // check for cell types
+        // TODO: add `params.perform_celltyping && (...)` when implemented
+        has_celltypes = (meta.submitter_cell_types_file || meta.singler_model_file || meta.cellassign_reference_file)
+        celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+        celltype_template_path = "${template_dir}/${celltype_template_file}" // template input
+
         """
         # move files for output
         if [ "${unfiltered_rds}" != "${unfiltered_out}" ]; then
@@ -34,7 +43,7 @@ process sce_qc_report{
             mv "${processed_rds}" "${processed_out}"
         fi
 
-        # generate report
+        # generate report and supplemental cell type report, if applicable
         sce_qc_report.R \
           --report_template "${template_path}" \
           --library_id "${meta.library_id}" \
@@ -43,6 +52,8 @@ process sce_qc_report{
           --filtered_sce ${filtered_out} \
           --processed_sce ${processed_out} \
           --qc_report_file ${qc_report} \
+          --celltype_report_template "${celltype_template_path}" \
+          ${has_celltypes ? "--celltype_report_file ${celltype_report}" : ""} \
           --metadata_json ${metadata_json} \
           --technology "${meta.technology}" \
           --seq_unit "${meta.seq_unit}" \
@@ -58,11 +69,18 @@ process sce_qc_report{
         processed_out = "${meta.library_id}_processed.rds"
         qc_report = "${meta.library_id}_qc.html"
         metadata_json = "${meta.library_id}_metadata.json"
+        
+        // TODO: add `params.perform_celltyping && (...)` when implemented
+        has_celltypes = meta.submitter_cell_types_file || meta.singler_model_file || meta.cellassign_reference_file
+        celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+
         """
         touch ${unfiltered_out}
         touch ${filtered_out}
         touch ${processed_out}
         touch ${qc_report}
+        ${has_celltypes ? "touch ${celltype_report}" : ""}
+        
         echo '{"unfiltered_cells": 10, "filtered_cells": 10, "processed_cells": 10}' > ${metadata_json}
         """
 }
