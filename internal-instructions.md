@@ -59,6 +59,7 @@ nextflow -log stub-run.log run main.nf -stub -profile stub
 The run log will be saved to `stub-run.log`.
 Optionally, you can also add the parameter `--outdir <name of local directory for output>` to ensure accurate contents in `checkpoints` and `results` directories.
 
+Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more information on maintaining the stub workflow.
 
 ### Running `scpca-nf` for ScPCA Portal release
 
