@@ -3,6 +3,7 @@ process classify_singleR {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     label 'cpus_4'
+    tag "${meta.library_id}"
     input:
         tuple val(meta), path(processed_rds), path(singler_model_file)
     output:
@@ -30,6 +31,7 @@ process predict_cellassign {
   publishDir "${params.checkpoints_dir}/celltype/${meta.library_id}", mode: 'copy'
   label 'mem_32'
   label 'cpus_12'
+  tag "${meta.library_id}"
   input:
     tuple val(meta), path(processed_hdf5), path(cellassign_reference_mtx), val(ref_name)
   output:
@@ -56,6 +58,7 @@ process classify_cellassign {
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   label 'mem_4'
   label 'cpus_2'
+  tag "${meta.library_id}"
   input:
     tuple val(meta), path(input_rds), path(cellassign_predictions), val(ref_name)
   output:
