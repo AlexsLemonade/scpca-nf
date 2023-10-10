@@ -198,15 +198,15 @@ workflow annotate_celltypes {
 
       // add back in the unchanged sce files
       // TODO update below with output channel results:
-     //  export_channel = processed_sce_channel
-    //     .map{[it[0]["library_id"]] + it}
-     //    // add in unfiltered and filtered sce files
-    //     .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
-    //           by: 0, failOnMismatch: true, failOnDuplicate: true)
-         // rearrange to be [meta, unfiltered, filtered, processed]
-    //     .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
-    //         [meta, unfiltered_sce, filtered_sce, processed_sce]}
+      export_channel = celltype_input_ch
+        .map{[it[0]["library_id"]] + it}
+        // add in unfiltered and filtered sce files
+        .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
+              by: 0, failOnMismatch: true, failOnDuplicate: true)
+        // rearrange to be [meta, unfiltered, filtered, processed]
+        .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+            [meta, unfiltered_sce, filtered_sce, processed_sce]}
 
-    emit: sce_files_channel
+    emit: export_channel
 
 }
