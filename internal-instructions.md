@@ -2,19 +2,17 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [`scpca-nf` Data Lab Instructions](#scpca-nf-data-lab-instructions)
-  - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
-    - [Additional flags and parameters](#additional-flags-and-parameters)
-    - [Testing the workflow](#testing-the-workflow)
-    - [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release)
-    - [Processing example data](#processing-example-data)
-  - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
-    - [Adding additional organisms](#adding-additional-organisms)
-  - [Adding additional cell type references](#adding-additional-cell-type-references)
+- [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
+  - [Additional flags and parameters](#additional-flags-and-parameters)
+  - [Testing the workflow](#testing-the-workflow)
+  - [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release)
+  - [Processing example data](#processing-example-data)
+- [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
+  - [Adding additional organisms](#adding-additional-organisms)
+- [Adding additional cell type references](#adding-additional-cell-type-references)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# `scpca-nf` Data Lab Instructions
 
 ## Running `scpca-nf` as a Data Lab staff member
 
