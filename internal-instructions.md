@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Available workflows](#available-workflows)
 - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
   - [Additional flags and parameters](#additional-flags-and-parameters)
   - [Testing the workflow](#testing-the-workflow)
@@ -9,12 +10,16 @@
   - [Processing example data](#processing-example-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding additional organisms](#adding-additional-organisms)
-- [Adding additional cell type references](#adding-additional-cell-type-references)
+  - [Adding additional cell type references](#adding-additional-cell-type-references)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+## Available workflows
 
 ## Running `scpca-nf` as a Data Lab staff member
+
+This section provides instructions for running the main workflow, found in [`main.nf`](main.nf).
+Note that there are two other workflows: [`build-index.nf`](build-index.nf) for building reference indices (see #adding-additional-organisms), and [`build-celltype-ref.nf`](build-cellltype-ref.nf) for creating cell type annotation references.
 
 The instructions below assume that you are a member of the Data Lab with access to AWS.
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure.
@@ -99,6 +104,7 @@ Make sure to adjust the settings to make the zip file publicly accessible.
 
 ## Maintaining references for `scpca-nf`
 
+
 Inside the `references` folder are files and scripts related to maintaining the reference files available for use with `scpca-nf`.
 
 1. `ref-metadata.tsv`: Each row of this TSV file corresponds to a reference that is available for mapping with `scpca-nf`.
@@ -124,6 +130,8 @@ This file is required as input to the `build-celltype-ref.nf` workflow, which wi
 
 ### Adding additional organisms
 
+Adding additional organisms is handled, in part, by the `build-index.nf` workflow.
+
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
@@ -144,7 +152,10 @@ homo_sapiens
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
 
-## Adding additional cell type references
+### Adding additional cell type references
+
+Adding additional organisms is handled, in part, by the `build-celltype-ref.nf` workflow.
+
 
 Follow the below steps to add support for additional cell type references.
 We currently only support `celldex` and `PanglaoDB` for reference sources for `SingleR` and `CellAssign` cell type annotation, respectively.
