@@ -2,17 +2,18 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [scpca-nf Data Lab Instructions](#scpca-nf-data-lab-instructions)
-  - [Running scpca-nf as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
+- [`scpca-nf` Data Lab Instructions](#scpca-nf-data-lab-instructions)
+  - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
     - [Processing example data](#processing-example-data)
   - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
     - [Adding additional organisms](#adding-additional-organisms)
+  - [Adding additional cell type references](#adding-additional-cell-type-references)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# scpca-nf Data Lab Instructions
+# `scpca-nf` Data Lab Instructions
 
-## Running scpca-nf as a Data Lab staff member
+## Running `scpca-nf` as a Data Lab staff member
 
 The instructions below assume that you are a member of the Data Lab with access to AWS.
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure.
@@ -81,12 +82,12 @@ For all references, the following columns will be populated: `celltype_ref_name`
 All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
 This should be a comma-separated list of all organs to include.
 To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
-This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow.
 See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
 4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
 This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
-This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
 ### Adding additional organisms
 
@@ -113,8 +114,12 @@ homo_sapiens
 ## Adding additional cell type references
 
 Follow the below steps to add support for additional cell type references.
-We currently only support `celldex` and `PanglaoDB` for reference sources.
+We currently only support `celldex` and `PanglaoDB` for reference sources for `SingleR` and `CellAssign` cell type annotation, respectively.
 
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
 2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
-3. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references/celltype`).
+3. Ensure that the new reference files are public and in the correct location on S3:
+  - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` named as `celldex-<reference name>.rds`.
+  - `SingleR` trained model files for the given nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` named as `<reference name>_models.rds`.
+  - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `PanglaoDB-<organ>.tsv`.
+
