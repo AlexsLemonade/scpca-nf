@@ -151,7 +151,7 @@ We currently only support `celldex` and `PanglaoDB` for reference sources for `S
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
 2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3:
-  - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` named as `celldex-<reference name>.rds`.
-  - `SingleR` trained model files for the given nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` named as `<reference name>_models.rds`.
-  - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `PanglaoDB-<organ>.tsv`.
+    - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` named as `celldex-<reference name>.rds`.
+    - `SingleR` trained model files for the given nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` named as `<reference name>_models.rds`.
+    - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `PanglaoDB-<organ>.tsv`.
 
