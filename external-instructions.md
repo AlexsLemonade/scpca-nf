@@ -132,11 +132,11 @@ The following columns may be necessary for running other data modalities (CITE-s
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | The path/uri to TSV file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls |
+| `feature_barcode_file` | The full path/uri to TSV file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls |
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
-| `submitter_cell_types_file` | The path/uri to TSV file containing cell labels if you have cell type annotations results to include. See !!TODO!! for more information on preparing this file
+| `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file |
 
 
 We have provided an example run metadata file for reference.
