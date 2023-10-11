@@ -46,10 +46,10 @@ process move_normalized_counts{
         --anndata_file \${file}
     done
     """
-    stub:
-       """
-       # nothing to do since files don't move
-       """
+  stub:
+     """
+     # nothing to do since files don't move
+     """
 }
 
 
