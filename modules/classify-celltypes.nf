@@ -63,11 +63,11 @@ process classify_cellassign {
     # Convert SCE to AnnData
     sce_to_anndata.R \
         --input_sce_file "${processed_rds}" \
-        --output_rna_h5 processed.hdf5
+        --output_rna_h5 "processed.hdf5"
 
     # Run CellAssign
     predict_cellassign.py \
-      --input_hdf5_file processed.hdf5
+      --input_hdf5_file "processed.hdf5"
       --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
       --reference "${cellassign_reference_file}" \
       --seed ${params.seed} \
@@ -84,7 +84,6 @@ process classify_cellassign {
     """
 }
 
-// TODO: overhaul this process next
 process add_celltypes_to_sce {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
