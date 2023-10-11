@@ -449,7 +449,7 @@ Optionally, you can also include a column `cell_type_ontology` with ontology lab
 
 ### Performing cell type annotation
 
-`scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method `SingleR` and the marker-gene based method `CellAssign`.
+`scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
 You can turn on cell type annotation by using the `--perform_celltyping`.
 You will also need to provide an addtional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level.
@@ -533,6 +533,8 @@ results
 
 If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
 
+If you performed cell type annotation, an additional QC report specific to cell typing results called `library_id_celltype-report.html` will also be present in the `results` directory.
+
 The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`.
 The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
 
@@ -567,5 +569,7 @@ nextflow run AlexsLemonade/scpca-nf \
   --publish_fry_outs
 ```
 
-If genetic demultiplexing was performed, there will also be a folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq.
+If genetic demultiplexing was performed, there will also be a checkpoints folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq.
 Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.
+
+If cell type annotation was performed, there will also be a checkpoints folder called `celltype` with the output from running `SingleR` and `CellAssign`.
