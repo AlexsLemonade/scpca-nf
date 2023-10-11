@@ -19,6 +19,10 @@
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
   - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
+- [Cell type annotation](#cell-type-annotation)
+  - [Providing existing cell type labels](#providing-existing-cell-type-labels)
+  - [Performing cell type annotation](#performing-cell-type-annotation)
+    - [Repeating cell type annotation](#repeating-cell-type-annotation)
 - [Output files](#output-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
