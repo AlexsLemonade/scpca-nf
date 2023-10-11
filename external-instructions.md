@@ -141,7 +141,7 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 | `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file |
-``
+
 
 We have provided an example run metadata file for reference.
 
@@ -455,10 +455,10 @@ Optionally, you can also include a column `cell_type_ontology` with ontology lab
 
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
-You can turn on cell type annotation by using the `--perform_celltyping`.
-You will also need to provide an addtional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level.
+You can turn on cell type annotation by using the `--perform_celltyping` flag.
+You will also need to provide an addtional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level, which can be specified at the command line (shown below) or defined in your configuration file.
 
-For example,
+For example, you would run from the command line as:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
@@ -480,10 +480,10 @@ This file should contain these five columns with the following information (see 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
 | `scpca_project_id`| Project ID matching values in the metadata file |
-| `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData` |
-| `singler_ref_file` | Path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds` |
-| `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle` |
-| `cellassign_ref_file` | Rath to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv` |
+| `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file` | Path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | Rath to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv`. Use `NA` to skip `CellAssign` annotation |
 
 #### Repeating cell type annotation
 
