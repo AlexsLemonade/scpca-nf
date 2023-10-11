@@ -47,12 +47,12 @@ There are several flags and/or parameters which you may additionally wish to spe
   [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
   + `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
     + By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
-    + Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
+    Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
+    + For more implementation details, please refer to the [external instructions](external-instructions.md#repeating-mapping-steps).
   + `--perform_celltyping`: Use this flag to perform cell type annotation, which is turned off by default.
   + `--repeat_celltyping`: Use this flag to repeat cell type annotation, even if results already exist.
-  For more information, please refer to the [external instructions](external-instructions.md#repeating-mapping-steps).
     + By default, the workflow checks whether each library has existing cell type annotation results for `SingleR` and/or `CellAssign` (depending on references for that library).
-    + Using this flag will override that default behavior and repeat cell type annotation even if the given library's results exist.
+    Using this flag will override that default behavior and repeat cell type annotation even if the given library's results exist.
     + This flag is _only considered_ if `--perform_celltyping` is also used.
 
 Please refer to [`nextflow.config`](nextflow.config) and [other configuration files](config/) for other parameters which can be modified.
