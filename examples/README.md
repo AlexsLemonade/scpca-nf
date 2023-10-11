@@ -3,6 +3,7 @@
 ## Example files
 
 This directory contains an example [metadata file](../external-data-instructions.md#prepare-the-metadata-file) and [configuration file](../external-data-instructions.md#configuration-files) for the `scpca-nf` workflow.
+There is also an example [cell type annotation metadata file](../external-data-instructions.md#performing-cell-type-annotation).
 These files should be used as an example of formats and content, but note that the values in these files may not be applicable or sufficient to allow running `scpca-nf` to be used directly on your system.
 
 ## Testing your setup with example data
