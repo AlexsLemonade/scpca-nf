@@ -126,16 +126,18 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
-| `files_directory` | path/uri to directory containing fastq files (unique per run) |
+| `files_directory` | The path/uri to directory containing fastq files (unique per run) |
 
-The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or are optional and can be included in the metadata file if desired:
+The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or including existing cell type labels.
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls.  |
+| `feature_barcode_file` | The path/uri to TSV file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls |
 | `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
+| `submitter_cell_types_file` | The path/uri to TSV file containing cell labels if you have cell type annotations results to include. See !!TODO!! for more information on preparing this file
+
 
 We have provided an example run metadata file for reference.
 
@@ -408,7 +410,7 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `scpca_library_id`| Multiplexed library ID matching values in the metadata file. |
+| `scpca_library_id`| Multiplexed library ID matching values in the metadata file |
 | `scpca_sample_id` | Sample ID for a sample contained in the listed multiplexed library |
 | `barcode_id`      | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
@@ -428,6 +430,56 @@ As an example, the Dockerfile that we used to build Space Ranger can be found [h
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file.
 *Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods.*
 
+## Cell type annotation
+
+### Providing existing cell type labels
+
+If you have already peformed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file ([see example here](examples/example_run_metadata.tsv)).
+This column should be filled with the path or uri to a TSV file with existing cell type labels.
+
+This file _must_ include the following columns:
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `scpca_library_id`| Multiplexed library ID matching values in the metadata file |
+| `cell_barcode`   | The cell id with the given annotation label |
+| `cell_type_assignment` |  The annotation label for that cell |
+
+Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
+
+### Performing cell type annotation
+
+`scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method `SingleR` and the marker-gene based method `CellAssign`.
+
+You can turn on cell type annotation by using the `--perform_celltyping`.
+You will also need to provide an addtional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level.
+
+For example,
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_celltyping \
+  --celltype_project_metafile = examples/example_project_celltype_metadata.tsv
+```
+
+References for use in cell type annotation have been pre-compiled as follows:
+
++ `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
+Available reference options include `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, and `MonacoImmuneData`.
+  + Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
++ `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/).
+Available organ-based references include `blood`, `brain`, and `muscle`.
+  + TODO do we want to say this? Please reach out to the Data Lab if you require a different set of marker genes for cell type annotation besides those in organs listed.
+
+This file should contain these five columns with the following information (see the example file in [`examples/example_project_celltype_metadata.tsv`](examples/example_project_celltype_metadata.tsv)):
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `scpca_project_id`| project ID matching values in the metadata file |
+| `singler_ref_name` | reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData` |
+| `singler_ref_file` | path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds` |
+| `cellassign_ref_name` | reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle` |
+| `cellassign_ref_file` | path to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv` |
 
 
 ## Output files
