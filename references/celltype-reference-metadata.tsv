@@ -1,0 +1,8 @@
+celltype_ref_name	celltype_ref_source	celltype_method	organs
+BlueprintEncodeData	celldex	SingleR	NA
+DatabaseImmuneCellExpressionData	celldex	SingleR	NA
+HumanPrimaryCellAtlasData	celldex	SingleR	NA
+MonacoImmuneData	celldex	SingleR	NA
+blood	PanglaoDB	CellAssign	Blood, Bone, Immune system
+muscle	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle
+brain	PanglaoDB	CellAssign	Brain, Immune system

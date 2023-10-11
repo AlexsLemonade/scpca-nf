@@ -21,11 +21,15 @@ option_list <- list(
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
   make_option(
-    opt_str = c("--singler_models"),
+    opt_str = c("--singler_model_file"),
     type = "character",
-    help = "list of models generated for use with SingleR. Each input file contains 
-      a list of models generated from a single reference, one each for each label type:
-      `label.main`, `label.fine`, and `label.ont`."
+    help = "path to file containing a single model generated for SingleR annotation"
+  ),
+  make_option(
+    opt_str = c("--label_name"),
+    type = "character",
+    default = "label.ont",
+    help = "label used when building the SingleR reference"
   ),
   make_option(
     opt_str = c("--seed"),
@@ -48,71 +52,77 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
 # check that input file file exists
-if(!file.exists(opt$input_sce_file)){
+if (!file.exists(opt$input_sce_file)) {
   stop("Missing input SCE file")
 }
 
+# check that output file ends in rds
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
+  stop("output sce file name must end in .rds")
+}
+
 # check that references all exist
-model_files <- unlist(stringr::str_split(opt$singler_models, ","))
-if(!all(file.exists(model_files))){
-  missing_files <- model_files[which(!file.exists(model_files))]
-  glue::glue("
-             Missing model file(s): {missing_files}
-             ")
-  stop("Please make sure that all provided SingleR models exist.")
+singler_model_file <- opt$singler_model_file
+if (!file.exists(singler_model_file)) {
+  stop(glue::glue("Provided model file {singler_model_file} is missing."))
 }
 
 # set up multiprocessing params
-if(opt$threads > 1){
-  bp_param = BiocParallel::MulticoreParam(opt$threads)
+if (opt$threads > 1) {
+  bp_param <- BiocParallel::MulticoreParam(opt$threads)
 } else {
-  bp_param = BiocParallel::SerialParam()
+  bp_param <- BiocParallel::SerialParam()
 }
 
 # read in input rds file
 sce <- readr::read_rds(opt$input_sce_file)
 
-# read in references as a list of lists
-# each file contains a named list of models generated using the same reference dataset
-# but unique labels in the reference dataset
-model_names <- stringr::str_remove(basename(model_files), "_model.rds")
-names(model_files) <- model_names
-model_list <- purrr::map(model_files, readr::read_rds) |>
-  # ensure we have label type before reference name
-  # example: label.main_HumanPrimaryCellAtlasData
-  # where `label.main` is the name of the model stored in the file and
-  # `HumanPrimaryCellAtlasData` is the name of the reference used for each file containing a list of models
-  purrr::imap(\(model_list, ref_name){
-                names(model_list) <- glue::glue("{names(model_list)}_{ref_name}")
-                model_list
-              }) |>
-  purrr::flatten() 
+# read in model
+singler_model <- readr::read_rds(singler_model_file)
 
-# SingleR classify -------------------------------------------------------------
+# SingleR classify and annotate SCE-------------------------------------------------------------
 
-# create a partial function for mapping easily
-classify_sce <- purrr::partial(SingleR::classifySingleR, 
-                               test = sce, 
-                               fine.tune=TRUE, 
-                               BPPARAM = bp_param)
-# run singleR for all provided models
-all_singler_results <- model_list |>
-    purrr::map(classify_sce)
+singler_results <- SingleR::classifySingleR(
+  trained = singler_model,
+  test = sce,
+  fine.tune = TRUE,
+  BPPARAM = bp_param
+)
 
-# Annotate sce -----------------------------------------------------------------
+# add annotations to SCE colData
+if (opt$label_name == "label.ont") {
+  # If ontologies were used, create ontology column and join in the cell names
+  sce$singler_celltype_ontology <- singler_results$pruned.labels
 
-# create a dataframe with a single column of annotations for each model used
-all_annotations_df <- all_singler_results |>
-  purrr::map_dfc(\(result) result$pruned.labels ) |>
-  DataFrame()
+  colData(sce) <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::left_join(
+      singler_model$cell_ontology_df,
+      by = c("singler_celltype_ontology" = "ontology_id")
+    ) |>
+    # this is the new column that was joined in with the cell names
+    dplyr::rename(singler_celltype_annotation = ontology_cell_names) |>
+    # make sure we keep rownames
+    DataFrame(row.names = colData(sce)$barcodes)
+} else {
+  # otherwise, just add cell names
+  sce$singler_celltype_annotation <- singler_results$pruned.labels
+}
 
-colData(sce) <- cbind(colData(sce), all_annotations_df)
+# store full SingleR results in metadata, as well as other SingleR parameters
+metadata(sce)$singler_results <- singler_results
+metadata(sce)$singler_reference <- singler_model$reference_name
+metadata(sce)$singler_reference_label <- singler_model$reference_label
 
-# store results in metadata
-metadata(sce)$singler_results <- all_singler_results
+# add singler as celltype method
+# note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+#  come out to just the string "singler"
+metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
+
 
 # export sce with annotations added
-readr::write_rds(sce,
-                 opt$output_sce_file,
-                 compress = 'gz')
-
+readr::write_rds(
+  sce,
+  opt$output_sce_file,
+  compress = "gz"
+)

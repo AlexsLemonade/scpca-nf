@@ -40,7 +40,7 @@ include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_s
 include { sce_to_anndata } from './modules/export-anndata.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
-
+include { cluster_sce } from './modules/cluster-sce.nf'
 
 
 // parameter checks
@@ -48,6 +48,12 @@ param_error = false
 
 if (!file(params.run_metafile).exists()) {
   log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
+  param_error = true
+}
+
+sample_metafile = file(params.sample_metafile)
+if (!sample_metafile.exists()) {
+  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
   param_error = true
 }
 
@@ -86,15 +92,17 @@ workflow {
       run_id: it.scpca_run_id,
       library_id: it.scpca_library_id,
       sample_id: it.scpca_sample_id.split(";").sort().join(","),
-      project_id: it.scpca_project_id?: "no_project",
-      submitter: it.submitter,
+      project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
+      submitter: Utils.parseNA(it.submitter),
       technology: it.technology,
+      assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
       seq_unit: it.seq_unit,
-      feature_barcode_file: it.feature_barcode_file,
-      feature_barcode_geom: it.feature_barcode_geom,
-      files_directory: it.files_directory,
-      slide_serial_number: it.slide_serial_number,
-      slide_section: it.slide_section,
+      submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
+      feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
+      feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
+      files_directory: Utils.parseNA(it.files_directory),
+      slide_serial_number: Utils.parseNA(it.slide_serial_number),
+      slide_section: Utils.parseNA(it.slide_section),
       ref_assembly: it.sample_reference,
       ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
       ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
@@ -159,7 +167,7 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = generate_sce(rna_quant_ch)
+  rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
 
 
   // **** Process feature data ****
@@ -172,7 +180,7 @@ workflow {
     .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
   // make rds for merged RNA and feature quants
-  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch)
+  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
@@ -206,15 +214,21 @@ workflow {
 
   // **** Post processing and generate QC reports ****
   // combine all SCE outputs
-  // Make channel for all library sce files & run QC report
+  // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
 
-  // generate QC reports
-  sce_qc_report(post_process_sce.out, report_template_tuple)
+  // Cluster SCE
+  cluster_sce(post_process_sce.out)
 
-  // convert RNA component of SCE object to anndata
-  sce_to_anndata(post_process_sce.out)
+  // generate QC reports and publish .rds files with SCEs.
+  sce_qc_report(cluster_sce.out, report_template_tuple)
+
+  // convert SCE object to anndata
+  anndata_ch = sce_qc_report.out.data
+    // skip multiplexed libraries
+    .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
+  sce_to_anndata(anndata_ch)
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)

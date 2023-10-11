@@ -25,7 +25,19 @@ When the changes in `development` merit a new release, a pull request will be fi
 All Nextflow processes should include a [`stub` block](https://www.nextflow.io/docs/latest/process.html#stub) with a minimal script that can be run quickly to produce files in the expected output locations.
 At this stage this is purely used to allow for testing of the main workflow logic rather than the internal logic of each process.
 
-The [`test/stub-metadata.tsv`](test/stub-metadata.tsv) file is used to define input libraries that will be used for testing.
-Any additions to the overall workflow that will allow processing of a new library type should be added into `test/stub-metadata.tsv`, along with the appropriate input files (usually empty files with the expected names) for that library type in the `test/runs/` directory.
+The [`test/stub-run-metadata.tsv`](test/stub-run-metadata.tsv) file is used to define input libraries that will be used for testing.
+Each `scpca_sample_id` value in the `stub-run-metadata.tsv` file should have a corresponding entry in [`test/stub-sample-metadata.tsv`](test/stub-sample-metadata.tsv) (which can be filled with `NA` values).
+Any additions to the overall workflow that will allow processing of a new library type should include adding new example data.
+This will involve adding rows to `test/stub-run-metadata.tsv` and `test/stub-sample-metadata.tsv`, along with the appropriate input files (usually empty files with the expected names) for each library in the `test/runs/` directory.
 If a new reference type is needed, that should be defined in the [`test/stub-refs.json`](test/stub-refs.json) file.
 
+## Code style
+
+While there is not necessarily an established code style for nextflow code, we try to keep code neat and readable.
+Line length should generally be kept under 100 characters, and indentation should be consistent.
+
+For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
+
+For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
+The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
+Alternatively, if you use [Visual Studio Code](https://code.visualstudio.com), you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).

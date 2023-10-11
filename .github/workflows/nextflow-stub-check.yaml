@@ -24,12 +24,13 @@ jobs:
         uses: docker://nextflow/nextflow:21.10.6
         with:
           args: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log false
-      
+
       - name: Join log files
+        if: ${{ !cancelled() }}
         run: cat stub-run.log checkpoint-run.log > nextflow-runs.log
-      
+
       - name: Upload nextflow log
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         uses:  actions/upload-artifact@v3
         with:
           name: nextflow-log

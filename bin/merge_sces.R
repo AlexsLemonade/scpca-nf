@@ -42,29 +42,29 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that file extension for output file is correct
-if(!(stringr::str_ends(opt$output_sce_file, ".rds"))){
+if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
   stop("output file name must end in .rds")
 }
 
 # check that input files are provided and more than one are present for merging and integration
-if(is.null(opt$input_sce_files)){
+if (is.null(opt$input_sce_files)) {
   stop("List of input files containing individual SCE objects to merge is missing.")
 } else {
   # list of paths to sce files
-  input_sce_files <- unlist(stringr::str_split(opt$input_sce_files, ','))
+  input_sce_files <- unlist(stringr::str_split(opt$input_sce_files, ","))
 }
 
-if(length(input_sce_files) == 1){
+if (length(input_sce_files) == 1) {
   stop("Only 1 input file provided, no merging or integration will be performed for this group")
 }
 
 # use library ids to name list of input files
-if(is.null(opt$input_library_ids)){
+if (is.null(opt$input_library_ids)) {
   # extract library ids from filename
   names(input_sce_files) <- stringr::word(basename(input_sce_files), 1, sep = "_")
 } else {
   # pull library ids from list
-  names(input_sce_files) <- unlist(stringr::str_split(opt$input_library_ids, ','))
+  names(input_sce_files) <- unlist(stringr::str_split(opt$input_library_ids, ","))
 }
 
 # sort inputs by library id
@@ -72,7 +72,7 @@ input_sce_files <- input_sce_files[order(names(input_sce_files))]
 
 # check that input files exist
 missing_sce_files <- input_sce_files[which(!file.exists(input_sce_files))]
-if(length(missing_sce_files) > 0){
+if (length(missing_sce_files) > 0) {
   stop(
     glue::glue(
       "\nCannot find input file: {missing_sce_files}."
@@ -81,10 +81,10 @@ if(length(missing_sce_files) > 0){
 }
 
 # set up multiprocessing params
-if(opt$threads > 1){
-  bp_param = BiocParallel::MulticoreParam(opt$threads)
+if (opt$threads > 1) {
+  bp_param <- BiocParallel::MulticoreParam(opt$threads)
 } else {
-  bp_param = BiocParallel::SerialParam()
+  bp_param <- BiocParallel::SerialParam()
 }
 
 # Merge SCEs -------------------------------------------------------------------
@@ -93,9 +93,11 @@ if(opt$threads > 1){
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
 
 # check that all input RDS files contain SCE objects
-sce_checks <- purrr::map(sce_list,
-                         \(x) is(x, "SingleCellExperiment"))
-if(!all(sce_checks)){
+sce_checks <- purrr::map(
+  sce_list,
+  \(x) is(x, "SingleCellExperiment")
+)
+if (!all(sce_checks)) {
   stop(
     "All input files must contain a `SingleCellExperiment` object."
   )
@@ -103,9 +105,10 @@ if(!all(sce_checks)){
 
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(sce_list,
-                                         batch_column = "library_id",
-                                         preserve_rowdata_cols = "gene_symbol",
-                                         cell_id_column = "cell_id")
+  batch_column = "library_id",
+  preserve_rowdata_cols = "gene_symbol",
+  cell_id_column = "cell_id"
+)
 
 
 # HVG selection ----------------------------------------------------------------
@@ -114,35 +117,42 @@ merged_sce <- scpcaTools::merge_sce_list(sce_list,
 batch_column <- merged_sce$library_id
 
 # model gene variance
-gene_var_block <- scran::modelGeneVar(merged_sce,
-                                      block = batch_column,
-                                      BPPARAM = bp_param)
+gene_var_block <- scran::modelGeneVar(
+  merged_sce,
+  block = batch_column,
+  BPPARAM = bp_param
+)
 # identify subset of variable genes
 hvg_list <- scran::getTopHVGs(gene_var_block,
-                               n = opt$n_hvg)
+  n = opt$n_hvg
+)
 
 metadata(merged_sce)$merged_hvgs <- hvg_list
 
 # Dim Reduction PCA and UMAP----------------------------------------------------
 
 # multi batch PCA on merged object
-multi_pca <- batchelor::multiBatchPCA(merged_sce,
-                                      subset.row = hvg_list,
-                                      batch = batch_column,
-                                      preserve.single = TRUE,
-                                      BPPARAM = bp_param)
+multi_pca <- batchelor::multiBatchPCA(
+  merged_sce,
+  subset.row = hvg_list,
+  batch = batch_column,
+  preserve.single = TRUE,
+  BPPARAM = bp_param
+)
 
 # add PCA results to merged SCE object
 reducedDim(merged_sce, "PCA") <- multi_pca[[1]]
 
 # add UMAP
 merged_sce <- scater::runUMAP(merged_sce,
-                              dimred = "PCA",
-                              BPPARAM = bp_param)
+  dimred = "PCA",
+  BPPARAM = bp_param
+)
 
 # write out merged sce file
-readr::write_rds(merged_sce,
-                 opt$output_sce_file,
-                 compress = "gz",
-                 compression = 2)
-
+readr::write_rds(
+  merged_sce,
+  opt$output_sce_file,
+  compress = "gz",
+  compression = 2
+)

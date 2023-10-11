@@ -11,8 +11,8 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if (!file(params.celltype_refs_metafile).exists()) {
-  log.error("The 'celltype_refs_metafile' file '${params.celltype_refs_metafile}' can not be found.")
+if (!file(params.celltype_project_metafile).exists()) {
+  log.error("The 'celltype_project_metafile' file '${params.celltype_project_metafile}' can not be found.")
   param_error = true
 }
 
@@ -52,10 +52,12 @@ workflow {
              || (it.submitter == params.project)
              || (it.project_id == params.project)
             }
-    // tuple of meta, processed rds file to use as input to cell type annotation
-    .map{meta -> tuple(meta,
-                       file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds")
-                       )}
+      // tuple of meta, processed RDS file, processed hdf5 file to use as input to classifying celltypes
+      .map{meta -> tuple(meta,
+                        file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed.rds"),
+                        file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed_rna.hdf5")
+                        )}
 
     annotate_celltypes(processed_sce_ch)
+
 }

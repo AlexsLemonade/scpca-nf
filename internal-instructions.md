@@ -33,7 +33,7 @@ nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.5.4 -profile ccdl,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.6.0 -profile ccdl,batch --project SCPCP000000
 ```
 
 ### Processing example data
@@ -41,13 +41,22 @@ nextflow run AlexsLemonade/scpca-nf -r v0.5.4 -profile ccdl,batch --project SCPC
 We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users.
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
-The following command should be used to run the workflow and process the example data:
+First, please check the metadata files present in `s3://scpca-references/example-data` are up to date with changes in the workflow.
+There should be both an `example_run_metadata.tsv` and `example_sample_metadata.tsv`.
+The columns of these files should match the expected input columns of the workflow (see the section on preparing the [run metadata](./external-instructions.md#prepare-the-run-metadata-file) and [sample metadata](./external-instructions.md#prepare-the-sample-metadata-file)).
+
+Additionally, the `example_run_metadata.tsv` should contain at least 1 row with `run01` in the `scpca_run_id` column and `s3://scpca-references/example-data/example_fastqs/run01` in the `files_directory` column.
+
+Once you have confirmed that the metadata looks correct, the following commands should be used to run the workflow and process the example data:
 
 ```sh
-nextflow run AlexsLemonade/scpca-nf \
+nextflow pull AlexsLemonade/scpca-nf -r development
+
+nextflow run AlexsLemonade/scpca-nf -r development \
   -profile ccdl,batch \
   --run_ids run01 \
-  --run_metafile s3://scpca-references/example-data/example_metadata.tsv \
+  --run_metafile s3://scpca-references/example-data/example_run_metadata.tsv \
+  --sample_metafile s3://scpca-references/example-data/example_sample_metadata.tsv \
   --outdir s3://scpca-references/example-data/scpca_out
 ```
 
@@ -67,12 +76,24 @@ See [instructions for adding additional organisms](#adding-additional-organisms)
 For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
 This file is required as input to `scpca-nf`.
 
+3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type assignment using `add-celltypes.nf`.
+For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
+All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+This should be a comma-separated list of all organs to include.
+To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
+
+4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
+This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+
 ### Adding additional organisms
 
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the ensembl `version`:
+Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
@@ -88,3 +109,12 @@ homo_sapiens
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
+
+## Adding additional cell type references
+
+Follow the below steps to add support for additional cell type references.
+We currently only support `celldex` and `PanglaoDB` for reference sources.
+
+1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
+2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
+3. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references/celltype`).
