@@ -93,24 +93,26 @@ process add_celltypes_to_sce {
   input:
     tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir)
   output:
-    tuple val(meta), path(processed_rds)
+    tuple val(meta), path(annotated_rds)
   script:
+    annotated_rds = "${meta.library_id}_processed_annotated.rds"
     singler_present = "${singler_dir.name}" != "NO_FILE"
     singler_results = "${singler_dir}/singler_results.rds"
     cellassign_present = "${cellassign_dir}.name" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
-    cellassign_ref_name = file("${meta.cellassign_reference_file}").name
+    cellassign_ref_name = file("${meta.cellassign_reference_file}").baseName
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
-      --output_sce_file ${processed_rds} \
+      --output_sce_file ${annotated_rds} \
       ${singler_present ? "--singler_results  ${singler_results}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
       ${cellassign_present ? "--cellassign_ref_name ${cellassign_ref_name}" : ''}
     """
   stub:
+    annotated_rds = "${meta.library_id}_processed_annotated.rds"
     """
-    touch ${processed_rds}
+    touch ${annotated_rds}
     """
 }
 
@@ -209,10 +211,15 @@ workflow annotate_celltypes {
 
       // incorporate annotations into SCE object
       add_celltypes_to_sce(assignment_input_ch.add_celltypes)
+      
+      // mix in libraries without new celltypes
+      // result is [meta, proccessed rds]
+      celltyped_ch = assignment_input_ch.no_celltypes
+        .map{[it[0], it[1]]}
+        .mix(add_celltypes_to_sce.out) 
 
       // add back in the unchanged sce files to the results
-      export_channel = add_celltypes_to_sce.out
-        .mix(assignment_input_ch.no_celltypes.map{[it[0], it[1]]})
+      export_channel = celltyped_ch
         .map{[it[0]["library_id"]] + it}
         // add in unfiltered and filtered sce files
         .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},

@@ -22,7 +22,7 @@ option_list <- list(
     help = "path to output rds file to store annotated sce object. Must end in .rds"
   ),
   make_option(
-    opt_str = c("singler_results"),
+    opt_str = c("--singler_results"),
     type = "character",
     help = "path to rds file containing SingleR results object"
   ),
@@ -34,7 +34,7 @@ option_list <- list(
   make_option(
     opt_str = c("--cellassign_ref_name"),
     type = "character",
-    help = "Name of reference used for CellAssign"
+    help = "name of reference used for CellAssign"
   )
 )
 
@@ -109,6 +109,7 @@ if(!is.null(opt$cellassign_predictions)){
   
   predictions <- readr::read_tsv(opt$cellassign_predictions)
   
+  # get cell type with maximum prediction value for each cell
   celltype_assignments <- predictions |>
     tidyr::pivot_longer(
       !barcode,
