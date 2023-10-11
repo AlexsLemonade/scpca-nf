@@ -137,7 +137,7 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 | `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file |
-
+``
 
 We have provided an example run metadata file for reference.
 
@@ -481,6 +481,19 @@ This file should contain these five columns with the following information (see 
 | `cellassign_ref_name` | reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle` |
 | `cellassign_ref_file` | path to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv` |
 
+#### Repeating cell type annotation
+
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will, by default, skip cell type annotation for any libraries whose cell type annotation results exist in the `checkpoints` folder of the output directory.
+If the cell type annotation reference versions are unchanged, this will save substantial processing time and cost.
+However, you may wish to repeat the cell typing process if there have been other changes to the data.
+
+To force repeating the cell type annotation process, use the `--repeat_celltyping` flag along with the `--perform_celltyping` flag at the command line:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_celltyping \
+  --repeat_celltyping \
+```
 
 ## Output files
 
