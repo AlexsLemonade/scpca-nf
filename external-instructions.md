@@ -438,7 +438,7 @@ After building the docker image, you will need to push it to a [private docker r
 
 ### Providing existing cell type labels
 
-If you have already peformed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file ([see example here](examples/example_run_metadata.tsv)).
+If you have already performed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file ([see example here](examples/example_run_metadata.tsv)).
 This column should be filled with the path or uri to a TSV file with existing cell type labels.
 
 This file _must_ include the following columns:
@@ -456,7 +456,7 @@ Optionally, you can also include a column `cell_type_ontology` with ontology lab
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
 You can turn on cell type annotation by using the `--perform_celltyping` flag.
-You will also need to provide an addtional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level, which can be specified at the command line (shown below) or defined in your configuration file.
+You will also need to provide an additional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level, which can be specified at the command line (shown below) or defined in your configuration file.
 
 For example, you would run from the command line as:
 
@@ -483,7 +483,7 @@ This file should contain these five columns with the following information (see 
 | `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData`. Use `NA` to skip `SingleR` annotation |
 | `singler_ref_file` | Path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle`. Use `NA` to skip `CellAssign` annotation |
-| `cellassign_ref_file` | Rath to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | Path to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv`. Use `NA` to skip `CellAssign` annotation |
 
 #### Repeating cell type annotation
 
