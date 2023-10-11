@@ -67,7 +67,7 @@ process classify_cellassign {
 
     # Run CellAssign
     predict_cellassign.py \
-      --input_hdf5_file "processed.hdf5"
+      --input_hdf5_file "processed.hdf5" \
       --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
       --reference "${cellassign_reference_file}" \
       --seed ${params.seed} \
