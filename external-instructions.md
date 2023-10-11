@@ -130,7 +130,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
 | `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
 | `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
-| `files_directory` | The path/uri to directory containing fastq files (unique per run) |
+| `files_directory` | The full path/uri to directory containing fastq files (unique per run) |
 
 The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or including existing cell type labels.
 
@@ -479,11 +479,11 @@ This file should contain these five columns with the following information (see 
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `scpca_project_id`| project ID matching values in the metadata file |
-| `singler_ref_name` | reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData` |
-| `singler_ref_file` | path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds` |
-| `cellassign_ref_name` | reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle` |
-| `cellassign_ref_file` | path to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv` |
+| `scpca_project_id`| Project ID matching values in the metadata file |
+| `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData` |
+| `singler_ref_file` | Path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds` |
+| `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle` |
+| `cellassign_ref_file` | Rath to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv` |
 
 #### Repeating cell type annotation
 
