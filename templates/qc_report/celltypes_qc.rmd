@@ -1,5 +1,10 @@
 # Cell type Annotation Summary
 
+```{r, child='utils/celltype_functions.rmd'}
+
+```
+
+
 ```{r}
 ## function definitions ##
 
@@ -110,66 +115,6 @@ plot_umap <- function(
       )
     ) +
     theme(legend.position = "bottom")
-}
-
-#' Create `celltype_df` data frame for use in cell type QC reports
-#'
-#' @param processed_sce The processed sce object with cell type annotations in colData
-#'
-#' @return `celltype_df` with column of cell types, as factors, for each annotation method
-create_celltype_df <- function(processed_sce) {
-  celltype_df <- processed_sce |>
-    scuttle::makePerCellDF(use.dimred = "UMAP") |>
-    # rename UMAP columns as needed to remove potential period added by `scuttle::makePerCellDF`
-    dplyr::rename_with(
-      \(x) stringr::str_replace(x, "^UMAP\\.", "UMAP"),
-      starts_with("UMAP")
-    ) |>
-    # only keep columns of interest
-    dplyr::select(
-      barcodes,
-      cluster,
-      contains("UMAP"),
-      contains("singler"),
-      contains("cellassign"),
-      contains("submitter")
-    )
-
-  if ("singler_celltype_annotation" %in% names(celltype_df)) {
-    celltype_df <- celltype_df |>
-      prepare_annotation_values(singler_celltype_annotation)
-  }
-  if ("cellassign_celltype_annotation" %in% names(celltype_df)) {
-    celltype_df <- celltype_df |>
-      prepare_annotation_values(cellassign_celltype_annotation)
-  }
-
-  return (celltype_df)
-}
-
-#' Prepare and reformat cell type annotation values for use in QC reports
-#'  Unknown cell types are updated with the label "Unknown cell type", and
-#'  cell types are ordered in order of descending frequency, but with
-#'  "Unknown cell type" as the last level
-#'
-#' @param df The data frame containing cell type annotations, one row per cell
-#' @param annotation_column The column (written plainly, not a string) containing annotations to reformat
-#'
-#' @return Updated data frame with the `annotation_column` reformatted
-prepare_annotation_values <- function(df, annotation_column) {
-  df |>
-    dplyr::mutate(
-      {{ annotation_column }} := dplyr::case_when(
-        # singler condition
-        is.na({{ annotation_column }}) ~ "Unknown cell type",
-        # cellassign conditon
-        {{ annotation_column }} == "other" ~ "Unknown cell type",
-        # otherwise, keep it
-        .default = {{ annotation_column }}
-      ) |>
-        forcats::fct_infreq() |>
-        forcats::fct_relevel("Unknown cell type", after = Inf)
-    )
 }
 
 ```
