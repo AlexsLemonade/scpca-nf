@@ -162,11 +162,7 @@ processed_sce_meta <- metadata(processed_sce)
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # check for multiplexing
-multiplexed <- if (length(sample_ids) > 1) {
-  TRUE
-} else {
-  FALSE
-}
+multiplexed <- length(sample_ids) > 1
 
 # sanity check ids
 if (!is.null(sce_meta$sample_id)) {
