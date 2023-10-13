@@ -204,7 +204,7 @@ workflow annotate_celltypes {
         .map{it.drop(1)} // remove library_id
         .branch{
           // pull out libraries that actually have at least 1 type of annotations
-          add_celltypes: (it[2].name != "NO_FILE") || (it[3].name != "NO_FILE")
+          add_celltypes: (it[2].baseName != "NO_FILE") || (it[3].baseName != "NO_FILE")
           no_celltypes: true
         }
 
