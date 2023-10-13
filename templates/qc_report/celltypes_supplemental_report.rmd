@@ -34,15 +34,7 @@ theme_set(
       strip.background = element_rect(fill = "transparent")
     )
 )
-```
 
-
-```{r, child='utils/celltype_functions.rmd'}
-
-```
-
-
-```{r setup, message = FALSE, echo = FALSE}
 # define library and sce object
 library_id <- params$library
 processed_sce <- params$processed_sce
