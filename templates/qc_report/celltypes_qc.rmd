@@ -1,9 +1,5 @@
 # Cell type Annotation Summary
 
-```{r, child='utils/celltype_functions.rmd'}
-
-```
-
 
 ```{r}
 ## function definitions ##
