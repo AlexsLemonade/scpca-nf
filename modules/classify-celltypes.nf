@@ -22,7 +22,6 @@ process classify_singler {
       classify_SingleR.R \
         --sce_file "${processed_rds}" \
         --singler_model_file "${singler_model_file}" \
-        --output_singler_annotations_file "${singler_dir}/singler_annotations.tsv" \
         --output_singler_results_file "${singler_dir}/singler_results.rds" \
         --seed ${params.seed} \
         --threads ${task.cpus}
@@ -211,12 +210,12 @@ workflow annotate_celltypes {
 
       // incorporate annotations into SCE object
       add_celltypes_to_sce(assignment_input_ch.add_celltypes)
-      
+
       // mix in libraries without new celltypes
       // result is [meta, proccessed rds]
       celltyped_ch = assignment_input_ch.no_celltypes
         .map{[it[0], it[1]]}
-        .mix(add_celltypes_to_sce.out) 
+        .mix(add_celltypes_to_sce.out)
 
       // add back in the unchanged sce files to the results
       export_channel = celltyped_ch
