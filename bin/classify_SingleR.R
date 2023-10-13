@@ -18,7 +18,7 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
-    help = "path to file containing a single model generated for SingleR annotation. 
+    help = "path to file containing a single model generated for SingleR annotation.
             File name is expected to be in form: <model name>_model.rds."
   ),
   make_option(
@@ -44,7 +44,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # Set up -----------------------------------------------------------------------
 
 # set seed
-set.seed(opt$random_seed)
+set.seed(opt$seed)
 
 # check that input file file exists
 if (!file.exists(opt$sce_file)) {
