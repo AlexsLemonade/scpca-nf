@@ -34,7 +34,10 @@ theme_set(
       strip.background = element_rect(fill = "transparent")
     )
 )
+<!-- Import shared functions for cell type plotting -->
+```{r, child='utils/celltype_functions.rmd'}
 
+```
 # define library and sce object
 library_id <- params$library
 processed_sce <- params$processed_sce
