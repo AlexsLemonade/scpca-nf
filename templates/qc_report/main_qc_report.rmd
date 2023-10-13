@@ -546,7 +546,11 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 
 ```
 
-<!-- Next section only included if celltype annotations are present -->
+<!-- Next sections only included if celltype annotations are present -->
+```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
+
+```
+
 ```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 
 ```

@@ -141,9 +141,9 @@ workflow map_quant_feature{
     feature_ch = feature_channel
       .map{
         def meta = it.clone();
-        meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
-        meta.feature_rad_dir = "${it.feature_rad_publish_dir}/${it.run_id}-features";
-        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+        meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}";
+        meta.feature_rad_dir = "${meta.feature_rad_publish_dir}/${meta.run_id}-features";
+        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
       .branch{

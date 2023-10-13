@@ -116,8 +116,8 @@ workflow spaceranger_quant{
           .map{
             def meta = it.clone();
             meta.cr_samples = getCRsamples(it.files_directory);
-            meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${it.library_id}";
-            meta.spaceranger_results_dir = "${it.spaceranger_publish_dir}/${it.run_id}-spatial";
+            meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}";
+            meta.spaceranger_results_dir = "${meta.spaceranger_publish_dir}/${meta.run_id}-spatial";
             meta // return modified meta object
           }
           .branch{
