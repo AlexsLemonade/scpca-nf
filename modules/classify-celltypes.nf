@@ -97,7 +97,7 @@ process add_celltypes_to_sce {
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     singler_present = "${singler_dir.name}" != "NO_FILE"
     singler_results = "${singler_dir}/singler_results.rds"
-    cellassign_present = "${cellassign_dir}.name" != "NO_FILE"
+    cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
     cellassign_ref_name = file("${meta.cellassign_reference_file}").baseName
     """
@@ -148,6 +148,8 @@ workflow annotate_celltypes {
           meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
           meta.singler_model_file = singler_model_file;
           meta.cellassign_reference_file = cellassign_reference_file;
+          meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
+          meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv"
           // return simplified input:
           [meta, processed_sce]
         }
@@ -157,18 +159,24 @@ workflow annotate_celltypes {
       singler_input_ch = celltype_input_ch
         // add in singler model or empty file
         .map{it.toList() + [file(it[0].singler_model_file ?: empty_file)]}
-        // skip if no singleR model file
+        // skip if no singleR model file or if singleR results are already present
         .branch{
-          missing_ref: it[2].name == "NO_FILE"
+          skip_singler: (!params.repeat_celltyping && file(it[0].singler_results_file).exists())
+                        || it[2].name == "NO_FILE"
           do_singler: true
         }
 
 
       // perform singleR celltyping and export results
       classify_singler(singler_input_ch.do_singler)
+
       // singleR output channel: [library_id, singler_results]
-      singler_output_ch = singler_input_ch.missing_ref
-        .map{[it[0]["library_id"], file(empty_file)]}
+      singler_output_ch = singler_input_ch.skip_singler
+        // provide existing singler results dir for those we skipped and empty file for those missing reference
+        .map{[
+          it[0]["library_id"],
+          file(it[0].singler_results_file).exists() ? file(it[0].singler_dir, type: 'dir') : file(empty_file)
+          ]}
         // add in channel outputs
         .mix(classify_singler.out)
 
@@ -178,7 +186,8 @@ workflow annotate_celltypes {
         .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file)]}
         // skip if no cellassign reference file or reference name is not defined
         .branch{
-          missing_ref: it[2].name == "NO_FILE"
+          skip_cellassign: (!params.repeat_celltyping && file(it[0].cellassign_predictions_file).exists())
+                           || it[2].name == "NO_FILE"
           do_cellassign: true
         }
 
@@ -187,14 +196,18 @@ workflow annotate_celltypes {
       classify_cellassign(cellassign_input_ch.do_cellassign)
 
       // cellassign output channel: [library_id, cellassign_dir]
-      cellassign_output_ch = cellassign_input_ch.missing_ref
-        .map{[it[0]["library_id"], file(empty_file)]}
+      cellassign_output_ch = cellassign_input_ch.skip_cellassign
+        // provide existing cellassign predictions dir for those we skipped and empty file for those missing reference
+        .map{[
+          it[0]["library_id"],
+          file(it[0].cellassign_predictions_file).exists() ? file(it[0].cellassign_dir, type: 'dir') : file(empty_file)
+          ]}
         // add in channel outputs
         .mix(classify_cellassign.out)
 
       // prepare input for process to add celltypes to the processed SCE
       // result is [meta, processed rds, singler dir, cellassign dir]
-      assignment_input_ch = processed_sce_channel
+      assignment_input_ch = celltype_input_ch
         .map{[it[0]["library_id"]] + it}
         // add in singler results
         .join(singler_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
@@ -202,7 +215,7 @@ workflow annotate_celltypes {
         .join(cellassign_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
         .map{it.drop(1)} // remove library_id
         .branch{
-          // pull out libraries that actually have at least 1 type of annotations
+          // pull out libraries that actually have at least 1 type of annotation
           add_celltypes: (it[2].baseName != "NO_FILE") || (it[3].baseName != "NO_FILE")
           no_celltypes: true
         }
