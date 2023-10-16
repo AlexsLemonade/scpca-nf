@@ -120,58 +120,54 @@ plot_umap <- function(
 
 
 <!-- Submitter _only_ -->
-```{r, eval = has_submitter & !(has_singler | has_cellassign)}
-knitr::asis_output(
-  glue::glue("
+```{r, eval = has_submitter & !(has_singler | has_cellassign), results='asis'}
+glue::glue("
   This section details cell type annotations provided by the original lab (`submitter-provided`) which generated this data.
   ")
-)
 ```
 
 
 <!-- At least one cell type annotation method. -->
-```{r, eval = has_singler | has_cellassign}
-knitr::asis_output(
-  glue::glue("
+```{r, eval = has_singler | has_cellassign, results='asis'}
+glue::glue("
   This section details results from performing cell type annotation.
   The following method(s) were used to perform cell typing:
  ")
-)
 ```
 
 
-```{r, eval = has_singler}
-knitr::asis_output(
-  glue::glue(
+```{r, eval = has_singler, results='asis'}
+glue::glue(
   "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
   The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
-  )
 )
 ```
 
 
-```{r, eval = has_cellassign}
-knitr::asis_output(
-  glue::glue(
+```{r, eval = has_cellassign, results='asis'}
+glue::glue(
   "* [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
   Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
   "
-  )
 )
 ```
 
 
 <!-- Submitter and at least one inference method -->
-```{r, eval = has_submitter & (has_singler | has_cellassign)}
-knitr::asis_output(
-  glue::glue(
+```{r, eval = has_submitter & (has_singler | has_cellassign), results='asis'}
+glue::glue(
   "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data.
   "
-  )
 )
 ```
 
-For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+
+<!-- At least one cell type annotation method required for the supplemental report -->
+```{r, eval = has_singler | has_cellassign, results='asis'}
+glue::glue("
+  For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+ ")
+```
 
 
 ## Statistics
