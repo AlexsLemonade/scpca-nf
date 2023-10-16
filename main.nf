@@ -224,12 +224,16 @@ workflow {
   // Cluster SCE
   cluster_sce(post_process_sce.out)
 
-  // Perform celltyping, if specified
-  annotate_celltypes(cluster_sce.out)
-  
+  if(params.perform_celltyping){
+    // Perform celltyping, if specified
+    annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
+  } else {
+    annotated_celltype_ch = cluster_sce.out
+  }
+
   // generate QC reports
   sce_qc_report(
-    annotate_celltypes.out, 
+    annotated_celltype_ch,
     report_template_tuple
   )
 
