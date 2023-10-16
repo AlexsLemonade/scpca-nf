@@ -106,9 +106,9 @@ workflow map_quant_rna {
     rna_channel = rna_channel
       .map{
         def meta = it.clone();
-        meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${it.library_id}";
-        meta.rad_dir = "${it.rad_publish_dir}/${it.run_id}-rna";
-        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+        meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}";
+        meta.rad_dir = "${meta.rad_publish_dir}/${meta.run_id}-rna";
+        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
        // split based in whether repeat_mapping is false and a previous dir exists

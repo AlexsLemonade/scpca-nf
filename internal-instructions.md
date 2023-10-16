@@ -77,7 +77,7 @@ Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.5.4 -profile ccdl,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.6.0 -profile ccdl,batch --project SCPCP000000
 ```
 
 ### Processing example data

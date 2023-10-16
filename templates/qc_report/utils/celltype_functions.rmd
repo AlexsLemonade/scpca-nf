@@ -1,3 +1,6 @@
+
+
+```{r}
 library(SingleCellExperiment)
 
 # This script contains function definitions that are used by both
@@ -65,5 +68,5 @@ prepare_annotation_values <- function(df, annotation_column) {
         forcats::fct_relevel("Unknown cell type", after = Inf)
     )
 }
-
+```
 

@@ -1,10 +1,8 @@
 # Cell type Annotation Summary
 
+
 ```{r}
 ## function definitions ##
-
-# Source functions for preparing cell type data
-source(file.path("utils", "celltype_functions.R"))
 
 #' Create tables of cell type annotation counts
 #'
@@ -114,6 +112,7 @@ plot_umap <- function(
     ) +
     theme(legend.position = "bottom")
 }
+
 ```
 
 
