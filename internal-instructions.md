@@ -44,7 +44,7 @@ There are several flags and/or parameters which you may additionally wish to spe
   + `-with-tower`: Use `Nextflow Tower` to monitor workflow (requires separate [Nextflow Tower registration](https://tower.nf/))
 + Workflow parameters:
   + `--run_ids list,of,ids`: A custom comma-separated list of ids (run, library, or sample) for this run.
-  + `--project list,of,project_ids`: A custom comma-separated list of project ids for this run 
+  + `--project list,of,project_ids`: A custom comma-separated list of project ids for this run
   [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
   + `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
     + By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
@@ -67,7 +67,8 @@ nextflow -log stub-run.log run main.nf -stub -profile stub
 ```
 
 The run log will be saved to `stub-run.log`.
-Optionally, you can also add the parameter `--outdir <name of local directory for output>` to ensure accurate contents in `checkpoints` and `results` directories.
+By default, the output directory (`outdir` parameter) is set as `test/output`.
+You may wish to verify that output contents in `test/output/checkpoints` and `test/output/results` are as expected when running the `stub` workflow.
 
 Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more information on maintaining the stub workflow.
 
