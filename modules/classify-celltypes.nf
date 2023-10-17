@@ -173,7 +173,7 @@ workflow annotate_celltypes {
       // singleR output channel: [library_id, singler_results]
       singler_output_ch = singler_input_ch.skip_singler
         // provide existing singler results dir for those we skipped
-        .map{[it[0]["library_id"], file(it[0].singler_dir, type: 'dir')}
+        .map{[it[0]["library_id"], file(it[0].singler_dir, type: 'dir')]}
         // add empty file for missing ref samples
         .mix(singler_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file)]} )
         // add in channel outputs
@@ -185,8 +185,8 @@ workflow annotate_celltypes {
         .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file)]}
         // skip if no cellassign reference file or reference name is not defined
         .branch{
-          skip_cellassign: (!params.repeat_celltyping && file(it[0].cellassign_predictions_file).exists())
-                           || it[2].name == "NO_FILE"
+          skip_cellassign: !params.repeat_celltyping && file(it[0].cellassign_predictions_file).exists()
+          missing_ref: it[2].name == "NO_FILE"
           do_cellassign: true
         }
 
@@ -196,11 +196,10 @@ workflow annotate_celltypes {
 
       // cellassign output channel: [library_id, cellassign_dir]
       cellassign_output_ch = cellassign_input_ch.skip_cellassign
-        // provide existing cellassign predictions dir for those we skipped and empty file for those missing reference
-        .map{[
-          it[0]["library_id"],
-          file(it[0].cellassign_predictions_file).exists() ? file(it[0].cellassign_dir, type: 'dir') : file(empty_file)
-          ]}
+        // provide existing cellassign predictions dir for those we skipped
+        .map{[it[0]["library_id"], file(it[0].cellassign_dir, type: 'dir')]}
+        // add empty file for missing ref samples
+        .mix(cellassign_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file)]} )
         // add in channel outputs
         .mix(classify_cellassign.out)
 
