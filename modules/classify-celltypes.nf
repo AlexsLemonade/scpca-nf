@@ -161,8 +161,8 @@ workflow annotate_celltypes {
         .map{it.toList() + [file(it[0].singler_model_file ?: empty_file)]}
         // skip if no singleR model file or if singleR results are already present
         .branch{
-          skip_singler: (!params.repeat_celltyping && file(it[0].singler_results_file).exists())
-                        || it[2].name == "NO_FILE"
+          skip_singler: !params.repeat_celltyping && file(it[0].singler_results_file).exists()
+          missing_ref: it[2].name == "NO_FILE"
           do_singler: true
         }
 
@@ -172,11 +172,10 @@ workflow annotate_celltypes {
 
       // singleR output channel: [library_id, singler_results]
       singler_output_ch = singler_input_ch.skip_singler
-        // provide existing singler results dir for those we skipped and empty file for those missing reference
-        .map{[
-          it[0]["library_id"],
-          file(it[0].singler_results_file).exists() ? file(it[0].singler_dir, type: 'dir') : file(empty_file)
-          ]}
+        // provide existing singler results dir for those we skipped
+        .map{[it[0]["library_id"], file(it[0].singler_dir, type: 'dir')}
+        // add empty file for missing ref samples
+        .mix(singler_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file)]} )
         // add in channel outputs
         .mix(classify_singler.out)
 
