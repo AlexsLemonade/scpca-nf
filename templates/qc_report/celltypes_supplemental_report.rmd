@@ -168,8 +168,8 @@ ggplot(delta_median_df) +
   scale_shape_manual(values = c(19, 21)) +
   scale_alpha_manual(values = c(0.5, 1)) +
   labs(
-    x = "Cell type annotation",
-    y = "Delta median statistic",
+    x = "Delta median statistic",
+    y = "Cell type annotation",
     shape = "Confidence in cell type assignment"
   ) +
   # add median diamond for confident points only
