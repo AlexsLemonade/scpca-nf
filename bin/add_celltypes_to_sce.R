@@ -99,7 +99,7 @@ if(!is.null(opt$singler_results)){
 
   # add singler info to metadata
   metadata(sce)$singler_results <- singler_results
-  metadata(sce)$reference_name <- metadata(singler_results)$reference_name
+  metadata(sce)$singler_reference <- metadata(singler_results)$reference_name
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
