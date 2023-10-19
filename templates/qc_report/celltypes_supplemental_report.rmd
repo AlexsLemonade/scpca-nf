@@ -84,12 +84,13 @@ You can interpret this plot as follows:
   - High-confidence cell annotations are shown as closed points.
   - Low-confidence cell annotations are shown as open points. 
   In other sections of this report, these cells are referred to as `Unknown cell types`.
+  - For more information on `SingleR's` confident assessment, please refer to [this `SingleR` documentation](https://rdrr.io/bioc/SingleR/man/pruneScores.html).
 - Red diamonds represent the median _delta median_ statistic among high-confidence points for the given annotation.
 ")
 ```
 
 
-```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = 7, fig.width = 6.5}
+```{r, eval = has_singler, warning=FALSE, message=FALSE}
 # Prepare SingleR scores for plot
 
 # extract scores into matrix
@@ -147,6 +148,11 @@ delta_median_df$annotation_wrapped <- factor(
 delta_median_confident_df <- delta_median_df |>
   dplyr::filter(confident == "Confident")
 
+# Determine height for plot area based on number of cells
+plot_height <- length(unique(delta_median_df$celltype))/2.5
+```
+
+```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6.5}
 # Plot delta_median across celltypes colored by pruning
 ggplot(delta_median_df) +
   aes(
@@ -156,8 +162,8 @@ ggplot(delta_median_df) +
     alpha = confident
   ) +
   ggforce::geom_sina(
-    size = 0.75,
-    alpha = 0.5,
+    size = 0.8,
+    alpha = 0.55,
     color = "black", # will get applied to all confident points and non-confident outline
     fill = "white", # will apply to non-confident fill only
     position = position_dodge(width = 0.05) # Keep both types of points mostly in line
@@ -179,27 +185,14 @@ ggplot(delta_median_df) +
     geom = "point", 
     fun = "median", 
     shape = 18, 
-    size = 2, 
+    size = 2.25, 
     alpha = 0.9
   ) +
-  # add median/IQR
-  #geom_boxplot(
-  #  data = delta_median_confident_df, # only use black points for median
-  #  color = "red",
-  #  width = 0.2,
-  #  size = 0.3,
-  #  alpha = 0,
-  #  # remove whiskers, outliers
-  #  outlier.shape = 0,
-  #  coef = 0
-  #) +
   guides(
-    alpha = FALSE
+    alpha = FALSE, 
+    shape = guide_legend(override.aes = list(size = 1.5, alpha = 0.7))
   ) +
   theme(
-    axis.text.y = element_text(size = rel(0.85)),
-    legend.title = element_text(size = rel(0.75)),
-    legend.text = element_text(size = rel(0.75)),
     legend.position = "bottom"
   )
 ```
