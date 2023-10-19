@@ -70,22 +70,21 @@ In this section, we assess the reliability of cell type annotations using diagno
 knitr::asis_output("
 ### `SingleR` assessment
 
-Here, we evaluate the quality of `SingleR` cell type annotations by comparing the scores for the assigned cell type to the median score of all other cell type labels.
+To assess the quality of the `SingleR`-assigned cell types, we use the _delta median_ statistic.
 
-- This quantity is the _delta median_ statistic. 
-- _Delta median_ is calculated for each cell by subtracting the median score of all other cell type labels from the score of the assigned cell type label.
+- _Delta median_ is calculated for each cell as the difference between the score of the assigned cell type label and  the median score of the other cell type labels in the model.
 - Higher _delta median_ values indicate higher quality cell type annotations.
   - However, there is no universal threshold for calling absolute high vs. low quality, as described in the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
 You can interpret this plot as follows:
 
-- Each point represents the _delta median_ statistic of a given cell whose final `SingleR` annotation is shown on the y-axis.
+- Each point represents the _delta median_ statistic of a given cell whose assigned `SingleR` annotation is shown on the y-axis.
 - The color of the points indicates how confident `SingleR` is in the cell type annotation: 
   - High-quality cell annotations are shown as closed points.
   - Low-quality cell annotations are shown as open points. 
   In other sections of this report, these cells are referred to as `Unknown cell types`.
   - For more information on how `SingleR` calculates annotation quality, please refer to [this `SingleR` documentation](https://rdrr.io/bioc/SingleR/man/pruneScores.html).
-- Red diamonds represent the median _delta median_ statistic among high-quality points for the given annotation.
+- Red diamonds represent the median _delta median_ statistic among high-quality annotations for the given cell type label.
 ")
 ```
 
