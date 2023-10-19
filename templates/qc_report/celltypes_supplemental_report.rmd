@@ -72,7 +72,7 @@ knitr::asis_output("
 
 To assess the quality of the `SingleR`-assigned cell types, we use the _delta median_ statistic.
 
-- _Delta median_ is calculated for each cell as the difference between the score of the assigned cell type label and  the median score of the other cell type labels in the model.
+- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the assigned cell type label and the median score of the other cell type labels in the reference dataset.
 - Higher _delta median_ values indicate higher quality cell type annotations.
   - Values can range from 0-1. 
   - Note that there is no universal threshold for calling absolute high vs. low quality, as described in the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
