@@ -80,7 +80,7 @@ Here, we evaluate the quality of `SingleR` cell type annotations by comparing th
 You can interpret this plot as follows:
 
 - Each point represents the _delta median_ statistic of a given cell whose final `SingleR` annotation is shown on the y-axis.
-- Points are colored by `SingleR`'s internal confidence assessment: 
+- The color of the points indicates how confident `SingleR` is in the cell type assignment: 
   - High-confidence cell annotations are shown as closed points.
   - Low-confidence cell annotations are shown as open points. 
   In other sections of this report, these cells are referred to as `Unknown cell types`.
