@@ -80,7 +80,7 @@ To assess the quality of the `SingleR`-assigned cell types, we use the _delta me
 You can interpret this plot as follows:
 
 - Each point represents the _delta median_ statistic of a given cell whose assigned `SingleR` annotation is shown on the y-axis.
-- The point color indicates `SingleR`'s quality assessment of the annotation::
+- The point color indicates `SingleR`'s quality assessment of the annotation:
   - High-quality cell annotations are shown as closed points.
   - Low-quality cell annotations are shown as open points.
   In other sections of this report, these cells are referred to as `Unknown cell types`.
