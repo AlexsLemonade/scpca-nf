@@ -29,10 +29,22 @@ create_celltype_df <- function(processed_sce) {
       contains("cellassign"),
       contains("submitter")
     )
+  
+  if("submitter_celltype_annotation" %in% names(celltype_df)){
+    celltype_df <- celltype_df |> 
+      dplyr::mutate(submitter_celltype_annotation = dplyr::if_else(
+        is.na(submitter_celltype_annotation),
+        "Unclassified cell", 
+        submitter_celltype_annotation
+      ) |>
+        forcats::fct_infreq() |>
+        forcats::fct_relevel("Unclassified cell", after = Inf)
+      )
+  }
 
   if ("singler_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- celltype_df |>
-      prepare_annotation_values(singler_celltype_annotation)
+      prepare_annotation_values(singler_celltype_annotation) 
   }
   if ("cellassign_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- celltype_df |>
@@ -64,7 +76,9 @@ prepare_annotation_values <- function(df, annotation_column) {
         # otherwise, keep it
         .default = {{ annotation_column }}
       ) |>
+        # order column by number of cells
         forcats::fct_infreq() |>
+        # relevel so unknown is at the end
         forcats::fct_relevel("Unknown cell type", after = Inf)
     )
 }
