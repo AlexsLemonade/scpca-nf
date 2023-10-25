@@ -15,6 +15,8 @@ class Utils {
      */
   static def readMeta(file) {
     def meta = new JsonSlurper().parse(file)
+    meta = meta.each{ key, value -> meta[key] = Utils.parseNA(value) }
+
     return(meta)
   }
 
@@ -38,8 +40,9 @@ class Utils {
    */
   static def getMetaVal(file, key){
     def obj = new JsonSlurper().parse(file)
+    value = Utils.parseNA(obj[key])
 
-    return(obj[key])
+    return(value)
   }
 
 
