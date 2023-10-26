@@ -62,6 +62,9 @@ if(!is.null(opt$singler_results)){
   }
 
   singler_results <- readr::read_rds(opt$singler_results)
+  
+  # get label type from metadata of singler object
+  label_type <- metadata(singler_results)$reference_label
 
   # create a tibble with annotations and barcode
   # later we'll add the annotations into colData by joining on barcodes column
@@ -71,8 +74,8 @@ if(!is.null(opt$singler_results)){
   )
 
   # map ontology labels to cell type names, as needed
-  # we can tell if ontologies were used because this will exist:
-  if ("cell_ontology_df" %in% names(singler_results)) {
+  # label type will be label.ont if ontology is present
+  if (label_type == "label.ont") {
 
     # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
     colData(sce) <- annotations_df |>
@@ -100,6 +103,7 @@ if(!is.null(opt$singler_results)){
   # add singler info to metadata
   metadata(sce)$singler_results <- singler_results
   metadata(sce)$singler_reference <- metadata(singler_results)$reference_name
+  metadata(sce)$singler_reference_label <- label_type
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
