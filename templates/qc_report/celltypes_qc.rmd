@@ -115,48 +115,32 @@ plot_umap <- function(
 
 ```
 
-
 <!-- Background depends on which cell types are present in the SCE. -->
 
+The plots and tables included here detail the results from performing cell type annotation.
+Cell type annotations were obtained in the following way(s): 
 
-<!-- Submitter _only_ -->
-```{r, eval = has_submitter & !(has_singler | has_cellassign), results='asis'}
-glue::glue("
-  This section details cell type annotations provided by the original lab (`submitter-provided`) which generated this data.
-  ")
-```
-
-
-<!-- At least one cell type annotation method. -->
-```{r, eval = has_singler | has_cellassign, results='asis'}
-glue::glue("
-  This section details results from performing cell type annotation.
-  The following method(s) were used to perform cell typing:
- ")
+<!-- Submitter -->
+```{r, eval = has_submitter, results='asis'}
+glue::glue(
+  "* Cell type annotations were provided by the original lab (`submitter-provided`) which generated this data.
+  "
+)
 ```
 
 
 ```{r, eval = has_singler, results='asis'}
 glue::glue(
-  "* [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach.
-  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
+  "* Cell types were annotated using [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
+  The `{metadata(sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
 )
 ```
 
 
 ```{r, eval = has_cellassign, results='asis'}
 glue::glue(
-  "* [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach.
+  "* Cell types were annotated using [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
   Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
-  "
-)
-```
-
-
-<!-- Submitter and at least one inference method -->
-```{r, eval = has_submitter & (has_singler | has_cellassign), results='asis'}
-glue::glue(
-  "* Cell type annotations were also provided by the original lab (`submitter-provided`) which generated this data.
   "
 )
 ```
