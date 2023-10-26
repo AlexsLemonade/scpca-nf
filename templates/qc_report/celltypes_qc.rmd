@@ -117,7 +117,7 @@ plot_umap <- function(
 
 <!-- Background depends on which cell types are present in the SCE. -->
 
-This section details results from performing cell type annotation.
+The plots and tables included here detail the results from performing cell type annotation.
 Cell type annotations were obtained in the following way(s): 
 
 <!-- Submitter -->
