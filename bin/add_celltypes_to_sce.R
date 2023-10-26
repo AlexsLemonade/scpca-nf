@@ -62,7 +62,7 @@ if(!is.null(opt$singler_results)){
   }
 
   singler_results <- readr::read_rds(opt$singler_results)
-  
+
   # get label type from metadata of singler object
   label_type <- metadata(singler_results)$reference_label
 
@@ -78,7 +78,7 @@ if(!is.null(opt$singler_results)){
   if (label_type == "label.ont") {
 
     # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
-    colData(sce) <- annotations_df |>
+    annotations_df <- annotations_df |>
       dplyr::left_join(
         # column names: ontology_id, ontology_cell_names
         singler_results$cell_ontology_df,
