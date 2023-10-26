@@ -55,9 +55,12 @@ class Utils {
    */
   static def parseNA(str) {
     if (str){
-      str.toLowerCase() in ['na','n/a','nan']? '' : str
-    } else {
+      if (str instanceof String) { // has to be a string to have NA vals replaced
+        str.toLowerCase() in ['na','n/a','nan']? '' : str
+      } else { // not a string, so just return the unmodified value
+        str
+      }
+    } else { // all falsey values get turned into empty strings
       ''
     }
-   }
 }
