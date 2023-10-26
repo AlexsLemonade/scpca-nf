@@ -94,6 +94,8 @@ singler_results <- SingleR::classifySingleR(
 
 # add reference name to singler_results DataFrame metadata
 metadata(singler_results)$reference_name <- reference_name
+# add label name to metadata
+metadata(singler_results)$reference_label <- metadata(singler_model)$reference_label
 
 # export results ---------------
 
