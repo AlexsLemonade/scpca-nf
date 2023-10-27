@@ -59,7 +59,7 @@ lump_celltypes <- function(df, n_celltypes = 7) {
     dplyr::mutate(
       across(
         ends_with("_celltype_annotation"),
-        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "Other cell type"),
+        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "All remaining cell types"),
         .names = "{.col}_lumped"
       )
     )
@@ -192,12 +192,8 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 
 ## UMAPs
 
-In this section, we show UMAPs colored by clusters and cell types.
-A separate UMAP is shown for each cell typing method used.
-Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
-
-For legibility, only the seven most common cell types are shown.
-All other cell types are grouped together and labeled "Other cell type" (not to be confused with "Unknown cell types," which represent cells that could not be classified).
+In this section, we show UMAPs colored by clusters. 
+Clusters were calculated using the graph-based `r stringr::str_to_sentence(metadata(processed_sce)$cluster_algorithm)` algorithm with `r stringr::str_to_sentence(metadata(processed_sce)$cluster_weighting)` weights.
 
 
 ```{r}
@@ -225,6 +221,13 @@ if (length(levels(umap_df$cluster)) <= 8) {
   clusters_plot
 }
 ```
+
+
+In this section, we show UMAPs colored by cell types.
+A separate UMAP is shown for each cell typing method used.
+
+For legibility, only the seven most common cell types are shown.
+All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell types," which represent cells that could not be classified).
 
 <!-- Now, UMAPs of cell types, where present -->
 
