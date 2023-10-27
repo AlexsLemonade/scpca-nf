@@ -46,9 +46,6 @@ theme_set(
 library_id <- params$library
 processed_sce <- params$processed_sce
 
-library_id <- "SCPCL000295" 
-processed_sce <- readRDS(glue::glue("{library_id}_processed.rds"))
-
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
@@ -119,30 +116,28 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 
 ```{r}
 # Calculate all jaccard matrices of interest for input to heatmap
-
-# baseline matrix
-jaccard_mat <- matrix(
-  nrow = length(unique(celltype_df$cluster)),  # "cluster" is var1 in code below
-  ncol = 0
-)
-
-# vector to track splitting the heatmap
-split_lengths <- c()  
+jaccard_cluster_matrices <- list()
 
 if (has_submitter) {
-  cluster_submitter_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "submitter_celltype_annotation")
-  jaccard_mat <- cbind(jaccard_mat, cluster_submitter_jaccard_matrix)
-  split_lengths <- c(split_lengths, "Submitter annotations" = nrow(cluster_submitter_jaccard_matrix))
+  jaccard_cluster_matrices[["Submitter-provided"]] <- make_jaccard_matrix(
+    celltype_df, 
+    "cluster", 
+    "submitter_celltype_annotation"
+  )
 }
 if (has_singler) {
-  cluster_singler_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "singler_celltype_annotation")
-  jaccard_mat <- cbind(jaccard_mat, cluster_singler_jaccard_matrix)
-  split_lengths <- c(split_lengths, "SingleR annotations" = nrow(cluster_singler_jaccard_matrix))
+  jaccard_cluster_matrices[["SingleR"]] <- make_jaccard_matrix(
+    celltype_df, 
+    "cluster", 
+    "singler_celltype_annotation"
+  )
 }
 if (has_cellassign) {
-  cluster_cellassign_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "cellassign_celltype_annotation")
-  jaccard_mat <- cbind(jaccard_mat, cluster_cellassign_jaccard_matrix)
-  split_lengths <- c(split_lengths, "CellAssign annotations" = nrow(cluster_cellassign_jaccard_matrix))
+  jaccard_cluster_matrices[["CellAssign"]] <- make_jaccard_matrix(
+    celltype_df, 
+    "cluster", 
+    "cellassign_celltype_annotation"
+  )
 }
 ```
 
