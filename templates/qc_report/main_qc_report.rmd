@@ -124,7 +124,7 @@ if (has_processed) {
 }
 
 # check for celltypes_report if celltypes are present
-if (has_celltypes & is.null(params$celltype_report)) {
+if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
 ```
@@ -546,7 +546,11 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 
 ```
 
-<!-- Next section only included if celltype annotations are present -->
+<!-- Next sections only included if celltype annotations are present -->
+```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
+
+```
+
 ```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 
 ```

@@ -34,10 +34,14 @@ theme_set(
       strip.background = element_rect(fill = "transparent")
     )
 )
+```
 
-# Source functions for preparing cell type data
-source(file.path("utils", "celltype_functions.R"))
+<!-- Import shared functions for cell type wrangling -->
+```{r, child='utils/celltype_functions.rmd'}
 
+```
+
+```{r, message = FALSE, echo = FALSE}
 # define library and sce object
 library_id <- params$library
 processed_sce <- params$processed_sce
@@ -66,21 +70,27 @@ In this section, we assess the reliability of cell type annotations using diagno
 knitr::asis_output("
 ### `SingleR` assessment
 
-`SingleR` assigns cell type scores based on Spearman correlations across features in the reference dataset.
-We evaluate the reliability of cell type annotations using the per-cell _delta median_ statistic, which is the difference between the score for the cell's assigned label and the median score of all labels for the given cell.
-Higher _delta median_ values indicate more confidence in the cell type annotation, although there is no specific threshold for calling absolute high vs. low confidence.
-For more information, refer to the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
+To assess the quality of the `SingleR`-assigned cell types, we use the _delta median_ statistic.
 
+- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the assigned cell type label and the median score of the other cell type labels in the reference dataset.
+- Higher _delta median_ values indicate higher quality cell type annotations.
+  - Values can range from 0-1.
+  - Note that there is no universal threshold for calling absolute high vs. low quality, as described in the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
-In the plot below, each point is the _delta median_ statistic of a given cell with the given cell type annotation.
-Points (cells) are colored by `SingleR`'s internal confidence assessment: High-quality cell annotations are shown in black, and low-quality cell annotations are shown in blue.
-All blue points correspond to cells labeled as `Unknown cell type` in the `SingleR` result table in the previous section.
-The red overlayed boxes represent the median ± interquartile range (IQR), specifically for high-quality annotations.
+You can interpret this plot as follows:
+
+- Each point represents the _delta median_ statistic of a given cell whose assigned `SingleR` annotation is shown on the y-axis.
+- The point color indicates `SingleR`'s quality assessment of the annotation:
+  - High-quality cell annotations are shown as closed points.
+  - Low-quality cell annotations are shown as open points.
+  In other sections of this report, these cells are referred to as `Unknown cell types`.
+  - For more information on how `SingleR` calculates annotation quality, please refer to [this `SingleR` documentation](https://rdrr.io/bioc/SingleR/man/pruneScores.html).
+- Red diamonds represent the median _delta median_ statistic among high-quality annotations for the given cell type label.
 ")
 ```
 
 
-```{r, eval = has_singler, warning=FALSE, message=FALSE,fig.height = 6, fig.width = 8}
+```{r, eval = has_singler, warning=FALSE, message=FALSE}
 # Prepare SingleR scores for plot
 
 # extract scores into matrix
@@ -94,7 +104,10 @@ delta_median_df <- tibble::tibble(
   # if pruned.labels are NA ==> low confidence
   # so, negate for this variable:
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
-)
+) |>
+  dplyr::mutate(confident =
+    ifelse(confident, "High-quality", "Low-quality")
+  )
 
 # If ontologies were used for `full_labels`, we'll need to map back to cell type names
 #  for the plot itself.
@@ -126,51 +139,59 @@ if (any(delta_median_df$celltype == "Unknown cell type")) {
 # add column with ordered levels with wrapped labels for visualization
 delta_median_df$annotation_wrapped <- factor(
   delta_median_df$celltype,
-  levels = levels(delta_median_df$celltype),
-  labels = stringr::str_wrap(levels(delta_median_df$celltype), 30)
+  # rev() so large groups are at the TOP of the plot
+  levels = rev(levels(delta_median_df$celltype)),
+  labels = rev(stringr::str_wrap(levels(delta_median_df$celltype), 30))
 )
 
 # Subset the data to just confident points for median+/-IQR
 delta_median_confident_df <- delta_median_df |>
-  dplyr::filter(confident)
+  dplyr::filter(confident == "High-quality")
 
+# Determine height for plot area based on number of cells
+plot_height <- length(unique(delta_median_df$celltype))/2.5
+```
+
+```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6.5}
 # Plot delta_median across celltypes colored by pruning
 ggplot(delta_median_df) +
   aes(
-    x = annotation_wrapped,
-    y = delta_median,
-    color = confident
+    x = delta_median,
+    y = annotation_wrapped,
+    shape = confident,
+    alpha = confident
   ) +
   ggforce::geom_sina(
-    size = 0.75,
-    alpha = 0.5,
-    # Keep red points mostly in line with black
-    position = position_dodge(width = 0.05)
+    size = 0.8,
+    color = "black", # will get applied to all confident points and non-confident outline
+    fill = "white", # will apply to non-confident fill only
+    position = position_dodge(width = 0.05) # Keep both types of points mostly in line
   ) +
+  # Handle points aesthetics:
+  #  confident are closed black with alpha = 0.5
+  #  not confident are open black with alpha = 1
+  scale_shape_manual(values = c(19, 21)) +
+  scale_alpha_manual(values = c(0.5, 1)) +
   labs(
-    x = "Cell type annotation",
-    y = "Delta median statistic",
-    color = "Confident cell type assignment"
+    x = "Delta median statistic",
+    y = "Cell type annotation",
+    shape = "Cell type annotation quality"
   ) +
-  scale_color_manual(values = c("blue", "black")) +
-  # add median/IQR
-  geom_boxplot(
-    data = delta_median_confident_df, # only use black points for median
+  # add median diamond for confident points only
+  stat_summary(
+    data = delta_median_confident_df,
     color = "red",
-    width = 0.2,
-    size = 0.3,
-    alpha = 0,
-    # remove whiskers, outliers
-    outlier.shape = 0,
-    coef = 0
+    geom = "point",
+    fun = "median",
+    shape = 18,
+    size = 2.25,
+    alpha = 0.9
   ) +
   guides(
-    color = guide_legend(override.aes = list(size = 1, alpha = 0.9))
+    alpha = FALSE,
+    shape = guide_legend(override.aes = list(size = 1.5, alpha = 0.55))
   ) +
   theme(
-    axis.text.x = element_text(angle = 55, hjust = 1, size = rel(0.85)),
-    legend.title = element_text(size = rel(0.75)),
-    legend.text = element_text(size = rel(0.75)),
     legend.position = "bottom"
   )
 ```

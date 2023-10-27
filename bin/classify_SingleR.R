@@ -18,13 +18,8 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
-    help = "path to file containing a single model generated for SingleR annotation. 
+    help = "path to file containing a single model generated for SingleR annotation.
             File name is expected to be in form: <model name>_model.rds."
-  ),
-  make_option(
-    opt_str = c("--output_singler_annotations_file"),
-    type = "character",
-    help = "path to output TSV file that will store the SingleR annotations. Must end in .tsv"
   ),
   make_option(
     opt_str = c("--output_singler_results_file"),
@@ -49,7 +44,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # Set up -----------------------------------------------------------------------
 
 # set seed
-set.seed(opt$random_seed)
+set.seed(opt$seed)
 
 # check that input file file exists
 if (!file.exists(opt$sce_file)) {
@@ -59,9 +54,6 @@ if (!file.exists(opt$sce_file)) {
 # check that output files have the right extensions
 if (!(stringr::str_ends(opt$output_singler_results_file, ".rds"))) {
   stop("output SingleR result file name must end in .rds")
-}
-if (!(stringr::str_ends(opt$output_singler_annotations_file, ".tsv"))) {
-  stop("output SingleR annotations file name must end in .tsv")
 }
 
 # check that reference exists and filename is properly formatted
@@ -102,41 +94,10 @@ singler_results <- SingleR::classifySingleR(
 
 # add reference name to singler_results DataFrame metadata
 metadata(singler_results)$reference_name <- reference_name
-
-
-# create data frame of annotations
-annotations_df <- tibble::tibble(
-  barcode = rownames(singler_results),
-  singler_celltype_annotation = singler_results$pruned.labels,
-)
-
-# map ontology labels to cell type names, as needed
-# we can tell if ontologies were used because this will exist:
-if ("cell_ontology_df" %in% names(singler_model)) {
-
-  # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
-  annotations_df <- annotations_df |>
-    dplyr::left_join(
-      # column names: ontology_id, ontology_cell_names
-      singler_model$cell_ontology_df, 
-      by = c("singler_celltype_annotation" = "ontology_id")
-    ) |> 
-    # rename columns
-    dplyr::rename(
-      singler_celltype_ontology = singler_celltype_annotation,
-      singler_celltype_annotation = ontology_cell_names
-    )
-  
-  # add cell_ontology_df to singler_results DataFrame metadata
-  metadata(singler_results)$cell_ontology_df <- singler_model$cell_ontology_df
-} 
-
-
+# add label name to metadata
+metadata(singler_results)$reference_label <- metadata(singler_model)$reference_label
 
 # export results ---------------
-
-# first, a stand-alone tsv of annotations
-readr::write_tsv(annotations_df, opt$output_singler_annotations_file)
 
 # next, the full result to a compressed rds
 readr::write_rds(

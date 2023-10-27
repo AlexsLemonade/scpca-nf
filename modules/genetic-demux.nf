@@ -16,8 +16,8 @@ workflow genetic_demux_vireo{
       .map{
         def meta = it.clone();
         meta.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
-        meta.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo";
-        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
+        meta.vireo_dir = "${meta.vireo_publish_dir}/${meta.library_id}-vireo";
+        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
        // split based in whether repeat_mapping is false and a previous dir exists
