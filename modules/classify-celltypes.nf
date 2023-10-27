@@ -85,7 +85,6 @@ process classify_cellassign {
 
 process add_celltypes_to_sce {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   label 'mem_4'
   label 'cpus_2'
   tag "${meta.library_id}"

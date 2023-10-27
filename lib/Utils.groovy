@@ -15,6 +15,8 @@ class Utils {
      */
   static def readMeta(file) {
     def meta = new JsonSlurper().parse(file)
+    meta = meta.each{ key, value -> meta[key] = this.parseNA(value) }
+
     return(meta)
   }
 
@@ -38,8 +40,9 @@ class Utils {
    */
   static def getMetaVal(file, key){
     def obj = new JsonSlurper().parse(file)
+    def value = this.parseNA(obj[key])
 
-    return(obj[key])
+    return(value)
   }
 
 
@@ -52,9 +55,13 @@ class Utils {
    */
   static def parseNA(str) {
     if (str){
-      str.toLowerCase() in ['na','n/a','nan']? '' : str
-    } else {
+      if (str instanceof String) { // has to be a string to have NA vals replaced
+        str.toLowerCase() in ['na','n/a','nan']? '' : str
+      } else { // not a string, so just return the unmodified value
+        str
+      }
+    } else { // all falsey values get turned into empty strings
       ''
     }
-   }
+  }
 }
