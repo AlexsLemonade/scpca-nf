@@ -63,37 +63,14 @@ Below, we show heat maps comparing cell type annotations (along the y-axis) to c
 Heatmap colors represent the log number of cells present in both the given cell type and cluster.
 
 ```{r}
-#' Function to calculate Jaccard similarity from two categorical variables in celltype_df
+#' Function to calculate Jaccard similarity on two vectors
 #'
-#' @param value1 Value of first categorical variable of interest
-#' @param value2 Value of first categorical variable of interest
-#' @param colname1 Column name of first categorical variable of interest
-#' @param colname2 Column name of second categorical variable of interest
-#' @param celltype_df The celltype_df data frame which must contain these columns:
-#'   `colname1`, `colname2`, and `barcodes`
+#' @param vec1 First vector
+#' @param vec2 Second vector
 #'
-#' @return Data frame of the Jaccard similarity index for the given comparison
-calculate_jaccard_similarity <- function(value1,
-                                         value2,
-                                         colname1,
-                                         colname2,
-                                         celltype_df) {
-  
-
-  barcodes1 <- celltype_df$barcodes[ celltype_df[[colname1]] == value1 ] 
-  barcodes2 <- celltype_df$barcodes[ celltype_df[[colname2]] == value2 ] 
-
-  intersect_count <- length( intersect(barcodes1, barcodes2) )
-  
-  jac <- intersect_count / (length(barcodes1) + length(barcodes2) - intersect_count)
-
-  return(
-    tibble::tibble(
-    {{colname1}} := value1,
-    {{colname2}} := value2,
-    jaccard = jac
-    )
-  )
+#' @return Jaccard similarity between the vectors
+jaccard <- function(vec1, vec2){
+  length(intersect(vec1, vec2)) / length(union(vec1, vec2))
 }
 
 
@@ -104,35 +81,36 @@ calculate_jaccard_similarity <- function(value1,
 #' @param colname1 Column name, as a string, of first categorical variable of interest
 #' @param colname2 Column name, as a string, of second categorical variable of interest
 #'   
-#' @return Jaccard similarity matrix for the two columns
-calculate_jaccard_matrix <- function(celltype_df, colname1, colname2) {
+#' @return Jaccard similarity matrix for the two columns. `colname1` values will 
+#'   be column names and `colname2` columns will be row names in the final matrix
+make_jaccard_matrix <- function(celltype_df, colname1, colname2){
   
-  # Data frame with all combinations of values in colname1 and colname2
-  combinations_df <- tidyr::expand_grid(
-    a = unique(celltype_df[[colname1]]),
-    b = unique(celltype_df[[colname2]])
-  )
+  # make lists of barcodes for each classifier's assignment, named by the classifier values
+  id1_list <- split(celltype_df$barcodes, celltype_df[[colname1]])
+  id2_list <- split(celltype_df$barcodes, celltype_df[[colname2]])
   
-  # Feed into jaccard similarity calculator
-  jaccard_matrix <- purrr::map2_df(
-    combinations_df$a,
-    combinations_df$b,
-    calculate_jaccard_similarity,
-    colname1,
-    colname2,
-    celltype_df
-  ) |>
-  # convert to matrix
-  tidyr::pivot_wider(
-    # suppress warnings with dplyr::all_of (we're selecting with strings here)
-    names_from = dplyr::all_of(colname1), 
-    values_from = dplyr::all_of("jaccard")
-  ) |>
-  tibble::column_to_rownames(var = colname2) |>
-  as.matrix()
+  # create the grid of comparisons
+  cross_df <- tidyr::expand_grid(id1 = names(id1_list), id2 = names(id2_list))
   
-  return(jaccard_matrix)
+  # calculate scores using split lists & ids
+  jaccard_scores <- cross_df |> 
+    purrr::pmap_dbl(\(id1, id2){
+      jaccard(id1_list[[id1]], id2_list[[id2]])
+    })
   
+  # add scores to the comparison grid and convert to matrix
+  jaccard_matrix <- cross_df |> 
+    dplyr::mutate(jaccard = jaccard_scores) |>
+    # convert to matrix
+    tidyr::pivot_wider(
+      names_from = id1, 
+      # suppress warnings with dplyr::all_of (we're selecting with strings here)
+      values_from = dplyr::all_of("jaccard")
+    ) |>
+    tibble::column_to_rownames(var = "id2") |>
+    as.matrix()
+    
+    return(jaccard_matrix)
 }
 ```
 
@@ -150,17 +128,17 @@ jaccard_mat <- matrix(
 split_lengths <- c()  
 
 if (has_submitter) {
-  cluster_submitter_jaccard_matrix <- calculate_jaccard_matrix(celltype_df, "cluster", "submitter_celltype_annotation")
+  cluster_submitter_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "submitter_celltype_annotation")
   jaccard_mat <- rbind(jaccard_mat, cluster_submitter_jaccard_matrix)
   split_lengths <- c(split_lengths, "Submitter annotations" = nrow(cluster_submitter_jaccard_matrix))
 }
 if (has_singler) {
-  cluster_singler_jaccard_matrix <- calculate_jaccard_matrix(celltype_df, "cluster", "singler_celltype_annotation")
+  cluster_singler_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "singler_celltype_annotation")
   jaccard_mat <- rbind(jaccard_mat, cluster_singler_jaccard_matrix)
   split_lengths <- c(split_lengths, "SingleR annotations" = nrow(cluster_singler_jaccard_matrix))
 }
 if (has_cellassign) {
-  cluster_cellassign_jaccard_matrix <- calculate_jaccard_matrix(celltype_df, "cluster", "cellassign_celltype_annotation")
+  cluster_cellassign_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "cellassign_celltype_annotation")
   jaccard_mat <- rbind(jaccard_mat, cluster_cellassign_jaccard_matrix)
   split_lengths <- c(split_lengths, "CellAssign annotations" = nrow(cluster_cellassign_jaccard_matrix))
 }
