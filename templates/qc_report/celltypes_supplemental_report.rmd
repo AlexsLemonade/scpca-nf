@@ -46,6 +46,9 @@ theme_set(
 library_id <- params$library
 processed_sce <- params$processed_sce
 
+library_id <- "SCPCL000295" 
+processed_sce <- readRDS(glue::glue("{library_id}_processed.rds"))
+
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
@@ -82,7 +85,7 @@ jaccard <- function(vec1, vec2){
 #' @param colname2 Column name, as a string, of second categorical variable of interest
 #'   
 #' @return Jaccard similarity matrix for the two columns. `colname1` values will 
-#'   be column names and `colname2` columns will be row names in the final matrix
+#'   be row names and `colname2` values will be column names in the final matrix
 make_jaccard_matrix <- function(celltype_df, colname1, colname2){
   
   # make lists of barcodes for each classifier's assignment, named by the classifier values
@@ -103,10 +106,10 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
     dplyr::mutate(jaccard = jaccard_scores) |>
     # convert to matrix
     tidyr::pivot_wider(
-      names_from = "id1", 
+      names_from = "id2", 
       values_from = "jaccard"
     ) |>
-    tibble::column_to_rownames(var = "id2") |>
+    tibble::column_to_rownames(var = "id1") |>
     as.matrix()
     
     return(jaccard_matrix)
@@ -119,8 +122,8 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 
 # baseline matrix
 jaccard_mat <- matrix(
-  nrow = 0,
-  ncol = length(unique(celltype_df$cluster))
+  nrow = length(unique(celltype_df$cluster)),  # "cluster" is var1 in code below
+  ncol = 0
 )
 
 # vector to track splitting the heatmap
@@ -128,17 +131,17 @@ split_lengths <- c()
 
 if (has_submitter) {
   cluster_submitter_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "submitter_celltype_annotation")
-  jaccard_mat <- rbind(jaccard_mat, cluster_submitter_jaccard_matrix)
+  jaccard_mat <- cbind(jaccard_mat, cluster_submitter_jaccard_matrix)
   split_lengths <- c(split_lengths, "Submitter annotations" = nrow(cluster_submitter_jaccard_matrix))
 }
 if (has_singler) {
   cluster_singler_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "singler_celltype_annotation")
-  jaccard_mat <- rbind(jaccard_mat, cluster_singler_jaccard_matrix)
+  jaccard_mat <- cbind(jaccard_mat, cluster_singler_jaccard_matrix)
   split_lengths <- c(split_lengths, "SingleR annotations" = nrow(cluster_singler_jaccard_matrix))
 }
 if (has_cellassign) {
   cluster_cellassign_jaccard_matrix <- make_jaccard_matrix(celltype_df, "cluster", "cellassign_celltype_annotation")
-  jaccard_mat <- rbind(jaccard_mat, cluster_cellassign_jaccard_matrix)
+  jaccard_mat <- cbind(jaccard_mat, cluster_cellassign_jaccard_matrix)
   split_lengths <- c(split_lengths, "CellAssign annotations" = nrow(cluster_cellassign_jaccard_matrix))
 }
 ```
