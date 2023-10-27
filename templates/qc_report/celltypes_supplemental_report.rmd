@@ -41,27 +41,8 @@ theme_set(
 
 ```
 
-```{r, message = FALSE, echo = FALSE}
-# define library and sce object
-library_id <- params$library
-processed_sce <- params$processed_sce
 
-# check for annotation methods
-has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
-has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
-
-# Create data frame of cell types
-celltype_df <- create_celltype_df(processed_sce)
-```
-
-
-
-## Heatmaps
-
-Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
-Heatmap colors represent the log number of cells present in both the given cell type and cluster.
-
+<!-- Define helper functions for calculating Jaccard similarity matrices --> 
 ```{r}
 #' Function to calculate Jaccard similarity on two vectors
 #'
@@ -113,6 +94,27 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 }
 ```
 
+
+```{r, message = FALSE, echo = FALSE}
+# define library and sce object
+library_id <- params$library
+processed_sce <- params$processed_sce
+
+# check for annotation methods
+has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
+has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
+
+# Create data frame of cell types
+celltype_df <- create_celltype_df(processed_sce)
+```
+
+
+
+## Heatmaps
+
+Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
+Heatmap colors represent the log number of cells present in both the given cell type and cluster.
 
 ```{r}
 # Calculate all jaccard matrices of interest for input to heatmap
