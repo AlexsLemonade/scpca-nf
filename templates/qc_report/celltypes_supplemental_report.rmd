@@ -103,9 +103,8 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
     dplyr::mutate(jaccard = jaccard_scores) |>
     # convert to matrix
     tidyr::pivot_wider(
-      names_from = id1, 
-      # suppress warnings with dplyr::all_of (we're selecting with strings here)
-      values_from = dplyr::all_of("jaccard")
+      names_from = "id1", 
+      values_from = "jaccard"
     ) |>
     tibble::column_to_rownames(var = "id2") |>
     as.matrix()
