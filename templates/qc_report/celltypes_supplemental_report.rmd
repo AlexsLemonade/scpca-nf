@@ -65,14 +65,14 @@ jaccard <- function(vec1, vec2){
 #'   be row names and `colname2` values will be column names in the final matrix
 make_jaccard_matrix <- function(celltype_df, colname1, colname2){
   
-  # make lists of barcodes for each classifier's assignment, named by the classifier values
+  # make lists of barcodes for each category, named by the category
   id1_list <- split(celltype_df$barcodes, celltype_df[[colname1]])
   id2_list <- split(celltype_df$barcodes, celltype_df[[colname2]])
   
   # create the grid of comparisons
   cross_df <- tidyr::expand_grid(id1 = names(id1_list), id2 = names(id2_list))
   
-  # calculate scores using split lists & ids
+  # calculate a single Jaccard index for each combination using split lists & ids
   jaccard_scores <- cross_df |> 
     purrr::pmap_dbl(\(id1, id2){
       jaccard(id1_list[[id1]], id2_list[[id2]])
