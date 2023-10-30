@@ -95,10 +95,11 @@ if(!is.null(opt$singler_results)){
   }
 
   # add annotations to colData
-  colData(sce) <- colData(sce) |>
+  new_coldata <- colData(sce) |>
     as.data.frame() |>
     dplyr::left_join(annotations_df, by = c("barcodes")) |>
     DataFrame(row.names = colData(sce)$barcodes)
+  colData(sce) <- new_coldata
 
   # add singler info to metadata
   metadata(sce)$singler_results <- singler_results
