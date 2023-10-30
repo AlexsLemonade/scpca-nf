@@ -132,15 +132,21 @@ glue::glue(
 ```{r, eval = has_singler, results='asis'}
 glue::glue(
   "* Cell types were annotated using [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
-  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
+  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for cell typing."
 )
 ```
 
 
 ```{r, eval = has_cellassign, results='asis'}
+tissue_type <- stringr::word(
+  metadata(processed_sce)$cellassign_reference,
+  -1,
+  sep = "-"
+)
+
 glue::glue(
   "* Cell types were annotated using [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-  Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
+  Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
   "
 )
 ```
