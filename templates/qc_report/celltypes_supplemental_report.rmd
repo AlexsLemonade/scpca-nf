@@ -161,16 +161,16 @@ col_fun <- circlize::colorRamp2(c(0, 1), colors = c("yellow", "red"))
 keep_legend_name <- names(jaccard_cluster_matrices)[1]
 
 ###############################################################################
-# BELOW FAILS WITH ERROR:  - Error: object 'ComplexHeatmap' not found
+# BELOW FAILS WITH ERROR:  - Error: object 'ComplexHeatmap' not found...????
 #ComplexHeatmap::ht_opt[["TITLE_PADDING"]]<- unit(0.5, "cm")
 
 # BELOW WORKS!
-library(ComplexHeatmap)
-ht_opt[["TITLE_PADDING"]]<- unit(0.5, "cm")
+suppressPackageStartupMessages(library(ComplexHeatmap))
+ht_opt[["TITLE_PADDING"]] <- unit(0.5, "cm")
 ###############################################################################
 
 
-# TODO: We might want to make a wrapper for this, to use for direct comparison heatmaps? Circle back.
+# TODO: make this into a function so can re-use for 2nd group of heatmaps (still forthcoming)
 heatmap_list <- jaccard_cluster_matrices |> 
   purrr::imap(\(mat, name){
     ComplexHeatmap::Heatmap(
@@ -206,7 +206,8 @@ heatmap_list <- jaccard_cluster_matrices |>
 # Render the heatmap list
 ComplexHeatmap::draw(
   heatmap_list, 
-  heatmap_legend_side = "bottom")
+  heatmap_legend_side = "bottom" 
+)
 ```
 
 
