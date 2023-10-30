@@ -32,14 +32,7 @@ create_celltype_df <- function(processed_sce) {
   
   if("submitter_celltype_annotation" %in% names(celltype_df)){
     celltype_df <- celltype_df |> 
-      dplyr::mutate(submitter_celltype_annotation = dplyr::if_else(
-        is.na(submitter_celltype_annotation),
-        "Unclassified cell", 
-        submitter_celltype_annotation
-      ) |>
-        forcats::fct_infreq() |>
-        forcats::fct_relevel("Unclassified cell", after = Inf)
-      )
+      prepare_annotation_values(submitter_celltype_annotation, is_submitter = TRUE) 
   }
 
   if ("singler_celltype_annotation" %in% names(celltype_df)) {
@@ -63,24 +56,36 @@ create_celltype_df <- function(processed_sce) {
 #'
 #' @param df The data frame containing cell type annotations, one row per cell
 #' @param annotation_column The column (written plainly, not a string) containing annotations to reformat
+#' @param is_submitter Boolean indicating if cell types are from submitter. 
+#'   If TRUE, NA's will be set to "Unclassified cell".
+#'   If FALSE, NA's will be set to "Unknown cell type". Default is FALSE.
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
-prepare_annotation_values <- function(df, annotation_column) {
+prepare_annotation_values <- function(df, annotation_column, is_submitter = FALSE) {
+  
+  submitter_string <- "Unclassified cell" # use for unclassified submitter cells 
+  method_string  <- "Unknown cell type" # use for unclassified singler and cellassign cells
+  fct_string <- ifelse(is_submitter, submitter_string, method_string) # which string to consider when reordering the factor
+
   df |>
     dplyr::mutate(
       {{ annotation_column }} := dplyr::case_when(
+        # submitter condition - HAS TO BE FIRST since these are also NA which is the singler check
+        is_submitter & is.na({{ annotation_column }})  ~ submitter_string,
         # singler condition
-        is.na({{ annotation_column }}) ~ "Unknown cell type",
+        is.na({{ annotation_column }}) ~ method_string,
         # cellassign conditon
-        {{ annotation_column }} == "other" ~ "Unknown cell type",
+        {{ annotation_column }} == "other" ~ method_string,
         # otherwise, keep it
         .default = {{ annotation_column }}
       ) |>
         # order column by number of cells
         forcats::fct_infreq() |>
-        # relevel so unknown is at the end
-        forcats::fct_relevel("Unknown cell type", after = Inf)
+        # relevel so the applied unknown is at the end
+        forcats::fct_relevel(fct_string, after = Inf)
     )
+  
+  
 }
 ```
 
