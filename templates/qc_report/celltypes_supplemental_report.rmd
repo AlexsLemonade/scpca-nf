@@ -162,7 +162,7 @@ keep_legend_name <- names(jaccard_cluster_matrices)[1]
 
 ###############################################################################
 # BELOW FAILS WITH ERROR:  - Error: object 'ComplexHeatmap' not found...????
-#ComplexHeatmap::ht_opt[["TITLE_PADDING"]]<- unit(0.5, "cm")
+ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.5, "cm"))
 
 # BELOW WORKS!
 suppressPackageStartupMessages(library(ComplexHeatmap))
@@ -196,7 +196,7 @@ heatmap_list <- jaccard_cluster_matrices |>
       legend_width = unit(4, "cm")
     ),
     # Retain only 1 legend in the final plot      
-    show_heatmap_legend = ifelse(name == keep_legend_name, TRUE, FALSE),
+    show_heatmap_legend = name == keep_legend_name,
     )
   }) |>
   # concatenate vertically into HeatmapList object
