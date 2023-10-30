@@ -95,7 +95,10 @@ singler_results <- SingleR::classifySingleR(
 # add reference name to singler_results DataFrame metadata
 metadata(singler_results)$reference_name <- reference_name
 # add label name to metadata
-metadata(singler_results)$reference_label <- metadata(singler_model)$reference_label
+metadata(singler_results)$reference_label <- singler_model$reference_label
+# save cell ontology table to results
+# if this doesn't exist it will just be NULL
+metadata(singler_results)$cell_ontology_df <- singler_model$cell_ontology_df
 
 # export results ---------------
 
