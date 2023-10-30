@@ -59,7 +59,7 @@ lump_celltypes <- function(df, n_celltypes = 7) {
     dplyr::mutate(
       across(
         ends_with("_celltype_annotation"),
-        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "Other cell type"),
+        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "All remaining cell types"),
         .names = "{.col}_lumped"
       )
     )
@@ -132,15 +132,21 @@ glue::glue(
 ```{r, eval = has_singler, results='asis'}
 glue::glue(
   "* Cell types were annotated using [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
-  The `{metadata(sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html) package, was used for cell typing."
+  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for cell typing."
 )
 ```
 
 
 ```{r, eval = has_cellassign, results='asis'}
+tissue_type <- stringr::word(
+  metadata(processed_sce)$cellassign_reference,
+  -1,
+  sep = "-"
+)
+
 glue::glue(
   "* Cell types were annotated using [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-  Marker genes associated with `{metadata(processed_sce)$cellassign_reference}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
+  Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
   "
 )
 ```
@@ -192,12 +198,8 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 
 ## UMAPs
 
-In this section, we show UMAPs colored by clusters and cell types.
-A separate UMAP is shown for each cell typing method used.
-Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weights.
-
-For legibility, only the seven most common cell types are shown.
-All other cell types are grouped together and labeled "Other cell type" (not to be confused with "Unknown cell types," which represent cells that could not be classified).
+In this section, we show UMAPs colored by clusters. 
+Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weighting.
 
 
 ```{r}
@@ -225,6 +227,13 @@ if (length(levels(umap_df$cluster)) <= 8) {
   clusters_plot
 }
 ```
+
+
+Next, we show UMAPs colored by cell types.
+A separate UMAP is shown for each cell typing method used.
+
+For legibility, only the seven most common cell types are shown.
+All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" or "Unclassified cell", which represent cells that could not be classified).
 
 <!-- Now, UMAPs of cell types, where present -->
 
