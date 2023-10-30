@@ -112,8 +112,16 @@ celltype_df <- create_celltype_df(processed_sce)
 
 ## Heatmaps
 
-Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
-Heatmap colors represent the log number of cells present in both the given cell type and cluster.
+Below, we show heat maps comparing each set of cell type annotations to clustering results.
+Heatmap colors represent the Jaccard similarity index between each grouping.
+
+This metric is bounded by 0 and 1:
+
+* A value of 1 indicates complete overlap between categories.
+The categories being compared contain the same set of cells.
+* A value of 0 indicates no overlap between categories. 
+No cells that appear in one category appear in the other.
+
 
 ```{r}
 # Calculate all jaccard matrices of interest for input to heatmap
