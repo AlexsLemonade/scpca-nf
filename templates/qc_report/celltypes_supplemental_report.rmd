@@ -154,21 +154,14 @@ heatmap_height <- length(jaccard_cluster_matrices) * 2.5
 ```
 
 ```{r, fig.height = heatmap_height, fig.width = 7, warning = FALSE}
-# Define color ramp for shared use in the heatmap - TO BE DISCUSSED!
-col_fun <- circlize::colorRamp2(c(0, 1), colors = c("yellow", "red"))
+# Define color ramp for shared use in the heatmap
+col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
 
 # We only want one shared legend in the end, arbitrarily grab the first one
 keep_legend_name <- names(jaccard_cluster_matrices)[1]
 
-###############################################################################
-# BELOW FAILS WITH ERROR:  - Error: object 'ComplexHeatmap' not found...????
-ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.5, "cm"))
-
-# BELOW WORKS!
-suppressPackageStartupMessages(library(ComplexHeatmap))
-ht_opt[["TITLE_PADDING"]] <- unit(0.5, "cm")
-###############################################################################
-
+# Set heatmap padding option
+ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.2, "in"))
 
 # TODO: make this into a function so can re-use for 2nd group of heatmaps (still forthcoming)
 heatmap_list <- jaccard_cluster_matrices |> 
@@ -176,6 +169,7 @@ heatmap_list <- jaccard_cluster_matrices |>
     ComplexHeatmap::Heatmap(
       t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
       col = col_fun,
+      border = TRUE, # each heatmap gets its own outline
       ## Row parameters
       cluster_rows = FALSE,
       row_title = name, # each heatmap gets its own title
@@ -188,15 +182,15 @@ heatmap_list <- jaccard_cluster_matrices |>
       column_title = glue::glue("Cluster"),
       column_names_side = "top",
       column_names_rot = 0,
-      column_names_gp = grid::gpar(fontsize = 12),
+      column_names_gp = grid::gpar(fontsize = 8), # match row name size
       ## Legend parameters
-    heatmap_legend_param = list(
-      title = "Jaccard similarity index",
-      direction = "horizontal",
-      legend_width = unit(4, "cm")
-    ),
-    # Retain only 1 legend in the final plot      
-    show_heatmap_legend = name == keep_legend_name,
+      heatmap_legend_param = list(
+        title = "Jaccard similarity index",
+        direction = "horizontal",
+        legend_width = unit(4, "cm")
+      ),
+      # Retain only 1 legend in the final plot      
+      show_heatmap_legend = name == keep_legend_name,
     )
   }) |>
   # concatenate vertically into HeatmapList object
