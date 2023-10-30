@@ -94,7 +94,7 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 ```
 
 
-```{r, message = FALSE, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 # define library and sce object
 library_id <- params$library
 processed_sce <- params$processed_sce
