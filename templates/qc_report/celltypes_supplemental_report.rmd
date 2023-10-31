@@ -41,7 +41,6 @@ theme_set(
 
 ```
 
-
 <!-- Define helper functions for calculating Jaccard similarity matrices --> 
 ```{r}
 #' Function to calculate Jaccard similarity on two vectors
@@ -95,7 +94,7 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 ```
 
 
-```{r, message = FALSE, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 # define library and sce object
 library_id <- params$library
 processed_sce <- params$processed_sce
@@ -110,18 +109,30 @@ celltype_df <- create_celltype_df(processed_sce)
 ```
 
 
+## Cell label comparison plots
 
-## Heatmaps
+This section displays heatmaps comparing cell labels from various methods. 
 
-Below, we show heat maps comparing cell type annotations (along the y-axis) to clustering results (along the x-axis).
-Heatmap colors represent the log number of cells present in both the given cell type and cluster.
+We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels from different methods.
+
+The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1. 
+
+* If the labels are assigned to identical sets of cells, the Jaccard index will be 1.
+* If the labels are assigned to completely non-overlapping sets of cells, the Jaccard index will be 0.
+
+
+### Comparison with unsupervised clustering
+
+Here we show the labels from unsupervised clustering compared against cell type annotations. 
+Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
+
 
 ```{r}
 # Calculate all jaccard matrices of interest for input to heatmap
 jaccard_cluster_matrices <- list()
 
 if (has_submitter) {
-  jaccard_cluster_matrices[["Submitter-provided"]] <- make_jaccard_matrix(
+  jaccard_cluster_matrices[["Submitter"]] <- make_jaccard_matrix(
     celltype_df, 
     "cluster", 
     "submitter_celltype_annotation"
@@ -141,154 +152,91 @@ if (has_cellassign) {
     "cellassign_celltype_annotation"
   )
 }
+
+
+heatmap_height <- length(jaccard_cluster_matrices) * 2.5
 ```
 
+```{r, fig.height = heatmap_height, fig.width = 7, warning = FALSE}
+# Define color ramp for shared use in the heatmap
+col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
 
-Note that the remaining heatmap code is going to be updated next!
+# We only want one shared legend in the end, arbitrarily grab the first one
+keep_legend_name <- names(jaccard_cluster_matrices)[1]
 
-```{r}
-# heatmap function definition:
+# Set heatmap padding option
+ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.2, "in"))
 
-#' Create a heatmap of cell type annotations with log1p transformation
-#'
-#' @param x_vector Vector of values for the x-axis (rows)
-#' @param y_vector Vector of values for the y-axis (columns)
-#' @param x_label x-axis label. Default is no label.
-#' @param y_label y-axis label. Default is no label.
-#' @param y_title_location location of the y-axis title. Default is on the bottom.
-#' @param column_names_rotation degree to rotate column names. Default is 0.
-#' @param row_font_size Size of row font. Default is 8.
-#' @param column_font_size. Size of column font. Default is 10.
-#'
-#' @return heatmap output from `ComplexHeatmap::draw()`
-create_celltype_heatmap <- function(
-    x_vector,
-    y_vector,
-    x_label = "",
-    y_label = "",
-    y_title_location = "bottom",
-    column_names_rotation = 0,
-    row_font_size = 8,
-    column_font_size = 10) {
-  # build a matrix for making a heatmap
-  celltype_mtx <- table(
-    x_vector,
-    y_vector
-  ) |>
-    log1p() # log transform for visualization
-
-  # Define CVD-friendly palette
-  heatmap_palette <- viridisLite::inferno(7, alpha = 1, begin = 0, end = 1, direction = 1)
-
-  # heatmap
-  heat <- ComplexHeatmap::Heatmap(
-    celltype_mtx,
-    # Overall heatmap parameters
-    col = heatmap_palette,
-    # Column parameters
-    column_title = y_label,
-    column_title_side = y_title_location,
-    column_dend_side = "top",
-    column_names_rot = column_names_rotation,
-    column_names_gp = grid::gpar(fontsize = column_font_size),
-    row_dend_side = "left",
-    row_title_side = "right",
-    row_title = x_label,
-    row_names_gp = grid::gpar(fontsize = row_font_size),
-    # Legend parameters
-    heatmap_legend_param = list(
-      title = "Log(Number of cells)",
-      title_position = "leftcenter-rot",
-      legend_height = unit(4, "cm")
+# TODO: make this into a function so can re-use for 2nd group of heatmaps (still forthcoming)
+heatmap_list <- jaccard_cluster_matrices |> 
+  purrr::imap(\(mat, name){
+    ComplexHeatmap::Heatmap(
+      t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
+      col = col_fun,
+      border = TRUE, # each heatmap gets its own outline
+      ## Row parameters
+      cluster_rows = FALSE,
+      row_title = name, # each heatmap gets its own title
+      row_title_gp = grid::gpar(fontsize = 10), 
+      row_title_side = "right",
+      row_names_side = "left",
+      row_names_gp = grid::gpar(fontsize = 8),
+      ## Column parameters
+      cluster_columns = FALSE,
+      column_title = glue::glue("Cluster"),
+      column_names_side = "top",
+      column_names_rot = 0,
+      column_names_gp = grid::gpar(fontsize = 8), # match row name size
+      ## Legend parameters
+      heatmap_legend_param = list(
+        title = "Jaccard similarity index",
+        direction = "horizontal",
+        legend_width = unit(1.5, "in")
+      ),
+      # Retain only 1 legend in the final plot      
+      show_heatmap_legend = name == keep_legend_name,
     )
-  )
-  # draw with legend on left for spacing
-  ComplexHeatmap::draw(heat, heatmap_legend_side = "left")
-}
-```
+  }) |>
+  # concatenate vertically into HeatmapList object
+  purrr::reduce(ComplexHeatmap::`%v%`) 
 
-```{r, eval = has_submitter, fig.height=5, fig.width=7}
-knitr::asis_output("### Submitter-provided cell type and cluster heatmap\n")
-create_celltype_heatmap(
-  x_vector = celltype_df$submitter_celltype_annotation,
-  y_vector = celltype_df$cluster,
-  y_label = "Cluster"
+
+# Render the heatmap list
+ComplexHeatmap::draw(
+  heatmap_list, 
+  heatmap_legend_side = "bottom" 
 )
 ```
 
-```{r, eval = has_singler, fig.height=5, fig.width=7}
-knitr::asis_output("### `SingleR` cell type and cluster heatmap\n")
-create_celltype_heatmap(
-  x_vector = celltype_df$singler_celltype_annotation,
-  y_vector = celltype_df$cluster,
-  y_label = "Cluster"
-)
-```
 
-```{r, eval = has_cellassign, fig.height=5, fig.width=7}
-knitr::asis_output("### `CellAssign` cell type and cluster heatmap\n")
-create_celltype_heatmap(
-  x_vector = celltype_df$cellassign_celltype_annotation,
-  y_vector = celltype_df$cluster,
-  y_label = "Cluster"
-)
-```
+
 
 
 ```{r, eval = has_submitter & (has_cellassign | has_singler)}
-knitr::asis_output("
-## Comparison with submitter annotations
-
-This section shows heatmap(s) directly comparing submitter-provided cell type annotations to cell type inferred with the given method(s).
-Again, different annotations may use different names for similar cell types.
-")
-```
-
-
-```{r, eval = has_submitter & has_singler, fig.height=7, fig.width=8}
-create_celltype_heatmap(
-  x_vector = celltype_df$submitter_celltype_annotation,
-  y_vector = celltype_df$singler_celltype_annotation,
-  x_label = "Submitter-provided annotations",
-  y_label = "SingleR annotations",
-  y_title_location = "top",
-  column_names_rotation = 55,
-  column_font_size = 8
+methods_string <- dplyr::case_when(
+  has_cellassign & has_singler ~ "`SingleR` and `CellAssign`",
+  has_singler  ~ "`SingleR`",
+  has_cellassign  ~ "`CellAssign`"
 )
-```
 
-<!-- A little extra spacing to avoid confusion between plot labels -->
-<br>
+knitr::asis_output(
+  glue::glue(
+  "## Comparison with submitter annotations
 
-```{r, eval = has_submitter & has_cellassign, fig.height=7, fig.width=8}
-create_celltype_heatmap(
-  x_vector = celltype_df$submitter_celltype_annotation,
-  y_vector = celltype_df$cellassign_celltype_annotation,
-  x_label = "Submitter-provided annotations",
-  y_label = "CellAssign annotations",
-  y_title_location = "top",
-  column_names_rotation = 55,
-  column_font_size = 8
+  This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from {methods_string}."
+  )
 )
+
 ```
 
-<!-- Use large height/width to accommodate cell type labels -->
+
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
-## Comparison between `SingleR` and `CellAssign` annotations
+### Comparison between `SingleR` and `CellAssign` annotations
 
-Below is a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
+This section displays a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
 ")
-
-create_celltype_heatmap(
-  x_vector = celltype_df$singler_celltype_annotation,
-  y_vector = celltype_df$cellassign_celltype_annotation,
-  x_label = "SingleR annotations",
-  y_label = "CellAssign annotations",
-  column_names_rotation = 55,
-  column_font_size = 8
-)
 ```
 
 

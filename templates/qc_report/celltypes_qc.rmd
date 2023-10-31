@@ -162,7 +162,7 @@ glue::glue("
 
 ## Statistics
 
-```{r}
+```{r, warning = FALSE}
 # Create data frame of cell types
 celltype_df <- create_celltype_df(processed_sce)
 ```
