@@ -99,6 +99,7 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 library_id <- params$library
 processed_sce <- params$processed_sce
 
+
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
@@ -396,92 +397,48 @@ Yellow distributions represent probabilities for cells that _were not_ annotated
 For distributions with fewer than three points, density plots cannot be calculated.
 In these cases, we directly show values for individual cell probabilities as line segments.
 ")
+
+# Determine height in inches for plot area and rug based on number of cell types
+plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation))/2.5)
+rug_height <- plot_height / 175
 ```
 
 
-```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = 8, fig.width = 7}
-# Prepare CellAssign scores for plot
-cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |>
-  # Change "other" to "Unknown cell type"
-  dplyr::rename(`Unknown cell type` = other) |>
-  tidyr::pivot_longer(
-    -barcode,
-    names_to = "celltype",
-    values_to = "probability"
-  ) |>
-  # remove cell types that were not annotated
-  dplyr::filter(celltype %in% celltype_df$cellassign_celltype_annotation) |>
-  # join with actual annotations
-  dplyr::inner_join(
-    tibble::tibble(
-      cellassign_celltype_annotation = celltype_df$cellassign_celltype_annotation,
-      barcode = colData(processed_sce)$barcodes # plural!
-    )
-  ) |>
-  # add indicator for whether the celltype matches the annotation
-  dplyr::mutate(
-    annotated = cellassign_celltype_annotation == celltype
-  )
-
-# reverse levels for ridgeplot layout, and wrap the labels
-new_levels <- rev(levels(cellassign_prob_df$cellassign_celltype_annotation))
-cellassign_prob_df$annotation_wrapped <- factor(
-  cellassign_prob_df$celltype,
-  levels = new_levels,
-  labels = stringr::str_wrap(new_levels, 30)
-)
-
-# find groups with <=2 cells to add back into plot
-# These will always be `annotated = TRUE`
-celltypes_leq2_cells <- cellassign_prob_df |>
-  dplyr::count(annotation_wrapped, annotated) |>
-  dplyr::filter(n <= 2) |>
-  dplyr::pull(annotation_wrapped)
-
-# data frame for adding those points back
-leq2_probabilities_df <- cellassign_prob_df |>
-  dplyr::filter(
-    annotation_wrapped %in% celltypes_leq2_cells,
-    annotated
-  ) |>
-  dplyr::select(annotation_wrapped, probability, annotated)
-
-# Finally, the plot:
-ggplot(cellassign_prob_df) +
-  aes(
-    x = probability,
-    y = annotation_wrapped,
-    fill = annotated
-  ) +
-  ggridges::stat_density_ridges(
-    quantile_lines = TRUE,
-    quantiles = 2,
-    alpha = 0.6,
-    # avoid overlap to extent possible in a template -
-    scale = 0.85
-  ) +
-  scale_fill_viridis_d(direction = -1) +
+```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6}
+ggplot(celltype_df) + 
+  aes(x = cellassign_max_prediction) + 
+  geom_density(
+    #aes(y = ..scaled..),
+    bw = 0.03, 
+    fill = "grey65", 
+    size = 0.25) +
+  geom_rug(
+    color = "blue", 
+    alpha = 0.8,
+    length = unit(rug_height, "in") 
+  ) + 
+  scale_x_continuous(limits = c(0,1)) +
+  scale_y_continuous(expand = c(0,0)) +
   labs(
-    x = "CellAssign probability",
-    y = "Annotated cell type",
-    fill = "Cell annotated as given cell type"
+    x = "Probability of annotated cell type",
+    y = ""
+  ) +
+  facet_grid(
+    rows = vars(cellassign_celltype_annotation), 
+    switch = "y"
   ) +
   theme(
-    axis.text.y = element_text(size = 9),
-    legend.position = "bottom"
-  ) +
-  #### add line segment for N<3 distributions
-  geom_segment(
-    data = leq2_probabilities_df,
-    aes(
-      x = probability,
-      xend = probability,
-      y = annotation_wrapped,
-      yend = as.numeric(annotation_wrapped) + 0.25,
-      color = annotated
+    strip.background = element_blank(),
+    strip.text.y.left = element_text(
+      #size = rel(0.85), 
+      angle = 0, 
+      hjust = 1
     ),
-    show.legend = FALSE
-  ) +
-  scale_color_viridis_d()
+    #axis.text = element_text(size = rel(0.85)), 
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.minor = element_blank(), 
+    panel.grid.major.y = element_blank(), 
+    panel.spacing = unit(0.02, "in")
+  )
 ```
-
