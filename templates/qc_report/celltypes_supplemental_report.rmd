@@ -116,7 +116,6 @@ plot_heatmap <- function(matrix_list,
   # We only want one shared legend in the end, arbitrarily grab the first one
   keep_legend_name <- names(matrix_list)[1]
 
-    
   heatmap_list <- jaccard_cluster_matrices |> 
     purrr::imap(\(mat, name){
       ComplexHeatmap::Heatmap(
@@ -290,6 +289,14 @@ Note that due to different annotations references, these methods may use differe
 ```
 
 
+```{r, eval = has_cellassign & has_singler}
+# Calculate all jaccard matrices of interest for input to next heatmap
+singler_cellassign_matrix <- make_jaccard_matrix(
+  celltype_df, 
+  "singler_celltype_annotation",
+  "cellassign_celltype_annotation"
+)
+```
 
 
 ```{r, eval = has_singler | has_cellassign }
