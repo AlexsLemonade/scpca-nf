@@ -93,6 +93,74 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 }
 ```
 
+<!-- Define variables, options, and function for plotting heatmap from list of matrices --> 
+```{r}
+# Define color ramp for shared use in the heatmap
+heatmap_col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
+
+# Set heatmap padding option
+ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.2, "in"))
+
+#' Function to plot a ComplexHeatmap
+#'
+#' @param matrix_list List of matrices to plot in a vertical layout. 
+#' @param col_fun Color function for the heatmap palette
+#' @param column_title Title to use for columns, shared among all heatmaps
+#'
+#' @return Draws a ComplexHeatmap, but does not explicitly return anything
+plot_heatmap <- function(matrix_list,
+                         column_title, 
+                         col_fun = heatmap_col_fun) {
+  
+  
+  # We only want one shared legend in the end, arbitrarily grab the first one
+  keep_legend_name <- names(matrix_list)[1]
+
+    
+  heatmap_list <- jaccard_cluster_matrices |> 
+    purrr::imap(\(mat, name){
+      ComplexHeatmap::Heatmap(
+        t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
+        col = col_fun,
+        border = TRUE, # each heatmap gets its own outline
+        ## Row parameters
+        cluster_rows = FALSE,
+        row_title = name, # each heatmap gets its own title
+        row_title_gp = grid::gpar(fontsize = 10), 
+        row_title_side = "right",
+        row_names_side = "left",
+        row_names_gp = grid::gpar(fontsize = 8),
+        ## Column parameters
+        cluster_columns = FALSE,
+        column_title = column_title,
+        column_names_side = "top",
+        column_names_rot = 0,
+        column_names_gp = grid::gpar(fontsize = 8), # match row name size
+        ## Legend parameters
+        heatmap_legend_param = list(
+          title = "Jaccard similarity index",
+          direction = "horizontal",
+          legend_width = unit(1.5, "in")
+        ),
+        # Retain only 1 legend in the final plot      
+        show_heatmap_legend = name == keep_legend_name,
+      )
+    }) |>
+    # concatenate vertically into HeatmapList object
+    purrr::reduce(ComplexHeatmap::`%v%`) 
+  
+  
+  # Render the heatmap list
+  ComplexHeatmap::draw(
+    heatmap_list, 
+    heatmap_legend_side = "bottom" 
+  )
+  
+}
+
+
+```
+
 
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 # define library and sce object
@@ -158,54 +226,7 @@ heatmap_height <- length(jaccard_cluster_matrices) * 2.5
 ```
 
 ```{r, fig.height = heatmap_height, fig.width = 7, warning = FALSE}
-# Define color ramp for shared use in the heatmap
-col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
-
-# We only want one shared legend in the end, arbitrarily grab the first one
-keep_legend_name <- names(jaccard_cluster_matrices)[1]
-
-# Set heatmap padding option
-ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.2, "in"))
-
-# TODO: make this into a function so can re-use for 2nd group of heatmaps (still forthcoming)
-heatmap_list <- jaccard_cluster_matrices |> 
-  purrr::imap(\(mat, name){
-    ComplexHeatmap::Heatmap(
-      t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
-      col = col_fun,
-      border = TRUE, # each heatmap gets its own outline
-      ## Row parameters
-      cluster_rows = FALSE,
-      row_title = name, # each heatmap gets its own title
-      row_title_gp = grid::gpar(fontsize = 10), 
-      row_title_side = "right",
-      row_names_side = "left",
-      row_names_gp = grid::gpar(fontsize = 8),
-      ## Column parameters
-      cluster_columns = FALSE,
-      column_title = glue::glue("Cluster"),
-      column_names_side = "top",
-      column_names_rot = 0,
-      column_names_gp = grid::gpar(fontsize = 8), # match row name size
-      ## Legend parameters
-      heatmap_legend_param = list(
-        title = "Jaccard similarity index",
-        direction = "horizontal",
-        legend_width = unit(1.5, "in")
-      ),
-      # Retain only 1 legend in the final plot      
-      show_heatmap_legend = name == keep_legend_name,
-    )
-  }) |>
-  # concatenate vertically into HeatmapList object
-  purrr::reduce(ComplexHeatmap::`%v%`) 
-
-
-# Render the heatmap list
-ComplexHeatmap::draw(
-  heatmap_list, 
-  heatmap_legend_side = "bottom" 
-)
+plot_heatmap(jaccard_cluster_matrices, "Clusters")
 ```
 
 
