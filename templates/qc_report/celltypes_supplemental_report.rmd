@@ -185,7 +185,7 @@ heatmap_list <- jaccard_cluster_matrices |>
       heatmap_legend_param = list(
         title = "Jaccard similarity index",
         direction = "horizontal",
-        legend_width = unit(4, "cm")
+        legend_width = unit(1.5, "in")
       ),
       # Retain only 1 legend in the final plot      
       show_heatmap_legend = name == keep_legend_name,
