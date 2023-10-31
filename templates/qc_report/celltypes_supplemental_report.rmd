@@ -108,19 +108,16 @@ has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 celltype_df <- create_celltype_df(processed_sce)
 ```
 
+## Comparison to clusters
+                   
+This section displays heatmaps comparing cell type annotations to cell clusters, which were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weighting.
 
+We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to compare pairs of labels from clusters and cell type annotations.
 
-## Heatmaps
+The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1. 
 
-Below, we show heat maps comparing each set of cell type annotations to clustering results.
-Heatmap colors represent the Jaccard similarity index between each grouping.
-
-This metric is bounded by 0 and 1:
-
-* A value of 1 indicates complete overlap between categories.
-The categories being compared contain the same set of cells.
-* A value of 0 indicates no overlap between categories. 
-No cells that appear in one category appear in the other.
+* If the labels are assigned to identical sets of cells, the Jaccard index will be 1.
+* If the labels are assigned to completely non-overlapping sets of cells, the Jaccard index will be 0.
 
 
 ```{r}
@@ -155,7 +152,8 @@ heatmap_height <- length(jaccard_cluster_matrices) * 2.5
 
 ```{r, fig.height = heatmap_height, fig.width = 7, warning = FALSE}
 # Define color ramp for shared use in the heatmap
-col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
+c("#ffffff", hcl.colors(n = 5, palette = "Blues", rev =TRUE)[2:5])-> mycolors
+col_fun <- circlize::colorRamp2(c(0, 0.25, 0.5, 0.75, 1), colors = mycolors)
 
 # We only want one shared legend in the end, arbitrarily grab the first one
 keep_legend_name <- names(jaccard_cluster_matrices)[1]
@@ -207,60 +205,32 @@ ComplexHeatmap::draw(
 
 
 
+
 ```{r, eval = has_submitter & (has_cellassign | has_singler)}
-knitr::asis_output("
-## Comparison with submitter annotations
+methods_string <- dplyr::case_when(
+  has_cellassign & has_singler ~ glue::glue("`SingleR` and `CellAssign`"),
+  has_cellassign  ~ glue::glue("`CellAssign`"),
+  has_singler  ~ glue::glue("`SingleR`"),
+)
 
-This section shows heatmap(s) directly comparing submitter-provided cell type annotations to cell type inferred with the given method(s).
-Again, different annotations may use different names for similar cell types.
-")
+knitr::asis_output(
+  glue::glue(
+  "## Comparison with submitter annotations
+
+  This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from {methods_string}."
+  )
+)
+
 ```
 
 
-```{r, eval = has_submitter & has_singler, fig.height=7, fig.width=8}
-#create_celltype_heatmap(
-#  x_vector = celltype_df$submitter_celltype_annotation,
-#  y_vector = celltype_df$singler_celltype_annotation,
-#  x_label = "Submitter-provided annotations",
-#  y_label = "SingleR annotations",
-#  y_title_location = "top",
-#  column_names_rotation = 55,
-#  column_font_size = 8
-#)
-```
-
-<!-- A little extra spacing to avoid confusion between plot labels -->
-<br>
-
-```{r, eval = has_submitter & has_cellassign, fig.height=7, fig.width=8}
-#create_celltype_heatmap(
-#  x_vector = celltype_df$submitter_celltype_annotation,
-#  y_vector = celltype_df$cellassign_celltype_annotation,
-#  x_label = "Submitter-provided annotations",
-#  y_label = "CellAssign annotations",
-#  y_title_location = "top",
-#  column_names_rotation = 55,
-#  column_font_size = 8
-#)
-```
-
-<!-- Use large height/width to accommodate cell type labels -->
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
 ## Comparison between `SingleR` and `CellAssign` annotations
 
-Below is a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
+This section displays a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
 ")
-
-#create_celltype_heatmap(
-#  x_vector = celltype_df$singler_celltype_annotation,
-#  y_vector = celltype_df$cellassign_celltype_annotation,
-#  x_label = "SingleR annotations",
-#  y_label = "CellAssign annotations",
-#  column_names_rotation = 55,
-#  column_font_size = 8
-#)
 ```
 
 
