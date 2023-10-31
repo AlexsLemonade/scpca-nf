@@ -247,7 +247,36 @@ knitr::asis_output(
   This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from {methods_string}."
   )
 )
+```
 
+```{r}
+# Calculate all jaccard matrices of interest for input to next heatmap
+jaccard_cluster_matrices <- list()
+
+n_celltypes <- 0 
+if (has_singler) {
+  jaccard_cluster_matrices[["SingleR"]] <- make_jaccard_matrix(
+    celltype_df, 
+    "submitter_celltype_annotation", 
+    "singler_celltype_annotation"
+  )
+  n_celltypes <- n_celltypes + length(unique(celltype_df$singler_celltype_annotation))
+}
+if (has_cellassign) {
+  jaccard_cluster_matrices[["CellAssign"]] <- make_jaccard_matrix(
+    celltype_df, 
+    "submitter_celltype_annotation", 
+    "cellassign_celltype_annotation"
+  )
+  n_celltypes <- n_celltypes + length(unique(celltype_df$cellassign_celltype_annotation))
+}
+
+# Set plot dimensions, this time based on number of cell types that will be shown
+heatmap_height <- n_celltypes / 6
+```
+
+```{r, fig.height = heatmap_height, fig.width = 7, warning = FALSE}
+plot_heatmap(jaccard_cluster_matrices, "Submitter-provided annotations")
 ```
 
 
