@@ -388,17 +388,15 @@ ggplot(delta_median_df) +
 knitr::asis_output("
 ### `CellAssign` assessment
 
-To assess the quality of the `CellAsssign`-assigned cell types, we visualize the probability of each cell type annotation. 
+To assess the quality of the `CellAsssign`-assigned cell types, we look at the probability associated with the annotated cell type. 
 These probabilities are provided directly by `CellAssign`:
 
 - `CellAssign` first calculates the probability of each cell being annotated as a cell type present in the reference.
-- `CellAssign` then annotates cells by selecting the cell type with the highest robability among all cell types considered. 
-- These probabilities range from 0-1.
-  - Values closer to 1 indicate that `CellAssign` is most confident in this cell type label compared to other cell types.
-  - We therefore expect reliable labels to have values close to 1.
+- `CellAssign` then annotates cells by selecting the cell type with the highest probability among all cell types considered. 
+- These probabilities range from 0 to 1 with larger values indicating greater confidence in a given cell type label. We therefore expect reliable labels to have values close to 1.
 
 The plot below shows the distribution of `CellAssign`-calculated probabilities for the final cell type labels.
-Blue line segments shown as a 'rug' representing individual values that comprise each distribution.
+Blue line segments shown as a 'rug' represent individual values that comprise each distribution.
 
 Note that no distrubution is shown for cell types with 3 or fewer labeled cells, but rug points are shown.
 ")
@@ -429,8 +427,8 @@ ggplot(celltype_df) +
     linewidth = 0.25) +
   geom_rug(
     color = "blue", 
-    aes(alpha = alpha),
-    length = unit(0.1, "npc") 
+    aes(alpha = ifelse(n < 100, 0.5, 1)),
+    length = unit(ifelse(n > 3, 0.1, 0.5), "npc") 
   ) + 
   scale_x_continuous(limits = c(0,1)) +
   # rug below density plots:
