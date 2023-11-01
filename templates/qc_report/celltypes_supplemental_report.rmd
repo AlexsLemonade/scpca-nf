@@ -403,27 +403,40 @@ Blue line segments shown as a 'rug' representing individual values that comprise
 Note that no distrubution is shown for cell types with 3 or fewer labeled cells, but rug points are shown.
 ")
 
-# Determine height in inches for plot area and rug based on number of cell types
+# Determine height in inches for plot area
 plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation))/2.5)
-rug_height <- plot_height / 175
 ```
 
 
 ```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6}
+# add alpha indicator
+celltype_df <- celltype_df |>
+  dplyr::add_count(cellassign_celltype_annotation) |>
+  dplyr::mutate(
+    # if more cells, less opaque
+    alpha = ifelse(
+      n <= 100, 
+      "dark", 
+      "light"
+    )
+  )
+
 ggplot(celltype_df) + 
   aes(x = cellassign_max_prediction) + 
   geom_density(
-    #aes(y = ..scaled..),
     bw = 0.03, 
     fill = "grey65", 
     linewidth = 0.25) +
   geom_rug(
     color = "blue", 
-    alpha = 0.8,
-    length = unit(rug_height, "in") 
+    aes(alpha = alpha),
+    length = unit(0.1, "npc") 
   ) + 
   scale_x_continuous(limits = c(0,1)) +
-  scale_y_continuous(expand = c(0,0)) +
+  # rug below density plots:
+  scale_y_continuous(expand = c(0.1, 0.1)) +
+  scale_alpha_manual(values = c(1, 0.6)) + # 1 for "dark" and 0.6 for "light"
+  guides(alpha = FALSE) +
   labs(
     x = "Probability of annotated cell type",
     y = ""
