@@ -168,10 +168,10 @@ plot_heatmap <- function(matrix_list,
 #'
 #' @return Integer of desired font size
 find_label_size <- function(input_labels, 
-                            extact_names = TRUE) {
+                            extract_names = TRUE) {
   
   # extract colnames if specified
-  if (extact_names) {
+  if (extract_names) {
     input_labels <- input_labels |>
       purrr::map(colnames) |> 
       unlist() 
@@ -183,9 +183,9 @@ find_label_size <- function(input_labels,
 
   labels_font_size <- dplyr::case_when(
     longest_name < 35 ~ 9.5, 
-    dplyr::between(longest_name, 35, 45) ~ 8.5, 
-    dplyr::between(longest_name, 46, 60) ~ 7.5,
-    longest_name > 60 ~ 6.5
+    longest_name < 45 ~ 8.5, 
+    longest_name < 60 ~ 7.5,
+    .default = 6.5
   )
   
   return(labels_font_size)
