@@ -392,7 +392,7 @@ To assess the quality of the `CellAsssign`-assigned cell types, we visualize the
 `CellAssign` annotates cells by selecting the cell type with the highest probability among all cell types considered. 
 
 The plot below shows probability distributions of all cells assigned to each cell type.
-Blue line segments shown as a 'rug' represent individual cell probabilities that comprise each distribution.
+Blue line segments shown as a 'rug' represent individual values that comprise each distribution.
 
 Note that no distrubution is shown for cell types with 3 or fewer labeled cells, but rug points are shown.
 ")
@@ -410,7 +410,7 @@ ggplot(celltype_df) +
     #aes(y = ..scaled..),
     bw = 0.03, 
     fill = "grey65", 
-    size = 0.25) +
+    linewidth = 0.25) +
   geom_rug(
     color = "blue", 
     alpha = 0.8,
