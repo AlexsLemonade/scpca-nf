@@ -398,7 +398,7 @@ These probabilities are provided directly by `CellAssign`:
 The plot below shows the distribution of `CellAssign`-calculated probabilities for the final cell type labels.
 Blue line segments shown as a 'rug' represent individual values that comprise each distribution.
 
-Note that no distrubution is shown for cell types with 3 or fewer labeled cells, but rug points are shown.
+Note that no distrubution is shown for cell types with 2 or fewer labeled cells, but rug points are shown.
 ")
 
 # Determine height in inches for plot area
@@ -407,34 +407,45 @@ plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation)
 
 
 ```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6}
-# add alpha indicator
+# add count and alpha indicator
 celltype_df <- celltype_df |>
   dplyr::add_count(cellassign_celltype_annotation) |>
   dplyr::mutate(
     # if more cells, less opaque
-    alpha = ifelse(
-      n <= 100, 
-      "dark", 
-      "light"
-    )
+    alpha = ifelse(n <= 100, 1, 0.7)
   )
+
+# make a small celltype_df for bigger rugs where needed
+celltype_df_small <- celltype_df |>
+  dplyr::filter(n < 2)
 
 ggplot(celltype_df) + 
   aes(x = cellassign_max_prediction) + 
   geom_density(
     bw = 0.03, 
     fill = "grey65", 
-    linewidth = 0.25) +
-  geom_rug(
-    color = "blue", 
-    aes(alpha = ifelse(n < 100, 0.5, 1)),
-    length = unit(ifelse(n > 3, 0.1, 0.5), "npc") 
-  ) + 
+    linewidth = 0.25
+  ) +
   scale_x_continuous(limits = c(0,1)) +
   # rug below density plots:
+  geom_rug(
+    color = "blue",
+    length = unit(0.1, "npc"),
+    aes(alpha = alpha)
+  ) +
+  # bigger rug for n<3 rows
+  geom_segment(
+    data = celltype_df_small, 
+    aes(
+      x = cellassign_max_prediction, 
+      xend = cellassign_max_prediction
+    ),
+    y = -0.1, 
+    yend = 2, 
+    color = "blue"
+  ) +
   scale_y_continuous(expand = c(0.1, 0.1)) +
-  scale_alpha_manual(values = c(1, 0.6)) + # 1 for "dark" and 0.6 for "light"
-  guides(alpha = FALSE) +
+  scale_alpha_identity() + 
   labs(
     x = "Probability of annotated cell type",
     y = ""
