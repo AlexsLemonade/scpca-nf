@@ -202,14 +202,16 @@ create_heatmap_list <- function(matrix_list,
 
 #' Determine the label font size based on nchar of cell type labels
 #'
-#' @param matrix_list List of names with column names to query
-#'
-#' @return Integer of desired font size
+#' @param input_labels List of names with column names to query
+#' @param is_list Boolean for whether the `input_labels` is a list, default TRUE.
+#'   When this value is a list, we first need to extract its names before querying them.
+#'   
+#' @return Desired font size numeric
 find_label_size <- function(input_labels, 
-                            extract_names = TRUE) {
+                            is_list = TRUE) {
   
-  # extract colnames if specified
-  if (extract_names) {
+  # extract colnames if we have a list
+  if (is_list) {
     input_labels <- input_labels |>
       purrr::map(colnames) |> 
       unlist() 
@@ -403,7 +405,7 @@ labels_font_size <- find_label_size(
     rownames(singler_cellassign_matrix), 
     colnames(singler_cellassign_matrix)
   ), 
-  extract_names = FALSE
+  is_list = FALSE
 )
 
 create_single_heatmap(
