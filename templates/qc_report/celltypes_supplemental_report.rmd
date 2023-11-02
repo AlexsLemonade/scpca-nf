@@ -399,7 +399,7 @@ The plot below shows the distribution of `CellAssign`-calculated probabilities f
 Blue line segments shown as a 'rug' represent individual values that comprise each distribution.
 
 Note that no distrubution is shown for cell types with 2 or fewer labeled cells, but rug points are shown.
-Rug points are also taller for any cell type label with 2 or fewer cells.
+Rug points are also taller for any cell type label with 5 or fewer cells.
 ")
 
 # Determine height in inches for plot area
@@ -437,7 +437,7 @@ ggplot(celltype_df) +
     aes(
       alpha = pmax(0.2, 1 - 0.01 * n),
       xend = cellassign_max_prediction,
-      yend = ifelse(n > 20, 0, y_max/2.5),
+      yend = ifelse(n > 5, 0, y_max/2.5),
     ),
     color = "blue",
     y = -Inf,
