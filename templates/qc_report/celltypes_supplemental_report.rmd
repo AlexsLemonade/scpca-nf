@@ -244,9 +244,6 @@ has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 
-# Create data frame of cell types
-celltype_df <- create_celltype_df(processed_sce)
-
 # what celltypes are available?
 available_celltypes <- c(
   ifelse(has_submitter, "Submitter", NA),
@@ -254,6 +251,12 @@ available_celltypes <- c(
   ifelse(has_cellassign, "CellAssign", NA)
 ) |> 
   na.omit()
+```
+
+
+<!-- Call the celltypes_qc report section from the main report -->
+```{r, child='celltypes_qc.rmd'}
+
 ```
 
 
@@ -637,3 +640,17 @@ ggplot(celltype_df) +
     panel.spacing = unit(0.02, "in")
   )
 ```
+
+
+# Session Info
+<details>
+<summary>R session information</summary>
+```{r session_info}
+if (requireNamespace("sessioninfo", quietly = TRUE)) {
+  sessioninfo::session_info()
+} else {
+  sessionInfo()
+}
+```
+</details>
+
