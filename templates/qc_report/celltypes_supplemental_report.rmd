@@ -391,7 +391,7 @@ knitr::asis_output("
 To assess the quality of `CellAssign` cell type annotations, we look at the probability associated with the annotated cell type. 
 These probabilities are provided directly by `CellAssign`:
 
-- `CellAssign` first calculates the probability of each cell being annotated as a cell type present in the reference.
+- `CellAssign` first calculates the probability of each cell being annotated as each cell type present in the reference.
 - `CellAssign` then annotates cells by selecting the cell type with the highest probability among all cell types considered. 
 - These probabilities range from 0 to 1, with larger values indicating greater confidence in a given cell type label.
 We therefore expect reliable labels to have values close to 1.
