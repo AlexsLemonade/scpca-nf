@@ -435,12 +435,16 @@ ggplot(celltype_df) +
   ) + 
   geom_segment(
     aes(
+      # set alpha to vary based on the number of points in the row such that
+      #  rows with more points are more transparent
       alpha = pmax(0.2, 1 - 0.01 * n),
       xend = cellassign_max_prediction,
+      # set yend as either 0 for rows with many points, or y_max/2.5 for 
+      #  rows with few points
       yend = ifelse(n > 5, 0, y_max/2.5),
+      y = -Inf
     ),
-    color = "blue",
-    y = -Inf,
+    color = "blue"
   ) +
   labs(
     x = "Probability of annotated cell type",
