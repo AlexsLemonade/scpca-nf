@@ -236,9 +236,6 @@ find_label_size <- function(input_labels,
 library_id <- params$library
 processed_sce <- params$processed_sce
 
-library_id <- "SCPCL000295" 
-processed_sce <- readRDS(glue::glue("{library_id}_processed.rds"))
-
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
@@ -246,6 +243,14 @@ has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 
 # Create data frame of cell types
 celltype_df <- create_celltype_df(processed_sce)
+
+# what celltypes are available?
+available_celltypes <- c(
+  ifelse(has_submitter, "Submitter", NA),
+  ifelse(has_singler, "SingleR", NA),
+  ifelse(has_cellassign, "CellAssign", NA)
+) |> 
+  na.omit()
 ```
 
 
@@ -269,31 +274,22 @@ Cluster assignment was performed using the `r metadata(processed_sce)$cluster_al
 
 ```{r}
 # Calculate all jaccard matrices of interest for input to heatmap
-jaccard_cluster_matrices <- list()
+jaccard_cluster_matrices <- available_celltypes |> 
+  stringr::str_to_lower() |>
+  purrr::map(\(name) {
+    make_jaccard_matrix(
+      celltype_df, 
+      "cluster", 
+      glue::glue("{name}_celltype_annotation")
+    )}) |>
+  purrr::set_names(available_celltypes)
 
-if (has_submitter) {
-  jaccard_cluster_matrices[["Submitter"]] <- make_jaccard_matrix(
-    celltype_df, 
-    "cluster", 
-    "submitter_celltype_annotation"
-  )
-}
-if (has_singler) {
-  jaccard_cluster_matrices[["SingleR"]] <- make_jaccard_matrix(
-    celltype_df, 
-    "cluster", 
-    "singler_celltype_annotation"
-  )
-}
-if (has_cellassign) {
-  jaccard_cluster_matrices[["CellAssign"]] <- make_jaccard_matrix(
-    celltype_df, 
-    "cluster", 
-    "cellassign_celltype_annotation"
-  )
-}
-
-
+# TODO: incorporate this
+n_celltypes <- jaccard_cluster_matrices |>
+  purrr::map(colnames) |> 
+  unlist() |> 
+  length()
+  
 # set height based on number of matrices
 heatmap_height <- length(jaccard_cluster_matrices) * 2.5
 ```
@@ -328,10 +324,26 @@ knitr::asis_output(
 ```
 
 ```{r}
-# Calculate all jaccard matrices of interest for input to next heatmap
-jaccard_submitter_matrices <- list()
+# don't compare submitter to submitter
+available_celltypes <- available_celltypes[!(available_celltypes == "Submitter")]
 
-n_celltypes <- 0 
+# calculate matrices comparing to submitter
+jaccard_submitter_matrices <- available_celltypes |> 
+  stringr::str_to_lower() |>
+  purrr::map(\(name) {
+    make_jaccard_matrix(
+      celltype_df, 
+      "cluster", 
+      glue::glue("{name}_celltype_annotation")
+    )}) |>
+  purrr::set_names(available_celltypes)
+
+# how many unique cell types?
+n_celltypes <- jaccard_submitter_matrices |>
+  purrr::map(colnames) |> 
+  unlist() |> 
+  length()
+
 if (has_singler) {
   jaccard_submitter_matrices[["SingleR"]] <- make_jaccard_matrix(
     celltype_df, 
@@ -354,14 +366,13 @@ heatmap_height <- n_celltypes / 4.5
 ```
 
 ```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
-# create_heatmap(
-#   jaccard_submitter_matrices, 
-#   column_title = "Submitted-provided annotations",
-#   labels_font_size = find_label_size(jaccard_submitter_matrices),
-#   column_names_angle = 45
-# )
-# 
-# draw_heatmap
+jaccard_submitter_matrices |>
+  create_heatmap_list(
+    column_title = "Submitted-provided annotations", 
+    labels_font_size = find_label_size(jaccard_submitter_matrices), 
+    column_names_angle = 90
+  ) |>
+  draw_heatmap()
 ```
 
 
@@ -395,34 +406,16 @@ labels_font_size <- find_label_size(
   extract_names = FALSE
 )
 
-ComplexHeatmap::Heatmap(
-  singler_cellassign_matrix,
-  col = heatmap_col_fun,
-  border = TRUE, # each heatmap gets its own outline
-  ## Row parameters
-  cluster_rows = FALSE,
+create_single_heatmap(
+  singler_cellassign_matrix, 
   row_title = "SingleR annotations",
-  row_title_side = "right",
-  row_names_side = "left",
-  row_names_gp = grid::gpar(fontsize = labels_font_size),
-  ## Column parameters
-  cluster_columns = FALSE,
-  column_title = "CellAssign annotations",
-  column_names_side = "bottom",
-  column_names_rot = 45,
-  column_names_gp = grid::gpar(fontsize = labels_font_size),
-  ## Legend parameters
-  heatmap_legend_param = list(
-    title = "Jaccard index",
-    direction = "horizontal",
-    legend_width = unit(1.5, "in")
-  ),
-  show_heatmap_legend = TRUE
-) |>
-  # Render the heatmap list
-  ComplexHeatmap::draw(
-    heatmap_legend_side = "bottom"
-  )
+  column_title = "CellAssign annotations", 
+  labels_font_size = labels_font_size, 
+  keep_legend_name = "SingleR annotations",
+  column_names_angle = 90,
+  col_fun = heatmap_col_fun
+  ) |>
+  draw_heatmap()
 ```
 
 
