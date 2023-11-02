@@ -254,16 +254,16 @@ In this section, we assess the reliability of cell type annotations using diagno
 knitr::asis_output("
 ### `SingleR` assessment
 
-To assess the quality of the `SingleR`-assigned cell types, we use the _delta median_ statistic.
+To assess the quality of `SingleR` cell type annotations, we use the _delta median_ statistic.
 
-- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the assigned cell type label and the median score of the other cell type labels in the reference dataset.
+- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the annotated cell type label and the median score of the other cell type labels in the reference dataset.
 - Higher _delta median_ values indicate higher quality cell type annotations.
   - Values can range from 0-1.
   - Note that there is no universal threshold for calling absolute high vs. low quality, as described in the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
 You can interpret this plot as follows:
 
-- Each point represents the _delta median_ statistic of a given cell whose assigned `SingleR` annotation is shown on the y-axis.
+- Each point represents the _delta median_ statistic of a given cell whose `SingleR` annotation is shown on the y-axis.
 - The point color indicates `SingleR`'s quality assessment of the annotation:
   - High-quality cell annotations are shown as closed points.
   - Low-quality cell annotations are shown as open points.
@@ -388,7 +388,7 @@ ggplot(delta_median_df) +
 knitr::asis_output("
 ### `CellAssign` assessment
 
-To assess the quality of the `CellAsssign`-assigned cell types, we look at the probability associated with the annotated cell type. 
+To assess the quality of `CellAssign` cell type annotations, we look at the probability associated with the annotated cell type. 
 These probabilities are provided directly by `CellAssign`:
 
 - `CellAssign` first calculates the probability of each cell being annotated as a cell type present in the reference.
@@ -429,10 +429,11 @@ y_max <- celltype_df |>
   dplyr::summarize(y_max = max(density_max_y)) |>
   dplyr::pull(y_max)
 
-# add count to celltype_df for setting alpha values
+# add count to celltype_df for setting alpha and yend values
 celltype_df <- celltype_df |>
   dplyr::add_count(cellassign_celltype_annotation)
 
+# make the plot!
 ggplot(celltype_df) + 
   aes(x = cellassign_max_prediction) + 
   geom_density(
