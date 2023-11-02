@@ -254,16 +254,16 @@ In this section, we assess the reliability of cell type annotations using diagno
 knitr::asis_output("
 ### `SingleR` assessment
 
-To assess the quality of the `SingleR`-assigned cell types, we use the _delta median_ statistic.
+To assess the quality of `SingleR` cell type annotations, we use the _delta median_ statistic.
 
-- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the assigned cell type label and the median score of the other cell type labels in the reference dataset.
+- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the annotated cell type label and the median score of the other cell type labels in the reference dataset.
 - Higher _delta median_ values indicate higher quality cell type annotations.
   - Values can range from 0-1.
   - Note that there is no universal threshold for calling absolute high vs. low quality, as described in the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
 You can interpret this plot as follows:
 
-- Each point represents the _delta median_ statistic of a given cell whose assigned `SingleR` annotation is shown on the y-axis.
+- Each point represents the _delta median_ statistic of a given cell whose `SingleR` annotation is shown on the y-axis.
 - The point color indicates `SingleR`'s quality assessment of the annotation:
   - High-quality cell annotations are shown as closed points.
   - Low-quality cell annotations are shown as open points.
@@ -382,106 +382,92 @@ ggplot(delta_median_df) +
 
 
 
+
+
 ```{r, eval = has_cellassign}
 knitr::asis_output("
 ### `CellAssign` assessment
 
-`CellAssign` computes the probability that each cell in the library is one of the provided cell types in the reference and ultimately annotates cells by assigning the cell type with the highest probability.
-We therefore expect that cell-level probabilities that correspond to the annotated cell types will be high.
-Conversely, we expect that cell-level probabilities that correspond to unannotated cell types will be low.
+To assess the quality of `CellAssign` cell type annotations, we look at the probability associated with the annotated cell type. 
+These probabilities are provided directly by `CellAssign`:
 
-In the plot below, we show distributions of the `CellAssign` probabilities for each assigned cell type, where the median is shown as a vertical line in each.
-Colors represent whether the probabilities correspond to a cell with that given annotation: Purple distributions represent probabilies for cells that _were_ annotated as the given cell type.
-Yellow distributions represent probabilities for cells that _were not_ annotated as the given cell type.
-For distributions with fewer than three points, density plots cannot be calculated.
-In these cases, we directly show values for individual cell probabilities as line segments.
+- `CellAssign` first calculates the probability of each cell being annotated as each cell type present in the reference.
+- `CellAssign` then annotates cells by selecting the cell type with the highest probability among all cell types considered. 
+- These probabilities range from 0 to 1, with larger values indicating greater confidence in a given cell type label.
+We therefore expect reliable labels to have values close to 1.
+
+The plot below shows the distribution of `CellAssign`-calculated probabilities for the final cell type labels.
+Blue line segments shown as a 'rug' represent individual values that comprise each distribution.
+
+Note that no distrubution is shown for cell types with 2 or fewer labeled cells, but rug points are shown.
+Rug points are also taller for any cell type label with 5 or fewer cells.
 ")
+
+# Determine height in inches for plot area
+plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation))/2.5)
 ```
 
 
-```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = 8, fig.width = 7}
-# Prepare CellAssign scores for plot
-cellassign_prob_df <- metadata(processed_sce)$cellassign_predictions |>
-  # Change "other" to "Unknown cell type"
-  dplyr::rename(`Unknown cell type` = other) |>
-  tidyr::pivot_longer(
-    -barcode,
-    names_to = "celltype",
-    values_to = "probability"
-  ) |>
-  # remove cell types that were not annotated
-  dplyr::filter(celltype %in% celltype_df$cellassign_celltype_annotation) |>
-  # join with actual annotations
-  dplyr::inner_join(
-    tibble::tibble(
-      cellassign_celltype_annotation = celltype_df$cellassign_celltype_annotation,
-      barcode = colData(processed_sce)$barcodes # plural!
-    )
-  ) |>
-  # add indicator for whether the celltype matches the annotation
-  dplyr::mutate(
-    annotated = cellassign_celltype_annotation == celltype
-  )
+```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6}
+# define bandwidth for all calculations
+density_bw <- 0.03
 
-# reverse levels for ridgeplot layout, and wrap the labels
-new_levels <- rev(levels(cellassign_prob_df$cellassign_celltype_annotation))
-cellassign_prob_df$annotation_wrapped <- factor(
-  cellassign_prob_df$celltype,
-  levels = new_levels,
-  labels = stringr::str_wrap(new_levels, 30)
-)
+# find the maximum density across all distributions, and
+#  save the maximum for determining geom_segment height
+y_max <- celltype_df$cellassign_max_prediction |>
+  split(celltype_df$cellassign_celltype_annotation) |>
+  purrr::map_dbl(
+    \(x) max(density(x, bw = density_bw)$y)
+  ) |> 
+  max()
 
-# find groups with <=2 cells to add back into plot
-# These will always be `annotated = TRUE`
-celltypes_leq2_cells <- cellassign_prob_df |>
-  dplyr::count(annotation_wrapped, annotated) |>
-  dplyr::filter(n <= 2) |>
-  dplyr::pull(annotation_wrapped)
+# add count to celltype_df for setting alpha and yend values
+celltype_df <- celltype_df |>
+  dplyr::add_count(cellassign_celltype_annotation)
 
-# data frame for adding those points back
-leq2_probabilities_df <- cellassign_prob_df |>
-  dplyr::filter(
-    annotation_wrapped %in% celltypes_leq2_cells,
-    annotated
-  ) |>
-  dplyr::select(annotation_wrapped, probability, annotated)
-
-# Finally, the plot:
-ggplot(cellassign_prob_df) +
-  aes(
-    x = probability,
-    y = annotation_wrapped,
-    fill = annotated
+# make the plot!
+ggplot(celltype_df) + 
+  aes(x = cellassign_max_prediction) + 
+  geom_density(
+    bw = density_bw, 
+    fill = "grey65", 
+    linewidth = 0.25, 
+    bounds = c(0, 1)
+  ) + 
+  geom_segment(
+    aes(
+      # set alpha to vary based on the number of points in the row such that
+      #  rows with more points are more transparent
+      alpha = pmax(0.2, 1 - 0.01 * n),
+      xend = cellassign_max_prediction,
+      # set yend as either 0 for rows with many points, or y_max/2.5 for 
+      #  rows with few points
+      yend = ifelse(n > 5, 0, y_max/2.5),
+      y = -Inf
+    ),
+    color = "blue"
   ) +
-  ggridges::stat_density_ridges(
-    quantile_lines = TRUE,
-    quantiles = 2,
-    alpha = 0.6,
-    # avoid overlap to extent possible in a template -
-    scale = 0.85
-  ) +
-  scale_fill_viridis_d(direction = -1) +
   labs(
-    x = "CellAssign probability",
-    y = "Annotated cell type",
-    fill = "Cell annotated as given cell type"
+    x = "Probability of annotated cell type",
+    y = ""
+  ) +
+  coord_cartesian(xlim = c(0,1)) +
+  scale_y_continuous(expand = c(0.1, 0.1)) +
+  scale_alpha_identity() + 
+  facet_grid(
+    rows = vars(cellassign_celltype_annotation), 
+    switch = "y"
   ) +
   theme(
-    axis.text.y = element_text(size = 9),
-    legend.position = "bottom"
-  ) +
-  #### add line segment for N<3 distributions
-  geom_segment(
-    data = leq2_probabilities_df,
-    aes(
-      x = probability,
-      xend = probability,
-      y = annotation_wrapped,
-      yend = as.numeric(annotation_wrapped) + 0.25,
-      color = annotated
+    strip.background = element_blank(),
+    strip.text.y.left = element_text(
+      angle = 0, 
+      hjust = 1
     ),
-    show.legend = FALSE
-  ) +
-  scale_color_viridis_d()
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.minor = element_blank(), 
+    panel.grid.major.y = element_blank(), 
+    panel.spacing = unit(0.02, "in")
+  )
 ```
-
