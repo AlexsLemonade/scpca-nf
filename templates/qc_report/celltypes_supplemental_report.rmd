@@ -413,21 +413,12 @@ density_bw <- 0.03
 
 # find the maximum density across all distributions, and
 #  save the maximum for determining geom_segment height
-y_max <- celltype_df |>
-  dplyr::group_by(cellassign_celltype_annotation) |>
-  dplyr::select(cellassign_celltype_annotation,
-                cellassign_max_prediction) |>
-  tidyr::nest() |>
-  dplyr::ungroup() |>
-  dplyr::mutate(
-    density_max_y = purrr::map(
-      data, 
-      \(x) max(density(x$cellassign_max_prediction, bw = density_bw)$y
-    ))
-  ) |>
-  tidyr::unnest(cols = c(density_max_y)) |>
-  dplyr::summarize(y_max = max(density_max_y)) |>
-  dplyr::pull(y_max)
+y_max <- celltype_df$cellassign_max_prediction |>
+  split(celltype_df$cellassign_celltype_annotation) |>
+  purrr::map_dbl(
+    \(x) max(density(x, bw = density_bw)$y)
+  ) |> 
+  max()
 
 # add count to celltype_df for setting alpha and yend values
 celltype_df <- celltype_df |>
