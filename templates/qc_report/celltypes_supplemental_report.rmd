@@ -408,16 +408,35 @@ plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation)
 
 
 ```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6}
-# add count column
+# define bandwidth for all calculations
+density_bw <- 0.03
+
+# find the maximum density across all distributions, and
+#  save the maximum for determining geom_segment height
+y_max <- celltype_df |>
+  dplyr::group_by(cellassign_celltype_annotation) |>
+  dplyr::select(cellassign_celltype_annotation,
+                cellassign_max_prediction) |>
+  tidyr::nest() |>
+  dplyr::ungroup() |>
+  dplyr::mutate(
+    density_max_y = purrr::map(
+      data, 
+      \(x) max(density(x$cellassign_max_prediction, bw = density_bw)$y
+    ))
+  ) |>
+  tidyr::unnest(cols = c(density_max_y)) |>
+  dplyr::summarize(y_max = max(density_max_y)) |>
+  dplyr::pull(y_max)
+
+# add count to celltype_df for setting alpha values
 celltype_df <- celltype_df |>
   dplyr::add_count(cellassign_celltype_annotation)
-
 
 ggplot(celltype_df) + 
   aes(x = cellassign_max_prediction) + 
   geom_density(
-    aes(y = after_stat(scaled)),
-    bw = 0.03, 
+    bw = density_bw, 
     fill = "grey65", 
     linewidth = 0.25, 
     bounds = c(0, 1)
@@ -426,7 +445,7 @@ ggplot(celltype_df) +
     aes(
       alpha = pmax(0.2, 1 - 0.01 * n),
       xend = cellassign_max_prediction,
-      yend = ifelse(n > 2, 0.02, 0.2) # longer lines if there are few points
+      yend = ifelse(n > 20, 0, y_max/2.5),
     ),
     color = "blue",
     y = -Inf,
@@ -436,7 +455,7 @@ ggplot(celltype_df) +
     y = ""
   ) +
   coord_cartesian(xlim = c(0,1)) +
-  scale_y_continuous(expand = c(0.05, 0.05)) +
+  scale_y_continuous(expand = c(0.1, 0.1)) +
   scale_alpha_identity() + 
   facet_grid(
     rows = vars(cellassign_celltype_annotation), 
