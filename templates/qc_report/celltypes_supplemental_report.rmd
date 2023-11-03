@@ -3,7 +3,7 @@ params:
   library: Example
   processed_sce: NULL
   date: !r Sys.Date()
-title: "`r glue::glue('ScPCA Cell type annotation supplemental QC report for {params$library}')`"
+title: "`r glue::glue('ScPCA Supplemental cell type report for {params$library}')`"
 author: "Childhood Cancer Data Lab"
 date: "`r params$date`"
 output:
@@ -253,8 +253,49 @@ available_celltypes <- c(
   na.omit()
 ```
 
+```{r, results='asis'}
+methods_bullets <- available_celltypes |>
+  # full string for printing out
+  stringr::str_replace("Submitter", "Submitter-provided") |>
+  # backticks to only these two methods
+  stringr::str_replace_all("(SingleR|CellAssign)", "`\\1`") |>
+  # make it bullets
+  stringr::str_replace_all("^", "- ") |>
+  glue::glue_collapse(sep = "\n")
 
-<!-- Call the celltypes_qc report section from the main report -->
+
+glue::glue("
+  <div class=\"alert alert-warning\">
+  
+  The following cell type annotations are present for this library:
+  
+    {methods_bullets}
+  
+  </div>
+")
+  
+```
+
+<!--------------------------------- Opening text ------------------------------> 
+This report contains summarized results from performing cell type annotation for library `r library_id`.
+The role of this report is to provide more detailed information about cell type annotation results, including the following:
+
+- How do results from different cell type annotation methods compare to one another?
+- How do submitter-provided cell type annotations, if available, compare to results from `SingleR` and/or `CellAssign`?
+- How reliable are `SingleR` and/or `CellAssign` cell type annotations?
+
+Note that the specific contents of this report will depend on which cell type annotations are present.
+
+One reason that ScPCA employs multiple cell type annotation approaches is to offer a chance to compare their annotations.
+Performing cell type annotation is an inherently challenging task with high levels of uncertainty.
+
+Therefore, when multiple methods annotate a given cell as the same or similar cell type, this qualitatively indicates that the annotation is more reliable.
+
+Be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
+
+
+
+<!------- Call the celltypes_qc report section from the main report ----------->
 ```{r, child='celltypes_qc.rmd'}
 
 ```
@@ -311,6 +352,7 @@ jaccard_cluster_matrices |>
 
 
 
+<!-------------------------- Submitter heatmaps ------------------------------->
 ```{r, eval = has_submitter & (has_cellassign | has_singler)}
 methods_string <- dplyr::case_when(
   has_cellassign & has_singler ~ "`SingleR` and `CellAssign`",
@@ -366,8 +408,7 @@ jaccard_submitter_matrices |>
 ```
 
 
-
-
+<!---------------------- SingleR/CellAssign heatmap  -------------------------->
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
 ### Comparison between `SingleR` and `CellAssign` annotations
@@ -411,6 +452,7 @@ create_single_heatmap(
 ```
 
 
+<!---------------------------- Diagnostic plots  ------------------------------> 
 ```{r, eval = has_singler | has_cellassign }
 knitr::asis_output("
 ## Annotation Assessment
@@ -419,6 +461,11 @@ In this section, we assess the reliability of cell type annotations using diagno
 ")
 ```
 
+
+
+
+
+<!------------------------ SingleR delta median  ------------------------------> 
 ```{r, eval = has_singler}
 knitr::asis_output("
 ### `SingleR` assessment
@@ -550,9 +597,7 @@ ggplot(delta_median_df) +
 ```
 
 
-
-
-
+<!---------------------- CellAssign probability plot  -------------------------> 
 ```{r, eval = has_cellassign}
 knitr::asis_output("
 ### `CellAssign` assessment
