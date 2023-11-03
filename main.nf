@@ -224,10 +224,17 @@ workflow {
   // generate QC reports and publish .rds files with SCEs.
   sce_qc_report(cluster_sce.out, report_template_tuple)
 
+  // because we have some libraries that have cell hashing, but don't need multiplexing
+  // only 1 sample per library, we need to create a separate list of all the libraries
+  // that contain cell hashing, these will not go through anndata conversion
+  cellhash_libs = runs_ch.feature
+    .filter{it.technology in cellhash_techs}
+    .collect{it.library_id}
+
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data
-    // skip multiplexed libraries
-    .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
+    // skip cell hashed libraries
+    .filter{!(it[0]["library_id"] in cellhash_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
    // **** Process Spatial Transcriptomics data ****
