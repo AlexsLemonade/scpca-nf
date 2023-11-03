@@ -124,16 +124,18 @@ draw_heatmap <- function(heatmap, legend_side = "bottom") {
 #' @param labels_font_size Font size to use for rows and column labels.
 #' @param keep_legend_name The name to use in the legend
 #' @param column_names_angle Angle for column names. Default is 0.
-#' @param col_fun Color function for the heatmap palette. Default is `heatmat_col_fun`.
+#' @param col_fun Color function for the heatmap palette. Default is `heatmap_col_fun`.
 #' 
 #' @return A ComplexHeatmap object
-create_single_heatmap <- function(mat,
-                                  row_title, 
-                                  column_title, 
-                                  labels_font_size,
-                                  keep_legend_name,
-                                  column_names_angle = 0,
-                                  col_fun = heatmap_col_fun) {
+create_single_heatmap <- function(
+  mat,
+  row_title, 
+  column_title, 
+  labels_font_size,
+  keep_legend_name,
+  column_names_angle = 0,
+  col_fun = heatmap_col_fun
+) {
   
   heat <- ComplexHeatmap::Heatmap(
     t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
@@ -159,7 +161,7 @@ create_single_heatmap <- function(mat,
       direction = "horizontal",
       legend_width = unit(1.5, "in")
     ),
-    # Retain only 1 legend in the final plot      
+    # only keep legends that match `keep_legend_name`
     show_heatmap_legend = row_title == keep_legend_name,
   )
   
@@ -279,13 +281,13 @@ Cluster assignment was performed using the `r metadata(processed_sce)$cluster_al
 # Calculate all jaccard matrices of interest for input to heatmap
 jaccard_cluster_matrices <- available_celltypes |> 
   stringr::str_to_lower() |>
+  purrr::set_names(available_celltypes) |>
   purrr::map(\(name) {
     make_jaccard_matrix(
       celltype_df, 
       "cluster", 
       glue::glue("{name}_celltype_annotation")
-    )}) |>
-  purrr::set_names(available_celltypes)
+    )}) 
 
 n_celltypes <- jaccard_cluster_matrices |>
   purrr::map(colnames) |> 
