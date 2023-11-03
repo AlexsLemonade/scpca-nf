@@ -301,7 +301,7 @@ Be aware that different cell type annotation methods may assign different labels
 ```
 
 
-## Cell label comparison plots
+# Cell label comparison plots
 
 This section displays heatmaps comparing cell labels from various methods. 
 
@@ -312,8 +312,10 @@ The Jaccard index reflects the degree of overlap between the two labels and rang
 * If the labels are assigned to identical sets of cells, the Jaccard index will be 1.
 * If the labels are assigned to completely non-overlapping sets of cells, the Jaccard index will be 0.
 
+High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
 
-### Comparison with unsupervised clustering
+
+## Unsupervised clustering
 
 Here we show the labels from unsupervised clustering compared against cell type annotations. 
 Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
@@ -354,15 +356,17 @@ jaccard_cluster_matrices |>
 
 <!-------------------------- Submitter heatmaps ------------------------------->
 ```{r, eval = has_submitter & (has_cellassign | has_singler)}
-methods_string <- dplyr::case_when(
-  has_cellassign & has_singler ~ "`SingleR` and `CellAssign`",
-  has_singler  ~ "`SingleR`",
-  has_cellassign  ~ "`CellAssign`"
-)
+# don't compare submitter to submitter
+available_celltypes <- available_celltypes[!(available_celltypes == "Submitter")]
+
+methods_string <- available_celltypes |>
+  stringr::str_replace_all("^", "`") |>
+  stringr::str_replace_all("$", "`") |>
+  stringr::str_c(collapse = " and ")
 
 knitr::asis_output(
   glue::glue(
-  "## Comparison with submitter annotations
+  "## Submitter-provided annotations
 
   This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from {methods_string}."
   )
@@ -370,8 +374,6 @@ knitr::asis_output(
 ```
 
 ```{r}
-# don't compare submitter to submitter
-available_celltypes <- available_celltypes[!(available_celltypes == "Submitter")]
 
 # calculate matrices comparing to submitter
 jaccard_submitter_matrices <- available_celltypes |> 
@@ -411,7 +413,7 @@ jaccard_submitter_matrices |>
 <!---------------------- SingleR/CellAssign heatmap  -------------------------->
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
-### Comparison between `SingleR` and `CellAssign` annotations
+## `SingleR` vs. `CellAssign` annotations
 
 This section displays a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
@@ -455,9 +457,9 @@ create_single_heatmap(
 <!---------------------------- Diagnostic plots  ------------------------------> 
 ```{r, eval = has_singler | has_cellassign }
 knitr::asis_output("
-## Annotation Assessment
+# Annotation quality assessment
 
-In this section, we assess the reliability of cell type annotations using diagnostic plots.
+In this section, we assess the quality of cell type annotations using diagnostic plots.
 ")
 ```
 
@@ -468,7 +470,7 @@ In this section, we assess the reliability of cell type annotations using diagno
 <!------------------------ SingleR delta median  ------------------------------> 
 ```{r, eval = has_singler}
 knitr::asis_output("
-### `SingleR` assessment
+## `SingleR` annotations
 
 To assess the quality of `SingleR` cell type annotations, we use the _delta median_ statistic.
 
@@ -600,7 +602,7 @@ ggplot(delta_median_df) +
 <!---------------------- CellAssign probability plot  -------------------------> 
 ```{r, eval = has_cellassign}
 knitr::asis_output("
-### `CellAssign` assessment
+## `CellAssign` annotations
 
 To assess the quality of `CellAssign` cell type annotations, we look at the probability associated with the annotated cell type. 
 These probabilities are provided directly by `CellAssign`:
