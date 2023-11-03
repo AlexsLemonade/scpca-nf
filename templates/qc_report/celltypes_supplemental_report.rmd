@@ -102,20 +102,6 @@ heatmap_col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateb
 heatmap_padding <- 0.2
 ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
 
-
-#' Draw a ComplexHeatmap
-#'
-#' @param heatmap A heatmap or list of heatmaps to draw
-#' @param legend_side Side legend appears on, default bottom
-draw_heatmap <- function(heatmap, legend_side = "bottom") {
-  # Render the heatmap or list of heatmaps
-  ComplexHeatmap::draw(
-    heatmap, 
-    heatmap_legend_side = legend_side
-  )
-}
-
-
 #' Create a ComplexHeatmap from a matrix
 #'
 #' @param mat Matrix to create heatmap from.
@@ -305,7 +291,10 @@ jaccard_cluster_matrices |>
     column_title = "Clusters", 
     labels_font_size = find_label_size(jaccard_cluster_matrices)
   ) |>
-  draw_heatmap()
+  ComplexHeatmap::draw(
+    heatmap, 
+    heatmap_legend_side = "bottom"
+  )
 ```
 
 
@@ -361,7 +350,10 @@ jaccard_submitter_matrices |>
     labels_font_size = find_label_size(jaccard_submitter_matrices), 
     column_names_angle = 90
   ) |>
-  draw_heatmap()
+  ComplexHeatmap::draw(
+    heatmap, 
+    heatmap_legend_side = "bottom"
+  )
 ```
 
 
