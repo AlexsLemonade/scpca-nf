@@ -55,10 +55,10 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))) {
 # sure that the sce that is getting converted to AnnData is compliant with CZI
 # CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
 format_czi <- function(sce) {
-  
+
   # add schema version
   metadata(sce)$schema_version = "3.0.0"
-  
+
   # add library_id as an sce colData column
   # need this column to join in the sample metadata with the colData
   sce$library_id <- metadata(sce)$library_id
@@ -136,15 +136,23 @@ if (!is.null(opt$feature_name)) {
   # extract altExp
   alt_sce <- altExp(sce, opt$feature_name)
 
-  # add sample metadata from main sce to alt sce metadata
-  metadata(alt_sce)$sample_metadata <- sample_metadata
+  # only convert altExp with > 1 rows
+  if(nrows(alt_sce) > 1){
 
-  # make sce czi compliant
-  alt_sce <- format_czi(alt_sce)
+    # add sample metadata from main sce to alt sce metadata
+    metadata(alt_sce)$sample_metadata <- sample_metadata
 
-  # export altExp sce as anndata object
-  scpcaTools::sce_to_anndata(
-    alt_sce,
-    anndata_file = opt$output_feature_h5
-  )
+    # make sce czi compliant
+    alt_sce <- format_czi(alt_sce)
+
+    # export altExp sce as anndata object
+    scpcaTools::sce_to_anndata(
+      alt_sce,
+      anndata_file = opt$output_feature_h5
+    )
+  } else {
+    # warn that the altExp cannot be converted
+    message(glue::glue("Only 1 row found in altExp named: {feature_name}.
+                       This altExp will not be converted to an AnnData object."))
+  }
 }
