@@ -190,7 +190,7 @@ create_heatmap_list <- function(matrix_list,
 }
 
 
-#' Determine the label font size based on nchar of cell type labels
+#' Determine the label font size based on # characters in cell type labels
 #'
 #' @param input_labels Vector of cell type labels
 #' 
@@ -198,7 +198,7 @@ create_heatmap_list <- function(matrix_list,
 find_label_size <- function(input_labels) {
   
   longest_name <- input_labels |>
-    nchar() |> 
+    stringr::str_length() |> 
     max()
 
   labels_font_size <- dplyr::case_when(
@@ -209,6 +209,37 @@ find_label_size <- function(input_labels) {
   )
   
   return(labels_font_size)
+}
+```
+
+
+```{r}
+#' Function to calculate optimal heatmap plot view height
+#'
+#' @param row_names Vector of rownames
+#' @param col_names Vector of column names
+#' @param n_spacers Number of spacers between stacked heatmaps
+#' @param spacer_size Spacer size in inches
+#'
+#' @return Heatmap height in inches
+calculate_plot_height <- function(row_names, 
+                                  col_names, 
+                                  n_spacers,
+                                  spacer_size = heatmap_padding) {
+  
+  # first, based on number of cells in row_names:
+  #   6 cell types to an inch
+  heat_height <- length(row_names)/6
+
+  # next, based on nchar of col_names:
+  #   10 characters to an inch
+  # using stringr::str_length() in case col_names is a factor vector
+  heat_height <- heat_height + max(stringr::str_length(col_names))/10
+
+  # finally, add in any padding  
+  heat_height <- heat_height + n_spacers*spacer_size
+  
+  return(heat_height)
 }
 ```
 
@@ -266,20 +297,22 @@ jaccard_cluster_matrices <- available_celltypes |>
       glue::glue("{name}_celltype_annotation")
     )}) 
 
-unique_celltypes <- jaccard_cluster_matrices |>
+all_celltypes <- jaccard_cluster_matrices |>
   purrr::map(colnames) |> 
   unlist() 
   
-# set height based on number of celltypes, and add on 2x padding
-# there are no long vertical labels here to accommodate, only cluster names (ints)
-heatmap_height <- length(unique_celltypes)/6 + 2*heatmap_padding
+heatmap_height <- calculate_plot_height(
+  all_celltypes, 
+  unique(celltype_df$cluster),
+  2
+)
 ```
 
 ```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
   create_heatmap_list(
     column_title = "Clusters", 
-    labels_font_size = find_label_size(unique_celltypes)
+    labels_font_size = find_label_size(all_celltypes)
   ) |>
   ComplexHeatmap::draw(
     heatmap_legend_side = "bottom"
@@ -320,22 +353,23 @@ jaccard_submitter_matrices <- available_celltypes |>
   }) |>
   purrr::set_names(available_celltypes)
 
-# how many unique cell types?
-unique_celltypes <- jaccard_submitter_matrices |>
+# how many cell types?
+all_celltypes <- jaccard_submitter_matrices |>
   purrr::map(colnames) |> 
   unlist() 
 
-# Set plot dimensions based on number of cell types plus:
-## 1x padding
-## 2" for long labels
-heatmap_height <- length(unique_celltypes)/6 + heatmap_padding + 2 
+heatmap_height <- calculate_plot_height(
+  all_celltypes, 
+  unique(celltype_df$submitter_celltype_annotation),
+  1
+)
 ```
 
 ```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
 jaccard_submitter_matrices |>
   create_heatmap_list(
     column_title = "Submitter-provided annotations", 
-    labels_font_size = find_label_size(unique_celltypes), 
+    labels_font_size = find_label_size(all_celltypes), 
     column_names_angle = 90
   ) |>
   ComplexHeatmap::draw(
@@ -355,12 +389,17 @@ Note that due to different annotations references, these methods may use differe
 ")
 
 # Set plot dimensions based on number of SingleR cell types
-unique_celltypes <- levels(celltype_df$singler_celltype_annotation)
-heatmap_height <- length(unique_celltypes)/4 + 2 
+all_celltypes <- levels(celltype_df$singler_celltype_annotation)
+heatmap_height <- calculate_plot_height(
+  unique(celltype_df$singler_celltype_annotation),
+  unique(celltype_df$cellassign_celltype_annotation),
+  0
+)
 ```
 
 
 ```{r, eval = has_cellassign & has_singler, fig.height = heatmap_height, fig.width = 8.5}
+
 # Calculate jaccard matrix
 singler_cellassign_matrix <- make_jaccard_matrix(
   celltype_df, 
@@ -372,7 +411,7 @@ create_single_heatmap(
   singler_cellassign_matrix, 
   row_title = "SingleR annotations",
   column_title = "CellAssign annotations", 
-  labels_font_size = find_label_size(unique_celltypes), 
+  labels_font_size = find_label_size(all_celltypes), 
   keep_legend_name = "SingleR annotations",
   column_names_angle = 90,
   col_fun = heatmap_col_fun
