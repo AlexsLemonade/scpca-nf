@@ -3,7 +3,6 @@ params:
   library: Example
   processed_sce: NULL
   date: !r Sys.Date()
-
 title: "`r glue::glue('ScPCA Cell type annotation supplemental QC report for {params$library}')`"
 author: "Childhood Cancer Data Lab"
 date: "`r params$date`"
@@ -41,7 +40,7 @@ theme_set(
 
 ```
 
-<!-- Define helper functions for calculating Jaccard similarity matrices --> 
+<!-- Define helper functions for calculating Jaccard matrices --> 
 ```{r}
 #' Function to calculate Jaccard similarity on two vectors
 #'
@@ -94,6 +93,162 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
 ```
 
 
+<!-- Define variables, options, and functions for plotting heatmaps --> 
+```{r}
+# Define color ramp for shared use in the heatmap
+heatmap_col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
+
+# Set heatmap padding option
+heatmap_padding <- 0.2
+ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
+
+#' Create a ComplexHeatmap from a matrix
+#'
+#' @param mat Matrix to create heatmap from.
+#' @param row_title Label for row title.
+#' @param column_title Label for column title.
+#' @param labels_font_size Font size to use for rows and column labels.
+#' @param keep_legend_name The name to use in the legend
+#' @param col_fun Color function for the heatmap palette. Default is `heatmap_col_fun`.
+#' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
+#' 
+#' @return A ComplexHeatmap object
+create_single_heatmap <- function(
+  mat,
+  row_title, 
+  column_title, 
+  labels_font_size,
+  keep_legend_name,
+  col_fun = heatmap_col_fun,
+  ...
+) {
+  
+  heat <- ComplexHeatmap::Heatmap(
+    t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
+    col = col_fun,
+    border = TRUE, # each heatmap gets its own outline
+    ## Row parameters
+    cluster_rows = FALSE,
+    row_title = row_title, # each heatmap gets its own title
+    row_title_gp = grid::gpar(fontsize = 10), 
+    row_title_side = "right",
+    row_names_side = "left",
+    row_names_gp = grid::gpar(fontsize = labels_font_size),
+    ## Column parameters
+    cluster_columns = FALSE,
+    column_title = column_title,
+    column_title_gp = grid::gpar(fontsize = 10), 
+    column_names_side = "bottom",
+    column_names_gp = grid::gpar(fontsize = labels_font_size),
+    ### passed in args
+    ...,
+    ## Legend parameters
+    heatmap_legend_param = list(
+      title = "Jaccard index",
+      direction = "horizontal",
+      legend_width = unit(1.5, "in")
+    ),
+    # only keep legends that match `keep_legend_name`
+    show_heatmap_legend = row_title == keep_legend_name,
+  )
+  
+  return(heat)
+}    
+      
+#' Function to plot a vertically-stacked ComplexHeatmap from a list of matrices
+#'
+#' @param matrix_list List of matrices to plot in a vertical layout. 
+#' @param column_title Title to use for columns, shared among all heatmaps
+#' @param labels_font_size Font size to use for rows and column labels.
+#' @param col_fun Color function for the heatmap palette. Default is `heatmat_col_fun`.
+#' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
+#'
+#' @return A list of ComplexHeatmap objects
+create_heatmap_list <- function(
+  matrix_list,
+  column_title, 
+  labels_font_size,
+  col_fun = heatmap_col_fun,
+  ...
+) {
+  
+  
+  # We only want one shared legend in the end, arbitrarily grab the first one
+  keep_legend_name <- names(matrix_list)[1]
+
+  heatmap_list <- matrix_list |> 
+    purrr::imap(
+      \(mat, name) create_single_heatmap(
+        mat,
+        name,
+        column_title, 
+        labels_font_size,
+        keep_legend_name,
+        col_fun,
+        ...
+      )
+    ) |>
+    # concatenate vertically into HeatmapList object
+    purrr::reduce(ComplexHeatmap::`%v%`) 
+  
+  return(heatmap_list)
+}
+
+
+#' Determine the label font size based on # characters in cell type labels
+#'
+#' @param input_labels Vector of cell type labels
+#' 
+#' @return Font size numeric as determined by longest cell type label
+find_label_size <- function(input_labels) {
+  
+  longest_name <- input_labels |>
+    stringr::str_length() |> 
+    max()
+
+  labels_font_size <- dplyr::case_when(
+    longest_name < 35 ~ 9.5, 
+    longest_name < 45 ~ 8.5, 
+    longest_name < 60 ~ 7.5,
+    .default = 6.5
+  )
+  
+  return(labels_font_size)
+}
+```
+
+
+```{r}
+#' Function to calculate optimal heatmap plot view height
+#'
+#' @param row_names Vector of rownames
+#' @param col_names Vector of column names
+#' @param n_spacers Number of spacers between stacked heatmaps
+#' @param spacer_size Spacer size in inches
+#'
+#' @return Heatmap height in inches
+calculate_plot_height <- function(row_names, 
+                                  col_names, 
+                                  n_spacers,
+                                  spacer_size = heatmap_padding) {
+  
+  # first, based on number of cells in row_names:
+  #   6 cell types to an inch
+  heat_height <- length(row_names)/6
+
+  # next, based on nchar of col_names:
+  #   10 characters to an inch
+  # using stringr::str_length() in case col_names is a factor vector
+  heat_height <- heat_height + max(stringr::str_length(col_names))/10
+
+  # finally, add in any padding  
+  heat_height <- heat_height + n_spacers*spacer_size
+  
+  return(heat_height)
+}
+```
+
+
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 # define library and sce object
 library_id <- params$library
@@ -106,6 +261,14 @@ has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 
 # Create data frame of cell types
 celltype_df <- create_celltype_df(processed_sce)
+
+# what celltypes are available?
+available_celltypes <- c(
+  ifelse(has_submitter, "Submitter", NA),
+  ifelse(has_singler, "SingleR", NA),
+  ifelse(has_cellassign, "CellAssign", NA)
+) |> 
+  na.omit()
 ```
 
 
@@ -113,7 +276,7 @@ celltype_df <- create_celltype_df(processed_sce)
 
 This section displays heatmaps comparing cell labels from various methods. 
 
-We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels from different methods.
+We use the [Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels from different methods.
 
 The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1. 
 
@@ -129,86 +292,39 @@ Cluster assignment was performed using the `r metadata(processed_sce)$cluster_al
 
 ```{r}
 # Calculate all jaccard matrices of interest for input to heatmap
-jaccard_cluster_matrices <- list()
+jaccard_cluster_matrices <- available_celltypes |> 
+  stringr::str_to_lower() |>
+  purrr::set_names(available_celltypes) |>
+  purrr::map(\(name) {
+    make_jaccard_matrix(
+      celltype_df, 
+      "cluster", 
+      glue::glue("{name}_celltype_annotation")
+    )}) 
 
-if (has_submitter) {
-  jaccard_cluster_matrices[["Submitter"]] <- make_jaccard_matrix(
-    celltype_df, 
-    "cluster", 
-    "submitter_celltype_annotation"
-  )
-}
-if (has_singler) {
-  jaccard_cluster_matrices[["SingleR"]] <- make_jaccard_matrix(
-    celltype_df, 
-    "cluster", 
-    "singler_celltype_annotation"
-  )
-}
-if (has_cellassign) {
-  jaccard_cluster_matrices[["CellAssign"]] <- make_jaccard_matrix(
-    celltype_df, 
-    "cluster", 
-    "cellassign_celltype_annotation"
-  )
-}
-
-
-heatmap_height <- length(jaccard_cluster_matrices) * 2.5
-```
-
-```{r, fig.height = heatmap_height, fig.width = 7, warning = FALSE}
-# Define color ramp for shared use in the heatmap
-col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
-
-# We only want one shared legend in the end, arbitrarily grab the first one
-keep_legend_name <- names(jaccard_cluster_matrices)[1]
-
-# Set heatmap padding option
-ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(0.2, "in"))
-
-# TODO: make this into a function so can re-use for 2nd group of heatmaps (still forthcoming)
-heatmap_list <- jaccard_cluster_matrices |> 
-  purrr::imap(\(mat, name){
-    ComplexHeatmap::Heatmap(
-      t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
-      col = col_fun,
-      border = TRUE, # each heatmap gets its own outline
-      ## Row parameters
-      cluster_rows = FALSE,
-      row_title = name, # each heatmap gets its own title
-      row_title_gp = grid::gpar(fontsize = 10), 
-      row_title_side = "right",
-      row_names_side = "left",
-      row_names_gp = grid::gpar(fontsize = 8),
-      ## Column parameters
-      cluster_columns = FALSE,
-      column_title = glue::glue("Cluster"),
-      column_names_side = "top",
-      column_names_rot = 0,
-      column_names_gp = grid::gpar(fontsize = 8), # match row name size
-      ## Legend parameters
-      heatmap_legend_param = list(
-        title = "Jaccard similarity index",
-        direction = "horizontal",
-        legend_width = unit(1.5, "in")
-      ),
-      # Retain only 1 legend in the final plot      
-      show_heatmap_legend = name == keep_legend_name,
-    )
-  }) |>
-  # concatenate vertically into HeatmapList object
-  purrr::reduce(ComplexHeatmap::`%v%`) 
-
-
-# Render the heatmap list
-ComplexHeatmap::draw(
-  heatmap_list, 
-  heatmap_legend_side = "bottom" 
+all_celltypes <- jaccard_cluster_matrices |>
+  purrr::map(colnames) |> 
+  unlist() 
+  
+heatmap_height <- calculate_plot_height(
+  all_celltypes, 
+  unique(celltype_df$cluster),
+  length(jaccard_cluster_matrices) - 1
 )
 ```
 
-
+```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
+jaccard_cluster_matrices |>
+  create_heatmap_list(
+    column_title = "Clusters", 
+    labels_font_size = find_label_size(all_celltypes),
+    ## additional arguments
+    column_names_rot = 0
+  ) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
 
 
 
@@ -226,8 +342,50 @@ knitr::asis_output(
   This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from {methods_string}."
   )
 )
-
 ```
+
+```{r}
+# don't compare submitter to submitter
+available_celltypes <- available_celltypes[!(available_celltypes == "Submitter")]
+
+# calculate matrices comparing to submitter
+jaccard_submitter_matrices <- available_celltypes |> 
+  stringr::str_to_lower() |>
+  purrr::map(\(name) {
+    make_jaccard_matrix(
+      celltype_df, 
+      "submitter_celltype_annotation", 
+      glue::glue("{name}_celltype_annotation")
+    )
+  }) |>
+  purrr::set_names(available_celltypes)
+
+# how many cell types?
+all_celltypes <- jaccard_submitter_matrices |>
+  purrr::map(colnames) |> 
+  unlist() 
+
+heatmap_height <- calculate_plot_height(
+  all_celltypes, 
+  unique(celltype_df$submitter_celltype_annotation),
+  length(jaccard_submitter_matrices) - 1 
+)
+```
+
+```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
+jaccard_submitter_matrices |>
+  create_heatmap_list(
+    column_title = "Submitter-provided annotations", 
+    labels_font_size = find_label_size(all_celltypes), 
+    # additional arguments
+    column_names_rot = 90
+  ) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
+
+
 
 
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
@@ -237,10 +395,40 @@ knitr::asis_output("
 This section displays a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
 ")
+
+# Set plot dimensions based on number of SingleR cell types
+all_celltypes <- levels(celltype_df$singler_celltype_annotation)
+heatmap_height <- calculate_plot_height(
+  unique(celltype_df$singler_celltype_annotation),
+  unique(celltype_df$cellassign_celltype_annotation),
+  0
+)
 ```
 
 
+```{r, eval = has_cellassign & has_singler, fig.height = heatmap_height, fig.width = 8.5}
 
+# Calculate jaccard matrix
+singler_cellassign_matrix <- make_jaccard_matrix(
+  celltype_df, 
+  "singler_celltype_annotation",
+  "cellassign_celltype_annotation"
+)
+
+create_single_heatmap(
+  singler_cellassign_matrix, 
+  row_title = "SingleR annotations",
+  column_title = "CellAssign annotations", 
+  labels_font_size = find_label_size(all_celltypes), 
+  keep_legend_name = "SingleR annotations",
+  col_fun = heatmap_col_fun,
+  # additional arguments
+  column_names_rot = 90
+  ) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
 
 ```{r, eval = has_singler | has_cellassign }
 knitr::asis_output("
