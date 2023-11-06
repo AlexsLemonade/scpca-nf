@@ -1,0 +1,58 @@
+<!-- 
+Introductory text to include in both the cell type section of main report and at
+the top of the supplemental cell type report.
+
+All chunks in this document must be set to `eval=FALSE`.
+-->
+
+
+```{r available_celltypes_text, eval=FALSE}
+
+# Define all as empty, to be overridden below where necessary
+submitter_text <- ""
+singler_text <- ""
+cellassign_text <- ""
+
+if (has_submitter) {
+  submitter_text <- glue::glue(
+    "* Cell type annotations were provided by the original lab (`submitter-provided`) which generated this data.
+    "
+  )
+}
+
+if (has_singler) {
+  singler_text <- glue::glue(
+    "* Cell types were annotated using [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
+    The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for cell typing."
+  )
+}
+
+if (has_cellassign) {
+  tissue_type <- "stephanie"
+  cellassign_text <- glue::glue(
+    "* Cell types were annotated using [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
+    Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
+    "
+  )
+}
+
+final_text <- glue::glue_collapse(
+  c(
+    submitter_text, 
+    singler_text, 
+    cellassign_text
+  ), 
+  sep = "\n\n"
+)
+
+glue::glue("
+<div class=\"alert alert-info\">
+
+{final_text}
+
+</div>
+") 
+```
+
+
+
