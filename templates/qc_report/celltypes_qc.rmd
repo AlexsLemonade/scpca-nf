@@ -1,3 +1,7 @@
+<!-- Call but do not evaluate text --> 
+```{r child = 'celltypes_introduction.rmd'}
+```
+
 # Cell type Annotation Summary
 
 
@@ -118,44 +122,17 @@ plot_umap <- function(
 <!-- Background depends on which cell types are present in the SCE. -->
 
 The plots and tables included here detail the results from performing cell type annotation.
-Cell type annotations were obtained in the following way(s): 
+Cell type annotations were obtained as follows: 
 
-<!-- Submitter -->
-```{r, eval = has_submitter, results='asis'}
-glue::glue(
-  "* Cell type annotations were provided by the original lab (`submitter-provided`) which generated this data.
-  "
-)
-```
-
-
-```{r, eval = has_singler, results='asis'}
-glue::glue(
-  "* Cell types were annotated using [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
-  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for cell typing."
-)
-```
-
-
-```{r, eval = has_cellassign, results='asis'}
-tissue_type <- stringr::word(
-  metadata(processed_sce)$cellassign_reference,
-  -1,
-  sep = "-"
-)
-
-glue::glue(
-  "* Cell types were annotated using [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-  Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
-  "
-)
+<!-- Call chunk to print out text --> 
+```{r available_celltypes_text, results='asis', eval=TRUE}
 ```
 
 
 <!-- At least one cell type annotation method required for the supplemental report -->
-```{r, eval = has_singler | has_cellassign, results='asis'}
+```{r, eval = !is_supplemental & (has_singler | has_cellassign), results='asis'}
 glue::glue("
-  For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+  For additional information about cell typing, including diagnostic plots and heatmap comparisons across cell labels, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
  ")
 ```
 
