@@ -119,6 +119,9 @@ if (has_processed) {
 
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+  
+  # used by celltypes qc section - this is not the supplemental report
+  is_supplemental <- FALSE 
 } else {
   has_umap <- FALSE
   has_celltypes <- FALSE
