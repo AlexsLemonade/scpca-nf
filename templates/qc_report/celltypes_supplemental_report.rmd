@@ -109,8 +109,8 @@ ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
 #' @param column_title Label for column title.
 #' @param labels_font_size Font size to use for rows and column labels.
 #' @param keep_legend_name The name to use in the legend
-#' @param column_names_angle Angle for column names. Default is 0.
 #' @param col_fun Color function for the heatmap palette. Default is `heatmap_col_fun`.
+#' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
 #' 
 #' @return A ComplexHeatmap object
 create_single_heatmap <- function(
@@ -119,8 +119,8 @@ create_single_heatmap <- function(
   column_title, 
   labels_font_size,
   keep_legend_name,
-  column_names_angle = 0,
-  col_fun = heatmap_col_fun
+  col_fun = heatmap_col_fun,
+  ...
 ) {
   
   heat <- ComplexHeatmap::Heatmap(
@@ -139,8 +139,9 @@ create_single_heatmap <- function(
     column_title = column_title,
     column_title_gp = grid::gpar(fontsize = 10), 
     column_names_side = "bottom",
-    column_names_rot = column_names_angle,
     column_names_gp = grid::gpar(fontsize = labels_font_size),
+    ### passed in args
+    ...,
     ## Legend parameters
     heatmap_legend_param = list(
       title = "Jaccard index",
@@ -159,15 +160,16 @@ create_single_heatmap <- function(
 #' @param matrix_list List of matrices to plot in a vertical layout. 
 #' @param column_title Title to use for columns, shared among all heatmaps
 #' @param labels_font_size Font size to use for rows and column labels.
-#' @param column_names_angle Angle for column names. Default is 0.
 #' @param col_fun Color function for the heatmap palette. Default is `heatmat_col_fun`.
+#' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
 #'
 #' @return A list of ComplexHeatmap objects
-create_heatmap_list <- function(matrix_list,
+create_heatmap_list <- function(
+  matrix_list,
   column_title, 
   labels_font_size,
-  column_names_angle = 0,
-  col_fun = heatmap_col_fun
+  col_fun = heatmap_col_fun,
+  ...
 ) {
   
   
@@ -315,7 +317,9 @@ heatmap_height <- calculate_plot_height(
 jaccard_cluster_matrices |>
   create_heatmap_list(
     column_title = "Clusters", 
-    labels_font_size = find_label_size(all_celltypes)
+    labels_font_size = find_label_size(all_celltypes),
+    ## additional arguments
+    column_names_rot = 0
   ) |>
   ComplexHeatmap::draw(
     heatmap_legend_side = "bottom"
@@ -373,7 +377,8 @@ jaccard_submitter_matrices |>
   create_heatmap_list(
     column_title = "Submitter-provided annotations", 
     labels_font_size = find_label_size(all_celltypes), 
-    column_names_angle = 90
+    # additional arguments
+    column_names_rot = 90
   ) |>
   ComplexHeatmap::draw(
     heatmap_legend_side = "bottom"
@@ -416,8 +421,9 @@ create_single_heatmap(
   column_title = "CellAssign annotations", 
   labels_font_size = find_label_size(all_celltypes), 
   keep_legend_name = "SingleR annotations",
-  column_names_angle = 90,
-  col_fun = heatmap_col_fun
+  col_fun = heatmap_col_fun,
+  # additional arguments
+  column_names_rot = 90
   ) |>
   ComplexHeatmap::draw(
     heatmap_legend_side = "bottom"
