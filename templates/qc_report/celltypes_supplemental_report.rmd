@@ -276,7 +276,7 @@ methods_bullets <- available_celltypes |>
   stringr::str_replace_all("(SingleR|CellAssign)", "`\\1`") |>
   # make it bullets
   stringr::str_prefix("- ") |>
-  glue::glue_collapse(sep = "\n")
+  stringr::str_flatten(collapse = "\n")
 
 
 glue::glue("
