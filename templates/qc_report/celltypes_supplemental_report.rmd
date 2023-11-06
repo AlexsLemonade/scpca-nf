@@ -13,6 +13,7 @@ output:
     toc_float:
       collapsed: false
     number_sections: false
+    code_download: true
 ---
 
 ```{r setup, message = FALSE, echo = FALSE}
