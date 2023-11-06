@@ -33,7 +33,11 @@ theme_set(
       strip.background = element_rect(fill = "transparent")
     )
 )
-is_supplemental <- TRUE # used for certain text rendering logic
+
+# This variable whether to print sentence "please refer to supp report", 
+# as called from `celltypes_qc.rmd` child report. 
+# We do not print this sentence in the supplemental report.
+is_supplemental <- TRUE 
 ```
 
 <!-- Import shared functions for cell type wrangling -->
