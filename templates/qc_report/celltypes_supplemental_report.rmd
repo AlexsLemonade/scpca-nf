@@ -176,12 +176,15 @@ create_heatmap_list <- function(matrix_list,
 
   heatmap_list <- matrix_list |> 
     purrr::imap(
-      create_single_heatmap, 
-      column_title, 
-      labels_font_size,
-      keep_legend_name,
-      column_names_angle = column_names_angle,
-      col_fun = col_fun
+      \(mat, name) create_single_heatmap(
+        mat,
+        name,
+        column_title, 
+        labels_font_size,
+        keep_legend_name,
+        col_fun,
+        ...
+      )
     ) |>
     # concatenate vertically into HeatmapList object
     purrr::reduce(ComplexHeatmap::`%v%`) 
@@ -304,7 +307,7 @@ all_celltypes <- jaccard_cluster_matrices |>
 heatmap_height <- calculate_plot_height(
   all_celltypes, 
   unique(celltype_df$cluster),
-  2
+  length(jaccard_cluster_matrices) - 1
 )
 ```
 
@@ -361,7 +364,7 @@ all_celltypes <- jaccard_submitter_matrices |>
 heatmap_height <- calculate_plot_height(
   all_celltypes, 
   unique(celltype_df$submitter_celltype_annotation),
-  1
+  length(jaccard_submitter_matrices) - 1 
 )
 ```
 
