@@ -275,7 +275,7 @@ methods_bullets <- available_celltypes |>
   # backticks to only these two methods
   stringr::str_replace_all("(SingleR|CellAssign)", "`\\1`") |>
   # make it bullets
-  stringr::str_replace_all("^", "- ") |>
+  stringr::str_prefix("- ") |>
   glue::glue_collapse(sep = "\n")
 
 
@@ -436,7 +436,7 @@ jaccard_submitter_matrices |>
 <!---------------------- SingleR/CellAssign heatmap  -------------------------->
 ```{r, eval = has_cellassign & has_singler, fig.height=7, fig.width=8}
 knitr::asis_output("
-## `SingleR` vs. `CellAssign` annotations
+## Automated annotations
 
 This section displays a heatmap directly comparing `SingleR` and `CellAssign` cell type annotations.
 Note that due to different annotations references, these methods may use different names for similar cell types.
@@ -479,9 +479,9 @@ create_single_heatmap(
 <!---------------------------- Diagnostic plots  ------------------------------>
 ```{r, eval = has_singler | has_cellassign }
 knitr::asis_output("
-# Annotation quality assessment
+# Quality assessments of automated annotations
 
-In this section, we assess the quality of cell type annotations using diagnostic plots.
+In this section, we assess the quality of automated cell type annotations using diagnostic plots.
 ")
 ```
 
