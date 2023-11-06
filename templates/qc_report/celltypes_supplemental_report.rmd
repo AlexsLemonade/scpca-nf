@@ -244,7 +244,7 @@ methods_bullets <- available_celltypes |>
 
 
 glue::glue("
-  <div class=\"alert alert-warning\">
+  <div class=\"alert alert-info\">
 
   The following cell type annotations are present for this library:
 
