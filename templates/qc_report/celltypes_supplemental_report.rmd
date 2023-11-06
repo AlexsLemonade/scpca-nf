@@ -33,12 +33,14 @@ theme_set(
       strip.background = element_rect(fill = "transparent")
     )
 )
+is_supplemental <- TRUE # used for certain text rendering logic
 ```
 
 <!-- Import shared functions for cell type wrangling -->
 ```{r, child='utils/celltype_functions.rmd'}
 
 ```
+
 
 <!-- Define helper functions for calculating Jaccard matrices -->
 ```{r}
@@ -268,30 +270,7 @@ available_celltypes <- c(
   na.omit()
 ```
 
-```{r, results='asis'}
-methods_bullets <- available_celltypes |>
-  # full string for printing out
-  stringr::str_replace("Submitter", "Submitter-provided") |>
-  # backticks to only these two methods
-  stringr::str_replace_all("(SingleR|CellAssign)", "`\\1`") |>
-  # make it bullets
-  stringr::str_prefix("- ") |>
-  stringr::str_flatten(collapse = "\n")
 
-
-glue::glue("
-  <div class=\"alert alert-info\">
-
-  The following cell type annotations are present for this library:
-
-    {methods_bullets}
-
-  </div>
-")
-
-```
-
-<!--------------------------------- Opening text ------------------------------>
 This report contains summarized results from performing cell type annotation for library `r library_id`.
 The role of this report is to provide more detailed information about cell type annotation results, including the following:
 
@@ -308,7 +287,7 @@ Therefore, when multiple methods annotate a given cell as the same or similar ce
 
 Be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
 
-
+This report first recapitulates the cell type section from the main QC report and then performs further comparisons across cell type annotations.
 
 <!------- Call the celltypes_qc report section from the main report ----------->
 ```{r, child='celltypes_qc.rmd'}
@@ -320,7 +299,7 @@ Be aware that different cell type annotation methods may assign different labels
 
 This section displays heatmaps comparing cell labels from various methods.
 
-We use the [Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels from different methods.
+We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels from different methods.
 
 The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1.
 
