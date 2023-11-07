@@ -33,8 +33,16 @@ If a new reference type is needed, that should be defined in the [`test/stub-ref
 
 ## Code style
 
-While there is not necessarily an established code style for nextflow code, we try to keep code neat and readable.
-Line length should generally be kept under 100 characters, and indentation should be consistent.
+While there is not necessarily an established code style for Nextflow code, we try to keep code neat and readable.
+Line length should generally be kept under 100 characters, and indentation should be set at 2 spaces per tab.
+This can be done in VS Code with the following settings in `settings.json`:
+
+```json
+"[nextflow]": {
+    "editor.tabSize": 2,
+    "editor.rulers": [100]
+}
+```
 
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
 
