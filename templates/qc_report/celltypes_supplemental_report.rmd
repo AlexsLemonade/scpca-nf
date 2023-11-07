@@ -279,15 +279,14 @@ This report contains summarized results from performing cell type annotation for
 The role of this report is to provide more detailed information about cell type annotation results, including the following:
 
 - How do results from different cell type annotation methods compare to one another?
-- How do submitter-provided cell type annotations, if available, compare to results from `SingleR` and/or `CellAssign`?
-- How reliable are `SingleR` and/or `CellAssign` cell type annotations?
+- How do submitter-provided cell type annotations, if available, compare to results from automated cell type annotation methods based on reference data or marker genes?
+- How reliable are these automated annotation methods?
 
 Note that the specific contents of this report will depend on which cell type annotations are present.
 
-One reason that ScPCA employs multiple cell type annotation approaches is to offer a chance to compare their annotations.
 Performing cell type annotation is an inherently challenging task with high levels of uncertainty.
-
-Therefore, when multiple methods annotate a given cell as the same or similar cell type, this qualitatively indicates that the annotation is more reliable.
+One way to address this is to perform multiple cell type annotation approaches and compare the results, which is what we have done here.
+When multiple methods annotate a given cell as the same or similar cell type, this may indicate that the annotation is more reliable.
 
 Be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
 

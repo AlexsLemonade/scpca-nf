@@ -171,7 +171,7 @@ glue::glue("
 <!-- At least one cell type annotation method required for the supplemental report -->
 ```{r, eval = !is_supplemental & (has_singler | has_cellassign), results='asis'}
 glue::glue("
-  For additional information about cell typing, including diagnostic plots and heatmap comparisons across cell labels, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+  For additional information about cell typing, including details on reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
  ")
 ```
 
