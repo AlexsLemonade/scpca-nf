@@ -5,9 +5,6 @@
 
 ```{r methods-info-box, eval = !is_supplemental, results = "asis"}
 ```
-
-
-
 ```{r}
 ## function definitions ##
 
