@@ -61,10 +61,11 @@ workflow sce_to_anndata{
       sce_ch = sce_files_ch
         // spread files so only one type of file gets passed through to the process at a time
         // make tuple of [meta, sce_file, type of file, metadata.json]
-        .flatMap{[[it[0], it[1], "unfiltered", it[4]],
-                  [it[0], it[2], "filtered", it[4]],
-                  [it[0], it[3], "processed", it[4]]
-                 ]}
+        .flatMap{[
+          [it[0], it[1], "unfiltered", it[4]],
+          [it[0], it[2], "filtered", it[4]],
+          [it[0], it[3], "processed", it[4]]
+        ]}
         // remove any sce files that don't have enough cells in the sce object
         // number of cells are stored in each metadata.json file
         .filter{
@@ -77,7 +78,7 @@ workflow sce_to_anndata{
       // export each anndata file
       export_anndata(sce_ch)
 
-     anndata_ch = export_anndata.out
+      anndata_ch = export_anndata.out
         .branch{
           processed: it[2] == "processed"
           other: true

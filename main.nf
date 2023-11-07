@@ -13,7 +13,7 @@ cell_barcodes = [
   'cellhash_10Xv2': '737K-august-2016.txt',
   'cellhash_10Xv3': '3M-february-2018.txt',
   'cellhash_10Xv3.1': '3M-february-2018.txt'
-  ]
+]
 
 // supported technologies
 single_cell_techs = cell_barcodes.keySet()
@@ -120,24 +120,26 @@ workflow {
       ]
     }
 
- runs_ch = unfiltered_runs_ch
+  runs_ch = unfiltered_runs_ch
     // only technologies we know how to process
     .filter{it.technology in all_techs}
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
-    .filter{run_all
-             || (it.run_id in run_ids)
-             || (it.library_id in run_ids)
-             || (it.sample_id in run_ids)
-             || (it.submitter == params.project)
-             || (it.project_id == params.project)
-            }
-     .branch{
-       bulk: it.technology in bulk_techs
-       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
-       rna: it.technology in rna_techs
-       spatial: it.technology in spatial_techs
-     }
+    .filter{
+      run_all
+      || (it.run_id in run_ids)
+      || (it.library_id in run_ids)
+      || (it.sample_id in run_ids)
+      || (it.submitter == params.project)
+      || (it.project_id == params.project)
+    }
+    .branch{
+      bulk: it.technology in bulk_techs
+      feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
+      rna: it.technology in rna_techs
+      spatial: it.technology in spatial_techs
+    }
+
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.feature
     .collect{it.library_id}
@@ -182,6 +184,7 @@ workflow {
     .join(map_quant_rna.out.map{[it[0]["library_id"]] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
+
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
