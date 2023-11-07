@@ -1,8 +1,5 @@
 # Cell type Annotation Summary
 
-```{r methods-info-box, eval = !is_supplemental, results = "asis"}
-```
-
 ```{r}
 ## function definitions ##
 
@@ -117,15 +114,30 @@ plot_umap <- function(
 
 ```
 
-<!-- Background depends on which cell types are present in the SCE. -->
 
 The plots and tables included here detail the results from performing cell type annotation.
 
-<!-- At least one cell type annotation method required for the supplemental report -->
-```{r, eval = !is_supplemental & (has_singler | has_cellassign), results='asis'}
+```{r results = 'asis'}
+# define bullets glue string
+methods_bullets <- c(
+  ifelse(has_submitter, "Submitter-provided", NA),
+  ifelse(has_singler, "`SingleR`", NA),
+  ifelse(has_cellassign, "`CellAssign`", NA)
+) |>
+  na.omit() |>
+  # make it bullets
+  stringr::str_replace_all("^", "* ") |>
+  stringr::str_flatten(collapse = "\n")
+
+
+# print the bullets
 glue::glue("
-  For additional information about cell typing, including details on reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
- ")
+  This library contains the following cell type annotations:
+    
+  {methods_bullets}
+  
+  For additional information about cell typing, including methodologies and information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+")
 ```
 
 
