@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(optparse)
   library(SingleCellExperiment)
 })
+
 # set up arguments
 option_list <- list(
   make_option(
