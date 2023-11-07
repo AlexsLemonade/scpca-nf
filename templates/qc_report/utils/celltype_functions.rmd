@@ -1,11 +1,41 @@
+<!-- This document contains reusable chunks and function definitions that are used by both
+`main_qc_report.rmd` and `celltypes_supplemental_report.rmd` to prepare
+cell typing results for analysis/visualization --> 
+
+
+```{r methods-info-box, eval = FALSE}
+# what celltypes are available?
+available_celltypes <- c(
+  ifelse(has_submitter, "Submitter", NA),
+  ifelse(has_singler, "SingleR", NA),
+  ifelse(has_cellassign, "CellAssign", NA)
+) |>
+  na.omit()
+
+# define bullets glue string
+methods_bullets <- available_celltypes |>
+  # full string for printing out
+  stringr::str_replace("Submitter", "Submitter-provided") |>
+  # backticks to only these two methods
+  stringr::str_replace_all("(SingleR|CellAssign)", "`\\1`") |>
+  # make it bullets
+  stringr::str_replace_all("^", "* ") |>
+  stringr::str_flatten(collapse = "\n")
+
+# print the info box with bullets
+glue::glue("
+<div class=\"alert alert-info\">
+
+ The following cell type annotations are present for this library:
+  
+{methods_bullets}
+</div>
+") 
+```
 
 
 ```{r}
 library(SingleCellExperiment)
-
-# This script contains function definitions that are used by both
-# `main_qc_report.rmd` and `celltypes_supplemental_report.rmd` to prepare
-# cell typing results for analysis/visualization.
 
 #' Create `celltype_df` data frame for use in cell type QC reports
 #'
