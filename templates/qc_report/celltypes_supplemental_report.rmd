@@ -33,6 +33,11 @@ theme_set(
       strip.background = element_rect(fill = "transparent")
     )
 )
+
+# This _is_ the supplemental report
+# we should not print the chunk from celltypes_qc.rmd recapitulating bullets
+#  and pointing users to this supp report
+is_supplemental <- TRUE
 ```
 
 <!-- Import shared functions for cell type wrangling -->
@@ -277,7 +282,7 @@ Performing cell type annotation is an inherently challenging task with high leve
 One way to address this is to perform multiple cell type annotation approaches and compare the results, which is what we have done here.
 When multiple methods annotate a given cell as the same or similar cell type, this may indicate that the annotation is more reliable.
 
-
+Note that the contents of this report will vary based on which cell type annotations are present.
 Further, be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
 
 <!--Note that the specific contents of this report will depend on which cell type annotations are present.-->

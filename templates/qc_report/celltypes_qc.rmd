@@ -117,7 +117,7 @@ plot_umap <- function(
 
 The plots and tables included here detail the results from performing cell type annotation.
 
-```{r results = 'asis'}
+```{r, eval = !is_supplemental, results = 'asis'}
 # define bullets glue string
 methods_bullets <- c(
   ifelse(has_submitter, "Submitter-provided", NA),
