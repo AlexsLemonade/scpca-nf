@@ -34,9 +34,9 @@ theme_set(
     )
 )
 
-# This variable whether to print sentence "please refer to supp report", 
-# as called from `celltypes_qc.rmd` child report. 
-# We do not print this sentence in the supplemental report.
+# This variable controls whether to print sentence about referring to the supp
+# report, which is run from the `celltypes_qc.rmd` child report. 
+# We do not print this sentence here in the supplemental report.
 is_supplemental <- TRUE 
 ```
 
