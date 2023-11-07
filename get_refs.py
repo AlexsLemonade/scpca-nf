@@ -9,14 +9,13 @@
 
 
 import argparse
+import json
 import os
 import re
 import shutil
 import subprocess
 import sys
 import urllib.request
-import json
-
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
