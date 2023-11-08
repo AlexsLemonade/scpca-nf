@@ -537,8 +537,7 @@ delta_median_df <- tibble::tibble(
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
 ) |>
   dplyr::mutate(
-    confident =
-      ifelse(confident, "High-quality", "Low-quality")
+    confident = ifelse(confident, "High-quality", "Low-quality")
   )
 
 # If ontologies were used for `full_labels`, we'll need to map back to cell type names
