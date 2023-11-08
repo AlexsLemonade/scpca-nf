@@ -81,11 +81,15 @@ workflow cellsnp_vireo {
 
     // make a channel with: [meta, star_bam, star_bai, star_quant, meta_mpileup, vcf_file]
     star_mpileup_ch = starsolo_bam_ch.map{[it[0].library_id] + it} // add library id at start
-      .join(starsolo_quant_ch.map{[it[0].library_id] + it}, // join starsolo outs by library_id
-            by: 0, failOnDuplicate: true, failOnMismatch: true)
+      .join( // join starsolo outs by library_id
+        starsolo_quant_ch.map{[it[0].library_id] + it},
+        by: 0, failOnDuplicate: true, failOnMismatch: true
+      )
       .map{[it[0], it[1], it[2], it[3], it[5]]} // remove redundant meta
-      .join(mpileup_ch, // join starsolo and mpileup by library id
-            by: 0, failOnDuplicate: true, failOnMismatch: true)
+      .join( // join starsolo and mpileup by library id
+        mpileup_ch,
+        by: 0, failOnDuplicate: true, failOnMismatch: true
+      )
       .map{it.drop(1)} // drop library id
 
 

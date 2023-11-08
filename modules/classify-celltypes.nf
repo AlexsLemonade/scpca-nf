@@ -231,8 +231,10 @@ workflow annotate_celltypes {
     export_channel = celltyped_ch
       .map{[it[0]["library_id"]] + it}
       // add in unfiltered and filtered sce files
-      .join(sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
-            by: 0, failOnMismatch: true, failOnDuplicate: true)
+      .join(
+        sce_files_channel.map{[it[0]["library_id"], it[1], it[2]]},
+        by: 0, failOnMismatch: true, failOnDuplicate: true
+      )
       // rearrange to be [meta, unfiltered, filtered, processed]
       .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce]
