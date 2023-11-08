@@ -130,8 +130,8 @@ To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Ma
 This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow.
 See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
-4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
-This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
+4. `PanglaoDB_markers_2020-03-27.tsv`: This file is used to build the cell type references from `PanglaoDB`.
+This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
 This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
 ### Adding additional organisms
