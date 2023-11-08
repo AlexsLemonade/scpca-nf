@@ -276,17 +276,18 @@ available_celltypes <- c(
 
 
 This report contains a summary of cell type annotation results for library `r library_id`.
-The role of this report is to provide more detailed information about cell type annotation results.
+This goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability. 
 
 Performing cell type annotation is an inherently challenging task with high levels of uncertainty, especially when using automated annotation methods.
-One way to address this is to perform multiple cell type annotation approaches and compare the results, which is what we have done here.
-When multiple methods annotate a given cell as the same or similar cell type, this may indicate that the annotation is more reliable.
+One way to address this is to perform multiple cell type annotation approaches and compare the results, as we have begun to do in this report. 
+
+When multiple methods annotate a given cell as the same or similar cell type, this may qualitatively indicate a more robust annotation.
 
 Note that the contents of this report will vary based on which cell type annotations are present.
 Further, be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
 
 <!--Note that the specific contents of this report will depend on which cell type annotations are present.-->
-This library contains cell types annotated using the following method(s):
+**This library contains the following cell types annotations:**
 
 ```{r results='asis'}
 # build up this string as we go:
@@ -310,7 +311,7 @@ if (has_singler) {
 
 if (has_cellassign) {
 
-  # TODO: UPDATE THIS STRING WRANGLING WHEN NAMING CHANGES???
+  # TODO: UPDATE THIS STRING WRANGLING WHEN THE REFERENCE NAME CHANGES
   tissue_type <- stringr::word(
     metadata(processed_sce)$cellassign_reference,
     -1,
