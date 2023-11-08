@@ -51,9 +51,6 @@ format_celltype_n_table <- function(df) {
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
 lump_celltypes <- function(df, n_celltypes = 7) {
-
-  # Update the df for each of the following, if present
-  methods <- c("singler", "cellassign", "submitter")
   df <- df |>
     dplyr::mutate(
       across(
