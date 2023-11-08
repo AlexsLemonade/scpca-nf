@@ -20,6 +20,11 @@ option_list <- list(
       Must contain a PCA matrix to calculate clusters from."
   ),
   make_option(
+    opt_str = c("-o", "--output_sce_file"),
+    type = "character",
+    help = "Output path for clustered SCE file. Must end in .rds"
+  ),
+  make_option(
     opt_str = c("--pca_name"),
     type = "character",
     default = "PCA",
@@ -92,5 +97,4 @@ if (!opt$pca_name %in% reducedDimNames(sce)) {
 }
 
 # export -------------------
-# we are overwriting the `processed_sce_file` here
-readr::write_rds(sce, opt$processed_sce_file)
+readr::write_rds(sce, opt$output_sce_file)
