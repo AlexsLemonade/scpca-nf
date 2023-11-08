@@ -12,14 +12,24 @@ option_list <- list(
     help = "name associated with celldex reference, e.g., HumanPrimaryCellAtlasData"
   ),
   make_option(
-    opt_str = c("--ref_file"),
+    opt_str = c("--ref_file_prefix"),
     type = "character",
-    help = "path to save reference file"
+    help = "prefix to use for naming saved reference file.
+      All files will be saved with the following name: <ref_file_prefix>-celldex_version.rds"
   )
 )
 
 # Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
+
+# get celldex package version
+celldex_version <- packageVersion("celldex") |>
+  as.character() |>
+  # replace . in version string to avoid . in filename
+  stringr::str_replace_all("\\.", "_")
+
+# construct output ref file name
+ref_output_file <- glue::glue("{opt$ref_file_prefix}-v{celldex_version}.rds")
 
 # check that provided ref name is in celldex package
 if (!opt$ref_name %in% ls("package:celldex")) {
@@ -30,4 +40,4 @@ if (!opt$ref_name %in% ls("package:celldex")) {
 ref <- do.call(`::`, args = list("celldex", opt$ref_name))(ensembl = TRUE)
 
 # export ref data
-readr::write_rds(ref, opt$ref_file, compress = "gz")
+readr::write_rds(ref, ref_output_file, compress = "gz")

@@ -8,16 +8,16 @@ process save_singler_refs {
   input:
     tuple val(ref_name), val(ref_source), path(t2g_3col_path)
   output:
-    tuple val(ref_name), path(ref_file), path(t2g_3col_path)
+    tuple val(ref_name), path("${ref_name}-${ref_source}-*.rds"), path(t2g_3col_path)
   script:
-    ref_file = "${ref_source}-${ref_name}.rds"
     """
     save_singler_refs.R \
      --ref_name ${ref_name} \
-     --ref_file ${ref_file}
+     --ref_file_prefix "${ref_name}-${ref_source}"
     """
   stub:
-    ref_file = "${ref_source}-${ref_name}.rds"
+    // fill in a dummy version since we grab that as part of the script
+    ref_file = "${ref_name}-${ref_source}-v0_0_0.rds"
     """
     touch ${ref_file}
     """
@@ -34,7 +34,8 @@ process train_singler_models {
   output:
     path celltype_model
   script:
-    celltype_model = "${ref_name}_model.rds"
+    ref_file_basename = file("${ref_file}").baseName
+    celltype_model = "${ref_file_basename}-model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -45,7 +46,8 @@ process train_singler_models {
       --threads ${task.cpus}
     """
   stub:
-    celltype_model = "${ref_name}_model.rds"
+    ref_file_basename = file("${ref_file}").baseName
+    celltype_model = "${ref_file_basename}-model.rds"
     """
     touch ${celltype_model}
     """
@@ -61,7 +63,10 @@ process generate_cellassign_refs {
   output:
     path ref_file
   script:
-    ref_file="${ref_source}-${ref_name}.tsv"
+    // get ref version from filename
+    // this requires the date stored in the filename to be in ISO8601 format
+    ref_version = (marker_gene_file =~ /.+([0-9]{4}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     generate_cellassign_refs.R \
       --organs "${organs}" \
@@ -70,7 +75,8 @@ process generate_cellassign_refs {
       --ref_mtx_file ${ref_file}
     """
   stub:
-    ref_file="${ref_source}-${ref_name}.tsv"
+    ref_version = (marker_gene_file =~ /.+([0-9]{4}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     touch ${ref_file}
     """
