@@ -57,7 +57,7 @@ create_celltype_df <- function(processed_sce) {
 #' @param annotation_column The column (written plainly, not a string) containing annotations to reformat
 #' @param is_submitter Boolean indicating if cell types are from submitter. 
 #'   If TRUE, NA's will be set to "Unclassified cell".
-#'   If FALSE, NA's will be set to "Unknown cell type". Default is FALSE.
+#'   If FALSE, NA's will be set to "Unknown cell type". Default is FALSE
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
 prepare_annotation_values <- function(df, annotation_column, is_submitter = FALSE) {

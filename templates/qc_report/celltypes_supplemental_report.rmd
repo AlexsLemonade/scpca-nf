@@ -163,10 +163,10 @@ create_single_heatmap <- function(
 
 #' Function to plot a vertically-stacked ComplexHeatmap from a list of matrices
 #'
-#' @param matrix_list List of matrices to plot in a vertical layout.
+#' @param matrix_list List of matrices to plot in a vertical layout
 #' @param column_title Title to use for columns, shared among all heatmaps
-#' @param labels_font_size Font size to use for rows and column labels.
-#' @param col_fun Color function for the heatmap palette. Default is `heatmat_col_fun`.
+#' @param labels_font_size Font size to use for rows and column labels
+#' @param col_fun Color function for the heatmap palette. Default is `heatmat_col_fun`
 #' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
 #'
 #' @return A list of ComplexHeatmap objects
