@@ -8,17 +8,17 @@ process save_singler_refs {
   input:
     tuple val(ref_name), val(ref_source)
   output:
-    tuple val(ref_name), path("${ref_name}-${ref_source}-*.rds")
+    tuple val(ref_name), path("${ref_name}_${ref_source}_*.rds")
   script:
     """
     save_singler_refs.R \
      --ref_name ${ref_name} \
-     --ref_file_prefix "${ref_name}-${ref_source}"
+     --ref_file_prefix "${ref_name}_${ref_source}"
     """
   stub:
     // fill in a dummy version since we grab that as part of the script
     """
-    touch "${ref_name}-${ref_source}-v0_0_0.rds"
+    touch "${ref_name}_${ref_source}_v0-0-0.rds"
     """
 
 }
@@ -35,7 +35,7 @@ process train_singler_models {
     path celltype_model
   script:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}-model.rds"
+    celltype_model = "${ref_file_basename}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -47,7 +47,7 @@ process train_singler_models {
     """
   stub:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}-model.rds"
+    celltype_model = "${ref_file_basename}_model.rds"
     """
     touch ${celltype_model}
     """

@@ -15,7 +15,7 @@ option_list <- list(
     opt_str = c("--ref_file_prefix"),
     type = "character",
     help = "prefix to use for naming saved reference file.
-      All files will be saved with the following name: <ref_file_prefix>-celldex_version.rds"
+      All files will be saved with the following name: <ref_file_prefix>_celldex_version.rds"
   )
 )
 
@@ -26,10 +26,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 celldex_version <- packageVersion("celldex") |>
   as.character() |>
   # replace . in version string to avoid . in filename
-  stringr::str_replace_all("\\.", "_")
+  stringr::str_replace_all("\\.", "-")
 
 # construct output ref file name
-ref_output_file <- glue::glue("{opt$ref_file_prefix}-v{celldex_version}.rds")
+ref_output_file <- glue::glue("{opt$ref_file_prefix}_v{celldex_version}.rds")
 
 # check that provided ref name is in celldex package
 if (!opt$ref_name %in% ls("package:celldex")) {
