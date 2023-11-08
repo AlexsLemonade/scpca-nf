@@ -33,9 +33,11 @@ If a new reference type is needed, that should be defined in the [`test/stub-ref
 
 ## Code style
 
+### Nextflow
+
 While there is not necessarily an established code style for Nextflow code, we try to keep code neat and readable.
 Line length should generally be kept under 100 characters, and indentation should be set at 2 spaces per tab.
-This can be done in VS Code with the following settings in `settings.json`:
+This can be set in VS Code with the following entry in `settings.json`:
 
 ```json
 "[nextflow]": {
@@ -44,7 +46,17 @@ This can be done in VS Code with the following settings in `settings.json`:
 }
 ```
 
+#### A note on variables in Nextflow/Groovy
+
+Variables in Groovy are set as global by default, which can have some unexpected consequences.
+To avoid this, any variables declared in functions or closures (such as `.map{}` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
+
+
+### R and Rmarkdown
+
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
+
+### Python 
 
 For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
 The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
