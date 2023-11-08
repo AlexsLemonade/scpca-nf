@@ -5,14 +5,15 @@
 # CellAssign is run and the predictions matrix is returned
 
 
+import argparse
 import os
+import re
+
 import anndata as adata
+import numpy as np
+import pandas as pd
 import scvi
 from scvi.external import CellAssign
-import pandas as pd
-import numpy as np
-import argparse
-import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

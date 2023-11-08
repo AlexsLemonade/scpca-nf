@@ -105,36 +105,36 @@ process make_merged_unfiltered_sce{
 }
 
 process filter_sce{
-    container params.SCPCATOOLS_CONTAINER
-    label 'mem_8'
-    tag "${meta.library_id}"
-    input:
-        tuple val(meta), path(unfiltered_rds), path(feature_barcode_file)
-    output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
-    script:
-        filtered_rds = "${meta.library_id}_filtered.rds"
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_8'
+  tag "${meta.library_id}"
+  input:
+    tuple val(meta), path(unfiltered_rds), path(feature_barcode_file)
+  output:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+  script:
+    filtered_rds = "${meta.library_id}_filtered.rds"
 
-        // Checks for whether we have ADT data:
-        // - feature_type should be adt
-        // - barcode file should _not_ be the empty file NO_FILE
-        adt_present = meta.feature_type == 'adt' &
-          feature_barcode_file.name != "NO_FILE"
+    // Checks for whether we have ADT data:
+    // - feature_type should be adt
+    // - barcode file should _not_ be the empty file NO_FILE
+    adt_present = meta.feature_type == 'adt' &
+      feature_barcode_file.name != "NO_FILE"
 
-        """
-        filter_sce.R \
-          --unfiltered_file ${unfiltered_rds} \
-          --filtered_file ${filtered_rds} \
-          ${adt_present ? "--adt_name ${meta.feature_type}":""} \
-          ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
-          --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
-          ${params.seed ? "--random_seed ${params.seed}" : ""}
-        """
-    stub:
-        filtered_rds = "${meta.library_id}_filtered.rds"
-        """
-        touch ${filtered_rds}
-        """
+    """
+    filter_sce.R \
+      --unfiltered_file ${unfiltered_rds} \
+      --filtered_file ${filtered_rds} \
+      ${adt_present ? "--adt_name ${meta.feature_type}":""} \
+      ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
+      --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""}
+    """
+  stub:
+    filtered_rds = "${meta.library_id}_filtered.rds"
+    """
+    touch ${filtered_rds}
+    """
 }
 
 process genetic_demux_sce{
@@ -192,29 +192,29 @@ process cellhash_demux_sce{
 }
 
 process post_process_sce{
-    container params.SCPCATOOLS_CONTAINER
-    label 'mem_8'
-    tag "${meta.library_id}"
-    input:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
-    output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
-    script:
-        processed_rds = "${meta.library_id}_processed.rds"
-        """
-        post_process_sce.R \
-          --filtered_sce_file ${filtered_rds} \
-          --output_sce_file ${processed_rds} \
-          --gene_cutoff ${params.gene_cutoff} \
-          --n_hvg ${params.num_hvg} \
-          --n_pcs ${params.num_pcs} \
-          ${params.seed ? "--random_seed ${params.seed}" : ""}
-        """
-    stub:
-        processed_rds = "${meta.library_id}_processed.rds"
-        """
-        touch ${processed_rds}
-        """
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_8'
+  tag "${meta.library_id}"
+  input:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+  output:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+  script:
+    processed_rds = "${meta.library_id}_processed.rds"
+    """
+    post_process_sce.R \
+      --filtered_sce_file ${filtered_rds} \
+      --output_sce_file ${processed_rds} \
+      --gene_cutoff ${params.gene_cutoff} \
+      --n_hvg ${params.num_hvg} \
+      --n_pcs ${params.num_pcs} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""}
+    """
+  stub:
+    processed_rds = "${meta.library_id}_processed.rds"
+    """
+    touch ${processed_rds}
+    """
 }
 
 

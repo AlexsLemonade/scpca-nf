@@ -60,7 +60,7 @@ submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
     colData(sce) |>
       as.data.frame()
   )
-  
+
 # Check rows before sending back into the SCE object
 if (nrow(submitter_cell_types_df) != ncol(sce)) {
   stop("Could not add submitter annotations to SCE object. There should only be one annotation per cell.")
@@ -68,11 +68,11 @@ if (nrow(submitter_cell_types_df) != ncol(sce)) {
 
 # Rejoin with colData, making sure we keep rownames
 colData(sce) <- DataFrame(
-  submitter_cell_types_df, 
+  submitter_cell_types_df,
   row.names = colData(sce)$barcodes
 )
 
-# Indicate that we have submitter celltypes in metadata, 
+# Indicate that we have submitter celltypes in metadata,
 #  saving in same spot as for actual celltyping
 metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "submitter")
 

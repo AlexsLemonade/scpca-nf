@@ -1,5 +1,4 @@
 
-
 // generates RAD file using alevin
 process alevin_rad{
   container params.SALMON_CONTAINER
@@ -17,10 +16,12 @@ process alevin_rad{
     // define the local location for the rad output
     rad_dir = file(meta.rad_dir).name
     // choose flag by technology
-    tech_flag = ['10Xv2': '--chromium',
-                 '10Xv2_5prime': '--chromium',
-                 '10Xv3': '--chromiumV3',
-                 '10Xv3.1': '--chromiumV3']
+    tech_flag = [
+      '10Xv2': '--chromium',
+      '10Xv2_5prime': '--chromium',
+      '10Xv3': '--chromiumV3',
+      '10Xv3.1': '--chromiumV3'
+    ]
     // get meta to write as file
     meta_json = Utils.makeJson(meta)
     // run alevin like normal with the --rad flag
@@ -113,27 +114,30 @@ workflow map_quant_rna {
       }
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_rad: (!params.repeat_mapping
-                    && file(it.rad_dir).exists()
-                    && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
-                    )
-          make_rad: true
+        has_rad: (
+          !params.repeat_mapping
+          && file(it.rad_dir).exists()
+          && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+        )
+        make_rad: true
        }
 
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
     rna_reads_ch = rna_channel.make_rad
-      .map{meta -> tuple(meta,
-                         file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
-                         file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
-                         file(meta.salmon_splici_index, type: 'dir')
-                        )}
+      .map{meta -> tuple(
+        meta,
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
+        file(meta.salmon_splici_index, type: 'dir')
+      )}
 
     // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
-      .map{meta -> tuple(Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
-                         file(meta.rad_dir, type: 'dir')
-                         )}
+      .map{meta -> tuple(
+        Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
+        file(meta.rad_dir, type: 'dir')
+      )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
     alevin_rad(rna_reads_ch)

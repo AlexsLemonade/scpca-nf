@@ -33,11 +33,45 @@ If a new reference type is needed, that should be defined in the [`test/stub-ref
 
 ## Code style
 
-While there is not necessarily an established code style for nextflow code, we try to keep code neat and readable.
-Line length should generally be kept under 100 characters, and indentation should be consistent.
+### Nextflow
+
+While there is not necessarily an established code style for Nextflow code, we try to keep code neat and readable.
+Line length should generally be kept under 100 characters, and indentation should be set at 2 spaces per tab.
+This can be set in [Visual Studio Code](https://code.visualstudio.com) with the following entries in `settings.json`:
+
+```json
+"editor.rulers": [100],
+"[nextflow]": {
+    "editor.tabSize": 2,
+}
+```
+
+#### A note on variables in Nextflow/Groovy
+
+Variables in Groovy are set as global by default, which can have some unexpected consequences.
+To avoid this, any variables declared in functions or closures (such as `.map{}` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
+
+```groovy
+// don't do this:
+bad.map{
+  my_var = it;
+  my_var + 1
+}
+
+// do this instead:
+good.map{
+  def my_var = it;
+  my_var + 1
+}
+```
+
+
+### R and R Markdown
 
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
 
+### Python
+
 For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
 The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
-Alternatively, if you use [Visual Studio Code](https://code.visualstudio.com), you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+Alternatively, if you use Visual Studio Code, you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).

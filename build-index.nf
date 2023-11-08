@@ -54,8 +54,8 @@ process salmon_index{
       -p ${task.cpus} \
 
     gunzip -c ${fasta} \
-      |grep "^>" | cut -d " " -f 1 \
-      |sed -e 's/>//g' > decoys.txt
+      | grep "^>" | cut -d " " -f 1 \
+      | sed -e 's/>//g' > decoys.txt
     cat ${spliced_cdna_fasta} ${fasta} > gentrome.fa.gz
 
     salmon index \
