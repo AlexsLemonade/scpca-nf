@@ -52,7 +52,7 @@ Variables in Groovy are set as global by default, which can have some unexpected
 To avoid this, any variables declared in functions or closures (such as `.map{}` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
 
 
-### R and Rmarkdown
+### R and R Markdown
 
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
 
