@@ -37,12 +37,12 @@ If a new reference type is needed, that should be defined in the [`test/stub-ref
 
 While there is not necessarily an established code style for Nextflow code, we try to keep code neat and readable.
 Line length should generally be kept under 100 characters, and indentation should be set at 2 spaces per tab.
-This can be set in [Visual Studio Code](https://code.visualstudio.com) with the following entry in `settings.json`:
+This can be set in [Visual Studio Code](https://code.visualstudio.com) with the following entries in `settings.json`:
 
 ```json
+"editor.rulers": [100],
 "[nextflow]": {
     "editor.tabSize": 2,
-    "editor.rulers": [100]
 }
 ```
 
