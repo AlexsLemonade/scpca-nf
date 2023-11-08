@@ -87,8 +87,9 @@ process fry_quant_rna{
       --use-mtx \
       -t ${task.cpus} \
 
-    # remove large files
-    rm -f ${quant_dir}/*.rad ${quant_dir}/*.bin
+    # copy cmd_info and aux_info to quant directory for tracking
+    cp ${rad_dir}/cmd_info.json ${quant_dir}/cmd_info.json
+    cp -r ${rad_dir}/aux_info ${quant_dir}/aux_info
 
     echo '${meta_json}' > ${quant_dir}/scpca-meta.json
     """
