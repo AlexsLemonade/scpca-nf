@@ -3,6 +3,6 @@ BlueprintEncodeData	celldex	SingleR	NA
 DatabaseImmuneCellExpressionData	celldex	SingleR	NA
 HumanPrimaryCellAtlasData	celldex	SingleR	NA
 MonacoImmuneData	celldex	SingleR	NA
-blood	PanglaoDB	CellAssign	Blood, Bone, Immune system
-muscle	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle
-brain	PanglaoDB	CellAssign	Brain, Immune system
+blood-compartment	PanglaoDB	CellAssign	Blood, Bone, Immune system
+muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle
+brain-compartment	PanglaoDB	CellAssign	Brain, Immune system
