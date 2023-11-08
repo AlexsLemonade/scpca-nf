@@ -137,7 +137,7 @@ if (!is.null(opt$feature_name)) {
   alt_sce <- altExp(sce, opt$feature_name)
 
   # only convert altExp with > 1 rows
-  if(nrows(alt_sce) > 1){
+  if(nrow(alt_sce) > 1){
 
     # add sample metadata from main sce to alt sce metadata
     metadata(alt_sce)$sample_metadata <- sample_metadata
@@ -152,7 +152,11 @@ if (!is.null(opt$feature_name)) {
     )
   } else {
     # warn that the altExp cannot be converted
-    message(glue::glue("Only 1 row found in altExp named: {feature_name}.
-                       This altExp will not be converted to an AnnData object."))
+    message(
+      glue::glue(
+        "Only 1 row found in altExp named: {opt$feature_name}.
+                       This altExp will not be converted to an AnnData object."
+      )
+    )
   }
 }
