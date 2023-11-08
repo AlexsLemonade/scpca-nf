@@ -64,9 +64,9 @@ process fry_quant_rna{
     tuple val(meta), path(quant_dir)
 
   script:
+    quant_dir = rad_dir + '_quant'
     // get meta to write as file
     meta_json = Utils.makeJson(meta)
-    quant_dir = rad_dir + "_quant"
     """
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
@@ -93,10 +93,10 @@ process fry_quant_rna{
     echo '${meta_json}' > ${quant_dir}/scpca-meta.json
     """
   stub:
+    quant_dir = rad_dir + '_quant'
     meta_json = Utils.makeJson(meta)
-    quant_dir = rad_dir + "_quant"
     """
-    mkdir -p ${quant_dir}
+    mkdir -p '${quant_dir}'
     echo '${meta_json}' > ${quant_dir}/scpca-meta.json
     """
 }

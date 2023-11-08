@@ -89,41 +89,44 @@ process fry_quant_feature{
   tag "${meta.run_id}-features"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
   input:
-    tuple val(meta), path(run_dir), path(barcode_file)
+    tuple val(meta), path(rad_dir), path(barcode_file)
   output:
-    tuple val(meta), path(run_dir)
+    tuple val(meta), path(quant_dir)
   script:
+    quant_dir = rad_dir + '_quant'
     // get meta to write as file
     meta_json = Utils.makeJson(meta)
     """
     alevin-fry generate-permit-list \
-      -i ${run_dir} \
+      -i ${rad_dir} \
       --expected-ori fw \
-      -o ${run_dir} \
+      -o ${quant_dir} \
       --unfiltered-pl ${barcode_file}
 
     alevin-fry collate \
-      --input-dir ${run_dir} \
-      --rad-dir ${run_dir} \
+      --input-dir ${quant_dir} \
+      --rad-dir ${quant_dir} \
       -t ${task.cpus}
 
     alevin-fry quant \
-      --input-dir ${run_dir} \
-      --tg-map ${run_dir}/t2g.tsv \
+      --input-dir ${quant_dir} \
+      --tg-map ${quant_dir}/t2g.tsv \
       --resolution ${params.af_resolution} \
-      -o ${run_dir} \
+      -o ${quant_dir} \
       --use-mtx \
       -t ${task.cpus} \
 
     # remove large files
-    rm ${run_dir}/*.rad ${run_dir}/*.bin
+    rm -f ${quant_dir}/*.rad ${quant_dir}/*.bin
 
-    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    echo '${meta_json}' > ${quant_dir}/scpca-meta.json
     """
   stub:
+    quant_dir = rad_dir + '_quant'
     meta_json = Utils.makeJson(meta)
     """
-    echo '${meta_json}' > ${run_dir}/scpca-meta.json
+    mkdir -p '${quant_dir}'
+    echo '${meta_json}' > ${quant_dir}/scpca-meta.json
     """
 }
 
