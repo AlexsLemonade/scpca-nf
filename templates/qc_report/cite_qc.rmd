@@ -44,7 +44,8 @@ antibody_tags <- as.data.frame(rowData(adt_exp)) |>
   # ensure `target` is the first level of target_type
   mutate(target_type = forcats::fct_relevel(target_type, "target")) |>
   arrange(target_type, desc(mean)) |>
-  select("Antibody",
+  select(
+    "Antibody",
     "Mean UMI count per cell" = mean,
     "Percent of cells detected" = detected,
     "ADT target type" = target_type
@@ -221,7 +222,8 @@ if (has_processed) {
     as.data.frame() |>
     tibble::rownames_to_column("barcode") |>
     # combine all ADTs into a single column for  faceting
-    tidyr::pivot_longer(!barcode,
+    tidyr::pivot_longer(
+      !barcode,
       names_to = "ADT",
       values_to = "adt_expression"
     )
@@ -250,7 +252,8 @@ if (has_processed) {
   # create data frame of UMAPs and expression
   umap_df <- scuttle::makePerCellDF(processed_sce) |>
     tibble::rownames_to_column("barcode") |>
-    select(barcode,
+    select(
+      barcode,
       UMAP1 = UMAP.1,
       UMAP2 = UMAP.2
     ) |>

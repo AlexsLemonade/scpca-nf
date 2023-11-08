@@ -64,7 +64,8 @@ format_czi <- function(sce) {
   sce$library_id <- metadata(sce)$library_id
 
   # add sample metadata to colData sce
-  sce <- scpcaTools::metadata_to_coldata(sce,
+  sce <- scpcaTools::metadata_to_coldata(
+    sce,
     join_columns = "library_id"
   )
 

@@ -54,7 +54,7 @@ is_supplemental <- TRUE
 #' @param vec2 Second vector
 #'
 #' @return Jaccard similarity between the vectors
-jaccard <- function(vec1, vec2){
+jaccard <- function(vec1, vec2) {
   length(intersect(vec1, vec2)) / length(union(vec1, vec2))
 }
 
@@ -68,8 +68,7 @@ jaccard <- function(vec1, vec2){
 #'
 #' @return Jaccard similarity matrix for the two columns. `colname1` values will
 #'   be row names and `colname2` values will be column names in the final matrix
-make_jaccard_matrix <- function(celltype_df, colname1, colname2){
-
+make_jaccard_matrix <- function(celltype_df, colname1, colname2) {
   # make lists of barcodes for each category, named by the category
   id1_list <- split(celltype_df$barcodes, celltype_df[[colname1]])
   id2_list <- split(celltype_df$barcodes, celltype_df[[colname2]])
@@ -94,7 +93,7 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2){
     tibble::column_to_rownames(var = "id1") |>
     as.matrix()
 
-    return(jaccard_matrix)
+  return(jaccard_matrix)
 }
 ```
 
@@ -117,18 +116,16 @@ ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
 #' @param keep_legend_name The name to use in the legend
 #' @param col_fun Color function for the heatmap palette. Default is `heatmap_col_fun`.
 #' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
-#' 
+#'
 #' @return A ComplexHeatmap object
 create_single_heatmap <- function(
-  mat,
-  row_title,
-  column_title,
-  labels_font_size,
-  keep_legend_name,
-  col_fun = heatmap_col_fun,
-  ...
-) {
-
+    mat,
+    row_title,
+    column_title,
+    labels_font_size,
+    keep_legend_name,
+    col_fun = heatmap_col_fun,
+    ...) {
   heat <- ComplexHeatmap::Heatmap(
     t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
     col = col_fun,
@@ -171,14 +168,11 @@ create_single_heatmap <- function(
 #'
 #' @return A list of ComplexHeatmap objects
 create_heatmap_list <- function(
-  matrix_list,
-  column_title, 
-  labels_font_size,
-  col_fun = heatmap_col_fun,
-  ...
-) {
-
-
+    matrix_list,
+    column_title,
+    labels_font_size,
+    col_fun = heatmap_col_fun,
+    ...) {
   # We only want one shared legend in the end, arbitrarily grab the first one
   keep_legend_name <- names(matrix_list)[1]
 
@@ -187,7 +181,7 @@ create_heatmap_list <- function(
       \(mat, name) create_single_heatmap(
         mat,
         name,
-        column_title, 
+        column_title,
         labels_font_size,
         keep_legend_name,
         col_fun,
@@ -207,9 +201,8 @@ create_heatmap_list <- function(
 #'
 #' @return Font size numeric as determined by longest cell type label
 find_label_size <- function(input_labels) {
-
   longest_name <- input_labels |>
-    stringr::str_length() |> 
+    stringr::str_length() |>
     max()
 
   labels_font_size <- dplyr::case_when(
@@ -233,23 +226,23 @@ find_label_size <- function(input_labels) {
 #' @param spacer_size Spacer size in inches
 #'
 #' @return Heatmap height in inches
-calculate_plot_height <- function(row_names, 
-                                  col_names, 
-                                  n_spacers,
-                                  spacer_size = heatmap_padding) {
-  
+calculate_plot_height <- function(
+    row_names,
+    col_names,
+    n_spacers,
+    spacer_size = heatmap_padding) {
   # first, based on number of cells in row_names:
   #   6 cell types to an inch
-  heat_height <- length(row_names)/6
+  heat_height <- length(row_names) / 6
 
   # next, based on nchar of col_names:
   #   10 characters to an inch
   # using stringr::str_length() in case col_names is a factor vector
-  heat_height <- heat_height + max(stringr::str_length(col_names))/10
+  heat_height <- heat_height + max(stringr::str_length(col_names)) / 10
 
-  # finally, add in any padding  
-  heat_height <- heat_height + n_spacers*spacer_size
-  
+  # finally, add in any padding
+  heat_height <- heat_height + n_spacers * spacer_size
+
   return(heat_height)
 }
 ```
@@ -276,10 +269,10 @@ available_celltypes <- c(
 
 
 This report contains a summary of cell type annotation results for library `r library_id`.
-This goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability. 
+This goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
 
 Performing cell type annotation is an inherently challenging task with high levels of uncertainty, especially when using automated annotation methods.
-One way to address this is to perform multiple cell type annotation approaches and compare the results, as we have begun to do in this report. 
+One way to address this is to perform multiple cell type annotation approaches and compare the results, as we have begun to do in this report.
 
 When multiple methods annotate a given cell as the same or similar cell type, this may qualitatively indicate a more robust annotation.
 
@@ -301,23 +294,21 @@ if (has_submitter) {
 }
 
 if (has_singler) {
-  
   methods_text <- glue::glue(
     "{methods_text}
     * [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) annotation, a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
     The `{metadata(processed_sce)$singler_reference} dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for reference annotations.\n"
-    )
+  )
 }
 
 if (has_cellassign) {
-
   # TODO: UPDATE THIS STRING WRANGLING WHEN THE REFERENCE NAME CHANGES
   tissue_type <- stringr::word(
     metadata(processed_sce)$cellassign_reference,
     -1,
     sep = "-"
   )
-  
+
   methods_text <- glue::glue(
     "{methods_text}
     * [`CellAssign`](https://github.com/Irrationone/cellassign) annotation, a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
@@ -366,14 +357,15 @@ jaccard_cluster_matrices <- available_celltypes |>
       celltype_df,
       "cluster",
       glue::glue("{name}_celltype_annotation")
-    )})
+    )
+  })
 
 all_celltypes <- jaccard_cluster_matrices |>
-  purrr::map(colnames) |> 
-  unlist() 
-  
+  purrr::map(colnames) |>
+  unlist()
+
 heatmap_height <- calculate_plot_height(
-  all_celltypes, 
+  all_celltypes,
   unique(celltype_df$cluster),
   length(jaccard_cluster_matrices) - 1
 )
@@ -382,7 +374,7 @@ heatmap_height <- calculate_plot_height(
 ```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
   create_heatmap_list(
-    column_title = "Clusters", 
+    column_title = "Clusters",
     labels_font_size = find_label_size(all_celltypes),
     ## additional arguments
     column_names_rot = 0
@@ -406,7 +398,7 @@ methods_string <- available_celltypes |>
 
 knitr::asis_output(
   glue::glue(
-  "## Submitter-provided annotations
+    "## Submitter-provided annotations
 
   This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from {methods_string}."
   )
@@ -414,7 +406,6 @@ knitr::asis_output(
 ```
 
 ```{r}
-
 # calculate matrices comparing to submitter
 jaccard_submitter_matrices <- available_celltypes |>
   stringr::str_to_lower() |>
@@ -429,21 +420,21 @@ jaccard_submitter_matrices <- available_celltypes |>
 
 # how many cell types?
 all_celltypes <- jaccard_submitter_matrices |>
-  purrr::map(colnames) |> 
-  unlist() 
+  purrr::map(colnames) |>
+  unlist()
 
 heatmap_height <- calculate_plot_height(
-  all_celltypes, 
+  all_celltypes,
   unique(celltype_df$submitter_celltype_annotation),
-  length(jaccard_submitter_matrices) - 1 
+  length(jaccard_submitter_matrices) - 1
 )
 ```
 
 ```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
 jaccard_submitter_matrices |>
   create_heatmap_list(
-    column_title = "Submitter-provided annotations", 
-    labels_font_size = find_label_size(all_celltypes), 
+    column_title = "Submitter-provided annotations",
+    labels_font_size = find_label_size(all_celltypes),
     # additional arguments
     column_names_rot = 90
   ) |>
@@ -473,7 +464,6 @@ heatmap_height <- calculate_plot_height(
 
 
 ```{r, eval = has_cellassign & has_singler, fig.height = heatmap_height, fig.width = 8.5}
-
 # Calculate jaccard matrix
 singler_cellassign_matrix <- make_jaccard_matrix(
   celltype_df,
@@ -484,13 +474,13 @@ singler_cellassign_matrix <- make_jaccard_matrix(
 create_single_heatmap(
   singler_cellassign_matrix,
   row_title = "SingleR annotations",
-  column_title = "CellAssign annotations", 
-  labels_font_size = find_label_size(all_celltypes), 
+  column_title = "CellAssign annotations",
+  labels_font_size = find_label_size(all_celltypes),
   keep_legend_name = "SingleR annotations",
   col_fun = heatmap_col_fun,
   # additional arguments
   column_names_rot = 90
-  ) |>
+) |>
   ComplexHeatmap::draw(
     heatmap_legend_side = "bottom"
   )
@@ -546,8 +536,9 @@ delta_median_df <- tibble::tibble(
   # so, negate for this variable:
   confident = !is.na(metadata(processed_sce)$singler_result$pruned.labels)
 ) |>
-  dplyr::mutate(confident =
-    ifelse(confident, "High-quality", "Low-quality")
+  dplyr::mutate(
+    confident =
+      ifelse(confident, "High-quality", "Low-quality")
   )
 
 # If ontologies were used for `full_labels`, we'll need to map back to cell type names
@@ -590,7 +581,7 @@ delta_median_confident_df <- delta_median_df |>
   dplyr::filter(confident == "High-quality")
 
 # Determine height for plot area based on number of cells
-plot_height <- length(unique(delta_median_df$celltype))/2.5
+plot_height <- length(unique(delta_median_df$celltype)) / 2.5
 ```
 
 ```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6.5}
@@ -659,7 +650,7 @@ Rug points are also taller for any cell type label with 5 or fewer cells.
 ")
 
 # Determine height in inches for plot area
-plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation))/2.5)
+plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation)) / 2.5)
 ```
 
 
@@ -697,7 +688,7 @@ ggplot(celltype_df) +
       xend = cellassign_max_prediction,
       # set yend as either 0 for rows with many points, or y_max/2.5 for
       #  rows with few points
-      yend = ifelse(n > 5, 0, y_max/2.5),
+      yend = ifelse(n > 5, 0, y_max / 2.5),
       y = -Inf
     ),
     color = "blue"
@@ -706,7 +697,7 @@ ggplot(celltype_df) +
     x = "Probability of annotated cell type",
     y = ""
   ) +
-  coord_cartesian(xlim = c(0,1)) +
+  coord_cartesian(xlim = c(0, 1)) +
   scale_y_continuous(expand = c(0.1, 0.1)) +
   scale_alpha_identity() +
   facet_grid(

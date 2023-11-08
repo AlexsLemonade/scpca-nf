@@ -4,7 +4,8 @@ The below plot shows the UMAP (Uniform Manifold Approximation and Projection) em
 
 ```{r message=FALSE}
 # create UMAP colored by number of genes detected
-scater::plotUMAP(processed_sce,
+scater::plotUMAP(
+  processed_sce,
   point_size = 0.3,
   point_alpha = 0.5,
   colour_by = "detected"

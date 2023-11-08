@@ -117,7 +117,8 @@ get_processing_info <- function(library_id) {
   meta_info <- jsonlite::read_json(meta_info_file)
 
   # add date processed from salmon in the format: "Mon Jan 03 15:13:14 2022"
-  date_processed <- lubridate::as_datetime(meta_info$end_time,
+  date_processed <- lubridate::as_datetime(
+    meta_info$end_time,
     format = "%a %b %d %T %Y"
   )
   # if meta_info is not recorded or the format has changed, use the modification time of the file

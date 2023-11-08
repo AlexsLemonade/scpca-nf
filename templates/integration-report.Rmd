@@ -63,7 +63,8 @@ plot_colors <- rainbow(n = num_colors)
 
 # list of batch umaps for all pre/post integration
 batch_umaps <- umap_plot_names |> purrr::map(\(name) {
-  scater::plotReducedDim(shuffled_sce,
+  scater::plotReducedDim(
+    shuffled_sce,
     dimred = name,
     colour_by = batch_column,
     point_size = 0.1,
@@ -80,7 +81,8 @@ batch_umaps <- umap_plot_names |> purrr::map(\(name) {
     ))
 })
 
-patchwork::wrap_plots(batch_umaps,
+patchwork::wrap_plots(
+  batch_umaps,
   ncol = 2,
   guides = "collect"
 )
