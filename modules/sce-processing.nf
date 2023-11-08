@@ -205,7 +205,7 @@ process post_process_sce{
     """
     post_process_sce.R \
       --filtered_sce_file ${filtered_rds} \
-      --out_filtered_sce_file ${filtered_rds} \
+      --out_filtered_sce_file ${filter_labeled_rds} \
       --out_processed_sce_file ${processed_rds} \
       --gene_cutoff ${params.gene_cutoff} \
       --n_hvg ${params.num_hvg} \
