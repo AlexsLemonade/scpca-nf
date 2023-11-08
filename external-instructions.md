@@ -29,7 +29,7 @@
 Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
 Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
 While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
-After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
+After identifying the system that you will use to execute the Nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
@@ -116,31 +116,31 @@ We will provide IDs that can be used for `scpca_run_id`, `scpca_library_id`, and
 
 To run the workflow, you will need to create a tab separated values (TSV) metadata file with the following required columns:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `scpca_run_id`    | A unique run ID                                              |
-| `scpca_library_id`| A unique library ID for each unique set of cells             |
-| `scpca_sample_id` | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)          |
-| `scpca_project_id` | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
-| `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
-| `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
-| `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
-| `files_directory` | path/uri to directory containing fastq files (unique per run) |
+| column_id                | contents                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scpca_run_id`           | A unique run ID                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `scpca_library_id`       | A unique library ID for each unique set of cells                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `scpca_sample_id`        | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)                                                                                                                                                                                                                                                                                                                        |
+| `scpca_project_id`       | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID.                                                                                                                                                                                                                                                                                            |
+| `technology`             | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
+| `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version`                                                                                                                                                                                                                                                                                                                                         |
+| `seq_unit`               | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)                                                                                                                                                                                                                                                                                                                                                                                              |
+| `sample_reference`       | The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104`                                                                                                                                                                                                                                                                                                                         |
+| `files_directory`        | path/uri to directory containing fastq files (unique per run)                                                                                                                                                                                                                                                                                                                                                                                               |
 
 The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or are optional and can be included in the metadata file if desired:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls.  |
-| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
-| `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
-| `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
+| column_id              | contents                                                                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls. |
+| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples)                                            |
+| `slide_section`        | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                                |
+| `slide_serial_number`  | The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                          |
 
 We have provided an example run metadata file for reference.
 
 | [View example run metadata](examples/example_run_metadata.tsv) |
-| ------------------------------------------------------------------|
+| -------------------------------------------------------------- |
 
 ## Prepare the sample metadata file
 
@@ -157,7 +157,7 @@ Some suggested columns include diagnosis, tissue, age, sex, stage of disease, ce
 We have provided an example run metadata file for reference.
 
 | [View example sample metadata](examples/example_sample_metadata.tsv) |
-| ---------------------------------------------------------------------|
+| -------------------------------------------------------------------- |
 
 **Before using the workflow with data that you might plan to submit to ScPCA, please be sure to look at the [guidelines for sample metadata](https://scpca.alexslemonade.org/contribute).**
 
@@ -406,11 +406,11 @@ The `feature_barcode_file` for each library should be listed in the [metadata fi
 The  `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `scpca_library_id`| Multiplexed library ID matching values in the metadata file. |
-| `scpca_sample_id` | Sample ID for a sample contained in the listed multiplexed library |
-| `barcode_id`      | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
+| column_id          | contents                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `scpca_library_id` | Multiplexed library ID matching values in the metadata file.                                |
+| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library                          |
+| `barcode_id`       | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
 Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
 
