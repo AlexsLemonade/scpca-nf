@@ -1,6 +1,6 @@
 <!-- This document contains function definitions that are used by both
 `main_qc_report.rmd` and `celltypes_supplemental_report.rmd` to prepare
-cell typing results for analysis/visualization --> 
+cell typing results for analysis/visualization -->
 
 
 ```{r}
@@ -28,22 +28,22 @@ create_celltype_df <- function(processed_sce) {
       contains("cellassign"),
       contains("submitter")
     )
-  
-  if("submitter_celltype_annotation" %in% names(celltype_df)){
-    celltype_df <- celltype_df |> 
-      prepare_annotation_values(submitter_celltype_annotation, is_submitter = TRUE) 
+
+  if ("submitter_celltype_annotation" %in% names(celltype_df)) {
+    celltype_df <- celltype_df |>
+      prepare_annotation_values(submitter_celltype_annotation, is_submitter = TRUE)
   }
 
   if ("singler_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- celltype_df |>
-      prepare_annotation_values(singler_celltype_annotation) 
+      prepare_annotation_values(singler_celltype_annotation)
   }
   if ("cellassign_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- celltype_df |>
       prepare_annotation_values(cellassign_celltype_annotation)
   }
 
-  return (celltype_df)
+  return(celltype_df)
 }
 
 # Functions for working with cell type annotations in QC reports
@@ -55,22 +55,24 @@ create_celltype_df <- function(processed_sce) {
 #'
 #' @param df The data frame containing cell type annotations, one row per cell
 #' @param annotation_column The column (written plainly, not a string) containing annotations to reformat
-#' @param is_submitter Boolean indicating if cell types are from submitter. 
+#' @param is_submitter Boolean indicating if cell types are from submitter.
 #'   If TRUE, NA's will be set to "Unclassified cell".
 #'   If FALSE, NA's will be set to "Unknown cell type". Default is FALSE
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
-prepare_annotation_values <- function(df, annotation_column, is_submitter = FALSE) {
-  
-  submitter_string <- "Unclassified cell" # use for unclassified submitter cells 
-  method_string  <- "Unknown cell type" # use for unclassified singler and cellassign cells
+prepare_annotation_values <- function(
+    df,
+    annotation_column,
+    is_submitter = FALSE) {
+  submitter_string <- "Unclassified cell" # use for unclassified submitter cells
+  method_string <- "Unknown cell type" # use for unclassified singler and cellassign cells
   fct_string <- ifelse(is_submitter, submitter_string, method_string) # which string to consider when reordering the factor
 
   df |>
     dplyr::mutate(
       {{ annotation_column }} := dplyr::case_when(
         # submitter condition - HAS TO BE FIRST since these are also NA which is the singler check
-        is_submitter & is.na({{ annotation_column }})  ~ submitter_string,
+        is_submitter & is.na({{ annotation_column }}) ~ submitter_string,
         # singler condition
         is.na({{ annotation_column }}) ~ method_string,
         # cellassign conditon
@@ -83,8 +85,6 @@ prepare_annotation_values <- function(df, annotation_column, is_submitter = FALS
         # relevel so the applied unknown is at the end
         forcats::fct_relevel(fct_string, after = Inf)
     )
-  
-  
 }
 ```
 

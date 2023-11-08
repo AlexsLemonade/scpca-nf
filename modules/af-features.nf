@@ -45,9 +45,11 @@ process alevin_feature{
     // label the run directory by id
     run_dir = "${meta.run_id}-features"
     // Define umi geometry by 10x version
-    umi_geom_map = ['10Xv2': '1[17-26]',
-                    '10Xv3': '1[17-28]',
-                    '10Xv3.1': '1[17-28]']
+    umi_geom_map = [
+      '10Xv2': '1[17-26]',
+      '10Xv3': '1[17-28]',
+      '10Xv3.1': '1[17-28]'
+    ]
     tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
     // get meta to write as file
@@ -132,8 +134,10 @@ workflow map_quant_feature{
   main:
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
-      .map{meta -> tuple(meta.feature_barcode_file,
-                         file("${meta.feature_barcode_file}"))}
+      .map{meta -> tuple(
+        meta.feature_barcode_file,
+        file("${meta.feature_barcode_file}")
+      )}
       .unique()
     index_feature(feature_barcodes_ch)
 
@@ -147,31 +151,34 @@ workflow map_quant_feature{
         meta // return modified meta object
       }
       .branch{
-          has_rad: (!params.repeat_mapping
-                    && file(it.feature_rad_dir).exists()
-                    && Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
-                    )
-          make_rad: true
+        has_rad: (
+          !params.repeat_mapping
+          && file(it.feature_rad_dir).exists()
+          && Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+        )
+        make_rad: true
        }
 
     // pull out files that need to be repeated
     feature_reads_ch = feature_ch.make_rad
       // create tuple of [metadata, [Read1 files], [Read2 files]]
       // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
-      .map{meta -> tuple(meta.feature_barcode_file,
-                         meta,
-                         file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
-                         file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz")
-                        )}
+      .map{meta -> tuple(
+        meta.feature_barcode_file,
+        meta,
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz")
+      )}
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
       .map{it.drop(1)} // remove the first element (feature_barcode_file)
 
     // // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     feature_rad_ch = feature_ch.has_rad
-      .map{meta -> tuple(Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
-                         file(meta.feature_rad_dir, type: 'dir')
-                         )}
+      .map{meta -> tuple(
+        Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
+        file(meta.feature_rad_dir, type: 'dir')
+      )}
 
     // run Alevin on feature reads
     alevin_feature(feature_reads_ch)

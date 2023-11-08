@@ -94,9 +94,9 @@ workflow build_celltype_ref {
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .branch{
-          singler: it.celltype_method == "SingleR"
-          cellassign: it.celltype_method == "CellAssign"
-       }
+      singler: it.celltype_method == "SingleR"
+      cellassign: it.celltype_method == "CellAssign"
+    }
 
   // singler refs to download and train
   singler_refs_ch = celltype_refs_ch.singler

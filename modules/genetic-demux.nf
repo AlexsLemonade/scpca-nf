@@ -22,10 +22,11 @@ workflow genetic_demux_vireo{
       }
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_demux: (!params.repeat_genetic_demux
-                      && file(it.vireo_dir).exists()
-                      && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
-                     )
+          has_demux: (
+            !params.repeat_genetic_demux
+            && file(it.vireo_dir).exists()
+            && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+          )
           make_demux: true
        }
 
@@ -56,9 +57,9 @@ workflow genetic_demux_vireo{
     // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
     demux_out = multiplex_ch.has_demux
       .map{meta -> tuple(
-                         Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
-                         file(meta.vireo_dir, type: 'dir')
-                        )}
+        Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
+        file(meta.vireo_dir, type: 'dir')
+      )}
       .mix(cellsnp_vireo.out)
 
   emit:

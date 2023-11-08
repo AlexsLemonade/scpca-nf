@@ -23,7 +23,6 @@ option_list <- list(
     help = "path to template file for supplemental cell types rmd report.
     Only used if `celltype_report_file` is not empty"
   ),
-  
   make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     type = "character",
@@ -60,7 +59,7 @@ option_list <- list(
     type = "character",
     default = "",
     help = "path to supplemental cell type QC report output file. Only considered if not empty string"
-  ),  
+  ),
   make_option(
     opt_str = "--metadata_json",
     default = "metadata.json",
@@ -246,9 +245,9 @@ if (multiplexed) {
 
 # Output metadata as JSON
 jsonlite::write_json(
-  metadata_list, 
-  path = opt$metadata_json, 
-  auto_unbox = TRUE, 
+  metadata_list,
+  path = opt$metadata_json,
+  auto_unbox = TRUE,
   pretty = TRUE
 )
 
@@ -270,12 +269,11 @@ scpcaTools::generate_qc_report(
 
 # render supplemental cell types report, if needed
 if (opt$celltype_report_file != "") {
-  
   # check that the template file exists
   if (!file.exists(opt$celltype_report_template)) {
     stop("Supplemental cell types report template not found.")
   }
-  
+
   # render report
   rmarkdown::render(
     input = opt$celltype_report_template,
@@ -289,5 +287,4 @@ if (opt$celltype_report_file != "") {
       processed_sce = processed_sce
     )
   )
-  
 }

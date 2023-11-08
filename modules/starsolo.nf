@@ -13,10 +13,12 @@ process starsolo{
     tuple val(meta), path(output_dir), emit: starsolo_dir
     tuple val(meta), path(output_bam), emit: star_bam
   script:
-    tech_flag = ['10Xv2': '',
-                 '10Xv2_5prime': '',
-                 '10Xv3': '--soloUMIlen 12',
-                 '10Xv3.1': '--soloUMIlen 12']
+    tech_flag = [
+      '10Xv2': '',
+      '10Xv2_5prime': '',
+      '10Xv3': '--soloUMIlen 12',
+      '10Xv3.1': '--soloUMIlen 12'
+    ]
     features_flag = meta.seq_unit == "nucleus" ? "--soloFeatures Gene GeneFull" : "--soloFeatures Gene"
     output_dir = "${meta.run_id}_star"
     output_bam = "${meta.run_id}.sorted.bam"
@@ -58,12 +60,13 @@ workflow starsolo_map{
 
   main:
     sc_reads_ch = singlecell_ch
-      .map{meta -> tuple(meta,
-                         file("${meta.files_directory}/*_R1_*.fastq.gz"),
-                         file("${meta.files_directory}/*_R2_*.fastq.gz"),
-                         file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}"),
-                         file(meta.star_index, type: 'dir')
-                         )}
+      .map{meta -> tuple(
+        meta,
+        file("${meta.files_directory}/*_R1_*.fastq.gz"),
+        file("${meta.files_directory}/*_R2_*.fastq.gz"),
+        file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}"),
+        file(meta.star_index, type: 'dir')
+      )}
     starsolo(sc_reads_ch)
     index_bam(starsolo.out.star_bam)
 
