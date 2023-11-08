@@ -287,7 +287,7 @@ Note that the contents of this report will vary based on which cell type annotat
 Further, be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
 
 <!--Note that the specific contents of this report will depend on which cell type annotations are present.-->
-**This library contains the following cell types annotations:**
+**This library contains the following cell type annotations:**
 
 ```{r results='asis'}
 # build up this string as we go:
