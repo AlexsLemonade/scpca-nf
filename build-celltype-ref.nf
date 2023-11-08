@@ -17,9 +17,8 @@ process save_singler_refs {
     """
   stub:
     // fill in a dummy version since we grab that as part of the script
-    ref_file = "${ref_name}-${ref_source}-v0_0_0.rds"
     """
-    touch ${ref_file}
+    touch "${ref_name}-${ref_source}-v0_0_0.rds"
     """
 
 }
