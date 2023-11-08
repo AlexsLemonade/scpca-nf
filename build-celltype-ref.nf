@@ -6,9 +6,9 @@ process save_singler_refs {
   publishDir "${params.singler_references_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source), path(t2g_3col_path)
+    tuple val(ref_name), val(ref_source)
   output:
-    tuple val(ref_name), path("${ref_name}-${ref_source}-*.rds"), path(t2g_3col_path)
+    tuple val(ref_name), path("${ref_name}-${ref_source}-*.rds")
   script:
     """
     save_singler_refs.R \
@@ -29,7 +29,8 @@ process train_singler_models {
   label 'cpus_4'
   label 'mem_16'
   input:
-    tuple val(ref_name), path(ref_file), path(t2g_3col_path)
+    tuple val(ref_name), path(ref_file)
+    path t2g_3col_path
   output:
     path celltype_model
   script:
@@ -85,6 +86,9 @@ workflow build_celltype_ref {
 
   // read in json file with all reference paths
   ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
+  // get path to tx2gene and gtf
+  t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
+  ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
 
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
@@ -98,15 +102,14 @@ workflow build_celltype_ref {
   singler_refs_ch = celltype_refs_ch.singler
     .map{[
       ref_name: it.celltype_ref_name,
-      ref_source: it.celltype_ref_source,
-      t2g_3col_path: file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
+      ref_source: it.celltype_ref_source
       ]}
 
   // download and save reference files
   save_singler_refs(singler_refs_ch)
 
   // train cell type references using SingleR
-  train_singler_models(save_singler_refs.out)
+  train_singler_models(save_singler_refs.out, t2g_3col_path)
 
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
@@ -115,7 +118,7 @@ workflow build_celltype_ref {
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source,
       organs: it.organs,
-      ref_gtf: file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
+      ref_gtf: ref_gtf
     ]}
 
   generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file)
