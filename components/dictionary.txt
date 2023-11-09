@@ -24,8 +24,8 @@ Github
 glioblastoma
 GRCh
 Hippen
-HTOs
 HPC
+HTOs
 intronic
 Jaccard
 Lun
@@ -42,7 +42,6 @@ scpca
 ScPCA
 transcriptome
 transcriptomic
-trancriptomics
 TSV
 UMAP
 UMI
