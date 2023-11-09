@@ -58,7 +58,8 @@ process generate_cellassign_refs {
   publishDir "${params.cellassign_ref_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source), val(organs), path(ref_gtf)
+    tuple val(ref_name), val(ref_source), val(organs)
+    path ref_gtf
     path marker_gene_file
   output:
     path ref_file
@@ -117,11 +118,10 @@ workflow build_celltype_ref {
     .map{[
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source,
-      organs: it.organs,
-      ref_gtf: ref_gtf
+      organs: it.organs
     ]}
 
-  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file)
+  generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
 
 }
 
