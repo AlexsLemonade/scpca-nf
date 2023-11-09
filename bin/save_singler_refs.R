@@ -15,7 +15,7 @@ option_list <- list(
     opt_str = c("--ref_file_prefix"),
     type = "character",
     help = "prefix to use for naming saved reference file.
-      All files will be saved with the following name: <ref_file_prefix>_celldex_version.rds"
+      All files will be saved with the following name: <ref_file_prefix>_<celldex_version>.rds"
   )
 )
 
@@ -29,10 +29,10 @@ celldex_version <- packageVersion("celldex") |>
   stringr::str_replace_all("\\.", "-")
 
 # construct output ref file name
-ref_output_file <- glue::glue("{opt$ref_file_prefix}_v{celldex_version}.rds")
+ref_output_file <- glue::glue("{opt$ref_file_prefix}_{celldex_version}.rds")
 
 # check that provided ref name is in celldex package
-if (!opt$ref_name %in% ls("package:celldex")) {
+if (!opt$ref_name %in% ls(getNamespace("celldex"))) {
   stop(glue::glue("Provided `ref_name` `{opt$ref_name}` does not match a celldex dataset."))
 }
 

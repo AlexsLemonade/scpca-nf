@@ -58,14 +58,15 @@ process generate_cellassign_refs {
   publishDir "${params.cellassign_ref_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source), val(organs), path(ref_gtf)
+    tuple val(ref_name), val(ref_source), val(organs)
+    path ref_gtf
     path marker_gene_file
   output:
     path ref_file
   script:
     // get ref version from filename
     // this requires the date stored in the filename to be in ISO8601 format
-    ref_version = (marker_gene_file =~ /.+([0-9]{4}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     generate_cellassign_refs.R \
@@ -75,7 +76,7 @@ process generate_cellassign_refs {
       --ref_mtx_file ${ref_file}
     """
   stub:
-    ref_version = (marker_gene_file =~ /.+([0-9]{4}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     touch ${ref_file}
@@ -117,11 +118,10 @@ workflow build_celltype_ref {
     .map{[
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source,
-      organs: it.organs,
-      ref_gtf: ref_gtf
+      organs: it.organs
     ]}
 
-  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file)
+  generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
 
 }
 
