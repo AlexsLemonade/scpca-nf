@@ -50,6 +50,12 @@ There are several flags and/or parameters which you may additionally wish to spe
     + By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
     Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
     + For more implementation details, please refer to the [external instructions](external-instructions.md#repeating-mapping-steps).
+  + `--skip_genetic_demux`: Use this flag to skip genetic demultiplexing, which is turned on by default.
+    + Genetic demultiplexing requires mapping of both bulk and single-cell data, followed by SNP calling and genetic demultiplexing, which can be quite time consuming.
+    + When genetic demultiplexing is skipped, the workflow will still perform cellhash-based demultiplexing, if available for a given library.
+  + `--repeat_genetic_demux`: Use this flag to repeat genetic demultiplexing, even if results already exist.
+    + By default, the workflow checks whether each library has existing genetic demultiplexing results, and skips genetic demultiplexing for libraries with existing results.
+    Using this flag will override that default behavior and repeat genetic demultiplexing even if the given library's results exist.
   + `--perform_celltyping`: Use this flag to perform cell type annotation, which is turned off by default.
   + `--repeat_celltyping`: Use this flag to repeat cell type annotation, even if results already exist.
     + By default, the workflow checks whether each library has existing cell type annotation results for `SingleR` and/or `CellAssign` (depending on references for that library).
