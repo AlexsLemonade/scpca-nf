@@ -27,6 +27,12 @@ option_list <- list(
     help = "path to rds file containing SingleR results object"
   ),
   make_option(
+    opt_str = c("--singler_ref_version"),
+    type = "character",
+    help = "Source and version of reference used to generate SingleR annotations.
+      This will be added to the metadata of the returned SingleCellExperiment object."
+  ),
+  make_option(
     opt_str = c("--cellassign_predictions"),
     type = "character",
     help = "path to tsv file containing the prediction matrix returned by running CellAssign"
@@ -35,6 +41,12 @@ option_list <- list(
     opt_str = c("--cellassign_ref_name"),
     type = "character",
     help = "name of reference used for CellAssign"
+  ),
+  make_option(
+    opt_str = c("--cellassign_ref_version"),
+    type = "character",
+    help = "Source and version of reference used to generate CellAssign annotations.
+      This will be added to the metadata of the returned SingleCellExperiment object."
   )
 )
 
@@ -102,6 +114,7 @@ if (!is.null(opt$singler_results)) {
   metadata(sce)$singler_results <- singler_results
   metadata(sce)$singler_reference <- metadata(singler_results)$reference_name
   metadata(sce)$singler_reference_label <- label_type
+  metadata(sce)$singler_ref_version <- opt$singler_ref_version
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
@@ -136,9 +149,10 @@ if (!is.null(opt$cellassign_predictions)) {
   sce$cellassign_celltype_annotation <- celltype_assignments$celltype
   sce$cellassign_max_prediction <- celltype_assignments$prediction
 
-  # add entire predictions matrix and ref name to metadata
+  # add entire predictions matrix, ref name, and version to metadata
   metadata(sce)$cellassign_predictions <- predictions
   metadata(sce)$cellassign_reference <- opt$cellassign_ref_name
+  metadata(sce)$cellassign_ref_version <- opt$cellassign_ref_version
 
   # add cellassign as celltype method
   # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
