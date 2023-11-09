@@ -149,12 +149,10 @@ workflow annotate_celltypes {
         meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_cellassign";
         meta.singler_model_file = singler_model_file;
         meta.cellassign_reference_file = cellassign_reference_file;
-        // add reference source and version to meta as source_version
+        // add reference source and version to meta as [source_version]
         // make sure that file exists before extracting info from filename
         meta.singler_ref_version = "${singler_model_file}" == '' ? '' : file("${singler_model_file}").getBaseName().split('_')[1,2].join("_");
         meta.cellassign_ref_version = "${cellassign_reference_file}" == '' ? '' : file("${cellassign_reference_file}").getBaseName().split('_')[1,2].join("_");
-        //meta.singler_ref_version = "${singler_model_file}" == '' ? '' : file("${singler_model_file}").getBaseName().split('_')[2];
-        //meta.cellassign_ref_version = "${cellassign_reference_file}" == '' ? '' : file("${cellassign_reference_file}").getBaseName().split('_')[2];
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
         meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv"
         // return simplified input:
