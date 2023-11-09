@@ -65,7 +65,7 @@ process generate_cellassign_refs {
   script:
     // get ref version from filename
     // this requires the date stored in the filename to be in ISO8601 format
-    ref_version = (marker_gene_file =~ /.+([0-9]{4}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     generate_cellassign_refs.R \
@@ -75,7 +75,7 @@ process generate_cellassign_refs {
       --ref_mtx_file ${ref_file}
     """
   stub:
-    ref_version = (marker_gene_file =~ /.+([0-9]{4}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     touch ${ref_file}
