@@ -7,13 +7,14 @@
 root_dir <- rprojroot::find_root(rprojroot::has_dir(".git"))
 
 # Read in dictionary
-dictionary <- readLines(file.path(root_dir, 'components', 'dictionary.txt'))
+dict_file <- file.path(root_dir, "components", "dictionary.txt")
+dictionary <- readLines(dict_file)
 
 # Add emoji to dictionary
 dictionary <- c(dictionary, spelling::spell_check_text("⚠️")$word)
 
 # The only files we want to check are R Markdown and Markdown files
-files <- list.files(pattern = '\\.(Rmd|md|rmd)$', recursive = TRUE, full.names = TRUE)
+files <- list.files(pattern = "\\.(Rmd|md|rmd)$", recursive = TRUE, full.names = TRUE)
 
 # Run spell check
 spelling_errors <- spelling::spell_check_files(files, ignore = dictionary) |>
@@ -25,4 +26,8 @@ spelling_errors <- spelling::spell_check_files(files, ignore = dictionary) |>
 write(nrow(spelling_errors), stdout())
 
 # Save spell errors to file temporarily
-readr::write_tsv(spelling_errors, 'spell_check_errors.tsv')
+readr::write_tsv(spelling_errors, "spell_check_errors.tsv")
+
+# Update dictionary for future use
+dictionary <- sort(unique(c(dictionary, spelling_errors$word)))
+writeLines(dictionary, dict_file)
