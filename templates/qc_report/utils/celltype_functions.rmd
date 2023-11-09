@@ -64,27 +64,82 @@ prepare_annotation_values <- function(
     df,
     annotation_column,
     is_submitter = FALSE) {
-  submitter_string <- "Unclassified cell" # use for unclassified submitter cells
-  method_string <- "Unknown cell type" # use for unclassified singler and cellassign cells
-  fct_string <- ifelse(is_submitter, submitter_string, method_string) # which string to consider when reordering the factor
+  
+  # used for SingleR and CellAssign unknowns
+  automated_unknown_string <- "Unknown cell type"
+  
+  # used for submitter unknowns - strings which might be "unknown"-y
+  submitter_unknown_strings <- c("na", "n/a", "<na>", "<n/a>", "null", "unknown", " ")
+  # define variations here rather than lowering the submitter annotations themselves
+  submitter_unknown_strings <- c(
+    submitter_unknown_strings,
+    stringr::str_to_upper(submitter_unknown_strings), 
+    stringr::str_to_title(submitter_unknown_strings)
+  ) |>
+    unique()
+  
+  # string for submitter-excluded cell types
+  submitter_excluded_string <- "Submitter-excluded"
+    
+    
+  df <- df |>
+     dplyr::mutate(
+       {{ annotation_column }} := dplyr::case_when(
+         # submitter condition - HAS TO BE FIRST since these are also NA which is the singler check
+         #is_submitter & is.na({{ annotation_column }}) ~ submitter_string,
+         # singler condition
+         is.na({{ annotation_column }}) ~ automated_unknown_string,
+         # cellassign conditon
+         {{ annotation_column }} == "other" ~  automated_unknown_string,
+         # otherwise, keep it
+         .default = {{ annotation_column }}
+       ) 
+     )
 
-  df |>
-    dplyr::mutate(
-      {{ annotation_column }} := dplyr::case_when(
-        # submitter condition - HAS TO BE FIRST since these are also NA which is the singler check
-        is_submitter & is.na({{ annotation_column }}) ~ submitter_string,
-        # singler condition
-        is.na({{ annotation_column }}) ~ method_string,
-        # cellassign conditon
-        {{ annotation_column }} == "other" ~ method_string,
-        # otherwise, keep it
-        .default = {{ annotation_column }}
-      ) |>
-        # order column by number of cells
-        forcats::fct_infreq() |>
-        # relevel so the applied unknown is at the end
-        forcats::fct_relevel(fct_string, after = Inf)
+  if (is_submitter) {
+    
+    # we'll directly use the `submitter_celltype_annotation` name here for the 
+    # column since we know we're working with submitter annotations 
+    
+    # determine and order which unknown types are present
+    present_unknown_strings <- df |>
+      dplyr::filter(submitter_celltype_annotation %in% submitter_unknown_strings) |>
+      dplyr::count(submitter_celltype_annotation, sort = TRUE) |>
+      dplyr::pull(submitter_celltype_annotation) |>
+      as.character()
+    
+    # submitter exlcuded strings go at the VERY END regardless of count
+    if (submitter_excluded_string %in% unique(df$submitter_celltype_annotation)) {
+      present_unknown_strings <- c(present_unknown_strings, submitter_excluded_string)
+    }
+    
+    # define new levels by moving any unknowns to the end
+    submitter_levels <- levels(df$submitter_celltype_annotation)
+    new_submitter_levels <- c(
+      submitter_levels[!(submitter_levels %in% present_unknown_strings)], 
+      present_unknown_strings
     )
+    
+    # apply new levels
+    df$submitter_celltype_annotation <- as.character(df$submitter_celltype_annotation) # defactor first, in case...
+    df$submitter_celltype_annotation <- factor(
+      df$submitter_celltype_annotation, 
+      levels = new_submitter_levels
+    )
+    
+  } else {
+    
+    df <- df |>
+      # order column by number of cells
+      forcats::fct_infreq() |>
+      # make "Unknown cell type" the last level
+      dplyr::mutate(
+        {{ annotation_column }} := forcats::fct_relevel("Unknown cell type", after = Inf)
+      )
+  }
+
+  # return the updated data frame
+  return(df)  
 }
 ```
 
