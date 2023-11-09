@@ -44,7 +44,11 @@ if (!file.exists(opt$submitter_cell_types_file)) {
 sce <- readr::read_rds(opt$sce_file)
 
 # Read in celltypes
-submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
+submitter_cell_types_df <- readr::read_tsv(
+    opt$submitter_cell_types_file,
+    # read in all columns as character
+    col_types = list(.default = readr::col_character())
+  ) |>
   # filter to relevant information
   dplyr::filter(scpca_library_id == opt$library_id) |>
   dplyr::select(
@@ -59,6 +63,15 @@ submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
   dplyr::right_join(
     colData(sce) |>
       as.data.frame()
+  ) |>
+  # make any NA values induced by joining into "submitter-excluded"
+  dplyr::mutate(
+    # use dplyr::if_else, not base, to ensure we end up with character only
+    submitter_celltype_annotation = dplyr::if_else(
+      is.na(submitter_celltype_annotation),
+      "Submitter-excluded",
+      submitter_celltype_annotation
+    )
   )
 
 # Check rows before sending back into the SCE object
