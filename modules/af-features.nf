@@ -105,12 +105,12 @@ process fry_quant_feature{
 
     alevin-fry collate \
       --input-dir ${quant_dir} \
-      --rad-dir ${quant_dir} \
+      --rad-dir ${rad_dir} \
       -t ${task.cpus}
 
     alevin-fry quant \
       --input-dir ${quant_dir} \
-      --tg-map ${quant_dir}/t2g.tsv \
+      --tg-map ${rad_dir}/t2g.tsv \
       --resolution ${params.af_resolution} \
       -o ${quant_dir} \
       --use-mtx \
