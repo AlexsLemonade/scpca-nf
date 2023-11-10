@@ -65,7 +65,6 @@ good.map{
 }
 ```
 
-
 ### R and R Markdown
 
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
@@ -75,3 +74,14 @@ For R code, we try to follow [`tidyverse` style conventions](https://style.tidyv
 For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
 The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
 Alternatively, if you use Visual Studio Code, you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+
+## Pre-commit hooks
+
+For convenience, we have included a set of [pre-commit hooks](https://pre-commit.com/) that can be used to automatically format code according to the above specifications, as well as to spellcheck and check for other common errors.
+
+To use these hooks, install the `pre-commit` package according to your favorite method (`pip install pre-commit` or `conda install pre-commit`), then run `pre-commit install` in the `scpca-nf` directory.
+This will install the hooks in the `.git/hooks` directory, and they will be run automatically when you commit changes.
+If any of the hooks fail, the commit will be aborted, and you will need to fix the errors and re-commit.
+
+Notably, the spellcheck hook will report spelling errors, but will also add any words it finds to the dictionary file.
+This is convenient for many cases (where the word is real but unknown), but be sure to remove truly misspelled words from the dictionary file before committing, or they will not be caught in the future!
