@@ -86,26 +86,22 @@ prepare_automated_annotation_values <- function(
 
 
 #' Prepare and reformat cell type submitter annotation values for use in QC reports
-#'  Unknown cell types are updated with the label "Unknown cell type", and
-#'  cell types are ordered in order of descending frequency, but with
-#'  "Unknown cell type" as the last level
+#'  Unknown cell types, followed by "Submitter-excluded" (cells the submitter
+#'  did not annotate) are set as the last levels
 #'
-#' @param df The data frame containing cell type annotations, one row per cell
+#' @param df The data frame containing cell type annotations, one row per cell.
+#'   Must contain the column `submitter_celltype_annotation`
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
 prepare_submitter_annotation_values <- function(df) {
     
-  # used for unknowns - strings which might be "unknown"-y
-  unknown_strings <- c("na", "n/a", "<na>", "<n/a>", "null", "unknown", " ")
+  if (!("submitter_celltype_annotation" %in% names(df))) {
+    stop("Could not process submitter annotation values; missing submitter column.")
+  }
   
-  # define variations here rather than lowering the submitter annotations themselves
-  unknown_strings <- c(
-    unknown_strings,
-    stringr::str_to_upper(unknown_strings), 
-    stringr::str_to_title(unknown_strings)
-  ) |> 
-    unique()
-  
+  # strings which might be "unknown"-y
+  unknown_strings <- c("na", "nan", "null", "unknown",  "")
+
   # string for submitter-excluded cell types
   submitter_excluded_string <- "Submitter-excluded"
   
@@ -113,18 +109,24 @@ prepare_submitter_annotation_values <- function(df) {
   submitter_levels <- df$submitter_celltype_annotation |>
     forcats::fct_infreq() |>
     levels()
+
+  # remove non-word characters & make lower case
+  # note by removing \\W, we match `<n/a>` and similar
+  submitter_normalized_levels <- submitter_levels |>
+    stringr::str_replace_all("\\W+", "") |>
+    stringr::str_to_lower()
   
   # determine which of those levels are unknowns
-  unknown_levels <- submitter_levels[submitter_levels %in% unknown_strings]
+  unknown_levels <- submitter_levels[submitter_normalized_levels %in% unknown_strings]
   
   # if submitter-excluded is present it should go at the VERY END regardless of count
   if (submitter_excluded_string %in% submitter_levels) {
     unknown_levels <- c(unknown_levels, submitter_excluded_string)
   }
   
-# Move unknown levels to the end in order of frequency, followed by submitter-excluded
-df$submitter_celltype_annotation <- df$submitter_celltype_annotation |>
-  forcasts::fct_relevel(unknown_levels, after = Inf)
+  # Move unknown levels to the end in order of frequency, followed by submitter-excluded
+  df$submitter_celltype_annotation <- df$submitter_celltype_annotation |>
+    forcasts::fct_relevel(unknown_levels, after = Inf)
   
   return(df)  
 }
