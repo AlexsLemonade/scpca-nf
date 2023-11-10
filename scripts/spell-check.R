@@ -1,10 +1,22 @@
 #!/usr/bin/env Rscript
 #
 # Run spell check and save results
-# Adapted from: https://github.com/AlexsLemonade/refinebio-examples/blob/33cdeff66d57f9fe8ee4fcb5156aea4ac2dce07f/scripts/spell-check.R
+# This script can be called by the pre-commit hook, in which case it should be
+# given the changed files as arguments. Otherwise, it will check all R Markdown
+# files in the repository.
 
-args <- commandArgs(trailingOnly = TRUE)
-precommit <- "--precommit" %in% args
+
+arguments <- commandArgs(trailingOnly = TRUE)
+
+# if there are arguments, check those files, otherwise check all markdown & rmd files
+if (length(arguments) > 0) {
+  precommit <- TRUE
+  files <- arguments[grepl("\\.(Rmd|md|rmd)$", arguments)]
+} else {
+  precommit <- FALSE
+  # The only files we want to check are R Markdown and Markdown files
+  files <- list.files(pattern = "\\.(Rmd|md|rmd)$", recursive = TRUE, full.names = TRUE)
+}
 
 # Find .git root directory
 root_dir <- rprojroot::find_root(rprojroot::has_dir(".git"))
@@ -15,11 +27,6 @@ dictionary <- readLines(dict_file)
 
 # Add emoji to dictionary
 dictionary_plus <- c(dictionary, spelling::spell_check_text("⚠️")$word)
-
-# The only files we want to check are R Markdown and Markdown files
-files <- list.files(pattern = "\\.(Rmd|md|rmd)$", recursive = TRUE, full.names = TRUE)
-# remove any files in the work directory
-files <- files[!grepl("^./work/", files)]
 
 # Run spell check
 spelling_errors <- spelling::spell_check_files(files, ignore = dictionary_plus) |>

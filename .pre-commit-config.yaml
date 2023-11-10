@@ -1,5 +1,4 @@
 # All available hooks: https://pre-commit.com/hooks.html
-# R specific hooks: https://github.com/lorenzwalthert/precommit
 repos:
   - repo: local
     hooks:
@@ -7,13 +6,17 @@ repos:
         name: Spell check files
         language: r
         entry: Rscript scripts/spell-check.R
-        args: [--precommit]
-        pass_filenames: false
         additional_dependencies:
           - readr
           - rprojroot
           - spelling
           - tidyr
+      - id: forbid-to-commit
+        name: Don't commit common R artifacts
+        entry: Cannot commit .Rhistory, .RData, .Rds or .rds.
+        language: fail
+        files: '\.(Rhistory|RData|Rds|rds)$'
+        # `exclude: <regex>` to allow committing specific files
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
     rev: v0.1.5
@@ -23,12 +26,18 @@ repos:
         # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/lorenzwalthert/precommit
+    # R styling and linting
     rev: v0.3.2.9025
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
-      # - id: lintr
+      # - id: lintr #skip R linting for now...
       - id: parsable-R
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    # Format YAML and other languages
+    rev: v3.0.3
+    hooks:
+      - id: prettier
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -36,11 +45,3 @@ repos:
         args: ["--maxkb=200"]
       - id: end-of-file-fixer
         exclude: '\.Rd'
-  - repo: local
-    hooks:
-      - id: forbid-to-commit
-        name: Don't commit common R artifacts
-        entry: Cannot commit .Rhistory, .RData, .Rds or .rds.
-        language: fail
-        files: '\.(Rhistory|RData|Rds|rds)$'
-        # `exclude: <regex>` to allow committing specific files
