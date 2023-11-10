@@ -122,20 +122,9 @@ prepare_submitter_annotation_values <- function(df) {
     unknown_levels <- c(unknown_levels, submitter_excluded_string)
   }
   
-  # create new levels:
-  # all annotations, in order of frequency
-  # all unknowns, in order of frequency
-  # submitter-excluded, if present
-  new_submitter_levels <- c(
-    submitter_levels[!(submitter_levels %in% unknown_levels)], 
-    unknown_levels
-  )
-    
-  # finally, apply the new levels
-  df$submitter_celltype_annotation <- df$submitter_celltype_annotation |>
-    # just in case, remove any current levels
-    as.character() |>
-    factor(levels = new_submitter_levels)
+# Move unknown levels to the end in order of frequency, followed by submitter-excluded
+df$submitter_celltype_annotation <- df$submitter_celltype_annotation |>
+  forcasts::fct_relevel(unknown_levels, after = Inf)
   
   return(df)  
 }

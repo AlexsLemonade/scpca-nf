@@ -47,7 +47,8 @@ if (!(stringr::str_ends(opt$submitter_cell_types_file, ".tsv"))) {
 submitter_df <- readr::read_tsv(
     opt$submitter_cell_types_file,
     # read in all columns as character
-    col_types = list(.default = readr::col_character())
+    col_types = list(.default = readr::col_character()),
+    na = character()
   ) 
 
 # Check columns before proceeding for faster failing:
