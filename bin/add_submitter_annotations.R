@@ -49,7 +49,7 @@ submitter_df <- readr::read_tsv(
     # read in all columns as character
     col_types = list(.default = readr::col_character()),
     na = character()
-  ) 
+  )
 
 # Check columns before proceeding for faster failing:
 # TODO: WHAT IF THEY PROVIDE AN ONTOLOGY COLUMN? WE NEED TO PARSE THAT TOO. WILL NEED MORE IF BELOW.
@@ -84,20 +84,13 @@ coldata_df <- submitter_df |>
       "Submitter-excluded",
       submitter_celltype_annotation
     )
-  )
+  ) |>
+  dplyr::distinct()
 
-# Perform some checks before sending back into the SCE object
-
-# There should not be any  _logical_ NAs here ("NA" etc is allowed )
-if (any(is.na(coldata_df$submitter_celltype_annotation))) { 
-  stop("There are NA values in the submitter annotation column. This column should be all character.")
-}
-
-# Check number of rows
+# Check number of rows before sending back into the SCE object
 if (nrow(coldata_df) != ncol(sce)) {
   stop("Could not add submitter annotations to SCE object. There should only be one annotation per cell.")
 }
-
 
 # Rejoin with colData, making sure we keep rownames
 colData(sce) <- DataFrame(
