@@ -73,7 +73,10 @@ For R code, we try to follow [`tidyverse` style conventions](https://style.tidyv
 
 For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
 The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
-Alternatively, if you use Visual Studio Code, you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+If you use Visual Studio Code, you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+
+As an alternative to `black`, you can also use [`ruff`](https://docs.astral.sh/ruff/) for formatting and linting; it follows the same code style conventions.
+`ruff` is also available as a [VSCode extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
 ## Pre-commit hooks
 
