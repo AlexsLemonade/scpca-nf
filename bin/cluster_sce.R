@@ -70,6 +70,10 @@ if (!file.exists(opt$processed_sce_file)) {
 }
 sce <- readr::read_rds(opt$processed_sce_file)
 
+if (!stringr::str_ends(opt$output_sce_file, ".rds")) {
+  stop("`output_sce_file` must end in .rds")
+}
+
 # only perform clustering if reduced dimension embeddings are present
 # otherwise just return the object
 if (!opt$pca_name %in% reducedDimNames(sce)) {

@@ -74,7 +74,7 @@ if (!all(stringr::str_ends(
   c(opt$out_filtered_sce_file, opt$out_processed_sce_file),
   ".rds"
 ))) {
-  stop("output file names must end in .rds")
+  stop("Output SCE file names must end in .rds")
 }
 
 
