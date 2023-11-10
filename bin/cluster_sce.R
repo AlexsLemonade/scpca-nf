@@ -20,6 +20,11 @@ option_list <- list(
       Must contain a PCA matrix to calculate clusters from."
   ),
   make_option(
+    opt_str = c("-o", "--output_sce_file"),
+    type = "character",
+    help = "Output path for clustered SCE file. Must end in .rds"
+  ),
+  make_option(
     opt_str = c("--pca_name"),
     type = "character",
     default = "PCA",
@@ -65,6 +70,10 @@ if (!file.exists(opt$processed_sce_file)) {
 }
 sce <- readr::read_rds(opt$processed_sce_file)
 
+if (!stringr::str_ends(opt$output_sce_file, ".rds")) {
+  stop("`output_sce_file` must end in .rds")
+}
+
 # only perform clustering if reduced dimension embeddings are present
 # otherwise just return the object
 if (!opt$pca_name %in% reducedDimNames(sce)) {
@@ -92,5 +101,4 @@ if (!opt$pca_name %in% reducedDimNames(sce)) {
 }
 
 # export -------------------
-# we are overwriting the `processed_sce_file` here
-readr::write_rds(sce, opt$processed_sce_file)
+readr::write_rds(sce, opt$output_sce_file)
