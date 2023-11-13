@@ -175,7 +175,16 @@ We currently only support `celldex` and `PanglaoDB` for reference sources for `S
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
 2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3:
-    - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` named as `celldex-<reference name>.rds`.
-    - `SingleR` trained model files for the given Nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` named as `<reference name>_models.rds`.
-    - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `PanglaoDB-<organ>.tsv`.
-
+    - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<singler_ref_name>_<source>_<version>.rds`.
+    The file name will be automatically determined by the `build-celltype-ref.nf`:
+      - `<singler_ref_name>` represents the reference dataset name.
+      - `<source>` represents the reference dataset source. Currently only `celldex` is supported.
+      - `<version>` represents the source (`celldex`) version, where periods are replaced with dashes (e.g. version `x.y.z` would be represented as `x-y-z`).
+    - `SingleR` trained model files for the given Nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` and named as `<singler_ref_name>_<source>_<version>_model.rds`.
+    These file names should match their corresponding reference files stored in `s3://scpca-references/celltype/singler_references`, but with the ending `_model.rds`.
+    - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `<cellassign_ref_name>_<source>_<date>.tsv`.
+      - `<cellassign_ref_name>` represents the reference dataset name.
+      Names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
+      For example `blood-compartment` is comprised of blood and immune cell type markers.
+      - `<source>` represents the reference dataset source. Currently only `PanglaoDB` is supported.
+      - `<date>` represents the source (`PanglaoDB`) download date in ISO8601 format.
