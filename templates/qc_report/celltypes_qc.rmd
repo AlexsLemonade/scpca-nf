@@ -1,6 +1,5 @@
 # Cell type Annotation Summary
 
-
 ```{r}
 ## function definitions ##
 
@@ -52,9 +51,6 @@ format_celltype_n_table <- function(df) {
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
 lump_celltypes <- function(df, n_celltypes = 7) {
-
-  # Update the df for each of the following, if present
-  methods <- c("singler", "cellassign", "submitter")
   df <- df |>
     dplyr::mutate(
       across(
@@ -80,11 +76,10 @@ lump_celltypes <- function(df, n_celltypes = 7) {
 #'
 #' @return UMAP plot as a ggplot2 object
 plot_umap <- function(
-  umap_df,
-  color_variable,
-  legend_title,
-  legend_nrow = 2
-){
+    umap_df,
+    color_variable,
+    legend_title,
+    legend_nrow = 2) {
   ggplot(umap_df) +
     aes(
       x = UMAP1,
@@ -112,51 +107,32 @@ plot_umap <- function(
     ) +
     theme(legend.position = "bottom")
 }
-
 ```
 
-<!-- Background depends on which cell types are present in the SCE. -->
 
 The plots and tables included here detail the results from performing cell type annotation.
-Cell type annotations were obtained in the following way(s): 
 
-<!-- Submitter -->
-```{r, eval = has_submitter, results='asis'}
-glue::glue(
-  "* Cell type annotations were provided by the original lab (`submitter-provided`) which generated this data.
-  "
-)
-```
-
-
-```{r, eval = has_singler, results='asis'}
-glue::glue(
-  "* Cell types were annotated using [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), which uses a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
-  The `{metadata(processed_sce)$singler_reference}` reference dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for cell typing."
-)
-```
+```{r, eval = !is_supplemental, results = 'asis'}
+# define bullets glue string
+methods_bullets <- c(
+  ifelse(has_submitter, "Submitter-provided", NA),
+  ifelse(has_singler, "`SingleR`", NA),
+  ifelse(has_cellassign, "`CellAssign`", NA)
+) |>
+  na.omit() |>
+  # make it bullets
+  stringr::str_replace_all("^", "* ") |>
+  stringr::str_flatten(collapse = "\n")
 
 
-```{r, eval = has_cellassign, results='asis'}
-tissue_type <- stringr::word(
-  metadata(processed_sce)$cellassign_reference,
-  -1,
-  sep = "-"
-)
-
-glue::glue(
-  "* Cell types were annotated using [`CellAssign`](https://github.com/Irrationone/cellassign), which uses a marker-gene based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-  Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).
-  "
-)
-```
-
-
-<!-- At least one cell type annotation method required for the supplemental report -->
-```{r, eval = has_singler | has_cellassign, results='asis'}
+# print the bullets
 glue::glue("
-  For additional information about cell typing, including diagnostic plots and/or heatmap comparisons among annotations (if available), please refer to the [supplementary cell type QC report](`r params$celltype_report`).
- ")
+  This library contains the following cell type annotations:
+
+  {methods_bullets}
+
+  For additional information about cell typing, including methods used for cell typing, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+")
 ```
 
 
@@ -198,7 +174,7 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 
 ## UMAPs
 
-In this section, we show UMAPs colored by clusters. 
+In this section, we show UMAPs colored by clusters.
 Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weighting.
 
 
@@ -238,7 +214,8 @@ All other cell types are grouped together and labeled "All remaining cell types"
 <!-- Now, UMAPs of cell types, where present -->
 
 ```{r eval = has_submitter, message=FALSE, warning=FALSE}
-plot_umap(umap_df,
+plot_umap(
+  umap_df,
   submitter_celltype_annotation_lumped,
   "Cell types",
   legend_nrow = 4
@@ -249,7 +226,8 @@ plot_umap(umap_df,
 
 
 ```{r eval=has_singler, message=FALSE, warning=FALSE}
-plot_umap(umap_df,
+plot_umap(
+  umap_df,
   singler_celltype_annotation_lumped,
   "Cell types",
   legend_nrow = 4
@@ -260,7 +238,8 @@ plot_umap(umap_df,
 
 
 ```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
-plot_umap(umap_df,
+plot_umap(
+  umap_df,
   cellassign_celltype_annotation_lumped,
   "Cell types",
   legend_nrow = 4

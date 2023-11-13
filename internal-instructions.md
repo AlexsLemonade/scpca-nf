@@ -50,6 +50,12 @@ There are several flags and/or parameters which you may additionally wish to spe
     + By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
     Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
     + For more implementation details, please refer to the [external instructions](external-instructions.md#repeating-mapping-steps).
+  + `--skip_genetic_demux`: Use this flag to skip genetic demultiplexing, which is turned on by default.
+    + Genetic demultiplexing requires mapping of both bulk and single-cell data, followed by SNP calling and genetic demultiplexing, which can be quite time consuming.
+    + When genetic demultiplexing is skipped, the workflow will still perform cellhash-based demultiplexing, if available for a given library.
+  + `--repeat_genetic_demux`: Use this flag to repeat genetic demultiplexing, even if results already exist.
+    + By default, the workflow checks whether each library has existing genetic demultiplexing results, and skips genetic demultiplexing for libraries with existing results.
+    Using this flag will override that default behavior and repeat genetic demultiplexing even if the given library's results exist.
   + `--perform_celltyping`: Use this flag to perform cell type annotation, which is turned off by default.
   + `--repeat_celltyping`: Use this flag to repeat cell type annotation, even if results already exist.
     + By default, the workflow checks whether each library has existing cell type annotation results for `SingleR` and/or `CellAssign` (depending on references for that library).
@@ -126,12 +132,12 @@ This file is required as input to `scpca-nf`.
 For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
 All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
 This should be a comma-separated list of all organs to include.
-To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
+To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
 This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow.
 See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
-4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
-This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
+4. `PanglaoDB_markers_2020-03-27.tsv`: This file is used to build the cell type references from `PanglaoDB`.
+This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
 This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
 ### Adding additional organisms
@@ -170,6 +176,6 @@ We currently only support `celldex` and `PanglaoDB` for reference sources for `S
 2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3:
     - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` named as `celldex-<reference name>.rds`.
-    - `SingleR` trained model files for the given nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` named as `<reference name>_models.rds`.
+    - `SingleR` trained model files for the given Nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` named as `<reference name>_models.rds`.
     - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `PanglaoDB-<organ>.tsv`.
 

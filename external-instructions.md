@@ -33,7 +33,7 @@
 Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
 Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
 While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
-After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
+After identifying the system that you will use to execute the Nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
@@ -142,11 +142,10 @@ The following columns may be necessary for running other data modalities (CITE-s
 | `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
 | `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file |
 
-
 We have provided an example run metadata file for reference.
 
 | [View example run metadata](examples/example_run_metadata.tsv) |
-| ------------------------------------------------------------------|
+| -------------------------------------------------------------- |
 
 ## Prepare the sample metadata file
 
@@ -163,7 +162,7 @@ Some suggested columns include diagnosis, tissue, age, sex, stage of disease, ce
 We have provided an example run metadata file for reference.
 
 | [View example sample metadata](examples/example_sample_metadata.tsv) |
-| ---------------------------------------------------------------------|
+| -------------------------------------------------------------------- |
 
 **Before using the workflow with data that you might plan to submit to ScPCA, please be sure to look at the [guidelines for sample metadata](https://scpca.alexslemonade.org/contribute).**
 
@@ -412,11 +411,11 @@ The `feature_barcode_file` for each library should be listed in the [metadata fi
 The  `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `scpca_library_id`| Multiplexed library ID matching values in the metadata file |
-| `scpca_sample_id` | Sample ID for a sample contained in the listed multiplexed library |
-| `barcode_id`      | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
+| column_id          | contents                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `scpca_library_id` | Multiplexed library ID matching values in the metadata file.                                |
+| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library                          |
+| `barcode_id`       | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
 Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
 

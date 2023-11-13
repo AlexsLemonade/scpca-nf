@@ -104,7 +104,8 @@ if (!all(sce_checks)) {
 }
 
 # create combined SCE object
-merged_sce <- scpcaTools::merge_sce_list(sce_list,
+merged_sce <- scpcaTools::merge_sce_list(
+  sce_list,
   batch_column = "library_id",
   preserve_rowdata_cols = "gene_symbol",
   cell_id_column = "cell_id"
@@ -123,7 +124,8 @@ gene_var_block <- scran::modelGeneVar(
   BPPARAM = bp_param
 )
 # identify subset of variable genes
-hvg_list <- scran::getTopHVGs(gene_var_block,
+hvg_list <- scran::getTopHVGs(
+  gene_var_block,
   n = opt$n_hvg
 )
 
@@ -144,7 +146,8 @@ multi_pca <- batchelor::multiBatchPCA(
 reducedDim(merged_sce, "PCA") <- multi_pca[[1]]
 
 # add UMAP
-merged_sce <- scater::runUMAP(merged_sce,
+merged_sce <- scater::runUMAP(
+  merged_sce,
   dimred = "PCA",
   BPPARAM = bp_param
 )

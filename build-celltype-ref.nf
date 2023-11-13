@@ -6,20 +6,19 @@ process save_singler_refs {
   publishDir "${params.singler_references_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source), path(t2g_3col_path)
+    tuple val(ref_name), val(ref_source)
   output:
-    tuple val(ref_name), path(ref_file), path(t2g_3col_path)
+    tuple val(ref_name), path("${ref_name}_${ref_source}_*.rds")
   script:
-    ref_file = "${ref_source}-${ref_name}.rds"
     """
     save_singler_refs.R \
      --ref_name ${ref_name} \
-     --ref_file ${ref_file}
+     --ref_file_prefix "${ref_name}_${ref_source}"
     """
   stub:
-    ref_file = "${ref_source}-${ref_name}.rds"
+    // fill in a dummy version since we grab that as part of the script
     """
-    touch ${ref_file}
+    touch "${ref_name}_${ref_source}_v0-0-0.rds"
     """
 
 }
@@ -30,11 +29,13 @@ process train_singler_models {
   label 'cpus_4'
   label 'mem_16'
   input:
-    tuple val(ref_name), path(ref_file), path(t2g_3col_path)
+    tuple val(ref_name), path(ref_file)
+    path t2g_3col_path
   output:
     path celltype_model
   script:
-    celltype_model = "${ref_name}_model.rds"
+    ref_file_basename = file("${ref_file}").baseName
+    celltype_model = "${ref_file_basename}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -45,7 +46,8 @@ process train_singler_models {
       --threads ${task.cpus}
     """
   stub:
-    celltype_model = "${ref_name}_model.rds"
+    ref_file_basename = file("${ref_file}").baseName
+    celltype_model = "${ref_file_basename}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -56,12 +58,16 @@ process generate_cellassign_refs {
   publishDir "${params.cellassign_ref_dir}"
   label 'mem_8'
   input:
-    tuple val(ref_name), val(ref_source), val(organs), path(ref_gtf)
+    tuple val(ref_name), val(ref_source), val(organs)
+    path ref_gtf
     path marker_gene_file
   output:
     path ref_file
   script:
-    ref_file="${ref_source}-${ref_name}.tsv"
+    // get ref version from filename
+    // this requires the date stored in the filename to be in ISO8601 format
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     generate_cellassign_refs.R \
       --organs "${organs}" \
@@ -70,7 +76,8 @@ process generate_cellassign_refs {
       --ref_mtx_file ${ref_file}
     """
   stub:
-    ref_file="${ref_source}-${ref_name}.tsv"
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     touch ${ref_file}
     """
@@ -80,28 +87,30 @@ workflow build_celltype_ref {
 
   // read in json file with all reference paths
   ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
+  // get path to tx2gene and gtf
+  t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
+  ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
 
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .branch{
-          singler: it.celltype_method == "SingleR"
-          cellassign: it.celltype_method == "CellAssign"
-       }
+      singler: it.celltype_method == "SingleR"
+      cellassign: it.celltype_method == "CellAssign"
+    }
 
   // singler refs to download and train
   singler_refs_ch = celltype_refs_ch.singler
     .map{[
       ref_name: it.celltype_ref_name,
-      ref_source: it.celltype_ref_source,
-      t2g_3col_path: file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
+      ref_source: it.celltype_ref_source
       ]}
 
   // download and save reference files
   save_singler_refs(singler_refs_ch)
 
   // train cell type references using SingleR
-  train_singler_models(save_singler_refs.out)
+  train_singler_models(save_singler_refs.out, t2g_3col_path)
 
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
@@ -109,11 +118,10 @@ workflow build_celltype_ref {
     .map{[
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source,
-      organs: it.organs,
-      ref_gtf: file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
+      organs: it.organs
     ]}
 
-  generate_cellassign_refs(cellassign_refs_ch, params.panglao_marker_genes_file)
+  generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
 
 }
 

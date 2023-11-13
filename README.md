@@ -18,8 +18,8 @@ For more information on the contents of the output files and the processing of a
 
 The default configuration of the `scpca-nf` workflow is currently set up to process samples as part of [the ScPCA portal](https://scpca.alexslemonade.org/) and requires access to AWS through the Data Lab.
 For all other users, `scpca-nf` can be set up for your computing environment with a few configuration files.
-|[Instructions for using `scpca-nf`](external-instructions.md)|
-|---|
+| [Instructions for using `scpca-nf`](external-instructions.md) |
+| ------------------------------------------------------------- |
 
 :warning: Please note that processing single-cell and single-nuclei RNA-seq samples requires access to a high performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.
 
@@ -28,7 +28,7 @@ To run `scpca-nf` on your own samples, you will need to complete the following s
 1. [Organize your files](external-instructions.md#file-organization) so that each folder contains fastq files relevant to a single sequencing run.
 2. [Prepare a run metadata file](external-instructions.md#prepare-the-run-metadata-file) with one row per library containing all information needed to process your samples.
 3. [Prepare a sample metadata file](external-instructions.md#prepare-the-sample-metadata-file) with one row per sample containing any relevant metadata about each sample (e.g., diagnosis, age, sex, cell line).
-4. Set up a [configuration file](external-instructions.md#configuration-files), including the [definition of a profile](external-instructions.md#setting-up-a-profile-in-the-configuration-file), dictating where nextflow should execute the workflow.
+4. Set up a [configuration file](external-instructions.md#configuration-files), including the [definition of a profile](external-instructions.md#setting-up-a-profile-in-the-configuration-file), dictating where Nextflow should execute the workflow.
 
 You may also [test your configuration file using example data](examples/README.md).
 

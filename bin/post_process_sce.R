@@ -16,7 +16,12 @@ option_list <- list(
     help = "path to rds file with input sce object to be processed"
   ),
   make_option(
-    opt_str = c("-o", "--output_sce_file"),
+    opt_str = c("-f", "--out_filtered_sce_file"),
+    type = "character",
+    help = "path to output rds file to store updated filtered sce object. Must end in .rds"
+  ),
+  make_option(
+    opt_str = c("-o", "--out_processed_sce_file"),
     type = "character",
     help = "path to output rds file to store processed sce object. Must end in .rds"
   ),
@@ -64,10 +69,14 @@ if (!file.exists(opt$filtered_sce_file)) {
   stop("Missing filtered.rds file")
 }
 
-# check that output file name ends in .rds
-if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
-  stop("output file name must end in .rds")
+# check that output file names end in .rds
+if (!all(stringr::str_ends(
+  c(opt$out_filtered_sce_file, opt$out_processed_sce_file),
+  ".rds"
+))) {
+  stop("Output SCE file names must end in .rds")
 }
+
 
 # read in filtered rds file
 sce <- readr::read_rds(opt$filtered_sce_file)
@@ -232,13 +241,13 @@ if (alt_exp %in% altExpNames(processed_sce)) {
 try({
   # model gene variance using `scran:modelGeneVar()`
   gene_variance <- scran::modelGeneVar(processed_sce)
-  
+
   # select the most variable genes
   var_genes <- scran::getTopHVGs(gene_variance, n = opt$n_hvg)
-  
+
   # save the most variable genes to the metadata
   metadata(processed_sce)$highly_variable_genes <- var_genes
-  
+
   # dimensionality reduction
   # highly variable genes are used as input to PCA
   processed_sce <- scater::runPCA(
@@ -257,14 +266,14 @@ try({
 })
 
 # print a warning if no embeddings present
-if(length(reducedDimNames(processed_sce)) == 0){
+if (length(reducedDimNames(processed_sce)) == 0) {
   warning("Reduced dimensions could not be calculated for this object.")
 }
 
 # Export --------------
 
-# write out _original_ filtered SCE with additional filtering column
-readr::write_rds(sce, opt$filtered_sce_file, compress = "gz")
+# write out  filtered SCE with additional filtering column
+readr::write_rds(sce, opt$out_filtered_sce_file, compress = "gz")
 
 # write out processed SCE
-readr::write_rds(processed_sce, opt$output_sce_file, compress = "gz")
+readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "gz")

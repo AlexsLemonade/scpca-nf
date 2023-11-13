@@ -163,7 +163,7 @@ sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
   # we need this so we are able to merge sample metadata with colData later
   dplyr::mutate(library_id = opt$library_id)
 
-if("upload_date" %in% colnames(sample_metadata_df)){
+if ("upload_date" %in% colnames(sample_metadata_df)) {
   sample_metadata_df <- sample_metadata_df |>
     # remove upload date as we don't provide this on the portal
     dplyr::select(-upload_date)

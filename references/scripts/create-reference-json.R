@@ -28,53 +28,75 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # Function for creating json entry ---------------------------------------------
 
 # function to create individual json entries containing individual reference paths
-create_ref_entry <- function(organism,
-                             assembly,
-                             version,
-                             reference_name){
-  
+create_ref_entry <- function(
+    organism,
+    assembly,
+    version,
+    reference_name) {
   # create base reference directory
-  ref_dir <- file.path(tolower(organism),
-                       glue::glue("ensembl-{version}"))
+  ref_dir <- file.path(
+    tolower(organism),
+    glue::glue("ensembl-{version}")
+  )
   fasta_dir <- file.path(ref_dir, "fasta")
   annotation_dir <- file.path(ref_dir, "annotation")
-  
+
   # create a single json entry containing all necessary file paths
   json_entry <- list(
     ref_dir = ref_dir,
-    ref_fasta = file.path(fasta_dir,
-                          glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.gz")),
-    ref_fasta_index = file.path(fasta_dir,
-                                glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.fai")),
-    ref_gtf = file.path(annotation_dir,
-                        glue::glue("{reference_name}.gtf.gz")),
-    mito_file = file.path(annotation_dir,
-                          glue::glue("{reference_name}.mitogenes.txt")),
-    t2g_3col_path = file.path(annotation_dir,
-                              glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")),
-    t2g_bulk_path = file.path(annotation_dir,
-                              glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")),
-    splici_index = file.path(ref_dir, "salmon_index",
-                             glue::glue("{reference_name}.spliced_intron.txome")),
-    salmon_bulk_index = file.path(ref_dir, "salmon_index",
-                                  glue::glue("{reference_name}.spliced_cdna.txome")),
-    cellranger_index = file.path(ref_dir, "cellranger_index",
-                                 glue::glue("{reference_name}_cellranger_full")),
-    star_index = file.path(ref_dir, "star_index",
-                           glue::glue("{reference_name}.star_idx"))
+    ref_fasta = file.path(
+      fasta_dir,
+      glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.gz")
+    ),
+    ref_fasta_index = file.path(
+      fasta_dir,
+      glue::glue("{organism}.{assembly}.dna.primary_assembly.fa.fai")
+    ),
+    ref_gtf = file.path(
+      annotation_dir,
+      glue::glue("{reference_name}.gtf.gz")
+    ),
+    mito_file = file.path(
+      annotation_dir,
+      glue::glue("{reference_name}.mitogenes.txt")
+    ),
+    t2g_3col_path = file.path(
+      annotation_dir,
+      glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")
+    ),
+    t2g_bulk_path = file.path(
+      annotation_dir,
+      glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")
+    ),
+    splici_index = file.path(
+      ref_dir, "salmon_index",
+      glue::glue("{reference_name}.spliced_intron.txome")
+    ),
+    salmon_bulk_index = file.path(
+      ref_dir, "salmon_index",
+      glue::glue("{reference_name}.spliced_cdna.txome")
+    ),
+    cellranger_index = file.path(
+      ref_dir, "cellranger_index",
+      glue::glue("{reference_name}_cellranger_full")
+    ),
+    star_index = file.path(
+      ref_dir, "star_index",
+      glue::glue("{reference_name}.star_idx")
+    )
   )
-  
+
   return(json_entry)
 }
 
 # Compile json file ------------------------------------------------------------
 
 # check that input metadata exists and read in
-if(!file.exists(opt$ref_metadata)){
+if (!file.exists(opt$ref_metadata)) {
   stop("ref_metadata file does not exist.")
 }
 
-ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = 'c') |>
+ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = "c") |>
   dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
 
 # get entries for all organisms provided
@@ -83,7 +105,9 @@ all_entries <- ref_metadata |>
   purrr::set_names(ref_metadata$reference_name)
 
 # Write to JSON
-jsonlite::write_json(all_entries,
-                     path = opt$ref_json,
-                     pretty = TRUE,
-                     auto_unbox = TRUE)
+jsonlite::write_json(
+  all_entries,
+  path = opt$ref_json,
+  pretty = TRUE,
+  auto_unbox = TRUE
+)

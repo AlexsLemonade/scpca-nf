@@ -128,10 +128,12 @@ if (opt$workflow_commit == "null") {
 }
 
 # read in barcode files
-unfiltered_barcodes <- readr::read_tsv(opt$unfiltered_barcodes_file,
+unfiltered_barcodes <- readr::read_tsv(
+  opt$unfiltered_barcodes_file,
   col_names = c("barcode")
 )
-filtered_barcodes <- readr::read_tsv(opt$filtered_barcodes_file,
+filtered_barcodes <- readr::read_tsv(
+  opt$filtered_barcodes_file,
   col_names = c("barcode")
 )
 

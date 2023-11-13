@@ -55,9 +55,8 @@ sce <- readr::read_rds(opt$input_sce_file)
 
 # SingleR results --------------------------------------------------------------
 
-if(!is.null(opt$singler_results)){
-
-  if(!file.exists(opt$singler_results)){
+if (!is.null(opt$singler_results)) {
+  if (!file.exists(opt$singler_results)) {
     stop("Missing singleR results file")
   }
 
@@ -76,7 +75,6 @@ if(!is.null(opt$singler_results)){
   # map ontology labels to cell type names, as needed
   # label type will be label.ont if ontology is present
   if (label_type == "label.ont") {
-
     # end up with columns: barcode, singler_celltype_annotation, singler_celltype_ontology
     annotations_df <- annotations_df |>
       dplyr::left_join(
@@ -91,7 +89,6 @@ if(!is.null(opt$singler_results)){
         # annotation contains the cell names associated with the ontology
         singler_celltype_annotation = ontology_cell_names
       )
-
   }
 
   # add annotations to colData
@@ -108,13 +105,11 @@ if(!is.null(opt$singler_results)){
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
-
 }
 
 # CellAssign results -----------------------------------------------------------
 
-if(!is.null(opt$cellassign_predictions)){
-
+if (!is.null(opt$cellassign_predictions)) {
   # check that cellassign predictions file was provided
   if (!file.exists(opt$cellassign_predictions)) {
     stop("Missing CellAssign predictions file")

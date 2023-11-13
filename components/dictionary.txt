@@ -30,7 +30,7 @@ intronic
 Jaccard
 Lun
 miQC
-nextflow
+Nextflow
 Nextflow's
 nf
 Oligos
