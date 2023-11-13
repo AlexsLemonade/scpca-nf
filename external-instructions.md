@@ -22,6 +22,7 @@
 - [Cell type annotation](#cell-type-annotation)
   - [Providing existing cell type labels](#providing-existing-cell-type-labels)
   - [Performing cell type annotation](#performing-cell-type-annotation)
+      - [Specifying cell type annotation reference files](#specifying-cell-type-annotation-reference-files)
     - [Repeating cell type annotation](#repeating-cell-type-annotation)
 - [Output files](#output-files)
 
