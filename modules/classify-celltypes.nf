@@ -104,10 +104,10 @@ process add_celltypes_to_sce {
       --input_sce_file ${processed_rds} \
       --output_sce_file ${annotated_rds} \
       ${singler_present ? "--singler_results  ${singler_results}" : ''} \
-      ${singler_present ? "--singler_ref_version ${meta.singler_ref_version} : ''} \
+      ${singler_present ? "--singler_ref_version ${meta.singler_ref_version}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
       ${cellassign_present ? "--cellassign_ref_name ${cellassign_ref_name}" : ''} \
-      ${cellassign_present ? "--cellassign_ref_version ${meta.cellassign_ref_version} : ''}
+      ${cellassign_present ? "--cellassign_ref_version ${meta.cellassign_ref_version}" : '' }
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
