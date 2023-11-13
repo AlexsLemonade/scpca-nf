@@ -444,7 +444,7 @@ This file _must_ include the following columns:
 
 | column_id       | contents                                                       |
 |-----------------|----------------------------------------------------------------|
-| `scpca_library_id`| Multiplexed library ID matching values in the metadata file |
+| `scpca_library_id`|  Library ID matching values in the metadata file |
 | `cell_barcode`   | The cell id with the given annotation label |
 | `cell_type_assignment` |  The annotation label for that cell |
 
@@ -455,15 +455,52 @@ Optionally, you can also include a column `cell_type_ontology` with ontology lab
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
 You can turn on cell type annotation by using the `--perform_celltyping` flag.
-You will also need to provide an additional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at a project level, which can be specified at the command line (shown below) or defined in your configuration file.
+
+You will also need to provide an additional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about which references to use for cell typing, at the project level.
+This file can be specified at the command line (shown below) or defined in your configuration file.
+
+The `celltype_project_metafile` file should contain these five columns with the following information (see the example file in [`examples/example_project_celltype_metadata.tsv`](examples/example_project_celltype_metadata.tsv)):
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `scpca_project_id`| Project ID matching values in the metadata file |
+| `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file` | Path to internal `SingleR` reference file. Formatting for this file is described below. Use `NA` to skip `SingleR` annotation |
+| `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood-compartment`, `brain-compartment`, or `muscle-compartment`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | Path to internal `CellAssign` reference file. Formatting for this file is described below. Use `NA` to skip `CellAssign` annotation |
+
+##### Specifying reference files
+
+The `singler_ref_file` and `cellassign_ref_file` names follow a specific format corresponding to available references in S3.
+
+- Available `SingleR` reference files are saved in `s3:://scpca-references/celltype/singler_models` and are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
+  - `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
+Available reference options include `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, and `MonacoImmuneData`.
+    - Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
+- Available `CellAssign` marker gene reference files are saved in `s3:://scpca-references/celltype/cellassign_references` and are formatted as `<cellassign_ref_name>_<source>_<date>.tsv`.
+  - `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/).
+  Available organ-based references include `blood-compartment`, `brain-compartment`, and `muscle-compartment`.
+
 
 For example, you would run from the command line as:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
   --perform_celltyping \
-  --celltype_project_metafile = examples/example_project_celltype_metadata.tsv
+  --celltype_project_metafile examples/example_project_celltype_metadata.tsv
 ```
+
+
+The `celltype_project_metafile` file should contain these five columns with the following information (see the example file in [`examples/example_project_celltype_metadata.tsv`](examples/example_project_celltype_metadata.tsv)):
+
+| column_id       | contents                                                       |
+|-----------------|----------------------------------------------------------------|
+| `scpca_project_id`| Project ID matching values in the metadata file |
+| `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file` | Path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | Path to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv`. Use `NA` to skip `CellAssign` annotation |
+
 
 References for use in cell type annotation have been pre-compiled as follows:
 
@@ -474,20 +511,12 @@ Available reference options include `BlueprintEncodeData`, `DatabaseImmuneCellEx
 Available organ-based references include `blood`, `brain`, and `muscle`.
   + TODO do we want to say this? Please reach out to the Data Lab if you require a different set of marker genes for cell type annotation besides those in organs listed.
 
-This file should contain these five columns with the following information (see the example file in [`examples/example_project_celltype_metadata.tsv`](examples/example_project_celltype_metadata.tsv)):
-
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `scpca_project_id`| Project ID matching values in the metadata file |
-| `singler_ref_name` | Reference name for `SingleR` annotation. Must be one of `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, or `MonacoImmuneData`. Use `NA` to skip `SingleR` annotation |
-| `singler_ref_file` | Path to internal `SingleR` reference file. Must be formatted as `<singler_ref_name>_model.rds`, e.g. `BlueprintEncodeData_model.rds`. Use `NA` to skip `SingleR` annotation |
-| `cellassign_ref_name` | Reference name for `CellAssign` annotation. Must be one of `blood`, `brain`, or `muscle`. Use `NA` to skip `CellAssign` annotation |
-| `cellassign_ref_file` | Path to internal `CellAssign` reference file. Must be formatted as `PanglaoDB-<cellassign_ref_name>`, e.g. `PanglaoDB-blood.tsv`. Use `NA` to skip `CellAssign` annotation |
 
 #### Repeating cell type annotation
 
-When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will, by default, skip cell type annotation for any libraries whose cell type annotation results exist in the `checkpoints` folder of the output directory.
-If the cell type annotation reference versions are unchanged, this will save substantial processing time and cost.
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries for which cell type annotation results aleady exist in the `checkpoints` folder of the given library's output directory, and those annotations were obtained from the same reference data set version.
+
+This saves substantial processing time and cost if the cell type annotation reference versions are unchanged.
 However, you may wish to repeat the cell typing process if there have been other changes to the data.
 
 To force repeating the cell type annotation process, use the `--repeat_celltyping` flag along with the `--perform_celltyping` flag at the command line:
