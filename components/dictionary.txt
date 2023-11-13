@@ -47,4 +47,4 @@ UMAP
 UMI
 uri
 Visium
-VSCode
+VS

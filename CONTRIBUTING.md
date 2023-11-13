@@ -76,7 +76,7 @@ The `black` package can be installed with `pip install black`, and can be run on
 If you use Visual Studio Code, you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
 
 As an alternative to `black`, you can also use [`ruff`](https://docs.astral.sh/ruff/) for formatting and linting; it follows the same code style conventions.
-`ruff` is also available as a [VSCode extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
+`ruff` is also available as a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
 ## Pre-commit hooks
 

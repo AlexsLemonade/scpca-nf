@@ -7,15 +7,16 @@
 
 
 arguments <- commandArgs(trailingOnly = TRUE)
+file_pattern <- "\\.(Rmd|md|rmd)$"
 
 # if there are arguments, check those files, otherwise check all markdown & rmd files
 if (length(arguments) > 0) {
   precommit <- TRUE
-  files <- arguments[grepl("\\.(Rmd|md|rmd)$", arguments)]
+  files <- arguments[grepl(file_pattern, arguments)]
 } else {
   precommit <- FALSE
   # The only files we want to check are R Markdown and Markdown files
-  files <- list.files(pattern = "\\.(Rmd|md|rmd)$", recursive = TRUE, full.names = TRUE)
+  files <- list.files(pattern = file_pattern, recursive = TRUE, full.names = TRUE)
 }
 
 # Find .git root directory
@@ -26,7 +27,7 @@ dict_file <- file.path(root_dir, "components", "dictionary.txt")
 dictionary <- readLines(dict_file)
 
 # Add emoji to dictionary
-dictionary_plus <- c(dictionary, spelling::spell_check_text("⚠️")$word)
+dictionary_plus <- c(dictionary, spelling::spell_check_text("<U+26A0><U+FE0F>")$word)
 
 # Run spell check
 spelling_errors <- spelling::spell_check_files(files, ignore = dictionary_plus) |>
