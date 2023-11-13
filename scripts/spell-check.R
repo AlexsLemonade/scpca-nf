@@ -1,28 +1,56 @@
 #!/usr/bin/env Rscript
 #
 # Run spell check and save results
-# Adapted from: https://github.com/AlexsLemonade/refinebio-examples/blob/33cdeff66d57f9fe8ee4fcb5156aea4ac2dce07f/scripts/spell-check.R
+# This script can be called by the pre-commit hook, in which case it should be
+# given the changed files as arguments. Otherwise, it will check all R Markdown
+# files in the repository.
+
+
+arguments <- commandArgs(trailingOnly = TRUE)
+file_pattern <- "\\.(Rmd|md|rmd)$"
+
+# if there are arguments, check those files, otherwise check all markdown & rmd files
+if (length(arguments) > 0) {
+  precommit <- TRUE
+  files <- arguments[grepl(file_pattern, arguments)]
+} else {
+  precommit <- FALSE
+  # The only files we want to check are R Markdown and Markdown files
+  files <- list.files(pattern = file_pattern, recursive = TRUE, full.names = TRUE)
+}
 
 # Find .git root directory
 root_dir <- rprojroot::find_root(rprojroot::has_dir(".git"))
 
 # Read in dictionary
-dictionary <- readLines(file.path(root_dir, 'components', 'dictionary.txt'))
+dict_file <- file.path(root_dir, "components", "dictionary.txt")
+dictionary <- readLines(dict_file)
 
 # Add emoji to dictionary
-dictionary <- c(dictionary, spelling::spell_check_text("⚠️")$word)
-
-# The only files we want to check are R Markdown and Markdown files
-files <- list.files(pattern = '\\.(Rmd|md|rmd)$', recursive = TRUE, full.names = TRUE)
+dictionary_plus <- c(dictionary, spelling::spell_check_text("<U+26A0><U+FE0F>")$word)
 
 # Run spell check
-spelling_errors <- spelling::spell_check_files(files, ignore = dictionary) |>
+spelling_errors <- spelling::spell_check_files(files, ignore = dictionary_plus) |>
   data.frame() |>
   tidyr::unnest(cols = found) |>
   tidyr::separate(found, into = c("file", "lines"), sep = ":")
 
-# Print out how many spell check errors
-write(nrow(spelling_errors), stdout())
+if (precommit) {
+  if (nrow(spelling_errors) > 0) {
+    cat("The following spelling errors were found:\n")
+    print(data.frame(spelling_errors))
+  }
 
-# Save spell errors to file temporarily
-readr::write_tsv(spelling_errors, 'spell_check_errors.tsv')
+  # Update dictionary for future use
+  updated_dict <- union(dictionary, spelling_errors$word)
+  # remove empty strings
+  updated_dict <- updated_dict[updated_dict != ""]
+  # case insensitive sort
+  updated_dict <- updated_dict[order(tolower(updated_dict))]
+  writeLines(updated_dict, dict_file)
+} else {
+  # Print out how many spell check errors
+  write(nrow(spelling_errors), stdout())
+  # Save spell errors to file temporarily
+  readr::write_tsv(spelling_errors, "spell_check_errors.tsv")
+}
