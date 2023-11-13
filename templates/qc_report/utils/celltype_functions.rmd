@@ -76,12 +76,11 @@ prepare_automated_annotation_values <- function(
         .default = {{ annotation_column }}
       ) |>
       # order column by number of cells
-      forcats::fct_infreq(), 
-    # make "Unknown cell type" the last level
-      {{ annotation_column }} := forcats::fct_relevel(unknown_string, after = Inf)
+      forcats::fct_infreq() |>
+      # make "Unknown cell type" the last level
+      forcats::fct_relevel(unknown_string, after = Inf)
     )
 }
-
 
 #' Prepare and reformat cell type submitter annotation values for use in QC reports
 #'  Unknown cell types, followed by "Submitter-excluded" (cells the submitter
