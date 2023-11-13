@@ -101,6 +101,8 @@ prepare_submitter_annotation_values <- function(df) {
   
   # define baseline levels in descending order of frequency
   submitter_levels <- df$submitter_celltype_annotation |>
+    # that this does not actually order the final factor - this is just for 
+    #  preparing to handle "unknown" levels
     forcats::fct_infreq() |>
     levels()
     
@@ -123,6 +125,9 @@ prepare_submitter_annotation_values <- function(df) {
   
   # Move unknown levels to the end in order of frequency, followed by submitter-excluded
   df$submitter_celltype_annotation <- df$submitter_celltype_annotation |>
+    # still need to actually arrange by frequency first
+    forcats::fct_infreq() |>
+    # move unknowns, in order, to the end
     forcats::fct_relevel(unknown_levels, after = Inf)
   
   return(df)  
