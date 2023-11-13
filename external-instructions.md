@@ -514,7 +514,7 @@ Available organ-based references include `blood`, `brain`, and `muscle`.
 
 #### Repeating cell type annotation
 
-When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries for which cell type annotation results aleady exist in the `checkpoints` folder of the given library's output directory, and those annotations were obtained from the same reference data set version.
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries for which cell type annotation results already exist in the `checkpoints` folder of the given library's output directory, and those annotations were obtained from the same reference data set version.
 
 This saves substantial processing time and cost if the cell type annotation reference versions are unchanged.
 However, you may wish to repeat the cell typing process if there have been other changes to the data.
