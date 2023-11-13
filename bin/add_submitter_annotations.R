@@ -71,6 +71,7 @@ coldata_df <- submitter_df |>
     barcodes = cell_barcode,
     submitter_celltype_annotation = cell_type_assignment
   ) |>
+  dplyr::distinct() |>
   # join with colData
   dplyr::right_join(
     as.data.frame(colData(sce)),
@@ -84,8 +85,7 @@ coldata_df <- submitter_df |>
       "Submitter-excluded",
       submitter_celltype_annotation
     )
-  ) |>
-  dplyr::distinct()
+  )
 
 # Check number of rows before sending back into the SCE object
 if (!identical(coldata_df$barcodes, sce$barcodes)) {
