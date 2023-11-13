@@ -73,8 +73,8 @@ coldata_df <- submitter_df |>
   ) |>
   # join with colData
   dplyr::right_join(
-    colData(sce) |>
-      as.data.frame()
+    as.data.frame(colData(sce)),
+    by = "barcodes"
   ) |>
   # make any NA values induced by joining into "submitter-excluded"
   dplyr::mutate(
@@ -88,7 +88,7 @@ coldata_df <- submitter_df |>
   dplyr::distinct()
 
 # Check number of rows before sending back into the SCE object
-if (nrow(coldata_df) != ncol(sce)) {
+if (!identical(coldata_df$barcodes, sce$barcodes)) {
   stop("Could not add submitter annotations to SCE object. There should only be one annotation per cell.")
 }
 
