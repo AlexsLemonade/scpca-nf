@@ -275,7 +275,8 @@ available_celltypes <- c(
 #  eval=<has_method>`. Since those chunks won't have been eval'd if FALSE, we 
 #  need to define these variables to prevent errors. BUT THEY ARE NOT USED WITH
 #  THESE VALUES.
-plot_height <- 1; heatmap_height <- 1
+plot_height <- 1
+heatmap_height <- 1
 ```
 
 

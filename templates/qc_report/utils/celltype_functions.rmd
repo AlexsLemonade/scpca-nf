@@ -60,8 +60,8 @@ create_celltype_df <- function(processed_sce) {
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
 prepare_automated_annotation_values <- function(
-  df,
-  annotation_column) {
+    df,
+    annotation_column) {
 
   unknown_string <- "Unknown cell type"
 
