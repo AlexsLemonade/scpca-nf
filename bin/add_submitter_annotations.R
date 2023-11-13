@@ -34,41 +34,71 @@ if (!(stringr::str_ends(opt$sce_file, ".rds"))) {
 }
 
 
-# check that submitter cell types file exists
+# check that submitter cell types file exists and is a TSV
 if (!file.exists(opt$submitter_cell_types_file)) {
-  stop("submitter cell type annotations file not found.")
+  stop("Submitter cell type annotations file not found.")
+}
+if (!(stringr::str_ends(opt$submitter_cell_types_file, ".tsv"))) {
+  stop("Submitter cell type annotations file must be a TSV.")
 }
 
 
-# Read in sce
+# Read in celltypes TSV
+submitter_df <- readr::read_tsv(
+    opt$submitter_cell_types_file,
+    # read in all columns as character
+    col_types = list(.default = readr::col_character()),
+    na = character()
+  )
+
+# Check columns before proceeding for faster failing:
+# TODO: WHAT IF THEY PROVIDE AN ONTOLOGY COLUMN? WE NEED TO PARSE THAT TOO. WILL NEED MORE IF BELOW.
+if (!all(c("cell_barcode", "cell_type_assignment") %in% names(submitter_df))) {
+  stop("The submitter TSV file must contain columns `cell_barcode` and `cell_type_assignment`.")
+}
+
+# Now that we are confident to proceed, read in the sce
 sce <- readr::read_rds(opt$sce_file)
 
-# Read in celltypes
-submitter_cell_types_df <- readr::read_tsv(opt$submitter_cell_types_file) |>
-  # filter to relevant information
+# Create submitter_celltype_annotation column
+submitter_df <- submitter_df |>
+  # filter to relevant library
   dplyr::filter(scpca_library_id == opt$library_id) |>
+  # keep columns of interest
+  # TODO: WE NEED TO ALLOW FOR AN ONTOLOGY COLUMN
   dplyr::select(
     barcodes = cell_barcode,
     submitter_celltype_annotation = cell_type_assignment
   ) |>
-  # in the event of NA values, change to "Unclassified cell"
-  tidyr::replace_na(
-    list(submitter_celltype_annotation = "Unclassified cell")
+  dplyr::distinct()
+
+# join with colData. 
+# noting by using `left_join()` we preserve the correct order
+coldata_df <- colData(sce) |>
+  as.data.frame() |>
+  dplyr::left_join(
+    submitter_df,
+    by = "barcodes"
   ) |>
-  # join with colData
-  dplyr::right_join(
-    colData(sce) |>
-      as.data.frame()
+  # make any NA values induced by joining into "submitter-excluded"
+  dplyr::mutate(
+    # use dplyr::if_else, not base, to ensure we end up with character only
+    submitter_celltype_annotation = dplyr::if_else(
+      is.na(submitter_celltype_annotation),
+      "Submitter-excluded",
+      submitter_celltype_annotation
+    )
   )
 
-# Check rows before sending back into the SCE object
-if (nrow(submitter_cell_types_df) != ncol(sce)) {
-  stop("Could not add submitter annotations to SCE object. There should only be one annotation per cell.")
+
+# Check that barcodes are correct before sending back into the SCE object
+if (!identical(coldata_df$barcodes, sce$barcodes)) {
+  stop("Failed to add submitter annotations to SCE object.")
 }
 
 # Rejoin with colData, making sure we keep rownames
 colData(sce) <- DataFrame(
-  submitter_cell_types_df,
+  coldata_df,
   row.names = colData(sce)$barcodes
 )
 
