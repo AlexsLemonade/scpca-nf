@@ -13,9 +13,9 @@ repos:
           - tidyr
       - id: forbid-to-commit
         name: Don't commit common R artifacts
-        entry: Cannot commit .Rhistory, .RData, .Rds or .rds.
+        entry: Cannot commit .Rhistory, .RData, or .Rds files.
         language: fail
-        files: '\.(Rhistory|RData|Rds|rds|RDS)$'
+        files: '(?i)\.(Rhistory|RData|rds)$'
         # `exclude: <regex>` to allow committing specific files
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
