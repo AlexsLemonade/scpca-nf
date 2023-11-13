@@ -264,7 +264,18 @@ available_celltypes <- c(
   ifelse(has_singler, "SingleR", NA),
   ifelse(has_cellassign, "CellAssign", NA)
 ) |>
-  na.omit()
+  na.omit() |>
+  as.character()
+
+# These variables need to be defined for edge conditions when certain cell types
+#  aren't available:
+#  When we have chunks with `eval=<has_method>`, knitr seems to need all other 
+#  variables used in chunk params defined, including plot dimension variables 
+#  which would have only been created in chunks which alsohad an associated 
+#  eval=<has_method>`. Since those chunks won't have been eval'd if FALSE, we 
+#  need to define these variables to prevent errors. BUT THEY ARE NOT USED WITH
+#  THESE VALUES.
+plot_height <- 1; heatmap_height <- 1
 ```
 
 
