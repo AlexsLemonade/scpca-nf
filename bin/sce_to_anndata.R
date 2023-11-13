@@ -115,6 +115,8 @@ sample_metadata <- metadata(sce)$sample_metadata
 sce <- format_czi(sce)
 
 # export sce as anndata object
+# this function will also remove any R-specific object types from the SCE metadata
+#   before converting to AnnData
 scpcaTools::sce_to_anndata(
   sce,
   anndata_file = opt$output_rna_h5
