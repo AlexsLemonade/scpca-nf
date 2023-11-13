@@ -25,9 +25,14 @@ jobs:
         with:
           args: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log false
 
+      - name: Check Nextflow workflow for building cell type references
+        uses: docker://nextflow/nextflow:21.10.6
+        with:
+          args: nextflow -log celltype-ref-run.log run build-celltype-ref.nf -stub -profile stub -ansi-log false
+
       - name: Join log files
         if: ${{ !cancelled() }}
-        run: cat stub-run.log checkpoint-run.log > nextflow-runs.log
+        run: cat stub-run.log checkpoint-run.log celltype-ref-run.log > nextflow-runs.log
 
       - name: Upload nextflow log
         if: ${{ !cancelled() }}

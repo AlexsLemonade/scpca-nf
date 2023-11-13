@@ -1,0 +1,3 @@
+celltype_ref_name	celltype_ref_source	celltype_method	organs
+test	celldex	SingleR	NA
+tissue-compartment	PanglaoDB	CellAssign	tissue
