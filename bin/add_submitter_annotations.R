@@ -60,9 +60,8 @@ if (!all(c("cell_barcode", "cell_type_assignment") %in% names(submitter_df))) {
 # Now that we are confident to proceed, read in the sce
 sce <- readr::read_rds(opt$sce_file)
 
-
 # Create submitter_celltype_annotation column
-coldata_df <- submitter_df |>
+submitter_df <- submitter_df |>
   # filter to relevant library
   dplyr::filter(scpca_library_id == opt$library_id) |>
   # keep columns of interest
@@ -71,10 +70,14 @@ coldata_df <- submitter_df |>
     barcodes = cell_barcode,
     submitter_celltype_annotation = cell_type_assignment
   ) |>
-  dplyr::distinct() |>
-  # join with colData
-  dplyr::right_join(
-    as.data.frame(colData(sce)),
+  dplyr::distinct()
+
+# join with colData. 
+# noting by using `left_join()` we preserve the correct order
+coldata_df <- colData(sce) |>
+  as.data.frame() |>
+  dplyr::left_join(
+    submitter_df,
     by = "barcodes"
   ) |>
   # make any NA values induced by joining into "submitter-excluded"
@@ -87,9 +90,10 @@ coldata_df <- submitter_df |>
     )
   )
 
-# Check number of rows before sending back into the SCE object
+
+# Check that barcodes are correct before sending back into the SCE object
 if (!identical(coldata_df$barcodes, sce$barcodes)) {
-  stop("Could not add submitter annotations to SCE object. There should only be one annotation per cell.")
+  stop("Failed to add submitter annotations to SCE object.")
 }
 
 # Rejoin with colData, making sure we keep rownames
