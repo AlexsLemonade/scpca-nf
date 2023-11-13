@@ -163,7 +163,7 @@ workflow bulk_quant_rna {
       .groupTuple(by: 0)
       .map{[
         it[1][0], // meta; relevant data should all be the same by project, so take the first
-        it[2], // salmon directories
+        it[2].sort(), // salmon directories, sorted for consistency (we can do this because there is only one tuple element)
         file(it[1][0].t2g_bulk_path)
       ]}
 
