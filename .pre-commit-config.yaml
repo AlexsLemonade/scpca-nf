@@ -17,6 +17,12 @@ repos:
         language: fail
         files: '(?i)\.(Rhistory|RData|rds)$'
         # `exclude: <regex>` to allow committing specific files
+  - repo: https://github.com/thlorenz/doctoc
+    # Update TOCs
+    rev: v2.2.0
+    hooks:
+      - id: doctoc
+        args: [--update-only]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
     rev: v0.1.5
