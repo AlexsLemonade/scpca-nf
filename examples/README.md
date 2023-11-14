@@ -4,16 +4,16 @@
 
 This directory contains the following example files:
 
-- An example [metadata file](../external-data-instructions.md#prepare-the-metadata-file) for the `scpca-nf` workflow.
-- An example [configuration file](../external-data-instructions.md#configuration-files) for the `scpca-nf` workflow.
-- An example [cell type annotation metadata file](../external-data-instructions.md#performing-cell-type-annotation) for performing optional cell type annotation in the `scpca-nf` workflow.
+- An example [metadata file](../external-instructions.md#prepare-the-run-metadata-file) for the `scpca-nf` workflow.
+- An example [configuration file](../external-instructions.md#configuration-files) for the `scpca-nf` workflow.
+- An example [cell type annotation metadata file](../external-instructions.md#performing-cell-type-annotation) for performing optional cell type annotation in the `scpca-nf` workflow.
 
 These files provide examples of expected formatting and content, but note that the specific values in these files may not be applicable or sufficient for running `scpca-nf` directly on your system.
 
 ## Testing your setup with example data
 
 :warning: These instructions are only intended to be used to test accurate set up of a configuration file.
-Before following these instructions, please ensure that you have already set up your own [configuration file](../external-data-instructions.md#configuration-files) and have [created and named a profile to use](../external-data-instructions.md#setting-up-a-profile-in-the-configuration-file).
+Before following these instructions, please ensure that you have already set up your own [configuration file](../external-instructions.md#configuration-files) and have [created and named a profile to use](../external-instructions.md#setting-up-a-profile-in-the-configuration-file).
 
 You can test your configuration setup by performing a test run with the example data that we have provided.
 
@@ -51,11 +51,11 @@ nextflow run AlexsLemonade/scpca-nf \
   --sample_metafile <path to sample metadata file>
 ```
 
-Where `<path to config file>` is the **relative** path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-data-instructions.md#configuration-files), `<name of profile>` is the name of the profile that you chose when creating a profile, `<path to run metadata file>` is the **full** path to the run metadata TSV you created, and `<path to sample metadata file>` is the **full** path to the sample metadata TSV you created.
+Where `<path to config file>` is the **relative** path to the configuration file that you have setup after following the instructions on [creating a configuration file](../external-instructions.md#configuration-files), `<name of profile>` is the name of the profile that you chose when creating a profile, `<path to run metadata file>` is the **full** path to the run metadata TSV you created, and `<path to sample metadata file>` is the **full** path to the sample metadata TSV you created.
 For the [example configuration file that we provided](./user_template.config), we used the profile name `cluster` and would indicate that we would like to use that profile at the command line with `-profile cluster`.
-For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the run metadata file](../external-data-instructions.md#prepare-the-run-metadata-file) and [preparing the sample metadata file](../external-instructions.md/#prepare-the-sample-metadata-file).
+For more detailed information on setting up the metadata file for your own data, see instructions on [preparing the run metadata file](../external-instructions.md#prepare-the-run-metadata-file) and [preparing the sample metadata file](../external-instructions.md/#prepare-the-sample-metadata-file).
 
 ## Example output
 
 You can download an example of the expected output files here: [`scpca_out.zip`](https://s3.amazonaws.com/scpca-references/example-data/scpca_out.zip).
-For more information on the file structure and what to expect see the description of the [output files](../external-data-instructions.md#output-files).
+For more information on the file structure and what to expect see the description of the [output files](../external-instructions.md#output-files).
