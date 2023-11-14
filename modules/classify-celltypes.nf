@@ -98,16 +98,14 @@ process add_celltypes_to_sce {
     singler_results = "${singler_dir}/singler_results.rds"
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
-    cellassign_ref_name = file("${meta.cellassign_reference_file}").baseName
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
       --output_sce_file ${annotated_rds} \
       ${singler_present ? "--singler_results  ${singler_results}" : ''} \
-      ${singler_present ? "--singler_ref_version ${meta.singler_ref_version}" : ''} \
+      ${singler_present ? "--singler_model_file ${meta.singler_model_file}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
-      ${cellassign_present ? "--cellassign_ref_name ${cellassign_ref_name}" : ''} \
-      ${cellassign_present ? "--cellassign_ref_version ${meta.cellassign_ref_version}" : '' }
+      ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''}
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
@@ -149,10 +147,6 @@ workflow annotate_celltypes {
         meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_cellassign";
         meta.singler_model_file = singler_model_file;
         meta.cellassign_reference_file = cellassign_reference_file;
-        // add reference source and version to meta as [source_version]
-        // make sure that file exists before extracting info from filename
-        meta.singler_ref_version = "${singler_model_file}" == '' ? '' : file("${singler_model_file}").getBaseName().split('_')[1,2].join("_");
-        meta.cellassign_ref_version = "${cellassign_reference_file}" == '' ? '' : file("${cellassign_reference_file}").getBaseName().split('_')[1,2].join("_");
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
         meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv"
         // return simplified input:
