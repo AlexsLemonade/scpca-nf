@@ -29,7 +29,7 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
-    help = "path to file containing a single model generated for SingleR annotation.
+    help = "Name of file containing a single model generated for SingleR annotation.
             File name is expected to be in form: <ref_name>_<source>_<version>_model.rds."
   ),
   make_option(
@@ -40,7 +40,7 @@ option_list <- list(
   make_option(
     opt_str = c("--cellassign_ref_file"),
     type = "character",
-    help = "Path to marker by cell type reference file used with CellAssign.
+    help = "Name of marker by cell type reference file used with CellAssign.
             File name is expected to be in form: <ref_name>_<source>_<version>.tsv"
   )
 )
@@ -67,8 +67,8 @@ if (!is.null(opt$singler_results)) {
     stop("Missing singleR results file")
   }
 
-  if (!file.exists(opt$singler_model_file)) {
-    stop("Missing singleR model file")
+  if (is.null(opt$singler_model_file)) {
+    stop("singleR model filename must be provided")
   }
 
   singler_results <- readr::read_rds(opt$singler_results)
@@ -137,8 +137,8 @@ if (!is.null(opt$cellassign_predictions)) {
     stop("Missing CellAssign predictions file")
   }
 
-  if (!file.exists(opt$cellassign_ref_file)) {
-    stop("Missing CellAssign reference file")
+  if (is.null(opt$cellassign_ref_file)) {
+    stop("CellAssign reference filename must be provided")
   }
 
   predictions <- readr::read_tsv(opt$cellassign_predictions)
