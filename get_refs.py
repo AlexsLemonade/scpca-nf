@@ -100,15 +100,15 @@ def main():
     # parse main reference file
     # gets all of the `param` variables that are set in `reference_paths.config`
     # and stores then in a dict
-    refs = {}
+    ref_params = {}
     ref_re = re.compile(r'(?P<id>.+?)\s*=\s*([\'"])(?P<loc>.+)\2')
     for line in ref_file:
         match = ref_re.search(line.decode())
         if match:
-            refs[match.group("id")] = match.group("loc")
+            ref_params[match.group("id")] = match.group("loc")
 
     # get root location
-    url_root = get_root_url(refs.get("ref_rootdir"))
+    url_root = get_root_url(ref_params.get("ref_rootdir"))
 
     # create a list of all paths for all assemblies listed in reference json file
     json_paths = json.load(json_file)
@@ -127,14 +127,14 @@ def main():
             ref_paths += get_star_files(assembly_refs)  # add star index files
 
     # barcode paths are still kept in the reference config file, so add those separately
-    ref_paths += get_barcode_files(refs)
+    ref_paths += get_barcode_files(ref_params)
 
     # paths to celltype reference files
     # read in celltype reference metadata
     celltype_metadata = csv.DictReader(
         (line.decode() for line in celltype_metadata_file), delimiter="\t"
     )
-    ref_paths += get_celltype_files(refs, celltype_metadata)
+    ref_paths += get_celltype_files(ref_params, celltype_metadata)
 
     download_files(
         ref_paths,
@@ -146,7 +146,7 @@ def main():
 
     # write param file if requested
     if args.paramfile and not args.dry_run:
-        write_paramfile(args.paramfile, args.refdir)
+        write_paramfile(args.paramfile, args.refdir, ref_params)
 
     # get containers if requested
     if args.docker or args.singularity:
@@ -177,7 +177,7 @@ def get_root_url(root_uri: str) -> str:
     return url_root
 
 
-def get_single_files(ref_dict: dict[str, str]) -> list[Path]:
+def get_single_files(param_dict: dict[str, str]) -> list[Path]:
     # the keys here are the param variables that contain single files
     ref_keys = [
         "ref_fasta",
@@ -188,10 +188,10 @@ def get_single_files(ref_dict: dict[str, str]) -> list[Path]:
         "t2g_bulk_path",
     ]
 
-    return [Path(ref_dict.get(k)) for k in ref_keys]
+    return [Path(param_dict.get(k)) for k in ref_keys]
 
 
-def get_salmon_files(ref_dict: dict[str, str]) -> list[Path]:
+def get_salmon_files(param_dict: dict[str, str]) -> list[Path]:
     # param variables that are salmon index directories
     salmon_keys = ["splici_index", "salmon_bulk_index"]
 
@@ -215,14 +215,14 @@ def get_salmon_files(ref_dict: dict[str, str]) -> list[Path]:
     ]
 
     salmon_paths = []
-    sa_dir = [Path(ref_dict.get(k)) for k in salmon_keys]
+    sa_dir = [Path(param_dict.get(k)) for k in salmon_keys]
     for dir in sa_dir:
         salmon_paths += [dir / f for f in salmon_index_files]  # add salmon files
 
     return salmon_paths
 
 
-def get_star_files(ref_dict: dict[str, str]) -> list[Path]:
+def get_star_files(param_dict: dict[str, str]) -> list[Path]:
     # star index files within index dir (must be downloaded individually through http)
     star_index_files = [
         "chrLength.txt",
@@ -242,11 +242,11 @@ def get_star_files(ref_dict: dict[str, str]) -> list[Path]:
         "sjdbList.out.tab",
         "transcriptInfo.tab",
     ]
-    star_dir = Path(ref_dict.get("star_index"))
+    star_dir = Path(param_dict.get("star_index"))
     return [star_dir / f for f in star_index_files]
 
 
-def get_cellranger_files(ref_dict: dict[str, str]) -> list[Path]:
+def get_cellranger_files(param_dict: dict[str, str]) -> list[Path]:
     # Cell Ranger index files within index dir (must be downloaded individually through http)
     cr_index_files = [
         "reference.json",
@@ -269,11 +269,11 @@ def get_cellranger_files(ref_dict: dict[str, str]) -> list[Path]:
         "star/sjdbList.out.tab",
         "star/transcriptInfo.tab",
     ]
-    cr_dir = Path(ref_dict.get("cellranger_index"))
+    cr_dir = Path(param_dict.get("cellranger_index"))
     return [cr_dir / f for f in cr_index_files]
 
 
-def get_barcode_files(ref_dict: dict[str, str]) -> list[Path]:
+def get_barcode_files(param_dict: dict[str, str]) -> list[Path]:
     # barcode files on S3 within the barcode_dir (must be downloaded individually through http)
     barcode_files = [
         "3M-february-2018.txt",
@@ -285,28 +285,28 @@ def get_barcode_files(ref_dict: dict[str, str]) -> list[Path]:
     # regular expression for parameter expansion
     root_re = re.compile(r"^\$\{?(params.)?ref_rootdir\}?\/")
     # strip off root dir if it is there
-    barcode_dir = root_re.sub("", ref_dict.get("barcode_dir"))
+    barcode_dir = root_re.sub("", param_dict.get("barcode_dir"))
     barcode_dir = Path(barcode_dir)
     return [barcode_dir / f for f in barcode_files]
 
 
 def get_celltype_files(
-    ref_dict: dict[str, str], celltype_metadata: dict[str, str]
+    param_dict: dict[str, str], celltype_metadata: dict[str, str]
 ) -> list[Path]:
     # get celltype reference paths
-    root_url = get_root_url(ref_dict.get("ref_rootdir"))
+    root_url = get_root_url(param_dict.get("ref_rootdir"))
 
     root_re = re.compile(r"^\$\{?(params.)?ref_rootdir\}?")
     celltype_dir_re = re.compile(r"^\$\{?(params.)?celltype_ref_dir\}?")
 
-    celltype_ref_dir = ref_dict.get("celltype_ref_dir")
+    celltype_ref_dir = param_dict.get("celltype_ref_dir")
     # replace root placeholder if needed
     celltype_ref_url = root_re.sub(root_url, celltype_ref_dir)
 
     # get paths (with variables) to celltype reference files
-    singler_ref_dir = ref_dict.get("singler_references_dir")
-    singler_model_dir = ref_dict.get("singler_models_dir")
-    cellassign_ref_dir = ref_dict.get("cellassign_ref_dir")
+    singler_ref_dir = param_dict.get("singler_references_dir")
+    singler_model_dir = param_dict.get("singler_models_dir")
+    cellassign_ref_dir = param_dict.get("cellassign_ref_dir")
 
     # replace celltype ref placeholders
     singler_ref_dir = celltype_dir_re.sub(celltype_ref_url, singler_ref_dir)
@@ -389,7 +389,7 @@ def download_files(
     )
 
 
-def write_paramfile(paramfile: str, refdir: str) -> None:
+def write_paramfile(paramfile: str, refdir: str, param_dict: dict[str, str]) -> None:
     paramfile = Path(paramfile)
     # check if paramfile exists & move old if needed
     if paramfile.exists():
@@ -397,15 +397,26 @@ def write_paramfile(paramfile: str, refdir: str) -> None:
             f"A file already exists at `{paramfile}`; renaming previous file to `{paramfile.name}.bak`"
         )
         shutil.move(paramfile, str(paramfile) + ".bak")
-    # create parameter dictionary
-    nf_params = {
+
+    # alwaus update the rootdir
+    updated_params = {
         "ref_rootdir": os.path.abspath(refdir),
     }
+    # Find any parameters that contain substitutions and fill in with substituted values
+    nf_param_re = re.compile(r"\$\{?(params.)?(?P<variable>.+?)\}?/")
+    for key, value in param_dict.items():
+        match = nf_param_re.match(value)
+        if match and match.group("variable") in updated_params:
+            updated_params[key] = nf_param_re.sub(
+                f"{updated_params[match.group('variable')]}/", value
+            )
+
     with open(paramfile, "w") as f:
         f.write(
-            "# local nextflow reference file parameters, generated by `get_refs.py`\n\n"
+            "# Local Nextflow reference file parameters, generated by `get_refs.py`\n"
+            "# To use with Nextflow, include the option `-params-file <path/to/this/file>` \n\n"
         )
-        for key, value in nf_params.items():
+        for key, value in updated_params.items():
             f.write(f"{key}: {value}\n")
 
 
