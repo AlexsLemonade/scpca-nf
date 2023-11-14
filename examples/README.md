@@ -22,11 +22,11 @@ The fastq files for this example data can be downloaded from the following link 
 
 Following download and unzipping of the fastq files, you will need to create a tab-separated values **run** metadata file that looks like the following:
 
-| scpca_run_id | scpca_library_id | scpca_sample_id | scpca_project_id | technology | assay_ontology_term_id | seq_unit | sample_reference        | files_directory              | submitter_cell_types_file          |
-| ------------ | ---------------- | --------------- | ---------------- | ---------- | ---------------------- | -------- | ----------------------- | ---------------------------- | ---------------------------------- |
-| run01        | library01        | sample01        | project01        | 10Xv3.1    | EFO:XXX                | cell     | Homo_sapiens.GRCh38.104 | /path/to/example_fastq_files | /path/to/annotated_cell_types_file |
+| scpca_run_id | scpca_library_id | scpca_sample_id | scpca_project_id | technology | assay_ontology_term_id | seq_unit | sample_reference        | files_directory              |
+| ------------ | ---------------- | --------------- | ---------------- | ---------- | ---------------------- | -------- | ----------------------- | ---------------------------- |
+| run01        | library01        | sample01        | project01        | 10Xv3.1    | EFO:XXX                | cell     | Homo_sapiens.GRCh38.104 | /path/to/example_fastq_files |
 
-Be sure to enter the **full** path to the directory containing the fastq files in the `files_directory` column, and similarly the full path for the `submitter_cell_types_file` column.
+Be sure to enter the **full** path to the directory containing the fastq files in the `files_directory` column.
 
 You will also need to create a tab-separated values **sample** metadata file.
 At a minimum, the sample metadata file must contain a column with `scpca_sample_id` as the header.
