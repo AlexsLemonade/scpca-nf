@@ -47,6 +47,21 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
+# Set up -----------------------------------------------------------------------
+
+get_ref_info <- function(ref_filename, extension) {
+  ref_info <- ref_filename |>
+    basename() |>
+    # select everything before the extension
+    stringr::word(1, sep = extension) |>
+    # create a vector with name, source, version
+    stringr::str_split(pattern = "_") |>
+    unlist() |>
+    purrr::set_names(c("ref_name", "ref_source", "ref_version"))
+
+  return(ref_info)
+}
+
 # check that input file exists
 if (!file.exists(opt$input_sce_file)) {
   stop("Missing input SCE file")
@@ -110,13 +125,10 @@ if (!is.null(opt$singler_results)) {
   colData(sce) <- new_coldata
 
   # get reference name, source and version
-  singler_ref_info <- basename(opt$singler_model_file) |>
-    # select everything before the model extension
-    stringr::word(1, sep = "_model.rds") |>
-    # create a vector with name, source, version
-    stringr::str_split(pattern = "_") |>
-    unlist() |>
-    purrr::set_names(c("ref_name", "ref_source", "ref_version"))
+  singler_ref_info <- get_ref_info(
+    ref_filename = opt$singler_model_file,
+    extension = "_model.rds"
+  )
 
   # add singler info to metadata
   metadata(sce)$singler_results <- singler_results
@@ -163,13 +175,10 @@ if (!is.null(opt$cellassign_predictions)) {
   sce$cellassign_max_prediction <- celltype_assignments$prediction
 
   # get reference name, source and version
-  cellassign_ref_info <- basename(opt$cellassign_ref_file) |>
-    # select everything before the extension
-    stringr::word(1, sep = "\\.tsv") |>
-    # create a vector with name, source, version
-    stringr::str_split(pattern = "_") |>
-    unlist() |>
-    purrr::set_names(c("ref_name", "ref_source", "ref_version"))
+  cellassign_ref_info <- get_ref_info(
+    ref_filename = opt$cellassign_ref_file,
+    extension = "\\.tsv"
+  )
 
   # add entire predictions matrix, ref name, and version to metadata
   metadata(sce)$cellassign_predictions <- predictions
