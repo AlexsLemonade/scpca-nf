@@ -127,7 +127,7 @@ if (!is.null(opt$singler_results)) {
   # get reference name, source and version
   singler_ref_info <- get_ref_info(
     ref_filename = opt$singler_model_file,
-    extension = "_model.rds"
+    extension = "_model\\.rds"
   )
 
   # add singler info to metadata
