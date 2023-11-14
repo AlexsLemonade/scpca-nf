@@ -29,7 +29,7 @@ Following download and unzipping of the fastq files, you will need to create a t
 Be sure to enter the **full** path to the directory containing the fastq files in the `files_directory` column, and similarly the full path for the `submitter_cell_types_file` column.
 
 You will also need to create a tab-separated values **sample** metadata file.
-At a minimum, the sample metadata file must contain a column with `scpca_sample_id` as the header\_.
+At a minimum, the sample metadata file must contain a column with `scpca_sample_id` as the header.
 The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
 
 Below is an example of a sample metadata file:
