@@ -410,6 +410,8 @@ def write_paramfile(paramfile: str, refdir: str, param_dict: dict[str, str]) -> 
             updated_params[key] = nf_param_re.sub(
                 f"{updated_params[match.group('variable')]}/", value
             )
+    # we don't want to change `singler_references_dir` as that is not downloaded
+    updated_params.pop("singler_references_dir", None)
 
     with open(paramfile, "w") as f:
         f.write(
