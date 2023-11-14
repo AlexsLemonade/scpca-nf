@@ -148,7 +148,7 @@ celltype_df <- create_celltype_df(processed_sce)
 knitr::asis_output('
 ### Submitter-provided cell type annotations\n
 
-In this table, cells labeled "Unclassified cell" are those for which submitters did not provide an annotation.
+In this table, cells labeled "Submitter-excluded" are those for which submitters did not provide an annotation.
 ')
 create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
   format_celltype_n_table()
@@ -209,7 +209,7 @@ Next, we show UMAPs colored by cell types.
 A separate UMAP is shown for each cell typing method used.
 
 For legibility, only the seven most common cell types are shown.
-All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" or "Unclassified cell", which represent cells that could not be classified).
+All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" which represents cells that could not be classified).
 
 <!-- Now, UMAPs of cell types, where present -->
 
