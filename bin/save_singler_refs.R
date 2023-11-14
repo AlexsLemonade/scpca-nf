@@ -16,6 +16,11 @@ option_list <- list(
     type = "character",
     help = "prefix to use for naming saved reference file.
       All files will be saved with the following name: <ref_file_prefix>_<celldex_version>.rds"
+  ),
+  make_option(
+    opt_str = c("--version_file"),
+    type = "character",
+    help = "file for storing the reference version string"
   )
 )
 
@@ -40,4 +45,5 @@ if (!opt$ref_name %in% ls(getNamespace("celldex"))) {
 ref <- do.call(`::`, args = list("celldex", opt$ref_name))(ensembl = TRUE)
 
 # export ref data
+readr::write_file(celldex_version, opt$version_file)
 readr::write_rds(ref, ref_output_file, compress = "gz")
