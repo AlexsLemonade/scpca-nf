@@ -49,6 +49,12 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 # Set up -----------------------------------------------------------------------
 
+#' Get reference information from a reference file
+#' 
+#' @param ref_filename reference file name to parse
+#' @extension file extension to consider during parsing
+#' 
+#' @return list of reference file components to include in SCE metadata
 get_ref_info <- function(ref_filename, extension) {
   ref_info <- ref_filename |>
     basename() |>
