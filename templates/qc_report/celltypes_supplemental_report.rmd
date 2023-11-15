@@ -353,7 +353,7 @@ High agreement between methods qualitatively indicates higher confidence in the 
 
 ## Unsupervised clustering
 
-Here we show the labels from unsupervised clustering to against cell type annotations.
+Here we show the labels from unsupervised clustering compared to cell type annotations.
 Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
 
 
@@ -652,7 +652,7 @@ We therefore expect reliable labels to have values close to 1.
 The plot below shows the distribution of `CellAssign`-calculated probabilities for the final cell type labels.
 Line segments represent individual values that comprise each distribution.
 
-Note that no distrubution is shown for cell types with 2 or fewer labeled cells; only line segments are shown for such distributions.
+For cell types with 2 or fewer labeled cells, only the individual value line segments are shown.
 Line segments are also taller for any cell type label with 5 or fewer cells.
 ")
 
