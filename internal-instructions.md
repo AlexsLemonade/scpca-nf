@@ -180,7 +180,7 @@ Reference file names will be automatically determined by the `build-celltype-ref
     Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
       - `<singler_ref_name>` represents the reference dataset name.
       - `<source>` represents the reference dataset source. Currently only `celldex` is supported.
-      - `<version>` represents the source (`celldex`) version, where periods are replaced with dashes (e.g. version `x.y.z` would be represented as `x-y-z`).
+      - `<version>` represents the source (`celldex`) version, where periods are replaced with dashes (e.g., version `x.y.z` would be represented as `x-y-z`).
     - `CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `<cellassign_ref_name>_<source>_<date>.tsv`.
       - `<cellassign_ref_name>` represents the reference dataset name.
       Names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
