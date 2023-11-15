@@ -280,10 +280,10 @@ heatmap_height <- 1
 
 
 This report contains a summary of cell type annotation results for library `r library_id`.
-This goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
+The goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
 
 Performing cell type annotation is an inherently challenging task with high levels of uncertainty, especially when using automated annotation methods.
-One way to address this is to perform multiple cell type annotation approaches and compare the results, as we have begun to do in this report.
+One way to address this is to use multiple cell type annotation approaches and compare the results, as we have begun to do in this report.
 
 When multiple methods annotate a given cell as the same or similar cell type, this may qualitatively indicate a more robust annotation.
 
