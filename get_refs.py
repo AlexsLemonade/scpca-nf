@@ -134,8 +134,9 @@ def main():
     celltype_metadata = csv.DictReader(
         (line.decode() for line in celltype_metadata_file), delimiter="\t"
     )
-    ref_paths += get_celltype_files(ref_params, celltype_metadata)
+    ref_paths += get_celltype_files(ref_params, celltype_metadata)  # add cell type ref paths
 
+    # download all the files stored in `ref_paths`
     download_files(
         ref_paths,
         url_root,
@@ -173,7 +174,7 @@ def get_root_url(root_uri: str) -> str:
         # otherwise, just get the location
         url_root = root_uri
     else:
-        raise ValueError("`ref_rootdir` is not a supported remote location.")
+        raise ValueError(f"`{root_uri}` is not a supported remote location.")
     return url_root
 
 
