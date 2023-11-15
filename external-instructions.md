@@ -429,7 +429,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ### Providing existing cell type labels
 
 If you have already performed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file ([see example here](examples/example_run_metadata.tsv)).
-This column should be filled with the path or uri to a file containing cell type labels for the cells in the run.
+This column should be filled with the path or uri to a TSV file containing cell type labels for the cells in the run.
 The cell type label file is a TSV file with the following required columns:
 
 | column_id              | contents                                        |
@@ -439,6 +439,11 @@ The cell type label file is a TSV file with the following required columns:
 | `cell_type_assignment` | The annotation label for that cell              |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
+
+We have provided an submitter cell type annotation file for reference.
+
+| [View example `example_submitter_celltypes.tsv` file](examples/example_submitter_celltypes.tsv) |
+| ----------------------------------------------------------------------------------------------- |
 
 ## Output files
 
