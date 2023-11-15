@@ -59,12 +59,10 @@ process catalog_singler_models {
   input:
     val celltype_references
   output:
-    "singler_models.tsv"
+    path "singler_models.tsv"
   script:
     """
-    make_celltype_ref_table.R \
-      --reference_files ${celltype_references} \
-      --output_file singler_models.tsv
+    make_celltype_ref_table.R "${celltype_references}" singler_models.tsv
     """
   stub:
     """
@@ -102,22 +100,20 @@ process generate_cellassign_refs {
     """
 }
 
-process catalog_cellassign_models {
+process catalog_cellassign_refs {
   container params.TIDYVERSE_CONTAINER
   publishDir "${params.cellassign_ref_dir}"
   input:
     val celltype_references
   output:
-    "cellassign_models.tsv"
+    path "cellassign_references.tsv"
   script:
     """
-    make_celltype_ref_table.R \
-      --reference_files ${celltype_references} \
-      --output_file cellassign_models.tsv
+    make_celltype_ref_table.R "${celltype_references}" cellassign_references.tsv
     """
   stub:
     """
-    touch cellassign_models.tsv
+    touch cellassign_references.tsv
     """
 }
 
@@ -167,7 +163,7 @@ workflow build_celltype_ref {
 
   // join reference file names into a comma separated string
   cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
-  catalog_cellassign_models(cellassign_refs)
+  catalog_cellassign_refs(cellassign_refs)
 
 }
 

@@ -1,27 +1,30 @@
 #!/usr/bin/env Rscript
 
-# import libraries
-library(optparse)
+# A small script to read in a comma separated list of celltype reference files
+# and output a table with the reference name, source, and version
 
-# Set up optparse options
-option_list <- list(
-  make_option(
-    opt_str = c("--reference_files"),
-    type = "character",
-    default = NULL,
-    help = "comma-separated list of reference file names"
-  ),
-  make_option(
-    opt_str = c("-o", "--output_file"),
-    type = "character",
-    default = NULL,
-    help = "path to output tsv file"
-  )
-)
+# File names must be of the format:
+#  <reference_name>_<source>_<version><optional_extra.ext>
 
-opt <- parse_args(OptionParser(option_list = option_list))
+# Usage:
+# Rscript make_celltype_ref_table.R <list,of,file,paths> <output_table.tsv>
 
-ref_files <- stringr::str_split_1(opt$reference_files, ",") |>
+
+
+# not using optparse as to avoid dependencies
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) != 2) {
+  stop("Incorrect number of arguments")
+}
+
+reference_files <- args[1]
+output_file <- args[2]
+
+if (!stringr::str_ends(output_file, ".tsv")) {
+  stop("Output file must end in .tsv")
+}
+
+ref_files <- stringr::str_split_1(reference_files, ",") |>
   basename()
 
 ref_info <- data.frame(filename = ref_files) |>
@@ -42,3 +45,5 @@ ref_info <- data.frame(filename = ref_files) |>
       stringr::str_replace_all(version, "-", ".")
     )
   )
+
+readr::write_tsv(ref_info, output_file)
