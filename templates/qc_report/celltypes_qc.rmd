@@ -166,7 +166,7 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
 ```{r, eval = has_cellassign}
 knitr::asis_output('### `CellAssign` cell type annotations\n
 
-In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently label.
+In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently assign to a label in the reference list.
 ')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
   format_celltype_n_table()
