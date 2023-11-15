@@ -130,7 +130,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
 | `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version`          |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)         |
-| `sample_reference`      | The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104`      |
+| `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104`      |
 | `files_directory`       | The full path/uri to directory containing fastq files (unique per run)   |
 
 The following optional columns may be necessary for running other data modalities (CITE-seq, spatial transcriptomics) or including existing cell type labels:
@@ -338,7 +338,7 @@ By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
-2. Prepare a `celltype_project_metafile` TSV (described below) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
+2. [Prepare a `celltype_project_metafile` TSV](#preparing-the-cell-type-project-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
    You will need to provide the path/uri to this file as a workflow parameter, which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
 3. Run the workflow with the `--perform_celltyping` flag.
@@ -360,7 +360,7 @@ Note that you must use one of the references described here to be eligible for i
 #### `SingleR` references
 
 By default, `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
-Available references include `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, and `MonacoImmuneData`.
+TODO: AVAILABLE REFERENCES ARE LISTED HERE.
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
 `SingleR` reference files are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
@@ -372,7 +372,7 @@ For example, consider the reference file `BlueprintEncodeData_celldex_1-10-1_mod
 #### `CellAssign` references
 
 By default, `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/), as compiled by the Data Lab to represent common organ/tissue groupings.
-Available references include `blood-compartment`, `brain-compartment`, and `muscle-compartment`.
+TODO: AVAILABLE REFERENCES ARE LISTED HERE.
 The specific organs used to compile marker gene references are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
 `CellAssign` marker gene reference files are formatted as `<cellassign_ref_name>_PanglaoDB_<date>.tsv`.
