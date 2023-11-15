@@ -178,18 +178,10 @@ Follow these steps to add support for additional cell type references.
 
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
-   - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<singler_ref_name>_<source>_<version>.rds`.
-     Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<singler_ref_name>_<source>_<version>_model.rds`.
-     Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
-     - `<singler_ref_name>` represents the reference dataset name, taken directly from a `celldex` dataset.
-     - `<source>` represents the reference dataset source. Currently only `celldex` is supported.
-     - `<version>` represents the source (`celldex`) version, where periods are replaced with dashes (e.g., version `x.y.z` would be represented as `x-y-z`).
-   - `CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `<cellassign_ref_name>_<source>_<date>.tsv`.
-     - `<cellassign_ref_name>` represents the reference dataset name.
-       Names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
-       The specific tissues/organs used for each set of markers is described in `celltype-reference-metadata.tsv`.
-     - `<source>` represents the reference dataset source. Currently only `PanglaoDB` is supported.
-     - `<date>` represents the source (`PanglaoDB`) download date in ISO8601 format.
+     - `<celltype_ref_name>` represents the reference dataset name. For use with `SingleR`, this should be taken directly from a `celldex` dataset. For `CellAssign`, names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ. 
+     - `<celltype_ref_source>` represents the reference dataset source. Currently only `celldex` and `PanglaoDB` are supported.
+   - `<celltype_method>` represents which method to use with the specified reference, either `SingleR` or `CellAssign`. 
+   - `organs` indicates which organs to be included in creation of references with `PanglaoDB` as the `celltype_ref_source`. This must be a comma separated list of all organs to include. 
 
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3.
