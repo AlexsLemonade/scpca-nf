@@ -2,7 +2,7 @@
 process classify_singler {
   container params.SCPCATOOLS_CONTAINER
   publishDir (
-    path: "${meta.celltype_publish_dir}",
+    path: "${meta.celltype_checkpoints_dir}",
     mode: 'copy',
     pattern: "${singler_dir}"
   )
@@ -41,7 +41,7 @@ process classify_singler {
 process classify_cellassign {
   container params.SCPCATOOLS_CONTAINER
     publishDir (
-      path: "${meta.celltype_publish_dir}",
+      path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy',
       pattern: "${cellassign_dir}"
     )
@@ -98,14 +98,14 @@ process add_celltypes_to_sce {
     singler_results = "${singler_dir}/singler_results.rds"
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
-    cellassign_ref_name = file("${meta.cellassign_reference_file}").baseName
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
       --output_sce_file ${annotated_rds} \
       ${singler_present ? "--singler_results  ${singler_results}" : ''} \
+      ${singler_present ? "--singler_model_file ${meta.singler_model_file}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
-      ${cellassign_present ? "--cellassign_ref_name ${cellassign_ref_name}" : ''}
+      ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''}
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
@@ -142,9 +142,9 @@ workflow annotate_celltypes {
       // add values to meta for later use
       .map{ project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
         def meta = meta_in.clone(); // local copy for safe modification
-        meta.celltype_publish_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
-        meta.singler_dir = "${meta.celltype_publish_dir}/${meta.library_id}_singler";
-        meta.cellassign_dir = "${meta.celltype_publish_dir}/${meta.library_id}_cellassign";
+        meta.celltype_checkpoints_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
+        meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_singler";
+        meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_cellassign";
         meta.singler_model_file = singler_model_file;
         meta.cellassign_reference_file = cellassign_reference_file;
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
@@ -160,7 +160,11 @@ workflow annotate_celltypes {
       .map{it.toList() + [file(it[0].singler_model_file ?: empty_file)]}
       // skip if no singleR model file or if singleR results are already present
       .branch{
-        skip_singler: !params.repeat_celltyping && file(it[0].singler_results_file).exists()
+        skip_singler: (
+          !params.repeat_celltyping
+          && file(it[0].singler_results_file).exists()
+          && Utils.getMetaVal(file("${it[0].singler_dir}/scpca-meta.json"), "singler_model_file") == "${it[0].singler_model_file}"
+        )
         missing_ref: it[2].name == "NO_FILE"
         do_singler: true
       }
@@ -184,7 +188,11 @@ workflow annotate_celltypes {
       .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file)]}
       // skip if no cellassign reference file or reference name is not defined
       .branch{
-        skip_cellassign: !params.repeat_celltyping && file(it[0].cellassign_predictions_file).exists()
+        skip_cellassign: (
+          !params.repeat_celltyping
+          && file(it[0].cellassign_predictions_file).exists()
+          && Utils.getMetaVal(file("${it[0].cellassign_dir}/scpca-meta.json"), "cellassign_reference_file") == "${it[0].cellassign_reference_file}"
+        )
         missing_ref: it[2].name == "NO_FILE"
         do_cellassign: true
       }
