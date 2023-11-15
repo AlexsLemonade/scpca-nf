@@ -176,7 +176,7 @@ We currently only support `celldex` and `PanglaoDB` for reference sources for `S
 
 Follow these steps to add support for additional cell type references.
 
-1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
+1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
    - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<singler_ref_name>_<source>_<version>.rds`.
      Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<singler_ref_name>_<source>_<version>_model.rds`.
@@ -187,7 +187,7 @@ Follow these steps to add support for additional cell type references.
    - `CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `<cellassign_ref_name>_<source>_<date>.tsv`.
      - `<cellassign_ref_name>` represents the reference dataset name.
        Names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
-       The specific tissues/organs used for each set of markers is described in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+       The specific tissues/organs used for each set of markers is described in `celltype-reference-metadata.tsv`.
      - `<source>` represents the reference dataset source. Currently only `PanglaoDB` is supported.
      - `<date>` represents the source (`PanglaoDB`) download date in ISO8601 format.
 
