@@ -8,19 +8,17 @@ process save_singler_refs {
   input:
     tuple val(ref_name), val(ref_source)
   output:
-    tuple val(ref_name), path("${ref_name}_${ref_source}_*.rds"), path("${ref_source}_version.txt")
+    tuple val(ref_name), path("${ref_name}_${ref_source}_*.rds")
   script:
     """
     save_singler_refs.R \
      --ref_name ${ref_name} \
      --ref_file_prefix "${ref_name}_${ref_source}"
-     --version_file ${ref_source}_version.txt
     """
   stub:
     // fill in a dummy version since we grab that as part of the script
     """
     touch "${ref_name}_${ref_source}_v0-0-0.rds"
-    touch "${ref_source}_version.txt"
     """
 
 }
@@ -65,7 +63,6 @@ process generate_cellassign_refs {
     path marker_gene_file
   output:
     path ref_file
-    path "${ref_source}_version.txt"
   script:
     // get ref version from filename
     // this requires the date stored in the filename to be in ISO8601 format
@@ -77,14 +74,12 @@ process generate_cellassign_refs {
       --marker_gene_file ${marker_gene_file} \
       --gtf_file ${ref_gtf} \
       --ref_mtx_file ${ref_file}
-    echo $ref_version > "${ref_source}_version.txt"
     """
   stub:
     ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     touch ${ref_file}
-    echo $ref_version > "${ref_source}_version.txt"
     """
 }
 
@@ -109,7 +104,7 @@ workflow build_celltype_ref {
     .map{[
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source
-    ]}
+      ]}
 
   // download and save reference files
   save_singler_refs(singler_refs_ch)
