@@ -66,6 +66,10 @@ process catalog_singler_models {
       --reference_files ${celltype_references} \
       --output_file singler_models.tsv
     """
+  stub:
+    """
+    touch singler_models.tsv
+    """
 }
 
 process generate_cellassign_refs {
@@ -110,6 +114,10 @@ process catalog_cellassign_models {
     make_celltype_ref_table.R \
       --reference_files ${celltype_references} \
       --output_file cellassign_models.tsv
+    """
+  stub:
+    """
+    touch cellassign_models.tsv
     """
 }
 
