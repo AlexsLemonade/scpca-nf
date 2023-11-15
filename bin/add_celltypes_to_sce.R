@@ -27,18 +27,46 @@ option_list <- list(
     help = "path to rds file containing SingleR results object"
   ),
   make_option(
+    opt_str = c("--singler_model_file"),
+    type = "character",
+    help = "Name of file containing a single model generated for SingleR annotation.
+            File name is expected to be in form: `<ref_name>_<source>_<version>_model.rds`."
+  ),
+  make_option(
     opt_str = c("--cellassign_predictions"),
     type = "character",
     help = "path to tsv file containing the prediction matrix returned by running CellAssign"
   ),
   make_option(
-    opt_str = c("--cellassign_ref_name"),
+    opt_str = c("--cellassign_ref_file"),
     type = "character",
-    help = "name of reference used for CellAssign"
+    help = "Name of marker by cell type reference file used with CellAssign.
+            File name is expected to be in form: `<ref_name>_<source>_<version>.tsv`"
   )
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
+
+# Set up -----------------------------------------------------------------------
+
+#' Get reference information from a reference file
+#'
+#' @param ref_filename reference file name to parse
+#' @extension file extension to consider during parsing
+#'
+#' @return list of reference file components to include in SCE metadata
+get_ref_info <- function(ref_filename, extension) {
+  ref_info <- ref_filename |>
+    basename() |>
+    # select everything before the extension
+    stringr::word(1, sep = extension) |>
+    # create a vector with name, source, version
+    stringr::str_split(pattern = "_") |>
+    unlist() |>
+    purrr::set_names(c("ref_name", "ref_source", "ref_version"))
+
+  return(ref_info)
+}
 
 # check that input file exists
 if (!file.exists(opt$input_sce_file)) {
@@ -57,7 +85,11 @@ sce <- readr::read_rds(opt$input_sce_file)
 
 if (!is.null(opt$singler_results)) {
   if (!file.exists(opt$singler_results)) {
-    stop("Missing singleR results file")
+    stop("Missing SingleR results file")
+  }
+
+  if (is.null(opt$singler_model_file)) {
+    stop("SingleR model filename must be provided")
   }
 
   singler_results <- readr::read_rds(opt$singler_results)
@@ -98,10 +130,18 @@ if (!is.null(opt$singler_results)) {
     DataFrame(row.names = colData(sce)$barcodes)
   colData(sce) <- new_coldata
 
+  # get reference name, source and version
+  singler_ref_info <- get_ref_info(
+    ref_filename = opt$singler_model_file,
+    extension = "_model\\.rds"
+  )
+
   # add singler info to metadata
   metadata(sce)$singler_results <- singler_results
-  metadata(sce)$singler_reference <- metadata(singler_results)$reference_name
+  metadata(sce)$singler_reference <- singler_ref_info[["ref_name"]]
   metadata(sce)$singler_reference_label <- label_type
+  metadata(sce)$singler_reference_source <- singler_ref_info[["ref_source"]]
+  metadata(sce)$singler_reference_version <- singler_ref_info[["ref_version"]]
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
@@ -113,6 +153,10 @@ if (!is.null(opt$cellassign_predictions)) {
   # check that cellassign predictions file was provided
   if (!file.exists(opt$cellassign_predictions)) {
     stop("Missing CellAssign predictions file")
+  }
+
+  if (is.null(opt$cellassign_ref_file)) {
+    stop("CellAssign reference filename must be provided")
   }
 
   predictions <- readr::read_tsv(opt$cellassign_predictions)
@@ -136,9 +180,17 @@ if (!is.null(opt$cellassign_predictions)) {
   sce$cellassign_celltype_annotation <- celltype_assignments$celltype
   sce$cellassign_max_prediction <- celltype_assignments$prediction
 
-  # add entire predictions matrix and ref name to metadata
+  # get reference name, source and version
+  cellassign_ref_info <- get_ref_info(
+    ref_filename = opt$cellassign_ref_file,
+    extension = "\\.tsv"
+  )
+
+  # add entire predictions matrix, ref name, and version to metadata
   metadata(sce)$cellassign_predictions <- predictions
-  metadata(sce)$cellassign_reference <- opt$cellassign_ref_name
+  metadata(sce)$cellassign_reference <- cellassign_ref_info[["ref_name"]]
+  metadata(sce)$cellassign_reference_source <- cellassign_ref_info[["ref_source"]]
+  metadata(sce)$cellassign_reference_version <- cellassign_ref_info[["ref_version"]]
 
   # add cellassign as celltype method
   # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
