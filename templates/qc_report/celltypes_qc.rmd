@@ -157,7 +157,7 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
 ```{r, eval = has_singler}
 knitr::asis_output('### `SingleR` cell type annotations\n
 
-In this table, cells labeled as "Unknown cell type" are those which `SingleR` could not confidently identify.
+In this table, cells labeled "Unknown cell type" are those which `SingleR` could not confidently label.
 ')
 create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
   format_celltype_n_table()
@@ -166,7 +166,7 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
 ```{r, eval = has_cellassign}
 knitr::asis_output('### `CellAssign` cell type annotations\n
 
-In this table, cells labeled as "Unknown cell type" are those which `CellAssign` could not confidently identify.
+In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently label.
 ')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
   format_celltype_n_table()
