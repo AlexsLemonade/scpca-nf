@@ -178,12 +178,12 @@ Follow these steps to add support for additional cell type references.
 
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
-  - `<celltype_ref_name>` represents the reference dataset name.
-    For use with `SingleR`, this should be taken directly from a `celldex` dataset.
-    For `CellAssign`, names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
-  - `<celltype_ref_source>` represents the reference dataset source. Currently only `celldex` and `PanglaoDB` are supported for `SingleR` and `CellAssign`, respectively.
-  - `<celltype_method>` represents which annotation method to use with the specified reference, either `SingleR` or `CellAssign`.
-  - `organs` indicates which organs to be included in creation of references with `PanglaoDB` as the `celltype_ref_source`.
+    - `<celltype_ref_name>` represents the reference dataset name.
+      For use with `SingleR`, this should be taken directly from a `celldex` dataset.
+      For `CellAssign`, names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
+    - `<celltype_ref_source>` represents the reference dataset source. Currently only `celldex` and `PanglaoDB` are supported for `SingleR` and `CellAssign`, respectively.
+    - `<celltype_method>` represents which annotation method to use with the specified reference, either `SingleR` or `CellAssign`.
+    - `organs` indicates which organs to be included in creation of references with `PanglaoDB` as the `celltype_ref_source`.
   This must be a comma separated list of all organs to include.
 
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
