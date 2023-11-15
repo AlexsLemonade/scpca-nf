@@ -126,13 +126,13 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file is required as input to `scpca-nf`.
 
 3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type annotation. This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow. See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for additional details.
-  - For all references, the following columns will be populated:
-    - `celltype_ref_name` (e.g., `BlueprintEncodeData` or `blood-compartment`)
-    - `celltype_ref_source` (e.g., `celldex` or `PanglaoDB`)
-     - `celltype_method` (e.g., `SingleR` or `CellAssign`)
-   - All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
-   This should be a comma-separated list of all organs to include.
-   To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
+    - For all references, the following columns will be populated:
+      - `celltype_ref_name` (e.g., `BlueprintEncodeData` or `blood-compartment`)
+      - `celltype_ref_source` (e.g., `celldex` or `PanglaoDB`)
+      - `celltype_method` (e.g., `SingleR` or `CellAssign`)
+    - All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+    This should be a comma-separated list of all organs to include.
+    To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
 
 4. `PanglaoDB_markers_2020-03-27.tsv`: This file is used to build the cell type references from `PanglaoDB`.
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
