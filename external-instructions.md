@@ -3,9 +3,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
-**Table of Contents**
-
 - [Overview](#overview)
 - [File organization](#file-organization)
 - [Prepare the run metadata file](#prepare-the-run-metadata-file)
@@ -148,8 +145,8 @@ The following optional columns may be necessary for running other data modalitie
 
 We have provided an example run metadata file for reference.
 
-| [View example run metadata](examples/example_run_metadata.tsv) |
-| -------------------------------------------------------------- |
+| [View example `run_metadata.tsv` file](examples/example_run_metadata.tsv) |
+| ------------------------------------------------------------------------- |
 
 ## Prepare the sample metadata file
 
@@ -165,8 +162,8 @@ Some suggested columns include diagnosis, tissue, age, sex, stage of disease, ce
 
 We have provided an example run metadata file for reference.
 
-| [View example sample metadata](examples/example_sample_metadata.tsv) |
-| -------------------------------------------------------------------- |
+| [View example `sample_metadata.tsv` file](examples/example_sample_metadata.tsv) |
+| ------------------------------------------------------------------------------- |
 
 **Before using the workflow with data that you might plan to submit to ScPCA, please be sure to look at the [guidelines for sample metadata](https://scpca.alexslemonade.org/contribute).**
 
@@ -399,15 +396,20 @@ For example, consider the reference file `blood-compartment_PanglaoDB_2020-03-27
 ### Preparing the cell type project metadata file
 
 All libraries within a given project will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
-The `celltype_project_metafile` file should contain these five columns with the following information (see the example file in [`examples/example_project_celltype_metadata.tsv`](examples/example_project_celltype_metadata.tsv)):
+The `celltype_project_metafile` file should contain these five columns with the following information:
 
 | column_id             | contents                                                                                                                              |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `scpca_project_id`    | Project ID matching values in the metadata file                                                                                       |
+| `scpca_project_id`    | Project ID matching values in the [run metadata file](#prepare-the-run-metadata-file)                                                 |
 | `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation                           |
 | `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation     |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation                        |
 | `cellassign_ref_file` | Path/uri to `CellAssign` reference file, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
+
+We have provided an example cell type project metadata file for reference.
+
+| [View example `project_celltype_metadata.tsv` file](examples/example_project_celltype_metadata) |
+| ----------------------------------------------------------------------------------------------- |
 
 ### Repeating cell type annotation
 
