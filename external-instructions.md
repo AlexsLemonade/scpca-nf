@@ -389,7 +389,7 @@ The `celltype_project_metafile` file should contain these five columns with the 
 
 | column_id             | contents                                                                                                                              |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `scpca_project_id`    | Project ID matching values in the [run metadata file](#prepare-the-run-metadata-file)                                                 |
+| `scpca_project_id`    | Project ID matching values in the run metadata file                                                                                   |
 | `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation                           |
 | `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation     |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation                        |
@@ -417,22 +417,18 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Providing existing cell type labels
 
-If you have already performed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file ([see example here](examples/example_run_metadata.tsv)).
+If you have already performed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file.
 This column should be filled with the path or uri to a TSV file containing cell type labels for the cells in the run.
 The cell type label file is a TSV file with the following required columns:
 
 | column_id              | contents                                        |
 | ---------------------- | ----------------------------------------------- |
-| `scpca_library_id`     | Library ID matching values in the metadata file |
+| `scpca_library_id`     | Library ID matching values in the run metadata file |
 | `cell_barcode`         | The cell id with the given annotation label     |
 | `cell_type_assignment` | The annotation label for that cell              |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
 
-We have provided an submitter cell type annotation file for reference.
-
-| [View example `example_submitter_celltypes.tsv` file](examples/example_submitter_celltypes.tsv) |
-| ----------------------------------------------------------------------------------------------- |
 
 ## Output files
 
@@ -580,7 +576,7 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 | column_id          | contents                                                                                    |
 | ------------------ | ------------------------------------------------------------------------------------------- |
-| `scpca_library_id` | Multiplexed library ID matching values in the metadata file.                                |
+| `scpca_library_id` | Multiplexed library ID matching values in the run metadata file.                                |
 | `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library                          |
 | `barcode_id`       | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
