@@ -1,9 +1,0 @@
-scpca_library_id	cell_barcode	cell_type_assignment
-SCPCL000000	AAAA	cell-type-A
-SCPCL000000	AAAC	cell-type-A
-SCPCL000000	AAAG	cell-type-B
-SCPCL000000	AAAT	cell-type-C
-SCPCL000000	AACA	cell-type-A
-SCPCL000000	AACC	cell-type-B
-SCPCL000000	AACG	cell-type-A
-SCPCL000000	AACT	cell-type-D
