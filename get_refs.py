@@ -81,7 +81,6 @@ def main():
     # scpca-nf resource urls
     reffile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/reference_paths.config"
     refjson_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/references/scpca-refs.json"
-    celltype_metadata_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/references/celltype-reference-metadata.tsv"
 
     containerfile_url = f"https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/{args.revision}/config/containers.config"
 
@@ -90,7 +89,6 @@ def main():
     try:
         ref_file = urllib.request.urlopen(reffile_url)
         json_file = urllib.request.urlopen(refjson_url)
-        celltype_metadata_file = urllib.request.urlopen(celltype_metadata_url)
     except urllib.error.URLError as e:
         print(e.reason)
         print("Reference file path download failed.")
@@ -129,12 +127,8 @@ def main():
     # barcode paths are still kept in the reference config file, so add those separately
     ref_paths += get_barcode_files(ref_params)
 
-    # paths to celltype reference files
-    # read in celltype reference metadata
-    celltype_metadata = csv.DictReader(
-        (line.decode() for line in celltype_metadata_file), delimiter="\t"
-    )
-    ref_paths += get_celltype_files(ref_params, celltype_metadata)  # add cell type ref paths
+    # add paths to celltype reference files
+    ref_paths += get_celltype_files(ref_params)
 
     # download all the files stored in `ref_paths`
     download_files(
@@ -291,12 +285,12 @@ def get_barcode_files(param_dict: dict[str, str]) -> list[Path]:
     return [barcode_dir / f for f in barcode_files]
 
 
-def get_celltype_files(
-    param_dict: dict[str, str], celltype_metadata: dict[str, str]
-) -> list[Path]:
+def get_celltype_files(param_dict: dict[str, str]) -> list[Path]:
     # get celltype reference paths
     root_url = get_root_url(param_dict.get("ref_rootdir"))
 
+    # regular expressions to match variables in parameter strings:
+    # ${params.ref_rootdir}, $celltype_ref_dir, etc. ({} and `params.` prefix optional)
     root_re = re.compile(r"^\$\{?(params.)?ref_rootdir\}?")
     celltype_dir_re = re.compile(r"^\$\{?(params.)?celltype_ref_dir\}?")
 
@@ -305,52 +299,41 @@ def get_celltype_files(
     celltype_ref_url = root_re.sub(root_url, celltype_ref_dir)
 
     # get paths (with variables) to celltype reference files
-    singler_ref_dir = param_dict.get("singler_references_dir")
     singler_model_dir = param_dict.get("singler_models_dir")
     cellassign_ref_dir = param_dict.get("cellassign_ref_dir")
 
     # replace celltype ref placeholders
-    singler_ref_dir = celltype_dir_re.sub(celltype_ref_url, singler_ref_dir)
     singler_model_dir = celltype_dir_re.sub(celltype_ref_url, singler_model_dir)
     cellassign_ref_dir = celltype_dir_re.sub(celltype_ref_url, cellassign_ref_dir)
 
     # alternatively, these might be tied to the root url
-    singler_ref_dir = root_re.sub(root_url, singler_ref_dir)
     singler_model_dir = root_re.sub(root_url, singler_model_dir)
     cellassign_ref_dir = root_re.sub(root_url, cellassign_ref_dir)
 
-    # get versions of celltype reference files
-    celldex_version_url = f"{singler_ref_dir}/celldex_version.txt"
-    panglao_version_url = f"{cellassign_ref_dir}/PanglaoDB_version.txt"
+    # get celltype reference file tables from directories
+    singler_model_url = f"{singler_model_dir}/singler_models.tsv"
+    cellassign_ref_url = f"{cellassign_ref_dir}/cellassign_references.tsv"
 
-    celldex_version = (
-        urllib.request.urlopen(celldex_version_url)
-        .read()
-        .decode()
-        .strip()
-        .replace(".", "-")  # replace periods with dashes for file names
+    try:
+        singler_model_file = urllib.request.urlopen(singler_model_url)
+        cellassign_ref_file = urllib.request.urlopen(cellassign_ref_url)
+    except urllib.error.URLError as e:
+        print(e.reason)
+        print("Celltype reference file path download failed.")
+        raise
+
+    singler_refs = csv.DictReader(
+        (line.decode() for line in singler_model_file), delimiter="\t"
     )
-    panglao_version = (
-        urllib.request.urlopen(panglao_version_url).read().decode().strip()
+    cellassign_refs = csv.DictReader(
+        (line.decode() for line in cellassign_ref_file), delimiter="\t"
     )
 
-    celltype_ref_files = []
-    for row in celltype_metadata:
-        ref_name = row["celltype_ref_name"]
-        method = row["celltype_method"]
-        source = row["celltype_ref_source"]
-        if method.lower() == "singler" and source == "celldex":
-            celltype_ref_files.append(
-                f"{singler_model_dir}/{ref_name}_{source}_{celldex_version}_model.rds"
-            )
-        elif method.lower() == "cellassign" and source == "PanglaoDB":
-            celltype_ref_files.append(
-                f"{cellassign_ref_dir}/{ref_name}_{source}_{panglao_version}.tsv"
-            )
-        else:
-            raise ValueError(
-                f"Celltype reference file for {method} and {source} is not supported."
-            )
+    # get path strings to all celltype reference files
+    celltype_ref_files = [
+        f"{singler_model_dir}/{row['filename']}" for row in singler_refs
+    ] + [f"{cellassign_ref_dir}/{row['filename']}" for row in cellassign_refs]
+
     # strip off root url and convert to path before returning
     celltype_ref_files = [
         Path(f.removeprefix(f"{root_url}/")) for f in celltype_ref_files
