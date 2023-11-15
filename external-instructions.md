@@ -133,8 +133,9 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 
 The following optional columns may be necessary for running other data modalities (CITE-seq, spatial transcriptomics) or including existing cell type labels:
 
-| column_id                   | contents                                                                                                                                                                                                                     |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+<!-- prettier-ignore -->
+| column_id | contents |
+| --------- | -------- |
 | `feature_barcode_file`      | The full path/uri to TSV file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls |
 | `feature_barcode_geom`      | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples)                                                        |
 | `slide_section`             | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                                            |
@@ -349,20 +350,20 @@ You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
 2. Prepare a `celltype_project_metafile` TSV (described below) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
-   You will need to provide the path/uri to this file as a workflow parameter, which you can specify either on the command line or define in your configuration file.
+   You will need to provide the path/uri to this file as a workflow parameter, which you will need to define in your configuration file. 
+   For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment). 
 3. Run the workflow with the `--perform_celltyping` flag.
 
-You would then run the workflow with cell type annotation from the command line as, for example,
+Once you have followed the above steps and added the path/uri to the `celltype_project_metafile` to your configuration file, you can use the following command to run the workflow with cell type annotation:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  --perform_celltyping \
-  --celltype_project_metafile examples/example_project_celltype_metadata.tsv
-```
+  --perform_celltyping 
 
 ### Choosing reference datasets
 
-The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) and available from S3, for use in cell type annotation.
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv). 
+All references listed in this table are publicly available on S3 for use with cell type annotation.
 It is possible to provide your own references as well; instructions for this are forthcoming.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
@@ -376,7 +377,7 @@ Please consult the [`celldex` documentation](https://bioconductor.org/packages/r
 For example, consider the reference file `BlueprintEncodeData_celldex_1-10-1_model.rds`:
 
 - The reference name is `BlueprintEncodeData`.
-- The `celldex` version is `1-10-1`.
+- The `celldex` version is `1.10.1` (for the file name we substitute dashes for periods).
 
 #### `CellAssign` references
 
@@ -405,18 +406,17 @@ The `celltype_project_metafile` file should contain these five columns with the 
 
 ### Repeating cell type annotation
 
-When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder of the given library's output directory, and those reference dataset version is unchanged.
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder, as long as the cell type reference file is unchanged.
 
-This saves substantial processing time and cost if the cell type annotation reference versions are unchanged.
-However, you may wish to repeat the cell typing process if there have been other changes to the data.
+This saves substantial processing time if the cell type annotation reference versions are unchanged.
+However, you may wish to repeat the cell typing process if there have been other changes to the data or analysis.
 
 To force repeating the cell type annotation process, use the `--repeat_celltyping` flag along with the `--perform_celltyping` flag at the command line:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
   --perform_celltyping \
-  --repeat_celltyping \
-  --celltype_project_metafile examples/example_project_celltype_metadata.tsv
+  --repeat_celltyping 
 ```
 
 ### Providing existing cell type labels
