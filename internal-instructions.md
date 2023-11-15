@@ -166,7 +166,7 @@ homo_sapiens
 
 ### Adding additional cell type references
 
-Adding additional organisms is handled, in part, by the `build-celltype-ref.nf` workflow.
+Adding additional references to use for cell type annotation is handled by the `build-celltype-ref.nf` workflow.
 
 Follow the below steps to add support for additional cell type references.
 We currently only support `celldex` and `PanglaoDB` for reference sources for `SingleR` and `CellAssign` cell type annotation, respectively.
