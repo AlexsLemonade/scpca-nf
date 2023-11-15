@@ -415,7 +415,7 @@ knitr::asis_output(
 )
 ```
 
-```{r}
+```{r, eval = has_submitter & (has_cellassign | has_singler)}
 # calculate matrices comparing to submitter
 jaccard_submitter_matrices <- available_celltypes |>
   stringr::str_to_lower() |>
@@ -440,7 +440,7 @@ heatmap_height <- calculate_plot_height(
 )
 ```
 
-```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
+```{r, eval = has_submitter & (has_cellassign | has_singler), fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
 jaccard_submitter_matrices |>
   create_heatmap_list(
     column_title = "Submitter-provided annotations",
