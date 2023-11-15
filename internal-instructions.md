@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
 
 - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
   - [Additional flags and parameters](#additional-flags-and-parameters)
@@ -12,7 +11,6 @@
   - [Adding additional cell type references](#adding-additional-cell-type-references)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 
 ## Running `scpca-nf` as a Data Lab staff member
 
@@ -39,28 +37,28 @@ nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
 
 There are several flags and/or parameters which you may additionally wish to specify, as follows.
 
-+ Nextflow flags:
-  + `-resume`: Resume workflow from most recent checkpoint
-  + `-with-tower`: Use `Nextflow Tower` to monitor workflow (requires separate [Nextflow Tower registration](https://tower.nf/))
-+ Workflow parameters:
-  + `--run_ids list,of,ids`: A custom comma-separated list of ids (run, library, or sample) for this run.
-  + `--project list,of,project_ids`: A custom comma-separated list of project ids for this run
-  [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
-  + `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
-    + By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
-    Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
-    + For more implementation details, please refer to the [external instructions](external-instructions.md#repeating-mapping-steps).
-  + `--skip_genetic_demux`: Use this flag to skip genetic demultiplexing, which is turned on by default.
-    + Genetic demultiplexing requires mapping of both bulk and single-cell data, followed by SNP calling and genetic demultiplexing, which can be quite time consuming.
-    + When genetic demultiplexing is skipped, the workflow will still perform cellhash-based demultiplexing, if available for a given library.
-  + `--repeat_genetic_demux`: Use this flag to repeat genetic demultiplexing, even if results already exist.
-    + By default, the workflow checks whether each library has existing genetic demultiplexing results, and skips genetic demultiplexing for libraries with existing results.
-    Using this flag will override that default behavior and repeat genetic demultiplexing even if the given library's results exist.
-  + `--perform_celltyping`: Use this flag to perform cell type annotation, which is turned off by default.
-  + `--repeat_celltyping`: Use this flag to repeat cell type annotation, even if results already exist.
-    + By default, the workflow checks whether each library has existing cell type annotation results for `SingleR` and/or `CellAssign` (depending on references for that library).
-    Using this flag will override that default behavior and repeat cell type annotation even if the given library's results exist.
-    + This flag is _only considered_ if `--perform_celltyping` is also used.
+- Nextflow flags:
+  - `-resume`: Resume workflow from most recent checkpoint
+  - `-with-tower`: Use `Nextflow Tower` to monitor workflow (requires separate [Nextflow Tower registration](https://tower.nf/))
+- Workflow parameters:
+  - `--run_ids list,of,ids`: A custom comma-separated list of ids (run, library, or sample) for this run.
+  - `--project list,of,project_ids`: A custom comma-separated list of project ids for this run
+    [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
+  - `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
+    - By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
+      Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
+    - For more implementation details, please refer to the [external instructions](external-instructions.md#repeating-mapping-steps).
+  - `--skip_genetic_demux`: Use this flag to skip genetic demultiplexing, which is turned on by default.
+    - Genetic demultiplexing requires mapping of both bulk and single-cell data, followed by SNP calling and genetic demultiplexing, which can be quite time consuming.
+    - When genetic demultiplexing is skipped, the workflow will still perform cellhash-based demultiplexing, if available for a given library.
+  - `--repeat_genetic_demux`: Use this flag to repeat genetic demultiplexing, even if results already exist.
+    - By default, the workflow checks whether each library has existing genetic demultiplexing results, and skips genetic demultiplexing for libraries with existing results.
+      Using this flag will override that default behavior and repeat genetic demultiplexing even if the given library's results exist.
+  - `--perform_celltyping`: Use this flag to perform cell type annotation, which is turned off by default.
+  - `--repeat_celltyping`: Use this flag to repeat cell type annotation, even if results already exist.
+    - By default, the workflow checks whether each library has existing cell type annotation results for `SingleR` and/or `CellAssign` (depending on references for that library).
+      Using this flag will override that default behavior and repeat cell type annotation even if the given library's results exist.
+    - This flag is _only considered_ if `--perform_celltyping` is also used.
 
 Please refer to [`nextflow.config`](nextflow.config) and [other configuration files](config/) for other parameters which can be modified.
 
@@ -79,7 +77,6 @@ You may wish to verify that output contents in `test/output/checkpoints` and `te
 Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more information on maintaining the stub workflow.
 
 ### Running `scpca-nf` for ScPCA Portal release
-
 
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
 
@@ -116,29 +113,28 @@ Make sure to adjust the settings to make the zip file publicly accessible.
 
 ## Maintaining references for `scpca-nf`
 
-
 Inside the `references` folder are files and scripts related to maintaining the reference files available for use with `scpca-nf`.
 
 1. `ref-metadata.tsv`: Each row of this TSV file corresponds to a reference that is available for mapping with `scpca-nf`.
-The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
-This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta` and `gtf` files are stored in the proper location on S3.
-See [instructions for adding additional organisms](#adding-additional-organisms) for more details.
+   The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
+   This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta` and `gtf` files are stored in the proper location on S3.
+   See [instructions for adding additional organisms](#adding-additional-organisms) for more details.
 
 2. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
-For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
-This file is required as input to `scpca-nf`.
+   For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
+   This file is required as input to `scpca-nf`.
 
 3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type annotation using `add-celltypes.nf`.
-For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
-All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
-This should be a comma-separated list of all organs to include.
-To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
-This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow.
-See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
+   For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
+   All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+   This should be a comma-separated list of all organs to include.
+   To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
+   This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow.
+   See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
 4. `PanglaoDB_markers_2020-03-27.tsv`: This file is used to build the cell type references from `PanglaoDB`.
-This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
-This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
+   This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
+   This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
 ### Adding additional organisms
 
@@ -147,7 +143,7 @@ Adding additional organisms is handled, in part, by the `build-index.nf` workflo
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
@@ -168,23 +164,23 @@ homo_sapiens
 
 Adding additional organisms is handled, in part, by the `build-celltype-ref.nf` workflow.
 
-
 Follow the below steps to add support for additional cell type references.
 We currently only support `celldex` and `PanglaoDB` for reference sources for `SingleR` and `CellAssign` cell type annotation, respectively.
 
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to `celltype-reference-metadata.tsv`.
 2. Generate the new cell type references using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
-3. Ensure that the new reference files are public and in the correct location on S3:
-    - `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<singler_ref_name>_<source>_<version>.rds`.
-    The file name will be automatically determined by the `build-celltype-ref.nf`:
-      - `<singler_ref_name>` represents the reference dataset name.
-      - `<source>` represents the reference dataset source. Currently only `celldex` is supported.
-      - `<version>` represents the source (`celldex`) version, where periods are replaced with dashes (e.g. version `x.y.z` would be represented as `x-y-z`).
-    - `SingleR` trained model files for the given Nextflow parameter `singler_label_name` should be in `s3://scpca-references/celltype/singler_models` and named as `<singler_ref_name>_<source>_<version>_model.rds`.
-    These file names should match their corresponding reference files stored in `s3://scpca-references/celltype/singler_references`, but with the ending `_model.rds`.
-    - `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `<cellassign_ref_name>_<source>_<date>.tsv`.
-      - `<cellassign_ref_name>` represents the reference dataset name.
-      Names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
-      For example `blood-compartment` is comprised of blood and immune cell type markers.
-      - `<source>` represents the reference dataset source. Currently only `PanglaoDB` is supported.
-      - `<date>` represents the source (`PanglaoDB`) download date in ISO8601 format.
+3. Ensure that the new reference files are public and in the correct location on S3.
+   Reference file names will be automatically determined by the `build-celltype-ref.nf`.
+
+- `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<singler_ref_name>_<source>_<version>.rds`.
+  Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<singler_ref_name>_<source>_<version>_model.rds`.
+  Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
+  - `<singler_ref_name>` represents the reference dataset name.
+  - `<source>` represents the reference dataset source. Currently only `celldex` is supported.
+  - `<version>` represents the source (`celldex`) version, where periods are replaced with dashes (e.g. version `x.y.z` would be represented as `x-y-z`).
+- `CellAssign` organ-specific reference gene matrices should be in `s3://scpca-references/celltype/cellassign_references` named as `<cellassign_ref_name>_<source>_<date>.tsv`.
+  - `<cellassign_ref_name>` represents the reference dataset name.
+    Names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
+    The specific tissues/organs used for each set of markers is described in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+  - `<source>` represents the reference dataset source. Currently only `PanglaoDB` is supported.
+  - `<date>` represents the source (`PanglaoDB`) download date in ISO8601 format.
