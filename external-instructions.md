@@ -375,7 +375,7 @@ By default, `SingleR` annotation uses references from the [`celldex` package](ht
 Available references include `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, and `MonacoImmuneData`.
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
-`SingleR` reference files that you can specify in the `celltype_project_metafile` are stored in `s3:://scpca-references/celltype/singler_models` and are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
+`SingleR` reference files are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
 For example, consider the reference file `BlueprintEncodeData_celldex_1-10-1_model.rds`:
 
 - The reference name is `BlueprintEncodeData`.
@@ -387,7 +387,7 @@ By default, `CellAssign` annotation uses marker gene set references from [Pangla
 Available references include `blood-compartment`, `brain-compartment`, and `muscle-compartment`.
 The specific organs used to compile marker gene references are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
-`CellAssign` marker gene reference files that you can specify in the `celltype_project_metafile` are stored in `s3:://scpca-references/celltype/cellassign_references` and are formatted as `<cellassign_ref_name>_PanglaoDB_<date>.tsv`.
+`CellAssign` marker gene reference files are formatted as `<cellassign_ref_name>_PanglaoDB_<date>.tsv`.
 For example, consider the reference file `blood-compartment_PanglaoDB_2020-03-27.tsv`:
 
 - The reference name is `blood-compartment`.
