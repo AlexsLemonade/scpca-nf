@@ -50,10 +50,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # Set up -----------------------------------------------------------------------
 
 #' Get reference information from a reference file
-#' 
+#'
 #' @param ref_filename reference file name to parse
 #' @extension file extension to consider during parsing
-#' 
+#'
 #' @return list of reference file components to include in SCE metadata
 get_ref_info <- function(ref_filename, extension) {
   ref_info <- ref_filename |>
@@ -140,8 +140,8 @@ if (!is.null(opt$singler_results)) {
   metadata(sce)$singler_results <- singler_results
   metadata(sce)$singler_reference <- singler_ref_info[["ref_name"]]
   metadata(sce)$singler_reference_label <- label_type
-  metadata(sce)$singler_ref_source <- singler_ref_info[["ref_source"]]
-  metadata(sce)$singler_ref_version <- singler_ref_info[["ref_version"]]
+  metadata(sce)$singler_reference_source <- singler_ref_info[["ref_source"]]
+  metadata(sce)$singler_reference_version <- singler_ref_info[["ref_version"]]
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
@@ -189,8 +189,8 @@ if (!is.null(opt$cellassign_predictions)) {
   # add entire predictions matrix, ref name, and version to metadata
   metadata(sce)$cellassign_predictions <- predictions
   metadata(sce)$cellassign_reference <- cellassign_ref_info[["ref_name"]]
-  metadata(sce)$cellassign_ref_source <- cellassign_ref_info[["ref_source"]]
-  metadata(sce)$cellassign_ref_version <- cellassign_ref_info[["ref_version"]]
+  metadata(sce)$cellassign_reference_source <- cellassign_ref_info[["ref_source"]]
+  metadata(sce)$cellassign_reference_version <- cellassign_ref_info[["ref_version"]]
 
   # add cellassign as celltype method
   # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
