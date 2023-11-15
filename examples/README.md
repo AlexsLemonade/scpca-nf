@@ -4,12 +4,13 @@
 
 This directory contains the following example files:
 
-- An example [Nextflow configuration file (`user_template.config`)](../external-instructions.md#configuration-files) for the `scpca-nf` workflow.
-- An example [`run_metadata.tsv` file](../external-instructions.md#prepare-the-run-metadata-file) for the `scpca-nf` workflow.
-- An example [`sample_metadata.tsv` file](../external-instructions.md#prepare-the-sample-metadata-file) for the `scpca-nf` workflow.
-- An example [`multiplex_pools.tsv` file](../external-instructions.md#multiplexed-cellhash-libraries) for the `scpca-nf` workflow.
-- An example [`project_celltype_metadata.tsv` file](../external-instructions.md#preparing-the-cell-type-project-metadata-file) for performing optional cell type annotation in the `scpca-nf` workflow.
-- An example [submitter cell type annotation file](../external-instructions.md#providing-existing-cell-type-labels) for optionally providing previously-obtained cell type annotations to the `scpca-nf` workflow.
+| File name | Description |
+|-----------|-------------|
+| `user_template.config` | An example [Nextflow configuration file](../external-instructions.md#configuration-files) for the `scpca-nf` workflow |
+| `example_run_metadata.tsv` | An example [run metadata file](../external-instructions.md#prepare-the-run-metadata-file) for the `scpca-nf` workflow. |
+| `example_sample_metadata.tsv`| An example [sample metadata file](../external-instructions.md#prepare-the-sample-metadata-file) for the `scpca-nf` workflow. |
+| `example_multiplex_pools.tsv` | An example [multiplex pool file](../external-instructions.md#multiplexed-cellhash-libraries) for the `scpca-nf` workflow.|
+| `example_project_celltype_metadata.tsv` | An example [project cell type metadata file](../external-instructions.md#preparing-the-cell-type-project-metadata-file) for performing optional cell type annotation in the `scpca-nf` workflow. |
 
 These files provide examples of expected formatting and content, but note that the specific values in these files may not be applicable or sufficient for running `scpca-nf` directly on your system.
 
