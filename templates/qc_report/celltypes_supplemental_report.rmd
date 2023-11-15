@@ -280,10 +280,10 @@ heatmap_height <- 1
 
 
 This report contains a summary of cell type annotation results for library `r library_id`.
-This goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
+The goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
 
 Performing cell type annotation is an inherently challenging task with high levels of uncertainty, especially when using automated annotation methods.
-One way to address this is to perform multiple cell type annotation approaches and compare the results, as we have begun to do in this report.
+One way to address this is to use multiple cell type annotation approaches and compare the results, as we have begun to do in this report.
 
 When multiple methods annotate a given cell as the same or similar cell type, this may qualitatively indicate a more robust annotation.
 
@@ -307,22 +307,22 @@ if (has_submitter) {
 if (has_singler) {
   methods_text <- glue::glue(
     "{methods_text}
-    * [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) annotation, a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
+    * Annotations from [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
     The `{metadata(processed_sce)$singler_reference}` dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for reference annotations.\n"
   )
 }
 
 if (has_cellassign) {
-  # TODO: UPDATE THIS STRING WRANGLING WHEN THE REFERENCE NAME CHANGES
   tissue_type <- stringr::word(
+    # eg, "blood-compartment"
     metadata(processed_sce)$cellassign_reference,
-    -1,
+    1,
     sep = "-"
   )
 
   methods_text <- glue::glue(
     "{methods_text}
-    * [`CellAssign`](https://github.com/Irrationone/cellassign) annotation, a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
+    * Annotations from [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
     Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).\n
     "
   )
@@ -341,7 +341,7 @@ glue::glue("{methods_text}")
 
 This section displays heatmaps comparing cell labels from various methods.
 
-We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels from different methods.
+We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels assigned by different annotation methods.
 
 The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1.
 
@@ -353,7 +353,7 @@ High agreement between methods qualitatively indicates higher confidence in the 
 
 ## Unsupervised clustering
 
-Here we show the labels from unsupervised clustering compared against cell type annotations.
+Here we show the labels from unsupervised clustering compared to cell type annotations.
 Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
 
 
@@ -500,8 +500,6 @@ create_single_heatmap(
 ```{r, eval = has_singler | has_cellassign }
 knitr::asis_output("
 # Quality assessments of automated annotations
-
-In this section, we assess the quality of automated cell type annotations using diagnostic plots.
 ")
 ```
 
@@ -511,22 +509,22 @@ In this section, we assess the quality of automated cell type annotations using 
 knitr::asis_output("
 ## `SingleR` annotations
 
-To assess the quality of `SingleR` cell type annotations, we use the _delta median_ statistic.
+To assess the quality of `SingleR` cell type annotations, we use the delta median statistic.
 
-- _Delta median_ is calculated for each cell as the difference between the `SingleR` score of the annotated cell type label and the median score of the other cell type labels in the reference dataset.
-- Higher _delta median_ values indicate higher quality cell type annotations.
+- Delta median is calculated for each cell as the difference between the `SingleR` score of the annotated cell type label and the median score of the other cell type labels in the reference dataset.
+- Higher delta median values indicate higher quality cell type annotations.
   - Values can range from 0-1.
   - Note that there is no universal threshold for calling absolute high vs. low quality, as described in the [`SingleR` book section on 'Annotation diagnostics'](https://bioconductor.org/books/release/SingleRBook/annotation-diagnostics.html#annotation-diagnostics).
 
 You can interpret this plot as follows:
 
-- Each point represents the _delta median_ statistic of a given cell whose `SingleR` annotation is shown on the y-axis.
-- The point color indicates `SingleR`'s quality assessment of the annotation:
+- Each point represents the delta median statistic of a given cell whose `SingleR` annotation is shown on the y-axis.
+- The point style indicates `SingleR`'s quality assessment of the annotation:
   - High-quality cell annotations are shown as closed points.
   - Low-quality cell annotations are shown as open points.
-  In other sections of this report, these cells are referred to as `Unknown cell types`.
+  In other sections of this report, these cells are labeled as `Unknown cell types`.
   - For more information on how `SingleR` calculates annotation quality, please refer to [this `SingleR` documentation](https://rdrr.io/bioc/SingleR/man/pruneScores.html).
-- Red diamonds represent the median _delta median_ statistic among high-quality annotations for the given cell type label.
+- Diamonds represent the median of the delta median statistic specifically among high-quality annotations for the given cell type annotation.
 ")
 ```
 
@@ -643,7 +641,7 @@ ggplot(delta_median_df) +
 knitr::asis_output("
 ## `CellAssign` annotations
 
-To assess the quality of `CellAssign` cell type annotations, we look at the probability associated with the annotated cell type.
+To assess the quality of `CellAssign` cell type annotations, we consider the probability associated with the annotated cell type.
 These probabilities are provided directly by `CellAssign`:
 
 - `CellAssign` first calculates the probability of each cell being annotated as each cell type present in the reference.
@@ -652,10 +650,10 @@ These probabilities are provided directly by `CellAssign`:
 We therefore expect reliable labels to have values close to 1.
 
 The plot below shows the distribution of `CellAssign`-calculated probabilities for the final cell type labels.
-Blue line segments shown as a 'rug' represent individual values that comprise each distribution.
+Line segments represent individual values that comprise each distribution.
 
-Note that no distrubution is shown for cell types with 2 or fewer labeled cells, but rug points are shown.
-Rug points are also taller for any cell type label with 5 or fewer cells.
+For cell types with 2 or fewer labeled cells, only the individual value line segments are shown.
+Line segments are also taller for any cell type label with 5 or fewer cells.
 ")
 
 # Determine height in inches for plot area
