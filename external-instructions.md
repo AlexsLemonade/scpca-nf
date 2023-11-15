@@ -16,7 +16,7 @@
     - [Downloading container images](#downloading-container-images)
 - [Repeating mapping steps](#repeating-mapping-steps)
 - [Cell type annotation](#cell-type-annotation)
-  - [Specifying cell type annotation references](#specifying-cell-type-annotation-references)
+  - [Preparing the cell type project metadata file](#preparing-the-cell-type-project-metadata-file)
     - [`SingleR` references](#singler-references)
     - [`CellAssign` references](#cellassign-references)
   - [Repeating cell type annotation](#repeating-cell-type-annotation)
@@ -226,7 +226,7 @@ Processing single-cell and single-nuclei samples requires access to 24 GB of RAM
 To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
-**Note:** To use the default index files, which are stored on S3, compute nodes must have access to the internet.
+**Note:** To use the default index files and default cell type reference files, which are stored on S3, compute nodes must have access to the internet.
 You may also need to supply AWS credentials for S3 access, or set `aws.client.anonymous = true` within the Nextflow profile.
 
 In our example template file [`user_template.config`](examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
@@ -343,7 +343,23 @@ nextflow run AlexsLemonade/scpca-nf \
 
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
-You can turn on cell type annotation by using the `--perform_celltyping` flag.
+By default, no cell type annotation is performed.
+You can turn on cell type annotation by taking the following steps:
+
+1. Select appropriate reference dataset(s) to use with each method of interest
+2. Prepare a `celltype_project_metafile` to provide reference dataset information to the workflow.
+   You will need to provide the path/uri to this file as a workflow parameter, which you can specify either on the command line or define in your configuration file.
+3. Run the workflow with the `--perform_celltyping` flag.
+
+You would then run the workflow with cell type annotation from the command line as:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_celltyping \
+  --celltype_project_metafile examples/example_project_celltype_metadata.tsv
+```
+
+### Preparing the cell type project metadata file
 
 All libraries within a given project will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
 To specify these references, you will need to provide an additional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about cell type annotation references, for each of `SingleR` and `CellAssign`, for each project you wish to annotate.
@@ -358,18 +374,7 @@ The `celltype_project_metafile` file should contain these five columns with the 
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g., `blood-compartment`. Use `NA` to skip `CellAssign` annotation                         |
 | `cellassign_ref_file` | Path/uri to `CellAssign` reference file. The expected format for this file is described below. Use `NA` to skip `CellAssign` annotation |
 
-This file can be specified at the command line (shown below) or defined in your configuration file.
-For example, you would run from the command line as:
-
-```sh
-nextflow run AlexsLemonade/scpca-nf \
-  --perform_celltyping \
-  --celltype_project_metafile examples/example_project_celltype_metadata.tsv
-```
-
-### Specifying cell type annotation references
-
-The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv), for use in cell type annotation.
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) and available from S3, for use in cell type annotation.
 It is possible to provide your own references as well; instructions for this are forthcoming.
 Note that you must use one of the references described below to be eligible for inclusion in the ScPCA Portal.
 
