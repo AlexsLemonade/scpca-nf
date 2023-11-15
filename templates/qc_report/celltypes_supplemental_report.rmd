@@ -42,7 +42,6 @@ is_supplemental <- TRUE
 
 <!-- Import shared functions for cell type wrangling -->
 ```{r, child='utils/celltype_functions.rmd'}
-
 ```
 
 
@@ -269,10 +268,10 @@ available_celltypes <- c(
 
 # These variables need to be defined for edge conditions when certain cell types
 #  aren't available:
-#  When we have chunks with `eval=<has_method>`, knitr seems to need all other 
-#  variables used in chunk params defined, including plot dimension variables 
-#  which would have only been created in chunks which also had an associated 
-#  eval=<has_method>`. Since those chunks won't have been eval'd if FALSE, we 
+#  When we have chunks with `eval=<has_method>`, knitr seems to need all other
+#  variables used in chunk params defined, including plot dimension variables
+#  which would have only been created in chunks which also had an associated
+#  eval=<has_method>`. Since those chunks won't have been eval'd if FALSE, we
 #  need to define these variables to prevent errors. BUT THEY ARE NOT USED WITH
 #  THESE VALUES.
 plot_height <- 1
@@ -308,22 +307,22 @@ if (has_submitter) {
 if (has_singler) {
   methods_text <- glue::glue(
     "{methods_text}
-    * [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) annotation, a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
+    * Annotations from [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), a reference-based approach ([Looney _et al._ 2019](https://doi.org/10.1038/s41590-018-0276-y)).
     The `{metadata(processed_sce)$singler_reference}` dataset, obtained from the [`celldex` package](http://bioconductor.org/packages/release/data/experiment/html/celldex.html), was used for reference annotations.\n"
   )
 }
 
 if (has_cellassign) {
-  # TODO: UPDATE THIS STRING WRANGLING WHEN THE REFERENCE NAME CHANGES
   tissue_type <- stringr::word(
+    # eg, "blood-compartment"
     metadata(processed_sce)$cellassign_reference,
-    -1,
+    1,
     sep = "-"
   )
 
   methods_text <- glue::glue(
     "{methods_text}
-    * [`CellAssign`](https://github.com/Irrationone/cellassign) annotation, a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
+    * Annotations from [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
     Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).\n
     "
   )
@@ -335,7 +334,6 @@ glue::glue("{methods_text}")
 
 <!------- Call the celltypes_qc report section from the main report ----------->
 ```{r, child='celltypes_qc.rmd'}
-
 ```
 
 
@@ -741,4 +739,3 @@ if (requireNamespace("sessioninfo", quietly = TRUE)) {
 }
 ```
 </details>
-
