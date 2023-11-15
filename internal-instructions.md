@@ -125,7 +125,9 @@ Inside the `references` folder are files and scripts related to maintaining the 
    For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
    This file is required as input to `scpca-nf`.
 
-3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type annotation. This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow. See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for additional details.
+3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type annotation.
+This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for performing cell type annotation from the main workflow.
+See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for additional details.
     - For all references, the following columns will be populated:
       - `celltype_ref_name` (e.g., `BlueprintEncodeData` or `blood-compartment`)
       - `celltype_ref_source` (e.g., `celldex` or `PanglaoDB`)
