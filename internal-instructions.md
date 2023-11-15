@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
@@ -130,12 +129,12 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file is required as input to the `build-celltype-ref.nf` workflow to create and/or update cell type references.
    For all references, the following columns must be populated:
 
-   - `celltype_ref_name` (e.g., `BlueprintEncodeData` or `blood-compartment`)
-   - `celltype_ref_source` (e.g., `celldex` or `PanglaoDB`)
-   - `celltype_method` (e.g., `SingleR` or `CellAssign`)
-   - All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
-     This should be a comma-separated list of all organs to include.
-     To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
+     - `celltype_ref_name` (e.g., `BlueprintEncodeData` or `blood-compartment`)
+     - `celltype_ref_source` (e.g., `celldex` or `PanglaoDB`)
+     - `celltype_method` (e.g., `SingleR` or `CellAssign`)
+     - All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+       This should be a comma-separated list of all organs to include.
+       To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
 
    See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
@@ -184,7 +183,7 @@ Follow these steps to add support for additional cell type references.
     - `<celltype_ref_source>` represents the reference dataset source. Currently only `celldex` and `PanglaoDB` are supported for `SingleR` and `CellAssign`, respectively.
     - `<celltype_method>` represents which annotation method to use with the specified reference, either `SingleR` or `CellAssign`.
     - `organs` indicates which organs to be included in creation of references with `PanglaoDB` as the `celltype_ref_source`.
-  This must be a comma separated list of all organs to include.
+       This must be a comma separated list of all organs to include.
 
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3.
