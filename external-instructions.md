@@ -347,7 +347,7 @@ By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest
-2. Prepare a `celltype_project_metafile` to provide reference dataset information to the workflow.
+2. Prepare a `celltype_project_metafile` to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
    You will need to provide the path/uri to this file as a workflow parameter, which you can specify either on the command line or define in your configuration file.
 3. Run the workflow with the `--perform_celltyping` flag.
 
@@ -362,8 +362,6 @@ nextflow run AlexsLemonade/scpca-nf \
 ### Preparing the cell type project metadata file
 
 All libraries within a given project will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
-To specify these references, you will need to provide an additional workflow parameter `celltype_project_metafile` containing the path/uri to a TSV file with information about cell type annotation references, for each of `SingleR` and `CellAssign`, for each project you wish to annotate.
-
 The `celltype_project_metafile` file should contain these five columns with the following information (see the example file in [`examples/example_project_celltype_metadata.tsv`](examples/example_project_celltype_metadata.tsv)):
 
 | column_id             | contents                                                                                                                                |
@@ -384,7 +382,7 @@ By default, `SingleR` annotation uses references from the [`celldex` package](ht
 Available references include `BlueprintEncodeData`, `DatabaseImmuneCellExpressionData`, `HumanPrimaryCellAtlasData`, and `MonacoImmuneData`.
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
-`SingleR` reference files that you can specify in the `celltype_project_metafile` are saved in `s3:://scpca-references/celltype/singler_models` and are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
+`SingleR` reference files that you can specify in the `celltype_project_metafile` are stored in `s3:://scpca-references/celltype/singler_models` and are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
 
 For example, to use the `BlueprintEncodeData` reference, you would specify the following values in `celltype_project_metafile`:
 
@@ -396,9 +394,9 @@ For example, to use the `BlueprintEncodeData` reference, you would specify the f
 
 By default, `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/), as compiled by the Data Lab to represent common organ/tissue groupings/
 Available references include `blood-compartment`, `brain-compartment`, and `muscle-compartment`.
-The specific organs used to compile marker gene references are given in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+The specific organs used to compile marker gene references are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
-`CellAssign` marker gene reference files that you can specify in the `celltype_project_metafile` are saved in `s3:://scpca-references/celltype/cellassign_references` and are formatted as `<cellassign_ref_name>_<source>_<date>.tsv`
+`CellAssign` marker gene reference files that you can specify in the `celltype_project_metafile` are stored in `s3:://scpca-references/celltype/cellassign_references` and are formatted as `<cellassign_ref_name>_<source>_<date>.tsv`
 
 For example, to use the `blood-compartment` reference, you would specify the following values in `celltype_project_metafile`:
 
