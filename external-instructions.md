@@ -14,7 +14,6 @@
   - [Using `scpca-nf` on nodes without direct internet access](#using-scpca-nf-on-nodes-without-direct-internet-access)
     - [Additional reference files](#additional-reference-files)
     - [Downloading container images](#downloading-container-images)
-- [Repeating mapping steps](#repeating-mapping-steps)
 - [Cell type annotation](#cell-type-annotation)
   - [Choosing reference datasets](#choosing-reference-datasets)
     - [`SingleR` references](#singler-references)
@@ -27,6 +26,8 @@
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
   - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
+- [Additional workflow settings](#additional-workflow-settings)
+  - [Repeating mapping steps](#repeating-mapping-steps)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -329,19 +330,6 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 ./get_refs.py --singularity --singularity_dir "$HOME/singularity"
 ```
 
-## Repeating mapping steps
-
-By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `checkpoints` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`).
-If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
-However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process.
-
-To force repeating the mapping process, use the `--repeat_mapping` flag at the command line:
-
-```sh
-nextflow run AlexsLemonade/scpca-nf \
-  --repeat_mapping
-```
-
 ## Cell type annotation
 
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
@@ -610,3 +598,18 @@ As an example, the Dockerfile that we used to build Space Ranger can be found [h
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file.
 _Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
+
+## Additional workflow settings
+
+### Repeating mapping steps
+
+By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `checkpoints` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`).
+If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
+However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process.
+
+To force repeating the mapping process, use the `--repeat_mapping` flag at the command line:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --repeat_mapping
+```
