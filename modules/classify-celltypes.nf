@@ -123,7 +123,7 @@ workflow annotate_celltypes {
     processed_sce_channel = sce_files_channel.map{[it[0], it[3]]}
 
     // channel with celltype model and project ids
-    celltype_ch = Channel.fromPath(params.celltype_project_metafile)
+    celltype_ch = Channel.fromPath(params.project_celltype_metafile)
       .splitCsv(header: true, sep: '\t')
       .map{[
         // project id
