@@ -8,8 +8,6 @@ author: "Childhood Cancer Data Lab"
 date: "`r params$date`"
 output:
   html_document:
-    theme:
-      version: 5
     toc: true
     toc_depth: 2
     toc_float:
@@ -26,7 +24,6 @@ knitr::opts_chunk$set(
 
 library(SingleCellExperiment)
 library(ggplot2)
-library(bslib)
 
 # Set default ggplot theme
 theme_set(
@@ -379,7 +376,7 @@ High agreement between methods qualitatively indicates higher confidence in the 
 <!-- If multiplexed, show info alert instead of this heatmap --> 
 ```{r, eval = has_multiplex, results='asis'}
 glue::glue("
- <div class=\"alert alert-secondary\">
+ <div class=\"alert alert-info\">
 
   No heatmap comparing cluster and cell type annotation labels is shown because the presence of multiple samples may confound cluster assignment.
 
