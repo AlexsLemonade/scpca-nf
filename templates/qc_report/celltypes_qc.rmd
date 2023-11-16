@@ -187,6 +187,17 @@ umap_df <- lump_celltypes(celltype_df)
 
 
 <!-- First UMAP: clusters -->
+
+```{r, eval = has_multiplex, results='asis'}
+glue::glue("
+  <div class=\"alert alert-info\">
+    This library contains multiple samples that have not been integrated, which may confound clustering assignments.
+    Please use caution when interpreting these results.
+  </div>
+")
+```
+
+
 ```{r message=FALSE, warning=FALSE}
 clusters_plot <- plot_umap(
   umap_df,
