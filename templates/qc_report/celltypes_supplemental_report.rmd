@@ -275,29 +275,34 @@ available_celltypes <- c(
 #  need to define this variable to prevent errors, but this value will never
 #  actually be used.
 plot_height <- 1
-```
 
-<!-- If multiplexed, open with warning  --> 
-```{r, results='asis'}
-# determine if library is multiplexed, and print warning if so
+# Determine if library is multiplexed:
+#  sample_id should be defined with length > 1
+has_multiplex <- FALSE
 sample_id <- metadata(processed_sce)$sample_id
 if (!is.null(sample_id)) {
   if (length(sample_id) > 1) {
-    # convert sample id to bullet separated list
-    multiplex_samples <- paste0("<li>", paste(sample_id, collapse = "</li><li>", "</li>"))
-    glue::glue("
-      <div class=\"alert alert-warning\">
-
-      This library is multiplexed and contains data from more than one sample.
-      Data from the following samples are included in this library:
-
-      {multiplex_samples}
-
-      </div>
-    ")
+    has_multiplex <- TRUE
   }
 }
 ```
+
+<!-- If multiplexed, open with warning  --> 
+```{r, eval = has_multiplex, results='asis'}
+# convert sample id to bullet separated list
+multiplex_samples <- paste0("<li>", paste(sample_id, collapse = "</li><li>", "</li>"))
+glue::glue("
+ <div class=\"alert alert-warning\">
+
+ This library is multiplexed and contains data from more than one sample.
+ Data from the following samples are included in this library:
+
+    {multiplex_samples}
+
+  </div>
+")
+```
+
 This report contains a summary of cell type annotation results for library `r library_id`.
 The goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
 
@@ -399,6 +404,7 @@ plot_height <- calculate_plot_height(
   length(jaccard_cluster_matrices) - 1
 )
 ```
+
 
 ```{r, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
