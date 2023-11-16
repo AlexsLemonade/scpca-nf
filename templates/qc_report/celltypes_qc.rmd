@@ -191,7 +191,7 @@ umap_df <- lump_celltypes(celltype_df)
 ```{r, eval = has_multiplex, results='asis'}
 glue::glue("
   <div class=\"alert alert-info\">
-    This library contains multiple samples that have not undergone batch correction, which may confound clustering assignments.
+    This library contains multiple samples that have not undergone batch correction, so clustering assignments may be confounded.
     Please use caution when interpreting these results.
   </div>
 ")
