@@ -276,7 +276,7 @@ wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/get_refs.py
 chmod +x get_refs.py
 ```
 
-Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
+Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression datasets to the subdirectory `scpca-references` at your current location.
 The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` Nextflow parameter required to use these local data files.
 To run with these settings
 
@@ -340,7 +340,7 @@ You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
 2. [Prepare a `celltype_project_metafile` TSV](#preparing-the-cell-type-project-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
-   You will need to provide the path/uri to this file as a workflow parameter, which you will need to define in your configuration file.
+   You will need to provide the path/uri to this file as a workflow parameter (`celltype_project_metafile`), which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
 3. Run the workflow with the `--perform_celltyping` flag.
 
@@ -360,27 +360,19 @@ Note that you must use one of the references described here to be eligible for i
 
 #### `SingleR` references
 
-By default, `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
-TODO: AVAILABLE REFERENCES ARE LISTED HERE.
+The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
+In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
+
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
-
-`SingleR` reference files are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
-For example, consider the reference file `BlueprintEncodeData_celldex_1-10-1_model.rds`:
-
-- The reference name is `BlueprintEncodeData`.
-- The `celldex` version is `1.10.1` (for the file name we substitute dashes for periods).
 
 #### `CellAssign` references
 
-By default, `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/), as compiled by the Data Lab to represent common organ/tissue groupings.
-TODO: AVAILABLE REFERENCES ARE LISTED HERE.
-The specific organs used to compile marker gene references are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
+In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
-`CellAssign` marker gene reference files are formatted as `<cellassign_ref_name>_PanglaoDB_<date>.tsv`.
-For example, consider the reference file `blood-compartment_PanglaoDB_2020-03-27.tsv`:
-
-- The reference name is `blood-compartment`.
-- The `PanglaoDB` date (which represents the `PanglaoDB` version) is `2020-03-27`.
+The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
+The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+For example, the reference `blood-compartment` includes cell types categorized in `PanglaoDB` with the organ names `Blood`, `Bone`, and `Immune system`.
 
 ### Preparing the cell type project metadata file
 
@@ -397,7 +389,7 @@ The `celltype_project_metafile` file should contain these five columns with the 
 
 We have provided an example cell type project metadata file for reference.
 
-| [View example `project_celltype_metadata.tsv` file](examples/example_project_celltype_metadata) |
+| [View example `celltype_project_metafile.tsv` file](examples/example_project_celltype_metadata.tsv) |
 | ----------------------------------------------------------------------------------------------- |
 
 ### Repeating cell type annotation
