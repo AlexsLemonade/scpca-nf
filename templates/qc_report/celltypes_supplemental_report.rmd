@@ -278,7 +278,6 @@ plot_height <- 1
 
 # Determine if library is multiplexed:
 #  sample_id should be defined with length > 1
-has_multiplex <- FALSE
 sample_id <- metadata(processed_sce)$sample_id
 has_multiplex <- length(sample_id) > 1
 ```
