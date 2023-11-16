@@ -389,7 +389,7 @@ The `celltype_project_metafile` file should contain these five columns with the 
 
 We have provided an example cell type project metadata file for reference.
 
-| [View example `celltype_project_metafile.tsv` file](examples/example_celltype_project_metadata.tsv) |
+| [View example `celltype_project_metafile.tsv` file](examples/example_celltype_project_metafile.tsv) |
 | ----------------------------------------------------------------------------------------------- |
 
 ### Repeating cell type annotation
