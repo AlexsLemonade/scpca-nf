@@ -276,7 +276,7 @@ wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/get_refs.py
 chmod +x get_refs.py
 ```
 
-Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
+Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression datasets to the subdirectory `scpca-references` at your current location.
 The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` Nextflow parameter required to use these local data files.
 To run with these settings
 
@@ -372,7 +372,7 @@ In this file, the column `filename` provides the reference file name, and the co
 
 The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
 The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
-References additionally include an `"other"` cell type label with no marker gene associations; cell types that `CellAssign` cannot confidently annotate based on the available marker genes are therefore annotated as `"other"`.
+For example, the reference `bone-compartment` includes cell types found in the `PanglaoDB` bone, blood, and immune system datasets.
 
 ### Preparing the cell type project metadata file
 
