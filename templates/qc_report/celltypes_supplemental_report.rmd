@@ -375,13 +375,29 @@ The Jaccard index reflects the degree of overlap between the two labels and rang
 High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
 
 
-## Unsupervised clustering
-
-Here we show the labels from unsupervised clustering compared to cell type annotations.
-Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
 
 
-```{r}
+
+<!-- If multiplexed, show info alert instead of this heatmap --> 
+```{r, eval = has_multiplex, results='asis'}
+glue::glue("
+ <div class=\"alert alert-info\">
+
+  No heatmap is shown for comparing cluster and cell type annnotation labels because the presence multiple samples may confound cluster assignment.
+
+  </div>
+")
+```
+
+<!-- If not multiplexed, show the header, text, and heatmap --> 
+```{r, eval = !has_multiplex, results='asis'}
+glue::glue("
+  ## Unsupervised clustering
+
+  Here we show the labels from unsupervised clustering compared to cell type annotations.
+  Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
+")
+
 # Calculate all jaccard matrices of interest for input to heatmap
 jaccard_cluster_matrices <- available_celltypes |>
   stringr::str_to_lower() |>
@@ -406,7 +422,7 @@ plot_height <- calculate_plot_height(
 ```
 
 
-```{r, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
+```{r, eval = !has_multiplex, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
   create_heatmap_list(
     column_title = "Clusters",
