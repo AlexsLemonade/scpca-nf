@@ -339,12 +339,12 @@ By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
-2. [Prepare a `celltype_project_metafile` TSV](#preparing-the-cell-type-project-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
-   You will need to provide the path/uri to this file as a workflow parameter (`celltype_project_metafile`), which you will need to define in your configuration file.
+2. [Prepare a `project_celltype_metafile` TSV](#preparing-the-cell-type-project-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
+   You will need to provide the path/uri to this file as a workflow parameter (`project_celltype_metafile`), which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
 3. Run the workflow with the `--perform_celltyping` flag.
 
-Once you have followed the above steps and added the path/uri to the `celltype_project_metafile` to your configuration file, you can use the following command to run the workflow with cell type annotation:
+Once you have followed the above steps and added the path/uri to the `project_celltype_metafile` to your configuration file, you can use the following command to run the workflow with cell type annotation:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
@@ -377,7 +377,7 @@ For example, the reference `blood-compartment` includes cell types categorized i
 ### Preparing the cell type project metadata file
 
 All libraries within a given project will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
-The `celltype_project_metafile` file should contain these five columns with the following information:
+The `project_celltype_metafile` file should contain these five columns with the following information:
 
 | column_id             | contents                                                                                                                              |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -389,7 +389,7 @@ The `celltype_project_metafile` file should contain these five columns with the 
 
 We have provided an example cell type project metadata file for reference.
 
-| [View example `celltype_project_metafile.tsv` file](examples/example_project_celltype_metadata.tsv) |
+| [View example `project_celltype_metafile.tsv` file](examples/example_project_celltype_metadata.tsv) |
 | ----------------------------------------------------------------------------------------------- |
 
 ### Repeating cell type annotation
