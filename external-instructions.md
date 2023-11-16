@@ -362,7 +362,7 @@ Note that you must use one of the references described here to be eligible for i
 
 By default, `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
 
-`SingleR` reference filenames prepared by the Data Lab are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
+`SingleR` reference filenames prepared by the Data Lab are formatted as `<singler_ref_name>_<source>_<source_version>_model.rds`.
 [Download this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv) to see the most up-to-date references; the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
