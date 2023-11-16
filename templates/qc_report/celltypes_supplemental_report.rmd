@@ -280,11 +280,7 @@ plot_height <- 1
 #  sample_id should be defined with length > 1
 has_multiplex <- FALSE
 sample_id <- metadata(processed_sce)$sample_id
-if (!is.null(sample_id)) {
-  if (length(sample_id) > 1) {
-    has_multiplex <- TRUE
-  }
-}
+has_multiplex <- length(sample_id) > 1
 ```
 
 <!-- If multiplexed, open with warning  --> 
@@ -383,7 +379,7 @@ High agreement between methods qualitatively indicates higher confidence in the 
 glue::glue("
  <div class=\"alert alert-info\">
 
-  No heatmap is shown for comparing cluster and cell type annnotation labels because the presence multiple samples may confound cluster assignment.
+  No heatmap comparing cluster and cell type annotation labels is shown because the presence of multiple samples may confound cluster assignment.
 
   </div>
 ")
