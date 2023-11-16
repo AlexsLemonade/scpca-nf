@@ -266,18 +266,37 @@ available_celltypes <- c(
   na.omit() |>
   as.character()
 
-# These variables need to be defined for edge conditions when certain cell types
+# This variable need to be defined for edge conditions when certain cell types
 #  aren't available:
 #  When we have chunks with `eval=<has_method>`, knitr seems to need all other
 #  variables used in chunk params defined, including plot dimension variables
 #  which would have only been created in chunks which also had an associated
 #  eval=<has_method>`. Since those chunks won't have been eval'd if FALSE, we
-#  need to define these variables to prevent errors. BUT THEY ARE NOT USED WITH
-#  THESE VALUES.
+#  need to define this variable to prevent errors, but this value will never
+#  actually be used.
 plot_height <- 1
-heatmap_height <- 1
+
+# Determine if library is multiplexed:
+#  sample_id should be defined with length > 1
+sample_id <- metadata(processed_sce)$sample_id
+has_multiplex <- length(sample_id) > 1
 ```
 
+<!-- If multiplexed, open with warning  --> 
+```{r, eval = has_multiplex, results='asis'}
+# convert sample id to bullet separated list
+multiplex_samples <- paste0("<li>", paste(sample_id, collapse = "</li><li>", "</li>"))
+glue::glue("
+ <div class=\"alert alert-warning\">
+
+ This library is multiplexed and contains data from more than one sample.
+ Data from the following samples are included in this library:
+
+    {multiplex_samples}
+
+  </div>
+")
+```
 
 This report contains a summary of cell type annotation results for library `r library_id`.
 The goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
@@ -351,13 +370,29 @@ The Jaccard index reflects the degree of overlap between the two labels and rang
 High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
 
 
-## Unsupervised clustering
-
-Here we show the labels from unsupervised clustering compared to cell type annotations.
-Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
 
 
-```{r}
+
+<!-- If multiplexed, show info alert instead of this heatmap --> 
+```{r, eval = has_multiplex, results='asis'}
+glue::glue("
+ <div class=\"alert alert-info\">
+
+  No heatmap comparing cluster and cell type annotation labels is shown because the presence of multiple samples may confound cluster assignment.
+
+  </div>
+")
+```
+
+<!-- If not multiplexed, show the header, text, and heatmap --> 
+```{r, eval = !has_multiplex, results='asis'}
+glue::glue("
+  ## Unsupervised clustering
+
+  Here we show the labels from unsupervised clustering compared to cell type annotations.
+  Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
+")
+
 # Calculate all jaccard matrices of interest for input to heatmap
 jaccard_cluster_matrices <- available_celltypes |>
   stringr::str_to_lower() |>
@@ -374,14 +409,15 @@ all_celltypes <- jaccard_cluster_matrices |>
   purrr::map(colnames) |>
   unlist()
 
-heatmap_height <- calculate_plot_height(
+plot_height <- calculate_plot_height(
   all_celltypes,
   unique(celltype_df$cluster),
   length(jaccard_cluster_matrices) - 1
 )
 ```
 
-```{r, fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
+
+```{r, eval = !has_multiplex, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
   create_heatmap_list(
     column_title = "Clusters",
@@ -433,14 +469,14 @@ all_celltypes <- jaccard_submitter_matrices |>
   purrr::map(colnames) |>
   unlist()
 
-heatmap_height <- calculate_plot_height(
+plot_height <- calculate_plot_height(
   all_celltypes,
   unique(celltype_df$submitter_celltype_annotation),
   length(jaccard_submitter_matrices) - 1
 )
 ```
 
-```{r, eval = has_submitter & (has_cellassign | has_singler), fig.height = heatmap_height, fig.width = 8.5, warning = FALSE}
+```{r, eval = has_submitter & (has_cellassign | has_singler), fig.height = plot_height, fig.width = 8.5, warning = FALSE}
 jaccard_submitter_matrices |>
   create_heatmap_list(
     column_title = "Submitter-provided annotations",
@@ -465,7 +501,7 @@ Note that due to different annotations references, these methods may use differe
 
 # Set plot dimensions based on number of SingleR cell types
 all_celltypes <- levels(celltype_df$singler_celltype_annotation)
-heatmap_height <- calculate_plot_height(
+plot_height <- calculate_plot_height(
   unique(celltype_df$singler_celltype_annotation),
   unique(celltype_df$cellassign_celltype_annotation),
   0
@@ -473,7 +509,7 @@ heatmap_height <- calculate_plot_height(
 ```
 
 
-```{r, eval = has_cellassign & has_singler, fig.height = heatmap_height, fig.width = 8.5}
+```{r, eval = has_cellassign & has_singler, fig.height = plot_height, fig.width = 8.5}
 # Calculate jaccard matrix
 singler_cellassign_matrix <- make_jaccard_matrix(
   celltype_df,
