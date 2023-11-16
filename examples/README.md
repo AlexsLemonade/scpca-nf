@@ -10,7 +10,7 @@ This directory contains the following example files:
 | `example_run_metadata.tsv` | An example [run metadata file](../external-instructions.md#prepare-the-run-metadata-file) for the `scpca-nf` workflow. |
 | `example_sample_metadata.tsv`| An example [sample metadata file](../external-instructions.md#prepare-the-sample-metadata-file) for the `scpca-nf` workflow. |
 | `example_multiplex_pools.tsv` | An example [multiplex pool file](../external-instructions.md#multiplexed-cellhash-libraries) for the `scpca-nf` workflow.|
-| `example_project_celltype_metadata.tsv` | An example [project cell type metadata file](../external-instructions.md#preparing-the-cell-type-project-metadata-file) for performing optional cell type annotation in the `scpca-nf` workflow. |
+| `example_celltype_project_metadata.tsv` | An example [cell type project metadata file](../external-instructions.md#preparing-the-cell-type-project-metadata-file) for performing optional cell type annotation in the `scpca-nf` workflow. |
 
 These files provide examples of expected formatting and content, but note that the specific values in these files may not be applicable or sufficient for running `scpca-nf` directly on your system.
 
