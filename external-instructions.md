@@ -360,19 +360,19 @@ Note that you must use one of the references described here to be eligible for i
 
 #### `SingleR` references
 
-By default, `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
+The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
+In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
-`SingleR` reference filenames prepared by the Data Lab are formatted as `<singler_ref_name>_<source>_<source_version>_model.rds`.
-[Download this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv) to see the most up-to-date references; the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
 #### `CellAssign` references
 
-By default, `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/), as compiled by the Data Lab to represent common organ/tissue groupings.
-`CellAssign` reference filenames are formatted as `<cellassign_ref_name>_PanglaoDB_<PanglaoDB_version_date>.tsv`.
-[Download this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv) to see the most up-to-date references; the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
-The specific organs used to compile marker gene references are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
+In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
+The Data Lab compiled each reference by combining cell types from given a set of organ-specific marker genes in `PanglaoDB`.
+The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+References additionally include an `"other"` cell type label with no marker gene associations; cell types that `CellAssign` cannot confidently annotate based on the available marker genes are therefore annotated as `"other"`.
 
 ### Preparing the cell type project metadata file
 
