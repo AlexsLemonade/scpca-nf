@@ -361,26 +361,18 @@ Note that you must use one of the references described here to be eligible for i
 #### `SingleR` references
 
 By default, `SingleR` annotation uses references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html).
-TODO: AVAILABLE REFERENCES ARE LISTED HERE.
+
+`SingleR` reference filenames prepared by the Data Lab are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
+[Download this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv) to see the most up-to-date references; the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
-
-`SingleR` reference files are formatted as `<singler_ref_name>_celldex_<celldex_version>_model.rds`.
-For example, consider the reference file `BlueprintEncodeData_celldex_1-10-1_model.rds`:
-
-- The reference name is `BlueprintEncodeData`.
-- The `celldex` version is `1.10.1` (for the file name we substitute dashes for periods).
 
 #### `CellAssign` references
 
 By default, `CellAssign` annotation uses marker gene set references from [PanglaoDB](https://panglaodb.se/), as compiled by the Data Lab to represent common organ/tissue groupings.
-TODO: AVAILABLE REFERENCES ARE LISTED HERE.
+`CellAssign` reference filenames are formatted as `<cellassign_ref_name>_PanglaoDB_<PanglaoDB_version_date>.tsv`.
+[Download this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv) to see the most up-to-date references; the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 The specific organs used to compile marker gene references are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
-`CellAssign` marker gene reference files are formatted as `<cellassign_ref_name>_PanglaoDB_<date>.tsv`.
-For example, consider the reference file `blood-compartment_PanglaoDB_2020-03-27.tsv`:
-
-- The reference name is `blood-compartment`.
-- The `PanglaoDB` date (which represents the `PanglaoDB` version) is `2020-03-27`.
 
 ### Preparing the cell type project metadata file
 
