@@ -18,7 +18,7 @@ process save_singler_refs {
   stub:
     // fill in a dummy version since we grab that as part of the script
     """
-    touch "${ref_name}_${ref_source}_v0-0-0.rds"
+    touch "${ref_name}_${ref_source}_0-0-0.rds"
     """
 
 }
@@ -53,6 +53,23 @@ process train_singler_models {
     """
 }
 
+process catalog_singler_models {
+  container params.TIDYVERSE_CONTAINER
+  publishDir "${params.singler_models_dir}"
+  input:
+    val celltype_references
+  output:
+    path "singler_models.tsv"
+  script:
+    """
+    make_celltype_ref_table.R "${celltype_references}" singler_models.tsv
+    """
+  stub:
+    """
+    touch singler_models.tsv
+    """
+}
+
 process generate_cellassign_refs {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.cellassign_ref_dir}"
@@ -83,6 +100,23 @@ process generate_cellassign_refs {
     """
 }
 
+process catalog_cellassign_refs {
+  container params.TIDYVERSE_CONTAINER
+  publishDir "${params.cellassign_ref_dir}"
+  input:
+    val celltype_references
+  output:
+    path "cellassign_references.tsv"
+  script:
+    """
+    make_celltype_ref_table.R "${celltype_references}" cellassign_references.tsv
+    """
+  stub:
+    """
+    touch cellassign_references.tsv
+    """
+}
+
 workflow build_celltype_ref {
 
   // read in json file with all reference paths
@@ -104,13 +138,17 @@ workflow build_celltype_ref {
     .map{[
       ref_name: it.celltype_ref_name,
       ref_source: it.celltype_ref_source
-      ]}
+    ]}
 
   // download and save reference files
   save_singler_refs(singler_refs_ch)
 
   // train cell type references using SingleR
   train_singler_models(save_singler_refs.out, t2g_3col_path)
+
+  // join model file names into a comma separated string
+  singler_models = train_singler_models.out.reduce{a, b -> "$a,$b"}
+  catalog_singler_models(singler_models)
 
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
@@ -122,6 +160,10 @@ workflow build_celltype_ref {
     ]}
 
   generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
+
+  // join reference file names into a comma separated string
+  cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
+  catalog_cellassign_refs(cellassign_refs)
 
 }
 
