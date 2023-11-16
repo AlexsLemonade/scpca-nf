@@ -372,7 +372,7 @@ In this file, the column `filename` provides the reference file name, and the co
 
 The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
 The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
-For example, the reference `bone-compartment` includes cell types found in the `PanglaoDB` bone, blood, and immune system datasets.
+For example, the reference `blood-compartment` includes cell types categorized in `PanglaoDB` with the organ names `Blood`, `Bone`, and `Immune system`.
 
 ### Preparing the cell type project metadata file
 
