@@ -103,9 +103,11 @@ nextflow pull AlexsLemonade/scpca-nf -r development
 
 nextflow run AlexsLemonade/scpca-nf -r development \
   -profile ccdl,batch \
+  --perform_celltyping \
   --run_ids run01 \
   --run_metafile s3://scpca-references/example-data/example_run_metadata.tsv \
   --sample_metafile s3://scpca-references/example-data/example_sample_metadata.tsv \
+  --celltype_project_metafile s3://scpca-references/example-data/example_project_celltype_metadata.tsv \
   --outdir s3://scpca-references/example-data/scpca_out
 ```
 
