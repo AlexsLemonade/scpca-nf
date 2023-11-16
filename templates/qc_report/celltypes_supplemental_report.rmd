@@ -277,7 +277,27 @@ available_celltypes <- c(
 plot_height <- 1
 ```
 
+<!-- If multiplexed, open with warning  --> 
+```{r, results='asis'}
+# determine if library is multiplexed, and print warning if so
+sample_id <- metadata(processed_sce)$sample_id
+if (!is.null(sample_id)) {
+  if (length(sample_id) > 1) {
+    # convert sample id to bullet separated list
+    multiplex_samples <- paste0("<li>", paste(sample_id, collapse = "</li><li>", "</li>"))
+    glue::glue("
+      <div class=\"alert alert-warning\">
 
+      This library is multiplexed and contains data from more than one sample.
+      Data from the following samples are included in this library:
+
+      {multiplex_samples}
+
+      </div>
+    ")
+  }
+}
+```
 This report contains a summary of cell type annotation results for library `r library_id`.
 The goal of this report is to provide more detailed information about cell type annotation results as an initial evaluation of their quality and reliability.
 
