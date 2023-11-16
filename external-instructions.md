@@ -370,7 +370,7 @@ Please consult the [`celldex` documentation](https://bioconductor.org/packages/r
 The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
 In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
-The Data Lab compiled each reference by combining cell types from given a set of organ-specific marker genes in `PanglaoDB`.
+The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
 The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 References additionally include an `"other"` cell type label with no marker gene associations; cell types that `CellAssign` cannot confidently annotate based on the available marker genes are therefore annotated as `"other"`.
 
