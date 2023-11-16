@@ -14,7 +14,7 @@
 # not using optparse as to avoid dependencies
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2) {
-  stop("Incorrect number of arguments")
+  stop("Exactly two arguments are required: <list,of,files> <output.tsv>")
 }
 
 reference_files <- args[1]
