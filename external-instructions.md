@@ -340,7 +340,7 @@ You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
 2. [Prepare a `celltype_project_metafile` TSV](#preparing-the-cell-type-project-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
-   You will need to provide the path/uri to this file as a workflow parameter, which you will need to define in your configuration file.
+   You will need to provide the path/uri to this file as a workflow parameter (`celltype_project_metafile`), which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
 3. Run the workflow with the `--perform_celltyping` flag.
 
@@ -389,7 +389,7 @@ The `celltype_project_metafile` file should contain these five columns with the 
 
 We have provided an example cell type project metadata file for reference.
 
-| [View example `project_celltype_metadata.tsv` file](examples/example_project_celltype_metadata) |
+| [View example `celltype_project_metafile.tsv` file](examples/example_celltype_project_metafile.tsv) |
 | ----------------------------------------------------------------------------------------------- |
 
 ### Repeating cell type annotation
