@@ -19,7 +19,7 @@
   - [Choosing reference datasets](#choosing-reference-datasets)
     - [`SingleR` references](#singler-references)
     - [`CellAssign` references](#cellassign-references)
-  - [Preparing the cell type project metadata file](#preparing-the-cell-type-project-metadata-file)
+  - [Preparing the project cell type metadata file](#preparing-the-project-cell-type-metadata-file)
   - [Repeating cell type annotation](#repeating-cell-type-annotation)
   - [Providing existing cell type labels](#providing-existing-cell-type-labels)
 - [Output files](#output-files)
@@ -125,14 +125,14 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | column_id | contents |
 | --------- | -------- |
 | `scpca_run_id`         | A unique run ID  |
-| `scpca_library_id`     | A unique library ID for each unique set of cells     |
-| `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)   |
-| `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID.      |
+| `scpca_library_id`     | A unique library ID for each unique set of cells |
+| `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
+| `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
 | `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
-| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version`          |
-| `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)         |
-| `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104`      |
-| `files_directory`       | The full path/uri to directory containing fastq files (unique per run)   |
+| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
+| `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
+| `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
+| `files_directory`       | The full path/uri to directory containing fastq files (unique per run) |
 
 The following optional columns may be necessary for running other data modalities (CITE-seq, spatial transcriptomics) or including existing cell type labels:
 
@@ -140,10 +140,10 @@ The following optional columns may be necessary for running other data modalitie
 | column_id | contents |
 | --------- | -------- |
 | `feature_barcode_file`      | The full path/uri to TSV file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls |
-| `feature_barcode_geom`      | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples)    |
-| `slide_section`             | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics)|
-| `slide_serial_number`       | The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)    |
-| `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file  |
+| `feature_barcode_geom`      | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
+| `slide_section`             | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
+| `slide_serial_number`       | The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics) |
+| `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file |
 
 We have provided an example run metadata file for reference.
 
@@ -180,7 +180,7 @@ Three workflow parameters are required for running `scpca-nf` on your own data:
 - `outdir`: the output directory where results will be stored.
   - The default output is `scpca_out`, but again, you will likely want to customize this.
 
-These parameters can be set at the command line using `--run_metafile <path to run_metafile>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
+These parameters can be set at the command line using `--run_metafile <path to run metadata file>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
 
 Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
@@ -200,8 +200,8 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 
 ```groovy
 // my_config.config
-params.run_metafile = '<path to run_metafile>'
-params.sample_metafile = '<path to sample_metafile>'
+params.run_metafile = '<path to run metadata file>'
+params.sample_metafile = '<path to sample metadata file>'
 params.outdir = '<path to output>'
 params.max_cpus = 24
 params.max_memory = 96.GB
@@ -339,12 +339,12 @@ By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
-2. [Prepare a `project_celltype_metafile` TSV](#preparing-the-cell-type-project-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
+2. [Prepare a project cell type metadata file](#preparing-the-project-cell-type-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
    You will need to provide the path/uri to this file as a workflow parameter (`project_celltype_metafile`), which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
 3. Run the workflow with the `--perform_celltyping` flag.
 
-Once you have followed the above steps and added the path/uri to the `project_celltype_metafile` to your configuration file, you can use the following command to run the workflow with cell type annotation:
+Once you have followed the above steps and added the path/uri to the project cell type metadata file to your configuration file, you can use the following command to run the workflow with cell type annotation:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
@@ -374,23 +374,23 @@ The Data Lab compiled each reference by combining marker gene lists from organ-s
 The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 For example, the reference `blood-compartment` includes cell types categorized in `PanglaoDB` with the organ names `Blood`, `Bone`, and `Immune system`.
 
-### Preparing the cell type project metadata file
+### Preparing the project cell type metadata file
 
 All libraries within a given project will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
-The `project_celltype_metafile` file should contain these five columns with the following information:
+The project cell type metadata file should contain these five columns with the following information:
 
-| column_id             | contents                                                                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `scpca_project_id`    | Project ID matching values in the run metadata file                                                                                   |
-| `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation                           |
-| `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation     |
-| `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation                        |
+| column_id             | contents |
+| --------------------- | -------- |
+| `scpca_project_id`    | Project ID matching values in the run metadata file |
+| `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
 | `cellassign_ref_file` | Path/uri to `CellAssign` reference file, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
 
-We have provided an example cell type project metadata file for reference.
+We have provided an example project cell type metadata file for reference.
 
-| [View example `project_celltype_metafile.tsv` file](examples/example_project_celltype_metadata.tsv) |
-| ----------------------------------------------------------------------------------------------- |
+| [View example `project_celltype_metadata.tsv` file](examples/example_project_celltype_metadata.tsv) |
+| --------------------------------------------------------------------------------------------------- |
 
 ### Repeating cell type annotation
 
@@ -413,11 +413,11 @@ If you have already performed cell type annotation and wish to include these lab
 This column should be filled with the path or uri to a TSV file containing cell type labels for the cells in the run.
 The cell type label file is a TSV file with the following required columns:
 
-| column_id              | contents                                        |
-| ---------------------- | ----------------------------------------------- |
+| column_id              | contents                                            |
+| ---------------------- | --------------------------------------------------- |
 | `scpca_library_id`     | Library ID matching values in the run metadata file |
-| `cell_barcode`         | The cell id with the given annotation label     |
-| `cell_type_assignment` | The annotation label for that cell              |
+| `cell_barcode`         | The cell id with the given annotation label         |
+| `cell_type_assignment` | The annotation label for that cell                  |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
 
@@ -566,10 +566,10 @@ The `feature_barcode_file` for each library should be listed in the [metadata fi
 The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
-| column_id          | contents                                                                                    |
-| ------------------ | ------------------------------------------------------------------------------------------- |
-| `scpca_library_id` | Multiplexed library ID matching values in the run metadata file.                                |
-| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library                          |
+| column_id          | contents  |
+| ------------------ | --------- |
+| `scpca_library_id` | Multiplexed library ID matching values in the run metadata file. |
+| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library |
 | `barcode_id`       | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
 Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
