@@ -223,13 +223,15 @@ find_label_size <- function(input_labels) {
 #' @param col_names Vector of column names
 #' @param n_spacers Number of spacers between stacked heatmaps
 #' @param spacer_size Spacer size in inches
+#' @param min_height Minimize height required. Default 4"
 #'
 #' @return Heatmap height in inches
 calculate_plot_height <- function(
     row_names,
     col_names,
     n_spacers,
-    spacer_size = heatmap_padding) {
+    spacer_size = heatmap_padding, 
+    min_height = 4) {
   # first, based on number of cells in row_names:
   #   6 cell types to an inch
   heat_height <- length(row_names) / 6
@@ -242,7 +244,9 @@ calculate_plot_height <- function(
   # finally, add in any padding
   heat_height <- heat_height + n_spacers * spacer_size
 
-  return(heat_height)
+  return( 
+    max(c(min_height, heat_height))
+  )
 }
 ```
 
@@ -390,7 +394,7 @@ glue::glue("
   ## Unsupervised clustering
 
   Here we show the labels from unsupervised clustering compared to cell type annotations.
-  Cluster assignment was performed using the `r metadata(processed_sce)$cluster_algorithm` algorithm.
+  Cluster assignment was performed using the `{metadata(processed_sce)$cluster_algorithm}` algorithm.
 ")
 
 # Calculate all jaccard matrices of interest for input to heatmap
@@ -627,7 +631,7 @@ delta_median_confident_df <- delta_median_df |>
 plot_height <- length(unique(delta_median_df$celltype)) / 2.5
 ```
 
-```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6.5}
+```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 8}
 # Plot delta_median across celltypes colored by pruning
 ggplot(delta_median_df) +
   aes(
@@ -697,7 +701,7 @@ plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation)
 ```
 
 
-```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 6}
+```{r, eval = has_cellassign, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 8}
 # define bandwidth for all calculations
 density_bw <- 0.03
 
@@ -740,7 +744,7 @@ ggplot(celltype_df) +
     x = "Probability of annotated cell type",
     y = ""
   ) +
-  coord_cartesian(xlim = c(0, 1)) +
+  scale_x_continuous(limits = c(0, 1)) +
   scale_y_continuous(expand = c(0.1, 0.1)) +
   scale_alpha_identity() +
   facet_grid(

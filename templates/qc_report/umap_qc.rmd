@@ -14,10 +14,10 @@ scater::plotUMAP(
   # remove axis numbers and background grid
   scale_x_continuous(labels = NULL, breaks = NULL) +
   scale_y_continuous(labels = NULL, breaks = NULL) +
-  coord_fixed() +
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
-  )
+  ) + 
+  theme(aspect.ratio = 1)
 ```
 
 ### Expression of highly variable genes
@@ -89,8 +89,8 @@ if (!is.null(processed_meta$highly_variable_genes)) {
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) +
     scale_y_continuous(labels = NULL, breaks = NULL) +
-    coord_fixed() +
     theme(
+      aspect.ratio = 1,
       legend.position = "bottom",
       axis.title = element_text(size = 9, color = "black"),
       strip.text = element_text(size = 8),
