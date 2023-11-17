@@ -23,8 +23,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-
- ## Overview
+## Overview
 
 Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
 Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
@@ -33,26 +32,23 @@ After identifying the system that you will use to execute the nextflow workflow,
 Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
-You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow:
-    - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that `scpca-nf` relies on.
-    This can be downloaded and installed by any user, with minimal external requirements.
-    - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
-    These usually require installation by system administrators, but most HPC systems have one available (usually Singularity).
-    - Other software dependencies, as well as the workflow files themselves, are handled by Nextflow, which will download Docker or Singularity images as required.
-    The `scpca-nf` workflow does not need to be downloaded separately.
-    However, if nodes on your HPC do no not have direct internet access, you will need to follow [our instructions to download reference files and container images](#using-scpca-nf-on-nodes-without-direct-internet-access).
+   You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that `scpca-nf` relies on.
+   This can be downloaded and installed by any user, with minimal external requirements. - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
+   These usually require installation by system administrators, but most HPC systems have one available (usually Singularity). - Other software dependencies, as well as the workflow files themselves, are handled by Nextflow, which will download Docker or Singularity images as required.
+   The `scpca-nf` workflow does not need to be downloaded separately.
+   However, if nodes on your HPC do no not have direct internet access, you will need to follow [our instructions to download reference files and container images](#using-scpca-nf-on-nodes-without-direct-internet-access).
 
 2. **Organize your files.**
-You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
-See the [section below on file organization](#file-organization) for more information on how to set up your files.
+   You will need to have your files organized in a particular manner so that each folder contains only the FASTQ files that pertain to a single library.
+   See the [section below on file organization](#file-organization) for more information on how to set up your files.
 
 3. **Create a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file).**
-Create two TSV (tab-separated values) files - one file with one sequencing library per row and pertinent information related to that sequencing run in each column (run metadata) and the other file with one sample per row and any relevant sample metadata (e.g., diagnosis, age, sex, cell line) (sample metadata).
-See the sections below on preparing a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file) for more information on creating a metadata file for your samples.
+   Create two TSV (tab-separated values) files - one file with one sequencing library per row and pertinent information related to that sequencing run in each column (run metadata) and the other file with one sample per row and any relevant sample metadata (e.g., diagnosis, age, sex, cell line) (sample metadata).
+   See the sections below on preparing a [run metadata file](#prepare-the-run-metadata-file) and [sample metadata file](#prepare-the-sample-metadata-file) for more information on creating a metadata file for your samples.
 
 4. **Create a [configuration file](#configuration-files) and [define a profile](#setting-up-a-profile-in-the-configuration-file).**
-Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow.
-See the [section below on configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment) for more information on setting up the configuration files to run Nextflow on your system.
+   Create a configuration file that stores user defined parameters and a profile indicating the system and other system related settings to use for executing the workflow.
+   See the [section below on configuring `scpca-nf` for your environment](#configuring-scpca-nf-for-your-environment) for more information on setting up the configuration files to run Nextflow on your system.
 
 The standard configuration the `scpca-nf` workflow expects that compute nodes will have direct access to the internet, and will download reference files and container images with any required software as required.
 If your HPC system does not allow internet access from compute nodes, you will need to download the required reference files and software before running, [following the instructions we have provided](#using-scpca-nf-on-nodes-without-direct-internet-access).
@@ -72,13 +68,13 @@ This command will pull the `scpca-nf` workflow directly from Github, and run it 
 Using the above command will run the workflow from the `main` branch of the workflow repository.
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
-To  be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.6.2` version.
+To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.6.3` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.6.2 \
+  -r v0.6.3 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -116,31 +112,31 @@ We will provide IDs that can be used for `scpca_run_id`, `scpca_library_id`, and
 
 To run the workflow, you will need to create a tab separated values (TSV) metadata file with the following required columns:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `scpca_run_id`    | A unique run ID                                              |
-| `scpca_library_id`| A unique library ID for each unique set of cells             |
-| `scpca_sample_id` | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)          |
-| `scpca_project_id` | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`      | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium`      |
-| `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
-| `seq_unit`        | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)|
-| `sample_reference`| The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
-| `files_directory` | path/uri to directory containing fastq files (unique per run) |
+| column_id                | contents                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scpca_run_id`           | A unique run ID                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `scpca_library_id`       | A unique library ID for each unique set of cells                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `scpca_sample_id`        | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)                                                                                                                                                                                                                                                                                                                        |
+| `scpca_project_id`       | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID.                                                                                                                                                                                                                                                                                            |
+| `technology`             | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
+| `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version`                                                                                                                                                                                                                                                                                                                                         |
+| `seq_unit`               | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)                                                                                                                                                                                                                                                                                                                                                                                              |
+| `sample_reference`       | The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104`                                                                                                                                                                                                                                                                                                                         |
+| `files_directory`        | path/uri to directory containing fastq files (unique per run)                                                                                                                                                                                                                                                                                                                                                                                               |
 
 The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or are optional and can be included in the metadata file if desired:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls.  |
-| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
-| `slide_section`   | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
-| `slide_serial_number`| The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)   |
+| column_id              | contents                                                                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls. |
+| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples)                                            |
+| `slide_section`        | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                                |
+| `slide_serial_number`  | The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                          |
 
 We have provided an example run metadata file for reference.
 
 | [View example run metadata](examples/example_run_metadata.tsv) |
-| ------------------------------------------------------------------|
+| -------------------------------------------------------------- |
 
 ## Prepare the sample metadata file
 
@@ -157,7 +153,7 @@ Some suggested columns include diagnosis, tissue, age, sex, stage of disease, ce
 We have provided an example run metadata file for reference.
 
 | [View example sample metadata](examples/example_sample_metadata.tsv) |
-| ---------------------------------------------------------------------|
+| -------------------------------------------------------------------- |
 
 **Before using the workflow with data that you might plan to submit to ScPCA, please be sure to look at the [guidelines for sample metadata](https://scpca.alexslemonade.org/contribute).**
 
@@ -174,7 +170,7 @@ Three workflow parameters are required for running `scpca-nf` on your own data:
 
 These parameters can be set at the command line using `--run_metafile <path to run_metafile>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
 
-Note that *workflow* parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
+Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
 There are also a number of optional parameters that can be set, either at the command line or in a configuration file, including:
 
@@ -245,7 +241,6 @@ To run `scpca-nf`, you will need to set up at least one batch queue and an assoc
 You will also need an [S3 bucket](https://aws.amazon.com/s3/) path to use as the Nextflow `work` directory for intermediate files.
 As the intermediate files can get quite large, you will likely want to set up a [life cycle rule](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) to delete files from this location after a fixed period of time (e.g., 30 days).
 
-
 In most Batch queue setups, each AWS compute node has a fixed amount of disk space.
 We found it useful to have two queues: one for general use and one for jobs that may require larger amounts of disk space.
 The two compute environments use the same AMI, but use [Launch Templates](https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html) to configure the nodes on launch with different amounts of disk space.
@@ -269,7 +264,6 @@ wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/get_refs.py
 chmod +x get_refs.py
 ```
 
-
 Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
 The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` Nextflow parameter required to use these local data files.
 To run with these settings
@@ -277,8 +271,6 @@ To run with these settings
 ```sh
 ./get_refs.py
 ```
-
-
 
 You can then direct Nextflow to use the parameters stored in `localref_params.yaml` by using the `-params-file` argument in a command such as the following:
 
@@ -291,7 +283,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 Note that other configuration settings such as [profiles](#setting-up-a-profile-in-the-configuration-file), must still be set in the configuration file directly.
 However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://www.nextflow.io/docs/latest/config.html#configuration-file).
-The `ref_rootdir` parameter should *only* be specified in a parameter file or at the command line with the `--ref_rootdir` argument.
+The `ref_rootdir` parameter should _only_ be specified in a parameter file or at the command line with the `--ref_rootdir` argument.
 
 #### Additional reference files
 
@@ -308,7 +300,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.6.2`, then you will want to set `-r v0.6.2` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.6.3`, then you will want to set `-r v0.6.3` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -358,7 +350,7 @@ TAG02	TGTGAGGGTG
 
 For libraries with ADT tags, you can optionally include a third column in the `feature_barcode_file` to indicate the purpose of each antibody, which can take one of the following three values:
 
-- `target`:  antibody is a true target
+- `target`: antibody is a true target
 - `neg_control`: a negative control antibody
 - `pos_control`: a spike-in positive control
 
@@ -376,12 +368,11 @@ Similarly, if information in this column is _not_ one of the allowed values, a w
 If there are negative control antibodies, these will be taken into account during post-processing filtering and normalization.
 Positive controls are currently unused, but if provided, this label will be included in final output files.
 
-
 ### Multiplexed (cellhash) libraries
 
 When processing multiplexed libraries that combine multiple samples into a pooled single-cell or single-nuclei library, we perform cellhash-based demultiplexing for all libraries and genetic demultiplexing when reference bulk RNA-seq data is available.
 
-To support demultiplexing, we currently require *ALL* of the following for multiplexed libraries:
+To support demultiplexing, we currently require _ALL_ of the following for multiplexed libraries:
 
 - A single-cell RNA-seq run of the pooled samples
 - A matched cellhash sequencing run for the pooled samples
@@ -403,14 +394,14 @@ nextflow run AlexsLemonade/scpca-nf \
 
 The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file).
 
-The  `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
+The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
-| column_id       | contents                                                       |
-|-----------------|----------------------------------------------------------------|
-| `scpca_library_id`| Multiplexed library ID matching values in the metadata file. |
-| `scpca_sample_id` | Sample ID for a sample contained in the listed multiplexed library |
-| `barcode_id`      | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
+| column_id          | contents                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `scpca_library_id` | Multiplexed library ID matching values in the metadata file.                                |
+| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library                          |
+| `barcode_id`       | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
 Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
 
@@ -426,9 +417,7 @@ For licensing reasons, we cannot provide a Docker container with Space Ranger fo
 As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger).
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file.
-*Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods.*
-
-
+_Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
 
 ## Output files
 
