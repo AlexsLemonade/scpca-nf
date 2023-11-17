@@ -91,24 +91,20 @@ We provide an [example of the expected outputs](./examples/README.md#example-out
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
 First, please check the metadata files present in `s3://scpca-references/example-data` are up to date with changes in the workflow.
-There should be both an `example_run_metadata.tsv` and `example_sample_metadata.tsv`.
-The columns of these files should match the expected input columns of the workflow (see the section on preparing the [run metadata](./external-instructions.md#prepare-the-run-metadata-file) and [sample metadata](./external-instructions.md#prepare-the-sample-metadata-file)).
+Each of these files should be present, with the expected input columns as described in each documentation link.
 
-Additionally, the `example_run_metadata.tsv` should contain at least 1 row with `run01` in the `scpca_run_id` column and `s3://scpca-references/example-data/example_fastqs/run01` in the `files_directory` column.
+- `example_run_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-run-metadata-file))
+- `example_sample_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-sample-metadata-file))
+- `example_project_celltype_metadata.tsv` ([documentation](./external-instructions.md#preparing-the-project-cell-type-metadata-file))
 
-Once you have confirmed that the metadata looks correct, the following commands should be used to run the workflow and process the example data:
+Once you have confirmed that the metadata looks correct, use the following commands to run the workflow and re-process the example data:
 
 ```sh
+# Obtain the latest development version
 nextflow pull AlexsLemonade/scpca-nf -r development
 
-nextflow run AlexsLemonade/scpca-nf -r development \
-  -profile ccdl,batch \
-  --perform_celltyping \
-  --run_ids run01 \
-  --run_metafile s3://scpca-references/example-data/example_run_metadata.tsv \
-  --sample_metafile s3://scpca-references/example-data/example_sample_metadata.tsv \
-  --celltype_project_metafile s3://scpca-references/example-data/example_project_celltype_metadata.tsv \
-  --outdir s3://scpca-references/example-data/scpca_out
+# Run the workflow with the example config
+nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
 ```
 
 After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`.
