@@ -1,5 +1,5 @@
 This folder contains additional configuration files for running the `scpca-nf` workflow.
-To use a configuration file, it must be included in the main configuration file (e.g., [`.nextflow.config`](../nextflow.config)).
+To use a configuration file, it must be included in the main configuration file (e.g., [`nextflow.config`](../nextflow.config)).
 
 | Config file | Description | Included from `nextflow.config`? |
 |-----------|-------------|---|
