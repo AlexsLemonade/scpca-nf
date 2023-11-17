@@ -387,7 +387,7 @@ The project cell type metadata file should contain these five columns with the f
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
 | `cellassign_ref_file` | Path/uri to `CellAssign` reference file, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
 
-We have provided an example cell type project metadata file for reference.
+We have provided an example project cell type metadata file for reference.
 
 | [View example `project_celltype_metadata.tsv` file](examples/example_project_celltype_metadata.tsv) |
 | --------------------------------------------------------------------------------------------------- |
