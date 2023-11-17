@@ -73,6 +73,8 @@ workflow {
   if (params.project){
     // projects will use all runs in the project & supersede run_ids
     run_ids = []
+    // allow for processing of multiple projects at once
+    project_ids = params.project?.tokenize(',')
   }else{
     run_ids = params.run_ids?.tokenize(',') ?: []
   }
@@ -127,8 +129,8 @@ workflow {
              || (it.run_id in run_ids)
              || (it.library_id in run_ids)
              || (it.sample_id in run_ids)
-             || (it.submitter == params.project)
-             || (it.project_id == params.project)
+             || (it.submitter in project_ids)
+             || (it.project_id in project_ids)
             }
      .branch{
        bulk: it.technology in bulk_techs
