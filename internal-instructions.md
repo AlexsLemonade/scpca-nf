@@ -1,12 +1,12 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
 
 - [scpca-nf Data Lab Instructions](#scpca-nf-data-lab-instructions)
   - [Running scpca-nf as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
     - [Processing example data](#processing-example-data)
   - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
     - [Adding additional organisms](#adding-additional-organisms)
+  - [Adding additional cell type references](#adding-additional-cell-type-references)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -33,7 +33,7 @@ nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.6.2 -profile ccdl,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.6.3 -profile ccdl,batch --project SCPCP000000
 ```
 
 ### Processing example data
@@ -68,32 +68,32 @@ Make sure to adjust the settings to make the zip file publicly accessible.
 Inside the `references` folder are files and scripts related to maintaining the reference files available for use with `scpca-nf`.
 
 1. `ref-metadata.tsv`: Each row of this TSV file corresponds to a reference that is available for mapping with `scpca-nf`.
-The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
-This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta` and `gtf` files are stored in the proper location on S3.
-See [instructions for adding additional organisms](#adding-additional-organisms) for more details.
+   The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
+   This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta` and `gtf` files are stored in the proper location on S3.
+   See [instructions for adding additional organisms](#adding-additional-organisms) for more details.
 
 2. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
-For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
-This file is required as input to `scpca-nf`.
+   For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
+   This file is required as input to `scpca-nf`.
 
 3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type assignment using `add-celltypes.nf`.
-For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
-All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
-This should be a comma-separated list of all organs to include.
-To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
-This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
-See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
+   For all references, the following columns will be populated: `celltype_ref_name`, `celltype_ref_source` (e.g., `celldex`), supported `celltype_method` (e.g., `SingleR`).
+   All references obtained from the `PanglaoDB` source also require an `organs` column containing the list of supported `PanglaoDB` organs to include when building the reference.
+   This should be a comma-separated list of all organs to include.
+   To find all possible organs, see the `organs` column of `PanglaoDB_markers_27_Mar_2020.tsv`.
+   This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+   See [instructions for adding additional cell type references](#adding-additional-cell-type-references) for more details.
 
 4. `PanglaoDB_markers_27_Mar_2020.tsv`: This file is used to build the cell type references from `PanglaoDB`.
-This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
-This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
+   This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27).
+   This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for `add-celltypes.nf`.
 
 ### Adding additional organisms
 
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens

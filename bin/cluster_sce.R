@@ -67,10 +67,9 @@ sce <- readr::read_rds(opt$processed_sce_file)
 
 # only perform clustering if reduced dimension embeddings are present
 # otherwise just return the object
-if(!opt$pca_name %in% reducedDimNames(sce)) {
+if (!opt$pca_name %in% reducedDimNames(sce)) {
   warning("No reduced dimensions present with provided `pca_name`, skipping clustering")
 } else {
-
   # Perform clustering ----------------
 
   # extract the principal components matrix
@@ -89,9 +88,8 @@ if(!opt$pca_name %in% reducedDimNames(sce)) {
   metadata(sce)$cluster_algorithm <- opt$cluster_algorithm
   metadata(sce)$cluster_weighting <- opt$cluster_weighting
   metadata(sce)$cluster_nn <- opt$nearest_neighbors
-
 }
 
 # export -------------------
 # we are overwriting the `processed_sce_file` here
-readr::write_rds(sce, opt$processed_sce_file)
+readr::write_rds(sce, opt$processed_sce_file, compress = "gz")

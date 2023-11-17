@@ -1,0 +1,54 @@
+# All available hooks: https://pre-commit.com/hooks.html
+repos:
+  - repo: local
+    hooks:
+      - id: spell-check
+        name: Spell check files
+        language: r
+        entry: Rscript scripts/spell-check.R
+        additional_dependencies:
+          - readr
+          - rprojroot
+          - spelling
+          - tidyr
+      - id: forbid-to-commit
+        name: Don't commit common R artifacts
+        entry: Cannot commit .Rhistory, .RData, or .Rds files.
+        language: fail
+        files: '(?i)\.(Rhistory|RData|rds)$'
+        # `exclude: <regex>` to allow committing specific files
+  - repo: https://github.com/thlorenz/doctoc
+    # Update TOCs
+    rev: v2.2.0
+    hooks:
+      - id: doctoc
+        args: [--update-only]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff for linting and formatting python
+    rev: v0.1.5
+    hooks:
+      # Run the linter.
+      - id: ruff
+        # Run the formatter.
+      - id: ruff-format
+  - repo: https://github.com/lorenzwalthert/precommit
+    # R styling and linting
+    rev: v0.3.2.9025
+    hooks:
+      - id: style-files
+        args: [--style_pkg=styler, --style_fun=tidyverse_style]
+      # - id: lintr #skip R linting for now...
+      - id: parsable-R
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    # Format YAML and other languages
+    rev: v3.0.3
+    hooks:
+      - id: prettier
+        exclude: '\.md$'
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=200"]
+      - id: end-of-file-fixer
+        exclude: '\.Rd'
