@@ -38,7 +38,6 @@ PanglaoDB
 parallelizing
 pre
 reproducibly
-ressources
 scpca
 ScPCA
 transcriptome
