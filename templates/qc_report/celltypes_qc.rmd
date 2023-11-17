@@ -93,7 +93,6 @@ plot_umap <- function(
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) +
     scale_y_continuous(labels = NULL, breaks = NULL) +
-    coord_fixed() +
     guides(
       color = guide_legend(
         title = legend_title,
@@ -105,7 +104,10 @@ plot_umap <- function(
         )
       )
     ) +
-    theme(legend.position = "bottom")
+    theme(
+      legend.position = "bottom", 
+      aspect.ratio = 1
+    )
 }
 ```
 
