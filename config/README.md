@@ -1,7 +1,7 @@
 This folder contains additional configuration files for running the `scpca-nf` workflow.
-To use a configuration file, it must be included in the main configuration file (e.g., [`nextflow.config`](../nextflow.config)).
+To use a configuration file, it must be referenced in the main configuration file (i.e., [`nextflow.config`](../nextflow.config)) using `includeConfig`.
 
-| Config file | Description | Included from `nextflow.config`? |
+| Config file | Description |
 |-----------|-------------|---|
 | `containers.config` | Specifies Docker containers to use when running `scpca-nf` | Yes |
 | `process_base.config` | Specifies resource settings for the `scpca-nf` workflow | Yes |
