@@ -148,7 +148,7 @@ workflow annotate_celltypes {
         meta.singler_model_file = singler_model_file;
         meta.cellassign_reference_file = cellassign_reference_file;
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
-        meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv"
+        meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv";
         // return simplified input:
         [meta, processed_sce]
       }
