@@ -545,8 +545,12 @@ To support demultiplexing, we currently require _ALL_ of the following for multi
 
 - A single-cell RNA-seq run of the pooled samples
 - A matched cellhash sequencing run for the pooled samples
-- A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences.
+- A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences
+  - This file should have one line per barcode and no header.
+  The first column should contain the cellhash barcode ID, and the second column should contain the barcode nucleotide sequence.
 - A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
+  - This file should have one line per pool and no header.
+  The first column should contain the cellhash pool ID, and the second column should contain the barcode nucleotide sequence.
 
 For genetic demultiplexing, we also require:
 
