@@ -1,18 +1,18 @@
 celltype_ref_name	celltype_ref_source	celltype_method	organs
-BlueprintEncodeData	celldex	SingleR	NA
-DatabaseImmuneCellExpressionData	celldex	SingleR	NA
-HumanPrimaryCellAtlasData	celldex	SingleR	NA
-MonacoImmuneData	celldex	SingleR	NA
-blood-compartment	PanglaoDB	CellAssign	Blood, Bone, Immune system
-muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle, Vasculature
-brain-compartment	PanglaoDB	CellAssign	Brain, Immune system, Vasculature
 adrenal-compartment	PanglaoDB	CellAssign	Adrenal glands, Connective tissue, Immune system, Vasculature
-kidney-compartment	PanglaoDB	CellAssign	Kidney, Immune system, Vasculature
-eye-compartment	PanglaoDB	CellAssign	Eye, Immune system, Vasculature
 adrenal-pancreas-reproductive	PanglaoDB	CellAssign	Adrenal glands,  Connective tissue, Smooth muscle, Pancreas, Reproductive, Immune system, Vasculature
+blood-compartment	PanglaoDB	CellAssign	Blood, Bone, Immune system
+BlueprintEncodeData	celldex	SingleR	NA
 bone-and-soft-tissue	PanglaoDB	CellAssign	Bone, Smooth muscle, Connective tissue, Immune system, Vasculature
-reproductive-compartment	PanglaoDB	CellAssign	Reproductive, Immune system, Vasculature
-pancreas-compartment	PanglaoDB	CellAssign	Pancreas, Connective tissue, Immune system, Vasculature
-lung-compartment	PanglaoDB	CellAssign	Lungs, Connective tissue, Immune system, Vasculature
-liver-compartment	PanglaoDB	CellAssign	Liver, Connective tissue, Immune system, Vasculature
 bone-compartment	PanglaoDB	CellAssign	Bone, Connective tissue, Immune system, Vasculature
+brain-compartment	PanglaoDB	CellAssign	Brain, Immune system, Vasculature
+DatabaseImmuneCellExpressionData	celldex	SingleR	NA
+eye-compartment	PanglaoDB	CellAssign	Eye, Immune system, Vasculature
+HumanPrimaryCellAtlasData	celldex	SingleR	NA
+kidney-compartment	PanglaoDB	CellAssign	Kidney, Immune system, Vasculature
+liver-compartment	PanglaoDB	CellAssign	Liver, Connective tissue, Immune system, Vasculature
+lung-compartment	PanglaoDB	CellAssign	Lungs, Connective tissue, Immune system, Vasculature
+MonacoImmuneData	celldex	SingleR	NA
+muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle, Vasculature
+pancreas-compartment	PanglaoDB	CellAssign	Pancreas, Connective tissue, Immune system, Vasculature
+reproductive-compartment	PanglaoDB	CellAssign	Reproductive, Immune system, Vasculature
