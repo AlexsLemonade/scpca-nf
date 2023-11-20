@@ -3,11 +3,16 @@ BlueprintEncodeData	celldex	SingleR	NA
 DatabaseImmuneCellExpressionData	celldex	SingleR	NA
 HumanPrimaryCellAtlasData	celldex	SingleR	NA
 MonacoImmuneData	celldex	SingleR	NA
-blood-compartment	PanglaoDB	CellAssign	Blood, Bone, Immune system
-muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle
-brain-compartment	PanglaoDB	CellAssign	Brain, Immune system
-adrenal-compartment	PanglaoDB	CellAssign	Adrenal glands, Connective tissue, Immune system
-kidney-compartment	PanglaoDB	CellAssign	Kidney, Immune system
-eye-compartment	PanglaoDB	CellAssign	Eye, Immune system
-adrenal-reproductive-compartment	PanglaoDB	CellAssign	Adrenal glands, Smooth muscle, Pancreas, Reproductive, Immune system
-soft-tissue-compartment	PanglaoDB	CellAssign	Kidney, Bone, Smooth muscle, Connective tissue, Liver, Lungs, Immune system
+blood-compartment	PanglaoDB	CellAssign	Blood, Bone, Immune system, Vasculature
+muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle, Vasculature
+brain-compartment	PanglaoDB	CellAssign	Brain, Immune system, Vasculature
+adrenal-compartment	PanglaoDB	CellAssign	Adrenal glands, Connective tissue, Immune system, Vasculature
+kidney-compartment	PanglaoDB	CellAssign	Kidney, Immune system, Vasculature
+eye-compartment	PanglaoDB	CellAssign	Eye, Immune system, Vasculature
+adrenal-reproductive-compartment	PanglaoDB	CellAssign	Adrenal glands,  Connective tissue, Smooth muscle, Pancreas, Reproductive, Immune system, Vasculature
+bone-and-soft-tissue-compartment	PanglaoDB	CellAssign	Bone, Smooth muscle, Connective tissue, Immune system, Vasculature
+reproductive-compartment	PanglaoDB	CellAssign	Reproductive, Immune system, Vasculature
+pancreas-compartment	PanglaoDB	CellAssign	Pancreas, Immune system, Vasculature
+lung-compartment	PanglaoDB	CellAssign	Lungs, Immune system, Vasculature
+liver-compartment	PanglaoDB	CellAssign	Liver, Immune system, Vasculature
+bone-compartment	PanglaoDB	CellAssign	Bone, Immune system, Vasculature
