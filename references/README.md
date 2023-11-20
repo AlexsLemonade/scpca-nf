@@ -18,4 +18,4 @@ This file is used by `build-infex.nf` to generate transcriptome references.
 These files are used by `build-celltype-ref.nf` to generate cell type annotation reference files.
 
 - `celltype-reference-metadata.tsv` provides information about the name, source, and contents of cell type annotation references established by the Data Lab for use with `SingleR` and `CellAssign`.
-- `PanglaoDB_markers_<date>` is the full set of marker genes exported from `PanglaoDB`, versioned at the given date.
+- `PanglaoDB_markers_<date>.tsv` is the full set of marker genes exported from [PanglaoDB](https://panglaodb.se), versioned at the given date.
