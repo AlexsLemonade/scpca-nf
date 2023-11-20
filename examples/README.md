@@ -14,6 +14,13 @@ This directory contains the following example files:
 
 These files provide examples of expected formatting and content, but note that the specific values in these files may not be applicable or sufficient for running `scpca-nf` directly on your system.
 
+Note that `example_run_metadata.tsv` additionally refers to several example files, whose descriptions can be found as follows:
+
+- The format for the `example_barcode_files/cite_barcodes.tsv` file is described in the [ADT processing section of `external-instructions.md`](../external-instructions.md#libraries-with-additional-feature-data-adt-or-cellhash).
+- The format for the `example_barcode_files/cellhash_barcodes.tsv` file is described in the [multiplexed libraries section of `external-instructions.md`](../external-instructions.md#multiplexed-cellhash-libraries).
+- The format for the `example_metadata_files/submitter_celltypes.tsv` file is described in the [cell type annotation section of `external-instructions.md`](../external-instructions.md#providing-existing-cell-type-labels).
+
+
 ## Testing your setup with example data
 
 :warning: These instructions are only intended to be used to test accurate set up of a configuration file.
