@@ -1,18 +1,20 @@
 celltype_ref_name	celltype_ref_source	celltype_method	organs
-adrenal-compartment	PanglaoDB	CellAssign	Adrenal glands, Connective tissue, Immune system, Vasculature
-adrenal-pancreas-reproductive	PanglaoDB	CellAssign	Adrenal glands,  Connective tissue, Smooth muscle, Pancreas, Reproductive, Immune system, Vasculature
+adrenal-compartment	PanglaoDB	CellAssign	Adrenal glands, Connective tissue, Immune system, Embryo, Vasculature
+adrenal-pancreas-reproductive	PanglaoDB	CellAssign	Adrenal glands,  Connective tissue, Embryo, Immune system, Pancreas, Reproductive, Smooth muscle, Vasculature
+all-cancers	PanglaoDB	CellAssign	Adrenal glands, Blood, Bone, Brain, Connective tissue, Embryo, Epithelium, Eye, GI tract, Immune system, Kidney, Liver, Lungs, Mammary gland, Olfactory system, Oral cavity, Pancreas, Parathyroid glands, Reproductive, Skeletal muscle, Skin, Smooth muscle, Thymus, Thyroid, Urinary bladder, Vasculature, Zygote
 blood-compartment	PanglaoDB	CellAssign	Blood, Bone, Immune system
 BlueprintEncodeData	celldex	SingleR	NA
-bone-and-soft-tissue	PanglaoDB	CellAssign	Bone, Smooth muscle, Connective tissue, Immune system, Vasculature
+bone-and-soft-tissue	PanglaoDB	CellAssign	Bone, Connective tissue, Embryo, Immune system, Smooth muscle, Vasculature
 bone-compartment	PanglaoDB	CellAssign	Bone, Connective tissue, Immune system, Vasculature
-brain-compartment	PanglaoDB	CellAssign	Brain, Immune system, Vasculature
+brain-compartment	PanglaoDB	CellAssign	Brain, Embryo, Immune system, Vasculature
 DatabaseImmuneCellExpressionData	celldex	SingleR	NA
-eye-compartment	PanglaoDB	CellAssign	Eye, Immune system, Vasculature
+eye-compartment	PanglaoDB	CellAssign	Embryo, Eye, Immune system, Vasculature
 HumanPrimaryCellAtlasData	celldex	SingleR	NA
-kidney-compartment	PanglaoDB	CellAssign	Kidney, Immune system, Vasculature
-liver-compartment	PanglaoDB	CellAssign	Liver, Connective tissue, Immune system, Vasculature
-lung-compartment	PanglaoDB	CellAssign	Lungs, Connective tissue, Immune system, Vasculature
+kidney-compartment	PanglaoDB	CellAssign	Embyro, Immune system, Kidney, Vasculature
+liver-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Liver, Vasculature
+lung-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Lungs, Vasculature
 MonacoImmuneData	celldex	SingleR	NA
-muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Immune system, Skeletal muscle, Smooth muscle, Vasculature
-pancreas-compartment	PanglaoDB	CellAssign	Pancreas, Connective tissue, Immune system, Vasculature
-reproductive-compartment	PanglaoDB	CellAssign	Reproductive, Immune system, Vasculature
+muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Skeletal muscle, Smooth muscle, Vasculature
+pancreas-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Pancreas, Vasculature
+pediatric-cancers	PanglaoDB	CellAssign	Adrenal glands, Blood, Bone, Brain, Connective tissue, Embryo, Epithelium, Eye, GI tract, Immune system, Kidney, Liver, Lungs, Oral cavity, Pancreas, Parathyroid glands, Reproductive, Skeletal muscle, Skin, Smooth muscle, Thymus, Thyroid, Urinary bladder, Vasculature, Zygote
+reproductive-compartment	PanglaoDB	CellAssign	Embryo, Immune system, Reproductive, Vasculature
