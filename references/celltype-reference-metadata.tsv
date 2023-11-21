@@ -7,7 +7,7 @@ bone-and-soft-tissue	PanglaoDB	CellAssign	Bone, Connective tissue, Embryo, Immun
 bone-compartment	PanglaoDB	CellAssign	Bone, Connective tissue, Immune system, Vasculature
 brain-compartment	PanglaoDB	CellAssign	Brain, Embryo, Immune system, Vasculature
 eye-compartment	PanglaoDB	CellAssign	Embryo, Eye, Immune system, Vasculature
-kidney-compartment	PanglaoDB	CellAssign	Embyro, Immune system, Kidney, Vasculature
+kidney-compartment	PanglaoDB	CellAssign	Embryo, Immune system, Kidney, Vasculature
 liver-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Liver, Vasculature
 lung-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Lungs, Vasculature
 muscle-compartment	PanglaoDB	CellAssign	Connective tissue, Embryo, Immune system, Skeletal muscle, Smooth muscle, Vasculature
