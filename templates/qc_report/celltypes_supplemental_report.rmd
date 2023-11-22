@@ -230,7 +230,7 @@ calculate_plot_height <- function(
     row_names,
     col_names,
     n_spacers,
-    spacer_size = heatmap_padding, 
+    spacer_size = heatmap_padding,
     min_height = 4) {
   # first, based on number of cells in row_names:
   #   6 cell types to an inch
@@ -244,7 +244,7 @@ calculate_plot_height <- function(
   # finally, add in any padding
   heat_height <- heat_height + n_spacers * spacer_size
 
-  return( 
+  return(
     max(c(min_height, heat_height))
   )
 }
@@ -709,10 +709,13 @@ density_bw <- 0.03
 #  save the maximum for determining geom_segment height
 y_max <- celltype_df$cellassign_max_prediction |>
   split(celltype_df$cellassign_celltype_annotation) |>
+  # make sure we get rid of any small groups
+  purrr::discard(\(x) sum(is.finite(x)) <= 2) |>
+  # remove any NA's that may have slipped in
   purrr::map_dbl(
-    \(x) max(density(x, bw = density_bw)$y)
+    \(x) max(density(x, bw = density_bw, na.rm = TRUE)$y)
   ) |>
-  max()
+  max(na.rm = TRUE)
 
 # add count to celltype_df for setting alpha and yend values
 celltype_df <- celltype_df |>
