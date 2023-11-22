@@ -131,19 +131,22 @@ if (!is.null(opt$singler_results)) {
   sce_barcodes <- colnames(sce)
   missing_barcodes <- colnames(sce)[!(sce_barcodes %in% singler_barcodes)]
 
-  # create a data frame with unclassified barcodes
-  unclassified_df <- data.frame(
-    barcodes = missing_barcodes,
-    singler_celltype_annotation = "Unclassified cell"
-  )
+  # only if there are missing barcodes, append them to the annotations df
+  if (length(missing_barcodes) > 0) {
+    # create a data frame with unclassified barcodes
+    unclassified_df <- data.frame(
+      barcodes = missing_barcodes,
+      singler_celltype_annotation = "Unclassified cell"
+    )
 
-  # combine into one data frame with classified and unclassified cells
-  all_annotations_df <- dplyr::bind_rows(list(annotations_df, unclassified_df))
+    # combine into one data frame with classified and unclassified cells
+    annotations_df <- dplyr::bind_rows(list(annotations_df, unclassified_df))
+  }
 
   # add annotations to colData
   new_coldata <- colData(sce) |>
     as.data.frame() |>
-    dplyr::left_join(all_annotations_df, by = c("barcodes")) |>
+    dplyr::left_join(annotations_df, by = c("barcodes")) |>
     DataFrame(row.names = colData(sce)$barcodes)
   colData(sce) <- new_coldata
 
