@@ -105,7 +105,7 @@ plot_umap <- function(
       )
     ) +
     theme(
-      legend.position = "bottom", 
+      legend.position = "bottom",
       aspect.ratio = 1
     )
 }
@@ -137,12 +137,47 @@ glue::glue("
 ")
 ```
 
-
 ## Statistics
 
 ```{r, warning = FALSE}
 # Create data frame of cell types
 celltype_df <- create_celltype_df(processed_sce)
+```
+
+
+```{r, eval = has_cellassign || has_singler, results='asis'}
+unclassified_methods <- c()
+
+# check for unclassified SingleR cells
+if (any(celltype_df$singler_celltype_annotation == "Unclassified cell")) {
+  unclassified_methods <- c(unclassified_methods, "singler")
+}
+
+# check for unclassified cellassign cells
+if (any(celltype_df$cellassign_celltype_annotation == "Unclassified cell")) {
+  unclassified_methods <- c(unclassified_methods, "cellassign")
+}
+
+# print a warning if either singleR or cellAssign have any unclassified cells
+if (length(unclassified_methods) > 0) {
+  unclassified_methods <- paste(unclassified_methods, collapse = " and ")
+  glue::glue("
+ <div class=\"alert alert-info\">
+
+  When reprocessing this library, old results from running {unclassified_methods} were used.
+  This means results were calculated with a slightly different set of cells.
+  Any cells that are missing have been annotated as `Unclassified cell` in the object and will not be shown in any plots.
+
+  </div>
+")
+}
+
+# perform filtering of cell type df
+celltype_df <- celltype_df |>
+  dplyr::filter(
+    singler_celltype_annotation != "Unclassified cell",
+    cellassign_celltype_annotation != "Unclassified cell"
+  )
 ```
 
 
