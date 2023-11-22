@@ -123,10 +123,27 @@ if (!is.null(opt$singler_results)) {
       )
   }
 
+  # account for any unclassified cells
+  # we need to do this before joining with SingleR results, because otherwise
+  # we won't be able to distinguish NA from SingleR vs. NA because it isn't present in SingleR results
+  # get list of barcodes in SCE but not in SingleR results
+  singler_barcodes <- annotations_df$barcodes
+  sce_barcodes <- colnames(sce)
+  missing_barcodes <- colnames(sce)[!(sce_barcodes %in% singler_barcodes)]
+
+  # create a data frame with unclassified barcodes
+  unclassified_df <- data.frame(
+    barcodes = missing_barcodes,
+    singler_celltype_annotation = "Unclassified cell"
+  )
+
+  # combine into one data frame with classified and unclassified cells
+  all_annotations_df <- dplyr::bind_rows(list(annotations_df, unclassified_df))
+
   # add annotations to colData
   new_coldata <- colData(sce) |>
     as.data.frame() |>
-    dplyr::left_join(annotations_df, by = c("barcodes")) |>
+    dplyr::left_join(all_annotations_df, by = c("barcodes")) |>
     DataFrame(row.names = colData(sce)$barcodes)
   colData(sce) <- new_coldata
 
@@ -174,7 +191,9 @@ if (!is.null(opt$cellassign_predictions)) {
 
   # join by barcode to make sure assignments are in the right order
   celltype_assignments <- data.frame(barcode = sce$barcodes) |>
-    dplyr::left_join(celltype_assignments, by = "barcode")
+    dplyr::left_join(celltype_assignments, by = "barcode") |>
+    # any cells that are NA were not classified by cellassign
+    dplyr::mutate(celltype = ifelse(is.na(celltype), "Unclassified cell", celltype))
 
   # add cell type and prediction to colData
   sce$cellassign_celltype_annotation <- celltype_assignments$celltype
