@@ -127,9 +127,7 @@ if (!is.null(opt$singler_results)) {
   # we need to do this before joining with SingleR results, because otherwise
   # we won't be able to distinguish NA from SingleR vs. NA because it isn't present in SingleR results
   # get list of barcodes in SCE but not in SingleR results
-  singler_barcodes <- annotations_df$barcodes
-  sce_barcodes <- colnames(sce)
-  missing_barcodes <- colnames(sce)[!(sce_barcodes %in% singler_barcodes)]
+  missing_barcodes <- setdiff(colnames(sce), annotations_df$barcodes)
 
   # only if there are missing barcodes, append them to the annotations df
   if (length(missing_barcodes) > 0) {
@@ -140,7 +138,7 @@ if (!is.null(opt$singler_results)) {
     )
 
     # combine into one data frame with classified and unclassified cells
-    annotations_df <- dplyr::bind_rows(list(annotations_df, unclassified_df))
+    annotations_df <- dplyr::bind_rows(annotations_df, unclassified_df)
   }
 
   # add annotations to colData

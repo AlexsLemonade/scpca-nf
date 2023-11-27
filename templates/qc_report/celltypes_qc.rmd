@@ -172,7 +172,7 @@ if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclass
 
 # print a warning if either singleR or cellAssign have any unclassified cells
 if (length(unclassified_methods) > 0) {
-  unclassified_methods <- paste(unclassified_methods, collapse = " and ")
+  unclassified_methods <- stringr::str_flatten_comma(unclassified_methods, last = ", and ")
   glue::glue("
  <div class=\"alert alert-info\">
 
@@ -218,7 +218,8 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 
 
 ```{r, eval = has_umap}
-knitr::asis_output(glue::glue("## UMAPs\n
+knitr::asis_output(glue::glue("
+## UMAPs
 
 In this section, we show UMAPs colored by clusters.
 Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_algorithm} algorithm with  {metadata(processed_sce)$cluster_weighting} weighting.
@@ -234,7 +235,7 @@ umap_df <- lump_celltypes(celltype_df)
 
 <!-- First UMAP: clusters -->
 
-```{r, eval = has_umap, eval = has_multiplex, results='asis'}
+```{r, eval = has_umap && has_multiplex, results='asis'}
 glue::glue("
   <div class=\"alert alert-info\">
     This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
@@ -267,7 +268,7 @@ if (length(levels(umap_df$cluster)) <= 8) {
 ```{r, eval = has_umap}
 knitr::asis_output(
   'Next, we show UMAPs colored by cell types.
-A separate UMAP is shown for each cell typing method used.\n
+A separate UMAP is shown for each cell typing method used.
 
 For legibility, only the seven most common cell types are shown.
 All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" which represents cells that could not be classified).
@@ -277,7 +278,7 @@ All other cell types are grouped together and labeled "All remaining cell types"
 
 <!-- Now, UMAPs of cell types, where present -->
 
-```{r eval = has_submitter & has_umap, message=FALSE, warning=FALSE}
+```{r eval = has_submitter && has_umap, message=FALSE, warning=FALSE}
 plot_umap(
   umap_df,
   submitter_celltype_annotation_lumped,
@@ -289,7 +290,7 @@ plot_umap(
 ```
 
 
-```{r eval=has_singler & has_umap, message=FALSE, warning=FALSE}
+```{r eval=has_singler && has_umap, message=FALSE, warning=FALSE}
 plot_umap(
   umap_df,
   singler_celltype_annotation_lumped,
@@ -301,7 +302,7 @@ plot_umap(
 ```
 
 
-```{r, eval = has_cellassign & has_umap, message=FALSE, warning=FALSE}
+```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE}
 plot_umap(
   umap_df,
   cellassign_celltype_annotation_lumped,
