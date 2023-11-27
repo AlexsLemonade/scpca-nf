@@ -12,17 +12,27 @@ library(SingleCellExperiment)
 #'
 #' @return `celltype_df` with column of cell types, as factors, for each annotation method
 create_celltype_df <- function(processed_sce) {
-  celltype_df <- processed_sce |>
-    scuttle::makePerCellDF(use.dimred = "UMAP") |>
-    # rename UMAP columns as needed to remove potential period added by `scuttle::makePerCellDF`
-    dplyr::rename_with(
-      \(x) stringr::str_replace(x, "^UMAP\\.", "UMAP"),
-      starts_with("UMAP")
-    ) |>
+  # only incorporate UMAP coordinates if present
+  if ("UMAP" %in% reducedDimNames(processed_sce)) {
+    celltype_df <- processed_sce |>
+      scuttle::makePerCellDF(use.dimred = "UMAP") |>
+      # rename UMAP columns as needed to remove potential period added by `scuttle::makePerCellDF`
+      dplyr::rename_with(
+        \(x) stringr::str_replace(x, "^UMAP\\.", "UMAP"),
+        starts_with("UMAP")
+      )
+    # otherwise just grab the colData
+  } else {
+    celltype_df <- colData(processed_sce) |>
+      as.data.frame()
+  }
+
+  celltype_df <- celltype_df |>
     # only keep columns of interest
     dplyr::select(
       barcodes,
-      cluster,
+      # account for potentially missing columns
+      contains("cluster"),
       contains("UMAP"),
       contains("singler"),
       contains("cellassign"),
@@ -62,7 +72,6 @@ create_celltype_df <- function(processed_sce) {
 prepare_automated_annotation_values <- function(
     df,
     annotation_column) {
-
   unknown_string <- "Unknown cell type"
 
   df |>
@@ -75,10 +84,10 @@ prepare_automated_annotation_values <- function(
         # otherwise, keep it
         .default = {{ annotation_column }}
       ) |>
-      # order column by number of cells
-      forcats::fct_infreq() |>
-      # make "Unknown cell type" the last level
-      forcats::fct_relevel(unknown_string, after = Inf)
+        # order column by number of cells
+        forcats::fct_infreq() |>
+        # make "Unknown cell type" the last level
+        forcats::fct_relevel(unknown_string, after = Inf)
     )
 }
 
@@ -91,46 +100,44 @@ prepare_automated_annotation_values <- function(
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
 prepare_submitter_annotation_values <- function(df) {
-    
   if (!("submitter_celltype_annotation" %in% names(df))) {
     stop("Could not process submitter annotation values; missing submitter column.")
   }
-  
+
   # string for submitter-excluded cell types
   submitter_excluded_string <- "Submitter-excluded"
-  
+
   # define baseline levels in descending order of frequency
   submitter_levels <- df$submitter_celltype_annotation |>
-    # that this does not actually order the final factor - this is just for 
+    # that this does not actually order the final factor - this is just for
     #  preparing to handle "unknown" levels
     forcats::fct_infreq() |>
     levels()
-    
+
   # strings which might be "unknown"-y
-  unknown_strings <- c("na", "nan", "null", "unknown",  "")
+  unknown_strings <- c("na", "nan", "null", "unknown", "")
 
   # remove non-word characters & make lower case
   # note by removing \\W, we match `<n/a>` and similar
   submitter_normalized_levels <- submitter_levels |>
     stringr::str_replace_all("\\W+", "") |>
     stringr::str_to_lower()
-  
+
   # determine which of those levels are unknowns
   unknown_levels <- submitter_levels[submitter_normalized_levels %in% unknown_strings]
-  
+
   # if submitter-excluded is present it should go at the VERY END regardless of count
   if (submitter_excluded_string %in% submitter_levels) {
     unknown_levels <- c(unknown_levels, submitter_excluded_string)
   }
-  
+
   # Move unknown levels to the end in order of frequency, followed by submitter-excluded
   df$submitter_celltype_annotation <- df$submitter_celltype_annotation |>
     # still need to actually arrange by frequency first
     forcats::fct_infreq() |>
     # move unknowns, in order, to the end
     forcats::fct_relevel(unknown_levels, after = Inf)
-  
-  return(df)  
+
+  return(df)
 }
 ```
-

@@ -261,6 +261,9 @@ has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
 
+# check for umap
+has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
+
 # what celltypes are available?
 available_celltypes <- c(
   ifelse(has_submitter, "Submitter", NA),

@@ -145,17 +145,29 @@ celltype_df <- create_celltype_df(processed_sce)
 ```
 
 
-```{r, eval = has_cellassign || has_singler, results='asis'}
+```{r, eval = (has_cellassign || has_singler), results='asis'}
 unclassified_methods <- c()
 
 # check for unclassified SingleR cells
-if (any(celltype_df$singler_celltype_annotation == "Unclassified cell")) {
+if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified cell")) {
   unclassified_methods <- c(unclassified_methods, "singler")
+
+  # remove all unclassified cells
+  celltype_df <- celltype_df |>
+    dplyr::filter(
+      singler_celltype_annotation != "Unclassified cell"
+    )
 }
 
 # check for unclassified cellassign cells
-if (any(celltype_df$cellassign_celltype_annotation == "Unclassified cell")) {
+if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclassified cell")) {
   unclassified_methods <- c(unclassified_methods, "cellassign")
+
+  # remove unclassified cells
+  celltype_df <- celltype_df |>
+    dplyr::filter(
+      cellassign_celltype_annotation != "Unclassified cell"
+    )
 }
 
 # print a warning if either singleR or cellAssign have any unclassified cells
@@ -171,13 +183,6 @@ if (length(unclassified_methods) > 0) {
   </div>
 ")
 }
-
-# perform filtering of cell type df
-celltype_df <- celltype_df |>
-  dplyr::filter(
-    singler_celltype_annotation != "Unclassified cell",
-    cellassign_celltype_annotation != "Unclassified cell"
-  )
 ```
 
 
@@ -211,13 +216,17 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
-## UMAPs
+
+```{r, eval = has_umap}
+knitr::asis_output(glue::glue("## UMAPs\n
 
 In this section, we show UMAPs colored by clusters.
-Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with `r metadata(processed_sce)$cluster_weighting` weighting.
+Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_algorithm} algorithm with  {metadata(processed_sce)$cluster_weighting} weighting.
+"))
+```
 
 
-```{r}
+```{r, eval = has_umap}
 # Create dataset for plotting UMAPs with lumped cell types
 umap_df <- lump_celltypes(celltype_df)
 ```
@@ -225,7 +234,7 @@ umap_df <- lump_celltypes(celltype_df)
 
 <!-- First UMAP: clusters -->
 
-```{r, eval = has_multiplex, results='asis'}
+```{r, eval = has_umap, eval = has_multiplex, results='asis'}
 glue::glue("
   <div class=\"alert alert-info\">
     This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
@@ -235,7 +244,7 @@ glue::glue("
 ```
 
 
-```{r message=FALSE, warning=FALSE}
+```{r eval = has_umap, message=FALSE, warning=FALSE}
 clusters_plot <- plot_umap(
   umap_df,
   cluster,
@@ -255,15 +264,20 @@ if (length(levels(umap_df$cluster)) <= 8) {
 ```
 
 
-Next, we show UMAPs colored by cell types.
-A separate UMAP is shown for each cell typing method used.
+```{r, eval = has_umap}
+knitr::asis_output(
+  'Next, we show UMAPs colored by cell types.
+A separate UMAP is shown for each cell typing method used.\n
 
 For legibility, only the seven most common cell types are shown.
 All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" which represents cells that could not be classified).
+  '
+)
+```
 
 <!-- Now, UMAPs of cell types, where present -->
 
-```{r eval = has_submitter, message=FALSE, warning=FALSE}
+```{r eval = has_submitter & has_umap, message=FALSE, warning=FALSE}
 plot_umap(
   umap_df,
   submitter_celltype_annotation_lumped,
@@ -275,7 +289,7 @@ plot_umap(
 ```
 
 
-```{r eval=has_singler, message=FALSE, warning=FALSE}
+```{r eval=has_singler & has_umap, message=FALSE, warning=FALSE}
 plot_umap(
   umap_df,
   singler_celltype_annotation_lumped,
@@ -287,7 +301,7 @@ plot_umap(
 ```
 
 
-```{r, eval = has_cellassign, message=FALSE, warning=FALSE}
+```{r, eval = has_cellassign & has_umap, message=FALSE, warning=FALSE}
 plot_umap(
   umap_df,
   cellassign_celltype_annotation_lumped,
