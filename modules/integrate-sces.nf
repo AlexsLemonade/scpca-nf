@@ -1,3 +1,4 @@
+// These processes are not currently used by any workflow.
 
 // Process to integrate SCEs with fastMNN
 process integrate_fastmnn {
