@@ -77,6 +77,7 @@ workflow {
     project_ids = params.project?.tokenize(',')
   }else{
     run_ids = params.run_ids?.tokenize(',') ?: []
+    project_ids = []
   }
   run_all = run_ids[0] == "All"
   if (run_all){
