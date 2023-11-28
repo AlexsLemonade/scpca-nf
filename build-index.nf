@@ -54,8 +54,8 @@ process salmon_index{
       -p ${task.cpus} \
 
     gunzip -c ${fasta} \
-      |grep "^>" | cut -d " " -f 1 \
-      |sed -e 's/>//g' > decoys.txt
+      | grep "^>" | cut -d " " -f 1 \
+      | sed -e 's/>//g' > decoys.txt
     cat ${spliced_cdna_fasta} ${fasta} > gentrome.fa.gz
 
     salmon index \
@@ -130,11 +130,11 @@ workflow {
   // read in metadata with all organisms to create references for
   ref_ch = Channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
-    .map{[
-      reference_name = "${it.organism}.${it.assembly}.${it.version}",
-      // grab file paths for each organism
-      ref_paths[reference_name]
-    ]}
+    .map{
+      def reference_name = "${it.organism}.${it.assembly}.${it.version}";
+      // reference name & reference file paths for each organism
+      [reference_name, ref_paths[reference_name]]
+    }
     .map{it +[
       file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
       file("${params.ref_rootdir}/${it[1]["ref_gtf"]}") // path to gtf

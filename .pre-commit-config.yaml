@@ -22,7 +22,7 @@ repos:
     rev: v2.2.0
     hooks:
       - id: doctoc
-        args: [--update-only]
+        args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
     rev: v0.1.5

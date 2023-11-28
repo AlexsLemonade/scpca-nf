@@ -13,16 +13,20 @@ workflow genetic_demux_vireo{
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
-      .map{it.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
-           it.vireo_dir = "${it.vireo_publish_dir}/${it.library_id}-vireo";
-           it.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[it.technology]}";
-           it}
+      .map{
+        def meta = it.clone();
+        meta.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
+        meta.vireo_dir = "${meta.vireo_publish_dir}/${meta.library_id}-vireo";
+        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
+        meta // return modified meta object
+      }
        // split based in whether repeat_mapping is false and a previous dir exists
       .branch{
-          has_demux: (!params.repeat_genetic_demux
-                      && file(it.vireo_dir).exists()
-                      && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
-                     )
+          has_demux: (
+            !params.repeat_genetic_demux
+            && file(it.vireo_dir).exists()
+            && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+          )
           make_demux: true
        }
 
@@ -53,9 +57,9 @@ workflow genetic_demux_vireo{
     // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
     demux_out = multiplex_ch.has_demux
       .map{meta -> tuple(
-                         Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
-                         file(meta.vireo_dir, type: 'dir')
-                        )}
+        Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
+        file(meta.vireo_dir, type: 'dir')
+      )}
       .mix(cellsnp_vireo.out)
 
   emit:

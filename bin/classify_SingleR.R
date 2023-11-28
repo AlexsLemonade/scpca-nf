@@ -11,25 +11,20 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("-i", "--input_sce_file"),
+    opt_str = c("-i", "--sce_file"),
     type = "character",
-    help = "path to rds file with input sce object"
-  ),
-  make_option(
-    opt_str = c("-o", "--output_sce_file"),
-    type = "character",
-    help = "path to output rds file to store processed sce object. Must end in .rds"
+    help = "path to rds file with sce object to perform cell typing on"
   ),
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
-    help = "path to file containing a single model generated for SingleR annotation"
+    help = "path to file containing a single model generated for SingleR annotation.
+            File name is expected to be in form: <ref_name>_<source>_<version>_model.rds."
   ),
   make_option(
-    opt_str = c("--label_name"),
+    opt_str = c("--output_singler_results_file"),
     type = "character",
-    default = "label.ont",
-    help = "label used when building the SingleR reference"
+    help = "path to output RDS file that will store the SingleR results object. Must end in .rds"
   ),
   make_option(
     opt_str = c("--seed"),
@@ -49,22 +44,31 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # Set up -----------------------------------------------------------------------
 
 # set seed
-set.seed(opt$random_seed)
+set.seed(opt$seed)
 
 # check that input file file exists
-if (!file.exists(opt$input_sce_file)) {
-  stop("Missing input SCE file")
+if (!file.exists(opt$sce_file)) {
+  stop("Missing SCE file")
 }
 
-# check that output file ends in rds
-if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
-  stop("output sce file name must end in .rds")
+# check that output files have the right extensions
+if (!(stringr::str_ends(opt$output_singler_results_file, ".rds"))) {
+  stop("output SingleR result file name must end in .rds")
 }
 
-# check that references all exist
+# check that reference exists and filename is properly formatted
 singler_model_file <- opt$singler_model_file
 if (!file.exists(singler_model_file)) {
   stop(glue::glue("Provided model file {singler_model_file} is missing."))
+}
+if (!(stringr::str_ends(singler_model_file, "_model.rds"))) {
+  stop(glue::glue("Provided model file {singler_model_file} must end in '_model.rds.'"))
+}
+
+# get & check reference name
+reference_name <- stringr::str_remove(singler_model_file, "_model.rds$")
+if (reference_name == "") {
+  stop(glue::glue("Provided model file name must be formatted as `<model_name>_model.rds`"))
 }
 
 # set up multiprocessing params
@@ -75,13 +79,12 @@ if (opt$threads > 1) {
 }
 
 # read in input rds file
-sce <- readr::read_rds(opt$input_sce_file)
+sce <- readr::read_rds(opt$sce_file)
 
 # read in model
 singler_model <- readr::read_rds(singler_model_file)
 
-# SingleR classify and annotate SCE-------------------------------------------------------------
-
+# perform cell typing annotation
 singler_results <- SingleR::classifySingleR(
   trained = singler_model,
   test = sce,
@@ -89,40 +92,19 @@ singler_results <- SingleR::classifySingleR(
   BPPARAM = bp_param
 )
 
-# add annotations to SCE colData
-if (opt$label_name == "label.ont") {
-  # If ontologies were used, create ontology column and join in the cell names
-  sce$singler_celltype_ontology <- singler_results$pruned.labels
+# add reference name to singler_results DataFrame metadata
+metadata(singler_results)$reference_name <- reference_name
+# add label name to metadata
+metadata(singler_results)$reference_label <- singler_model$reference_label
+# save cell ontology table to results
+# if this doesn't exist it will just be NULL
+metadata(singler_results)$cell_ontology_df <- singler_model$cell_ontology_df
 
-  colData(sce) <- colData(sce) |>
-    as.data.frame() |>
-    dplyr::left_join(
-      singler_model$cell_ontology_df,
-      by = c("singler_celltype_ontology" = "ontology_id")
-    ) |>
-    # this is the new column that was joined in with the cell names
-    dplyr::rename(singler_celltype_annotation = ontology_cell_names) |>
-    # make sure we keep rownames
-    DataFrame(row.names = colData(sce)$barcodes)
-} else {
-  # otherwise, just add cell names
-  sce$singler_celltype_annotation <- singler_results$pruned.labels
-}
+# export results ---------------
 
-# store full SingleR results in metadata, as well as other SingleR parameters
-metadata(sce)$singler_results <- singler_results
-metadata(sce)$singler_reference <- singler_model$reference_name
-metadata(sce)$singler_reference_label <- singler_model$reference_label
-
-# add singler as celltype method
-# note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
-#  come out to just the string "singler"
-metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
-
-
-# export sce with annotations added
+# next, the full result to a compressed rds
 readr::write_rds(
-  sce,
-  opt$output_sce_file,
+  singler_results,
+  opt$output_singler_results_file,
   compress = "gz"
 )

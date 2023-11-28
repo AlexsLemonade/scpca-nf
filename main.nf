@@ -13,7 +13,7 @@ cell_barcodes = [
   'cellhash_10Xv2': '737K-august-2016.txt',
   'cellhash_10Xv3': '3M-february-2018.txt',
   'cellhash_10Xv3.1': '3M-february-2018.txt'
-  ]
+]
 
 // supported technologies
 single_cell_techs = cell_barcodes.keySet()
@@ -24,11 +24,11 @@ rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
-// report template path
+// report template paths
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
-report_template_file = "qc_report.rmd"
-report_template_tuple = tuple(report_template_dir, report_template_file)
-
+report_template_file = "main_qc_report.rmd"
+celltype_report_template_file = "celltypes_supplemental_report.rmd"
+report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
@@ -37,10 +37,10 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
-include { sce_to_anndata } from './modules/export-anndata.nf'
+include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { sce_qc_report } from './modules/qc-report.nf'
-include { cluster_sce } from './modules/cluster-sce.nf'
+include { sce_to_anndata } from './modules/export-anndata.nf'
 
 
 // parameter checks
@@ -89,55 +89,59 @@ workflow {
     .splitCsv(header: true, sep: '\t')
     .filter{it.sample_reference in ref_paths}
     // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-    .map{sample_refs = ref_paths[it.sample_reference]
-    [
-      run_id: it.scpca_run_id,
-      library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id.split(";").sort().join(","),
-      project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
-      submitter: Utils.parseNA(it.submitter),
-      technology: it.technology,
-      assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
-      seq_unit: it.seq_unit,
-      submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
-      feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
-      feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
-      files_directory: Utils.parseNA(it.files_directory),
-      slide_serial_number: Utils.parseNA(it.slide_serial_number),
-      slide_section: Utils.parseNA(it.slide_section),
-      ref_assembly: it.sample_reference,
-      ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
-      ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
-      ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
-      salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
-      t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
-      mito_file: params.ref_rootdir + "/" + sample_refs["mito_file"],
-      salmon_bulk_index: params.ref_rootdir + "/" + sample_refs["salmon_bulk_index"],
-      t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
-      cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
-      star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
-      scpca_version: workflow.manifest.version,
-      nextflow_version: nextflow.version.toString()
-    ]}
+    .map{
+      def sample_refs = ref_paths[it.sample_reference];
+      [
+        run_id: it.scpca_run_id,
+        library_id: it.scpca_library_id,
+        sample_id: it.scpca_sample_id.split(";").sort().join(","),
+        project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
+        submitter: Utils.parseNA(it.submitter),
+        technology: it.technology,
+        assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
+        seq_unit: it.seq_unit,
+        submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
+        feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
+        feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
+        files_directory: Utils.parseNA(it.files_directory),
+        slide_serial_number: Utils.parseNA(it.slide_serial_number),
+        slide_section: Utils.parseNA(it.slide_section),
+        ref_assembly: it.sample_reference,
+        ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
+        ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
+        ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
+        salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
+        t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
+        mito_file: params.ref_rootdir + "/" + sample_refs["mito_file"],
+        salmon_bulk_index: params.ref_rootdir + "/" + sample_refs["salmon_bulk_index"],
+        t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
+        cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
+        star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
+        scpca_version: workflow.manifest.version,
+        nextflow_version: nextflow.version.toString()
+      ]
+    }
 
- runs_ch = unfiltered_runs_ch
+  runs_ch = unfiltered_runs_ch
     // only technologies we know how to process
     .filter{it.technology in all_techs}
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
-    .filter{run_all
-             || (it.run_id in run_ids)
-             || (it.library_id in run_ids)
-             || (it.sample_id in run_ids)
-             || (it.submitter in project_ids)
-             || (it.project_id in project_ids)
-            }
-     .branch{
-       bulk: it.technology in bulk_techs
-       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
-       rna: it.technology in rna_techs
-       spatial: it.technology in spatial_techs
-     }
+    .filter{
+      run_all
+      || (it.run_id in run_ids)
+      || (it.library_id in run_ids)
+      || (it.sample_id in run_ids)
+      || (it.submitter in project_ids)
+      || (it.project_id in project_ids)
+    }
+    .branch{
+      bulk: it.technology in bulk_techs
+      feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
+      rna: it.technology in rna_techs
+      spatial: it.technology in spatial_techs
+    }
+
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.feature
     .collect{it.library_id}
@@ -179,8 +183,10 @@ workflow {
   feature_rna_quant_ch = map_quant_feature.out
     .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
     // join rna quant to feature quant by library_id; expect mismatches for rna-only, so don't fail
-    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it }, by: 0, failOnDuplicate: true, failOnMismatch: false)
+    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it },
+          by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
+
   // make rds for merged RNA and feature quants
   feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
@@ -223,8 +229,18 @@ workflow {
   // Cluster SCE
   cluster_sce(post_process_sce.out)
 
-  // generate QC reports and publish .rds files with SCEs.
-  sce_qc_report(cluster_sce.out, report_template_tuple)
+  if(params.perform_celltyping){
+    // Perform celltyping, if specified
+    annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
+  } else {
+    annotated_celltype_ch = cluster_sce.out
+  }
+
+  // generate QC reports
+  sce_qc_report(
+    annotated_celltype_ch,
+    report_template_tuple
+  )
 
   // convert SCE object to anndata
   anndata_ch = sce_qc_report.out.data

@@ -24,12 +24,13 @@ Github
 glioblastoma
 GRCh
 Hippen
-HTOs
 HPC
+HTOs
 intronic
+Jaccard
 Lun
 miQC
-nextflow
+Nextflow
 Nextflow's
 nf
 Oligos
@@ -41,9 +42,9 @@ scpca
 ScPCA
 transcriptome
 transcriptomic
-trancriptomics
 TSV
 UMAP
 UMI
 uri
 Visium
+VS

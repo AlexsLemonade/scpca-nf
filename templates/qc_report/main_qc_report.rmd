@@ -4,6 +4,7 @@ params:
   unfiltered_sce: !r scpcaTools:::sim_sce()
   filtered_sce: NULL
   processed_sce: NULL
+  celltype_report: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -113,13 +114,21 @@ if (has_processed) {
 
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
+  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &
+    !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+
+  is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
   has_celltypes <- FALSE
+}
+
+# check for celltypes_report if celltypes are present
+if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
+  stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
 ```
 
@@ -528,7 +537,6 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 
 <!-- Next section include only if UMAP is present -->
 ```{r, child='umap_qc.rmd', eval = has_umap}
-
 ```
 
 <!-- Next section included only if CITE-seq data is present -->
@@ -537,8 +545,15 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 
 <!-- Next section only included if multiplex data is present -->
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
-
 ```
+
+<!-- Next sections only included if celltype annotations are present -->
+```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
+```
+
+```{r, child='celltypes_qc.rmd', eval = has_celltypes}
+```
+
 
 # Session Info
 <details>
@@ -551,4 +566,3 @@ if (requireNamespace("sessioninfo", quietly = TRUE)) {
 }
 ```
 </details>
-

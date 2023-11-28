@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
 
 - [Overview](#overview)
 - [File organization](#file-organization)
@@ -14,12 +15,20 @@
   - [Using `scpca-nf` on nodes without direct internet access](#using-scpca-nf-on-nodes-without-direct-internet-access)
     - [Additional reference files](#additional-reference-files)
     - [Downloading container images](#downloading-container-images)
-- [Repeating mapping steps](#repeating-mapping-steps)
+- [Cell type annotation](#cell-type-annotation)
+  - [Choosing reference datasets](#choosing-reference-datasets)
+    - [`SingleR` references](#singler-references)
+    - [`CellAssign` references](#cellassign-references)
+  - [Preparing the project cell type metadata file](#preparing-the-project-cell-type-metadata-file)
+  - [Repeating cell type annotation](#repeating-cell-type-annotation)
+  - [Providing existing cell type labels](#providing-existing-cell-type-labels)
+- [Output files](#output-files)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
   - [Multiplexed (cellhash) libraries](#multiplexed-cellhash-libraries)
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
-- [Output files](#output-files)
+- [Additional workflow settings](#additional-workflow-settings)
+  - [Repeating mapping steps](#repeating-mapping-steps)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -28,7 +37,7 @@
 Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
 Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
 While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
-After identifying the system that you will use to execute the nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
+After identifying the system that you will use to execute the Nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
@@ -69,12 +78,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.6.3` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.0` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.6.3 \
+  -r v0.7.0 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -112,31 +121,34 @@ We will provide IDs that can be used for `scpca_run_id`, `scpca_library_id`, and
 
 To run the workflow, you will need to create a tab separated values (TSV) metadata file with the following required columns:
 
-| column_id                | contents                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scpca_run_id`           | A unique run ID                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `scpca_library_id`       | A unique library ID for each unique set of cells                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `scpca_sample_id`        | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`)                                                                                                                                                                                                                                                                                                                        |
-| `scpca_project_id`       | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID.                                                                                                                                                                                                                                                                                            |
-| `technology`             | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
-| `assay_ontology_term_id` | [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version`                                                                                                                                                                                                                                                                                                                                         |
-| `seq_unit`               | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`)                                                                                                                                                                                                                                                                                                                                                                                              |
-| `sample_reference`       | The name of the reference to use for mapping, available references include: `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104`                                                                                                                                                                                                                                                                                                                         |
-| `files_directory`        | path/uri to directory containing fastq files (unique per run)                                                                                                                                                                                                                                                                                                                                                                                               |
+<!-- prettier-ignore -->
+| column_id | contents |
+| --------- | -------- |
+| `scpca_run_id`         | A unique run ID  |
+| `scpca_library_id`     | A unique library ID for each unique set of cells |
+| `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
+| `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
+| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
+| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
+| `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
+| `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
+| `files_directory`       | The full path/uri to directory containing fastq files (unique per run) |
 
-The following columns may be necessary for running other data modalities (CITE-seq, spatial trancriptomics) or are optional and can be included in the metadata file if desired:
+The following optional columns may be necessary for running other data modalities (CITE-seq, spatial transcriptomics) or including existing cell type labels:
 
-| column_id              | contents                                                                                                                                                                                                         |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `feature_barcode_file` | path/uri to file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls. |
-| `feature_barcode_geom` | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples)                                            |
-| `slide_section`        | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                                |
-| `slide_serial_number`  | The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics)                                                                                                          |
+<!-- prettier-ignore -->
+| column_id | contents |
+| --------- | -------- |
+| `feature_barcode_file`      | The full path/uri to TSV file containing the feature barcode sequences (only required for ADT and cellhash samples); for samples with ADT tags, this file can optionally indicate whether antibodies are targets or controls |
+| `feature_barcode_geom`      | A salmon `--read-geometry` layout string. <br> See https://github.com/COMBINE-lab/salmon/releases/tag/v1.4.0 for details (only required for ADT and cellhash samples) |
+| `slide_section`             | The slide section for spatial transcriptomics samples (only required for spatial transcriptomics) |
+| `slide_serial_number`       | The slide serial number for spatial transcriptomics samples (only required for spatial transcriptomics) |
+| `submitter_cell_types_file` | The full path/uri to TSV file containing cell labels if you have cell type annotations results to include. See [instructions below](#providing-existing-cell-type-labels) for more information about preparing this file |
 
 We have provided an example run metadata file for reference.
 
-| [View example run metadata](examples/example_run_metadata.tsv) |
-| -------------------------------------------------------------- |
+| [View example `run_metadata.tsv` file](examples/example_run_metadata.tsv) |
+| ------------------------------------------------------------------------- |
 
 ## Prepare the sample metadata file
 
@@ -152,8 +164,8 @@ Some suggested columns include diagnosis, tissue, age, sex, stage of disease, ce
 
 We have provided an example run metadata file for reference.
 
-| [View example sample metadata](examples/example_sample_metadata.tsv) |
-| -------------------------------------------------------------------- |
+| [View example `sample_metadata.tsv` file](examples/example_sample_metadata.tsv) |
+| ------------------------------------------------------------------------------- |
 
 **Before using the workflow with data that you might plan to submit to ScPCA, please be sure to look at the [guidelines for sample metadata](https://scpca.alexslemonade.org/contribute).**
 
@@ -168,7 +180,7 @@ Three workflow parameters are required for running `scpca-nf` on your own data:
 - `outdir`: the output directory where results will be stored.
   - The default output is `scpca_out`, but again, you will likely want to customize this.
 
-These parameters can be set at the command line using `--run_metafile <path to run_metafile>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
+These parameters can be set at the command line using `--run_metafile <path to run metadata file>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
 
 Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
@@ -188,8 +200,8 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 
 ```groovy
 // my_config.config
-params.run_metafile = '<path to run_metafile>'
-params.sample_metafile = '<path to sample_metafile>'
+params.run_metafile = '<path to run metadata file>'
+params.sample_metafile = '<path to sample metadata file>'
 params.outdir = '<path to output>'
 params.max_cpus = 24
 params.max_memory = 96.GB
@@ -219,7 +231,7 @@ Processing single-cell and single-nuclei samples requires access to 24 GB of RAM
 To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
-**Note:** To use the default index files, which are stored on S3, compute nodes must have access to the internet.
+**Note:** To use the default index files and default cell type reference files, which are stored on S3, compute nodes must have access to the internet.
 You may also need to supply AWS credentials for S3 access, or set `aws.client.anonymous = true` within the Nextflow profile.
 
 In our example template file [`user_template.config`](examples/user_template.config), we define a profile named `cluster` which could be invoked with the following command:
@@ -264,7 +276,7 @@ wget https://raw.githubusercontent.com/AlexsLemonade/scpca-nf/main/get_refs.py
 chmod +x get_refs.py
 ```
 
-Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression data sets to the subdirectory `scpca-references` at your current location.
+Once you have downloaded the script and made it executable with the `chmod` command, running the script will download the files required for mapping gene expression datasets to the subdirectory `scpca-references` at your current location.
 The script will also create a parameter file named `localref_params.yaml` that defines the `ref_rootdir` Nextflow parameter required to use these local data files.
 To run with these settings
 
@@ -300,7 +312,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.6.3`, then you will want to set `-r v0.6.3` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.7.0`, then you will want to set `-r v0.7.0` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -319,18 +331,175 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 ./get_refs.py --singularity --singularity_dir "$HOME/singularity"
 ```
 
-## Repeating mapping steps
+## Cell type annotation
 
-By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `checkpoints` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`).
-If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
-However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process.
+`scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
-To force repeating the mapping process, use the `--repeat_mapping` flag at the command line:
+By default, no cell type annotation is performed.
+You can turn on cell type annotation by taking the following steps:
+
+1. Select appropriate reference dataset(s) to use with each method of interest.
+2. [Prepare a project cell type metadata file](#preparing-the-project-cell-type-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
+   You will need to provide the path/uri to this file as a workflow parameter (`project_celltype_metafile`), which you will need to define in your configuration file.
+   For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
+3. Run the workflow with the `--perform_celltyping` flag.
+
+Once you have followed the above steps and added the path/uri to the project cell type metadata file to your configuration file, you can use the following command to run the workflow with cell type annotation:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  --repeat_mapping
+  --perform_celltyping
 ```
+
+### Choosing reference datasets
+
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+All references listed in this table are publicly available on S3 for use with cell type annotation.
+It is possible to provide your own references as well; instructions for this are forthcoming.
+Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
+
+#### `SingleR` references
+
+The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
+In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
+
+Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
+
+#### `CellAssign` references
+
+The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
+In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
+
+The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
+The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+For example, the reference `blood-compartment` includes cell types categorized in `PanglaoDB` with the organ names `Blood`, `Bone`, and `Immune system`.
+
+### Preparing the project cell type metadata file
+
+All libraries within a given project will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
+The project cell type metadata file should contain these five columns with the following information:
+
+| column_id             | contents |
+| --------------------- | -------- |
+| `scpca_project_id`    | Project ID matching values in the run metadata file |
+| `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | Path/uri to `CellAssign` reference file, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
+
+We have provided an example project cell type metadata file for reference.
+
+| [View example `project_celltype_metadata.tsv` file](examples/example_project_celltype_metadata.tsv) |
+| --------------------------------------------------------------------------------------------------- |
+
+### Repeating cell type annotation
+
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder, as long as the cell type reference file is unchanged.
+
+This saves substantial processing time if the cell type annotation reference versions are unchanged.
+However, you may wish to repeat the cell typing process if there have been other changes to the data or analysis.
+
+To force repeating the cell type annotation process, use the `--repeat_celltyping` flag along with the `--perform_celltyping` flag at the command line:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_celltyping \
+  --repeat_celltyping
+```
+
+### Providing existing cell type labels
+
+If you have already performed cell type annotation and wish to include these labels in the final workflow results, you can include the column `submitter_cell_types_file` in your run metadata file.
+This column should be filled with the path or uri to a TSV file containing cell type labels for the cells in the run.
+The cell type label file is a TSV file with the following required columns:
+
+| column_id              | contents                                            |
+| ---------------------- | --------------------------------------------------- |
+| `scpca_library_id`     | Library ID matching values in the run metadata file |
+| `cell_barcode`         | The cell id with the given annotation label         |
+| `cell_type_assignment` | The annotation label for that cell                  |
+
+Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
+
+
+## Output files
+
+Upon completion of the `scpca-nf` workflow, the results will be published to the specified `outdir`.
+Within the `outdir`, two folders will be present, `results` and `checkpoints`.
+
+The `results` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal.
+
+Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
+All files in that folder will be prefixed by the library ID.
+
+The files with the suffixes `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` provide quantified gene expression data as [`SingleCellExperiment` objects](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+
+The files with the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_processed_rna.hdf5` provide the quantified gene expression data as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
+If the input data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided for each library.
+These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
+
+**Note: We currently do not output `AnnData` objects (`.hdf5` files) for any multiplexed libraries.
+Only `SingleCellExperiment` objects (`.rds` files) will be provided for multiplexed libraries.**
+
+For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
+
+See below for the expected structure of the `results` folder:
+
+```
+results
+└── sample_id
+    ├── library_id_unfiltered.rds
+    ├── library_id_filtered.rds
+    ├── library_id_processed.rds
+    ├── library_id_unfiltered_rna.hdf5
+    ├── library_id_filtered_rna.hdf5
+    ├── library_id_processed_rna.hdf5
+    ├── library_id_metadata.json
+    └── library_id_qc.html
+```
+
+If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
+
+If you performed cell type annotation, an additional QC report specific to cell typing results called `library_id_celltype-report.html` will also be present in the `results` directory.
+
+The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`.
+The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
+
+The `rad` folder (nested inside the `checkpoints` folder) contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag.
+If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed.
+
+All files pertaining to a specific library will be nested within a folder labeled with the library ID.
+Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for libraries with ADT tags) and nested within the library ID folder.
+
+See below for the expected structure of the `checkpoints` folder:
+
+```
+checkpoints
+├── rad
+│   ├── library01
+│   │   ├── run01-rna
+│   │   └── run02-features
+│   └── library02
+│       └── run03-rna
+└── salmon
+```
+
+By default, the direct output from running [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html) is not provided.
+Within `scpca-nf`, the [counts matrix output from `alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/quant.html#output) is directly imported into R as a `SingleCellExperiment` object and can be obtained in the `_unfiltered.RDS` file.
+If you would like to obtain all files typically output from running `alevin-fry`, you may run the workflow with the `--publish_fry_outs` option at the command line.
+This will tell the workflow to save the `alevin-fry` outputs to a folder labeled `alevinfry` nested inside the `checkpoints` folder.
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --publish_fry_outs
+```
+
+If genetic demultiplexing was performed, there will also be a checkpoints folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq.
+Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.
+
+If cell type annotation was performed, there will also be a checkpoints folder called `celltype` with the output from running `SingleR` and `CellAssign`.
 
 ## Special considerations for specific data types
 
@@ -376,8 +545,12 @@ To support demultiplexing, we currently require _ALL_ of the following for multi
 
 - A single-cell RNA-seq run of the pooled samples
 - A matched cellhash sequencing run for the pooled samples
-- A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences.
+- A TSV file, `feature_barcode_file`, defining the cellhash barcode sequences
+  - This file should have one line per barcode and no header.
+  The first column should contain the cellhash barcode ID, and the second column should contain the barcode nucleotide sequence.
 - A TSV file, `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
+  - This file should have one line per pool and no header.
+  The first column should contain the cellhash pool ID, and the second column should contain the barcode nucleotide sequence.
 
 For genetic demultiplexing, we also require:
 
@@ -397,10 +570,10 @@ The `feature_barcode_file` for each library should be listed in the [metadata fi
 The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
 
-| column_id          | contents                                                                                    |
-| ------------------ | ------------------------------------------------------------------------------------------- |
-| `scpca_library_id` | Multiplexed library ID matching values in the metadata file.                                |
-| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library                          |
+| column_id          | contents  |
+| ------------------ | --------- |
+| `scpca_library_id` | Multiplexed library ID matching values in the run metadata file. |
+| `scpca_sample_id`  | Sample ID for a sample contained in the listed multiplexed library |
 | `barcode_id`       | The barcode ID used for the sample within the library, as defined in `feature_barcode_file` |
 
 Other columns may be included for reference (such as the `feature_barcode_file` associated with the library), but these will not be used directly.
@@ -419,77 +592,17 @@ As an example, the Dockerfile that we used to build Space Ranger can be found [h
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file.
 _Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
 
-## Output files
+## Additional workflow settings
 
-Upon completion of the `scpca-nf` workflow, the results will be published to the specified `outdir`.
-Within the `outdir`, two folders will be present, `results` and `checkpoints`.
+### Repeating mapping steps
 
-The `results` folder will contain the final output files produced by the workflow and the files that are typically available for download on the ScPCA portal.
+By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `checkpoints` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`).
+If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
+However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process.
 
-Within the `results` folder, all files pertaining to a specific sample will be nested within a folder labeled with the sample ID.
-All files in that folder will be prefixed by the library ID.
-
-The files with the suffixes `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` provide quantified gene expression data as [`SingleCellExperiment` objects](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
-
-The files with the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_processed_rna.hdf5` provide the quantified gene expression data as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
-If the input data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided for each library.
-These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
-
-**Note: We currently do not output `AnnData` objects (`.hdf5` files) for any multiplexed libraries.
-Only `SingleCellExperiment` objects (`.rds` files) will be provided for multiplexed libraries.**
-
-For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
-
-See below for the expected structure of the `results` folder:
-
-```
-results
-└── sample_id
-    ├── library_id_unfiltered.rds
-    ├── library_id_filtered.rds
-    ├── library_id_processed.rds
-    ├── library_id_unfiltered_rna.hdf5
-    ├── library_id_filtered_rna.hdf5
-    ├── library_id_processed_rna.hdf5
-    ├── library_id_metadata.json
-    └── library_id_qc.html
-```
-
-If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
-
-The `checkpoints` folder will contain intermediate files that are produced by individual steps of the workflow, including mapping with `salmon`.
-The contents of this folder are used to allow restarting the workflow from internal checkpoints (in particular so the initial read mapping does not need to be repeated, see [repeating mapping steps](#repeating-mapping-steps)), and may contain log files and other outputs useful for troubleshooting or alternative analysis.
-
-The `rad` folder (nested inside the `checkpoints` folder) contains the output from running [`salmon alevin`](https://salmon.readthedocs.io/en/latest/alevin.html) with the `--rad` flag.
-If bulk libraries are processed, there will be an additional `salmon` folder that contains the output from running [`salmon quant`](https://salmon.readthedocs.io/en/latest/file_formats.html) on each library processed.
-
-All files pertaining to a specific library will be nested within a folder labeled with the library ID.
-Additionally, for each run, all files related to that run will be inside a folder labeled with the run ID followed by the type of run (i.e. `rna` or `features` for libraries with ADT tags) and nested within the library ID folder.
-
-See below for the expected structure of the `checkpoints` folder:
-
-```
-checkpoints
-├── rad
-│   ├── library01
-│   │   ├── run01-rna
-│   │   └── run02-features
-│   └── library02
-│       └── run03-rna
-└── salmon
-```
-
-By default, the direct output from running [`alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/index.html) is not provided.
-Within `scpca-nf`, the [counts matrix output from `alevin-fry`](https://alevin-fry.readthedocs.io/en/latest/quant.html#output) is directly imported into R as a `SingleCellExperiment` object and can be obtained in the `_unfiltered.RDS` file.
-If you would like to obtain all files typically output from running `alevin-fry`, you may run the workflow with the `--publish_fry_outs` option at the command line.
-This will tell the workflow to save the `alevin-fry` outputs to a folder labeled `alevinfry` nested inside the `checkpoints` folder.
+To force repeating the mapping process, use the `--repeat_mapping` flag at the command line:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config <path to config file>  \
-  -profile <name of profile> \
-  --publish_fry_outs
+  --repeat_mapping
 ```
-
-If genetic demultiplexing was performed, there will also be a folder called `vireo` with the output from running [vireo](https://vireosnp.readthedocs.io/en/latest/index.html) using genotypes identified from the bulk RNA-seq.
-Note that we do not output the genotype calls themselves for each sample or cell, as these may contain identifying information.

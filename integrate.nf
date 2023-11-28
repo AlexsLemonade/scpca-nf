@@ -118,11 +118,13 @@ process integration_report {
   script:
     integration_report = "${integration_group}_summary_report.html"
     """
-    Rscript -e "rmarkdown::render('${report_template}', \
-                                  output_file = '${integration_report}', \
-                                  params = list(integration_group = '${integration_group}', \
-                                                integrated_sce = '${integrated_sce_file}', \
-                                                batch_column = 'library_id'))"
+    Rscript -e "rmarkdown::render( \
+      '${report_template}', \
+      output_file = '${integration_report}', \
+      params = list(integration_group = '${integration_group}', \
+                    integrated_sce = '${integrated_sce_file}', \
+                    batch_column = 'library_id') \
+      )"
     """
 
 }

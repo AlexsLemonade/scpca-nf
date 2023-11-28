@@ -4,7 +4,8 @@ The below plot shows the UMAP (Uniform Manifold Approximation and Projection) em
 
 ```{r message=FALSE}
 # create UMAP colored by number of genes detected
-scater::plotUMAP(processed_sce,
+scater::plotUMAP(
+  processed_sce,
   point_size = 0.3,
   point_alpha = 0.5,
   colour_by = "detected"
@@ -13,10 +14,10 @@ scater::plotUMAP(processed_sce,
   # remove axis numbers and background grid
   scale_x_continuous(labels = NULL, breaks = NULL) +
   scale_y_continuous(labels = NULL, breaks = NULL) +
-  coord_fixed() +
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
-  )
+  ) + 
+  theme(aspect.ratio = 1)
 ```
 
 ### Expression of highly variable genes
@@ -88,8 +89,8 @@ if (!is.null(processed_meta$highly_variable_genes)) {
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) +
     scale_y_continuous(labels = NULL, breaks = NULL) +
-    coord_fixed() +
     theme(
+      aspect.ratio = 1,
       legend.position = "bottom",
       axis.title = element_text(size = 9, color = "black"),
       strip.text = element_text(size = 8),

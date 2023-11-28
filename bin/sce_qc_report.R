@@ -3,8 +3,10 @@
 # This script generates a QC report using scpcaTools from a pair of filtered and unfiltered SCE objects
 
 # import libraries
-library(optparse)
-suppressPackageStartupMessages(library(SingleCellExperiment))
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+})
 
 # set up arguments
 option_list <- list(
@@ -13,6 +15,13 @@ option_list <- list(
     type = "character",
     default = NULL,
     help = "path to rmd template file for report"
+  ),
+  make_option(
+    opt_str = c("--celltype_report_template"),
+    type = "character",
+    default = NULL,
+    help = "path to template file for supplemental cell types rmd report.
+    Only used if `celltype_report_file` is not empty"
   ),
   make_option(
     opt_str = c("-u", "--unfiltered_sce"),
@@ -32,18 +41,24 @@ option_list <- list(
   make_option(
     opt_str = c("-l", "--library_id"),
     type = "character",
-    help = "Library identifier for report and metadata file"
+    help = "library identifier for report and metadata file"
   ),
   make_option(
     opt_str = c("-s", "--sample_id"),
     type = "character",
-    help = "Sample identifier(s) for metadata file. For a multiplexed library, a comma or semicolon separated list."
+    help = "sample identifier(s) for metadata file. For a multiplexed library, a comma or semicolon separated list"
   ),
   make_option(
     opt_str = c("-q", "--qc_report_file"),
     default = "qc_report.html",
     type = "character",
     help = "path to QC report output file"
+  ),
+  make_option(
+    opt_str = c("--celltype_report_file"),
+    type = "character",
+    default = "",
+    help = "path to supplemental cell type QC report output file. Only considered if not empty string"
   ),
   make_option(
     opt_str = "--metadata_json",
@@ -91,13 +106,13 @@ option_list <- list(
     opt_str = "--demux_method",
     type = "character",
     default = "vireo",
-    help = "Demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
+    help = "demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
   ),
   make_option(
     opt_str = "--seed",
     type = "integer",
     default = NULL,
-    help = "Optional random seed used in certain QC report visualizations."
+    help = "optional random seed used in certain QC report visualizations"
   )
 )
 
@@ -229,8 +244,14 @@ if (multiplexed) {
 }
 
 # Output metadata as JSON
-jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE, pretty = TRUE)
+jsonlite::write_json(
+  metadata_list,
+  path = opt$metadata_json,
+  auto_unbox = TRUE,
+  pretty = TRUE
+)
 
+# render main QC report
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
@@ -238,5 +259,32 @@ scpcaTools::generate_qc_report(
   processed_sce = processed_sce,
   report_template = opt$report_template,
   output = opt$qc_report_file,
-  extra_params = list(seed = opt$seed)
+  extra_params = list(
+    seed = opt$seed,
+    # this will only be used if cell types exist
+    celltype_report = opt$celltype_report_file
+  )
 )
+
+
+# render supplemental cell types report, if needed
+if (opt$celltype_report_file != "") {
+  # check that the template file exists
+  if (!file.exists(opt$celltype_report_template)) {
+    stop("Supplemental cell types report template not found.")
+  }
+
+  # render report
+  rmarkdown::render(
+    input = opt$celltype_report_template,
+    output_file = basename(opt$celltype_report_file),
+    output_dir = dirname(opt$celltype_report_file),
+    intermediates_dir = tempdir(),
+    knit_root_dir = tempdir(),
+    envir = new.env(),
+    params = list(
+      library = metadata_list$library_id,
+      processed_sce = processed_sce
+    )
+  )
+}

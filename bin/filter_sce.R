@@ -107,7 +107,8 @@ filtered_sce <- filtered_sce |>
 # since this can fail, we will check for success
 miQC_worked <- FALSE
 try({
-  filtered_sce <- scpcaTools::add_miQC(filtered_sce,
+  filtered_sce <- scpcaTools::add_miQC(
+    filtered_sce,
     posterior_cutoff = opt$prob_compromised_cutoff,
     enforce_left_cutoff = opt$enforce_left_cutoff
   )

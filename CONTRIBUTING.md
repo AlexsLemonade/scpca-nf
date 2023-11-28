@@ -33,11 +33,58 @@ If a new reference type is needed, that should be defined in the [`test/stub-ref
 
 ## Code style
 
-While there is not necessarily an established code style for nextflow code, we try to keep code neat and readable.
-Line length should generally be kept under 100 characters, and indentation should be consistent.
+### Nextflow
+
+While there is not necessarily an established code style for Nextflow code, we try to keep code neat and readable.
+Line length should generally be kept under 100 characters, and indentation should be set at 2 spaces per tab.
+This can be set in [Visual Studio Code](https://code.visualstudio.com) with the following entries in `settings.json`:
+
+```json
+"editor.rulers": [100],
+"[nextflow]": {
+    "editor.tabSize": 2,
+}
+```
+
+#### A note on variables in Nextflow/Groovy
+
+Variables in Groovy are set as global by default, which can have some unexpected consequences.
+To avoid this, any variables declared in functions or closures (such as `.map{}` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
+
+```groovy
+// don't do this:
+bad.map{
+  my_var = it;
+  my_var + 1
+}
+
+// do this instead:
+good.map{
+  def my_var = it;
+  my_var + 1
+}
+```
+
+### R and R Markdown
 
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
 
+### Python
+
 For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
 The `black` package can be installed with `pip install black`, and can be run on a file with `black <filename>`.
-Alternatively, if you use [Visual Studio Code](https://code.visualstudio.com), you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+If you use Visual Studio Code, you can install the [`black` extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter).
+
+As an alternative to `black`, you can also use [`ruff`](https://docs.astral.sh/ruff/) for formatting and linting; it follows the same code style conventions.
+`ruff` is also available as a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
+
+## Pre-commit hooks
+
+For convenience, we have included a set of [pre-commit hooks](https://pre-commit.com/) that can be used to automatically format code according to the above specifications, as well as to spellcheck and check for other common errors.
+
+To use these hooks, install the `pre-commit` package according to your favorite method (`pip install pre-commit` or `conda install pre-commit`), then run `pre-commit install` in the `scpca-nf` directory.
+This will install the hooks in the `.git/hooks` directory, and they will be run automatically when you commit changes.
+If any of the hooks fail, the commit will be aborted, and you will need to fix the errors and re-commit.
+
+Notably, the spellcheck hook will report spelling errors, but will also add any words it finds to the dictionary file.
+This is convenient for many cases (where the word is real but unknown), but be sure to remove truly misspelled words from the dictionary file before committing, or they will not be caught in the future!

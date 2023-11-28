@@ -29,7 +29,7 @@ process make_unfiltered_sce{
 
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -86,7 +86,7 @@ process make_merged_unfiltered_sce{
           ${params.spliced_only ? '--spliced_only' : ''}
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE.txt" ]; then
+        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -105,36 +105,36 @@ process make_merged_unfiltered_sce{
 }
 
 process filter_sce{
-    container params.SCPCATOOLS_CONTAINER
-    label 'mem_8'
-    tag "${meta.library_id}"
-    input:
-        tuple val(meta), path(unfiltered_rds), path(feature_barcode_file)
-    output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
-    script:
-        filtered_rds = "${meta.library_id}_filtered.rds"
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_8'
+  tag "${meta.library_id}"
+  input:
+    tuple val(meta), path(unfiltered_rds), path(feature_barcode_file)
+  output:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+  script:
+    filtered_rds = "${meta.library_id}_filtered.rds"
 
-        // Checks for whether we have ADT data:
-        // - feature_type should be adt
-        // - barcode file should _not_ be the empty file NO_FILE.txt
-        adt_present = meta.feature_type == 'adt' &
-          feature_barcode_file.name != "NO_FILE.txt"
+    // Checks for whether we have ADT data:
+    // - feature_type should be adt
+    // - barcode file should _not_ be the empty file NO_FILE
+    adt_present = meta.feature_type == 'adt' &
+      feature_barcode_file.name != "NO_FILE"
 
-        """
-        filter_sce.R \
-          --unfiltered_file ${unfiltered_rds} \
-          --filtered_file ${filtered_rds} \
-          ${adt_present ? "--adt_name ${meta.feature_type}":""} \
-          ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
-          --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
-          ${params.seed ? "--random_seed ${params.seed}" : ""}
-        """
-    stub:
-        filtered_rds = "${meta.library_id}_filtered.rds"
-        """
-        touch ${filtered_rds}
-        """
+    """
+    filter_sce.R \
+      --unfiltered_file ${unfiltered_rds} \
+      --filtered_file ${filtered_rds} \
+      ${adt_present ? "--adt_name ${meta.feature_type}":""} \
+      ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
+      --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""}
+    """
+  stub:
+    filtered_rds = "${meta.library_id}_filtered.rds"
+    """
+    touch ${filtered_rds}
+    """
 }
 
 process genetic_demux_sce{
@@ -145,21 +145,21 @@ process genetic_demux_sce{
     tuple val(demux_meta), path(vireo_dir),
           val(meta), path(unfiltered_rds), path(filtered_rds)
   output:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+    tuple val(meta), path(unfiltered_rds), path(demux_rds)
   script:
-    // output will be same as input, with replacement of the filtered_rds file
     // demultiplex results will be added to the SCE object colData
+    demux_rds = "${filtered_rds.baseName}_genetic-demux.rds"
     """
-    mv ${filtered_rds} filtered_nodemux.rds
     add_demux_sce.R \
-      --sce_file filtered_nodemux.rds \
-      --output_sce_file ${filtered_rds} \
+      --sce_file ${filtered_rds} \
+      --output_sce_file ${demux_rds} \
       --library_id ${meta.library_id} \
       --vireo_dir ${vireo_dir}
     """
   stub:
+    demux_rds = "${filtered_rds.baseName}_genetic-demux.rds"
     """
-    touch ${filtered_rds}
+    touch ${demux_rds}
     """
 }
 
@@ -171,55 +171,59 @@ process cellhash_demux_sce{
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
     path cellhash_pool_file
   output:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+    tuple val(meta), path(unfiltered_rds), path(demux_rds)
   script:
-    // output will be same as input, with replacement of the filtered_rds file
     // demultiplex results will be added to the SCE object colData
+    demux_rds = "${filtered_rds.baseName}_cellhash-demux.rds"
     """
-    mv ${filtered_rds} filtered_nodemux.rds
     add_demux_sce.R \
-      --sce_file filtered_nodemux.rds \
-      --output_sce_file ${filtered_rds} \
+      --sce_file ${filtered_rds}  \
+      --output_sce_file ${demux_rds} \
       --library_id ${meta.library_id} \
       --cellhash_pool_file ${cellhash_pool_file} \
       --hash_demux \
       --seurat_demux
     """
   stub:
+    demux_rds = "${filtered_rds.baseName}_cellhash-demux.rds"
     """
-    touch ${filtered_rds}
+    touch ${demux_rds}
     """
 }
 
 process post_process_sce{
-    container params.SCPCATOOLS_CONTAINER
-    label 'mem_8'
-    tag "${meta.library_id}"
-    input:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds)
-    output:
-        tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
-    script:
-        processed_rds = "${meta.library_id}_processed.rds"
-        """
-        post_process_sce.R \
-          --filtered_sce_file ${filtered_rds} \
-          --output_sce_file ${processed_rds} \
-          --gene_cutoff ${params.gene_cutoff} \
-          --n_hvg ${params.num_hvg} \
-          --n_pcs ${params.num_pcs} \
-          ${params.seed ? "--random_seed ${params.seed}" : ""}
-        """
-    stub:
-        processed_rds = "${meta.library_id}_processed.rds"
-        """
-        touch ${processed_rds}
-        """
+  container params.SCPCATOOLS_CONTAINER
+  label 'mem_8'
+  tag "${meta.library_id}"
+  input:
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds)
+  output:
+    tuple val(meta), path(unfiltered_rds), path(filter_labeled_rds), path(processed_rds)
+  script:
+    filter_labeled_rds = "${meta.library_id}_filtered_labeled.rds"
+    processed_rds = "${meta.library_id}_processed.rds"
+    """
+    post_process_sce.R \
+      --filtered_sce_file ${filtered_rds} \
+      --out_filtered_sce_file ${filter_labeled_rds} \
+      --out_processed_sce_file ${processed_rds} \
+      --gene_cutoff ${params.gene_cutoff} \
+      --n_hvg ${params.num_hvg} \
+      --n_pcs ${params.num_pcs} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""}
+    """
+  stub:
+    filter_labeled_rds = "${meta.library_id}_filtered_labeled.rds"
+    processed_rds = "${meta.library_id}_processed.rds"
+    """
+    touch ${filter_labeled_rds}
+    touch ${processed_rds}
+    """
 }
 
 
 // used when a given file is not defined in the below workflows
-empty_file = "${projectDir}/assets/NO_FILE.txt"
+empty_file = "${projectDir}/assets/NO_FILE"
 
 workflow generate_sce {
   // generate rds files for RNA-only samples

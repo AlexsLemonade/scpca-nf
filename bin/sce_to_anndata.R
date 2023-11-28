@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(optparse)
   library(SingleCellExperiment)
 })
+
 # set up arguments
 option_list <- list(
   make_option(
@@ -52,19 +53,19 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))) {
 # CZI compliance function ------------------------------------------------------
 
 # this function applies any necessary reformatting or changes needed to make
-# sure that the sce that is getting converted to AnnData is compliant with CZI
+# sure that the sce that is getting converted to AnnData is compliant with
 # CZI 3.0.0 requirements: https://github.com/chanzuckerberg/single-cell-curation/blob/b641130fe53b8163e50c39af09ee3fcaa14c5ea7/schema/3.0.0/schema.md
 format_czi <- function(sce) {
-
   # add schema version
-  metadata(sce)$schema_version = "3.0.0"
+  metadata(sce)$schema_version <- "3.0.0"
 
   # add library_id as an sce colData column
   # need this column to join in the sample metadata with the colData
   sce$library_id <- metadata(sce)$library_id
 
   # add sample metadata to colData sce
-  sce <- scpcaTools::metadata_to_coldata(sce,
+  sce <- scpcaTools::metadata_to_coldata(
+    sce,
     join_columns = "library_id"
   )
 
@@ -114,6 +115,8 @@ sample_metadata <- metadata(sce)$sample_metadata
 sce <- format_czi(sce)
 
 # export sce as anndata object
+# this function will also remove any R-specific object types from the SCE metadata
+#   before converting to AnnData
 scpcaTools::sce_to_anndata(
   sce,
   anndata_file = opt$output_rna_h5
@@ -137,8 +140,7 @@ if (!is.null(opt$feature_name)) {
   alt_sce <- altExp(sce, opt$feature_name)
 
   # only convert altExp with > 1 rows
-  if(nrow(alt_sce) > 1){
-
+  if (nrow(alt_sce) > 1) {
     # add sample metadata from main sce to alt sce metadata
     metadata(alt_sce)$sample_metadata <- sample_metadata
 
@@ -153,10 +155,10 @@ if (!is.null(opt$feature_name)) {
   } else {
     # warn that the altExp cannot be converted
     message(
-      glue::glue(
-        "Only 1 row found in altExp named: {opt$feature_name}.
-                       This altExp will not be converted to an AnnData object."
-      )
+      glue::glue("
+        Only 1 row found in altExp named: {opt$feature_name}.
+        This altExp will not be converted to an AnnData object.
+      ")
     )
   }
 }
