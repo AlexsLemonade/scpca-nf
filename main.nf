@@ -73,6 +73,8 @@ workflow {
   if (params.project){
     // projects will use all runs in the project & supersede run_ids
     run_ids = []
+    // allow for processing of multiple projects at once
+    project_ids = params.project?.tokenize(',')
   }else{
     run_ids = params.run_ids?.tokenize(',') ?: []
   }
