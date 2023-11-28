@@ -86,11 +86,11 @@ process merge_report {
 
 workflow {
 
-    // select projects to integrate from params
+    // select projects to merge from params
     merge_groups = params.merge_group?.tokenize(',') ?: []
     merge_groups_all = merge_groups[0] == "All" // create logical for including all groups or not when filtering later
 
-    // create channel of integration group and libraries to integrate
+    // create channel of merge group and libraries to merge
     merge_meta_ch = Channel.fromPath(params.merge_metafile)
       .splitCsv(header: true, sep: '\t')
       .map{[
@@ -115,7 +115,7 @@ workflow {
       .map{[it.library_id, it.merge_group]}
       // pull out library_id from meta and use to join
       .combine(libraries_ch.map{[it.library_id, it.scpca_nf_file]}, by: 0)
-      // create tuple of integration group, library ID, and output file from scpca_nf
+      // create tuple of merge group, library ID, and output file from scpca_nf
       .map{[
         it[1], // merge_group
         it[0], // library_id
