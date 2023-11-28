@@ -139,15 +139,26 @@ if (!is.null(opt$feature_name)) {
   # extract altExp
   alt_sce <- altExp(sce, opt$feature_name)
 
-  # add sample metadata from main sce to alt sce metadata
-  metadata(alt_sce)$sample_metadata <- sample_metadata
+  # only convert altExp with > 1 rows
+  if (nrow(alt_sce) > 1) {
+    # add sample metadata from main sce to alt sce metadata
+    metadata(alt_sce)$sample_metadata <- sample_metadata
 
-  # make sce czi compliant
-  alt_sce <- format_czi(alt_sce)
+    # make sce czi compliant
+    alt_sce <- format_czi(alt_sce)
 
-  # export altExp sce as anndata object
-  scpcaTools::sce_to_anndata(
-    alt_sce,
-    anndata_file = opt$output_feature_h5
-  )
+    # export altExp sce as anndata object
+    scpcaTools::sce_to_anndata(
+      alt_sce,
+      anndata_file = opt$output_feature_h5
+    )
+  } else {
+    # warn that the altExp cannot be converted
+    message(
+      glue::glue("
+        Only 1 row found in altExp named: {opt$feature_name}.
+        This altExp will not be converted to an AnnData object.
+      ")
+    )
+  }
 }
