@@ -155,10 +155,10 @@ if (!is.null(opt$feature_name)) {
   } else {
     # warn that the altExp cannot be converted
     message(
-      glue::glue(
-        "Only 1 row found in altExp named: {opt$feature_name}.
-                       This altExp will not be converted to an AnnData object."
-      )
+      glue::glue("
+        Only 1 row found in altExp named: {opt$feature_name}.
+        This altExp will not be converted to an AnnData object.
+      ")
     )
   }
 }
