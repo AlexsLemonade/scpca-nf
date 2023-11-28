@@ -132,8 +132,8 @@ workflow {
       || (it.run_id in run_ids)
       || (it.library_id in run_ids)
       || (it.sample_id in run_ids)
-      || (it.submitter == params.project)
-      || (it.project_id == params.project)
+      || (it.submitter in project_ids)
+      || (it.project_id in project_ids)
     }
     .branch{
       bulk: it.technology in bulk_techs
