@@ -21,7 +21,7 @@ assignees: ''
 - [ ] (Optional) Generate new example `scpca-nf` output files.
 If updating the example output is not necessary for this release, check these boxes off for free.
   - [ ] [Re-process the example data](https://github.com/AlexsLemonade/scpca-nf/blob/main/internal-instructions.md#processing-example-data) through the `scpca-nf` workflow and ensure it looks correct.
-  - [ ] Compress the example output in `scpca_out` to create `scpca_out.zip`, as described in the instructions.
+  - [ ] Compress the example output in `scpca_out` to create `scpca_out.zip`, as described in the instructions, and ensure the file is set to public and read-only.
 
 
 ### Creating a release
