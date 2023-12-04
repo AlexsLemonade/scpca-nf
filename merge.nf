@@ -81,7 +81,11 @@ process merge_report {
                     batch_column = 'library_id') \
       )"
     """
-
+  stub:
+    merge_report = "${merge_group}_summary_report.html"
+    """
+    touch ${merge_report}
+    """
 }
 
 workflow {
