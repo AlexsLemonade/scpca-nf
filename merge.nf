@@ -60,7 +60,7 @@ process merge_sce {
 
 }
 
-// create merge report and single object
+// create merge report 
 process merge_report {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.results_dir}/merged/${merge_group}"
