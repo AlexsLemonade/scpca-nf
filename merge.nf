@@ -109,7 +109,7 @@ workflow {
       // make sure we don't have any duplicates of the same library ID hanging around
       // this shouldn't be the case since we removed CITE-seq and cell-hashing
       .unique()
-      // grouped tuple of [merge_group, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
+      // group tuple by project id, [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
       .groupTuple(by: 0)
 
     merge_sce(grouped_libraries_ch)
