@@ -17,13 +17,9 @@ if(!params.project) {
   param_error = true
 }
 
+// check for provided run file
 if (!file(params.run_metafile).exists()) {
   log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
-  param_error = true
-}
-
-if (!file(params.merge_metafile).exists()) {
-  log.error("The 'merge_metafile' file '${params.merge_metafile}' can not be found.")
   param_error = true
 }
 
@@ -37,13 +33,13 @@ process merge_sce {
   label 'mem_16'
   publishDir "${params.checkpoints_dir}/merged"
   input:
-    tuple val(merge_group), val(library_ids), path(scpca_nf_file)
+    tuple val(project_id), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(merge_group), path(merged_sce_file)
+    tuple val(project_id), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
-    merged_sce_file = "${merge_group}_merged.rds"
+    merged_sce_file = "${project_id}_merged.rds"
     """
     merge_sces.R \
       --input_library_ids "${input_library_ids}" \
