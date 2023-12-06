@@ -98,10 +98,12 @@ workflow {
       .filter{it.seq_unit in ['cell', 'nucleus']}
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
-        project_id: it.scpca_project_id,
-        library_id: it.scpca_library_id,
-        scpca_nf_file: "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
+        it.scpca_project_id,
+        it.scpca_library_id,
+        "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
+      // only include samples that have been processed through scpca-nf
+      .filter{file(it[2]).exists()}
       // make sure we don't have any duplicates of the same library ID hanging around
       // this shouldn't be the case since we removed CITE-seq and cell-hashing
       .unique()
