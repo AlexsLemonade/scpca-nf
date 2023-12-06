@@ -53,6 +53,8 @@ process alevin_feature{
     tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
     // get meta to write as file
+    // make sure workflow version strings are correct
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${run_dir}
@@ -74,6 +76,7 @@ process alevin_feature{
     """
   stub:
     run_dir = "${meta.run_id}-features"
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${run_dir}
@@ -95,6 +98,7 @@ process fry_quant_feature{
   script:
     quant_dir = rad_dir + '_quant'
     // get meta to write as file
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     alevin-fry generate-permit-list \
@@ -124,6 +128,7 @@ process fry_quant_feature{
     """
   stub:
     quant_dir = rad_dir + '_quant'
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p '${quant_dir}'

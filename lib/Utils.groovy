@@ -1,6 +1,8 @@
 
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+import nextflow.script.WorkflowMetadata
+import nextflow.NextflowMeta
 
 /**
  * Utility functions for scpca-nf
@@ -24,10 +26,12 @@ class Utils {
    * Write a metadata map to a JSON string
    *
    * @param meta A metadata map
+   * @param updates A map of updates to the metadata
    * @return A JSON string
    */
-  static def makeJson(meta) {
-    def meta_json = JsonOutput.toJson(meta)
+  static def makeJson(meta, updates = [:]) {
+    def meta_out = meta + updates
+    def meta_json = JsonOutput.toJson(meta_out)
     meta_json = JsonOutput.prettyPrint(meta_json)
     return(meta_json)
   }
@@ -63,5 +67,20 @@ class Utils {
     } else { // all falsey values get turned into empty strings
       ''
     }
+  }
+
+
+  /**
+   * Make a map of versions for the workflow and nextflow, for adding to metadata
+   *
+   * @param workflow A nextflow WorkflowMetadata object containing the revision and manifest
+   * @param nextflow A NextflowMeta object (created by the nextflow runtime)
+   * @return A map with keys "scpca_version" and "nextflow_version"
+   */
+  static def getVersions(WorkflowMetadata workflow, NextflowMeta nextflow){
+    [
+      scpca_version : workflow.revision ?: workflow.manifest.version,
+      nextflow_version : nextflow.version.toString()
+    ]
   }
 }

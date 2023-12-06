@@ -23,6 +23,7 @@ process alevin_rad{
       '10Xv3.1': '--chromiumV3'
     ]
     // get meta to write as file
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     // run alevin like normal with the --rad flag
     // creates output directory with RAD file needed for alevin-fry
@@ -43,6 +44,7 @@ process alevin_rad{
     """
   stub:
     rad_dir = file(meta.rad_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${rad_dir}
@@ -66,6 +68,7 @@ process fry_quant_rna{
   script:
     quant_dir = rad_dir + '_quant'
     // get meta to write as file
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     alevin-fry generate-permit-list \
@@ -95,6 +98,7 @@ process fry_quant_rna{
     """
   stub:
     quant_dir = rad_dir + '_quant'
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p '${quant_dir}'
