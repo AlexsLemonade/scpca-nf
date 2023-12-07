@@ -31,11 +31,11 @@ if(param_error){
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_16'
-  publishDir "${params.checkpoints_dir}/merged"
+  publishDir "${params.results_dir}/merged/${project_id}"
   input:
-    tuple val(project_id), val(library_ids), path(scpca_nf_file)
+    tuple val(project_id), val(has_adt), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(project_id), path(merged_sce_file)
+    tuple val(project_id), val(has_adt), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -46,6 +46,7 @@ process merge_sce {
       --input_sce_files "${input_sces}" \
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \
+      "${has_adt ? "--include_alt_exp" : ''} \
       --threads ${task.cpus}
     """
   stub:
@@ -89,12 +90,20 @@ workflow {
     // grab project ids to run
     project_ids = params.project?.tokenize(',') ?: []
 
-    // read in run metafile, filter to projects of interest, and group by project
-    grouped_libraries_ch = Channel.fromPath(params.run_metafile)
+    // read in run metafile and filter to projects of interest
+    libraries_ch = Channel.fromPath(params.run_metafile)
       .splitCsv(header: true, sep: '\t')
       // filter to only include specified project ids
       .filter{it.scpca_project_id in project_ids}
-      // only include single-cell/single-nuclei which already contain processed altexps, and ensure we don't try to merge libraries from spatial or bulk data
+
+    // get all projects that contain at least one library with CITEseq
+    adt_projects = libraries_ch
+      .filter{it.technology.startsWith('CITEseq')}
+      .collect{it.scpca_project_id}
+      .unique()
+
+    grouped_libraries_ch = libraries_ch
+      // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
@@ -104,11 +113,17 @@ workflow {
       ]}
       // only include libraries that have been processed through scpca-nf
       .filter{file(it[2]).exists()}
-      // make sure we don't have any duplicates of the same library ID hanging around
-      // this shouldn't be the case since we removed CITE-seq and cell-hashing
+      // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
       .unique()
       // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
       .groupTuple(by: 0)
+      // add in boolean for if project contains samples with adt
+      .map{project_id, library_id_list, sce_file_list -> tuple(
+        project_id,
+        project_id in adt_projects, // determines if altExp should be included in the merged object
+        library_id_list,
+        sce_file_list
+      )}
 
     merge_sce(grouped_libraries_ch)
 
