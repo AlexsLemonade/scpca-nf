@@ -14,6 +14,7 @@ process spaceranger{
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     spaceranger count \
@@ -35,6 +36,7 @@ process spaceranger{
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     mkdir -p ${out_id}/outs
