@@ -107,7 +107,7 @@ process add_celltypes_to_sce {
       ${singler_present ? "--singler_model_file ${meta.singler_model_file}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
       ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
-      ${cellassign_present ? "--celltype_ref_metadata ${celltype_ref_metadata}" : ''}
+      ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''}
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
