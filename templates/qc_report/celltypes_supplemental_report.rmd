@@ -346,11 +346,12 @@ if (has_cellassign) {
   split_organs <- stringr::str_split_1(organs, pattern = ", ")
   organs_string <- stringr::str_flatten_comma(split_organs, last = ", and ")
   
+  ref_name <- metadata(processed_sce)$cellassign_reference
 
   methods_text <- glue::glue(
     "{methods_text}
     * Annotations from [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-    Marker genes associated with the following tissue types were obtained from [PanglaoDB](https://panglaodb.se/): {organs_string}.\n"
+    Marker genes for cell types categorized to the following organs were obtained from [PanglaoDB](https://panglaodb.se/) and compiled into a reference named `{ref_name}`: {organs_string}.\n"
   )
 }
 
