@@ -344,7 +344,7 @@ if (has_cellassign) {
     stringr::str_to_lower()
   # split up and add an `and` before the final organ
   split_organs <- stringr::str_split_1(organs, pattern = ", ")
-  organs_string <- glue::glue_collapse(split_organs, sep = ", ", last = ", and ")
+  organs_string <- stringr::str_flatten_comma(split_organs, last = ", and ")
   
 
   methods_text <- glue::glue(
