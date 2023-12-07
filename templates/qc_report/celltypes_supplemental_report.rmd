@@ -343,8 +343,8 @@ if (has_cellassign) {
   organs <- metadata(processed_sce)$cellassign_reference_organs |>
     stringr::str_to_lower()
   # split up and add an `and` before the final organ
-  split_organs <- stringr::str_split_1(organs, pattern = ", ")
-  organs_string <- stringr::str_flatten_comma(split_organs, last = ", and ")
+  organs_string <- stringr::str_split_1(organs, pattern = ", ") |> 
+    stringr::str_flatten_comma(last = ", and ")
   
   ref_name <- metadata(processed_sce)$cellassign_reference
 
