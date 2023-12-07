@@ -46,7 +46,7 @@ process classify_cellassign {
       pattern: "${cellassign_dir}"
     )
   label 'mem_128'
-  label 'cpus_12'
+  label 'cpus_32'
   tag "${meta.library_id}"
   input:
     tuple val(meta), path(processed_rds), path(cellassign_reference_file)
