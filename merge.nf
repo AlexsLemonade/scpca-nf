@@ -102,12 +102,12 @@ workflow {
         it.scpca_library_id,
         "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
-      // only include samples that have been processed through scpca-nf
+      // only include libraries that have been processed through scpca-nf
       .filter{file(it[2]).exists()}
       // make sure we don't have any duplicates of the same library ID hanging around
       // this shouldn't be the case since we removed CITE-seq and cell-hashing
       .unique()
-      // group tuple by project id, [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
+      // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
       .groupTuple(by: 0)
 
     merge_sce(grouped_libraries_ch)
