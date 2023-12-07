@@ -16,6 +16,7 @@ process classify_singler {
   script:
     singler_dir = file(meta.singler_dir).name
     meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     # create output directory
     mkdir "${singler_dir}"
@@ -28,14 +29,15 @@ process classify_singler {
       --threads ${task.cpus}
 
     # write out meta file
-    echo '${Utils.makeJson(meta)}' > "${singler_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
     """
   stub:
-    meta += Utils.getVersions(workflow, nextflow)
     singler_dir = file(meta.singler_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     mkdir "${singler_dir}"
-    echo '${Utils.makeJson(meta)}' > "${singler_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
     """
 }
 
@@ -55,8 +57,9 @@ process classify_cellassign {
   output:
     tuple val(meta.library_id), path(cellassign_dir)
   script:
-    meta += Utils.getVersions(workflow, nextflow)
     cellassign_dir = file(meta.cellassign_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     # create output directory
     mkdir "${cellassign_dir}"
@@ -75,14 +78,15 @@ process classify_cellassign {
       --threads ${task.cpus}
 
     # write out meta file
-    echo '${Utils.makeJson(meta)}' > "${cellassign_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
     """
   stub:
-    meta += Utils.getVersions(workflow, nextflow)
     cellassign_dir = file(meta.cellassign_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     mkdir "${cellassign_dir}"
-    echo '${Utils.makeJson(meta)}' > "${cellassign_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
     """
 }
 

@@ -30,7 +30,7 @@ class Utils {
    * @return A JSON string
    */
   static def makeJson(meta, updates = [:]) {
-    def meta_out = meta + updates
+    def meta_out = meta + updates // merge/overwrite the metadata with any updates
     def meta_json = JsonOutput.toJson(meta_out)
     meta_json = JsonOutput.prettyPrint(meta_json)
     return(meta_json)
