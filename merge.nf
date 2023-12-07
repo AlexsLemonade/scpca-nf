@@ -4,12 +4,6 @@ nextflow.enable.dsl=2
 // Workflow to merge SCE objects into a single object.
 // This workflow does NOT perform integration, i.e. batch correction.
 
-
-// merge-specific parameters
-// TODO: Update approach to define merge groupings.
-params.merge_metafile = 's3://ccdl-scpca-data/sample_info/scpca-integration-metadata.tsv'
-params.merge_group = "All"
-
 // define path to merge template
 // TODO: Establish this merge-report.Rmd file
 //merge_template = "${projectDir}/templates/merge-report.Rmd"
@@ -17,13 +11,15 @@ params.merge_group = "All"
 // parameter checks
 param_error = false
 
-if (!file(params.run_metafile).exists()) {
-  log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
+// check that at least one project has been provided
+if(!params.project) {
+  log.error("At least one 'project' must be specified for merging.")
   param_error = true
 }
 
-if (!file(params.merge_metafile).exists()) {
-  log.error("The 'merge_metafile' file '${params.merge_metafile}' can not be found.")
+// check for provided run file
+if (!file(params.run_metafile).exists()) {
+  log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
   param_error = true
 }
 
@@ -37,13 +33,13 @@ process merge_sce {
   label 'mem_16'
   publishDir "${params.checkpoints_dir}/merged"
   input:
-    tuple val(merge_group), val(library_ids), path(scpca_nf_file)
+    tuple val(project_id), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(merge_group), path(merged_sce_file)
+    tuple val(project_id), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
-    merged_sce_file = "${merge_group}_merged.rds"
+    merged_sce_file = "${project_id}_merged.rds"
     """
     merge_sces.R \
       --input_library_ids "${input_library_ids}" \
@@ -60,7 +56,7 @@ process merge_sce {
 
 }
 
-// create merge report 
+// create merge report
 process merge_report {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.results_dir}/merged/${merge_group}"
@@ -90,45 +86,31 @@ process merge_report {
 
 workflow {
 
-    // select projects to merge from params
-    merge_groups = params.merge_group?.tokenize(',') ?: []
-    merge_groups_all = merge_groups[0] == "All" // create logical for including all groups or not when filtering later
+    // grab project ids to run
+    project_ids = params.project?.tokenize(',') ?: []
 
-    // create channel of merge group and libraries to merge
-    merge_meta_ch = Channel.fromPath(params.merge_metafile)
+    // read in run metafile, filter to projects of interest, and group by project
+    grouped_libraries_ch = Channel.fromPath(params.run_metafile)
       .splitCsv(header: true, sep: '\t')
-      .map{[
-        library_id: it.scpca_library_id,
-        merge_group: it.merge_group,
-        submitter: it.submitter
-      ]}
-      .filter{merge_groups_all  || (it.merge_group in merge_groups)}
-
-    // channel with run metadata, keeping only the columns we need
-    libraries_ch = Channel.fromPath(params.run_metafile)
-      .splitCsv(header: true, sep: '\t')
-      // only include single-cell/single-nuclei and make sure no CITE-seq/ hashing libraries
+      // filter to only include specified project ids
+      .filter{it.scpca_project_id in project_ids}
+      // only include single-cell/single-nuclei which already contain processed altexps, and ensure we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
+      // create tuple of [project id, library_id, processed_sce_file]
       .map{[
-        library_id: it.scpca_library_id,
-        scpca_nf_file: "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
+        it.scpca_project_id,
+        it.scpca_library_id,
+        "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
       ]}
+      // only include libraries that have been processed through scpca-nf
+      .filter{file(it[2]).exists()}
+      // make sure we don't have any duplicates of the same library ID hanging around
+      // this shouldn't be the case since we removed CITE-seq and cell-hashing
       .unique()
-
-    grouped_meta_ch = merge_meta_ch
-      .map{[it.library_id, it.merge_group]}
-      // pull out library_id from meta and use to join
-      .combine(libraries_ch.map{[it.library_id, it.scpca_nf_file]}, by: 0)
-      // create tuple of merge group, library ID, and output file from scpca_nf
-      .map{[
-        it[1], // merge_group
-        it[0], // library_id
-        file(it[2]) // scpca_nf_file
-        ]}
-      // grouped tuple of [merge_group, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
+      // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
       .groupTuple(by: 0)
 
-    merge_sce(grouped_meta_ch)
+    merge_sce(grouped_libraries_ch)
 
     // TODO: generate merge report
     //merge_report(merge_sce.out, file(merge_template))
