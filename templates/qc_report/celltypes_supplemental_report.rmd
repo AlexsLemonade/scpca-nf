@@ -253,8 +253,8 @@ calculate_plot_height <- function(
 
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 # define library and sce object
-#library_id <- params$library
-#processed_sce <- params$processed_sce
+library_id <- params$library
+processed_sce <- params$processed_sce
 
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
