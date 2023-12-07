@@ -238,7 +238,7 @@ workflow annotate_celltypes {
     // incorporate annotations into SCE object
     add_celltypes_to_sce(
       assignment_input_ch.add_celltypes,
-      params.celltype_ref_metadata // file with CellAssign reference organs
+      file(params.celltype_ref_metadata) // file with CellAssign reference organs
     )
 
     // mix in libraries without new celltypes
