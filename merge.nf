@@ -94,7 +94,7 @@ workflow {
       .splitCsv(header: true, sep: '\t')
       // filter to only include specified project ids
       .filter{it.scpca_project_id in project_ids}
-      // only include single-cell/single-nuclei and make sure no CITE-seq/ hashing libraries
+      // only include single-cell/single-nuclei which already contain processed altexps, and ensure we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
