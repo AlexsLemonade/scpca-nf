@@ -47,7 +47,7 @@ option_list <- list(
     opt_str = c("--celltype_ref_metafile"),
     type = "character",
     help = "Metadata TSV file containing cell type reference metadata.
-            This file is used to obtain a list of organs used for CellAssign annotation."
+            This file is used to obtain a list of organs used for CellAssign annotation and is only required if CellAssign results provided as input."
   )
 )
 
