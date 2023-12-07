@@ -63,6 +63,18 @@ if (!resolution_strategies.contains(params.af_resolution)) {
   param_error = true
 }
 
+// cell type annotation file checks
+if (params.perform_celltyping) {
+  if (!file(params.project_celltype_metafile).exists()) {
+    log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
+    param_error = true
+  }
+  if (!file(params.celltype_ref_metadata).exists()) {
+    log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
+    param_error = true
+  }
+}
+
 if(param_error){
   System.exit(1)
 }
