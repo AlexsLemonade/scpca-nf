@@ -253,8 +253,8 @@ calculate_plot_height <- function(
 
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 # define library and sce object
-library_id <- params$library
-processed_sce <- params$processed_sce
+#library_id <- params$library
+#processed_sce <- params$processed_sce
 
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
@@ -339,18 +339,18 @@ if (has_singler) {
 }
 
 if (has_cellassign) {
-  tissue_type <- stringr::word(
-    # eg, "blood-compartment"
-    metadata(processed_sce)$cellassign_reference,
-    1,
-    sep = "-"
-  )
+  
+  organs <- metadata(processed_sce)$cellassign_reference_organs |>
+    stringr::str_to_lower()
+  # split up and add an `and` before the final organ
+  split_organs <- stringr::str_split_1(organs, pattern = ", ")
+  organs_string <- glue::glue_collapse(split_organs, sep = ", ", last = ", and ")
+  
 
   methods_text <- glue::glue(
     "{methods_text}
     * Annotations from [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-    Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).\n
-    "
+    Marker genes associated with the following tissue types were obtained from [PanglaoDB](https://panglaodb.se/): {organs_string}.\n"
   )
 }
 
