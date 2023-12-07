@@ -42,6 +42,12 @@ option_list <- list(
     type = "character",
     help = "Name of marker by cell type reference file used with CellAssign.
             File name is expected to be in form: `<ref_name>_<source>_<version>.tsv`"
+  ),
+  make_option(
+    opt_str = c("--celltype_ref_metafile"),
+    type = "character",
+    help = "Metadata TSV file containing cell type reference metadata.
+            This file is used to obtain a list of organs used for CellAssign annotation."
   )
 )
 
@@ -177,6 +183,10 @@ if (!is.null(opt$cellassign_predictions)) {
     stop("CellAssign reference filename must be provided")
   }
 
+  if (is.null(opt$celltype_ref_metafile)) {
+    stop("Cell type reference metadata filename must be provided")
+  }
+
   predictions <- readr::read_tsv(opt$cellassign_predictions)
 
   # get cell type with maximum prediction value for each cell
@@ -216,6 +226,17 @@ if (!is.null(opt$cellassign_predictions)) {
   # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
   #  come out to just the string "cellassign"
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
+
+  # add cellassign reference organs to metadata
+  cellassign_organs <- opt$celltype_ref_metafile |>
+    readr::read_tsv() |>
+    dplyr::filter(celltype_ref_name == cellassign_ref_info[["ref_name"]]) |>
+    dplyr::pull(organs)
+
+  if (cellassign_organs == "" | is.na(cellassign_organs)) {
+    stop("Failed to obtain CellAssign reference organ list.")
+  }
+  metadata(sce)$cellassign_reference_organs <- cellassign_organs
 }
 
 # export annotated object with cellassign assignments
