@@ -55,7 +55,7 @@ lump_celltypes <- function(df, n_celltypes = 7) {
     dplyr::mutate(
       across(
         ends_with("_celltype_annotation"),
-        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "All remaining cell types"),
+        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "All remaining cell types", ties.method = "first"),
         .names = "{.col}_lumped"
       )
     )
@@ -108,6 +108,56 @@ plot_umap <- function(
       legend.position = "bottom",
       aspect.ratio = 1
     )
+}
+
+
+#' Create a faceted UMAP panel where each panel has only one cell type colored
+#'
+#' @param umap_df Data frame with UMAP1 and UMAP2 columns
+#' @param annotation_column Column containing cell type annotations
+#'
+#' @return ggplot object containing a faceted UMAP where each cell type is a facet.
+#'   In each panel, the cell type of interest is colored and all other cells are grey.
+faceted_umap <- function(umap_df,
+                         annotation_column) {
+  # color by the annotation column but only color one cell type at a time
+  faceted_umap <- ggplot(
+    umap_df,
+    aes(x = UMAP1, y = UMAP2, color = {{ annotation_column }})
+  ) +
+    # set points for all "other" points
+    geom_point(
+      data = select(
+        umap_df, -{{ annotation_column }}
+      ),
+      color = "gray80",
+      alpha = 0.5,
+      size = 0.3
+    ) +
+    # set points for desired cell type
+    geom_point(size = 0.3, alpha = 0.5) +
+    facet_wrap(vars({{ annotation_column }})) +
+    scale_color_brewer(palette = "Dark2") +
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) +
+    scale_y_continuous(labels = NULL, breaks = NULL) +
+    guides(
+      color = guide_legend(
+        title = "Cell types",
+        # more visible points in legend
+        override.aes = list(
+          alpha = 1,
+          size = 1.5
+        )
+      )
+    ) +
+    theme(
+      legend.position = c(.9, 0),
+      legend.justification = c("right", "bottom"),
+      legend.title.align = 0.5
+    )
+
+  return(faceted_umap)
 }
 ```
 
@@ -268,7 +318,8 @@ if (length(levels(umap_df$cluster)) <= 8) {
 ```{r, eval = has_umap}
 knitr::asis_output(
   'Next, we show UMAPs colored by cell types.
-A separate UMAP is shown for each cell typing method used.
+For each cell typing method, we show a separate faceted UMAP.
+In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
 
 For legibility, only the seven most common cell types are shown.
 All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" which represents cells that could not be classified).
@@ -278,37 +329,32 @@ All other cell types are grouped together and labeled "All remaining cell types"
 
 <!-- Now, UMAPs of cell types, where present -->
 
-```{r eval = has_submitter && has_umap, message=FALSE, warning=FALSE}
-plot_umap(
+```{r, eval = has_submitter && has_umap, message=FALSE, warning=FALSE, fig.height = 9, fig.width=9}
+# umap for cell assign annotations
+faceted_umap(
   umap_df,
-  submitter_celltype_annotation_lumped,
-  "Cell types",
-  legend_nrow = 4
+  submitter_celltype_annotation_lumped
 ) +
-  ggtitle("UMAP colored by submitter-provided annotations") +
-  scale_color_brewer(palette = "Dark2")
+  ggtitle("UMAP colored by submitter-provided annotations")
 ```
 
 
-```{r eval=has_singler && has_umap, message=FALSE, warning=FALSE}
-plot_umap(
+```{r, eval=has_singler && has_umap, message=FALSE, warning=FALSE, fig.height=9, fig.width=9}
+# umap for cell assign annotations
+faceted_umap(
   umap_df,
-  singler_celltype_annotation_lumped,
-  "Cell types",
-  legend_nrow = 4
+  singler_celltype_annotation_lumped
 ) +
-  ggtitle("UMAP colored by SingleR annotations") +
-  scale_color_brewer(palette = "Dark2")
+  ggtitle("UMAP colored by SingleR annotations")
 ```
 
 
-```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE}
-plot_umap(
+
+```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.height = 9, fig.width=9}
+# umap for cell assign annotations
+faceted_umap(
   umap_df,
-  cellassign_celltype_annotation_lumped,
-  "Cell types",
-  legend_nrow = 4
+  cellassign_celltype_annotation_lumped
 ) +
-  ggtitle("UMAP colored by CellAssign annotations") +
-  scale_color_brewer(palette = "Dark2")
+  ggtitle("UMAP colored by CellAssign annotations")
 ```
