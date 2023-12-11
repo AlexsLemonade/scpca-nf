@@ -33,13 +33,13 @@ process merge_sce {
   label 'mem_16'
   publishDir "${params.results_dir}/merged/${project_id}"
   input:
-    tuple val(project_id), val(has_adt), val(library_ids), path(scpca_nf_file)
+    tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(project_id), val(has_adt), path(merged_sce_file)
+    tuple val(merge_group_id), val(has_adt), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
-    merged_sce_file = "${project_id}_merged.rds"
+    merged_sce_file = "${merge_group_id}_merged.rds"
     """
     merge_sces.R \
       --input_library_ids "${input_library_ids}" \
@@ -63,23 +63,23 @@ process merge_report {
   publishDir "${params.results_dir}/merged/${merge_group}"
   label 'mem_16'
   input:
-    tuple val(merge_group), path(merged_sce_file)
+    tuple val(merge_group_id), path(merged_sce_file)
     path(report_template)
   output:
     path(merge_report)
   script:
-    merge_report = "${merge_group}_summary_report.html"
+    merge_report = "${merge_group_id}_summary_report.html"
     """
     Rscript -e "rmarkdown::render( \
       '${report_template}', \
       output_file = '${merge_report}', \
-      params = list(merge_group = '${merge_group}', \
+      params = list(merge_group = '${merge_group_id}', \
                     merged_sce = '${merged_sce_file}', \
                     batch_column = 'library_id') \
       )"
     """
   stub:
-    merge_report = "${merge_group}_summary_report.html"
+    merge_report = "${merge_group_id}_summary_report.html"
     """
     touch ${merge_report}
     """
