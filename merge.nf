@@ -31,7 +31,7 @@ if(param_error){
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_16'
-  publishDir "${params.results_dir}/merged/${project_id}"
+  publishDir "${params.results_dir}/merged/${merge_group_id}"
   input:
     tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
   output:
