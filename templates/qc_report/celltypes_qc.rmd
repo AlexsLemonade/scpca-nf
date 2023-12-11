@@ -131,7 +131,7 @@ faceted_umap <- function(umap_df,
       data = select(
         umap_df, -{{ annotation_column }}
       ),
-      color = "grey",
+      color = "gray80",
       alpha = 0.5,
       size = 0.3
     ) +
