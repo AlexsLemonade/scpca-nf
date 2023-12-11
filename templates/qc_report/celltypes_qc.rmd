@@ -145,7 +145,6 @@ faceted_umap <- function(umap_df,
     guides(
       color = guide_legend(
         title = "Cell types",
-        nrow = 2,
         # more visible points in legend
         override.aes = list(
           alpha = 1,
@@ -154,7 +153,9 @@ faceted_umap <- function(umap_df,
       )
     ) +
     theme(
-      legend.position = "bottom"
+      legend.position = c(.9, 0),
+      legend.justification = c("right", "bottom"),
+      legend.title.align = 0.5
     )
 
   return(faceted_umap)
@@ -345,7 +346,7 @@ faceted_umap(
   umap_df,
   singler_celltype_annotation_lumped
 ) +
-  ggtitle("UMAP colored by CellAssign annotations")
+  ggtitle("UMAP colored by SingleR annotations")
 ```
 
 
