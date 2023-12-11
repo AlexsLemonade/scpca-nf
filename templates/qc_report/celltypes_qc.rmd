@@ -118,7 +118,6 @@ plot_umap <- function(
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
-
 faceted_umap <- function(umap_df,
                          annotation_column) {
   # color by the annotation column but only color one cell type at a time
@@ -320,7 +319,7 @@ if (length(levels(umap_df$cluster)) <= 8) {
 knitr::asis_output(
   'Next, we show UMAPs colored by cell types.
 For each cell typing method, we show a separate faceted UMAP.
-In each panel, cells that correspond to a single cell type are colored, while all other cells are in grey.
+In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
 
 For legibility, only the seven most common cell types are shown.
 All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" which represents cells that could not be classified).
