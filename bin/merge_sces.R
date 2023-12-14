@@ -29,7 +29,7 @@ option_list <- list(
             the default is n_hvg = 2000"
   ),
   make_option(
-    opt_str = c("--include_alt_exp"),
+    opt_str = c("--include_altexp"),
     action = "store_true",
     default = FALSE,
     help = "Keep any altExp present in the merged object."
@@ -115,7 +115,7 @@ merged_sce <- scpcaTools::merge_sce_list(
   batch_column = "library_id",
   preserve_rowdata_cols = "gene_symbol",
   cell_id_column = "cell_id",
-  include_alt_exp = include_alt_exp
+  include_altexp = opt$include_altexp
 )
 
 

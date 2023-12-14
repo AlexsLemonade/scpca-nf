@@ -46,7 +46,7 @@ process merge_sce {
       --input_sce_files "${input_sces}" \
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \
-      "${has_adt ? "--include_alt_exp" : ''} \
+      ${has_adt ? "--include_altexp" : ''} \
       --threads ${task.cpus}
     """
   stub:
@@ -83,6 +83,38 @@ process merge_report {
     """
     touch ${merge_report}
     """
+}
+
+process export_anndata{
+    container params.SCPCATOOLS_CONTAINER
+    label 'mem_16'
+    tag "${merge_group}"
+    publishDir "${params.results_dir}/merged/${merge_group}", mode: 'copy'
+    input:
+      tuple val(merge_group), val(has_adt), path(merged_sce_file)
+    output:
+      tuple val(merge_group), path("${merge_group}_merged_*.hdf5")
+    script:
+      rna_hdf5_file = "${merge_group}_merged_rna.hdf5"
+      feature_hdf5_file = "${merge_group}_merged_adt.hdf5"
+      """
+      sce_to_anndata.R \
+        --input_sce_file ${merged_sce_file} \
+        --output_rna_h5 ${rna_hdf5_file} \
+        --output_feature_h5 ${feature_hdf5_file} \
+        ${has_adt ? "--feature_name adt" : ''}
+
+      # move normalized counts to X in AnnData
+      move_counts_anndata.py --anndata_file ${rna_hdf5_file}
+      ${has_adt ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
+      """
+    stub:
+      rna_hdf5_file = "${merge_group}_merged_rna.hdf5"
+      feature_hdf5_file = "${merge_group}_merged_adt.hdf5"
+      """
+      touch ${rna_hdf5_file}
+      ${has_adt ? "touch ${feature_hdf5_file}" : ''}
+      """
 }
 
 workflow {
@@ -129,4 +161,7 @@ workflow {
 
     // TODO: generate merge report
     //merge_report(merge_sce.out, file(merge_template))
+
+    // export merged objects to AnnData
+    export_anndata(merge_sce.out)
 }
