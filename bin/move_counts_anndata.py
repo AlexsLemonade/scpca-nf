@@ -22,14 +22,14 @@ parser.add_argument(
 args = parser.parse_args()
 
 # compile extension regex
-file_ext = re.compile(r"\.hdf5$|.h5$", re.IGNORECASE)
+file_ext = re.compile(r"\.hdf5$|.h5$|.h5ad$", re.IGNORECASE)
 
 # check that input file exists, if it does exist, make sure it's an h5 file
 if not os.path.exists(args.anndata_file):
     raise FileExistsError("`input_anndata` does not exist.")
 elif not file_ext.search(args.anndata_file):
     raise ValueError(
-        "--input_anndata must end in either .hdf5 or .h5 and contain a processed AnnData object."
+        "--input_anndata must end in either .hdf5, .h5, or .h5ad, and contain a processed AnnData object."
     )
 
 # read in anndata
@@ -44,4 +44,4 @@ if "logcounts" in object.layers:
     object.uns["X_name"] = "logcounts"
 
     # export object
-    object.write_h5ad(args.anndata_file)
+    object.write_h5ad(args.anndata_file, compression="gzip")
