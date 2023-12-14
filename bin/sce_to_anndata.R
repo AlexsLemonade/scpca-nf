@@ -67,7 +67,9 @@ format_czi <- function(sce) {
 
   # add library_id as an sce colData column
   # need this column to join in the sample metadata with the colData
-  sce$library_id <- metadata(sce)$library_id
+  if (!("library_id" %in% colnames(colData(sce)))) {
+    sce$library_id <- metadata(sce)$library_id
+  }
 
   # add sample metadata to colData sce
   sce <- scpcaTools::metadata_to_coldata(
@@ -89,7 +91,7 @@ format_czi <- function(sce) {
   # add colData back to sce object
   colData(sce) <- DataFrame(
     coldata_df,
-    row.names = coldata_df$barcodes
+    row.names = rownames(colData(sce))
   )
 
   # remove sample metadata from sce metadata, otherwise conflicts with converting object
