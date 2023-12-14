@@ -30,7 +30,7 @@ if(param_error){
 // merge individual SCE objects into one SCE object
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
-  label 'mem_16'
+  label 'mem_32'
   publishDir "${params.results_dir}/merged/${merge_group_id}"
   input:
     tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
@@ -87,7 +87,7 @@ process merge_report {
 
 process export_anndata{
     container params.SCPCATOOLS_CONTAINER
-    label 'mem_16'
+    label 'mem_32'
     tag "${merge_group}"
     publishDir "${params.results_dir}/merged/${merge_group}", mode: 'copy'
     input:
