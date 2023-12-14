@@ -18,7 +18,8 @@ process export_anndata{
         --input_sce_file ${sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
         --output_feature_h5 ${feature_hdf5_file} \
-        ${feature_present ? "--feature_name ${meta.feature_type}" : ''}
+        ${feature_present ? "--feature_name ${meta.feature_type}" : ''} \
+        ${file_type != "processed" ? "--compress_output" : ''}
 
       # move any normalized counts to X in AnnData
       if [ "${file_type}" = "processed" ]; then
