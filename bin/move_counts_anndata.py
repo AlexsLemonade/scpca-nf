@@ -18,6 +18,13 @@ parser.add_argument(
     required=True,
     help="Path to HDF5 file with processed AnnData object",
 )
+parser.add_argument(
+    "-u",
+    "--uncompressed",
+    dest="compress",
+    action="store_false",
+    help="Output an uncompressed HDF5 file",
+)
 
 args = parser.parse_args()
 
@@ -44,4 +51,4 @@ if "logcounts" in object.layers:
     object.uns["X_name"] = "logcounts"
 
     # export object
-    object.write_h5ad(args.anndata_file, compression="gzip")
+    object.write_h5ad(args.anndata_file, compression="gzip" if args.compress else None)
