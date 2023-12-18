@@ -22,7 +22,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # compile extension regex
-file_ext = re.compile(r"\.hdf5$|.h5$|.h5ad$", re.IGNORECASE)
+file_ext = re.compile(r"\.hdf5$|\.h5$|\.h5ad$", re.IGNORECASE)
 
 # check that input file exists, if it does exist, make sure it's an h5 file
 if not os.path.exists(args.anndata_file):

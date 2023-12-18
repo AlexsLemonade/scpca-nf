@@ -102,8 +102,7 @@ process export_anndata{
         --input_sce_file ${merged_sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
         --output_feature_h5 ${feature_hdf5_file} \
-        ${has_adt ? "--feature_name adt" : ''} \
-        --compress_output
+        ${has_adt ? "--feature_name adt" : ''} 
 
       # move normalized counts to X in AnnData
       move_counts_anndata.py --anndata_file ${rna_hdf5_file}

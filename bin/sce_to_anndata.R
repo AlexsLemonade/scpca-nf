@@ -122,19 +122,13 @@ sample_metadata <- metadata(sce)$sample_metadata
 # make main sce czi compliant
 sce <- format_czi(sce)
 
-if (opt$compress_output) {
-  compression <- "gzip"
-} else {
-  compression <- "none"
-}
-
 # export sce as anndata object
 # this function will also remove any R-specific object types from the SCE metadata
 #   before converting to AnnData
 scpcaTools::sce_to_anndata(
   sce,
   anndata_file = opt$output_rna_h5,
-  compression = compression
+  compression = ifelse(opt$compress_output, "gzip", "none")
 )
 
 # AltExp to AnnData -----------------------------------------------------------
