@@ -32,7 +32,13 @@ option_list <- list(
     opt_str = c("--output_feature_h5"),
     type = "character",
     help = "path to output hdf5 file to store feature counts as AnnData object.
-    Only used if the input SCE contains an altExp. Must end in .hdf5 or .h5"
+    Only used if the input SCE contains an altExp. Must end in .hdf5, .h5, or .h5ad"
+  ),
+  make_option(
+    opt_str = c("--compress_output"),
+    action = "store_true",
+    default = FALSE,
+    help = "Compress the HDF5 file containing the AnnData object"
   )
 )
 
@@ -46,8 +52,8 @@ if (!file.exists(opt$input_sce_file)) {
 }
 
 # check that output file is h5
-if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5"))) {
-  stop("output rna file name must end in .hdf5 or .h5")
+if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5|.h5ad"))) {
+  stop("output rna file name must end in .hdf5, .h5, or .h5ad")
 }
 
 # CZI compliance function ------------------------------------------------------
@@ -61,7 +67,9 @@ format_czi <- function(sce) {
 
   # add library_id as an sce colData column
   # need this column to join in the sample metadata with the colData
-  sce$library_id <- metadata(sce)$library_id
+  if (!("library_id" %in% colnames(colData(sce)))) {
+    sce$library_id <- metadata(sce)$library_id
+  }
 
   # add sample metadata to colData sce
   sce <- scpcaTools::metadata_to_coldata(
@@ -83,7 +91,7 @@ format_czi <- function(sce) {
   # add colData back to sce object
   colData(sce) <- DataFrame(
     coldata_df,
-    row.names = coldata_df$barcodes
+    row.names = rownames(colData(sce))
   )
 
   # remove sample metadata from sce metadata, otherwise conflicts with converting object
@@ -119,7 +127,8 @@ sce <- format_czi(sce)
 #   before converting to AnnData
 scpcaTools::sce_to_anndata(
   sce,
-  anndata_file = opt$output_rna_h5
+  anndata_file = opt$output_rna_h5,
+  compression = ifelse(opt$compress_output, "gzip", "none")
 )
 
 # AltExp to AnnData -----------------------------------------------------------
@@ -132,8 +141,8 @@ if (!is.null(opt$feature_name)) {
   }
 
   # check for output file
-  if (!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))) {
-    stop("output feature file name must end in .hdf5 or .h5")
+  if (!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5|.h5ad"))) {
+    stop("output feature file name must end in .hdf5, .h5, or .h5ad")
   }
 
   # extract altExp
@@ -150,7 +159,8 @@ if (!is.null(opt$feature_name)) {
     # export altExp sce as anndata object
     scpcaTools::sce_to_anndata(
       alt_sce,
-      anndata_file = opt$output_feature_h5
+      anndata_file = opt$output_feature_h5,
+      compression = ifelse(opt$compress_output, "gzip", "none")
     )
   } else {
     # warn that the altExp cannot be converted
