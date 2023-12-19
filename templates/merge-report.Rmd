@@ -1,0 +1,82 @@
+---
+params:
+  merge_group: "example_group"
+  merged_sce: NULL
+  batch_column: "library_id"
+
+title: "`r glue::glue('Merge report for {params$merge_group}')`"
+author: "CCDL"
+date: "`r params$date`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    number_sections: false
+    code_download: true
+---
+
+```{r, echo=FALSE, results='asis'}
+glue::glue("
+    <div class=\"alert alert-warning\">
+
+    Caution: The libraries included in the merged object are NOT integrated or batch-corrected.
+
+    </div>
+  ")
+```
+
+
+This report includes a brief summary of all libraries included in the merged object for `r params$merge_group`.
+This merged object is intended to allow for downstream analyses across multiple samples.
+However, the merged object has NOT been integrated or batch-corrected. 
+To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be calculated separately. 
+
+
+```{r setup, message = FALSE, echo = FALSE}
+# knitr options
+knitr::opts_chunk$set(
+  echo = FALSE
+)
+
+library(SingleCellExperiment)
+library(ggplot2)
+
+# Set default ggplot theme
+theme_set(
+  theme_bw() +
+    theme(plot.margin = margin(rep(20, 4)))
+)
+```
+
+```{r}
+# check that input files are provided
+if (is.null(params$merged_sce)) {
+  stop("Must provide a merged SCE object.")
+}
+
+# define batch column
+batch_column <- params$batch_column
+```
+
+
+## Summary of Merged Object
+
+```{r}
+# To do: replace this with actual tables
+# just a filler for now
+table(merged_sce[[batch_column]])
+```
+
+# Session Info
+<details>
+<summary>R session information</summary>
+```{r session_info}
+if (requireNamespace("sessioninfo", quietly = TRUE)) {
+  sessioninfo::session_info()
+} else {
+  sessionInfo()
+}
+```
+</details>
