@@ -142,7 +142,8 @@ library_df <- names(input_sce_files) |>
     data.frame(
       library_id = library_id,
       tech_version = metadata(merged_sce)$library_metadata[[library_id]]$tech_version,
-      assay_ontology_term_id = metadata(merged_sce)$library_metadata[[library_id]]$assay_ontology_term_id
+      assay_ontology_term_id = metadata(merged_sce)$library_metadata[[library_id]]$assay_ontology_term_id,
+      seq_unit = metadata(merged_sce)$library_metadata[[library_id]]$seq_unit
     )
   }) |>
   dplyr::bind_rows()
