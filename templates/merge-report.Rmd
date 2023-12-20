@@ -3,8 +3,6 @@ params:
   merge_group: "example_group"
   merged_sce: NULL
   batch_column: "library_id"
-  has_adt: FALSE
-  is_multiplexed: FALSE
 
 title: "`r glue::glue('ScPCA merged report for {params$merge_group}')`"
 author: "Childhood Cancer Data Lab"
@@ -45,8 +43,8 @@ if (is.null(params$merged_sce)) {
 batch_column <- params$batch_column
 
 # set adt/ multiplex values
-has_adt <- params$has_adt
-is_multiplexed <- params$is_multiplexed
+has_adt <- "adt" %in% merged_sce$additional_modalities
+is_multiplexed <- "cellhash" %in% merged_sce$additional_modalities
 ```
 
 ```{r, integration-warning, eval=FALSE}
@@ -111,12 +109,64 @@ knitr::kable(tech_table, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
+
 ```{r, eval=has_adt}
-# TODO: create a table of number of libraries with CITE-seq and without
+knitr::asis_output(glue::glue(
+  "
+  This merged object contains one or more libraries with associated ADT expression data.
+  The table below summarizes the number of libraries with and without ADT data.
+  "
+))
+
+adt_table <- coldata_df |>
+  dplyr::select(library_id, additional_modalities) |>
+  dplyr::distinct() |>
+  dplyr::mutate(
+    contains_adt = ifelse(additional_modalities == "adt", "Contains ADT", "No ADT")
+  ) |>
+  dplyr::count(contains_adt) |>
+  dplyr::rename(
+    "Library type" = "contains_adt",
+    "Number of libraries" = "n"
+  )
+
+knitr::kable(adt_table, align = "r") |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "left"
+  ) |>
+  kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-```{r, eval=is_multiplexed}
-# TODO: create a table of number of libraries with multiplexing and without
+
+```{r, eval=is_multiplexed }
+knitr::asis_output(glue::glue(
+  "
+  This merged object contains one or more libraries that have been multiplexed.
+  The table below summarizes the number of libraries that have and have not been multiplexed.
+  "
+))
+
+multiplex_table <- coldata_df |>
+  dplyr::select(library_id, additional_modalities) |>
+  dplyr::distinct() |>
+  dplyr::mutate(
+    is_multiplexed = ifelse(additional_modalities == "cellhash", "Multiplexed", "No multiplexing")
+  ) |>
+  dplyr::count(is_multiplexed) |>
+  dplyr::rename(
+    "Library type" = "is_multiplexed",
+    "Number of libraries" = "n"
+  )
+
+knitr::kable(multiplex_table, align = "r") |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "left"
+  ) |>
+  kableExtra::column_spec(2, monospace = TRUE)
 ```
 
 
