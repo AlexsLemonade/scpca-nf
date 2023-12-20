@@ -133,7 +133,7 @@ if (!opt$is_multiplexed) {
   )
 
   # remove sample metadata
-  metadata(merged_sce) <- metadata(merged_sce)[names(metadata(sce)) != "sample_metadata"]
+  metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
 }
 
 # grab technology and EFO from metadata$library_metadata
