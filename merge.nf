@@ -57,7 +57,7 @@ process merge_sce {
 }
 
 // create merge report
-process merge_report {
+process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.results_dir}/merged/${merge_group}"
   label 'mem_16'
