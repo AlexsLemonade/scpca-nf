@@ -33,9 +33,9 @@ process merge_sce {
   label 'mem_32'
   publishDir "${params.results_dir}/merged/${merge_group_id}"
   input:
-    tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
+    tuple val(merge_group_id), val(has_adt), val(is_multiplexed), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(merge_group_id), val(has_adt), path(merged_sce_file)
+    tuple val(merge_group_id), val(has_adt), val(is_multiplexed), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -47,6 +47,7 @@ process merge_sce {
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \
       ${has_adt ? "--include_altexp" : ''} \
+      ${is_multiplexed ? "--is_multiplexed" : '' } \
       --threads ${task.cpus}
     """
   stub:
@@ -102,7 +103,7 @@ process export_anndata{
         --input_sce_file ${merged_sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
         --output_feature_h5 ${feature_hdf5_file} \
-        ${has_adt ? "--feature_name adt" : ''} 
+        ${has_adt ? "--feature_name adt" : ''}
 
       # move normalized counts to X in AnnData
       move_counts_anndata.py --anndata_file ${rna_hdf5_file}
@@ -134,6 +135,11 @@ workflow {
       .collect{it.scpca_project_id}
       .unique()
 
+    multiplex_projects = libraries_ch
+      .filter{it.technology.startsWith('cellhash')}
+      .collect{it.scpca_project_id}
+      .unique()
+
     grouped_libraries_ch = libraries_ch
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
@@ -153,6 +159,7 @@ workflow {
       .map{project_id, library_id_list, sce_file_list -> tuple(
         project_id,
         project_id in adt_projects, // determines if altExp should be included in the merged object
+        project_id in multiplex_projects, // determines if sample metadata should be added to colData and to skip anndata
         library_id_list,
         sce_file_list
       )}
@@ -163,5 +170,13 @@ workflow {
     //merge_report(merge_sce.out, file(merge_template))
 
     // export merged objects to AnnData
-    export_anndata(merge_sce.out)
+    anndata_ch = merge_sce.out
+      .filter{!it[2]}
+      .map{project_id, has_adt, is_multiplexed, merged_sce_file -> tuple(
+        project_id,
+        has_adt,
+        merged_sce_file
+      )}
+
+    export_anndata(anndata_ch)
 }
