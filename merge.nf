@@ -159,7 +159,7 @@ workflow {
     merge_sce(grouped_libraries_ch)
 
     // generate merge report
-    merge_report(merge_sce.out, file(merge_template))
+    generate_merge_report(merge_sce.out, file(merge_template))
 
     // export merged objects to AnnData
     export_anndata(merge_sce.out)

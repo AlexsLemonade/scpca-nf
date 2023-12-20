@@ -5,7 +5,7 @@ params:
   batch_column: "library_id"
 
 title: "`r glue::glue('Merge report for {params$merge_group}')`"
-author: "CCDL"
+author: "Childhood Cancer Data Lab"
 date: "`r params$date`"
 output:
   html_document:
@@ -21,7 +21,7 @@ output:
 glue::glue("
     <div class=\"alert alert-warning\">
 
-    Caution: The libraries included in the merged object are NOT integrated or batch-corrected.
+    <b>CAUTION: The libraries included in the merged object are NOT integrated or batch-corrected.</b>
 
     </div>
   ")
@@ -31,7 +31,7 @@ glue::glue("
 This report includes a brief summary of all libraries included in the merged object for `r params$merge_group`.
 This merged object is intended to allow for downstream analyses across multiple samples.
 However, the merged object has NOT been integrated or batch-corrected. 
-To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be calculated separately. 
+To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately. 
 
 
 ```{r setup, message = FALSE, echo = FALSE}
