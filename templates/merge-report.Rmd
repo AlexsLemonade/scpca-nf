@@ -69,7 +69,7 @@ This merged object is intended to facilitate downstream analyses across multiple
 The libraries included in the merged object are _NOT integrated or batch-corrected_.
 To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately. 
 
-## Library statistics 
+# Library statistics 
 
 ```{r}
 # extract coldata as data frame to use to create tables
@@ -84,10 +84,9 @@ num_libraries <- merged_sce$library_id |>
 The merged object summarized in this report is comprised of `r num_libraries` individual libraries.
 The following table shows a summary of the types of libraries represented.
 
-
 - `Technology version` indicates which 10X Genomics kit was used for library preparation.
 - `Experimental factor ontology` indicates the associated Experimental factor ontology (EFO) for the specified 10X version. 
-- `Cell or Nucleus` indicates if the library was prepared using a single-cell(`cell`) or single-nuclei(`nucleus`) suspension. 
+- `Cell or Nucleus` indicates if the library was prepared using a single-cell (`cell`) or single-nuclei (`nucleus`) suspension. 
 
 
 ```{r}
@@ -121,7 +120,7 @@ knitr::kable(tech_table, align = "r") |>
 ```
 
 
-## Sample statistics
+# Sample statistics
 
 ```{r}
 if (is_multiplexed) {
@@ -153,7 +152,7 @@ glue::glue(
 )
 ```
 
-### Diagnoses
+## Diagnoses
 
 Below is a table showing the total number of samples associated with each diagnoses. 
 If subdiagnosis is available, the total number of samples will be obtained for each unique combination of diagnosis and subdiagnosis. 
@@ -195,9 +194,29 @@ knitr::kable(diagnosis_table, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
+## Disease stage 
+
+The below table shows both the diagnosis and at what point during disease progression (`Disease stage`) the sample was taken. 
 
 ```{r, eval=!is_multiplexed}
-# TODO: Create a table with diagnosis + disease timing?
+disease_timing_table <- coldata_df |>
+  dplyr::select(sample_id, diagnosis, disease_timing) |>
+  dplyr::distinct() |>
+  dplyr::count(diagnosis, disease_timing) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Diagnosis" = "diagnosis",
+    "Disease stage" = "disease_timing",
+    "Number of samples" = "n"
+  )
+
+knitr::kable(disease_timing_table, align = "r") |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "left"
+  ) |>
+  kableExtra::column_spec(2, monospace = TRUE)
 ```
 
 
