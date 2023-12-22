@@ -5,8 +5,7 @@ nextflow.enable.dsl=2
 // This workflow does NOT perform integration, i.e. batch correction.
 
 // define path to merge template
-// TODO: Establish this merge-report.Rmd file
-//merge_template = "${projectDir}/templates/merge-report.Rmd"
+merge_template = "${projectDir}/templates/merge-report.Rmd"
 
 // parameter checks
 param_error = false
@@ -59,22 +58,22 @@ process merge_sce {
 }
 
 // create merge report
-process merge_report {
+process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.results_dir}/merged/${merge_group}"
   label 'mem_16'
   input:
-    tuple val(merge_group_id), path(merged_sce_file)
+    tuple val(merge_group_id), val(has_adt), path(merged_sce_file)
     path(report_template)
   output:
     path(merge_report)
   script:
-    merge_report = "${merge_group_id}_summary_report.html"
+    merge_report = "${merge_group}_summary_report.html"
     """
     Rscript -e "rmarkdown::render( \
       '${report_template}', \
       output_file = '${merge_report}', \
-      params = list(merge_group = '${merge_group_id}', \
+      params = list(merge_group = '${merge_group}', \
                     merged_sce = '${merged_sce_file}', \
                     batch_column = 'library_id') \
       )"
@@ -166,8 +165,8 @@ workflow {
 
     merge_sce(grouped_libraries_ch)
 
-    // TODO: generate merge report
-    //merge_report(merge_sce.out, file(merge_template))
+    // generate merge report
+    generate_merge_report(merge_sce.out, file(merge_template))
 
     // export merged objects to AnnData
     anndata_ch = merge_sce.out
