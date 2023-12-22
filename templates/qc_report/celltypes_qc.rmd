@@ -109,56 +109,6 @@ plot_umap <- function(
       aspect.ratio = 1
     )
 }
-
-
-#' Create a faceted UMAP panel where each panel has only one cell type colored
-#'
-#' @param umap_df Data frame with UMAP1 and UMAP2 columns
-#' @param annotation_column Column containing cell type annotations
-#'
-#' @return ggplot object containing a faceted UMAP where each cell type is a facet.
-#'   In each panel, the cell type of interest is colored and all other cells are grey.
-faceted_umap <- function(umap_df,
-                         annotation_column) {
-  # color by the annotation column but only color one cell type at a time
-  faceted_umap <- ggplot(
-    umap_df,
-    aes(x = UMAP1, y = UMAP2, color = {{ annotation_column }})
-  ) +
-    # set points for all "other" points
-    geom_point(
-      data = dplyr::select(
-        umap_df, -{{ annotation_column }}
-      ),
-      color = "gray80",
-      alpha = 0.5,
-      size = 0.3
-    ) +
-    # set points for desired cell type
-    geom_point(size = 0.3, alpha = 0.5) +
-    facet_wrap(vars({{ annotation_column }})) +
-    scale_color_brewer(palette = "Dark2") +
-    # remove axis numbers and background grid
-    scale_x_continuous(labels = NULL, breaks = NULL) +
-    scale_y_continuous(labels = NULL, breaks = NULL) +
-    guides(
-      color = guide_legend(
-        title = "Cell types",
-        # more visible points in legend
-        override.aes = list(
-          alpha = 1,
-          size = 1.5
-        )
-      )
-    ) +
-    theme(
-      legend.position = c(.9, 0),
-      legend.justification = c("right", "bottom"),
-      legend.title.align = 0.5
-    )
-
-  return(faceted_umap)
-}
 ```
 
 
