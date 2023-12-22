@@ -154,8 +154,7 @@ faceted_umap <- function(umap_df,
     theme(
       legend.position = c(.9, 0),
       legend.justification = c("right", "bottom"),
-      legend.title.align = 0.5,
-      aspect.ratio = 1
+      legend.title.align = 0.5
     )
 
   return(faceted_umap)
