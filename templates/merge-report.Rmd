@@ -14,8 +14,6 @@ output:
       collapsed: false
     number_sections: false
     code_download: true
-editor_options: 
-  chunk_output_type: console
 ---
 
 ```{r setup, message = FALSE, echo = FALSE}
