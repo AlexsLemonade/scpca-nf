@@ -87,15 +87,8 @@ In this section, we present UMAPs of all libraries in the merged object, highlig
 In each panel, cells from the given library are colored, while all other cells are in gray.
 
 **These merged object UMAP coordinates differ from UMAPs in individual library files.**
-That is because the UMAPs presented here have been weighted so that each library contributes equally to the overall scaling.
+The UMAPs presented here have been weighted so that each library contributes equally to the overall scaling.
 
-<!--
-faceted_umap(
-  umap_df,
-  submitter_celltype_annotation_lumped
-) +
-  ggtitle("UMAP colored by submitter-provided annotations")
---> 
 ```{r}
 # Determine appropriate dimensions for UMAP based on number of libraries
 n_libraries <- length(unique(params$merged_sce[[batch_column]]))
@@ -108,9 +101,8 @@ facet_ncol <- dplyr::case_when(
   .default = 10
 )
 
-# 1 inch per UMAP row
-umap_height <- ceiling(n_libraries / facet_ncol)
-
+# 3 inches per UMAP row?
+umap_height <- ceiling(n_libraries / facet_ncol) * 3
 
 # TODO: until we run the workflow through again after scpcaTools, this will not work. We will need to circle back to this.
 has_multiplex <- FALSE # temporary
