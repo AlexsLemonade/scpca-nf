@@ -127,7 +127,7 @@ faceted_umap <- function(umap_df,
   ) +
     # set points for all "other" points
     geom_point(
-      data = select(
+      data = dplyr::select(
         umap_df, -{{ annotation_column }}
       ),
       color = "gray80",
