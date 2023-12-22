@@ -32,6 +32,7 @@ theme_set(
       plot.margin = margin(rep(20, 4)),
       axis.text = element_blank(),
       axis.ticks = element_blank(),
+      panel.grid = element_blank(),
       aspect.ratio = 1
     )
 )
