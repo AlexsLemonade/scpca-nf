@@ -82,8 +82,8 @@ table(params$merged_sce[[batch_column]])
 ```{r, ref.label=c('integration-warning'), eval=TRUE, results='asis'}
 ```
 
-In this section, we present UMAPs of all libraries in the merged object, highlighting one library in each facet. 
-In each panel, cells from the given library are colored, while all other cells are in gray.
+In this section, we present UMAPs showing all cells from all libraries included in the merged object. 
+For each library, a separate panel is shown, and cells from that library are colored, while all other cells are gray.
 
 **These merged object UMAP coordinates differ from UMAPs in individual library files.**
 The UMAPs presented here have been weighted so that each library contributes equally to the overall scaling.
@@ -128,22 +128,16 @@ glue::glue("
 
 ```{r, fig.width = 8, fig.height = umap_height}
 umap_df <- reducedDim(params$merged_sce, "UMAP") |>
-  as.data.frame() |>
-  tibble::rownames_to_column("library") |>
-  tidyr::separate(
-    library,
-    into = c("library", "barcode"),
-    sep = "-"
-  )
+  as.data.frame() 
 
 ggplot(
   umap_df,
-  aes(x = UMAP1, y = UMAP2, color = library)
+  aes(x = UMAP1, y = UMAP2, color ={{params$batch_column}} )
 ) +
   # set points for all "other" points
   geom_point(
     data = dplyr::select(
-      umap_df, -library
+      umap_df, -{{params$batch_column}}
     ),
     color = "#ffcb05",
     alpha = 0.5,
