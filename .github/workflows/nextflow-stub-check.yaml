@@ -35,7 +35,7 @@ jobs:
 
       - name: Join log files
         if: ${{ !cancelled() }}
-        run: cat stub-run.log checkpoint-run.log celltype-ref-run.log > nextflow-runs.log
+        run: cat stub-run.log checkpoint-run.log celltype-ref-run.log merge-run.log > nextflow-runs.log
 
       - name: Upload nextflow log
         if: ${{ !cancelled() }}
