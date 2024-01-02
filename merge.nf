@@ -170,8 +170,8 @@ workflow {
 
     // export merged objects to AnnData
     anndata_ch = merge_sce.out
-      .filter{!it[2]} // remove multiplexed samples before export
-      .take(2) // keep everything but multiplexed
+      .filter{!it[3]} // remove multiplexed samples before export
+      .take(3) // keep everything but multiplexed
 
     export_anndata(anndata_ch)
 }
