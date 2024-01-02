@@ -93,6 +93,7 @@ The UMAPs presented here have been weighted so that each library contributes equ
 n_libraries <- length(unique(params$merged_sce[[batch_column]]))
 
 # Determine faceting layout based on n_libraries
+# TODO: This needs to be revisited when we run the merged objects through
 facet_ncol <- dplyr::case_when(
   n_libraries <= 20 ~ 4,
   n_libraries <= 50 ~ 6,
@@ -103,15 +104,8 @@ facet_ncol <- dplyr::case_when(
 # 3 inches per UMAP row?
 umap_height <- ceiling(n_libraries / facet_ncol) * 3
 
-# TODO: until we run the workflow through again after scpcaTools, this will not work. We will need to circle back to this.
-has_multiplex <- FALSE # temporary
-
-# Determine if library is multiplexed, for printing a warning.
-# max_libraries_per_sample <- metadata(merged_sce)$sample_metadata |>
-#  dplyr::count(library_id) |>
-#  dplyr::pull(n) |>
-#  max()
-# has_multiplex <- max_libraries_per_sample > 1
+# TODO: TEMPORARY PENDING https://github.com/AlexsLemonade/scpca-nf/pull/632/files
+is_multiplexed <- FALSE
 ```
 
 
@@ -127,30 +121,33 @@ glue::glue("
 
 
 ```{r, fig.width = 8, fig.height = umap_height}
-umap_df <- reducedDim(params$merged_sce, "UMAP") |>
-  as.data.frame() 
+umap_df <- scuttle::makePerCellDF(params$merged_sce, use.dimred = "UMAP") |>
+  dplyr::rename(
+    UMAP1 = UMAP.1,
+    UMAP2 = UMAP.2
+  )
 
 ggplot(
   umap_df,
-  aes(x = UMAP1, y = UMAP2, color ={{params$batch_column}} )
+  aes(x = UMAP1, y = UMAP2, color = {{ batch_column }})
 ) +
   # set points for all "other" points
   geom_point(
     data = dplyr::select(
-      umap_df, -{{params$batch_column}}
+      umap_df, -{{ batch_column }}
     ),
-    color = "#ffcb05",
+    color = "gray80",
     alpha = 0.5,
-    size = 0.3
+    size = 0.1
   ) +
   # set points for desired cell type
   geom_point(
-    size = 0.3,
     alpha = 0.5,
-    color = "#00274c"
+    size = 0.1,
+    color = "firebrick3"
   ) +
   facet_wrap(
-    vars(library),
+    {{ batch_column }}, # do NOT use vars()
     ncol = facet_ncol
   )
 ```
