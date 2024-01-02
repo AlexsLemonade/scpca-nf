@@ -60,7 +60,7 @@ process merge_sce {
 // create merge report
 process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/merged/${merge_group}"
+  publishDir "${params.results_dir}/merged/${merge_group_id}"
   label 'mem_16'
   input:
     tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
@@ -68,7 +68,7 @@ process generate_merge_report {
   output:
     path(merge_report)
   script:
-    merge_report = "${merge_group}_summary_report.html"
+    merge_report = "${merge_group_id}_summary_report.html"
     """
     Rscript -e "rmarkdown::render( \
       '${report_template}', \
@@ -88,15 +88,15 @@ process generate_merge_report {
 process export_anndata{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_32'
-    tag "${merge_group}"
-    publishDir "${params.results_dir}/merged/${merge_group}", mode: 'copy'
+    tag "${merge_group_id}"
+    publishDir "${params.results_dir}/merged/${merge_group_id}", mode: 'copy'
     input:
       tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
     output:
-      tuple val(merge_group), path("${merge_group}_merged_*.hdf5")
+      tuple val(merge_group_id), path("${merge_group_id}_merged_*.hdf5")
     script:
-      rna_hdf5_file = "${merge_group}_merged_rna.hdf5"
-      feature_hdf5_file = "${merge_group}_merged_adt.hdf5"
+      rna_hdf5_file = "${merge_group_id}_merged_rna.hdf5"
+      feature_hdf5_file = "${merge_group_id}_merged_adt.hdf5"
       """
       sce_to_anndata.R \
         --input_sce_file ${merged_sce_file} \
