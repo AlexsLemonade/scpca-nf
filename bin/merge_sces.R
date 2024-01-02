@@ -35,7 +35,7 @@ option_list <- list(
     help = "Keep any altExp present in the merged object."
   ),
   make_option(
-    opt_str = c("--is_multiplexed"),
+    opt_str = c("--multiplexed"),
     action = "store_true",
     default = FALSE,
     help = "Indicates if the provided SCE's contain multiplexed data.
@@ -126,7 +126,7 @@ merged_sce <- scpcaTools::merge_sce_list(
 )
 
 # add sample metadata to colData as long as there are no multiplexed data
-if (!opt$is_multiplexed) {
+if (!opt$multiplexed) {
   merged_sce <- scpcaTools::metadata_to_coldata(
     merged_sce,
     join_columns = "library_id"
@@ -153,7 +153,7 @@ library_df <- names(input_sce_files) |>
 # join tech and EFO with colData
 colData(merged_sce) <- colData(merged_sce) |>
   as.data.frame() |>
-  dplyr::left_join(library_df, by = c("library_id")) |>
+  dplyr::left_join(library_df, by = c("library_id"), relationship = "one-to-one") |>
   DataFrame(row.names = rownames(colData(merged_sce)))
 
 # HVG selection ----------------------------------------------------------------

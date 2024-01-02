@@ -32,9 +32,9 @@ process merge_sce {
   label 'mem_32'
   publishDir "${params.results_dir}/merged/${merge_group_id}"
   input:
-    tuple val(merge_group_id), val(has_adt), val(is_multiplexed), val(library_ids), path(scpca_nf_file)
+    tuple val(merge_group_id), val(has_adt), val(multiplexed), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(merge_group_id), val(has_adt), val(is_multiplexed), path(merged_sce_file)
+    tuple val(merge_group_id), val(has_adt), val(multiplexed), path(merged_sce_file)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -46,7 +46,7 @@ process merge_sce {
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \
       ${has_adt ? "--include_altexp" : ''} \
-      ${is_multiplexed ? "--is_multiplexed" : '' } \
+      ${multiplexed ? "--multiplexed" : '' } \
       --threads ${task.cpus}
     """
   stub:
