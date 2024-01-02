@@ -146,7 +146,7 @@ workflow {
       .map{[
         it.scpca_project_id,
         it.scpca_library_id,
-        "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
+        file("${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds")
       ]}
       // only include libraries that have been processed through scpca-nf
       .filter{file(it[2]).exists()}

@@ -31,7 +31,7 @@ jobs:
       - name: Check Nextflow workflow for merging objects
         uses: docker://nextflow/nextflow:21.10.6
         with:
-          args: nextflow -log merge-run.log run merge.nf -stub -profile stub -ansi-log false --project STUBP06
+          args: nextflow -log merge-run.log run merge.nf -stub -profile stub -ansi-log false --project STUBP01
 
       - name: Join log files
         if: ${{ !cancelled() }}
