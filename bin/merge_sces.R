@@ -139,11 +139,13 @@ if (!opt$is_multiplexed) {
 # grab technology and EFO from metadata$library_metadata
 library_df <- names(input_sce_files) |>
   purrr::map(\(library_id){
+    lib_meta <- metadata(merged_sce) |>
+      purrr::pluck("library_metadata", library_id)
     data.frame(
       library_id = library_id,
-      tech_version = metadata(merged_sce)$library_metadata[[library_id]]$tech_version,
-      assay_ontology_term_id = metadata(merged_sce)$library_metadata[[library_id]]$assay_ontology_term_id,
-      seq_unit = metadata(merged_sce)$library_metadata[[library_id]]$seq_unit
+      tech_version = lib_meta$tech_version,
+      assay_ontology_term_id = lib_meta$assay_ontology_term_id,
+      seq_unit = lib_meta$seq_unit
     )
   }) |>
   dplyr::bind_rows()
