@@ -50,7 +50,7 @@ process merge_sce {
       --threads ${task.cpus}
     """
   stub:
-    merged_sce_file = "${merge_group}_merged.rds"
+    merged_sce_file = "${merge_group_id}_merged.rds"
     """
     touch ${merged_sce_file}
     """
@@ -109,8 +109,8 @@ process export_anndata{
       ${has_adt ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
       """
     stub:
-      rna_hdf5_file = "${merge_group}_merged_rna.hdf5"
-      feature_hdf5_file = "${merge_group}_merged_adt.hdf5"
+      rna_hdf5_file = "${merge_group_id}_merged_rna.hdf5"
+      feature_hdf5_file = "${merge_group_id}_merged_adt.hdf5"
       """
       touch ${rna_hdf5_file}
       ${has_adt ? "touch ${feature_hdf5_file}" : ''}
