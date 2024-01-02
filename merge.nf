@@ -34,7 +34,7 @@ process merge_sce {
   input:
     tuple val(merge_group_id), val(has_adt), val(multiplexed), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(merge_group_id), val(has_adt), val(multiplexed), path(merged_sce_file)
+    tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -63,7 +63,7 @@ process generate_merge_report {
   publishDir "${params.results_dir}/merged/${merge_group}"
   label 'mem_16'
   input:
-    tuple val(merge_group_id), val(has_adt), path(merged_sce_file)
+    tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
     path(report_template)
   output:
     path(merge_report)
@@ -91,7 +91,7 @@ process export_anndata{
     tag "${merge_group}"
     publishDir "${params.results_dir}/merged/${merge_group}", mode: 'copy'
     input:
-      tuple val(merge_group), val(has_adt), path(merged_sce_file)
+      tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
     output:
       tuple val(merge_group), path("${merge_group}_merged_*.hdf5")
     script:
@@ -171,11 +171,7 @@ workflow {
     // export merged objects to AnnData
     anndata_ch = merge_sce.out
       .filter{!it[2]} // remove multiplexed samples before export
-      .map{project_id, has_adt, is_multiplexed, merged_sce_file -> tuple(
-        project_id,
-        has_adt,
-        merged_sce_file
-      )}
+      .take(2) // keep everything but multiplexed
 
     export_anndata(anndata_ch)
 }
