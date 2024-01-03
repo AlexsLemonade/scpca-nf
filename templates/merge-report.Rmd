@@ -39,12 +39,16 @@ if (is.null(params$merged_sce)) {
   stop("Must provide a merged SCE object.")
 }
 
+# define merged sce
+merged_sce <- params$merged_sce
+
 # define batch column
 batch_column <- params$batch_column
 
 # set adt/ multiplex values
+# this tells us if at least one library contains either of these modalities
 has_adt <- "adt" %in% merged_sce$additional_modalities
-is_multiplexed <- "cellhash" %in% merged_sce$additional_modalities
+multiplexed <- "cellhash" %in% merged_sce$additional_modalities
 ```
 
 ```{r, integration-warning, eval=FALSE}
@@ -70,9 +74,13 @@ To conduct any downstream analyses that require batch correction (e.g., UMAP or 
 # Library statistics 
 
 ```{r}
-# extract coldata as data frame to use to create tables
-coldata_df <- colData(merged_sce) |>
-  as.data.frame()
+# extract coldata as data frame to use to create tables and UMAPs
+coldata_df <- scuttle::makePerCellDF(merged_sce, use.dimred = "UMAP") |>
+  dplyr::rename(
+    UMAP1 = UMAP.1,
+    UMAP2 = UMAP.2
+  )
+
 
 num_libraries <- merged_sce$library_id |>
   unique() |>
