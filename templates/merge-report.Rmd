@@ -83,7 +83,7 @@ The merged object summarized in this report is comprised of `r num_libraries` in
 The following table shows a summary of the types of libraries represented.
 
 - `Technology version` indicates which 10X Genomics kit was used for library preparation.
-- `Experimental factor ontology` indicates the associated Experimental factor ontology (EFO) for the specified 10X version. 
+- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version. 
 - `Cell or Nucleus` indicates if the library was prepared from a single-cell (`cell`) or single-nuclei (`nucleus`) suspension. 
 
 
