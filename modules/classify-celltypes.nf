@@ -15,6 +15,8 @@ process classify_singler {
     tuple val(meta.library_id), path(singler_dir)
   script:
     singler_dir = file(meta.singler_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     # create output directory
     mkdir "${singler_dir}"
@@ -27,13 +29,15 @@ process classify_singler {
       --threads ${task.cpus}
 
     # write out meta file
-    echo '${Utils.makeJson(meta)}' > "${singler_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
     """
   stub:
     singler_dir = file(meta.singler_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     mkdir "${singler_dir}"
-    echo '${Utils.makeJson(meta)}' > "${singler_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
     """
 }
 
@@ -54,7 +58,8 @@ process classify_cellassign {
     tuple val(meta.library_id), path(cellassign_dir)
   script:
     cellassign_dir = file(meta.cellassign_dir).name
-
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     # create output directory
     mkdir "${cellassign_dir}"
@@ -73,13 +78,15 @@ process classify_cellassign {
       --threads ${task.cpus}
 
     # write out meta file
-    echo '${Utils.makeJson(meta)}' > "${cellassign_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
     """
   stub:
     cellassign_dir = file(meta.cellassign_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
     """
     mkdir "${cellassign_dir}"
-    echo '${Utils.makeJson(meta)}' > "${cellassign_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
     """
 }
 
@@ -90,6 +97,7 @@ process add_celltypes_to_sce {
   tag "${meta.library_id}"
   input:
     tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir)
+    path(celltype_ref_metadata) // TSV file of references metadata needed for CellAssign only
   output:
     tuple val(meta), path(annotated_rds)
   script:
@@ -105,7 +113,8 @@ process add_celltypes_to_sce {
       ${singler_present ? "--singler_results  ${singler_results}" : ''} \
       ${singler_present ? "--singler_model_file ${meta.singler_model_file}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
-      ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''}
+      ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
+      ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''}
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
@@ -183,7 +192,7 @@ workflow annotate_celltypes {
       .mix(classify_singler.out)
 
     // create cellassign input channel: [meta, processed sce, cellassign reference file]
-      cellassign_input_ch = celltype_input_ch
+    cellassign_input_ch = celltype_input_ch
       // add in cellassign reference
       .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file)]}
       // skip if no cellassign reference file or reference name is not defined
@@ -227,7 +236,10 @@ workflow annotate_celltypes {
 
 
     // incorporate annotations into SCE object
-    add_celltypes_to_sce(assignment_input_ch.add_celltypes)
+    add_celltypes_to_sce(
+      assignment_input_ch.add_celltypes,
+      file(params.celltype_ref_metadata) // file with CellAssign reference organs
+    )
 
     // mix in libraries without new celltypes
     // result is [meta, proccessed rds]

@@ -339,18 +339,19 @@ if (has_singler) {
 }
 
 if (has_cellassign) {
-  tissue_type <- stringr::word(
-    # eg, "blood-compartment"
-    metadata(processed_sce)$cellassign_reference,
-    1,
-    sep = "-"
-  )
+  organs <- metadata(processed_sce)$cellassign_reference_organs |>
+    stringr::str_to_lower()
+  # split up and add an `and` before the final organ
+  organs_string <- stringr::str_split_1(organs, pattern = ", ") |>
+    stringr::str_flatten_comma(last = ", and ")
+
+  ref_name <- metadata(processed_sce)$cellassign_reference
 
   methods_text <- glue::glue(
     "{methods_text}
     * Annotations from [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
-    Marker genes associated with `{tissue_type}` tissue were obtained from [PanglaoDB](https://panglaodb.se/).\n
-    "
+    Marker genes for cell types were obtained from [PanglaoDB](https://panglaodb.se/) and compiled into a reference named `{ref_name}`.
+    This reference includes the following organs and tissue compartments: {organs_string}.\n"
   )
 }
 
@@ -526,8 +527,8 @@ singler_cellassign_matrix <- make_jaccard_matrix(
 
 create_single_heatmap(
   singler_cellassign_matrix,
-  row_title = "SingleR annotations",
-  column_title = "CellAssign annotations",
+  row_title = "CellAssign annotations",
+  column_title = "SingleR annotations",
   labels_font_size = find_label_size(all_celltypes),
   keep_legend_name = "SingleR annotations",
   col_fun = heatmap_col_fun,
@@ -748,7 +749,7 @@ ggplot(celltype_df) +
   ) +
   labs(
     x = "Probability of annotated cell type",
-    y = ""
+    y = "Cell type annotation"
   ) +
   scale_x_continuous(limits = c(0, 1)) +
   scale_y_continuous(expand = c(0.1, 0.1)) +

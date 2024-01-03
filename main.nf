@@ -63,6 +63,18 @@ if (!resolution_strategies.contains(params.af_resolution)) {
   param_error = true
 }
 
+// cell type annotation file checks
+if (params.perform_celltyping) {
+  if (!file(params.project_celltype_metafile).exists()) {
+    log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
+    param_error = true
+  }
+  if (!file(params.celltype_ref_metadata).exists()) {
+    log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
+    param_error = true
+  }
+}
+
 if(param_error){
   System.exit(1)
 }
@@ -118,7 +130,7 @@ workflow {
         t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
         cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
         star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
-        scpca_version: workflow.manifest.version,
+        scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
     }
