@@ -14,3 +14,4 @@ STUBR12	STUBL11	STUBS12,STUBS13	STUBP06	10Xv3.1	cell	stub	test/runs/STUBR12	NA	N
 STUBR13	STUBL11	STUBS12,STUBS13	STUBP06	cellhash_10Xv3	cell	stub	test/runs/STUBR13	test/references/barcodes/cellhash.stub.tsv	2[1-15]	NA	NA	NA
 STUBR14	STUBL12	STUBS14	STUBP07	10Xv3.1	cell	stub	test/runs/STUBR14	NA	NA	NA	NA	test/celltypes/STUBL12-submitter-celltypes.tsv
 STUBR15	STUBL13	STUBS15	STUBP08	10Xv3.1	cell	stub	test/runs/STUBR15	NA	NA	NA	NA	NA
+STUBR16	STUBL16	STUBS16	STUBP01	10Xv2	cell	stub	test/runs/STUBR16	NA	NA	NA	NA	NA

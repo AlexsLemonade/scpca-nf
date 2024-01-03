@@ -71,11 +71,13 @@ format_czi <- function(sce) {
     sce$library_id <- metadata(sce)$library_id
   }
 
-  # add sample metadata to colData sce
-  sce <- scpcaTools::metadata_to_coldata(
-    sce,
-    join_columns = "library_id"
-  )
+  # if sample metadata is present, add to colData
+  if ("sample_metadata" %in% names(metadata(sce))) {
+    sce <- scpcaTools::metadata_to_coldata(
+      sce,
+      join_columns = "library_id"
+    )
+  }
 
   # modify colData to be AnnData and CZI compliant
   coldata_df <- colData(sce) |>
