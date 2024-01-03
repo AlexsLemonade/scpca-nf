@@ -32,9 +32,9 @@ process merge_sce {
   label 'mem_32'
   publishDir "${params.results_dir}/merged/${merge_group_id}"
   input:
-    tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
+    tuple val(merge_group_id), val(has_adt), val(multiplexed), val(library_ids), path(scpca_nf_file)
   output:
-    tuple val(merge_group_id), val(has_adt), path(merged_sce_file)
+    tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -46,10 +46,11 @@ process merge_sce {
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \
       ${has_adt ? "--include_altexp" : ''} \
+      ${multiplexed ? "--multiplexed" : '' } \
       --threads ${task.cpus}
     """
   stub:
-    merged_sce_file = "${merge_group}_merged.rds"
+    merged_sce_file = "${merge_group_id}_merged.rds"
     """
     touch ${merged_sce_file}
     """
@@ -59,15 +60,15 @@ process merge_sce {
 // create merge report
 process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/merged/${merge_group}"
+  publishDir "${params.results_dir}/merged/${merge_group_id}"
   label 'mem_16'
   input:
-    tuple val(merge_group_id), val(has_adt), path(merged_sce_file)
+    tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
     path(report_template)
   output:
     path(merge_report)
   script:
-    merge_report = "${merge_group}_summary_report.html"
+    merge_report = "${merge_group_id}_summary_report.html"
     """
     Rscript -e "rmarkdown::render( \
       '${report_template}', \
@@ -87,15 +88,15 @@ process generate_merge_report {
 process export_anndata{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_32'
-    tag "${merge_group}"
-    publishDir "${params.results_dir}/merged/${merge_group}", mode: 'copy'
+    tag "${merge_group_id}"
+    publishDir "${params.results_dir}/merged/${merge_group_id}", mode: 'copy'
     input:
-      tuple val(merge_group), val(has_adt), path(merged_sce_file)
+      tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
     output:
-      tuple val(merge_group), path("${merge_group}_merged_*.hdf5")
+      tuple val(merge_group_id), path("${merge_group_id}_merged_*.hdf5")
     script:
-      rna_hdf5_file = "${merge_group}_merged_rna.hdf5"
-      feature_hdf5_file = "${merge_group}_merged_adt.hdf5"
+      rna_hdf5_file = "${merge_group_id}_merged_rna.hdf5"
+      feature_hdf5_file = "${merge_group_id}_merged_adt.hdf5"
       """
       sce_to_anndata.R \
         --input_sce_file ${merged_sce_file} \
@@ -108,8 +109,8 @@ process export_anndata{
       ${has_adt ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
       """
     stub:
-      rna_hdf5_file = "${merge_group}_merged_rna.hdf5"
-      feature_hdf5_file = "${merge_group}_merged_adt.hdf5"
+      rna_hdf5_file = "${merge_group_id}_merged_rna.hdf5"
+      feature_hdf5_file = "${merge_group_id}_merged_adt.hdf5"
       """
       touch ${rna_hdf5_file}
       ${has_adt ? "touch ${feature_hdf5_file}" : ''}
@@ -133,6 +134,11 @@ workflow {
       .collect{it.scpca_project_id}
       .unique()
 
+    multiplex_projects = libraries_ch
+      .filter{it.technology.startsWith('cellhash')}
+      .collect{it.scpca_project_id}
+      .unique()
+
     grouped_libraries_ch = libraries_ch
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
@@ -140,7 +146,7 @@ workflow {
       .map{[
         it.scpca_project_id,
         it.scpca_library_id,
-        "${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds"
+        file("${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds")
       ]}
       // only include libraries that have been processed through scpca-nf
       .filter{file(it[2]).exists()}
@@ -152,6 +158,7 @@ workflow {
       .map{project_id, library_id_list, sce_file_list -> tuple(
         project_id,
         project_id in adt_projects, // determines if altExp should be included in the merged object
+        project_id in multiplex_projects, // determines if sample metadata should be added to colData and to skip anndata
         library_id_list,
         sce_file_list
       )}
@@ -162,5 +169,9 @@ workflow {
     generate_merge_report(merge_sce.out, file(merge_template))
 
     // export merged objects to AnnData
-    export_anndata(merge_sce.out)
+    anndata_ch = merge_sce.out
+      .filter{!it[3]} // remove multiplexed samples before export
+      .take(3) // keep everything but multiplexed
+
+    export_anndata(anndata_ch)
 }
