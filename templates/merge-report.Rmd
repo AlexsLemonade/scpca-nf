@@ -150,7 +150,7 @@ knitr::kable(adt_table, align = "r") |>
 ```
 
 
-```{r, eval=is_multiplexed }
+```{r, eval=multiplexed }
 knitr::asis_output(glue::glue(
   "
   This merged object contains one or more libraries that have been multiplexed.
@@ -184,7 +184,7 @@ knitr::kable(multiplex_table, align = "r") |>
 # Sample statistics
 
 ```{r, results='asis'}
-if (is_multiplexed) {
+if (multiplexed) {
   glue::glue("
     <div class=\"alert alert-info\">
 
@@ -197,7 +197,7 @@ if (is_multiplexed) {
 ```
 
 
-```{r, eval=!is_multiplexed}
+```{r, eval=!multiplexed}
 # get total number of samples and libraries
 num_samples <- merged_sce$sample_id |>
   unique() |>
@@ -205,7 +205,7 @@ num_samples <- merged_sce$sample_id |>
 ```
 
 
-```{r, eval=!is_multiplexed, results='asis'}
+```{r, eval=!multiplexed, results='asis'}
 glue::glue(
   "
   The merged object summarized in this report contains {num_samples} samples.
@@ -218,7 +218,7 @@ glue::glue(
 Below is a table showing the total number of samples associated with each diagnoses. 
 If subdiagnosis is available, the total number of samples will be obtained for each unique combination of diagnosis and subdiagnosis. 
 
-```{r, eval=!is_multiplexed}
+```{r, eval=!multiplexed}
 # table of diagnosis
 diagnosis_table <- coldata_df |>
   dplyr::select(sample_id, diagnosis, subdiagnosis) |>
@@ -259,7 +259,7 @@ knitr::kable(diagnosis_table, align = "r") |>
 
 The below table shows both the diagnosis and at what point during disease progression (`Disease stage`) the sample was taken. 
 
-```{r, eval=!is_multiplexed}
+```{r, eval=!multiplexed}
 # count number of samples per diagnosis/ disease timing combination
 disease_timing_table <- coldata_df |>
   dplyr::select(sample_id, diagnosis, disease_timing) |>
