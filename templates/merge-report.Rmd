@@ -101,8 +101,7 @@ num_libraries <- merged_sce$library_id |>
   length()
 ```
 
-The merged object summarized in this report is comprised of `r num_libraries` individual libraries.
-The following table shows a summary of the types of libraries represented.
+The merged object summarized in this report is comprised of `r num_libraries` individual libraries, which are described in the following table.
 
 - `Technology version` indicates which 10X Genomics kit was used for library preparation.
 - `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version. 
@@ -190,7 +189,7 @@ if (multiplexed) {
     <div class=\"alert alert-info\">
 
     This merged object contains {n_multiplexed} libraries that have been multiplexed.
-    Demultiplexing has not been performed, so sample statistics will not be displayed.
+    Demultiplexing has not been performed, so sample information will not be displayed.
 
     </div>
   ")
@@ -219,8 +218,8 @@ glue::glue(
 knitr::asis_output("
 ## Diagnoses
 
-The following table shows the total number of samples associated with each diagnoses.
-If subdiagnosis is available, the total number of samples will be obtained for each unique combination of diagnosis and subdiagnosis.
+The following table shows the total number of samples associated with each diagnosis.
+If a subdiagnosis is available, the total number of samples will be shown for each unique combination of diagnosis and subdiagnosis.
 
 ")
 ```
