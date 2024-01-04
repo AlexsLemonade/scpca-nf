@@ -34,13 +34,35 @@ theme_set(
 ```
 
 ```{r}
+# define a simple function for creating tables
+make_kable <- function(df) {
+  knitr::kable(df, align = "r") |>
+    kableExtra::kable_styling(
+      bootstrap_options = "striped",
+      full_width = FALSE,
+      position = "left"
+    ) |>
+    kableExtra::column_spec(2, monospace = TRUE)
+}
+```
+
+
+```{r}
 # check that input files are provided
 if (is.null(params$merged_sce)) {
   stop("Must provide a merged SCE object.")
 }
 
+# define merged sce
+merged_sce <- params$merged_sce
+
 # define batch column
 batch_column <- params$batch_column
+
+# set adt/multiplex values
+# this tells us if at least one library contains either of these modalities
+has_adt <- "adt" %in% merged_sce$additional_modalities
+multiplexed <- "cellhash" %in% merged_sce$additional_modalities
 ```
 
 ```{r, integration-warning, eval=FALSE}
@@ -63,14 +85,205 @@ This merged object is intended to facilitate downstream analyses across multiple
 The libraries included in the merged object are _NOT integrated or batch-corrected_.
 To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately. 
 
-
-## Summary of Merged Object
+# Library information 
 
 ```{r}
-# To do: replace this with actual tables
-# just a filler for now
-table(merged_sce[[batch_column]])
+# extract coldata as data frame to use to create tables and UMAPs
+coldata_df <- scuttle::makePerCellDF(merged_sce, use.dimred = "UMAP") |>
+  dplyr::rename(
+    UMAP1 = UMAP.1,
+    UMAP2 = UMAP.2
+  )
+
+
+num_libraries <- merged_sce$library_id |>
+  unique() |>
+  length()
 ```
+
+The merged object summarized in this report is comprised of `r num_libraries` individual libraries, which are described in the following table.
+
+- `Technology version` indicates which 10X Genomics kit was used for library preparation.
+- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version. 
+- `Suspension type` indicates if the library was prepared from a single-cell (`cell`) or single-nuclei (`nucleus`) suspension. 
+
+
+```{r}
+# table summarizing number of libraries with tech version and seq unit
+tech_table <- coldata_df |>
+  dplyr::select(library_id, tech_version, assay_ontology_term_id, seq_unit) |>
+  dplyr::distinct() |>
+  dplyr::count(tech_version, assay_ontology_term_id, seq_unit) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Technology version" = "tech_version",
+    "Experimental factor ontology" = "assay_ontology_term_id",
+    "Suspension type" = "seq_unit",
+    "Number of libraries" = "n"
+  )
+
+make_kable(tech_table)
+```
+
+
+```{r, eval=has_adt}
+knitr::asis_output(glue::glue(
+  "
+  This merged object contains one or more libraries with accompanying antibody-derived tag (ADT) expression data.
+  The following table summarizes the number of libraries with and without ADT data.
+  "
+))
+
+# count number of libraries with and without ADT
+adt_table <- coldata_df |>
+  dplyr::select(library_id, additional_modalities) |>
+  dplyr::distinct() |>
+  dplyr::mutate(
+    contains_adt = ifelse(additional_modalities == "adt", "Contains ADT", "No ADT")
+  ) |>
+  dplyr::count(contains_adt) |>
+  dplyr::rename(
+    "Library type" = "contains_adt",
+    "Number of libraries" = "n"
+  )
+
+make_kable(adt_table)
+```
+
+
+```{r, eval=multiplexed }
+knitr::asis_output(glue::glue(
+  "
+  This merged object contains one or more libraries that have been multiplexed.
+  The following table summarizes the number of libraries that have and have not been multiplexed.
+  "
+))
+
+# count number of libraries with and without multiplexing
+multiplex_table <- coldata_df |>
+  dplyr::select(library_id, additional_modalities) |>
+  dplyr::distinct() |>
+  dplyr::mutate(
+    is_multiplexed = ifelse(additional_modalities == "cellhash", "Multiplexed", "No multiplexing")
+  ) |>
+  dplyr::count(is_multiplexed) |>
+  dplyr::rename(
+    "Library type" = "is_multiplexed",
+    "Number of libraries" = "n"
+  )
+
+make_kable(multiplex_table)
+```
+
+
+# Sample information
+
+```{r, results='asis'}
+if (multiplexed) {
+  # get the total number of libraries that have been multiplexed
+  n_multiplexed <- multiplex_table |>
+    dplyr::filter(`Library type` == "Multiplexed") |>
+    dplyr::pull(`Number of libraries`)
+
+  glue::glue("
+    <div class=\"alert alert-info\">
+
+    This merged object contains {n_multiplexed} libraries that have been multiplexed.
+    Demultiplexing has not been performed, so sample information will not be displayed.
+
+    </div>
+  ")
+}
+```
+
+
+```{r, eval=!multiplexed}
+# get total number of samples and libraries
+num_samples <- merged_sce$sample_id |>
+  unique() |>
+  length()
+```
+
+
+```{r, eval=!multiplexed, results='asis'}
+glue::glue(
+  "
+  The merged object summarized in this report contains {num_samples} samples.
+  "
+)
+```
+
+
+```{r, eval=!multiplexed}
+knitr::asis_output("
+## Diagnoses
+
+The following table shows the total number of samples associated with each diagnosis.
+If a subdiagnosis is available, the total number of samples will be shown for each unique combination of diagnosis and subdiagnosis.
+
+")
+```
+
+
+```{r, eval=!multiplexed}
+# table of diagnosis
+diagnosis_table <- coldata_df |>
+  dplyr::select(sample_id, diagnosis, subdiagnosis) |>
+  dplyr::distinct()
+
+# if subdiagnosis is present, summarize both
+if (!all(is.na(diagnosis_table$subdiagnosis))) {
+  diagnosis_table <- diagnosis_table |>
+    dplyr::count(diagnosis, subdiagnosis) |>
+    dplyr::arrange(desc(n)) |>
+    dplyr::rename(
+      "Diagnosis" = "diagnosis",
+      "Subdiagnosis" = "subdiagnosis",
+      "Number of samples" = "n"
+    )
+} else {
+  # otherwise only count diagnosis
+  diagnosis_table <- diagnosis_table |>
+    dplyr::count(diagnosis) |>
+    dplyr::arrange(desc(n)) |>
+    dplyr::rename(
+      "Diagnosis" = "diagnosis",
+      "Number of samples" = "n"
+    )
+}
+
+make_kable(diagnosis_table)
+```
+
+
+```{r, eval=!multiplexed}
+knitr::asis_output(
+  "
+## Disease stage
+
+The following table shows both the diagnosis and at what point during disease progression (`Disease stage`) the sample was taken.
+
+"
+)
+```
+
+
+```{r, eval=!multiplexed}
+# count number of samples per diagnosis/ disease timing combination
+disease_timing_table <- coldata_df |>
+  dplyr::select(sample_id, diagnosis, disease_timing) |>
+  dplyr::distinct() |>
+  dplyr::count(diagnosis, disease_timing) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Diagnosis" = "diagnosis",
+    "Disease stage" = "disease_timing",
+    "Number of samples" = "n"
+  )
+
+make_kable(disease_timing_table)
+```
+
 
 # Session Info
 <details>

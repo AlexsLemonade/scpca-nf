@@ -116,6 +116,18 @@ if (!all(sce_checks)) {
   )
 }
 
+sce_list <- sce_list |>
+  purrr::map(\(sce){
+    # add a new column with any additional modalities
+    # will be adt, cellhash, or NA
+    additional_modalities <- altExpNames(sce)
+    if (length(additional_modalities) == 0) {
+      additional_modalities <- NA
+    }
+    sce$additional_modalities <- additional_modalities
+    return(sce)
+  })
+
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
