@@ -45,7 +45,7 @@ merged_sce <- params$merged_sce
 # define batch column
 batch_column <- params$batch_column
 
-# set adt/ multiplex values
+# set adt/multiplex values
 # this tells us if at least one library contains either of these modalities
 has_adt <- "adt" %in% merged_sce$additional_modalities
 multiplexed <- "cellhash" %in% merged_sce$additional_modalities
@@ -71,7 +71,7 @@ This merged object is intended to facilitate downstream analyses across multiple
 The libraries included in the merged object are _NOT integrated or batch-corrected_.
 To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately. 
 
-# Library statistics 
+# Library information 
 
 ```{r}
 # extract coldata as data frame to use to create tables and UMAPs
@@ -122,7 +122,7 @@ knitr::kable(tech_table, align = "r") |>
 ```{r, eval=has_adt}
 knitr::asis_output(glue::glue(
   "
-  This merged object contains one or more libraries with accompanying ADT expression data.
+  This merged object contains one or more libraries with accompanying antibody-derived tag (ADT) expression data.
   The table below summarizes the number of libraries with and without ADT data.
   "
 ))
@@ -189,7 +189,7 @@ if (multiplexed) {
     <div class=\"alert alert-info\">
 
     The libraries included in the merged object are multiplexed.
-    No demultiplexing has been done, so no sample statistics will be displayed.
+   Demultiplexing has not been performed, so sample statistics will not be displayed.
 
     </div>
   ")
@@ -225,7 +225,7 @@ diagnosis_table <- coldata_df |>
   dplyr::distinct()
 
 # if subdiagnosis is present, summarize both
-if (!all(is.na(diagnosis_table$Subdiagnosis))) {
+if (!all(is.na(diagnosis_table$subdiagnosis))) {
   diagnosis_table <- diagnosis_table |>
     dplyr::count(diagnosis, subdiagnosis) |>
     dplyr::arrange(desc(n)) |>
@@ -237,7 +237,6 @@ if (!all(is.na(diagnosis_table$Subdiagnosis))) {
 } else {
   # otherwise only count diagnosis
   diagnosis_table <- diagnosis_table |>
-    dplyr::select(-subdiagnosis) |>
     dplyr::count(diagnosis) |>
     dplyr::arrange(desc(n)) |>
     dplyr::rename(
