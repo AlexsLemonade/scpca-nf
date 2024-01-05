@@ -60,7 +60,7 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
         \(x) stringr::str_wrap(x, wrap)
       )
     ) |>
-    # Next, apply factor lumping, but ensure final order is via frequency with "All remaining cell types" at the end
+    # Next, apply factor lumping, but ensure final order is via frequency with the "others" at the end
     dplyr::mutate(
       across(
         ends_with("_celltype_annotation"),
@@ -68,7 +68,7 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
           x |>
             forcats::fct_lump_n(n_celltypes, other_level = "All remaining cell types", ties.method = "first") |>
             forcats::fct_infreq() |>
-            forcats::fct_relevel("All remaining cell types", after = Inf)
+            forcats::fct_relevel("Unknown cell type", "All remaining cell types", after = Inf)
         },
         .names = "{.col}_lumped"
       )
