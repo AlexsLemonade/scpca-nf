@@ -127,18 +127,14 @@ plot_umap <- function(
 #' Create a faceted UMAP panel where each panel has only one cell type colored
 #'
 #' @param umap_df Data frame with UMAP1 and UMAP2 columns
+#' @param n_celltypes The number of cell types (facets) displayed in the plot
 #' @param annotation_column Column containing cell type annotations
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
 faceted_umap <- function(umap_df,
+                         n_celltypes,
                          annotation_column) {
-  # Find total number of cell types for determining legend placement
-  total_celltypes <- umap_df |>
-    dplyr::pull({{ annotation_column }}) |>
-    levels() |>
-    length()
-
   # color by the annotation column but only color one cell type at a time
   faceted_umap <- ggplot(
     umap_df,
@@ -175,7 +171,7 @@ faceted_umap <- function(umap_df,
     )
 
   # Determine legend placement based on total_celltypes
-  if (total_celltypes %% 3 != 0 & total_celltypes != 1) {
+  if (n_celltypes %% 3 != 0 & n_celltypes != 1) {
     faceted_umap <- faceted_umap +
       theme(
         legend.position = c(0.68, 0.33),
@@ -368,31 +364,62 @@ All other cell types are grouped together and labeled "All remaining cell types"
 
 <!-- Now, UMAPs of cell types, where present -->
 
-```{r, eval = has_submitter && has_umap, message=FALSE, warning=FALSE, fig.height = 9, fig.width=9}
+```{r}
+# Function to determine plot height, and width should sort itself out?
+determine_umap_height <- function(n_types) {
+  dplyr::case_when(
+    n_types <= 2 ~ 3,
+    n_types <= 3 ~ 4,
+    n_types <= 5 ~ 6,
+    n_types <= 6 ~ 7,
+    .default = 8
+  )
+}
+```
+
+```{r, eval = has_submitter && has_umap}
+submitter_n_celltypes <- length(levels(umap_df$submitter_celltype_annotation_lumped))
+submitter_height <- determine_umap_height(submitter_n_celltypes)
+```
+
+```{r, eval = has_submitter && has_umap, message=FALSE, warning=FALSE, fig.height = submitter_height, fig.width = 8}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
+  submitter_n_celltypes,
   submitter_celltype_annotation_lumped
 ) +
   ggtitle("UMAP colored by submitter-provided annotations")
 ```
 
 
-```{r, eval=has_singler && has_umap, message=FALSE, warning=FALSE, fig.height=9, fig.width=9}
+```{r, eval = has_singler && has_umap}
+singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
+singler_height <- determine_umap_height(singler_n_celltypes)
+```
+
+
+```{r, eval=has_singler && has_umap, message=FALSE, warning=FALSE, fig.height = singler_height, fig.width = 8}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
+  singler_n_celltypes,
   singler_celltype_annotation_lumped
 ) +
   ggtitle("UMAP colored by SingleR annotations")
 ```
 
 
+```{r, eval = has_cellassign && has_umap}
+cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
+cellassign_height <- determine_umap_height(cellassign_n_celltypes)
+```
 
-```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.height = 9, fig.width=9}
+```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.height = cellassign_height, fig.width = 8}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
+  cellassign_n_celltypes,
   cellassign_celltype_annotation_lumped
 ) +
   ggtitle("UMAP colored by CellAssign annotations")
