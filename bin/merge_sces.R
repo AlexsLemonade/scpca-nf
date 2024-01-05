@@ -35,6 +35,13 @@ option_list <- list(
     help = "Keep any altExp present in the merged object."
   ),
   make_option(
+    opt_str = c("--multiplexed"),
+    action = "store_true",
+    default = FALSE,
+    help = "Indicates if the provided SCE's contain multiplexed data.
+      If so, the sample metadata will not be added to the colData."
+  ),
+  make_option(
     opt_str = c("-t", "--threads"),
     type = "integer",
     default = 1,
@@ -109,6 +116,18 @@ if (!all(sce_checks)) {
   )
 }
 
+sce_list <- sce_list |>
+  purrr::map(\(sce){
+    # add a new column with any additional modalities
+    # will be adt, cellhash, or NA
+    additional_modalities <- altExpNames(sce)
+    if (length(additional_modalities) == 0) {
+      additional_modalities <- NA
+    }
+    sce$additional_modalities <- additional_modalities
+    return(sce)
+  })
+
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
@@ -118,6 +137,36 @@ merged_sce <- scpcaTools::merge_sce_list(
   include_altexp = opt$include_altexp
 )
 
+# add sample metadata to colData as long as there are no multiplexed data
+if (!opt$multiplexed) {
+  merged_sce <- scpcaTools::metadata_to_coldata(
+    merged_sce,
+    join_columns = "library_id"
+  )
+
+  # remove sample metadata
+  metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
+}
+
+# grab technology and EFO from metadata$library_metadata
+library_df <- names(input_sce_files) |>
+  purrr::map(\(library_id){
+    lib_meta <- metadata(merged_sce) |>
+      purrr::pluck("library_metadata", library_id)
+    data.frame(
+      library_id = library_id,
+      tech_version = lib_meta$tech_version,
+      assay_ontology_term_id = lib_meta$assay_ontology_term_id,
+      seq_unit = lib_meta$seq_unit
+    )
+  }) |>
+  dplyr::bind_rows()
+
+# join tech and EFO with colData
+colData(merged_sce) <- colData(merged_sce) |>
+  as.data.frame() |>
+  dplyr::left_join(library_df, by = c("library_id"), relationship = "one-to-one") |>
+  DataFrame(row.names = rownames(colData(merged_sce)))
 
 # HVG selection ----------------------------------------------------------------
 
