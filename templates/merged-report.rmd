@@ -299,7 +299,8 @@ In this section, we present UMAPs showing all cells from all libraries included 
 For each library, a separate panel is shown, and cells from that library are colored, while all other cells are gray.
 
 **These merged object UMAP coordinates differ from UMAPs in individual library files.**
-The UMAPs presented here have been weighted so that each library contributes equally to the overall scaling.
+After individual objects were merged, PCA and UMAP coordinate were recalculated so that each library would contribute equally to the overall scaling.
+As a consequence, the PCA and UMAP coordinates found in the merged object will differ from the coordinates found in individual libraries.
 
 ```{r}
 # Determine appropriate dimensions for UMAP based on number of libraries
@@ -314,7 +315,7 @@ facet_ncol <- dplyr::case_when(
   .default = 10
 )
 
-# For now, 3 inches per UMAP row
+# TODO: For now, 3 inches per UMAP row
 umap_height <- ceiling(n_libraries / facet_ncol) * 3
 ```
 
