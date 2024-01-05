@@ -299,11 +299,11 @@ In this section, we present UMAPs showing all cells from all libraries included 
 For each library, a separate panel is shown, and cells from that library are colored, while all other cells are gray.
 
 **These merged object UMAP coordinates differ from UMAPs in individual library files.**
-  The UMAPs presented here have been weighted so that each library contributes equally to the overall scaling.
+The UMAPs presented here have been weighted so that each library contributes equally to the overall scaling.
 
 ```{r}
 # Determine appropriate dimensions for UMAP based on number of libraries
-n_libraries <- tech_table$n
+n_libraries <- tech_table$`Number of libraries`
 
 # Determine faceting layout based on n_libraries
 # TODO: This needs to be revisited when we run the merged objects through
@@ -338,7 +338,7 @@ ggplot(
   # set points for all "other" points
   geom_point(
     data = dplyr::select(
-      umap_df, -{{ batch_column }}
+      coldata_df, -{{ batch_column }}
     ),
     color = "gray80",
     alpha = 0.5,
