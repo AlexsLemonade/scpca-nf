@@ -290,7 +290,7 @@ make_kable(disease_timing_table)
 
 
 
-## UMAPs
+# UMAPs
 
 ```{r, ref.label=c('integration-warning'), eval=TRUE, results='asis'}
 ```
