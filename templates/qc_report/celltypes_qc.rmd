@@ -178,17 +178,19 @@ faceted_umap <- function(umap_df,
   if (total_celltypes %% 3 != 0 & total_celltypes != 1) {
     faceted_umap <- faceted_umap +
       theme(
-        legend.position = c(0.95, 0),
-        legend.justification = c(1, -0.1),
+        legend.position = c(0.68, 0.33),
+        legend.justification = c("left", "top"),
         legend.title.align = 0.5,
         # use slightly smaller legend text, which helps legend fit and prevents
         #  long wrapped labels from bunching up
-        legend.text = element_text(size = rel(0.85))
+        legend.text = element_text(size = rel(0.85)),
+        aspect.ratio = 1
       )
   } else {
     faceted_umap <- faceted_umap +
       theme(
-        legend.position = "bottom"
+        legend.position = "bottom",
+        aspect.ratio = 1
       )
   }
 
