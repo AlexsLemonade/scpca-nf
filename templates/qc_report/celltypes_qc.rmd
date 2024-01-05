@@ -42,6 +42,7 @@ format_celltype_n_table <- function(df) {
 
 #' Function to lump celltype columns in an existing data frame for all of the
 #'  following columns, if they exist: `<singler/cellassign/submitter>_celltype_annotation`.
+#' The cell types will also be renamed via wrapping at the given `wrap` level.
 #'  The resulting lumped column will be named:
 #'  `<singler/cellassign/submitter>_celltype_annotation_lumped`.
 #'
@@ -50,8 +51,16 @@ format_celltype_n_table <- function(df) {
 #' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
-lump_celltypes <- function(df, n_celltypes = 7) {
+lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
   df <- df |>
+    # First, wrap labels
+    dplyr::mutate(
+      across(
+        ends_with("_celltype_annotation"),
+        \(x) stringr::str_wrap(x, wrap)
+      )
+    ) |>
+    # Now, apply factor lumping
     dplyr::mutate(
       across(
         ends_with("_celltype_annotation"),
@@ -152,9 +161,12 @@ faceted_umap <- function(umap_df,
       )
     ) +
     theme(
-      legend.position = c(.9, 0),
-      legend.justification = c("right", "bottom"),
-      legend.title.align = 0.5
+      legend.position = c(0.95, 0),
+      legend.justification = c(1, -0.1),
+      legend.title.align = 0.5,
+      # use slightly smaller legend text, which helps legend fit and prevents
+      #  long wrapped labels from bunching up
+      legend.text = element_text(size = rel(0.85))
     )
 
   return(faceted_umap)
@@ -278,8 +290,8 @@ Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_
 
 
 ```{r, eval = has_umap}
-# Create dataset for plotting UMAPs with lumped cell types
-umap_df <- lump_celltypes(celltype_df)
+# Create dataset for plotting UMAPs with lumped and label-wrapped cell types
+umap_df <- lump_wrap_celltypes(celltype_df)
 ```
 
 
