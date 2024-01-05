@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 // This workflow does NOT perform integration, i.e. batch correction.
 
 // define path to merge template
-merge_template = "${projectDir}/templates/merge-report.Rmd"
+merge_template = "${projectDir}/templates/merge-report.rmd"
 
 // parameter checks
 param_error = false

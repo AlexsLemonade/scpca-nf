@@ -3,7 +3,6 @@ params:
   merge_group: "example_group"
   merged_sce: NULL
   batch_column: "library_id"
-
 title: "`r glue::glue('ScPCA merged report for {params$merge_group}')`"
 author: "Childhood Cancer Data Lab"
 date: "`r params$date`"
@@ -26,10 +25,16 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(ggplot2)
 
-# Set default ggplot theme
+# Set default ggplot theme, customized for UMAPs
 theme_set(
   theme_bw() +
-    theme(plot.margin = margin(rep(20, 4)))
+    theme(
+      plot.margin = margin(rep(20, 4)),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid = element_blank(),
+      aspect.ratio = 1
+    )
 )
 ```
 
@@ -94,7 +99,6 @@ coldata_df <- scuttle::makePerCellDF(merged_sce, use.dimred = "UMAP") |>
     UMAP1 = UMAP.1,
     UMAP2 = UMAP.2
   )
-
 
 num_libraries <- merged_sce$library_id |>
   unique() |>
@@ -282,6 +286,75 @@ disease_timing_table <- coldata_df |>
   )
 
 make_kable(disease_timing_table)
+```
+
+
+
+# UMAPs
+
+```{r, ref.label=c('integration-warning'), eval=TRUE, results='asis'}
+```
+
+In this section, we present UMAPs showing all cells from all libraries included in the merged object. 
+For each library, a separate panel is shown, and cells from that library are colored, while all other cells are gray.
+
+**These merged object UMAP coordinates differ from UMAPs in individual library files.**
+After individual objects were merged, PCA and UMAP coordinate were recalculated so that each library would contribute equally to the overall scaling.
+As a consequence, the PCA and UMAP coordinates found in the merged object will differ from the coordinates found in individual libraries.
+
+```{r}
+# Determine appropriate dimensions for UMAP based on number of libraries
+n_libraries <- tech_table$`Number of libraries`
+
+# Determine faceting layout based on n_libraries
+# TODO: This needs to be revisited when we run the merged objects through
+facet_ncol <- dplyr::case_when(
+  n_libraries <= 20 ~ 4,
+  n_libraries <= 50 ~ 6,
+  n_libraries <= 80 ~ 8,
+  .default = 10
+)
+
+# TODO: For now, 3 inches per UMAP row
+umap_height <- ceiling(n_libraries / facet_ncol) * 3
+```
+
+
+
+```{r, eval = multiplexed, results = 'asis'}
+glue::glue("
+ <div class=\"alert alert-info\">
+ This merged object contains multiplexed data.
+ Each UMAP facet displays a given library, which may be comprised of multiple samples.
+  </div>
+")
+```
+
+
+```{r, fig.width = 8, fig.height = umap_height}
+ggplot(
+  coldata_df,
+  aes(x = UMAP1, y = UMAP2, color = {{ batch_column }})
+) +
+  # set points for all "other" points
+  geom_point(
+    data = dplyr::select(
+      coldata_df, -{{ batch_column }}
+    ),
+    color = "gray80",
+    alpha = 0.5,
+    size = 0.1
+  ) +
+  # set points for desired cell type
+  geom_point(
+    alpha = 0.5,
+    size = 0.1,
+    color = "firebrick3"
+  ) +
+  facet_wrap(
+    {{ batch_column }}, # do NOT use vars()
+    ncol = facet_ncol
+  )
 ```
 
 
