@@ -172,12 +172,17 @@ faceted_umap <- function(umap_df,
 
   # Determine legend placement based on total_celltypes
   if (n_celltypes == 1) {
+    # If n=1, we do not need to a show a legend
     faceted_umap <- faceted_umap +
       theme(
         legend.position = "none",
         aspect.ratio = 1
       )
   } else if (n_celltypes %% 3 != 0 & n_celltypes > 2) {
+    # This condition places the legend in the bottom right corner. Can use this for
+    #  any n that doesn't have a full 3 columns, with one exception: for n=2,
+    #  there will be no third column in the faceting to slot the legend into,
+    #  so its legend has to go on the bottom
     faceted_umap <- faceted_umap +
       theme(
         legend.position = c(0.68, 0.33),
@@ -189,6 +194,7 @@ faceted_umap <- function(umap_df,
         aspect.ratio = 1
       )
   } else {
+    # For any other n, place legend on the bottom
     faceted_umap <- faceted_umap +
       theme(
         legend.position = "bottom",
