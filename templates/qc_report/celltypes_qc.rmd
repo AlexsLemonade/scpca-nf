@@ -135,6 +135,13 @@ plot_umap <- function(
 faceted_umap <- function(umap_df,
                          n_celltypes,
                          annotation_column) {
+  # Determine legend y-coordinate based on n_celltypes
+  if (n_celltypes %in% 7:8) {
+    legend_y <- 0.33
+  } else if (n_celltypes %in% 4:5) {
+    legend_y <- 0.52
+  }
+
   # color by the annotation column but only color one cell type at a time
   faceted_umap <- ggplot(
     umap_df,
@@ -186,7 +193,7 @@ faceted_umap <- function(umap_df,
     #  so its legend has to go on the bottom
     faceted_umap <- faceted_umap +
       theme(
-        legend.position = c(0.68, 0.33),
+        legend.position = c(0.67, legend_y),
         legend.justification = c("left", "top"),
         legend.title.align = 0.5,
         # use slightly smaller legend text, which helps legend fit and prevents
