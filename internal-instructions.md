@@ -210,7 +210,7 @@ Corresponding "trained" model files for use in the cell type annotation workflow
 
 The workflow in `merge.nf` merges (but **does not integrate**) processed objects produced by the main `scpca-nf` workflow.
 For a given SCPCA project id, the workflow creates a merged `SCE` object, a merged `AnnData` object, and an associated merged object HTML report.
-Note that the workflow does also merge any present alternative experiments (e.g., ADT data from CITE-seq) _except_ for cell hashing alternative experiments.
+Note that the workflow will also merge any present alternative experiments (e.g., ADT data from CITE-seq) _except_ for cell hashing alternative experiments.
 
 The merge workflow requires two parameters:
 
