@@ -219,7 +219,7 @@ determine_umap_dimensions <- function(n_celltypes) {
     n_celltypes == 1 ~ c(3.75, 3.5), # 1: no legend
     n_celltypes == 2 ~ c(5.5, 5), # 2: bottom legend
     n_celltypes == 3 ~ c(8, 5.5), # 3: bottom legend
-    n_celltypes <= 5 ~ c(8, 7), # 4 & 5: inset legend
+    n_celltypes <= 5 ~ c(9, 6), # 4 & 5: inset legend
     n_celltypes <= 6 ~ c(8, 7.5), # 6: bottom legend
     .default = c(10, 9.5) # 7 & 8: inset legend
   )
