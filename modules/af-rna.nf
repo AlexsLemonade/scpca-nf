@@ -138,8 +138,8 @@ workflow map_quant_rna {
       .map{meta -> tuple(
         meta,
         // fail if the fastq files do not exist
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz").exists(),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz").exists(),
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true),
         file(meta.salmon_splici_index, type: 'dir')
       )}
 
@@ -148,7 +148,7 @@ workflow map_quant_rna {
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
-        file(meta.rad_dir, type: 'dir').exists() // fail if no rad directory
+        file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
       )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
