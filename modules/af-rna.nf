@@ -147,7 +147,7 @@ workflow map_quant_rna {
     // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(
-        Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
+        Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json", checkIfExists: true)),
         file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
       )}
 
