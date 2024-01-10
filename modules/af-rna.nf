@@ -120,22 +120,24 @@ workflow map_quant_rna {
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
-       // split based in whether repeat_mapping is false and a previous dir exists
+       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
       .branch{
-        has_rad: (
-          !params.repeat_mapping
-          && file(it.rad_dir).exists()
-          // remap if the assembly changed
-          && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+        make_rad: (
+          // repeat has been requested
+          params.repeat_mapping
+          // the rad directory does not exist
+          || !file(it.rad_dir).exists()
+          // the assembly has changed
+          || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
         )
-        make_rad: true
-       }
+        has_rad: true
+      }
 
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(
         meta,
-        // fail if the files do not exist
+        // fail if the fastq files do not exist
         file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz").exists(),
         file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz").exists(),
         file(meta.salmon_splici_index, type: 'dir')
@@ -146,7 +148,7 @@ workflow map_quant_rna {
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
-        file(meta.rad_dir, type: 'dir').exists() // ensures that it exists, and fail if not
+        file(meta.rad_dir, type: 'dir').exists() // fail if no rad directory
       )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
