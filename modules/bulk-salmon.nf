@@ -137,16 +137,16 @@ workflow bulk_quant_rna {
     // create tuple of metadata map (read from output), salmon output directory to use as input to merge_bulk_quants
     quants_ch = bulk_channel.has_quants
       .map{meta -> tuple(
-        Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
-        file(meta.salmon_results_dir, type: 'dir')
+        Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json", checkIfExists: true)),
+        file(meta.salmon_results_dir, type: 'dir', checkIfExists: true)
       )}
 
     // If we need to run salmon, create tuple of (metadata map, [Read 1 files], [Read 2 files])
     bulk_reads_ch = bulk_channel.make_quants
       .map{meta -> tuple(
         meta,
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz")
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
       )}
 
     // run fastp and salmon for libraries that are not skipping salmon
@@ -166,7 +166,7 @@ workflow bulk_quant_rna {
       .map{[
         it[1][0], // meta; relevant data should all be the same by project, so take the first
         it[2].sort(), // salmon directories, sorted for consistency (we can do this because there is only one tuple element)
-        file(it[1][0].t2g_bulk_path)
+        file(it[1][0].t2g_bulk_path, checkIfExists: true)
       ]}
 
     // create tsv file and combined metadata for each project containing all libraries
