@@ -145,7 +145,7 @@ workflow annotate_celltypes {
     // branch to cell type the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
      .branch{
-        cell_line: it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.any()
+        cell_line: it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.every()
         // only run cell typing on tissue samples
         tissue: true
       }
