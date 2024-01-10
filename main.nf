@@ -51,7 +51,12 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-sample_metafile = file(params.sample_metafile)
+sample_metafile = file(params.sample_metafile) // we make this for passing into later processes
+if (!sample_metafile.exists()) {
+  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
+  param_error = true
+}
+
 if (!sample_metafile.exists()) {
   log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
   param_error = true
@@ -73,6 +78,17 @@ if (params.perform_celltyping) {
     log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
     param_error = true
   }
+
+  if (!file("${projectDir}/templates/qc_report/${celltype_report_template_file}").exists()) {
+    log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
+    param_error = true
+  }
+}
+
+// QC report check
+if (!file("${projectDir}/templates/qc_report/${report_template_file}").exists()) {
+  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
+  param_error = true
 }
 
 if(param_error){
