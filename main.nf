@@ -96,6 +96,19 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
+  // read in sample metadata and make a list of cell line samples; these won't be cell typed
+  cell_line_samples = Channel.fromPath(params.sample_metafile)
+    .splitCsv(header: true, sep: '\t')
+    .map{
+      [
+        scpca_library_id: it.scpca_library_id,
+        is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
+      ]
+    }
+    .filter{it.is_cell_line}
+    .map{it.sample_id}
+    .toList()
+
   ref_paths = Utils.readMeta(file(params.ref_json))
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
