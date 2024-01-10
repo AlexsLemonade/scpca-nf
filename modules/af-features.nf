@@ -161,12 +161,13 @@ workflow map_quant_feature{
       }
       .branch{
         make_rad: (
-          // repeat has been requested
-          params.repeat_mapping
-          // the feature directory does not exist
-          || !file(it.feature_rad_dir).exists()
-          // the assembly has changed; if feature_dir doesn't exist, this line won't get hit
-          || Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+          // input files exist
+          file($it.files_directory, type: "dir").exists() && (
+            // and repeat has been requested
+            params.repeat_mapping
+            // or the feature rad file directory does not exist
+            || !file(it.feature_rad_dir).exists()
+          )
         )
         has_rad: true
       }

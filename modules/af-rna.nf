@@ -123,14 +123,18 @@ workflow map_quant_rna {
        // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
       .branch{
         make_rad: (
-          // repeat has been requested
-          params.repeat_mapping
-          // the rad directory does not exist
-          || !file(it.rad_dir).exists()
-          // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
-          || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+          // input files exist
+          file($it.files_directory, type: "dir").exists() && (
+            // and repeat has been requested
+            params.repeat_mapping
+            // the rad directory does not exist
+            || !file(it.rad_dir).exists()
+            // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
+            || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+          )
         )
-        has_rad: true
+        has_rad: file(it.rad_dir).exists()
+        missing_inputs: true
       }
 
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
