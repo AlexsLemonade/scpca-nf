@@ -125,6 +125,7 @@ workflow map_quant_rna {
         has_rad: (
           !params.repeat_mapping
           && file(it.rad_dir).exists()
+          // remap if the assembly changed
           && Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
         )
         make_rad: true
@@ -134,8 +135,9 @@ workflow map_quant_rna {
     rna_reads_ch = rna_channel.make_rad
       .map{meta -> tuple(
         meta,
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz"),
+        // fail if the files do not exist
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz").exists(),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz").exists(),
         file(meta.salmon_splici_index, type: 'dir')
       )}
 
@@ -144,7 +146,7 @@ workflow map_quant_rna {
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
-        file(meta.rad_dir, type: 'dir')
+        file(meta.rad_dir, type: 'dir').exists() // ensures that it exists, and fail if not
       )}
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
