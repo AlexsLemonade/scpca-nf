@@ -128,8 +128,17 @@ empty_file = "${projectDir}/assets/NO_FILE"
 workflow annotate_celltypes {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
-    // get just the meta and processed sce
-    processed_sce_channel = sce_files_channel.map{[it[0], it[3]]}
+
+    // branch to cell type the non-cell line libraries only
+    sce_files_channel = sce_files_channel
+      .branch{
+        cell_line: it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.any()
+        // only run cell typing on tissue samples
+        tissue: true
+      }
+
+    // get just the meta and processed sce from the tissue (not cell line) samples
+    processed_sce_channel = sce_files_channel.tissue.map{[it[0], it[3]]}
 
     // channel with celltype model and project ids
     celltype_ch = Channel.fromPath(params.project_celltype_metafile)
@@ -259,6 +268,8 @@ workflow annotate_celltypes {
       .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce]
       }
+      // mix in cell line libraries which were not cell typed
+      .mix(sce_files_channel.cell_line)
 
   emit: export_channel
 
