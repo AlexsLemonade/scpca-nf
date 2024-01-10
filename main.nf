@@ -68,6 +68,17 @@ if (!resolution_strategies.contains(params.af_resolution)) {
   param_error = true
 }
 
+if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
+  log.error("The 'cellhash_pool_file' file ${cellhash_pool_file} can not be found.")
+  param_error = true
+}
+
+// QC report check
+if (!file("${projectDir}/templates/qc_report/${report_template_file}").exists()) {
+  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
+  param_error = true
+}
+
 // cell type annotation file checks
 if (params.perform_celltyping) {
   if (!file(params.project_celltype_metafile).exists()) {
@@ -85,11 +96,6 @@ if (params.perform_celltyping) {
   }
 }
 
-// QC report check
-if (!file("${projectDir}/templates/qc_report/${report_template_file}").exists()) {
-  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
-  param_error = true
-}
 
 if(param_error){
   System.exit(1)
@@ -223,7 +229,7 @@ workflow {
       single: true
     }
   // apply cellhash demultiplexing
-  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file, checkIfExists: true))
+  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
   merged_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
