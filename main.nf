@@ -25,7 +25,7 @@ citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 // report template paths
-report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
+report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
 report_template_file = "main_qc_report.rmd"
 celltype_report_template_file = "celltypes_supplemental_report.rmd"
 report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
