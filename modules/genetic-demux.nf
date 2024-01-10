@@ -57,16 +57,11 @@ workflow genetic_demux_vireo{
     // construct demux output for skipped as [meta, vireo_dir] & join newly processed libraries
     demux_out = multiplex_ch.has_demux
       .map{meta -> tuple(
-        Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
-        file(meta.vireo_dir, type: 'dir')
+        Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json", checkIfExists: true)),
+        file(meta.vireo_dir, type: 'dir', checkIfExists: true)
       )}
       .mix(cellsnp_vireo.out)
 
   emit:
     demux_out
 }
-
-
-
-
-
