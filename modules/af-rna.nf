@@ -127,7 +127,7 @@ workflow map_quant_rna {
           params.repeat_mapping
           // the rad directory does not exist
           || !file(it.rad_dir).exists()
-          // the assembly has changed
+          // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
           || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
         )
         has_rad: true
