@@ -118,7 +118,7 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  ref_paths = Utils.readMeta(file(params.ref_json, checkIfExists: true))
+  ref_paths = Utils.readMeta(file(params.ref_json))
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
