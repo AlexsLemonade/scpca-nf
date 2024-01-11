@@ -169,7 +169,16 @@ workflow map_quant_feature{
             || !file(it.feature_rad_dir).exists()
           )
         )
-        has_rad: true
+        has_rad: file(it.feature_rad_dir).exists()
+        missing_inputs: true
+      }
+
+    // send run ids in feature_ch.missing_inputs to log
+    feature_ch.missing_inputs
+      .subscribe{
+        if(it){
+          log.error("The expected feature input fastq or rad files for ${it.run_id} are missing.")
+        }
       }
 
     // pull out files that need to be repeated
