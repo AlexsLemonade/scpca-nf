@@ -401,9 +401,14 @@ All other cell types are grouped together and labeled "All remaining cell types"
 
 <!-- Now, UMAPs of cell types, where present -->
 
-```{r, eval = has_submitter && has_umap}
-submitter_n_celltypes <- length(levels(umap_df$submitter_celltype_annotation_lumped))
-submitter_dims <- determine_umap_dimensions(submitter_n_celltypes)
+```{r}
+if (has_submitter & has_umap) {
+  submitter_n_celltypes <- length(levels(umap_df$submitter_celltype_annotation_lumped))
+  submitter_dims <- determine_umap_dimensions(submitter_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  submitter_dims <- c(1, 1)
+}
 ```
 
 ```{r, eval = has_submitter && has_umap, message=FALSE, warning=FALSE, fig.width = submitter_dims[1], fig.height = submitter_dims[2], fig.align = "center"}
@@ -417,9 +422,14 @@ faceted_umap(
 ```
 
 
-```{r, eval = has_singler && has_umap}
-singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
-singler_dims <- determine_umap_dimensions(singler_n_celltypes)
+```{r}
+if (has_singler & has_umap) {
+  singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
+  singler_dims <- determine_umap_dimensions(singler_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  singler_dims <- c(1, 1)
+}
 ```
 
 
@@ -434,9 +444,14 @@ faceted_umap(
 ```
 
 
-```{r, eval = has_cellassign && has_umap}
-cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
-cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
+```{r}
+if (has_cellassign & has_umap) {
+  cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
+  cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  cellassign_dims <- c(1, 1)
+}
 ```
 
 ```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.width = cellassign_dims[1], fig.height = cellassign_dims[2], fig.align = "center"}
