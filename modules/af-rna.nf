@@ -120,7 +120,8 @@ workflow map_quant_rna {
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
-       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
+       // branch based on whether mapping should be run (make_rad) or skipped (has_rad).
+       // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{
         make_rad: (
           // input files exist
@@ -140,9 +141,7 @@ workflow map_quant_rna {
     // send run ids in rna_channel.missing_inputs to log
     rna_channel.missing_inputs
       .subscribe{
-        if(it){
-          log.error("The expected input fastq or rad files for ${it.run_id} are missing.")
-        }
+        log.error("The expected input fastq or rad files for ${it.run_id} are missing.")
       }
 
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
