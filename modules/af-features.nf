@@ -159,6 +159,8 @@ workflow map_quant_feature{
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
+      // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
+      // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{
         make_rad: (
           // input files exist
@@ -176,9 +178,7 @@ workflow map_quant_feature{
     // send run ids in feature_ch.missing_inputs to log
     feature_ch.missing_inputs
       .subscribe{
-        if(it){
-          log.error("The expected feature input fastq or rad files for ${it.run_id} are missing.")
-        }
+        log.error("The expected feature input fastq or rad files for ${it.run_id} are missing.")
       }
 
     // pull out files that need to be repeated

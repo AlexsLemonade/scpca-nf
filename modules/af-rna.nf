@@ -120,7 +120,7 @@ workflow map_quant_rna {
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
-       // branch based on whether mapping should be run (make_rad) or skipped (has_rad).
+       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
        // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{
         make_rad: (
