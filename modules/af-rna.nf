@@ -141,7 +141,7 @@ workflow map_quant_rna {
     rna_channel.missing_inputs
       .subscribe{
         if(it){
-          log.error("The expected input fastq or rad files for ${it.run_id} is missing.")
+          log.error("The expected input fastq or rad files for ${it.run_id} are missing.")
         }
       }
 
