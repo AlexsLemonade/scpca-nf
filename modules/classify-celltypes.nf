@@ -194,7 +194,7 @@ workflow annotate_celltypes {
         skip_singler: (
           !params.repeat_celltyping
           && file(it[0].singler_results_file).exists()
-          && Utils.getMetaVal(file("${it[0].singler_dir}/scpca-meta.json", checkIfExists: true), "singler_model_file") == "${it[0].singler_model_file}"
+          && Utils.getMetaVal(file("${it[0].singler_dir}/scpca-meta.json"), "singler_model_file") == "${it[0].singler_model_file}"
         )
         missing_ref: it[2].name == "NO_FILE"
         do_singler: true
@@ -222,7 +222,7 @@ workflow annotate_celltypes {
         skip_cellassign: (
           !params.repeat_celltyping
           && file(it[0].cellassign_predictions_file).exists()
-          && Utils.getMetaVal(file("${it[0].cellassign_dir}/scpca-meta.json", checkIfExists: true), "cellassign_reference_file") == "${it[0].cellassign_reference_file}"
+          && Utils.getMetaVal(file("${it[0].cellassign_dir}/scpca-meta.json"), "cellassign_reference_file") == "${it[0].cellassign_reference_file}"
         )
         missing_ref: it[2].name == "NO_FILE"
         do_cellassign: true

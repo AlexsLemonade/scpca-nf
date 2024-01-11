@@ -137,7 +137,7 @@ workflow bulk_quant_rna {
     // create tuple of metadata map (read from output), salmon output directory to use as input to merge_bulk_quants
     quants_ch = bulk_channel.has_quants
       .map{meta -> tuple(
-        Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json", checkIfExists: true)),
+        Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
         file(meta.salmon_results_dir, type: 'dir', checkIfExists: true)
       )}
 
