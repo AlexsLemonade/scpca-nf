@@ -106,7 +106,7 @@ if (opt$threads > 1) {
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
 
 # check that all input RDS files contain SCE objects
-sce_checks <- purrr::map(
+sce_checks <- purrr::map_lgl(
   sce_list,
   \(x) is(x, "SingleCellExperiment")
 )
@@ -165,7 +165,7 @@ library_df <- names(input_sce_files) |>
 # join tech and EFO with colData
 colData(merged_sce) <- colData(merged_sce) |>
   as.data.frame() |>
-  dplyr::left_join(library_df, by = c("library_id"), relationship = "one-to-one") |>
+  dplyr::left_join(library_df, by = c("library_id"), relationship = "many-to-one") |>
   DataFrame(row.names = rownames(colData(merged_sce)))
 
 # HVG selection ----------------------------------------------------------------
