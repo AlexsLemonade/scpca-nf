@@ -138,14 +138,12 @@ workflow map_quant_rna {
       }
 
     // send run ids in rna_channel.missing_inputs to log
-    // TODO: We might like to only have this error logged if rna_channel.missing_inputs is not empty
-    missing_ch = rna_channel.missing_inputs
-      .map{it.run_id}
-      .toList()
+    rna_channel.missing_inputs
       .subscribe{
-        log.error("The expected input fastq or rad files for the following runs are missing: ${it}.")
+        if(it){
+          log.error("The expected input fastq or rad files for ${it.run_id} is missing.")
+        }
       }
-
 
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
     rna_reads_ch = rna_channel.make_rad
