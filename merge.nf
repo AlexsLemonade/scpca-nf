@@ -74,7 +74,7 @@ process generate_merge_report {
       '${report_template}', \
       output_file = '${merge_report}', \
       params = list(merge_group = '${merge_group_id}', \
-                    merged_sce = '${merged_sce_file}', \
+                    merged_sce_file = '${merged_sce_file}', \
                     batch_column = 'library_id') \
       )"
     """
