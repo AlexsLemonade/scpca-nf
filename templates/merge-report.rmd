@@ -1,7 +1,7 @@
 ---
 params:
   merge_group: "example_group"
-  merged_sce: NULL
+  merged_sce_file: NULL
   batch_column: "library_id"
 title: "`r glue::glue('ScPCA merged report for {params$merge_group}')`"
 author: "Childhood Cancer Data Lab"
@@ -16,7 +16,7 @@ output:
     code_download: true
 ---
 
-```{r setup, message = FALSE, echo = FALSE}
+```{r setup, warning = FALSE, message = FALSE, echo = FALSE}
 # knitr options
 knitr::opts_chunk$set(
   echo = FALSE
@@ -53,13 +53,16 @@ make_kable <- function(df) {
 
 
 ```{r}
-# check that input files are provided
-if (is.null(params$merged_sce)) {
-  stop("Must provide a merged SCE object.")
+# check that input file is provided and ends in rds
+if (is.null(params$merged_sce_file)) {
+  stop("Must provide a merged SCE object file.")
+}
+if (!stringr::str_ends(params$merged_sce_file, ".rds")) {
+  stop("Merged object file must end in .rds.")
 }
 
-# define merged sce
-merged_sce <- params$merged_sce
+# read in merged sce from file
+merged_sce <- readr::read_rds(params$merged_sce_file)
 
 # define batch column
 batch_column <- params$batch_column
