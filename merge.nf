@@ -68,7 +68,7 @@ process generate_merge_report {
   output:
     path(merge_report)
   script:
-    merge_report = "${merge_group_id}_summary_report.html"
+    merge_report = "${merge_group_id}_merged-summary-report.html"
     """
     Rscript -e "rmarkdown::render( \
       '${report_template}', \
@@ -79,7 +79,7 @@ process generate_merge_report {
       )"
     """
   stub:
-    merge_report = "${merge_group_id}_summary_report.html"
+    merge_report = "${merge_group_id}_merged-summary-report.html"
     """
     touch ${merge_report}
     """
