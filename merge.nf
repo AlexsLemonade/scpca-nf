@@ -73,8 +73,8 @@ process generate_merge_report {
     Rscript -e "rmarkdown::render( \
       '${report_template}', \
       output_file = '${merge_report}', \
-      params = list(merge_group = '${merge_group}', \
-                    merged_sce = '${merged_sce_file}', \
+      params = list(merge_group = '${merge_group_id}', \
+                    merged_sce_file = '${merged_sce_file}', \
                     batch_column = 'library_id') \
       )"
     """
@@ -171,7 +171,8 @@ workflow {
     // export merged objects to AnnData
     anndata_ch = merge_sce.out
       .filter{!it[3]} // remove multiplexed samples before export
-      .take(3) // keep everything but multiplexed
+      .map{it.take(3)} // keep everything but multiplexed logical
+
 
     export_anndata(anndata_ch)
 }
