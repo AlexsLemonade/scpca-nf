@@ -146,7 +146,7 @@ if ("submitter" %in% all_celltypes) {
   # Add `"Submitter-excluded"` value to any libraries without submitter
   sce_list <- sce_list |>
     purrr::map(\(sce){
-      if (!"submitter_celltype_annotation" %in% names(sce(colData))) {
+      if (!"submitter" %in% metadata(sce)$celltype_methods) {
         colData(sce)$submitter_celltype_annotation <- "Submitter-excluded"
       }
       return(sce)
