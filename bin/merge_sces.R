@@ -225,7 +225,6 @@ sce_list <- sce_list |>
     return(sce)
   })
 
-
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
