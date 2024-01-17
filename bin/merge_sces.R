@@ -197,9 +197,7 @@ if ("cellassign" %in% all_celltypes) {
     purrr::map(\(sce){
       if (!"cellassign" %in% metadata(sce)$celltype_methods) {
         colData(sce)$cellassign_celltype_annotation <- "Cell type annotation not performed"
-        if (use_ontology) {
-          colData(sce)$cellassign_max_prediction <- NA_real_
-        }
+        colData(sce)$cellassign_max_prediction <- NA_real_
       }
       return(sce)
     })
