@@ -169,6 +169,18 @@ if ("singler" %in% all_celltypes) {
     # only use ontology if TRUE
     ifelse(use_ontology, "singler_celltype_ontology", NULL)
   )
+
+  # Add `"Cell type annotation not performed"` string to libraries without SingleR
+  sce_list <- sce_list |>
+    purrr::map(\(sce){
+      if (!"singler" %in% metadata(sce)$celltype_methods) {
+        colData(sce)$singler_celltype_annotation <- "Cell type annotation not performed"
+        if (use_ontology) {
+          colData(sce)$singler_celltype_ontology <- "Cell type annotation not performed"
+        }
+      }
+      return(sce)
+    })
 }
 if ("cellassign" %in% all_celltypes) {
   retain_coldata_columns <- c(
@@ -176,6 +188,19 @@ if ("cellassign" %in% all_celltypes) {
     "cellassign_celltype_annotation",
     "cellassign_max_prediction"
   )
+
+  # Add `"Cell type annotation not performed"` string to libraries without CellAssign,
+  #  and make the max prediction `NA_real_` for safety
+  sce_list <- sce_list |>
+    purrr::map(\(sce){
+      if (!"cellassign" %in% metadata(sce)$celltype_methods) {
+        colData(sce)$cellassign_celltype_annotation <- "Cell type annotation not performed"
+        if (use_ontology) {
+          colData(sce)$cellassign_max_prediction <- NA_real_
+        }
+      }
+      return(sce)
+    })
 }
 
 
