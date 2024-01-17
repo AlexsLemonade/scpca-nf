@@ -116,10 +116,64 @@ if (!all(sce_checks)) {
   )
 }
 
+# check if any SCEs have cell types; if so, we want to retain those colData columns
+all_celltypes <- sce_list |>
+  purrr::map(\(sce) {
+    metadata(sce)$celltype_methods
+  }) |>
+  purrr::reduce(union)
+
+# Default vector of colData columns to retain from
+# https://github.com/AlexsLemonade/scpcaTools/blob/2ebdc4f4dfc4233fad97805f9a9a5e3bc6919f1e/R/merge_sce_list.R
+retain_coldata_columns <- c(
+  "sum",
+  "detected",
+  "total",
+  "subsets_mito_sum",
+  "subsets_mito_detected",
+  "subsets_mito_percent",
+  "miQC_pass",
+  "prob_compromised",
+  "barcodes"
+)
+# add relevant cell type columns to `retain_coldata_columns`
+if ("submitter" %in% all_celltypes) {
+  retain_coldata_columns <- c(
+    retain_coldata_columns,
+    "submitter_celltype_annotation"
+  )
+}
+if ("singler" %in% all_celltypes) {
+  # Check if the label used for annotation was ontology in at least 1 SCE
+  use_ontology <- sce_list |>
+    purrr::map(\(sce){
+      metadata(sce)$singler_reference_label == "label.ont"
+    }) |>
+    # avoid warning with unlist; can't use map_lgl since ^ would always need to
+    #  return length 1
+    unlist() |>
+    any()
+
+  retain_coldata_columns <- c(
+    retain_coldata_columns,
+    "singler_celltype_annotation",
+    # only use ontology if TRUE
+    ifelse(use_ontology, "singler_celltype_ontology", NULL)
+  )
+}
+if ("cellassign" %in% all_celltypes) {
+  retain_coldata_columns <- c(
+    retain_coldata_columns,
+    "cellassign_celltype_annotation",
+    "cellassign_max_prediction"
+  )
+}
+
+
+# Add a new column with any additional modalities
 sce_list <- sce_list |>
   purrr::map(\(sce){
-    # add a new column with any additional modalities
-    # will be adt, cellhash, or NA
+    # value will be adt, cellhash, or NA
     additional_modalities <- altExpNames(sce)
     if (length(additional_modalities) == 0) {
       additional_modalities <- NA
@@ -132,6 +186,7 @@ sce_list <- sce_list |>
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
   batch_column = "library_id",
+  retain_coldata_cols = retain_coldata_columns,
   preserve_rowdata_cols = "gene_symbol",
   cell_id_column = "cell_id",
   include_altexp = opt$include_altexp
