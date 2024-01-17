@@ -206,7 +206,9 @@ if ("cellassign" %in% all_celltypes) {
 
 # Merge SCEs -------------------------------------------------------------------
 
-# Add a new column with any additional modalities
+# Update some SCE information:
+# - Add a new colData column with any additional modalities
+# - Remove cluster parameters from metadata
 sce_list <- sce_list |>
   purrr::map(\(sce){
     # value will be adt, cellhash, or NA
@@ -215,8 +217,14 @@ sce_list <- sce_list |>
       additional_modalities <- NA
     }
     sce$additional_modalities <- additional_modalities
+
+    metadata(sce)$cluster_algorithm <- NULL
+    metadata(sce)$cluster_weighting <- NULL
+    metadata(sce)$cluster_nn <- NULL
+
     return(sce)
   })
+
 
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
