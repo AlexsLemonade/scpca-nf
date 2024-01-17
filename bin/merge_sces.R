@@ -283,7 +283,7 @@ hvg_list <- scran::getTopHVGs(
   n = opt$n_hvg
 )
 
-metadata(merged_sce)$merged_hvgs <- hvg_list
+metadata(merged_sce)$merged_highly_variable_genes <- hvg_list
 
 # Dim Reduction PCA and UMAP----------------------------------------------------
 
