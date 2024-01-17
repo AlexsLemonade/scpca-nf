@@ -142,6 +142,15 @@ if ("submitter" %in% all_celltypes) {
     retain_coldata_columns,
     "submitter_celltype_annotation"
   )
+
+  # Add `"Submitter-excluded"` value to any libraries without submitter
+  sce_list <- sce_list |>
+    purrr::map(\(sce){
+      if (!"submitter_celltype_annotation" %in% names(sce(colData))) {
+        colData(sce)$submitter_celltype_annotation <- "Submitter-excluded"
+      }
+      return(sce)
+    })
 }
 if ("singler" %in% all_celltypes) {
   # Check if the label used for annotation was ontology in at least 1 SCE
