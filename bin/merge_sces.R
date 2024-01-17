@@ -100,7 +100,7 @@ if (opt$threads > 1) {
   bp_param <- BiocParallel::SerialParam()
 }
 
-# Merge SCEs -------------------------------------------------------------------
+# Read in SCEs -------------------------------------------------------------------
 
 # get list of sces
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
@@ -115,6 +115,8 @@ if (!all(sce_checks)) {
     "All input files must contain a `SingleCellExperiment` object."
   )
 }
+
+# Check for cell type annotation columns -----------------------------------------
 
 # check if any SCEs have cell types; if so, we want to retain those colData columns
 all_celltypes <- sce_list |>
@@ -203,6 +205,8 @@ if ("cellassign" %in% all_celltypes) {
     })
 }
 
+
+# Merge SCEs -------------------------------------------------------------------
 
 # Add a new column with any additional modalities
 sce_list <- sce_list |>
