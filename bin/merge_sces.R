@@ -116,14 +116,8 @@ if (!all(sce_checks)) {
   )
 }
 
-# Check for cell type annotation columns -----------------------------------------
+# Determine colData columns to retain  -----------------------------------------
 
-# check if any SCEs have cell types; if so, we want to retain those colData columns
-all_celltypes <- sce_list |>
-  purrr::map(\(sce) {
-    metadata(sce)$celltype_methods
-  }) |>
-  purrr::reduce(union)
 
 # Default vector of colData columns to retain from
 # https://github.com/AlexsLemonade/scpcaTools/blob/2ebdc4f4dfc4233fad97805f9a9a5e3bc6919f1e/R/merge_sce_list.R
@@ -136,8 +130,33 @@ retain_coldata_columns <- c(
   "subsets_mito_percent",
   "miQC_pass",
   "prob_compromised",
-  "barcodes"
+  "barcodes",
+  # additional column not in scpcaTools:
+  "scpca_filter"
 )
+
+# check if any SCEs have `"adt_scpca_filter"`; if so, retain it
+# not that if retained, libraries that don't contain `"adt_scpca_filter"` will get
+# filled with `NA` values by `merge_sce_list()`
+adt_present <- sce_list |>
+  purrr::map(\(sce) {
+    "adt_scpca_filter" %in% names(colData(sce))
+  }) |>
+  purrr::reduce(any)
+
+if (adt_present) {
+  retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
+}
+
+
+# check if any SCEs have cell types; if so, we want to retain those colData columns
+all_celltypes <- sce_list |>
+  purrr::map(\(sce) {
+    metadata(sce)$celltype_methods
+  }) |>
+  purrr::reduce(union)
+
+
 # add relevant cell type columns to `retain_coldata_columns`
 if ("submitter" %in% all_celltypes) {
   retain_coldata_columns <- c(
@@ -160,8 +179,8 @@ if ("singler" %in% all_celltypes) {
     purrr::map(\(sce){
       metadata(sce)$singler_reference_label == "label.ont"
     }) |>
-    # avoid warning with unlist; can't use map_lgl since ^ would always need to
-    #  return length 1
+    # avoid warning with unlist; can't use map_lgl above or reduce(any) below
+    #  the mapping would always need to return length 1
     unlist() |>
     any()
 
