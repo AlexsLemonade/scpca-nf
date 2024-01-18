@@ -165,8 +165,8 @@ if ("singler" %in% all_celltypes) {
     purrr::map(\(sce){
       metadata(sce)$singler_reference_label == "label.ont"
     }) |>
-    # avoid warning with unlist; can't use map_lgl above or reduce(any) below
-    #  the mapping would always need to return length 1
+    # avoid warning with unlist; can't use map_lgl since ^ would always need to
+    #  return length 1
     unlist() |>
     any()
 
