@@ -240,7 +240,7 @@ merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
   batch_column = "library_id",
   retain_coldata_cols = retain_coldata_columns,
-  preserve_rowdata_cols = "gene_symbol",
+  preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
   cell_id_column = "cell_id",
   include_altexp = opt$include_altexp
 )
