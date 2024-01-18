@@ -116,7 +116,7 @@ if (!all(sce_checks)) {
   )
 }
 
-# Determine colData columns to retain  -----------------------------------------
+# Determine cell type annotation columns to retain  -----------------------------------------
 
 
 # Default vector of colData columns to retain from
@@ -134,20 +134,6 @@ retain_coldata_columns <- c(
   # additional column not in scpcaTools:
   "scpca_filter"
 )
-
-# check if any SCEs have `"adt_scpca_filter"`; if so, retain it
-# not that if retained, libraries that don't contain `"adt_scpca_filter"` will get
-# filled with `NA` values by `merge_sce_list()`
-adt_present <- sce_list |>
-  purrr::map(\(sce) {
-    "adt_scpca_filter" %in% names(colData(sce))
-  }) |>
-  purrr::reduce(any)
-
-if (adt_present) {
-  retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
-}
-
 
 # check if any SCEs have cell types; if so, we want to retain those colData columns
 all_celltypes <- sce_list |>
@@ -228,6 +214,7 @@ if ("cellassign" %in% all_celltypes) {
 # Update some SCE information:
 # - Add a new colData column with any additional modalities
 # - Remove cluster parameters from metadata
+# - Also retain colData `"adt_scpca_filter"` column, if any libraries have cite
 sce_list <- sce_list |>
   purrr::map(\(sce){
     # value will be adt, cellhash, or NA
@@ -236,6 +223,10 @@ sce_list <- sce_list |>
       additional_modalities <- NA
     }
     sce$additional_modalities <- additional_modalities
+
+    if ("adt" %in% additional_modalities) {
+      retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
+    }
 
     metadata(sce)$cluster_algorithm <- NULL
     metadata(sce)$cluster_weighting <- NULL
