@@ -189,16 +189,26 @@ if (!is.null(opt$cellassign_predictions)) {
 
   predictions <- readr::read_tsv(opt$cellassign_predictions)
 
-  # get cell type with maximum prediction value for each cell
-  celltype_assignments <- predictions |>
-    tidyr::pivot_longer(
-      !barcode,
-      names_to = "celltype",
-      values_to = "prediction"
-    ) |>
-    dplyr::group_by(barcode) |>
-    dplyr::slice_max(prediction, n = 1) |>
-    dplyr::ungroup()
+  # check that there are actually some predictions present
+  # otherwise make a data frame with the celltype and prediction column as NA
+  if (length(colnames(predictions)) == 1 & colnames(predictions) == "barcode") {
+    celltype_assignments <- predictions |>
+      dplyr::mutate(
+        celltype = NA,
+        prediction = NA
+      )
+  } else {
+    # get cell type with maximum prediction value for each cell
+    celltype_assignments <- predictions |>
+      tidyr::pivot_longer(
+        !barcode,
+        names_to = "celltype",
+        values_to = "prediction"
+      ) |>
+      dplyr::group_by(barcode) |>
+      dplyr::slice_max(prediction, n = 1) |>
+      dplyr::ungroup()
+  }
 
   # join by barcode to make sure assignments are in the right order
   celltype_assignments <- data.frame(barcode = sce$barcodes) |>
