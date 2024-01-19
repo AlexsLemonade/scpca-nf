@@ -98,12 +98,18 @@ subset_adata.X = subset_adata.X.tocsr()
 lib_size = annotated_adata.X.sum(1)
 subset_adata.obs["size_factor"] = lib_size / np.mean(lib_size)
 
-# only if there are genes still remaining, subset
+# set training size
+if subset_adata.obs < 10:
+    train_size = subset_adata.obs * 0.01
+else:
+    train_size = 0.9
+
+# only if there are genes still remaining
 if subset_adata.n_vars != 0:
     # train and assign cell types
     scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
     model = CellAssign(subset_adata, ref_matrix)
-    model.train()
+    model.train(train_size=train_size)
     predictions = model.predict()
     predictions["barcode"] = subset_adata.obs_names
 else:
