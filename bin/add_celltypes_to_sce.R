@@ -191,7 +191,7 @@ if (!is.null(opt$cellassign_predictions)) {
 
   # check that there are actually some predictions present
   # otherwise make a data frame with the celltype and prediction column as NA
-  if (length(colnames(predictions)) == 1 & colnames(predictions) == "barcode") {
+  if ((length(colnames(predictions)) == 1) & (colnames(predictions) == "barcode")) {
     celltype_assignments <- predictions |>
       dplyr::mutate(
         celltype = NA,
