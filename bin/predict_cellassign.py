@@ -99,8 +99,8 @@ lib_size = annotated_adata.X.sum(1)
 subset_adata.obs["size_factor"] = lib_size / np.mean(lib_size)
 
 # set training size
-if subset_adata.obs < 10:
-    train_size = subset_adata.obs * 0.01
+if subset_adata.n_obs < 10:
+    train_size = round(subset_adata.n_obs * 0.01 - 0.01, 2)
 else:
     train_size = 0.9
 
