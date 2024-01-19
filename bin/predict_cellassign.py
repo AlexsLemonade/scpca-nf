@@ -99,7 +99,7 @@ lib_size = annotated_adata.X.sum(1)
 subset_adata.obs["size_factor"] = lib_size / np.mean(lib_size)
 
 # only if there are genes still remaining, subset
-if subset_adata.n_vars > 0:
+if subset_adata.n_vars != 0:
     # train and assign cell types
     scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
     model = CellAssign(subset_adata, ref_matrix)
