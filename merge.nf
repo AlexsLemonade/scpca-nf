@@ -132,12 +132,12 @@ workflow {
     adt_projects = libraries_ch
       .filter{it.technology.startsWith('CITEseq')}
       .collect{it.scpca_project_id}
-      .unique()
+      .map{it.unique()}
 
     multiplex_projects = libraries_ch
       .filter{it.technology.startsWith('cellhash')}
       .collect{it.scpca_project_id}
-      .unique()
+      .map{it.unique()}
 
     grouped_libraries_ch = libraries_ch
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
@@ -157,12 +157,12 @@ workflow {
       // add in boolean for if project contains samples with adt
       .map{project_id, library_id_list, sce_file_list -> tuple(
         project_id,
-        project_id in adt_projects, // determines if altExp should be included in the merged object
-        project_id in multiplex_projects, // determines if sample metadata should be added to colData and to skip anndata
+        project_id in adt_projects.getVal(), // determines if altExp should be included in the merged object
+        project_id in multiplex_projects.getVal(), // determines if sample metadata should be added to colData and to skip anndata
         library_id_list,
         sce_file_list
       )}
-
+      
     merge_sce(grouped_libraries_ch)
 
     // generate merge report
