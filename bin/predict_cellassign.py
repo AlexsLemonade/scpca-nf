@@ -86,6 +86,8 @@ ref_matrix = pd.read_csv(args.reference, sep="\t", index_col="ensembl_id")
 
 # file path to annotated sce
 annotated_adata = adata.read_h5ad(args.input_hdf5_file)
+# make sure that barcodes are obs names
+annotated_adata.obs_names = annotated_adata.obs._index
 
 # subset anndata to contain only genes in the reference file
 # note that the gene names must be the rownames of the reference matrix
@@ -98,12 +100,18 @@ subset_adata.X = subset_adata.X.tocsr()
 lib_size = annotated_adata.X.sum(1)
 subset_adata.obs["size_factor"] = lib_size / np.mean(lib_size)
 
-# train and assign cell types
-scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
-model = CellAssign(subset_adata, ref_matrix)
-model.train()
-predictions = model.predict()
-predictions["barcode"] = subset_adata.obs_names
+# only if there are genes still remaining, subset
+if subset_adata.n_vars > 0:
+    # train and assign cell types
+    scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
+    model = CellAssign(subset_adata, ref_matrix)
+    model.train()
+    predictions = model.predict()
+    predictions["barcode"] = subset_adata.obs_names
+else:
+    # make a predictions file that just has the barcodes column
+    barcodes_column = subset_adata.obs_names.to_list()
+    predictions = pd.DataFrame(barcodes_column, columns=["barcode"])
 
 # write out predictions as tsv
 predictions.to_csv(args.output_predictions, sep="\t", index=False)
