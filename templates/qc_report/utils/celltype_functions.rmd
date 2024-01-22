@@ -44,16 +44,14 @@ create_celltype_df <- function(processed_sce) {
   }
 
   if ("singler_celltype_annotation" %in% names(celltype_df)) {
-    celltype_df <- prepare_automated_annotation_values(
-      celltype_df,
-      singler_celltype_annotation
-    )
+    celltype_df <- celltype_df |>
+      dplyr::filter(singler_celltype_annotation != "Unclassified cell") |>
+      prepare_automated_annotation_values(singler_celltype_annotation)
   }
   if ("cellassign_celltype_annotation" %in% names(celltype_df)) {
-    celltype_df <- prepare_automated_annotation_values(
-      celltype_df,
-      cellassign_celltype_annotation
-    )
+    celltype_df <- celltype_df |>
+      dplyr::filter(cellassign_celltype_annotation != "Unclassified cell") |>
+      prepare_automated_annotation_values(cellassign_celltype_annotation)
   }
 
   return(celltype_df)
