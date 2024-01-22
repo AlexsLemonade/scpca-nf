@@ -93,7 +93,7 @@ annotated_adata = adata.read_h5ad(args.input_hdf5_file)
 shared_genes = list(set(ref_matrix.index) & set(annotated_adata.var_names))
 
 # check that shared_genes actually has some genes
-if len(shared_genes) == 0:
+if not shared_genes:
     raise ValueError(
         "--reference does not include any genes found in the provided --input_hdf5_file."
     )
@@ -107,17 +107,17 @@ lib_size = annotated_adata.X.sum(1)
 subset_adata.obs["size_factor"] = lib_size / np.mean(lib_size)
 
 # only run CellAssign if enough cells
-if subset_adata.n_obs >= 30:
+if subset_adata.n_obs < 30:
+    # make a predictions file that just has the barcode column
+    barcodes_column = subset_adata.obs_names.to_list()
+    predictions = pd.DataFrame(barcodes_column, columns=["barcode"])
+else:
     # train and assign cell types
     scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
     model = CellAssign(subset_adata, ref_matrix)
     model.train()
     predictions = model.predict()
     predictions["barcode"] = subset_adata.obs_names
-else:
-    # make a predictions file that just has the barcodes column
-    barcodes_column = subset_adata.obs_names.to_list()
-    predictions = pd.DataFrame(barcodes_column, columns=["barcode"])
 
 
 # write out predictions as tsv
