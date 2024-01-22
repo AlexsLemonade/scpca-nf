@@ -63,11 +63,14 @@ format_czi <- function(sce) {
   # need this column to join in the sample metadata with the colData
   sce$library_id <- metadata(sce)$library_id
 
-  # add sample metadata to colData sce
-  sce <- scpcaTools::metadata_to_coldata(
-    sce,
-    join_columns = "library_id"
-  )
+  # only move sample metadata if not a multiplexed library
+  if (!("cellhash" %in% altExpNames(sce))) {
+    # add sample metadata to colData sce
+    sce <- scpcaTools::metadata_to_coldata(
+      sce,
+      join_columns = "library_id"
+    )
+  }
 
   # modify colData to be AnnData and CZI compliant
   coldata_df <- colData(sce) |>
@@ -125,7 +128,7 @@ scpcaTools::sce_to_anndata(
 # AltExp to AnnData -----------------------------------------------------------
 
 # if feature data exists, grab it and export to AnnData
-if (!is.null(opt$feature_name)) {
+if (!is.null(opt$feature_name) & (opt$feature_name != "cellhash")) {
   # make sure the feature data is present
   if (!(opt$feature_name %in% altExpNames(sce))) {
     stop("feature_name must match name of altExp in provided SCE object.")
