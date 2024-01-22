@@ -93,7 +93,7 @@ annotated_adata = adata.read_h5ad(args.input_hdf5_file)
 shared_genes = list(set(ref_matrix.index) & set(annotated_adata.var_names))
 
 # check that shared_genes actually has some genes
-if len(shared_genes) == 0:
+if not shared_genes:
     raise ValueError(
         "--reference does not include any genes found in the provided --input_hdf5_file."
     )
