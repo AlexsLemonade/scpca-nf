@@ -129,16 +129,17 @@ scpcaTools::sce_to_anndata(
 
 # if feature data exists, grab it and export to AnnData
 if (!is.null(opt$feature_name)) {
-  # if the feature name is cell hash, skip conversion
-  if (opt$feature_name == "cellhash") {
+  # make sure the feature data is present
+  if (!(opt$feature_name %in% altExpNames(sce))) {
+    stop("feature_name must match name of altExp in provided SCE object.")
+
+    # if the feature name is cell hash, skip conversion
+  } else if (opt$feature_name == "cellhash") {
     warning("Conversion of altExp data from multiplexed data is not supported.
              The altExp will not be converted.")
-  } else {
-    # make sure the feature data is present
-    if (!(opt$feature_name %in% altExpNames(sce))) {
-      stop("feature_name must match name of altExp in provided SCE object.")
-    }
 
+    # convert altExp
+  } else {
     # check for output file
     if (!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))) {
       stop("output feature file name must end in .hdf5 or .h5")
@@ -162,7 +163,7 @@ if (!is.null(opt$feature_name)) {
       )
     } else {
       # warn that the altExp cannot be converted
-      message(
+      warning(
         glue::glue("
         Only 1 row found in altExp named: {opt$feature_name}.
         This altExp will not be converted to an AnnData object.
