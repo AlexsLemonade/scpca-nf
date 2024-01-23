@@ -130,7 +130,7 @@ scpcaTools::sce_to_anndata(
 # if feature data exists, grab it and export to AnnData
 if (!is.null(opt$feature_name)) {
   # if the feature name is cell hash, skip conversion
-  if (opt$feature_name != "cellhash") {
+  if (opt$feature_name == "cellhash") {
     warning("Conversion of altExp data from multiplexed data is not supported.
              The altExp will not be converted.")
   } else {
