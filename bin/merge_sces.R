@@ -209,12 +209,13 @@ if ("cellassign" %in% all_celltypes) {
 }
 
 
-# Merge SCEs -------------------------------------------------------------------
 
-# Update some SCE information:
+
+
+
+# Update some SCE information  -----------------------
 # - Add a new colData column with any additional modalities
 # - Remove cluster parameters from metadata
-# - Also retain colData `"adt_scpca_filter"` column, if any libraries have cite
 sce_list <- sce_list |>
   purrr::map(\(sce){
     # value will be adt, cellhash, or NA
@@ -224,10 +225,6 @@ sce_list <- sce_list |>
     }
     sce$additional_modalities <- additional_modalities
 
-    if ("adt" %in% additional_modalities) {
-      retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
-    }
-
     metadata(sce)$cluster_algorithm <- NULL
     metadata(sce)$cluster_weighting <- NULL
     metadata(sce)$cluster_nn <- NULL
@@ -235,14 +232,55 @@ sce_list <- sce_list |>
     return(sce)
   })
 
+# Determine additional columns to keep based on altExps -----------------------
+#  - retain main experiment `"adt_scpca_filter"` column, if cite is present in any library
+#  - retain altExp adt columns, if cite is present in any library
+#  - retain cellhash main experiment column, if cellhash present in any library
+
+all_modalities <- sce_list |>
+  purrr::map(\(sce){
+    sce$additional_modalities
+  }) |>
+  purrr::reduce(union)
+
+if ("adt" %in% all_modalities) {
+  # save adt filter info in main altexp
+  retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
+
+  # determine which altExp columns to keep of the possible columns which may exist
+  adt_possible <- c("sum.controls", "high.controls", "ambient.scale", "high.ambient", "discard")
+
+  adt_present <- sce_list |>
+    purrr::map(\(sce) names(colData(altExp(sce)))) |>
+    purrr::reduce(union)
+
+  retain_altexp_columns_list <- list("adt" = intersect(adt_possible, adt_present))
+}
+
+if ("cellhash" %in% all_modalities) {
+  # determine which cellhash stats columns to keep of the possible columns which may exist
+  cellhash_possible <- c("hashedDrops_sampleID", "HTODemux_sampleID", "vireo_sampleid")
+
+  coldata_present <- sce_list |>
+    purrr::map(\(sce) names(colData(sce))) |>
+    purrr::reduce(union)
+
+  # add to vector for main experiment columns to retain
+  retain_coldata_columns <- c(retain_coldata_columns, intersect(cellhash_possible, coldata_present))
+}
+
+# Merge SCEs -------------------------------------------------------------------
+
+
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
   batch_column = "library_id",
-  retain_coldata_cols = retain_coldata_columns,
-  preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
   cell_id_column = "cell_id",
-  include_altexp = opt$include_altexp
+  retain_coldata_cols = retain_coldata_columns,
+  include_altexp = opt$include_altexp,
+  preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
+  retain_altexp_coldata_cols = retain_altexp_columns_list
 )
 
 # add sample metadata to colData as long as there are no multiplexed data
