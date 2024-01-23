@@ -210,9 +210,6 @@ if ("cellassign" %in% all_celltypes) {
 
 
 
-
-
-
 # Update some SCE information  -----------------------
 # - Add a new colData column with any additional modalities
 # - Remove cluster parameters from metadata
