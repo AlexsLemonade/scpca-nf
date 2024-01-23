@@ -148,7 +148,7 @@ if (metadata(unfiltered_sce)$sample_type == "patient-derived xenograft") {
     <div class=\"alert alert-info\">
 
     This library comes from a cell line sample.
-    Please be aware that no cell type annotation if performed for cell line samples.
+    Please be aware that no cell type annotation is performed for cell line samples.
 
     </div>
   ")
