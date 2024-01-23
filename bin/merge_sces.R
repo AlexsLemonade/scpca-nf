@@ -259,7 +259,16 @@ if ("adt" %in% all_modalities) {
 
 if ("cellhash" %in% all_modalities) {
   # determine which cellhash stats columns to keep of the possible columns which may exist
-  cellhash_possible <- c("hashedDrops_sampleID", "HTODemux_sampleID", "vireo_sampleid")
+  cellhash_possible <- c(
+    "hashedDrops_sampleID",
+    "HTODemux_sampleID",
+    "vireo_sampleid",
+    # Also consider cellhash stats columns, which will not get
+    # added in merge_sce_list since include_altexp will be FALSE
+    "altexps_cellhash_sum",
+    "altexps_cellhash_detected",
+    "altexps_cellhash_percent"
+  )
 
   coldata_present <- sce_list |>
     purrr::map(\(sce) names(colData(sce))) |>
