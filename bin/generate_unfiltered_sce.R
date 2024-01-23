@@ -155,7 +155,7 @@ if (opt$feature_dir != "") {
 }
 
 
-# read in sample metadata and filter to sample ids
+# read in sample metadata
 sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
   # rename sample id column
   dplyr::rename("sample_id" = "scpca_sample_id") |>
@@ -176,7 +176,28 @@ unfiltered_sce <- unfiltered_sce |>
   add_gene_symbols(gene_info = gtf) |>
   scuttle::addPerFeatureQCMetrics() |>
   # add dataframe with sample metadata to sce metadata
+  # `add_sample_metadata` will filter sample_metadata_df to the relevant sample ids
   add_sample_metadata(metadata_df = sample_metadata_df)
+
+# add explicit metadata field for the sample type
+sample_type <- sample_metadata_df |>
+  dplyr::filter(sample_id %in% sample_ids) |>
+  dplyr::mutate(
+    sample_type = dplyr::case_when(
+      is_xenograft ~ "patient-derived xenograft",
+      is_cell_line ~ "cell line",
+      .default = "patient tissue"
+    )
+  ) |>
+  dplyr::select(sample_id, sample_type) |>
+  # convert into named vector
+  tibble::deframe()
+
+# unname if length is 1, and add to sce metadata
+if (length(sample_type) == 1) {
+  sample_type <- unname(sample_type)
+}
+metadata(unfiltered_sce) <- sample_type
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
