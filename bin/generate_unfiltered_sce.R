@@ -197,7 +197,7 @@ sample_type <- sample_metadata_df |>
 if (length(sample_type) == 1) {
   sample_type <- unname(sample_type)
 }
-metadata(unfiltered_sce) <- sample_type
+metadata(unfiltered_sce)$sample_type <- sample_type
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
