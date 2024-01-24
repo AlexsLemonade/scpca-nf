@@ -133,6 +133,29 @@ if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
 ```
 
 
+```{r, results='asis'}
+# only print out info box if xenograft or cell line
+if (metadata(unfiltered_sce)$sample_type == "patient-derived xenograft") {
+  glue::glue("
+    <div class=\"alert alert-info\">
+
+    This library comes from a patient-derived xenograft sample.
+
+    </div>
+  ")
+} else if (metadata(unfiltered_sce)$sample_type == "cell line") {
+  glue::glue("
+    <div class=\"alert alert-info\">
+
+    This library comes from a cell line sample.
+    Please be aware that no cell type annotation is performed for cell line samples.
+
+    </div>
+  ")
+}
+```
+
+
 # Processing Information for `r library_id`
 
 ```{r, results='asis'}
