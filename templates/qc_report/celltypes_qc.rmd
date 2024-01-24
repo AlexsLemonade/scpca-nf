@@ -279,7 +279,12 @@ if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified 
     dplyr::filter(
       singler_celltype_annotation != "Unclassified cell"
     ) |>
-    forcats::fct_drop(only = "Unclassified cell")
+    dplyr::mutate(
+      singler_celltype_annotation = forcats::fct_drop(
+        singler_celltype_annotation,
+        only = "Unclassified cell"
+      )
+    )
 }
 
 # check for unclassified cellassign cells
@@ -291,7 +296,12 @@ if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclass
     dplyr::filter(
       cellassign_celltype_annotation != "Unclassified cell"
     ) |>
-    forcats::fct_drop(only = "Unclassified cell")
+    dplyr::mutate(
+      cellassign_celltype_annotation = forcats::fct_drop(
+        cellassign_celltype_annotation,
+        only = "Unclassified cell"
+      )
+    )
 }
 
 # print a warning if either singleR or cellAssign have any unclassified cells
