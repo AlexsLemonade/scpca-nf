@@ -240,18 +240,23 @@ all_modalities <- sce_list |>
   }) |>
   purrr::reduce(union)
 
+# Set default values for input lists to NULL
+retain_altexp_coldata_list <- NULL
+preserve_altexp_rowdata_list <- NULL
+
 if ("adt" %in% all_modalities) {
   # save adt filter info in main altexp
   retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
 
-  # determine which altExp columns to keep of the possible columns which may exist
-  adt_possible <- c("sum.controls", "high.controls", "ambient.scale", "high.ambient", "discard")
-
-  adt_present <- sce_list |>
+  # find all the adt columns and retain them
+  adt_columns <- sce_list |>
+    # only consider altExps with "adt"
+    purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
     purrr::map(\(sce) names(colData(altExp(sce)))) |>
     purrr::reduce(union)
 
-  retain_altexp_columns_list <- list("adt" = intersect(adt_possible, adt_present))
+  retain_altexp_coldata_list <- list("adt" = adt_columns)
+  preserve_altexp_rowdata_list <- list("adt" = c("target_type"))
 }
 
 if ("cellhash" %in% all_modalities) {
@@ -286,7 +291,9 @@ merged_sce <- scpcaTools::merge_sce_list(
   retain_coldata_cols = retain_coldata_columns,
   include_altexp = opt$include_altexp,
   preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
-  retain_altexp_coldata_cols = retain_altexp_columns_list
+  # altExp information to retain; values will be NULL unless there is CITE-seq
+  retain_altexp_coldata_cols = retain_altexp_coldata_list,
+  preserve_altexp_rowdata_cols = preserve_altexp_rowdata_list
 )
 
 # add sample metadata to colData as long as there are no multiplexed data
@@ -301,7 +308,7 @@ if (!opt$multiplexed) {
 }
 
 # grab technology and EFO from metadata$library_metadata
-library_df <- names(input_sce_files) |>
+library_df <- names(sce_list) |>
   purrr::map(\(library_id){
     lib_meta <- metadata(merged_sce) |>
       purrr::pluck("library_metadata", library_id)
