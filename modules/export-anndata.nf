@@ -12,7 +12,7 @@ process export_anndata{
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
-      feature_present = meta.feature_type in ["adt", "cellhash"]
+      feature_present = meta.feature_type in ["adt"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
@@ -23,7 +23,7 @@ process export_anndata{
       # move any normalized counts to X in AnnData
       if [ "${file_type}" = "processed" ]; then
         move_counts_anndata.py --anndata_file ${rna_hdf5_file}
-        ${feature_present && meta.feature_type != "cellhash" ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
+        ${feature_present ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
       fi
       """
     stub:
