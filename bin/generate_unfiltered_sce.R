@@ -80,6 +80,11 @@ option_list <- list(
     help = "path to tsv file containing sample metadata"
   ),
   make_option(
+    opt_str = c("--cellhash_pool_file"),
+    type = "character",
+    help = "path to table of cellhash barcodes and sample ids"
+  ),
+  make_option(
     opt_str = c("--spliced_only"),
     action = "store_true",
     default = FALSE,
@@ -152,6 +157,19 @@ if (opt$feature_dir != "") {
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
   # add alt experiment features stats
   altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
+
+  # read in cellhash pool if exists
+  if (!is.null(opt$cellhash_pool_file)) {
+    if (!file.exists(opt$cellhash_pool_file)) {
+      stop("Can't find cellhash_pool_file")
+    }
+    # filter altExp to only have relevant cellhash data
+    cellhash_df <- readr::read_tsv(opt$cellhash_pool_file) |>
+      dplyr::filter(scpca_library_id == opt$library_id) |>
+      dplyr::select(sample_id = scpca_sample_id, barcode_id)
+
+    unfiltered_sce <- scpcaTools::add_cellhash_ids(unfiltered_sce, cellhash_df, remove_unlabeled = TRUE)
+  }
 }
 
 
@@ -177,6 +195,7 @@ unfiltered_sce <- unfiltered_sce |>
   scuttle::addPerFeatureQCMetrics() |>
   # add dataframe with sample metadata to sce metadata
   add_sample_metadata(metadata_df = sample_metadata_df)
+
 
 # write to rds
 readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
