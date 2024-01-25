@@ -131,7 +131,7 @@ workflow bulk_quant_rna {
             params.repeat_mapping
             // the results directory does not exist
             || !file(it.salmon_results_dir).exists()
-            // the assembly has changed; if rad_dir doesn't exist, these lines won't get hit
+            // the assembly has changed; if salmon_results_dir doesn't exist, these lines won't get hit
             || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
             || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") != "${it.t2g_bulk_path}"
           )
