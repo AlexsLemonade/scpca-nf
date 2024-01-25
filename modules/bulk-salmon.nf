@@ -121,7 +121,7 @@ workflow bulk_quant_rna {
         meta.salmon_results_dir = "${meta.salmon_publish_dir}/${meta.library_id}";
         meta // return modified meta object
       }
-      // split based on whether repeat_mapping is false and the salmon quant.sf file exists
+      // split based on whether repeat_mapping is true and the salmon results directory exists
       // and whether the assembly matches the current assembly
       .branch{
         make_quants: (
@@ -129,7 +129,7 @@ workflow bulk_quant_rna {
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             // and repeat has been requested
             params.repeat_mapping
-            // the rad directory does not exist
+            // the results directory does not exist
             || !file(it.salmon_results_dir).exists()
             // the assembly has changed; if rad_dir doesn't exist, these lines won't get hit
             || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"

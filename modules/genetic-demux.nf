@@ -20,7 +20,7 @@ workflow genetic_demux_vireo{
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
-       // split based in whether repeat_mapping is false and a previous dir exists
+       // split based in whether repeat_genetic_demux is true and a previous dir exists
       .branch{
         make_demux: (
           // input files exist
