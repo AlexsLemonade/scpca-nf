@@ -246,7 +246,13 @@ preserve_altexp_rowdata_list <- NULL
 
 if ("adt" %in% all_modalities) {
   # save adt filter info in main altexp
-  retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
+  retain_coldata_columns <- c(
+    retain_coldata_columns,
+    "adt_scpca_filter",
+    "altexps_adt_sum",
+    "altexps_adt_detected",
+    "altexps_adt_percent"
+  )
 
   # find all the adt columns and retain them
   adt_columns <- sce_list |>
@@ -265,8 +271,6 @@ if ("cellhash" %in% all_modalities) {
     "hashedDrops_sampleID",
     "HTODemux_sampleID",
     "vireo_sampleid",
-    # Also consider cellhash stats columns, which will not get
-    # added in merge_sce_list since include_altexp will be FALSE
     "altexps_cellhash_sum",
     "altexps_cellhash_detected",
     "altexps_cellhash_percent"
