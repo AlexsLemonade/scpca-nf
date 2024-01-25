@@ -83,7 +83,7 @@ process make_merged_unfiltered_sce{
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
-          ${meta.feature_type == "cellhash" ? "--cellhash_pool_file ${cellhash_pool_file} : ""} \
+          ${meta.feature_type == "cellhash" ? "--cellhash_pool_file ${cellhash_pool_file}" : ""} \
           ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
