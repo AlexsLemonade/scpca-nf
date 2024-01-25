@@ -20,16 +20,25 @@ workflow genetic_demux_vireo{
         meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
-       // split based in whether repeat_mapping is false and a previous dir exists
+       // split based in whether repeat_genetic_demux is true and a previous dir exists
       .branch{
-          has_demux: (
-            !params.repeat_genetic_demux
-            && file(it.vireo_dir).exists()
-            && Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+        make_demux: (
+          // input files exist
+          it.files_directory && file(it.files_directory, type: "dir").exists() && (
+            params.repeat_genetic_demux
+            || !file(it.vireo_dir).exists()
+            || Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
           )
-          make_demux: true
-       }
+        )
+        has_demux: file(it.vireo_dir).exists()
+        missing_inputs: true
+      }
 
+    // send run ids in multiplex_ch.missing_inputs to log
+    multiplex_ch.missing_inputs
+      .subscribe{
+        log.error("The expected input data or vireo results files for ${it.run_id} are missing.")
+      }
 
     // get the bulk samples that correspond to multiplexed samples
     bulk_samples = multiplex_ch.make_demux
