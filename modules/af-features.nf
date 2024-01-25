@@ -164,7 +164,7 @@ workflow map_quant_feature{
       .branch{
         make_rad: (
           // input files exist
-          file(it.files_directory, type: "dir").exists() && (
+          it.files_directory && file(it.files_directory, type: "dir").exists() && (
             // and repeat has been requested
             params.repeat_mapping
             // or the feature rad file directory does not exist
