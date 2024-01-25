@@ -12,7 +12,7 @@ process export_anndata{
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
-      feature_present = meta.feature_type in ["adt"]
+      feature_present = meta.feature_type == "adt"
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
