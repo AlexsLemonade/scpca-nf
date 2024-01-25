@@ -34,7 +34,7 @@ workflow genetic_demux_vireo{
         missing_inputs: true
       }
 
-    / send run ids in multiplex_ch.missing_inputs to log
+    // send run ids in multiplex_ch.missing_inputs to log
     multiplex_ch.missing_inputs
       .subscribe{
         log.error("The expected input data or vireo results files for ${it.run_id} are missing.")
