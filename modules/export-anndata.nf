@@ -23,7 +23,7 @@ process export_anndata{
       # move any normalized counts to X in AnnData
       if [ "${file_type}" = "processed" ]; then
         move_counts_anndata.py --anndata_file ${rna_hdf5_file}
-        ${feature_present ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
+        ${feature_present && meta.feature_type != "cellhash" ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
       fi
       """
     stub:
