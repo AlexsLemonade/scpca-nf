@@ -187,9 +187,8 @@ workflow {
     .filter{it.sample_id.contains(",")}
     .collect{it.library_id}
 
-  // get list of samples with bulk RNA-seq and files present
+  // get list of samples with bulk RNA-seq
   bulk_samples = runs_ch.bulk
-    .filter{it.files_directory && file(it.files_directory).exists()}
     .collect{it.sample_id}
 
   // get genetic multiplex libs with all bulk samples present
