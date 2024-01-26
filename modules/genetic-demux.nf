@@ -11,6 +11,12 @@ workflow genetic_demux_vireo{
     multiplex_run_ch
     unfiltered_runs_ch
   main:
+    // get all bulk samples that have fastq data
+    bulk_samples = unfiltered_runs_ch
+      .filter{it.technology in params.bulk_techs}
+      .filter{it.files_directory && file(it.files_directory, type: "dir").exists()}
+      .collect{it.sample_id}
+
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
       .map{
@@ -24,7 +30,10 @@ workflow genetic_demux_vireo{
       .branch{
         make_demux: (
           // input files exist
-          it.files_directory && file(it.files_directory, type: "dir").exists() && (
+          it.files_directory
+          && file(it.files_directory, type: "dir").exists()
+          && it.sample_id.tokenize(",").every{it in bulk_samples.getVal()} // all samples have fastq data
+          && (
             params.repeat_genetic_demux
             || !file(it.vireo_dir).exists()
             || Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
@@ -41,18 +50,18 @@ workflow genetic_demux_vireo{
       }
 
     // get the bulk samples that correspond to multiplexed samples
-    bulk_samples = multiplex_ch.make_demux
+    bulk_multiplex_samples = multiplex_ch.make_demux
       .map{[it.sample_id.tokenize(",")]} // split out sample ids into a tuple
       .transpose() // one element per sample id
       .collect()
 
     // make a channel of the bulk samples we need to process
-    bulk_ch = unfiltered_runs_ch
+    bulk_multiplex_ch = unfiltered_runs_ch
       .filter{it.technology in params.bulk_techs}
-      .filter{it.sample_id in bulk_samples.getVal()}
+      .filter{it.sample_id in bulk_multiplex_samples.getVal()}
 
     // map bulk samples
-    star_bulk(bulk_ch)
+    star_bulk(bulk_multiplex_ch)
 
     // pileup bulk samples by multiplex groups
     pileup_multibulk(multiplex_ch.make_demux, star_bulk.out)
