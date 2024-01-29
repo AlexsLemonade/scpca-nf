@@ -155,10 +155,7 @@ if (opt$feature_dir != "") {
 
   # if CITE, add `adt_name` column to rowData with rownames
   if (opt$feature_name == "adt") {
-    rowdata_rownames <- altExp(unfiltered_sce, opt$feature_name) |>
-      rowData() |>
-      rownames()
-    rowData(altExp(unfiltered_sce, opt$feature_name))$adt_name <- rowdata_rownames
+    rowData(altExp(unfiltered_sce, "adt"))$adt_name <- rownames(rowData(altExp(unfiltered_sce, "adt")))
   }
 }
 

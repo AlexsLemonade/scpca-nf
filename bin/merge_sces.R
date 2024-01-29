@@ -235,9 +235,7 @@ sce_list <- sce_list |>
 #  - retain cellhash main experiment column, if cellhash present in any library
 
 all_modalities <- sce_list |>
-  purrr::map(\(sce){
-    sce$additional_modalities
-  }) |>
+  purrr::map(altExpNames) |>
   purrr::reduce(union)
 
 # Set default values for input lists to NULL
@@ -256,13 +254,13 @@ if ("adt" %in% all_modalities) {
 
   # find all the adt columns and retain them
   adt_columns <- sce_list |>
-    # only consider altExps with "adt"
+    # only consider "adt" altExps
     purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
-    purrr::map(\(sce) names(colData(altExp(sce)))) |>
+    purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
     purrr::reduce(union)
 
-  retain_altexp_coldata_list <- list("adt" = adt_columns)
-  preserve_altexp_rowdata_list <- list("adt" = c("target_type"))
+  retain_altexp_coldata_list <- c(retain_altexp_coldata_list, list("adt" = adt_columns))
+  preserve_altexp_rowdata_list <- c(preserve_altexp_rowdata_list, list("adt" = c("adt_name", "target_type"))
 }
 
 if ("cellhash" %in% all_modalities) {
