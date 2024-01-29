@@ -234,7 +234,15 @@ retain_coldata_columns <- sce_list |>
   intersect(possible_coldata)
 
 # Define altExp columns to retain/preserve, currently only for "adt"
-adt_columns <- sce_list |>
+adt_possible_coldata <- c(
+  "zero.ambient",
+  "high.ambient",
+  "ambient.scale",
+  "sum.controls",
+  "high.controls",
+  "discard"
+)
+adt_possible_columns <- sce_list |>
   # only consider "adt" altExps
   purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
   purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
@@ -242,15 +250,14 @@ adt_columns <- sce_list |>
   # if input is empty, then there are no "adt" altExps anyways
   purrr::reduce(union, .init = NULL)
 
-# ensure that there are indeed no "adt" altExps if adt_columns is empty
-all_modalities <- sce_list |>
-  purrr::map(\(sce) sce$additional_modalities) |>
-  purrr::reduce(union)
-if ("adt" %in% all_modalities & is.null(adt_columns)) {
+# ensure that there are indeed no "adt" altExps if adt_possible_columns is empty
+adt_altexps <- sce_list |>
+  purrr::keep(\(sce) "adt" %in% altExpNames(sce))
+if (is.null(adt_possible_columns) & length(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
 
-retain_altexp_coldata_list <- list("adt" = adt_columns)
+retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_coldata, adt_possible_columns))
 preserve_altexp_rowdata_list <- list("adt" = c("adt_name", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
