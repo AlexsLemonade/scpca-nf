@@ -258,7 +258,7 @@ if (is.null(adt_possible_columns) & length(adt_altexps) > 0) {
 }
 
 retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_columns, adt_present_columns))
-preserve_altexp_rowdata_list <- list("adt" = c("adt_name", "target_type"))
+preserve_altexp_rowdata_list <- list("adt" = c("adt_id", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
 
