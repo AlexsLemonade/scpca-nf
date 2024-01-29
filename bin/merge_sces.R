@@ -228,10 +228,10 @@ possible_coldata <- c(
 )
 
 # Define colData columns to retain based on intersection with present columns
-retain_coldata_columns <- sce_list |>
+columns_present <- sce_list |>
   purrr::map(\(sce) names(colData(sce))) |>
-  purrr::reduce(union) |>
-  intersect(possible_coldata)
+  purrr::reduce(union)
+retain_coldata_columns <-  intersect(possible_coldata, columns_present)
 
 # Define altExp columns to retain/preserve, currently only for "adt"
 adt_possible_coldata <- c(
@@ -242,7 +242,7 @@ adt_possible_coldata <- c(
   "high.controls",
   "discard"
 )
-adt_possible_columns <- sce_list |>
+adt_columns_present <- sce_list |>
   # only consider "adt" altExps
   purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
   purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
@@ -257,7 +257,7 @@ if (is.null(adt_possible_columns) & length(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
 
-retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_coldata, adt_possible_columns))
+retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_coldata, adt_columns_present))
 preserve_altexp_rowdata_list <- list("adt" = c("adt_name", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
