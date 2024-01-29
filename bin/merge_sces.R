@@ -264,7 +264,6 @@ merged_sce <- scpcaTools::merge_sce_list(
   retain_coldata_cols = retain_coldata_columns,
   include_altexp = opt$include_altexp,
   preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
-  # altExp information to retain; values will be NULL unless there is CITE-seq
   retain_altexp_coldata_cols = retain_altexp_coldata_list,
   preserve_altexp_rowdata_cols = preserve_altexp_rowdata_list
 )
