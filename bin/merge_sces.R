@@ -100,7 +100,7 @@ if (opt$threads > 1) {
   bp_param <- BiocParallel::SerialParam()
 }
 
-# Read in SCEs -------------------------------------------------------------------
+# Read in SCEs -----------------------------------------------------------------
 
 # get list of sces
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
@@ -116,26 +116,9 @@ if (!all(sce_checks)) {
   )
 }
 
-# Determine cell type annotation columns to retain  -----------------------------------------
+# Add cell type annotation columns where needed  -------------------------------
 
-
-# Default vector of colData columns to retain from
-# https://github.com/AlexsLemonade/scpcaTools/blob/2ebdc4f4dfc4233fad97805f9a9a5e3bc6919f1e/R/merge_sce_list.R
-retain_coldata_columns <- c(
-  "sum",
-  "detected",
-  "total",
-  "subsets_mito_sum",
-  "subsets_mito_detected",
-  "subsets_mito_percent",
-  "miQC_pass",
-  "prob_compromised",
-  "barcodes",
-  # additional column not in scpcaTools:
-  "scpca_filter"
-)
-
-# check if any SCEs have cell types; if so, we want to retain those colData columns
+# check for present cell type annotations
 all_celltypes <- sce_list |>
   purrr::map(\(sce) {
     metadata(sce)$celltype_methods
@@ -143,13 +126,7 @@ all_celltypes <- sce_list |>
   purrr::reduce(union)
 
 
-# add relevant cell type columns to `retain_coldata_columns`
 if ("submitter" %in% all_celltypes) {
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "submitter_celltype_annotation"
-  )
-
   # Add `"Submitter-excluded"` value to any libraries without submitter
   sce_list <- sce_list |>
     purrr::map(\(sce){
@@ -170,13 +147,6 @@ if ("singler" %in% all_celltypes) {
     unlist() |>
     any()
 
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "singler_celltype_annotation",
-    # only use ontology if TRUE
-    ifelse(use_ontology, "singler_celltype_ontology", NULL)
-  )
-
   # Add `"Cell type annotation not performed"` string to libraries without SingleR
   sce_list <- sce_list |>
     purrr::map(\(sce){
@@ -190,12 +160,6 @@ if ("singler" %in% all_celltypes) {
     })
 }
 if ("cellassign" %in% all_celltypes) {
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "cellassign_celltype_annotation",
-    "cellassign_max_prediction"
-  )
-
   # Add `"Cell type annotation not performed"` string to libraries without CellAssign,
   #  and make the max prediction `NA_real_` for extra safety
   sce_list <- sce_list |>
@@ -209,8 +173,7 @@ if ("cellassign" %in% all_celltypes) {
 }
 
 
-
-# Update some SCE information  -----------------------
+# Update some SCE information  -------------------------------------------------
 # - Add a new colData column with any additional modalities
 # - Remove cluster parameters from metadata
 sce_list <- sce_list |>
@@ -229,58 +192,66 @@ sce_list <- sce_list |>
     return(sce)
   })
 
-# Determine additional columns to keep based on altExps -----------------------
-#  - retain main experiment `"adt_scpca_filter"` column, if cite is present in any library
-#  - retain altExp adt columns, if cite is present in any library
-#  - retain cellhash main experiment column, if cellhash present in any library
+# Determine SCE columns to retain  ---------------------------------------------
 
+# Define all possible colData columns which we might want to retain
+possible_coldata <- c(
+  "barcodes",
+  # RNA statistics and post-processing
+  "sum",
+  "detected",
+  "total",
+  "subsets_mito_sum",
+  "subsets_mito_detected",
+  "subsets_mito_percent",
+  "miQC_pass",
+  "prob_compromised",
+  "scpca_filter",
+  # cell type names
+  "submitter_celltype_annotation",
+  "singler_celltype_annotation",
+  "singler_celltype_ontology",
+  "cellassign_celltype_annotation",
+  "cellassign_max_prediction",
+  # ADT statistics
+  "adt_scpca_filter",
+  "altexps_adt_sum",
+  "altexps_adt_detected",
+  "altexps_adt_percent",
+  # cellhash statistics & demux results
+  "altexps_cellhash_sum",
+  "altexps_cellhash_detected",
+  "altexps_cellhash_percent",
+  "hashedDrops_sampleID",
+  "HTODemux_sampleID",
+  "vireo_sampleid"
+)
+
+# Define colData columns to retain based on intersection with present columns
+retain_coldata_columns <- sce_list |>
+  purrr::map(\(sce) names(colData(sce))) |>
+  purrr::reduce(union) |>
+  intersect(possible_coldata)
+
+# Define altExp columns to retain/preserve, currently only for "adt"
+adt_columns <- sce_list |>
+  # only consider "adt" altExps
+  purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
+  purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
+  # use .init to handle an empty input; will return the .init value
+  # if input is empty, then there are no "adt" altExps anyways
+  purrr::reduce(union, .init = NULL)
+
+# ensure that there are indeed no "adt" altExps if adt_columns is empty
 all_modalities <- sce_list |>
-  purrr::map(altExpNames) |>
+  purrr::map(\(sce) sce$additional_modalities) |>
   purrr::reduce(union)
-
-# Set default values for input lists to NULL
-retain_altexp_coldata_list <- NULL
-preserve_altexp_rowdata_list <- NULL
-
-if ("adt" %in% all_modalities) {
-  # save adt filter info in main altexp
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "adt_scpca_filter",
-    "altexps_adt_sum",
-    "altexps_adt_detected",
-    "altexps_adt_percent"
-  )
-
-  # find all the adt columns and retain them
-  adt_columns <- sce_list |>
-    # only consider "adt" altExps
-    purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
-    purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
-    purrr::reduce(union)
-
-  retain_altexp_coldata_list <- c(retain_altexp_coldata_list, list("adt" = adt_columns))
-  preserve_altexp_rowdata_list <- c(preserve_altexp_rowdata_list, list("adt" = c("adt_name", "target_type"))
+if ("adt" %in% all_modalities & is.null(adt_columns)) {
+  stop("Error in determining which adt altExp columns should be retained.")
 }
 
-if ("cellhash" %in% all_modalities) {
-  # determine which cellhash stats columns to keep of the possible columns which may exist
-  cellhash_possible <- c(
-    "hashedDrops_sampleID",
-    "HTODemux_sampleID",
-    "vireo_sampleid",
-    "altexps_cellhash_sum",
-    "altexps_cellhash_detected",
-    "altexps_cellhash_percent"
-  )
-
-  coldata_present <- sce_list |>
-    purrr::map(\(sce) names(colData(sce))) |>
-    purrr::reduce(union)
-
-  # add to vector for main experiment columns to retain
-  retain_coldata_columns <- c(retain_coldata_columns, intersect(cellhash_possible, coldata_present))
-}
+retain_altexp_coldata_list <- list("adt" = adt_columns)
+preserve_altexp_rowdata_list <- list("adt" = c("adt_name", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
 
