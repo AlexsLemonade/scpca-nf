@@ -195,7 +195,7 @@ sce_list <- sce_list |>
 # Determine SCE columns to retain  ---------------------------------------------
 
 # Define all possible colData columns which we might want to retain
-possible_coldata <- c(
+possible_columns <- c(
   "barcodes",
   # RNA statistics and post-processing
   "sum",
@@ -207,6 +207,7 @@ possible_coldata <- c(
   "miQC_pass",
   "prob_compromised",
   "scpca_filter",
+  "additional_modalities",
   # cell type names
   "submitter_celltype_annotation",
   "singler_celltype_annotation",
@@ -228,13 +229,21 @@ possible_coldata <- c(
 )
 
 # Define colData columns to retain based on intersection with present columns
-retain_coldata_columns <- sce_list |>
+present_columns <- sce_list |>
   purrr::map(\(sce) names(colData(sce))) |>
-  purrr::reduce(union) |>
-  intersect(possible_coldata)
+  purrr::reduce(union)
+retain_coldata_columns <- intersect(possible_columns, present_columns)
 
 # Define altExp columns to retain/preserve, currently only for "adt"
-adt_columns <- sce_list |>
+adt_possible_columns <- c(
+  "zero.ambient",
+  "high.ambient",
+  "ambient.scale",
+  "sum.controls",
+  "high.controls",
+  "discard"
+)
+adt_present_columns <- sce_list |>
   # only consider "adt" altExps
   purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
   purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
@@ -242,16 +251,15 @@ adt_columns <- sce_list |>
   # if input is empty, then there are no "adt" altExps anyways
   purrr::reduce(union, .init = NULL)
 
-# ensure that there are indeed no "adt" altExps if adt_columns is empty
-all_modalities <- sce_list |>
-  purrr::map(\(sce) sce$additional_modalities) |>
-  purrr::reduce(union)
-if ("adt" %in% all_modalities & is.null(adt_columns)) {
+# ensure that there are indeed no "adt" altExps if adt_present_columns is empty
+adt_altexps <- sce_list |>
+  purrr::keep(\(sce) "adt" %in% altExpNames(sce))
+if (is.null(adt_present_columns) && length(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
 
-retain_altexp_coldata_list <- list("adt" = adt_columns)
-preserve_altexp_rowdata_list <- list("adt" = c("adt_name", "target_type"))
+retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_columns, adt_present_columns))
+preserve_altexp_rowdata_list <- list("adt" = c("adt_id", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
 
