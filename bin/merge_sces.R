@@ -207,6 +207,7 @@ possible_columns <- c(
   "miQC_pass",
   "prob_compromised",
   "scpca_filter",
+  "additional_modalities",
   # cell type names
   "submitter_celltype_annotation",
   "singler_celltype_annotation",
