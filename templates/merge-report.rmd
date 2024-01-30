@@ -69,8 +69,15 @@ batch_column <- params$batch_column
 
 # set adt/multiplex values
 # this tells us if at least one library contains either of these modalities
-has_adt <- "adt" %in% merged_sce$additional_modalities
-multiplexed <- "cellhash" %in% merged_sce$additional_modalities
+additional_modalities <- merged_sce$additional_modalities |>
+  purrr::map(
+    stringr::str_split_1,
+    pattern = ";"
+  ) |>
+  purrr::reduce(union)
+
+has_adt <- "adt" %in% additional_modalities
+multiplexed <- "cellhash" %in% additional_modalities
 ```
 
 ```{r, integration-warning, eval=FALSE}
@@ -146,7 +153,9 @@ adt_table <- coldata_df |>
   dplyr::select(library_id, additional_modalities) |>
   dplyr::distinct() |>
   dplyr::mutate(
-    contains_adt = ifelse(additional_modalities == "adt", "Contains ADT", "No ADT")
+    contains_adt = ifelse(
+      "adt" %in% additional_modalities, "Contains ADT", "No ADT"
+    )
   ) |>
   dplyr::count(contains_adt) |>
   dplyr::rename(
@@ -171,7 +180,9 @@ multiplex_table <- coldata_df |>
   dplyr::select(library_id, additional_modalities) |>
   dplyr::distinct() |>
   dplyr::mutate(
-    is_multiplexed = ifelse(additional_modalities == "cellhash", "Multiplexed", "No multiplexing")
+    is_multiplexed = ifelse(
+      "cellhash" %in% additional_modalities, "Multiplexed", "Not multiplexed"
+    )
   ) |>
   dplyr::count(is_multiplexed) |>
   dplyr::rename(
