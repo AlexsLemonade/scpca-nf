@@ -250,10 +250,10 @@ adt_present_columns <- sce_list |>
   # if input is empty, then there are no "adt" altExps anyways
   purrr::reduce(union, .init = NULL)
 
-# ensure that there are indeed no "adt" altExps if adt_possible_columns is empty
+# ensure that there are indeed no "adt" altExps if adt_present_columns is empty
 adt_altexps <- sce_list |>
   purrr::keep(\(sce) "adt" %in% altExpNames(sce))
-if (is.null(adt_possible_columns) & length(adt_altexps) > 0) {
+if (is.null(adt_present_columns) && length(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
 
