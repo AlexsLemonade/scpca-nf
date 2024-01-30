@@ -54,7 +54,6 @@ process make_merged_unfiltered_sce{
               val(rna_meta), path(alevin_dir),
               path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
-        path cellhash_pool_file
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
@@ -83,7 +82,6 @@ process make_merged_unfiltered_sce{
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
           --sample_metadata_file ${sample_metafile} \
-          ${meta.feature_type == "cellhash" ? "--cellhash_pool_file ${cellhash_pool_file}" : ""} \
           ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
@@ -138,8 +136,6 @@ process filter_sce{
     touch ${filtered_rds}
     """
 }
-
-
 
 process genetic_demux_sce{
   container params.SCPCATOOLS_CONTAINER
@@ -261,7 +257,6 @@ workflow generate_merged_sce {
   take:
     feature_quant_channel
     sample_metafile
-    cellhash_pool_file
   main:
 
     feature_sce_ch = feature_quant_channel
@@ -272,7 +267,7 @@ workflow generate_merged_sce {
                           file(it[2].submitter_cell_types_file ?: empty_file)
                          ]}
 
-    make_merged_unfiltered_sce(feature_sce_ch, sample_metafile, cellhash_pool_file)
+    make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out

@@ -201,7 +201,7 @@ workflow {
     .map{it.drop(1)} // remove library_id index
 
   // make rds for merged RNA and feature quants
-  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile, file(params.cellhash_pool_file))
+  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{ // branch cellhash libs
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
