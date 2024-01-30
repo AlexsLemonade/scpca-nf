@@ -23,11 +23,10 @@ process export_anndata{
       # move any normalized counts to X in AnnData
       if [ "${file_type}" = "processed" ]; then
         move_counts_anndata.py --anndata_file ${rna_hdf5_file}
-      fi
-
-      # only move counts in feature data, if the file exists
-      if [ -f "${feature_hdf5_file}" ]; then
-        move_counts_anndata.py --anndata_file ${feature_hdf5_file}
+        # move counts in feature data, if the file exists
+        if [ -f "${feature_hdf5_file}" ]; then
+          move_counts_anndata.py --anndata_file ${feature_hdf5_file}
+        fi
       fi
 
       """
