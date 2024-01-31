@@ -102,6 +102,7 @@ process export_anndata{
         --input_sce_file ${merged_sce_file} \
         --output_rna_h5 ${rna_hdf5_file} \
         --output_feature_h5 ${feature_hdf5_file} \
+        --is_merged \
         ${has_adt ? "--feature_name adt" : ''}
 
       # move normalized counts to X in AnnData
@@ -169,7 +170,7 @@ workflow {
         library_id_list,
         sce_file_list
       )}
-      
+
     merge_sce(grouped_libraries_ch)
 
     // generate merge report

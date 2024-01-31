@@ -39,6 +39,12 @@ option_list <- list(
     action = "store_true",
     default = FALSE,
     help = "Compress the HDF5 file containing the AnnData object"
+  ),
+  make_option(
+    opt_str = c("--is_merged"),
+    action = "store_true",
+    default = FALSE,
+    help = "Whether the input SCE file contains a merged object"
   )
 )
 
