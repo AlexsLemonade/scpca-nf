@@ -133,18 +133,19 @@ if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
 
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
+sample_types <- metadata(unfiltered_sce)$sample_type
 ```
 
 
 ```{r, results='asis'}
 # only print out info box if xenograft or cell line, with different logic/warnings
 # for multiplex libraries
-if ("patient-derived xenograft" %in% metadata(unfiltered_sce)$sample_type) {
+if ("patient-derived xenograft" %in% sample_types) {
 
   # determine which samples are the PDXs
   if (has_multiplex) {
-    pdxs <- metadata(unfiltered_sce)$sample_type
-    pdx_samples <- names(pdxs[pdxs == "patient-derived xenograft"])
+    # get a list of samples in the library that are pdxs 
+    pdx_samples <- names(sample_types[sample_types == "patient-derived xenograft"])
     pdx_samples_bullets <- paste0("<li>", paste(pdx_samples, collapse = "</li><li>", "</li>"))
 
     glue::glue("
@@ -169,10 +170,9 @@ if ("patient-derived xenograft" %in% metadata(unfiltered_sce)$sample_type) {
   }
 }
 
-if ("cell line" %in% metadata(unfiltered_sce)$sample_type) {
+if ("cell line" %in% sample_types) {
   if (has_multiplex) {
-    cell_lines <- metadata(unfiltered_sce)$sample_type
-    cell_line_samples <- names(pdxs[pdxs == "cell line"])
+    cell_line_samples <- names(sample_types[sample_types == "cell line"])
     cell_line_samples_bullets <- paste0("<li>", paste(cell_line_samples, collapse = "</li><li>", "</li>"))
 
     glue::glue("

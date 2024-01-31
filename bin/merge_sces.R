@@ -178,12 +178,11 @@ if ("cellassign" %in% all_celltypes) {
 # - Remove cluster parameters from metadata
 sce_list <- sce_list |>
   purrr::map(\(sce){
-    # value will be adt, cellhash, or NA
     additional_modalities <- altExpNames(sce)
     if (length(additional_modalities) == 0) {
       additional_modalities <- NA
     }
-    sce$additional_modalities <- additional_modalities
+    sce$additional_modalities <- paste0(additional_modalities, collapse = ";")
 
     metadata(sce)$cluster_algorithm <- NULL
     metadata(sce)$cluster_weighting <- NULL
