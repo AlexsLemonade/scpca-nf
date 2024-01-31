@@ -127,8 +127,17 @@ sce <- readr::read_rds(opt$input_sce_file)
 # we need this if we have any feature data that we need to add it o
 sample_metadata <- metadata(sce)$sample_metadata
 
-# make main sce czi compliant
-sce <- format_czi(sce)
+# make main sce czi compliant, for single SCE objects
+if (!is_merged) {
+  sce <- format_czi(sce)
+} else {
+  # paste X to reduced dim names if present
+  if (!is.null(reducedDimNames(sce))) {
+    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  }
+}
+
+
 
 # export sce as anndata object
 # this function will also remove any R-specific object types from the SCE metadata
