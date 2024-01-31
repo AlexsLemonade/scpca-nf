@@ -62,6 +62,22 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5|.h5ad"))) {
   stop("output rna file name must end in .hdf5, .h5, or .h5ad")
 }
 
+# Merged object function  ------------------------------------------------------
+
+# this function updates merged object formatting for anndata export
+format_merged_sce <- function(sce) {
+  # paste X to reduced dim names if present
+  if (!is.null(reducedDimNames(sce))) {
+    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  }
+
+  # Replace seq_unit with suspension_type
+  sce$suspension_type <- sce$seq_unit
+  sce$seq_unit <- NULL
+
+  return(sce)
+}
+
 # CZI compliance function ------------------------------------------------------
 
 # this function applies any necessary reformatting or changes needed to make
@@ -127,14 +143,11 @@ sce <- readr::read_rds(opt$input_sce_file)
 # we need this if we have any feature data that we need to add it o
 sample_metadata <- metadata(sce)$sample_metadata
 
-# make main sce czi compliant, for single SCE objects
+# make main sce czi compliant for single objects, or format merged objects
 if (!is_merged) {
   sce <- format_czi(sce)
 } else {
-  # paste X to reduced dim names if present
-  if (!is.null(reducedDimNames(sce))) {
-    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
-  }
+  sce <- format_merged_sce(sce)
 }
 
 
@@ -170,14 +183,11 @@ if (!is.null(opt$feature_name)) {
     # add sample metadata from main sce to alt sce metadata
     metadata(alt_sce)$sample_metadata <- sample_metadata
 
-    # make altExp sce czi compliant, for single SCE objects
+    # make altExp sce czi compliant for single objects, or format merged objects
     if (!is_merged) {
       sce <- format_czi(sce)
     } else {
-      # paste X to reduced dim names if present
-      if (!is.null(reducedDimNames(sce))) {
-        reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
-      }
+      sce <- format_merged_sce(sce)
     }
 
     # export altExp sce as anndata object
