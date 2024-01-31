@@ -70,11 +70,9 @@ batch_column <- params$batch_column
 # set adt/multiplex values
 # this tells us if at least one library contains either of these modalities
 additional_modalities <- merged_sce$additional_modalities |>
-  purrr::map(
-    stringr::str_split_1,
-    pattern = ";"
-  ) |>
-  purrr::reduce(union)
+  stringr::str_split(pattern = ";") |>
+  purrr::reduce(union) |>
+  sort()
 
 has_adt <- "adt" %in% additional_modalities
 multiplexed <- "cellhash" %in% additional_modalities
