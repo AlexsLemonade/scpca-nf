@@ -70,11 +70,6 @@ format_merged_sce <- function(sce) {
   if (!is.null(reducedDimNames(sce))) {
     reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
   }
-
-  # Replace seq_unit with suspension_type
-  sce$suspension_type <- sce$seq_unit
-  sce$seq_unit <- NULL
-
   return(sce)
 }
 
