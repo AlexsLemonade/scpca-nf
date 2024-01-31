@@ -139,7 +139,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 sample_metadata <- metadata(sce)$sample_metadata
 
 # make main sce czi compliant for single objects, or format merged objects
-if (!is_merged) {
+if (!opt$is_merged) {
   sce <- format_czi(sce)
 } else {
   sce <- format_merged_sce(sce)
@@ -179,7 +179,7 @@ if (!is.null(opt$feature_name)) {
     metadata(alt_sce)$sample_metadata <- sample_metadata
 
     # make altExp sce czi compliant for single objects, or format merged objects
-    if (!is_merged) {
+    if (!opt$is_merged) {
       sce <- format_czi(sce)
     } else {
       sce <- format_merged_sce(sce)
