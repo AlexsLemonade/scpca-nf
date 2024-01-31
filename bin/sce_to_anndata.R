@@ -170,8 +170,15 @@ if (!is.null(opt$feature_name)) {
     # add sample metadata from main sce to alt sce metadata
     metadata(alt_sce)$sample_metadata <- sample_metadata
 
-    # make sce czi compliant
-    alt_sce <- format_czi(alt_sce)
+    # make altExp sce czi compliant, for single SCE objects
+    if (!is_merged) {
+      sce <- format_czi(sce)
+    } else {
+      # paste X to reduced dim names if present
+      if (!is.null(reducedDimNames(sce))) {
+        reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+      }
+    }
 
     # export altExp sce as anndata object
     scpcaTools::sce_to_anndata(
