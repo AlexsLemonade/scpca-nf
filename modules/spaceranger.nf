@@ -65,7 +65,7 @@ process spaceranger_publish{
     mv ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
     mv ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
     mv ${spatial_out}/outs/spatial ${spatial_publish_dir}
-    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger_summary.html
+    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
