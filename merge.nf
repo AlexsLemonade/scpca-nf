@@ -127,16 +127,23 @@ workflow {
       .splitCsv(header: true, sep: '\t')
       // filter to only include specified project ids
       .filter{it.scpca_project_id in project_ids}
+      .map{[
+        seq_unit: it.seq_unit,
+        technology: it.technology,
+        project_id: it.scpca_project_id,
+        library_id: it.scpca_library_id,
+        sample_id: it.scpca_sample_id.split(";").sort().join(",")
+      ]}
 
     // get all projects that contain at least one library with CITEseq
     adt_projects = libraries_ch
       .filter{it.technology.startsWith('CITEseq')}
-      .collect{it.scpca_project_id}
+      .collect{it.project_id}
       .map{it.unique()}
 
     multiplex_projects = libraries_ch
       .filter{it.technology.startsWith('cellhash')}
-      .collect{it.scpca_project_id}
+      .collect{it.project_id}
       .map{it.unique()}
 
     grouped_libraries_ch = libraries_ch
@@ -144,9 +151,9 @@ workflow {
       .filter{it.seq_unit in ['cell', 'nucleus']}
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
-        it.scpca_project_id,
-        it.scpca_library_id,
-        file("${params.results_dir}/${it.scpca_project_id}/${it.scpca_sample_id}/${it.scpca_library_id}_processed.rds")
+        it.project_id,
+        it.library_id,
+        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
       ]}
       // only include libraries that have been processed through scpca-nf
       .filter{file(it[2]).exists()}

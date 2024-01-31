@@ -100,7 +100,7 @@ if (opt$threads > 1) {
   bp_param <- BiocParallel::SerialParam()
 }
 
-# Read in SCEs -------------------------------------------------------------------
+# Read in SCEs -----------------------------------------------------------------
 
 # get list of sces
 sce_list <- purrr::map(input_sce_files, readr::read_rds)
@@ -116,26 +116,9 @@ if (!all(sce_checks)) {
   )
 }
 
-# Determine cell type annotation columns to retain  -----------------------------------------
+# Add cell type annotation columns where needed  -------------------------------
 
-
-# Default vector of colData columns to retain from
-# https://github.com/AlexsLemonade/scpcaTools/blob/2ebdc4f4dfc4233fad97805f9a9a5e3bc6919f1e/R/merge_sce_list.R
-retain_coldata_columns <- c(
-  "sum",
-  "detected",
-  "total",
-  "subsets_mito_sum",
-  "subsets_mito_detected",
-  "subsets_mito_percent",
-  "miQC_pass",
-  "prob_compromised",
-  "barcodes",
-  # additional column not in scpcaTools:
-  "scpca_filter"
-)
-
-# check if any SCEs have cell types; if so, we want to retain those colData columns
+# check for present cell type annotations
 all_celltypes <- sce_list |>
   purrr::map(\(sce) {
     metadata(sce)$celltype_methods
@@ -143,13 +126,7 @@ all_celltypes <- sce_list |>
   purrr::reduce(union)
 
 
-# add relevant cell type columns to `retain_coldata_columns`
 if ("submitter" %in% all_celltypes) {
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "submitter_celltype_annotation"
-  )
-
   # Add `"Submitter-excluded"` value to any libraries without submitter
   sce_list <- sce_list |>
     purrr::map(\(sce){
@@ -170,13 +147,6 @@ if ("singler" %in% all_celltypes) {
     unlist() |>
     any()
 
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "singler_celltype_annotation",
-    # only use ontology if TRUE
-    ifelse(use_ontology, "singler_celltype_ontology", NULL)
-  )
-
   # Add `"Cell type annotation not performed"` string to libraries without SingleR
   sce_list <- sce_list |>
     purrr::map(\(sce){
@@ -190,12 +160,6 @@ if ("singler" %in% all_celltypes) {
     })
 }
 if ("cellassign" %in% all_celltypes) {
-  retain_coldata_columns <- c(
-    retain_coldata_columns,
-    "cellassign_celltype_annotation",
-    "cellassign_max_prediction"
-  )
-
   # Add `"Cell type annotation not performed"` string to libraries without CellAssign,
   #  and make the max prediction `NA_real_` for extra safety
   sce_list <- sce_list |>
@@ -209,24 +173,16 @@ if ("cellassign" %in% all_celltypes) {
 }
 
 
-# Merge SCEs -------------------------------------------------------------------
-
-# Update some SCE information:
+# Update some SCE information  -------------------------------------------------
 # - Add a new colData column with any additional modalities
 # - Remove cluster parameters from metadata
-# - Also retain colData `"adt_scpca_filter"` column, if any libraries have cite
 sce_list <- sce_list |>
   purrr::map(\(sce){
-    # value will be adt, cellhash, or NA
     additional_modalities <- altExpNames(sce)
     if (length(additional_modalities) == 0) {
       additional_modalities <- NA
     }
-    sce$additional_modalities <- additional_modalities
-
-    if ("adt" %in% additional_modalities) {
-      retain_coldata_columns <- c(retain_coldata_columns, "adt_scpca_filter")
-    }
+    sce$additional_modalities <- paste0(additional_modalities, collapse = ";")
 
     metadata(sce)$cluster_algorithm <- NULL
     metadata(sce)$cluster_weighting <- NULL
@@ -235,14 +191,88 @@ sce_list <- sce_list |>
     return(sce)
   })
 
+# Determine SCE columns to retain  ---------------------------------------------
+
+# Define all possible colData columns which we might want to retain
+possible_columns <- c(
+  "barcodes",
+  # RNA statistics and post-processing
+  "sum",
+  "detected",
+  "total",
+  "subsets_mito_sum",
+  "subsets_mito_detected",
+  "subsets_mito_percent",
+  "miQC_pass",
+  "prob_compromised",
+  "scpca_filter",
+  "additional_modalities",
+  # cell type names
+  "submitter_celltype_annotation",
+  "singler_celltype_annotation",
+  "singler_celltype_ontology",
+  "cellassign_celltype_annotation",
+  "cellassign_max_prediction",
+  # ADT statistics
+  "adt_scpca_filter",
+  "altexps_adt_sum",
+  "altexps_adt_detected",
+  "altexps_adt_percent",
+  # cellhash statistics & demux results
+  "altexps_cellhash_sum",
+  "altexps_cellhash_detected",
+  "altexps_cellhash_percent",
+  "hashedDrops_sampleID",
+  "HTODemux_sampleID",
+  "vireo_sampleid"
+)
+
+# Define colData columns to retain based on intersection with present columns
+present_columns <- sce_list |>
+  purrr::map(\(sce) names(colData(sce))) |>
+  purrr::reduce(union)
+retain_coldata_columns <- intersect(possible_columns, present_columns)
+
+# Define altExp columns to retain/preserve, currently only for "adt"
+adt_possible_columns <- c(
+  "zero.ambient",
+  "high.ambient",
+  "ambient.scale",
+  "sum.controls",
+  "high.controls",
+  "discard"
+)
+adt_present_columns <- sce_list |>
+  # only consider "adt" altExps
+  purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
+  purrr::map(\(sce) names(colData(altExp(sce, "adt")))) |>
+  # use .init to handle an empty input; will return the .init value
+  # if input is empty, then there are no "adt" altExps anyways
+  purrr::reduce(union, .init = NULL)
+
+# ensure that there are indeed no "adt" altExps if adt_present_columns is empty
+adt_altexps <- sce_list |>
+  purrr::keep(\(sce) "adt" %in% altExpNames(sce))
+if (is.null(adt_present_columns) && length(adt_altexps) > 0) {
+  stop("Error in determining which adt altExp columns should be retained.")
+}
+
+retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_columns, adt_present_columns))
+preserve_altexp_rowdata_list <- list("adt" = c("adt_id", "target_type"))
+
+# Merge SCEs -------------------------------------------------------------------
+
+
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
   batch_column = "library_id",
-  retain_coldata_cols = retain_coldata_columns,
-  preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
   cell_id_column = "cell_id",
-  include_altexp = opt$include_altexp
+  retain_coldata_cols = retain_coldata_columns,
+  include_altexp = opt$include_altexp,
+  preserve_rowdata_cols = c("gene_symbol", "gene_ids"),
+  retain_altexp_coldata_cols = retain_altexp_coldata_list,
+  preserve_altexp_rowdata_cols = preserve_altexp_rowdata_list
 )
 
 # add sample metadata to colData as long as there are no multiplexed data
@@ -257,7 +287,7 @@ if (!opt$multiplexed) {
 }
 
 # grab technology and EFO from metadata$library_metadata
-library_df <- names(input_sce_files) |>
+library_df <- names(sce_list) |>
   purrr::map(\(library_id){
     lib_meta <- metadata(merged_sce) |>
       purrr::pluck("library_metadata", library_id)

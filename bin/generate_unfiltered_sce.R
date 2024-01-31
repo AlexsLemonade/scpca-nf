@@ -152,6 +152,11 @@ if (opt$feature_dir != "") {
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
   # add alt experiment features stats
   altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
+
+  # if CITE, add `adt_id` column to rowData with rownames
+  if (opt$feature_name == "adt") {
+    rowData(altExp(unfiltered_sce, "adt"))$adt_id <- rownames(rowData(altExp(unfiltered_sce, "adt")))
+  }
 }
 
 

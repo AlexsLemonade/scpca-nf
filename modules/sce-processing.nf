@@ -29,7 +29,7 @@ process make_unfiltered_sce{
 
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
+        if [ "${submitter_cell_types_file.name}" != "NO_FILE" ]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
