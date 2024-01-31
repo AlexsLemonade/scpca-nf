@@ -59,8 +59,8 @@ workflow pileup_multibulk{
         ],
         it[4], // bamfiles
         it[5], // bamfile indexes
-        file(it[2][0].ref_fasta),
-        file(it[2][0].ref_fasta_index)
+        file(it[2][0].ref_fasta, checkIfExists: true),
+        file(it[2][0].ref_fasta_index, checkIfExists: true)
       ]}
 
     mpileup(pileup_ch)

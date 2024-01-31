@@ -131,6 +131,30 @@ workflow annotate_celltypes {
     // get just the meta and processed sce
     processed_sce_channel = sce_files_channel.map{[it[0], it[3]]}
 
+  // read in sample metadata and make a list of cell line samples; these won't be cell typed
+  cell_line_samples = Channel.fromPath(params.sample_metafile)
+    .splitCsv(header: true, sep: '\t')
+    .map{
+      [
+        sample_id: it.scpca_sample_id,
+        is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
+      ]
+    }
+    .filter{it.is_cell_line}
+    .map{it.sample_id}
+    .toList()
+
+    // branch to cell type the non-cell line libraries only
+    sce_files_channel_branched = sce_files_channel
+     .branch{
+        cell_line: it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.every()
+        // only run cell typing on tissue samples
+        tissue: true
+      }
+
+    // get just the meta and processed sce from the tissue (not cell line) samples
+    processed_sce_channel = sce_files_channel_branched.tissue.map{[it[0], it[3]]}
+
     // channel with celltype model and project ids
     celltype_ch = Channel.fromPath(params.project_celltype_metafile)
       .splitCsv(header: true, sep: '\t')
@@ -166,7 +190,7 @@ workflow annotate_celltypes {
     // creates [meta, processed sce, singler model file]
     singler_input_ch = celltype_input_ch
       // add in singler model or empty file
-      .map{it.toList() + [file(it[0].singler_model_file ?: empty_file)]}
+      .map{it.toList() + [file(it[0].singler_model_file ?: empty_file, checkIfExists: true)]}
       // skip if no singleR model file or if singleR results are already present
       .branch{
         skip_singler: (
@@ -185,16 +209,16 @@ workflow annotate_celltypes {
     // singleR output channel: [library_id, singler_results]
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
-      .map{[it[0]["library_id"], file(it[0].singler_dir, type: 'dir')]}
+      .map{[it[0]["library_id"], file(it[0].singler_dir, type: 'dir', checkIfExists: true)]}
       // add empty file for missing ref samples
-      .mix(singler_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file)]} )
+      .mix(singler_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file, checkIfExists: true)]} )
       // add in channel outputs
       .mix(classify_singler.out)
 
     // create cellassign input channel: [meta, processed sce, cellassign reference file]
     cellassign_input_ch = celltype_input_ch
       // add in cellassign reference
-      .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file)]}
+      .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file, checkIfExists: true)]}
       // skip if no cellassign reference file or reference name is not defined
       .branch{
         skip_cellassign: (
@@ -213,9 +237,9 @@ workflow annotate_celltypes {
     // cellassign output channel: [library_id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
       // provide existing cellassign predictions dir for those we skipped
-      .map{[it[0]["library_id"], file(it[0].cellassign_dir, type: 'dir')]}
+      .map{[it[0]["library_id"], file(it[0].cellassign_dir, type: 'dir', checkIfExists: true)]}
       // add empty file for missing ref samples
-      .mix(cellassign_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file)]} )
+      .mix(cellassign_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file, checkIfExists: true)]} )
       // add in channel outputs
       .mix(classify_cellassign.out)
 
