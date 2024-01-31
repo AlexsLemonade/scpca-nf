@@ -237,6 +237,8 @@ workflow {
   // combine all SCE outputs
   // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
+    // only use any samples with > 0 cells left after filtering
+    .filter{ it[2].size() > 0 }
   post_process_sce(all_sce_ch)
 
   // Cluster SCE
