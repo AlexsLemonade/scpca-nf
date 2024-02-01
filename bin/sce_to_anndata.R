@@ -66,7 +66,7 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5|.h5ad"))) {
 
 # this function updates merged object formatting for anndata export
 format_merged_sce <- function(sce) {
-  # paste X to reduced dim names if present
+  # paste X to any present reduced dim names
   reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
   return(sce)
 }
@@ -119,10 +119,8 @@ format_czi <- function(sce) {
   # so everything gets set to false
   rowData(sce)$feature_is_filtered <- FALSE
 
-  # paste X to reduced dim names if present
-  if (!is.null(reducedDimNames(sce))) {
-    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
-  }
+  # paste X to any present reduced dim names
+  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
 
   return(sce)
 }
