@@ -123,14 +123,14 @@ The merged object summarized in this report is comprised of `r num_libraries` in
 ```{r}
 # table summarizing number of libraries with tech version and seq unit
 tech_table <- coldata_df |>
-  dplyr::select(library_id, tech_version, assay_ontology_term_id, seq_unit) |>
+  dplyr::select(library_id, tech_version, assay_ontology_term_id, suspension_type) |>
   dplyr::distinct() |>
-  dplyr::count(tech_version, assay_ontology_term_id, seq_unit) |>
+  dplyr::count(tech_version, assay_ontology_term_id, suspension_type) |>
   dplyr::arrange(desc(n)) |>
   dplyr::rename(
     "Technology version" = "tech_version",
     "Experimental factor ontology" = "assay_ontology_term_id",
-    "Suspension type" = "seq_unit",
+    "Suspension type" = "suspension_type",
     "Number of libraries" = "n"
   )
 

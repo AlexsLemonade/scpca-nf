@@ -295,7 +295,8 @@ library_df <- names(sce_list) |>
       library_id = library_id,
       tech_version = lib_meta$tech_version,
       assay_ontology_term_id = lib_meta$assay_ontology_term_id,
-      seq_unit = lib_meta$seq_unit
+      # rename to suspension_type for consistency with merged AnnData objects
+      suspension_type = lib_meta$seq_unit
     )
   }) |>
   dplyr::bind_rows()

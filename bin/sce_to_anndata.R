@@ -39,6 +39,12 @@ option_list <- list(
     action = "store_true",
     default = FALSE,
     help = "Compress the HDF5 file containing the AnnData object"
+  ),
+  make_option(
+    opt_str = c("--is_merged"),
+    action = "store_true",
+    default = FALSE,
+    help = "Whether the input SCE file contains a merged object"
   )
 )
 
@@ -54,6 +60,15 @@ if (!file.exists(opt$input_sce_file)) {
 # check that output file is h5
 if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5|.h5ad"))) {
   stop("output rna file name must end in .hdf5, .h5, or .h5ad")
+}
+
+# Merged object function  ------------------------------------------------------
+
+# this function updates merged object formatting for anndata export
+format_merged_sce <- function(sce) {
+  # paste X to any present reduced dim names
+  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  return(sce)
 }
 
 # CZI compliance function ------------------------------------------------------
@@ -104,10 +119,8 @@ format_czi <- function(sce) {
   # so everything gets set to false
   rowData(sce)$feature_is_filtered <- FALSE
 
-  # paste X to reduced dim names if present
-  if (!is.null(reducedDimNames(sce))) {
-    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
-  }
+  # paste X to any present reduced dim names
+  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
 
   return(sce)
 }
@@ -121,8 +134,14 @@ sce <- readr::read_rds(opt$input_sce_file)
 # we need this if we have any feature data that we need to add it o
 sample_metadata <- metadata(sce)$sample_metadata
 
-# make main sce czi compliant
-sce <- format_czi(sce)
+# make main sce czi compliant for single objects, or format merged objects
+if (opt$is_merged) {
+  sce <- format_merged_sce(sce)
+} else {
+  sce <- format_czi(sce)
+}
+
+
 
 # export sce as anndata object
 # this function will also remove any R-specific object types from the SCE metadata
@@ -155,8 +174,12 @@ if (!is.null(opt$feature_name)) {
     # add sample metadata from main sce to alt sce metadata
     metadata(alt_sce)$sample_metadata <- sample_metadata
 
-    # make sce czi compliant
-    alt_sce <- format_czi(alt_sce)
+    # make altExp sce czi compliant for single objects, or format merged objects
+    if (opt$is_merged) {
+      sce <- format_merged_sce(sce)
+    } else {
+      sce <- format_czi(sce)
+    }
 
     # export altExp sce as anndata object
     scpcaTools::sce_to_anndata(
