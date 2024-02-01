@@ -67,9 +67,7 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5|.h5ad"))) {
 # this function updates merged object formatting for anndata export
 format_merged_sce <- function(sce) {
   # paste X to reduced dim names if present
-  if (!is.null(reducedDimNames(sce))) {
-    reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
-  }
+  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
   return(sce)
 }
 
@@ -139,10 +137,10 @@ sce <- readr::read_rds(opt$input_sce_file)
 sample_metadata <- metadata(sce)$sample_metadata
 
 # make main sce czi compliant for single objects, or format merged objects
-if (!opt$is_merged) {
-  sce <- format_czi(sce)
-} else {
+if (opt$is_merged) {
   sce <- format_merged_sce(sce)
+} else {
+  sce <- format_czi(sce)
 }
 
 
@@ -179,10 +177,10 @@ if (!is.null(opt$feature_name)) {
     metadata(alt_sce)$sample_metadata <- sample_metadata
 
     # make altExp sce czi compliant for single objects, or format merged objects
-    if (!opt$is_merged) {
-      sce <- format_czi(sce)
-    } else {
+    if (opt$is_merged) {
       sce <- format_merged_sce(sce)
+    } else {
+      sce <- format_czi(sce)
     }
 
     # export altExp sce as anndata object
