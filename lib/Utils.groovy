@@ -44,7 +44,11 @@ class Utils {
    */
   static def getMetaVal(file, key){
     def obj = new JsonSlurper().parse(file)
-    def value = this.parseNA(obj[key])
+    def value = obj[key]
+
+    if (value instanceof String) {
+      value = this.parseNA(value)
+    }
 
     return(value)
   }
