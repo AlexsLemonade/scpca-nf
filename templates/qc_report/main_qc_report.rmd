@@ -130,29 +130,91 @@ if (has_processed) {
 if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
+
+# check if we have multiplex
+has_multiplex <- length(sample_id) > 1
+sample_types <- metadata(unfiltered_sce)$sample_type
+```
+
+
+```{r, results='asis'}
+# only print out info box if xenograft or cell line, with different logic/warnings
+# for multiplex libraries
+if ("patient-derived xenograft" %in% sample_types) {
+
+  # determine which samples are the PDXs
+  if (has_multiplex) {
+    # get a list of samples in the library that are pdxs 
+    pdx_samples <- names(sample_types[sample_types == "patient-derived xenograft"])
+    pdx_samples_bullets <- paste0("<li>", paste(pdx_samples, collapse = "</li><li>", "</li>"))
+
+    glue::glue("
+      <div class=\"alert alert-info\">
+
+      This library includes patient-derived xenograft samples.
+      The following samples are derived from patient xenografts:
+
+      {pdx_samples_bullets}
+
+      </div>
+    ")
+
+  } else {
+    glue::glue("
+      <div class=\"alert alert-info\">
+
+      This library comes from a patient-derived xenograft sample.
+
+      </div>
+    ")
+  }
+}
+
+if ("cell line" %in% sample_types) {
+  if (has_multiplex) {
+    cell_line_samples <- names(sample_types[sample_types == "cell line"])
+    cell_line_samples_bullets <- paste0("<li>", paste(cell_line_samples, collapse = "</li><li>", "</li>"))
+
+    glue::glue("
+      <div class=\"alert alert-info\">
+
+      This library includes cell line samples.
+      Please be aware that no cell type annotation is performed for cell line samples.
+      The following samples are derived from cell lines:
+
+      {cell_line_samples_bullets}
+
+      </div>
+    ")
+  } else {
+    glue::glue("
+      <div class=\"alert alert-info\">
+
+      This library comes from a cell line sample.
+      Please be aware that no cell type annotation is performed for cell line samples.
+
+      </div>
+    ")
+  }
+}
 ```
 
 
 # Processing Information for `r library_id`
 
-```{r, results='asis'}
-# only print out multiplexed warning if more than one sample is present
-has_multiplex <- length(sample_id) > 1
+```{r, eval = has_multiplex, results='asis'}
+# convert sample id to bullet separated list
+multiplex_samples <- paste0("<li>", paste(sample_id, collapse = "</li><li>", "</li>"))
+glue::glue("
+  <div class=\"alert alert-warning\">
 
-if (has_multiplex) {
-  # convert sample id to bullet separated list
-  multiplex_samples <- paste0("<li>", paste(sample_id, collapse = "</li><li>", "</li>"))
-  glue::glue("
-    <div class=\"alert alert-warning\">
+  This library is multiplexed and contains data from more than one sample.
+  Data from the following samples are included in this library:
 
-    This library is multiplexed and contains data from more than one sample.
-    Data from the following samples are included in this library:
+  {multiplex_samples}
 
-    {multiplex_samples}
-
-    </div>
-  ")
-}
+  </div>
+")
 ```
 
 ## Raw Sample Metrics

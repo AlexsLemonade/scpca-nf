@@ -233,17 +233,17 @@ workflow generate_sce {
   main:
 
     sce_ch = quant_channel
-      .map{it.toList() + [file(it[0].mito_file),
-                          file(it[0].ref_gtf),
+      .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
+                          file(it[0].ref_gtf, checkIfExists: true),
                           // either submitter cell type files, or empty file if not available
-                          file(it[0].submitter_cell_types_file ?: empty_file)
+                          file(it[0].submitter_cell_types_file ?: empty_file, checkIfExists: true)
                          ]}
 
     make_unfiltered_sce(sce_ch, sample_metafile)
 
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + [file(empty_file)]}
+      .map{it.toList() + [file(empty_file, checkIfExists: true)]}
 
     filter_sce(unfiltered_sce_ch)
 
@@ -261,17 +261,17 @@ workflow generate_merged_sce {
 
     feature_sce_ch = feature_quant_channel
       // RNA meta is in the third slot here
-      .map{it.toList() + [file(it[2].mito_file),
-                          file(it[2].ref_gtf),
+      .map{it.toList() + [file(it[2].mito_file, checkIfExists: true),
+                          file(it[2].ref_gtf, checkIfExists: true),
                           // either submitter cell type files, or empty file if not available
-                          file(it[2].submitter_cell_types_file ?: empty_file)
+                          file(it[2].submitter_cell_types_file ?: empty_file, checkIfExists: true)
                          ]}
 
     make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
     unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
-      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file)]}
+      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)]}
 
     filter_sce(unfiltered_merged_sce_ch)
 

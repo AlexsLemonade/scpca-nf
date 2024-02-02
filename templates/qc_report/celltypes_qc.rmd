@@ -42,6 +42,7 @@ format_celltype_n_table <- function(df) {
 
 #' Function to lump celltype columns in an existing data frame for all of the
 #'  following columns, if they exist: `<singler/cellassign/submitter>_celltype_annotation`.
+#' The cell types will also be renamed via wrapping at the given `wrap` level.
 #'  The resulting lumped column will be named:
 #'  `<singler/cellassign/submitter>_celltype_annotation_lumped`.
 #'
@@ -50,16 +51,28 @@ format_celltype_n_table <- function(df) {
 #' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
-lump_celltypes <- function(df, n_celltypes = 7) {
+lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
   df <- df |>
+    # First, wrap labels
     dplyr::mutate(
       across(
         ends_with("_celltype_annotation"),
-        \(x) forcats::fct_lump_n(x, n_celltypes, other_level = "All remaining cell types", ties.method = "first"),
+        \(x) stringr::str_wrap(x, wrap)
+      )
+    ) |>
+    # Next, apply factor lumping, but ensure final order is via frequency with the "others" at the end
+    dplyr::mutate(
+      across(
+        ends_with("_celltype_annotation"),
+        \(x) {
+          x |>
+            forcats::fct_lump_n(n_celltypes, other_level = "All remaining cell types", ties.method = "first") |>
+            forcats::fct_infreq() |>
+            forcats::fct_relevel("Unknown cell type", "All remaining cell types", after = Inf)
+        },
         .names = "{.col}_lumped"
       )
     )
-
   return(df)
 }
 
@@ -114,12 +127,21 @@ plot_umap <- function(
 #' Create a faceted UMAP panel where each panel has only one cell type colored
 #'
 #' @param umap_df Data frame with UMAP1 and UMAP2 columns
+#' @param n_celltypes The number of cell types (facets) displayed in the plot
 #' @param annotation_column Column containing cell type annotations
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
 faceted_umap <- function(umap_df,
+                         n_celltypes,
                          annotation_column) {
+  # Determine legend y-coordinate based on n_celltypes
+  if (n_celltypes %in% 7:8) {
+    legend_y <- 0.33
+  } else if (n_celltypes %in% 4:5) {
+    legend_y <- 0.52
+  }
+
   # color by the annotation column but only color one cell type at a time
   faceted_umap <- ggplot(
     umap_df,
@@ -127,7 +149,7 @@ faceted_umap <- function(umap_df,
   ) +
     # set points for all "other" points
     geom_point(
-      data = select(
+      data = dplyr::select(
         umap_df, -{{ annotation_column }}
       ),
       color = "gray80",
@@ -136,7 +158,10 @@ faceted_umap <- function(umap_df,
     ) +
     # set points for desired cell type
     geom_point(size = 0.3, alpha = 0.5) +
-    facet_wrap(vars({{ annotation_column }})) +
+    facet_wrap(
+      vars({{ annotation_column }}),
+      ncol = 3
+    ) +
     scale_color_brewer(palette = "Dark2") +
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) +
@@ -150,14 +175,61 @@ faceted_umap <- function(umap_df,
           size = 1.5
         )
       )
-    ) +
-    theme(
-      legend.position = c(.9, 0),
-      legend.justification = c("right", "bottom"),
-      legend.title.align = 0.5
     )
 
+  # Determine legend placement based on total_celltypes
+  if (n_celltypes == 1) {
+    # If n=1, we do not need to a show a legend, and title should be smaller
+    faceted_umap <- faceted_umap +
+      theme(
+        legend.position = "none",
+        plot.title = element_text(size = rel(0.85)),
+        aspect.ratio = 1
+      )
+  } else if (n_celltypes %% 3 != 0 & n_celltypes > 2) {
+    # This condition places the legend in the bottom right corner. Can use this for
+    #  any n that doesn't have a full 3 columns, with one exception: for n=2,
+    #  there will be no third column in the faceting to slot the legend into,
+    #  so its legend has to go on the bottom
+    faceted_umap <- faceted_umap +
+      theme(
+        legend.position = c(0.67, legend_y),
+        legend.justification = c("left", "top"),
+        legend.title.align = 0.5,
+        # use slightly smaller legend text, which helps legend fit and prevents
+        #  long wrapped labels from bunching up
+        legend.text = element_text(size = rel(0.85)),
+        legend.key.height = unit(0.75, "cm"),
+        aspect.ratio = 1
+      )
+  } else {
+    # For any other n, place legend on the bottom
+    faceted_umap <- faceted_umap +
+      theme(
+        legend.position = "bottom",
+        aspect.ratio = 1
+      )
+  }
+
+
+
   return(faceted_umap)
+}
+
+#' Determine dimension for UMAP plot display based on number of cell types
+#'
+#' @param n_celltypes Number of cell types (here, facets) displayed in plot
+#'
+#' @return A vector of c(width, height) in inches
+determine_umap_dimensions <- function(n_celltypes) {
+  dplyr::case_when(
+    n_celltypes == 1 ~ c(3.75, 3.5), # 1: no legend
+    n_celltypes == 2 ~ c(5.5, 5), # 2: bottom legend
+    n_celltypes == 3 ~ c(8, 5.5), # 3: bottom legend
+    n_celltypes <= 5 ~ c(9, 6), # 4 & 5: inset legend
+    n_celltypes <= 6 ~ c(8, 7.5), # 6: bottom legend
+    .default = c(9, 9) # 7 & 8: inset legend
+  )
 }
 ```
 
@@ -200,23 +272,35 @@ unclassified_methods <- c()
 
 # check for unclassified SingleR cells
 if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified cell")) {
-  unclassified_methods <- c(unclassified_methods, "singler")
+  unclassified_methods <- c(unclassified_methods, "SingleR")
 
   # remove all unclassified cells
   celltype_df <- celltype_df |>
     dplyr::filter(
       singler_celltype_annotation != "Unclassified cell"
+    ) |>
+    dplyr::mutate(
+      singler_celltype_annotation = forcats::fct_drop(
+        singler_celltype_annotation,
+        only = "Unclassified cell"
+      )
     )
 }
 
 # check for unclassified cellassign cells
 if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclassified cell")) {
-  unclassified_methods <- c(unclassified_methods, "cellassign")
+  unclassified_methods <- c(unclassified_methods, "CellAssign")
 
   # remove unclassified cells
   celltype_df <- celltype_df |>
     dplyr::filter(
       cellassign_celltype_annotation != "Unclassified cell"
+    ) |>
+    dplyr::mutate(
+      cellassign_celltype_annotation = forcats::fct_drop(
+        cellassign_celltype_annotation,
+        only = "Unclassified cell"
+      )
     )
 }
 
@@ -278,8 +362,8 @@ Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_
 
 
 ```{r, eval = has_umap}
-# Create dataset for plotting UMAPs with lumped cell types
-umap_df <- lump_celltypes(celltype_df)
+# Create dataset for plotting UMAPs with lumped and label-wrapped cell types
+umap_df <- lump_wrap_celltypes(celltype_df)
 ```
 
 
@@ -329,31 +413,64 @@ All other cell types are grouped together and labeled "All remaining cell types"
 
 <!-- Now, UMAPs of cell types, where present -->
 
-```{r, eval = has_submitter && has_umap, message=FALSE, warning=FALSE, fig.height = 9, fig.width=9}
+```{r}
+if (has_submitter & has_umap) {
+  submitter_n_celltypes <- length(levels(umap_df$submitter_celltype_annotation_lumped))
+  submitter_dims <- determine_umap_dimensions(submitter_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  submitter_dims <- c(1, 1)
+}
+```
+
+```{r, eval = has_submitter && has_umap, message=FALSE, warning=FALSE, fig.width = submitter_dims[1], fig.height = submitter_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
+  submitter_n_celltypes,
   submitter_celltype_annotation_lumped
 ) +
   ggtitle("UMAP colored by submitter-provided annotations")
 ```
 
 
-```{r, eval=has_singler && has_umap, message=FALSE, warning=FALSE, fig.height=9, fig.width=9}
+```{r}
+if (has_singler & has_umap) {
+  singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
+  singler_dims <- determine_umap_dimensions(singler_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  singler_dims <- c(1, 1)
+}
+```
+
+
+```{r, eval=has_singler && has_umap, message=FALSE, warning=FALSE, fig.width = singler_dims[1], fig.height = singler_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
+  singler_n_celltypes,
   singler_celltype_annotation_lumped
 ) +
   ggtitle("UMAP colored by SingleR annotations")
 ```
 
 
+```{r}
+if (has_cellassign & has_umap) {
+  cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
+  cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  cellassign_dims <- c(1, 1)
+}
+```
 
-```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.height = 9, fig.width=9}
+```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.width = cellassign_dims[1], fig.height = cellassign_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
+  cellassign_n_celltypes,
   cellassign_celltype_annotation_lumped
 ) +
   ggtitle("UMAP colored by CellAssign annotations")

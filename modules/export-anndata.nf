@@ -57,8 +57,8 @@ workflow sce_to_anndata{
         // remove any sce files that don't have enough cells in the sce object
         // number of cells are stored in each metadata.json file
         .filter{
-          cells = Utils.getMetaVal(file(it[3]), "${it[2]}_cells");
-          cells ? cells > 1 : true // if no cell count, keep file (for testing)
+          def cells = Utils.getMetaVal(file(it[3]), "${it[2]}_cells");
+          cells == '' || cells > 1  // if no cell count, keep file for testing, otherwise require at least 2 cells
         }
         // remove metadata.json file from tuple
         .map{it.dropRight(1)}

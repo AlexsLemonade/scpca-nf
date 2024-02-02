@@ -25,7 +25,7 @@ citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 // report template paths
-report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir')
+report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
 report_template_file = "main_qc_report.rmd"
 celltype_report_template_file = "celltypes_supplemental_report.rmd"
 report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
@@ -51,7 +51,12 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-sample_metafile = file(params.sample_metafile)
+sample_metafile = file(params.sample_metafile) // we make this for passing into later processes
+if (!sample_metafile.exists()) {
+  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
+  param_error = true
+}
+
 if (!sample_metafile.exists()) {
   log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
   param_error = true
@@ -60,6 +65,17 @@ if (!sample_metafile.exists()) {
 resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
 if (!resolution_strategies.contains(params.af_resolution)) {
   log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
+  param_error = true
+}
+
+if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
+  log.error("The 'cellhash_pool_file' file ${cellhash_pool_file} can not be found.")
+  param_error = true
+}
+
+// QC report check
+if (!file("${projectDir}/templates/qc_report/${report_template_file}").exists()) {
+  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
   param_error = true
 }
 
@@ -73,7 +89,13 @@ if (params.perform_celltyping) {
     log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
     param_error = true
   }
+
+  if (!file("${projectDir}/templates/qc_report/${celltype_report_template_file}").exists()) {
+    log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
+    param_error = true
+  }
 }
+
 
 if(param_error){
   System.exit(1)

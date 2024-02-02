@@ -65,7 +65,7 @@ process spaceranger_publish{
     mv ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
     mv ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
     mv ${spatial_out}/outs/spatial ${spatial_publish_dir}
-    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger_summary.html
+    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
@@ -96,6 +96,9 @@ def getCRsamples(files_dir){
   // takes the path to the directory holding the fastq files for each sample
   // returns just the 'sample info' portion of the file names,
   // as spaceranger would interpret them, comma separated
+  if (!files_dir) { // return empty string if no files directory
+    return ""
+  }
   def fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
   def samples = []
   fastq_files.each{
@@ -123,12 +126,22 @@ workflow spaceranger_quant{
         meta // return modified meta object
       }
       .branch{
-        has_spatial: (
-          !params.repeat_mapping
-          && file(it.spaceranger_results_dir).exists()
-          && Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
+        make_spatial: (
+          // input files exist
+          it.files_directory && file(it.files_directory, type: "dir").exists() && (
+            params.repeat_mapping
+            || !file(it.spaceranger_results_dir).exists()
+            || Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+          )
         )
-        make_spatial: true
+        has_spatial: file(it.spaceranger_results_dir).exists()
+        missing_inputs: true
+      }
+
+    // send run ids in spatial_channel.missing_inputs to log
+    spatial_channel.missing_inputs
+      .subscribe{
+        log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
       }
 
     // create tuple of [metadata, fastq dir, and path to image file]

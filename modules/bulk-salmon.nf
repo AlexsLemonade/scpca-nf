@@ -121,16 +121,29 @@ workflow bulk_quant_rna {
         meta.salmon_results_dir = "${meta.salmon_publish_dir}/${meta.library_id}";
         meta // return modified meta object
       }
-      // split based on whether repeat_mapping is false and the salmon quant.sf file exists
+      // split based on whether repeat_mapping is true and the salmon results directory exists
       // and whether the assembly matches the current assembly
       .branch{
-        has_quants: (
-          !params.repeat_mapping
-          && file(it.salmon_results_dir).exists()
-          && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") == "${it.ref_assembly}"
-          && Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") == "${it.t2g_bulk_path}"
+        make_quants: (
+          // input files exist
+          it.files_directory && file(it.files_directory, type: "dir").exists() && (
+            // and repeat has been requested
+            params.repeat_mapping
+            // the results directory does not exist
+            || !file(it.salmon_results_dir).exists()
+            // the assembly has changed; if salmon_results_dir doesn't exist, these lines won't get hit
+            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") != "${it.t2g_bulk_path}"
+          )
         )
-        make_quants: true
+        has_quants: file(it.salmon_results_dir).exists()
+        missing_inputs: true
+      }
+
+    // send run ids in bulk_channel.missing_inputs to log
+    bulk_channel.missing_inputs
+      .subscribe{
+        log.error("The expected input fastq or salmon results files for ${it.run_id} are missing.")
       }
 
     // If the quants are current and repeat_mapping is false
@@ -138,15 +151,15 @@ workflow bulk_quant_rna {
     quants_ch = bulk_channel.has_quants
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
-        file(meta.salmon_results_dir, type: 'dir')
+        file(meta.salmon_results_dir, type: 'dir', checkIfExists: true)
       )}
 
     // If we need to run salmon, create tuple of (metadata map, [Read 1 files], [Read 2 files])
     bulk_reads_ch = bulk_channel.make_quants
       .map{meta -> tuple(
         meta,
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz"),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz")
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
       )}
 
     // run fastp and salmon for libraries that are not skipping salmon
@@ -166,7 +179,7 @@ workflow bulk_quant_rna {
       .map{[
         it[1][0], // meta; relevant data should all be the same by project, so take the first
         it[2].sort(), // salmon directories, sorted for consistency (we can do this because there is only one tuple element)
-        file(it[1][0].t2g_bulk_path)
+        file(it[1][0].t2g_bulk_path, checkIfExists: true)
       ]}
 
     // create tsv file and combined metadata for each project containing all libraries
