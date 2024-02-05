@@ -189,54 +189,61 @@ if (!is.null(opt$cellassign_predictions)) {
 
   predictions <- readr::read_tsv(opt$cellassign_predictions)
 
-  # get cell type with maximum prediction value for each cell
-  celltype_assignments <- predictions |>
-    tidyr::pivot_longer(
-      !barcode,
-      names_to = "celltype",
-      values_to = "prediction"
-    ) |>
-    dplyr::group_by(barcode) |>
-    dplyr::slice_max(prediction, n = 1) |>
-    dplyr::ungroup()
+  # if the only column is the barcode column then CellAssign didn't complete successfully
+  # otherwise add in cell type annotations and metadata to SCE
+  if (all(colnames(predictions) == "barcode")) {
+    # if failed then note that in the cell type column
+    sce$cellassign_celltype_annotation <- "Not run"
+  } else {
+    # get cell type with maximum prediction value for each cell
+    celltype_assignments <- predictions |>
+      tidyr::pivot_longer(
+        !barcode,
+        names_to = "celltype",
+        values_to = "prediction"
+      ) |>
+      dplyr::group_by(barcode) |>
+      dplyr::slice_max(prediction, n = 1) |>
+      dplyr::ungroup()
 
-  # join by barcode to make sure assignments are in the right order
-  celltype_assignments <- data.frame(barcode = sce$barcodes) |>
-    dplyr::left_join(celltype_assignments, by = "barcode") |>
-    # any cells that are NA were not classified by cellassign
-    dplyr::mutate(celltype = ifelse(is.na(celltype), "Unclassified cell", celltype))
+    # join by barcode to make sure assignments are in the right order
+    celltype_assignments <- data.frame(barcode = sce$barcodes) |>
+      dplyr::left_join(celltype_assignments, by = "barcode") |>
+      # any cells that are NA were not classified by cellassign
+      dplyr::mutate(celltype = ifelse(is.na(celltype), "Unclassified cell", celltype))
 
-  # add cell type and prediction to colData
-  sce$cellassign_celltype_annotation <- celltype_assignments$celltype
-  sce$cellassign_max_prediction <- celltype_assignments$prediction
+    # add cell type and prediction to colData
+    sce$cellassign_celltype_annotation <- celltype_assignments$celltype
+    sce$cellassign_max_prediction <- celltype_assignments$prediction
 
-  # get reference name, source and version
-  cellassign_ref_info <- get_ref_info(
-    ref_filename = opt$cellassign_ref_file,
-    extension = "\\.tsv"
-  )
+    # get reference name, source and version
+    cellassign_ref_info <- get_ref_info(
+      ref_filename = opt$cellassign_ref_file,
+      extension = "\\.tsv"
+    )
 
-  # add entire predictions matrix, ref name, and version to metadata
-  metadata(sce)$cellassign_predictions <- predictions
-  metadata(sce)$cellassign_reference <- cellassign_ref_info[["ref_name"]]
-  metadata(sce)$cellassign_reference_source <- cellassign_ref_info[["ref_source"]]
-  metadata(sce)$cellassign_reference_version <- cellassign_ref_info[["ref_version"]]
+    # add entire predictions matrix, ref name, and version to metadata
+    metadata(sce)$cellassign_predictions <- predictions
+    metadata(sce)$cellassign_reference <- cellassign_ref_info[["ref_name"]]
+    metadata(sce)$cellassign_reference_source <- cellassign_ref_info[["ref_source"]]
+    metadata(sce)$cellassign_reference_version <- cellassign_ref_info[["ref_version"]]
 
-  # add cellassign as celltype method
-  # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
-  #  come out to just the string "cellassign"
-  metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
+    # add cellassign as celltype method
+    # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+    #  come out to just the string "cellassign"
+    metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
 
-  # add cellassign reference organs to metadata
-  cellassign_organs <- opt$celltype_ref_metafile |>
-    readr::read_tsv() |>
-    dplyr::filter(celltype_ref_name == cellassign_ref_info[["ref_name"]]) |>
-    dplyr::pull(organs)
+    # add cellassign reference organs to metadata
+    cellassign_organs <- opt$celltype_ref_metafile |>
+      readr::read_tsv() |>
+      dplyr::filter(celltype_ref_name == cellassign_ref_info[["ref_name"]]) |>
+      dplyr::pull(organs)
 
-  if (cellassign_organs == "" | is.na(cellassign_organs)) {
-    stop("Failed to obtain CellAssign reference organ list.")
+    if (cellassign_organs == "" | is.na(cellassign_organs)) {
+      stop("Failed to obtain CellAssign reference organ list.")
+    }
+    metadata(sce)$cellassign_reference_organs <- cellassign_organs
   }
-  metadata(sce)$cellassign_reference_organs <- cellassign_organs
 }
 
 # export annotated object with cellassign assignments
