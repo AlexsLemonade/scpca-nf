@@ -12,7 +12,7 @@ process export_anndata{
     script:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
-      feature_present = meta.feature_type in ["adt", "cellhash"]
+      feature_present = meta.feature_type in ["adt"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
@@ -24,13 +24,17 @@ process export_anndata{
       # move any normalized counts to X in AnnData
       if [ "${file_type}" = "processed" ]; then
         move_counts_anndata.py --anndata_file ${rna_hdf5_file}
-        ${feature_present ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
+        # move counts in feature data, if the file exists
+        if [ -f "${feature_hdf5_file}" ]; then
+          move_counts_anndata.py --anndata_file ${feature_hdf5_file}
+        fi
       fi
+
       """
     stub:
       rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
       feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
-      feature_present = meta.feature_type in ["adt", "cellhash"]
+      feature_present = meta.feature_type in ["adt"]
       """
       touch ${rna_hdf5_file}
       ${feature_present ? "touch ${feature_hdf5_file}" : ''}
@@ -54,8 +58,8 @@ workflow sce_to_anndata{
         // remove any sce files that don't have enough cells in the sce object
         // number of cells are stored in each metadata.json file
         .filter{
-          cells = Utils.getMetaVal(file(it[3]), "${it[2]}_cells");
-          cells ? cells > 1 : true // if no cell count, keep file (for testing)
+          def cells = Utils.getMetaVal(file(it[3]), "${it[2]}_cells");
+          cells == '' || cells > 1  // if no cell count, keep file for testing, otherwise require at least 2 cells
         }
         // remove metadata.json file from tuple
         .map{it.dropRight(1)}
