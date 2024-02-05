@@ -29,6 +29,7 @@
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Additional workflow settings](#additional-workflow-settings)
   - [Repeating mapping steps](#repeating-mapping-steps)
+- [Running the `merge.nf` workflow](#running-the-mergenf-workflow)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -605,4 +606,53 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
   --repeat_mapping
+```
+
+
+## Running the `merge.nf` workflow
+
+In addition to the main `scpca-nf` workflow, this repository contains a separate workflow called `merge.nf` that will merge a set of processed ScPCA `SingleCellExperiment` objects into a single merged `SingleCellExperiment` object containing all counts from the specified libraries.
+Specifically, for a given SCPCA project id, this workflow creates a merged `SingleCellExperiment` object, a merged `AnnData` object, and an associated merged object HTML report.
+This workflow is specifically designed to run on processed `SingleCellExperiment` object files created by the `scpca-nf` workflow.
+
+There are several important items to be aware of when running this workflow:
+
+* **This workflow does not integrate libraries or perform any batch-correction**.
+It only merges objects into a single object to facilitate downstream analyses such as, but not limited to, integration.
+* Running this workflow may require a significant amount of memory and up to 100 GB of storage.
+* If ADT counts from a CITE-seq experiment are included in at least one library being merged, these results will be included in the final merged object.
+* Any HTO counts from multiplexed libraries will not be included in the final merged object.
+* At this time, the workflow only supports merging set of libraries associated with the specified ScPCA project id(s).
+It is not currently possible to specify different groupings.
+* You will need to configure your run time environment using the same approach [as described for the main `scpca-nf` workflow](#configuring-scpca-nf-for-your-environment).
+  * The only exception to this is that you will only need to use one metadata file, [the run metadata file](#prepare-the-run-metadata-file), and only the following columns are required: `scpca_project_id`, `scpca_library_id`, `scpca_sample_id`, `seq_unit`, and `technology`.
+
+
+The `merge.nf` workflow requires two parameters to run:
+
+* `project`, the ScPCA project id whose objects should be merged
+  * A comma-separated list of ScPCA project ids can also be provided.
+  In this case, a separate merged object will be created for each project id.
+* `run_metafile`, the metadata file (`scpca-library-metadata.tsv`) which contains information about libraries to merge
+
+
+The `merge.nf` workflow runs by first finding all libraries present, for each project, in the specified `params.outdir`, which represents the output directory where `scpca-nf` will have stored results from a prior run.
+If you specified a different parameter value from the default `scpca-out` for the `outdir` parameter in your `scpca-nf` configuration file, you will need to ensure that same value is provided to `merge.nf`.
+Results from running the `merge.nf` workflow will also be added to this `params.outdir` in a sub-directory called `merged`.
+The `merge.nf` workflow will create merged objects for all processed library objects present for the specified project id.
+
+In order to run this workflow, you will first need to clone the `scpca-nf` repository and navigate into it:
+
+```
+git clone git@github.com:AlexsLemonade/scpca-nf.git
+cd scpca-nf
+```
+
+Then, you can run the workflow as follows:
+
+```sh
+nextflow run merge.nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --project <project id whose libraries should be merged>
 ```
