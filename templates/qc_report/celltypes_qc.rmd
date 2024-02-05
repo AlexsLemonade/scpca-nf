@@ -361,7 +361,7 @@ Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_
 ```
 
 
-```{r, eval = has_umap}
+```{r, eval = has_umap, warning = FALSE}
 # Create dataset for plotting UMAPs with lumped and label-wrapped cell types
 umap_df <- lump_wrap_celltypes(celltype_df)
 ```
