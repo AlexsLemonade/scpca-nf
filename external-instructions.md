@@ -622,7 +622,7 @@ It only merges objects into a single object to facilitate downstream analyses su
 * Running this workflow may require a significant amount of memory and up to 100 GB of storage.
 * If ADT counts from a CITE-seq experiment are included in at least one library being merged, these results will be included in the final merged object.
 * Any HTO counts from multiplexed libraries will not be included in the final merged object.
-* At this time, the workflow only supports merging set of libraries associated with the specified ScPCA project id(s).
+* At this time, the workflow only supports merging libraries from the specified ScPCA project id(s).
 It is not currently possible to specify different groupings.
 * You will need to configure your run time environment using the same approach [as described for the main `scpca-nf` workflow](#configuring-scpca-nf-for-your-environment).
   * The only exception to this is that you will only need to use one metadata file, [the run metadata file](#prepare-the-run-metadata-file), and only the following columns are required: `scpca_project_id`, `scpca_library_id`, `scpca_sample_id`, `seq_unit`, and `technology`.
@@ -638,12 +638,12 @@ The `merge.nf` workflow requires two parameters to run:
 
 The `merge.nf` workflow runs by first finding all libraries present, for each project, in the specified `params.outdir`, which represents the output directory where `scpca-nf` will have stored results from a prior run.
 If you specified a different parameter value from the default `scpca-out` for the `outdir` parameter in your `scpca-nf` configuration file, you will need to ensure that same value is provided to `merge.nf`.
-Results from running the `merge.nf` workflow will also be added to this `params.outdir` in a sub-directory called `merged`.
+Results from running the `merge.nf` workflow will also be added to this `params.outdir` directory in a sub-directory called `merged`.
 The `merge.nf` workflow will create merged objects for all processed library objects present for the specified project id.
 
 In order to run this workflow, you will first need to clone the `scpca-nf` repository and navigate into it:
 
-```
+```sh
 git clone git@github.com:AlexsLemonade/scpca-nf.git
 cd scpca-nf
 ```
