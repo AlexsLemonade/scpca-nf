@@ -273,6 +273,17 @@ available_celltypes <- c(
   na.omit() |>
   as.character()
 
+# check if cellassign run was attempted but failed
+if (!has_cellassign && "cellassign_celltype_annotation" %in% names(colData(processed_sce))) {
+  # This means the values should all be `"Not run"`
+  if (!(all(processed_sce$cellassign_celltype_annotation == "Not run"))) {
+    stop("Error: Unexpected CellAssign celltypes are present.")
+  }
+  cellassign_not_run <- TRUE
+} else {
+  cellassign_not_run <- FALSE
+}
+
 # This variable need to be defined for edge conditions when certain cell types
 #  aren't available:
 #  When we have chunks with `eval=<has_method>`, knitr seems to need all other
@@ -356,6 +367,13 @@ if (has_cellassign) {
 }
 
 glue::glue("{methods_text}")
+
+if (cellassign_not_run) {
+  glue::glue(
+    "\nCell type annotation with [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1), was attempted but did not run due to an insufficient number of cells.
+    "
+  )
+}
 ```
 
 
