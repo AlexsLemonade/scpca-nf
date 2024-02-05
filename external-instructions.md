@@ -619,7 +619,7 @@ There are several important items to be aware of when running this workflow:
 
 * **This workflow does not integrate libraries or perform any batch-correction**.
 It only merges objects into a single object to facilitate downstream analyses such as, but not limited to, integration.
-* Running this workflow may require a significant amount of memory and up to 100 GB of storage.
+* Running this workflow may require a significant amount of memory and up to 250 GB of storage.
 * If ADT counts from a CITE-seq experiment are included in at least one library being merged, these results will be included in the final merged object.
 * Any HTO counts from multiplexed libraries will not be included in the final merged object.
 * At this time, the workflow only supports merging libraries from the specified ScPCA project id(s).
