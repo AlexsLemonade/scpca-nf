@@ -641,17 +641,15 @@ If you specified a different parameter value from the default `scpca-out` for th
 Results from running the `merge.nf` workflow will also be added to this `params.outdir` directory in a sub-directory called `merged`.
 The `merge.nf` workflow will create merged objects for all processed library objects present for the specified project id.
 
-In order to run this workflow, you will first need to clone the `scpca-nf` repository and navigate into it:
 
-```sh
-git clone git@github.com:AlexsLemonade/scpca-nf.git
-cd scpca-nf
-```
-
-Then, you can run the workflow as follows:
+The workflow can be run as shown below.
+To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.2` version.
+Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf/merge.nf \
+  -r v0.7.2 \
   -config <path to config file>  \
   -profile <name of profile> \
   --project <project id whose libraries should be merged>
