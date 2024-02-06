@@ -613,7 +613,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 In addition to the main `scpca-nf` workflow, this repository contains a separate workflow called `merge.nf` that will merge a set of processed ScPCA `SingleCellExperiment` objects into a single merged `SingleCellExperiment` object containing all counts from the specified libraries.
 Specifically, for a given SCPCA project id, this workflow creates a merged `SingleCellExperiment` object, a merged `AnnData` object, and an associated merged object HTML report.
-This workflow is specifically designed to run on processed `SingleCellExperiment` object files created by the `scpca-nf` workflow.
+This workflow is specifically designed to run on processed `SingleCellExperiment` object files output by the `scpca-nf` workflow.
 
 There are several important items to be aware of when running this workflow:
 
