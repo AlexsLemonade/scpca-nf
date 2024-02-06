@@ -367,16 +367,15 @@ if (has_cellassign) {
 }
 
 glue::glue("{methods_text}")
+```
 
-if (cellassign_not_run) {
-  # this needs two \n\n to appear on a separate line
-  glue::glue(
+
+```{r eval=cellassign_not_run, results='asis'}
+glue::glue("
    <div class=\"alert alert-info\">
-    \n\nCell type annotation with [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)), was attempted but not run due to an insufficient number of cells.
-    </div>
-    "
-  )
-}
+   Cell type annotation with [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)), was attempted but not run due to an insufficient number of cells.
+  </div>
+")
 ```
 
 
