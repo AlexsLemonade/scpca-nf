@@ -140,4 +140,27 @@ prepare_submitter_annotation_values <- function(df) {
 
   return(df)
 }
+
+#' Check if CellAssign was run or not
+#'
+#' @param has_cellassign Boolean indicating if CellAssign is present
+#' @param sce_coldata colData slot of a processed SCE object
+#'
+#' @return TRUE if CellAssign was not run, FALSE if CellAssign was run
+check_cellassign_not_run <- function(
+    has_cellassign,
+    sce_coldata) {
+  if (!has_cellassign && "cellassign_celltype_annotation" %in% names(sce_coldata)) {
+    # This means the values should all be `"Not run"`
+    if (!(all(sce_coldata$cellassign_celltype_annotation == "Not run"))) {
+      stop("Error: Unexpected CellAssign celltypes are present.")
+    }
+
+    cellassign_not_run <- TRUE
+  } else {
+    cellassign_not_run <- FALSE
+  }
+
+  return(cellassign_not_run)
+}
 ```

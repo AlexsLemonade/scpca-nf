@@ -259,7 +259,8 @@ processed_sce <- params$processed_sce
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
+has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
+  !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
 # check for umap
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
@@ -273,16 +274,11 @@ available_celltypes <- c(
   na.omit() |>
   as.character()
 
-# check if cellassign run was attempted but failed
-if (!has_cellassign && "cellassign_celltype_annotation" %in% names(colData(processed_sce))) {
-  # This means the values should all be `"Not run"`
-  if (!(all(processed_sce$cellassign_celltype_annotation == "Not run"))) {
-    stop("Error: Unexpected CellAssign celltypes are present.")
-  }
-  cellassign_not_run <- TRUE
-} else {
-  cellassign_not_run <- FALSE
-}
+# was cellassign run?
+cellassign_not_run <- check_cellassign_not_run(
+  has_cellassign,
+  colData(processed_sce)
+)
 
 # This variable need to be defined for edge conditions when certain cell types
 #  aren't available:
@@ -368,7 +364,6 @@ if (has_cellassign) {
 
 glue::glue("{methods_text}")
 ```
-
 
 ```{r eval=cellassign_not_run, results='asis'}
 glue::glue("
