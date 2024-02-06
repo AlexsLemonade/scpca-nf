@@ -67,12 +67,24 @@ Here we provide an overview of the steps you will need to complete:
 The standard configuration the `scpca-nf` workflow expects that compute nodes will have direct access to the internet, and will download reference files and container images with any required software as required.
 If your HPC system does not allow internet access from compute nodes, you will need to download the required reference files and software before running, [following the instructions we have provided](#using-scpca-nf-on-nodes-without-direct-internet-access).
 
-Once you have set up your environment and created the metadata and configuration files, you will be able to start your run as follows, adding any additional optional parameters that you may choose.
+Once you have set up your environment and created the metadata and configuration files, you will be able to start your run as follows, adding any additional optional parameters that you may choose:
 
-You will also need to specify a release tagged version of the workflow with the `-r` flag.
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  -config <path to config file>  \
+  -profile <name of profile>
+```
+
+Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
+This command will pull the `scpca-nf` workflow directly from Github, and run it based on the settings in the configuration file that you have defined.
+
+**Note:** `scpca-nf` is under active development.
+Using the above command will run the workflow from the `main` branch of the workflow repository.
+To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
+
+To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
 The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.2` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
-
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
@@ -80,14 +92,6 @@ nextflow run AlexsLemonade/scpca-nf \
   -config <path to config file>  \
   -profile <name of profile>
 ```
-
-Above, `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
-This command will pull the `scpca-nf` workflow directly from Github, and run it based on the settings in the configuration file that you have defined.
-
-**Note:** `scpca-nf` is under active development.
-Using the above command will run the workflow from the `main` branch of the workflow repository.
-To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
-
 
 For each library that is successfully processed, the workflow will return quantified gene expression data as a `SingleCellExperiment` object stored in an RDS file along with a summary HTML report and any relevant intermediate files.
 For a complete description of the expected output files, see the section describing [output files](#output-files).
@@ -214,8 +218,7 @@ This file is then used with the `-config` (or `-c`) argument at the command line
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config my_config.config \
-  -r v0.7.2
+  -config my_config.config
 ```
 
 For reference, we provide an example template configuration file, [`user_template.config`](examples/user_template.config), which includes some other workflow parameters that may be useful, as well as an example of configuring a profile for executing the workflow on a cluster, discussed below.
@@ -241,7 +244,6 @@ In our example template file [`user_template.config`](examples/user_template.con
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
   -config user_template.config \
-  -r v0.7.2 \
   -profile cluster
 ```
 
@@ -293,7 +295,6 @@ You can then direct Nextflow to use the parameters stored in `localref_params.ya
 nextflow run AlexsLemonade/scpca-nf \
   -params-file localref_params.yaml \
   -config user_template.config \
-  -r v0.7.2 \
   -profile cluster
 ```
 
@@ -495,6 +496,8 @@ This will tell the workflow to save the `alevin-fry` outputs to a folder labeled
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
   --publish_fry_outs
 ```
 
@@ -560,7 +563,7 @@ For genetic demultiplexing, we also require:
 
 If any sample in a pool is missing a matched bulk RNA-seq library, then genetic demultiplexing will be skipped and only cellhash-based demultiplexing will be performed.
 
-To skip genetic demultiplexing for all libraries and perform cellhash-based demultiplexing _only_, use the `--skip_genetic_demux` flag at the command line:
+To skip genetic demultiplexing for all libraries and perform cellhash-based demultiplexing _only_ use the `--skip_genetic_demux` flag at the command line:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
