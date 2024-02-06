@@ -651,7 +651,7 @@ cd scpca-nf
 Then, you can run the workflow as follows:
 
 ```sh
-nextflow run merge.nf \
+nextflow run AlexsLemonade/scpca-nf/merge.nf \
   -config <path to config file>  \
   -profile <name of profile> \
   --project <project id whose libraries should be merged>
