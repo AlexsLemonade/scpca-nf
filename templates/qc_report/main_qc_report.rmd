@@ -114,7 +114,7 @@ if (has_processed) {
 
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &
+  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
     !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
@@ -141,10 +141,9 @@ sample_types <- metadata(unfiltered_sce)$sample_type
 # only print out info box if xenograft or cell line, with different logic/warnings
 # for multiplex libraries
 if ("patient-derived xenograft" %in% sample_types) {
-
   # determine which samples are the PDXs
   if (has_multiplex) {
-    # get a list of samples in the library that are pdxs 
+    # get a list of samples in the library that are pdxs
     pdx_samples <- names(sample_types[sample_types == "patient-derived xenograft"])
     pdx_samples_bullets <- paste0("<li>", paste(pdx_samples, collapse = "</li><li>", "</li>"))
 
@@ -158,7 +157,6 @@ if ("patient-derived xenograft" %in% sample_types) {
 
       </div>
     ")
-
   } else {
     glue::glue("
       <div class=\"alert alert-info\">
