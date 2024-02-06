@@ -237,6 +237,11 @@ determine_umap_dimensions <- function(n_celltypes) {
 The plots and tables included here detail the results from performing cell type annotation.
 
 ```{r, eval = !is_supplemental, results = 'asis'}
+cellassign_not_run <- check_cellassign_not_run(
+  has_cellassign,
+  colData(processed_sce)
+)
+
 # define bullets glue string
 methods_bullets <- c(
   ifelse(has_submitter, "Submitter-provided", NA),
@@ -249,15 +254,25 @@ methods_bullets <- c(
   stringr::str_flatten(collapse = "\n")
 
 
-# print the bullets
+
+# print the bullets and other info messages
 glue::glue("
   This library contains the following cell type annotations:
 
   {methods_bullets}
+")
 
-  For additional information about cell typing, including methods used for cell typing, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+if (cellassign_not_run) {
+  glue::glue(
+    "\n\nCell type annotation with `CellAssign` was attempted but not run due to an insufficient number of cells."
+  )
+}
+
+glue::glue("
+  \n\nFor additional information about cell typing, including methods used for cell typing, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
 ")
 ```
+
 
 ## Statistics
 
@@ -361,7 +376,7 @@ Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_
 ```
 
 
-```{r, eval = has_umap}
+```{r, eval = has_umap, warning = FALSE}
 # Create dataset for plotting UMAPs with lumped and label-wrapped cell types
 umap_df <- lump_wrap_celltypes(celltype_df)
 ```
