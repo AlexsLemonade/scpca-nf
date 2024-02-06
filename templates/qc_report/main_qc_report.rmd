@@ -134,6 +134,20 @@ if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
 sample_types <- metadata(unfiltered_sce)$sample_type
+
+# determine UMAP point size based on number of processed cells
+n_processed_cells <- ncol(processed_sce)
+umap_point_size <- dplyr::case_when(
+  n_processed_cells <= 500 ~ 0.8,
+  n_processed_cells <= 1500 ~ 0.6,
+  .default = 0.3
+)
+umap_facet_point_size <- dplyr::case_when(
+  n_processed_cells <= 500 ~ 0.5,
+  n_processed_cells <= 1500 ~ 0.25,
+  n_processed_cells <= 5000 ~ 0.1,
+  .default = 0.01
+)
 ```
 
 
@@ -170,6 +184,7 @@ if ("patient-derived xenograft" %in% sample_types) {
 
 if ("cell line" %in% sample_types) {
   if (has_multiplex) {
+    # get a list of samples in the library that are cell lines
     cell_line_samples <- names(sample_types[sample_types == "cell line"])
     cell_line_samples_bullets <- paste0("<li>", paste(cell_line_samples, collapse = "</li><li>", "</li>"))
 
