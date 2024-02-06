@@ -496,8 +496,6 @@ This will tell the workflow to save the `alevin-fry` outputs to a folder labeled
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config <path to config file>  \
-  -profile <name of profile> \
   --publish_fry_outs
 ```
 
@@ -646,8 +644,16 @@ If you specified a different parameter value from the default `scpca-out` for th
 Results from running the `merge.nf` workflow will also be added to this `params.outdir` directory in a sub-directory called `merged`.
 The `merge.nf` workflow will create merged objects for all processed library objects present for the specified project id.
 
-The workflow can be run as shown below.
-You will need to specify a release tagged version of the workflow with the `-r` flag.
+The workflow can be run as shown:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/merge.nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --project <project id whose libraries should be merged>
+```
+
+To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
 The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.2` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
