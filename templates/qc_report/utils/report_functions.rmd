@@ -1,0 +1,28 @@
+<!-- This document contains function definitions that are used by both
+`main_qc_report.rmd` and `celltypes_supplemental_report.rmd` but are not specific to cell typing -->
+
+
+```{r}
+#' Determine size for UMAP points which depends on the number of cells in the
+#'   processed object.
+#'
+#' @param n_processed_cells Number of cells in the processed object
+#'
+#' @return A vector with two integer values: A standalone UMAP point size, and a
+#'   point size for faceted UMAPs
+determine_umap_point_size <- function(n_processed_cells) {
+  umap_point_size <- dplyr::case_when(
+    n_processed_cells <= 500 ~ 0.8,
+    n_processed_cells <= 2250 ~ 0.6,
+    .default = 0.3
+  )
+  umap_facet_point_size <- dplyr::case_when(
+    n_processed_cells <= 500 ~ 0.5,
+    n_processed_cells <= 2250 ~ 0.25,
+    n_processed_cells <= 5000 ~ 0.1,
+    .default = 0.01
+  )
+
+  return(c(umap_point_size, umap_facet_point_size))
+}
+```
