@@ -28,7 +28,7 @@ process sce_qc_report{
     // check for cell types
     // only provide report template if cell typing was performed and either singler or cellassign was used
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+    celltype_report = "${meta.library_id}_celltype_report.html" // rendered HTML
     celltype_template_path = "${template_dir}/${celltype_template_file}" // template input
 
     """
@@ -71,7 +71,7 @@ process sce_qc_report{
     metadata_json = "${meta.library_id}_metadata.json"
 
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+    celltype_report = "${meta.library_id}_celltype_report.html" // rendered HTML
 
     """
     touch ${unfiltered_out}
