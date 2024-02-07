@@ -29,6 +29,14 @@
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Additional workflow settings](#additional-workflow-settings)
   - [Repeating mapping steps](#repeating-mapping-steps)
+- [The `merge.nf` workflow](#the-mergenf-workflow)
+  - [Overview](#overview-1)
+  - [Steps for running the `merge.nf` workflow](#steps-for-running-the-mergenf-workflow)
+    - [Running the `merge.nf` workflow](#running-the-mergenf-workflow)
+  - [Output files](#output-files-1)
+  - [Special considerations for specific data types when running `merge.nf`](#special-considerations-for-specific-data-types-when-running-mergenf)
+    - [Merging libraries with CITE-seq data](#merging-libraries-with-cite-seq-data)
+    - [Merging libraries with cellhash data](#merging-libraries-with-cellhash-data)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -491,8 +499,6 @@ This will tell the workflow to save the `alevin-fry` outputs to a folder labeled
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config <path to config file>  \
-  -profile <name of profile> \
   --publish_fry_outs
 ```
 
@@ -606,3 +612,96 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 nextflow run AlexsLemonade/scpca-nf \
   --repeat_mapping
 ```
+
+
+## The `merge.nf` workflow
+
+### Overview
+
+In addition to the main `scpca-nf` workflow, this repository contains a separate workflow called `merge.nf` that will merge a set of processed ScPCA `SingleCellExperiment` objects into a single merged `SingleCellExperiment` object containing all counts from the specified libraries.
+This workflow creates a merged `SingleCellExperiment` object, a merged `AnnData` object, and an associated merged object HTML report encompassing all libraries with the same `scpca_project_id`.
+**This workflow only merges objects; it does not integrate libraries or perform any batch-correction**.
+
+### Steps for running the `merge.nf` workflow
+
+This workflow is specifically designed to run on processed `SingleCellExperiment` object files output by the `scpca-nf` workflow.
+Therefore, you will need to take the following steps to run the `merge.nf` workflow:
+
+1. Follow the instructions above to prepare to run the `scpca-nf` workflow, including [organizing your files](#file-organization), preparing both the [run metadata](#prepare-the-run-metadata-file) and [sample metadata](#prepare-the-sample-metadata-file) files, and [configuring your environment](#configuring-scpca-nf-for-your-environment).
+The `scpca_project_id` values you specify in the metadata files will be used to determine which libraries should be merged together in the `merge.nf` workflow.
+2. Run the `scpca-nf` workflow.
+3. Run the `merge.nf` workflow, as described below.
+
+#### Running the `merge.nf` workflow
+
+The `merge.nf` workflow requires two parameters to run:
+
+- `project`, the `scpca_project_id` whose objects should be merged
+  * A comma-separated list of `scpca_project_id` values can also be provided.
+  In this case, a separate merged object will be created for each id.
+- `run_metafile`, the run metadata file which was previously prepared when running the main workflow
+
+The `merge.nf` workflow runs by first finding all libraries present, for each project, in the specified `params.outdir`, which represents the output directory where `scpca-nf` will have stored results from a prior run.
+If you specified a different parameter value from the default `scpca-out` for the `outdir` parameter in your `scpca-nf` configuration file, you will need to ensure that same value is provided to `merge.nf`.
+Results from running the `merge.nf` workflow will also be added to this `params.outdir` directory in a sub-directory called `merged`.
+
+The workflow can be run as shown:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/merge.nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --project <project id whose libraries should be merged>
+```
+
+To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.2` version.
+Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/merge.nf \
+  -r v0.7.2 \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --project <project id whose libraries should be merged>
+```
+
+### Output files
+
+The `merge.nf` workflow will output, for each specified project id, an `.rds` file containing a merged `SingleCellExperiment` object, an `.hdf5` file containing a merged `AnnData` object, and a report which provides a brief summary of the types of libraries and their samples' diagnoses included in the merged object, as well as UMAP visualizations highlighting each library.
+
+These output files will follow this structure:
+
+```
+merged
+└── <project id>
+    ├── <project_id>_merged.rds
+    ├── <project_id>_merged_rna.hdf5
+    └── <project_id>_merged-summary-report.html
+```
+
+
+### Special considerations for specific data types when running `merge.nf`
+
+There are some additional considerations to be aware of for libraries which contain additional modalities, such as ADT counts from CITE-seq or HTO counts from multiplexing.
+
+#### Merging libraries with CITE-seq data
+
+If any libraries in a merge group have ADT counts, these counts will also be merged and included in the final merged object.
+In the case of `SingleCellExperiment` objects, ADT counts will be provided as an alternative experiment called `"adt"` in same object.
+In the case of `AnnData`, a separate file will be exported with the extension `_adt.hdf5` that contains the merged ADT counts.
+The output files will follow this structure if CITE-seq data is present:
+
+```
+merged
+└── <project id>
+    ├── <project_id>_merged.rds
+    ├── <project_id>_merged_rna.hdf5
+    ├── <project_id>_merged_adt.hdf5
+    └── <project_id>_merged-summary-report.html
+```
+
+#### Merging libraries with cellhash data
+
+The `merge.nf` workflow currently does not support merging HTO counts from multiplexed libraries.
+If any libraries contain HTO counts, the RNA counts will still be merged and exported, but the HTO counts will not be included.
