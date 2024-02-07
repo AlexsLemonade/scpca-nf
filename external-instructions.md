@@ -670,7 +670,7 @@ nextflow run AlexsLemonade/scpca-nf/merge.nf \
 
 There are some additional considerations to be aware of for libraries which contain additional modalities, such as ADT counts from CITE-seq or HTO counts from multiplexing.
 
-If any libraries in a merge group having ADT counts, these counts will also be merged and included in the final merged object.
+If any libraries in a merge group have ADT counts, these counts will also be merged and included in the final merged object.
 In the case of `SingleCellExperiment` objects, ADT counts will be provided as an alternative experiment called `"adt"` in same object.
 In the case of `AnnData`, a separate file will be exported with the extension `_adt.hdf5` that contains the merged ADT counts.
 
