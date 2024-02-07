@@ -6,7 +6,7 @@ The below plot shows the UMAP (Uniform Manifold Approximation and Projection) em
 # create UMAP colored by number of genes detected
 scater::plotUMAP(
   processed_sce,
-  point_size = 0.3,
+  point_size = umap_point_size,
   point_alpha = 0.5,
   colour_by = "detected"
 ) +
@@ -16,7 +16,7 @@ scater::plotUMAP(
   scale_y_continuous(labels = NULL, breaks = NULL) +
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
-  ) + 
+  ) +
   theme(aspect.ratio = 1)
 ```
 
@@ -80,7 +80,7 @@ if (!is.null(processed_meta$highly_variable_genes)) {
 
 
   ggplot(coldata_df, aes(x = UMAP1, y = UMAP2, color = gene_expression)) +
-    geom_point(alpha = 0.1, size = 0.001) +
+    geom_point(alpha = 0.1, size = umap_facet_point_size) +
     facet_wrap(vars(gene_symbol)) +
     scale_color_viridis_c() +
     labs(
