@@ -53,6 +53,12 @@ reformat_nulls <- function(df) {
 set.seed(params$seed)
 ```
 
+
+<!-- source functions --> 
+```{r, child='utils/report_functions.rmd'}
+```
+
+
 ```{r sce_setup}
 # save some typing later
 library_id <- params$library
@@ -135,19 +141,10 @@ if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
 has_multiplex <- length(sample_id) > 1
 sample_types <- metadata(unfiltered_sce)$sample_type
 
-# determine UMAP point size based on number of processed cells
-n_processed_cells <- ncol(processed_sce)
-umap_point_size <- dplyr::case_when(
-  n_processed_cells <= 500 ~ 0.8,
-  n_processed_cells <= 1500 ~ 0.6,
-  .default = 0.3
-)
-umap_facet_point_size <- dplyr::case_when(
-  n_processed_cells <= 500 ~ 0.5,
-  n_processed_cells <= 1500 ~ 0.25,
-  n_processed_cells <= 5000 ~ 0.1,
-  .default = 0.01
-)
+# determine UMAP point sizing
+umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
+umap_point_size <- umap_points_sizes[1]
+umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
