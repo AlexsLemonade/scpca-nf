@@ -402,7 +402,20 @@ We have provided an example project cell type metadata file for reference.
 
 ### Repeating cell type annotation
 
-When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder, as long as the cell type reference file is unchanged.
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder, as long as the cell type reference file name is unchanged.
+The cell type annotations in the `checkpoints` folder have the following structure:
+
+```
+checkpoints
+└── celltype
+    └── library01
+    │   ├── library01_cellassign
+    │   └── library01_cellassign
+    └── library02
+        ├── library02_cellassign
+        └── library02_cellassign
+```
+
 
 This saves substantial processing time if the cell type annotation reference versions are unchanged.
 However, you may wish to repeat the cell typing process if there have been other changes to the data or analysis.
