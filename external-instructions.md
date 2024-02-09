@@ -391,9 +391,9 @@ The project cell type metadata file should contain these five columns with the f
 | --------------------- | -------- |
 | `scpca_project_id`    | Project ID matching values in the run metadata file |
 | `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation |
-| `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | `SingleR` reference file name, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
-| `cellassign_ref_file` | Path/uri to `CellAssign` reference file, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | `CellAssign` reference file name, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
 
 We have provided an example project cell type metadata file for reference.
 
