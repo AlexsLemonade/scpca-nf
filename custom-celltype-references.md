@@ -1,3 +1,18 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [How to generate custom cell type references](#how-to-generate-custom-cell-type-references)
+  - [Overview](#overview)
+    - [Creating a custom `SingleR` reference dataset](#creating-a-custom-singler-reference-dataset)
+      - [Training the model](#training-the-model)
+    - [Creating a custom `CellAssign` marker-gene list](#creating-a-custom-cellassign-marker-gene-list)
+    - [Creating your cell type metadata file](#creating-your-cell-type-metadata-file)
+    - [Running the workflow with custom references](#running-the-workflow-with-custom-references)
+    - [Special considerations for repeating cell type annotation](#special-considerations-for-repeating-cell-type-annotation)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # How to generate custom cell type references
 
 
