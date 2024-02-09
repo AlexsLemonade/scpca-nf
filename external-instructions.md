@@ -366,6 +366,8 @@ All references listed in this table are publicly available on S3 for use with ce
 It is possible to provide your own references as well; instructions for this are forthcoming.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
+If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
+
 #### `SingleR` references
 
 The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
@@ -441,7 +443,6 @@ The cell type label file is a TSV file with the following required columns:
 | `cell_type_assignment` | The annotation label for that cell                  |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
-
 
 ## Output files
 

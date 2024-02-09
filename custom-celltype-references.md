@@ -2,7 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [How to generate custom cell type references](#how-to-generate-custom-cell-type-references)
+- [Creating and using custom cell type references](#creating-and-using-custom-cell-type-references)
   - [Overview](#overview)
     - [Creating a custom `SingleR` reference dataset](#creating-a-custom-singler-reference-dataset)
       - [Training the model](#training-the-model)
@@ -13,7 +13,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# How to generate custom cell type references
+# Creating and using custom cell type references
 
 
 ## Overview
