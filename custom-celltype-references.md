@@ -39,14 +39,14 @@ Either bulk gene expression (microarray or RNA-seq) or single-cell datasets with
 To the best of your ability, you should identify and use a reference dataset that contains cell types that you expect will also be present in your data.
 The reference dataset should also be the same organism as the sample you are analyzing to ensure matching gene ids.
 
-The `scpca-nf` workflow required a _pre-trained `SingleR` model_ as built from your selected reference dataset.
+The `scpca-nf` workflow requires a _pre-trained `SingleR` model_ as built from your selected reference dataset.
 These trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
 Create this file by taking the following steps:
 
 1. Identify an appropriate reference dataset to use.
 This dataset should be either a [`SummarizedExperiment`](https://rdrr.io/bioc/SummarizedExperiment/man/SummarizedExperiment-class.html) or [`SingleCellExperiment`](https://rdrr.io/bioc/SingleCellExperiment/man/SingleCellExperiment.html) object, where each column represents a sample or cell, and each row represents a gene.
 Rows should be named with Ensembl gene ids.
-  - Some resources you can use to find a suitable reference dataset are the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) or the [`scRNA-seq` package](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), both from Bioconductor.
+    a. Some resources you can use to find a suitable reference dataset are the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) or the [`scRNA-seq` package](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), both from Bioconductor.
 Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
 2. Use [`SingleR::traingSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html) to train your model based on your chosen reference dataset.
 3. Add additional fields to the established model object, as needed (see instructions below).
@@ -74,13 +74,13 @@ singler_model <- SingleR::trainSingleR(
 Once the model object is built, you can optionally add two fields to the model object:
 
 - `reference_label`, a string with information about the types of labels you specified
-- `reference_name`, a string with your reference label name
+- `reference_name`, a string with your reference name
 
 If you choose to add this information, use the following code:
 
 ```
 singler_model$reference_label <- "<name describing my labels>"
-singler_model$reference_name <- "<name describing my labels>"
+singler_model$reference_name <- "<name of your singler model>"
 ```
 
 If you do not provide this information, the final `SingleCellExperiment` object produced by `scpca-nf` will have `NULL` values for the fields `metadata(sce)$singler_reference_label` and `metadata(sce)$singler_reference_name`, respectively, but no calculations will be affected.
@@ -95,13 +95,18 @@ readr::write_rds(singler_model, model_file_name)
 
 #### Special considerations when using ontology labels
 
-If you chose to use ontology labels, you may wish to set the `reference_label` field to the string `"label.ont"`.
+If you chose to use ontology labels, you may wish to set the `reference_label` field to the string `"label.ont"` as shown below.
+
+```
+singler_model$reference_label <- "label.ont"
+```
+
 Using this specific string will trigger the `scpca-nf` workflow to additionally expect a dataframe with two columns, `ontology_id` and `ontology_cell_names`, to be present in the `SingleR` model object in the field `celltype_ontology_df`.
+Therefore, if you supply the string `"label.ont"`, you must also add this field.
 The `ontology_id` column should contain ontology id values corresponding to labels in your `labels` vector, and the `ontology_cell_names` column should contain the human-readable cell type names associated with each ontology ID (e.g., `"B cell"`).
 The [`oncoProc` package](https://bioconductor.org/packages/release/bioc/html/ontoProc.html) from `Bioconductor` may be useful for compiling this information.
 
 ```
-singler_model$reference_label <- "label.ont"
 singler_model$celltype_ontology_df <- data.frame(
   ontology_id = <vector of ontology ids corresponding to annotation labels>,
   ontology_cell_names = <vector of matching cell type names>
@@ -110,15 +115,16 @@ singler_model$celltype_ontology_df <- data.frame(
 
 ### Creating a custom `CellAssign` marker-gene list
 
-The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix.
+The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
 This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene ids, as the rows.
-It is important to use marker genes from the same organism as the sample you are analyzing to ensure matching gene ids.
+Values of `1` indicate that the given gene is a marker gene for the give cell type, and values of `0` indicate that the gene is not a marker gene for the cell type.
+When compiling this information, it is important to use marker genes from the same organism as the sample you are analyzing to ensure matching gene ids.
 
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
 
 This TSV file should have the following columns and values:
 
-1. `ensembl_id`, which contain Ensembl gene ids.
+1. `ensembl_id`, which contains Ensembl gene ids.
 2. One column for each cell type label to use for annotation.
 All values in this column should be `1` or `0`, indicating whether that row's Ensembl gene id is a marker gene for that cell type (`1`) or not (`0`)
 3. `other`, which contains all values set to `0`.
@@ -137,8 +143,8 @@ The project cell type metadata file should contain these five columns with the f
 | column_id             | contents |
 | --------------------- | -------- |
 | `scpca_project_id`    | Project id matching values in the run metadata file |
-| `singler_ref_name`    | The name of your `SingleR` model which should match the `<singler_reference_name>` string you used when creating your `SingleR` reference RDS file. Use `NA` to skip `CellAssign` annotation |
-| `singler_ref_file`    | The file name of your `SingleR` model, as `<singler_reference_name>_model.rds`. Use `NA` to skip `CellAssign` annotation |
+| `singler_ref_name`    | The name of your `SingleR` model which should match the `<singler_reference_name>` string you used when creating your `SingleR` reference RDS file. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | The file name of your `SingleR` model, as `<singler_reference_name>_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` |The name of your `CellAssign` model which should match the `<cellassign_ref_name>` string you used when creating your `CellAssign` reference TSV file. Use `NA` to skip `CellAssign` annotation |
 | `cellassign_ref_file` | The file name of your `CellAssign` model, as `<cellassign_reference_name>.tsv`. Use `NA` to skip `CellAssign` annotation |
 
@@ -147,8 +153,6 @@ The project cell type metadata file should contain these five columns with the f
 There are several parameter values you will have to set either in your [configuration file](./external-instructions.md#configuration-files) or at the command line when running `scpca-nf`:
 
 
-- `params.singler_reference_label`: A name describing the label used during `SingleR` model training.
-If you do not have a particular name for your labels, you can simply provide `""`, _but you MUST provide a non-default value for this parameter_ unless you are not performing cell type annotation with `SingleR`.
 - `params.singler_models_dir`: The path/uri to the directory that contains your `<singler_reference_name>_model.rds`.
 This value should _not include_ the file name itself.
 For example, if the path to your file is `/path/to/reference/<singler_reference_name>_model.rds`, only provide the value `/path/to/reference`.
@@ -157,7 +161,7 @@ You can skip this parameter if you are not performing cell type annotation with 
 This value should _not include_ the file name itself.
 For example, if the path to your file is `/path/to/reference/<cellassign_reference_name>.tsv`, only provide the value `/path/to/reference`.
 You can skip this parameter if you are not performing cell type annotation with `CellAssign`.
-- `params.project_celltype_metafile`: The path/uri to your cell type metadata file, including the the file name.
+- `params.project_celltype_metafile`: The path/uri to your cell type metadata file, including the file name.
 
 
 When running the workflow, be sure to use the `--perform_celltyping` flag to perform cell type annotation.
@@ -166,7 +170,6 @@ You can run the workflow as (showing all parameters specified at the command lin
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
-  --singler_label_name <optionally, the label name> \
   --singler_models_dir <directory/containing/singler/model/file> \
   --cellassign_reference/dir <directory/containing/cellassign/reference/file> \
   --project_celltype_metafile <path/to/celltype metafile> \
@@ -178,5 +181,15 @@ nextflow run AlexsLemonade/scpca-nf \
 
 As described [in these instructions](./external-instructions.md#repeating-cell-type-annotation), cell type annotation is, by default, not repeated if results already exist.
 `scpca-nf` determines if results already exist based on the _file name_ of the provided reference file.
-Therefore, if you re-run the workflow with a renamed, but unchanged, reference file, be aware that cell type annotation will be repeated.
-To force cell type annotation to repeat, for example if you retain the same reference file names but changed their contents, use the `--repeat_celltyping` flag as well as the `--perform_celltyping` flag at runtime.
+Therefore, if you re-run the workflow with a renamed but unchanged reference file, be aware that cell type annotation will be repeated.
+
+To force cell type annotation to repeat, for example if you retain the same reference file names but changed their contents, use the `--repeat_celltyping` flag as well as the `--perform_celltyping` flag at runtime:
+
+```bash
+nextflow run AlexsLemonade/scpca-nf \
+  --singler_models_dir <directory/containing/singler/model/file> \
+  --cellassign_reference/dir <directory/containing/cellassign/reference/file> \
+  --project_celltype_metafile <path/to/celltype metafile> \
+  --perform_celltyping \
+  --repeat_celltyping
+```
