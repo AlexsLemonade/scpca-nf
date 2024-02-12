@@ -45,11 +45,11 @@ if (!(stringr::str_ends(opt$submitter_cell_types_file, ".tsv"))) {
 
 # Read in celltypes TSV
 submitter_df <- readr::read_tsv(
-    opt$submitter_cell_types_file,
-    # read in all columns as character
-    col_types = list(.default = readr::col_character()),
-    na = character()
-  )
+  opt$submitter_cell_types_file,
+  # read in all columns as character
+  col_types = list(.default = readr::col_character()),
+  na = character()
+)
 
 # Check columns before proceeding for faster failing:
 # TODO: WHAT IF THEY PROVIDE AN ONTOLOGY COLUMN? WE NEED TO PARSE THAT TOO. WILL NEED MORE IF BELOW.
@@ -72,7 +72,7 @@ submitter_df <- submitter_df |>
   ) |>
   dplyr::distinct()
 
-# join with colData. 
+# join with colData.
 # noting by using `left_join()` we preserve the correct order
 coldata_df <- colData(sce) |>
   as.data.frame() |>
