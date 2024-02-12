@@ -71,17 +71,22 @@ singler_model <- SingleR::trainSingleR(
 )
 ```
 
-Once the model object is built, you can optionally add the field `reference_label` with information about the types of labels you specified.
-If you do not provide this information, the final `SingleCellExperiment` object produced by `scpca-nf` will have a value `NULL` for the field `metadata(sce)$singler_reference_label`, but no calculations will be affected.
+Once the model object is built, you can optionally add two fields to the model object:
 
-If you choose to add this label, use the following code:
+- `reference_label`, a string with information about the types of labels you specified
+- `reference_name`, a string with your reference label name
+
+If you choose to add this information, use the following code:
 
 ```
 singler_model$reference_label <- "<name describing my labels>"
+singler_model$reference_name <- "<name describing my labels>"
 ```
 
-Finally, export the trained model to a file named `<singler_reference_name>_model.rds`:
+If you do not provide this information, the final `SingleCellExperiment` object produced by `scpca-nf` will have `NULL` values for the fields `metadata(sce)$singler_reference_label` and `metadata(sce)$singler_reference_name`, respectively, but no calculations will be affected.
 
+
+Finally, export the trained model to a file named `<singler_reference_name>_model.rds`:
 ```
 model_file_name <- "<singler_reference_name>_model.rds"
 readr::write_rds(singler_model, model_file_name)
@@ -104,6 +109,7 @@ singler_model$celltype_ontology_df <- data.frame(
 ```
 
 ### Creating a custom `CellAssign` marker-gene list
+
 
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
 
