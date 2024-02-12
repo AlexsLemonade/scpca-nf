@@ -110,6 +110,9 @@ singler_model$celltype_ontology_df <- data.frame(
 
 ### Creating a custom `CellAssign` marker-gene list
 
+The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix.
+This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene ids, as the rows.
+It is important to use marker genes from the same organism as the sample you are analyzing to ensure matching gene ids.
 
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
 
@@ -118,7 +121,7 @@ This TSV file should have the following columns and values:
 1. `ensembl_id`, which contain Ensembl gene ids.
 2. One column for each cell type label to use for annotation.
 All values in this column should be `1` or `0`, indicating whether that row's Ensembl gene id is a marker gene for that cell type (`1`) or not (`0`)
-3. Optionally, you may wish to a include a column called `"other"` with all values set to `0`.
+3. `other`, which contains all values set to `0`.
 If `CellAssign` cannot confidently annotate a cell with one of the provided cell type labels, then it will assign the label of `"other"`, indicating that no marker genes were specifically expressed in that cell.
 
 Once this file is created, save it as `<cellassign_reference_name>.tsv`.
