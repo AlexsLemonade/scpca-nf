@@ -53,6 +53,5 @@ repos:
       - id: end-of-file-fixer
         exclude: '\.Rd'
 ci:
-  autofix_prs: false
   autoupdate_branch: development
   skip: [spell-check]
