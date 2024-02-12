@@ -37,6 +37,7 @@ Your `SingleR` reference dataset should be a well-curated gene expression datase
 [As described in the `SingleR` book](https://bioconductor.org/books/release/SingleRBook/), `SingleR` uses these reference expression values and associated labels to identify cells in your dataset with similar expression patterns.
 Either bulk gene expression (microarray or RNA-seq) or single-cell datasets with annotations can be used as references.
 To the best of your ability, you should identify and use a reference dataset that contains cell types that you expect will also be present in your data.
+The reference dataset should also be the same organism as the sample you are analyzing to ensure matching gene ids.
 
 The `scpca-nf` workflow required a _pre-trained `SingleR` model_ as built from your selected reference dataset.
 These trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
