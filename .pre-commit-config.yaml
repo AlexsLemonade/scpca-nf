@@ -55,3 +55,4 @@ repos:
 ci:
   autofix_prs: false
   autoupdate_branch: development
+  skip: [spell-check]
