@@ -1,22 +1,4 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
-
-- [Creating and using custom cell type references](#creating-and-using-custom-cell-type-references)
-  - [Overview](#overview)
-    - [Creating a custom `SingleR` reference dataset](#creating-a-custom-singler-reference-dataset)
-      - [Training the model](#training-the-model)
-    - [Creating a custom `CellAssign` marker-gene list](#creating-a-custom-cellassign-marker-gene-list)
-    - [Creating your cell type metadata file](#creating-your-cell-type-metadata-file)
-    - [Running the workflow with custom references](#running-the-workflow-with-custom-references)
-    - [Special considerations for repeating cell type annotation](#special-considerations-for-repeating-cell-type-annotation)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# Creating and using custom cell type references
-
-
-## Overview
+# Overview
 
 The `scpca-nf` workflow includes the option to perform cell type annotation, [as described in these instructions](./external-instructions.md#cell-type-annotation), with the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and/or the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
 
@@ -24,7 +6,32 @@ Several [reference datasets](./external-instructions.md#singler-references) and 
 
 This document provides instructions for creating and using your own reference data set for `SingleR` annotation or marker gene list for `CellAssign`, as well as setting up `scpca-nf` to run with these custom references.
 
-### Creating a custom `SingleR` reference dataset
+To perform cell type annotation with your own references, you will need to follow these steps:
+
+1. Create the custom reference(s), for use with `SingleR` and/or `CellAssign`
+2. Create a cell type reference metadata file
+3. Run the workflow with your custom references
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Create custom cell type references](#create-custom-cell-type-references)
+  - [Using a custom `SingleR` reference dataset](#using-a-custom-singler-reference-dataset)
+    - [Training the model](#training-the-model)
+  - [Creating a custom `CellAssign` marker-gene list](#creating-a-custom-cellassign-marker-gene-list)
+- [Create a cell type reference metadata file](#create-a-cell-type-reference-metadata-file)
+- [Running the workflow with custom references](#running-the-workflow-with-custom-references)
+  - [Special considerations for repeating cell type annotation](#special-considerations-for-repeating-cell-type-annotation)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+
+
+## Create custom cell type references
+
+
+### Using a custom `SingleR` reference dataset
 
 `SingleR` reference files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
 The steps to create this file are as follows:
@@ -72,8 +79,6 @@ readr::write_rds(singler_model, model_file_name)
 
 ### Creating a custom `CellAssign` marker-gene list
 
-
-
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
 
 This TSV file should have the following columns and values:
@@ -87,11 +92,11 @@ If `CellAssign` cannot confidently annotate a cell with one of the provided cell
 Once this file is created, save it as `<cellassign_reference_name>.tsv`.
 
 
-### Creating your cell type metadata file
+## Create a cell type reference metadata file
 
 When performing cell type annotation, `scpca-nf` requires a TSV metadata file with information about cell type references, [as described in these instructions](./external-instructions.md#preparing-the-project-cell-type-metadata-file).
 
-This metadata should include the following columns. Each row should indicate a `scpca_project_id` that you would like to perform cell typing with a custom reference. 
+This metadata should include the following columns, where row indicates a `scpca_project_id` that you would like to perform cell typing with a custom reference.
 
 - `scpca_project_id`: A project ID.
 All libraries associated with this project ID will use the same cell type references.
@@ -104,7 +109,7 @@ If you do not wish to perform cell type annotation with `CellAssign`, you can us
 - `cellassign_ref_file`: The file name of your `CellAssign` model, as `<cellassign_reference_name>.tsv`.
 If you do not wish to perform cell type annotation with `CellAssign`, you can use `NA` in this column.
 
-### Running the workflow with custom references
+## Running the workflow with custom references
 
 There are several parameter values you will have to set either in your [configuration file](./external-instructions.md#configuration-files) or at the command line when running `scpca-nf`:
 
