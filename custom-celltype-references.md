@@ -42,7 +42,7 @@ Rows should be named with Ensembl gene IDs.
 To train your model, use the following code, where
 
 - `ref` is your `SummarizedExperiment` or `SingleCellExperiment` reference dataset object with columns as samples or cells and rows as genes.
-- `labels` is a named vector providing labels for the reference dataset, where names correspond to the column names in your reference object.
+- `labels` is a vector providing cell type labels for the sample or cells in the reference dataset
 - `restrict` can optionally be used to only consider genes which are present in the _mapping reference_ used by `scpca-nf`.
 This should be a vector of Ensembl gene IDs.
 
@@ -91,7 +91,7 @@ Once this file is created, save it as `<cellassign_reference_name>.tsv`.
 
 When performing cell type annotation, `scpca-nf` requires a TSV metadata file with information about cell type references, [as described in these instructions](./external-instructions.md#preparing-the-project-cell-type-metadata-file).
 
-Use the following values for any projects where you'd like to use custom references:
+This metadata should include the following columns. Each row should indicate a `scpca_project_id` that you would like to perform cell typing with a custom reference. 
 
 - `scpca_project_id`: A project ID.
 All libraries associated with this project ID will use the same cell type references.
