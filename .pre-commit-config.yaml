@@ -16,7 +16,12 @@ repos:
         entry: Cannot commit .Rhistory, .RData, or .Rds files.
         language: fail
         files: '(?i)\.(Rhistory|RData|rds)$'
-        exclude: 'test\/(.+\/)*(STUBL01_processed.rds|STUBL16_processed.rds|singler_model_file.rds)'
+        exclude: |
+          (?x)^(
+            test/references/celltype/singler_models/singler_model_file.rds|
+            test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
+            test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
+          )
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
     rev: v2.2.0
