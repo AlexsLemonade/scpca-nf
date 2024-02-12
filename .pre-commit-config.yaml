@@ -16,7 +16,14 @@ repos:
         entry: Cannot commit .Rhistory, .RData, or .Rds files.
         language: fail
         files: '(?i)\.(Rhistory|RData|rds)$'
-        # `exclude: <regex>` to allow committing specific files
+        # `exclude` files here are _allowed_ data files.
+        # Here they are specified by a full path from the repository root in a multiline regex.
+        exclude: |
+          (?x)^(
+            test/references/celltype/singler_models/singler_model_file.rds|
+            test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
+            test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
+          )$
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
     rev: v2.2.0
@@ -52,3 +59,7 @@ repos:
         args: ["--maxkb=200"]
       - id: end-of-file-fixer
         exclude: '\.Rd'
+ci:
+  autoupdate_branch: development
+  # skip spell check because it can't be quickly installed on CI
+  skip: [spell-check]

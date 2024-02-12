@@ -281,4 +281,3 @@ if (has_processed) {
     guides(colour = guide_colorbar(title.position = "bottom", title.hjust = 0.5))
 }
 ```
-
