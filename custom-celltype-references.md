@@ -17,8 +17,10 @@ To perform cell type annotation with your own references, you will need to follo
 
 - [Create custom cell type references](#create-custom-cell-type-references)
   - [Creating a `SingleR` model from a custom reference dataset](#creating-a-singler-model-from-a-custom-reference-dataset)
-    - [Training the model](#training-the-model)
-    - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
+    - [Train the `SingleR` model](#train-the-singler-model)
+    - [Add additional fields to the model object](#add-additional-fields-to-the-model-object)
+      - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
+    - [Export the model](#export-the-model)
   - [Creating a custom `CellAssign` reference from a marker-gene list](#creating-a-custom-cellassign-reference-from-a-marker-gene-list)
 - [Create a cell type reference metadata file](#create-a-cell-type-reference-metadata-file)
 - [Run the workflow with custom references](#run-the-workflow-with-custom-references)
@@ -40,28 +42,38 @@ To the best of your ability, you should identify and use a reference dataset tha
 The reference dataset should also be the same organism as the sample you are analyzing to ensure matching gene ids.
 
 The `scpca-nf` workflow requires a _pre-trained `SingleR` model_ as built from your selected reference dataset.
-These trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
+Therefore, you will need to install the `SingleR` package to prepare a reference model:
+
+```
+# install BiocManager, as needed, to install Bioconductor packages
+# install.packages("BiocManager")
+
+# install SingleR
+BiocManager::install("SinglerR")
+```
+
+Trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
 Create this file by taking the following steps:
 
 1. Identify an appropriate reference dataset to use.
 This dataset should be either a [`SummarizedExperiment`](https://rdrr.io/bioc/SummarizedExperiment/man/SummarizedExperiment-class.html) or [`SingleCellExperiment`](https://rdrr.io/bioc/SingleCellExperiment/man/SingleCellExperiment.html) object, where each column represents a sample or cell, and each row represents a gene.
 Rows should be named with Ensembl gene ids.
-    a. Some resources you can use to find a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
-    .
+Some resources you can use to find a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
 Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
-2. Use [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html) to train your model based on your chosen reference dataset.
-3. Add additional fields to the established model object, as needed (see instructions below).
-4. Export the trained model to a file `<singler_reference name>_model.rds`.
+2. [Train your model](#train-the-singler-model) based on your reference dataset with [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html).
+3. [Add additional fields](#add-additional-fields-to-the-model-object) to the established model object
+4. [Export the trained model](#export-the-model) to a file named `<singler_reference name>_model.rds`
 
 
-#### Training the model
+#### Train the `SingleR` model
 
 To train your model, use the following code, where
 
 - `ref` is your `SummarizedExperiment` or `SingleCellExperiment` reference dataset object with columns as samples or cells and rows as genes.
 - `labels` is a vector providing cell type labels for the sample or cells in the reference dataset.
-We encourage using [ontology ids for cell type labels](https://www.ebi.ac.uk/ols/ontologies/cl) when performing annotation; [see here for additional considerations](#special-considerations-for-using-ontology-labels) if you chose to provide ontology ids.
+We encourage using [ontology ids for cell type labels](https://www.ebi.ac.uk/ols/ontologies/cl) when performing annotation.
 Ontology ids provide a standardized terminology for cell types and also allow for more complex relationships between cell types.
+[See here for additional considerations](#special-considerations-when-using-ontology-labels) if you chose to provide ontology ids.
 - `restrict` can optionally be used to only consider genes which are present in the _mapping reference_ used by `scpca-nf`.
 This should be a vector of Ensembl gene ids.
 
@@ -72,6 +84,8 @@ singler_model <- SingleR::trainSingleR(
   restrict = <optionally, vector of gene ids that are in the mapping reference>
 )
 ```
+
+#### Add additional fields to the model object
 
 Once the model object is built, you can optionally add two fields to the model object:
 
@@ -88,14 +102,7 @@ singler_model$reference_name <- "<name of your singler model>"
 If you do not provide this information, the final `SingleCellExperiment` object produced by `scpca-nf` will have `NULL` values for the fields `metadata(sce)$singler_reference_label` and `metadata(sce)$singler_reference_name`, respectively, but no calculations will be affected.
 
 
-Finally, export the trained model to a file named `<singler_reference_name>_model.rds`:
-```
-model_file_name <- "<singler_reference_name>_model.rds"
-readr::write_rds(singler_model, model_file_name)
-```
-
-
-#### Special considerations when using ontology labels
+##### Special considerations when using ontology labels
 
 If you chose to use ontology labels, you may wish to set the `reference_label` field to the string `"label.ont"` as shown below.
 
@@ -115,6 +122,16 @@ singler_model$celltype_ontology_df <- data.frame(
 )
 ```
 
+#### Export the model
+
+Finally, export the trained model to a file named `<singler_reference_name>_model.rds`:
+```
+model_file_name <- "<singler_reference_name>_model.rds"
+readr::write_rds(singler_model, model_file_name)
+```
+
+
+
 ### Creating a custom `CellAssign` reference from a marker-gene list
 
 The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
@@ -122,7 +139,8 @@ This matrix should have all possible cell types as the columns and all possible 
 Values of `1` indicate that the given gene is a marker gene for the given cell type, and values of `0` indicate that the gene is not a marker gene for the cell type.
 When compiling this information, you should use marker genes (represented as Ensembl gene ids) from the same organism as the sample you are analyzing to ensure matching Ensembl gene ids.
 
-Some resources that you might find helpful for compiling marker gene lists include [PanglaoDB](https://panglaodb.se/) (note that the [pre-compiled `CellAssign` references in `scpca-nf`](./external-instructions.md/#cellassign-references) were obtained from `PanglaoDB` marker gene lists), [`MSigDB`](https://www.gsea-msigdb.org/gsea/msigdb/genesets.jsp?collection=C8), [`CellMarker`](http://bio-bigdata.hrbmu.edu.cn/CellMarker/), and [`singleCellBase`](http://cloud.capitalbiotech.com/SingleCellBase/).
+Some resources that you might find helpful for compiling marker gene lists include [PanglaoDB](https://panglaodb.se/) (note that the [pre-compiled `CellAssign` references in `scpca-nf`] were obtained from `PanglaoDB` marker gene lists), [`MSigDB`](https://www.gsea-msigdb.org/gsea/msigdb/genesets.jsp?collection=C8), [`CellMarker`](http://bio-bigdata.hrbmu.edu.cn/CellMarker/), and [`singleCellBase`](http://cloud.capitalbiotech.com/SingleCellBase/).
+Note that the [`CellAssign` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md/#cellassign-references) were derived from marker gene sets in `PanglaoDB`.
 
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
 
@@ -186,7 +204,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 As described [in these instructions](./external-instructions.md#repeating-cell-type-annotation), cell type annotation is, by default, not repeated if results already exist.
 `scpca-nf` determines if results already exist based on two criteria: i) the _file name_ of the provided reference file, and ii) the existence of [intermediate checkpoint files](./external-instructions.md#repeating-cell-type-annotation) from previous runs of cell typing.
-Therefore, if you re-run the workflow with a renamed but unchanged reference file, be aware that cell type annotation will be repeated.
+For example, if you re-run the workflow with a renamed but unchanged reference file, cell type annotation will be repeated.
 
 To force cell type annotation to repeat, for example if you retain the same reference file names but changed their contents, use the `--repeat_celltyping` flag as well as the `--perform_celltyping` flag at runtime:
 
