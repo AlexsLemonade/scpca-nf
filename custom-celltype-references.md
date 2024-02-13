@@ -104,7 +104,7 @@ singler_model$reference_label <- "label.ont"
 Using this specific string will trigger the `scpca-nf` workflow to additionally expect a dataframe with two columns, `ontology_id` and `ontology_cell_names`, to be present in the `SingleR` model object in the field `celltype_ontology_df`.
 Therefore, if you supply the string `"label.ont"`, you must also add this field.
 The `ontology_id` column should contain ontology id values corresponding to labels in your `labels` vector, and the `ontology_cell_names` column should contain the human-readable cell type names associated with each ontology ID (e.g., `"B cell"`).
-The [`oncoProc` package](https://bioconductor.org/packages/release/bioc/html/ontoProc.html) from `Bioconductor` may be useful for compiling this information.
+The [`ontoProc` package](https://bioconductor.org/packages/release/bioc/html/ontoProc.html) from `Bioconductor` may be useful for compiling this information.
 
 ```
 singler_model$celltype_ontology_df <- data.frame(
@@ -117,7 +117,7 @@ singler_model$celltype_ontology_df <- data.frame(
 
 The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
 This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene ids, as the rows.
-Values of `1` indicate that the given gene is a marker gene for the give cell type, and values of `0` indicate that the gene is not a marker gene for the cell type.
+Values of `1` indicate that the given gene is a marker gene for the given cell type, and values of `0` indicate that the gene is not a marker gene for the cell type.
 When compiling this information, it is important to use marker genes from the same organism as the sample you are analyzing to ensure matching gene ids.
 
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
@@ -137,7 +137,7 @@ Once this file is created, save it as `<cellassign_reference_name>.tsv`.
 
 When performing cell type annotation, `scpca-nf` requires a TSV metadata file with information about cell type references, [as described in these instructions](./external-instructions.md#preparing-the-project-cell-type-metadata-file).
 
-All libraries a given `scpca_project_id` will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
+All libraries with the same `scpca_project_id` will use the same reference dataset for each of `SingleR` and `CellAssign`, respectively.
 The project cell type metadata file should contain these five columns with the following information:
 
 | column_id             | contents |
@@ -166,7 +166,8 @@ You can skip this parameter if you are not performing cell type annotation with 
 
 When running the workflow, be sure to use the `--perform_celltyping` flag to perform cell type annotation.
 
-You can run the workflow as (showing all parameters specified at the command line, for example):
+You can run the workflow using the below code. 
+The example below shows all parameters specified at the command line, but if specifying them in the configuration file you would be able to remove those lines. 
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
