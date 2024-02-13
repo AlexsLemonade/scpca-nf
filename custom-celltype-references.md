@@ -111,7 +111,7 @@ If you chose to use ontology labels, you may wish to set the `reference_label` f
 singler_model$reference_label <- "label.ont"
 ```
 
-If you use `"label.ont"`, you must also include a data frame named `celltype_ontology_df` in the singleR model object, which contains two columns: `ontology_id` and `ontology_cell_names`.
+If you use `"label.ont"`, you must also include a data frame named `celltype_ontology_df` in the `SingleR` model object, which contains two columns: `ontology_id` and `ontology_cell_names`.
 The `ontology_id` column should contain ontology id values corresponding to labels in your `labels` vector, and the `ontology_cell_names` column should contain the human-readable cell type names associated with each ontology ID (e.g., `"B cell"`).
 The [`ontoProc` package](https://bioconductor.org/packages/release/bioc/html/ontoProc.html) from `Bioconductor` may be useful for compiling this information.
 
