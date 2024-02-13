@@ -203,7 +203,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 
 As described [in these instructions](./external-instructions.md#repeating-cell-type-annotation), cell type annotation is, by default, not repeated if results already exist.
-`scpca-nf` determines if results already exist based on two criteria: i) the _file name_ of the provided reference file, and ii) the existence of [intermediate checkpoint files](./external-instructions.md#repeating-cell-type-annotation) from previous runs of cell typing.
+`scpca-nf` determines if results already exist based on two criteria: i) the _file name_ of the provided reference file has not changed, and ii) [intermediate checkpoint files](./external-instructions.md#repeating-cell-type-annotation) from previous runs of cell typing already exist.
 For example, if you re-run the workflow with a renamed but unchanged reference file, cell type annotation will be repeated.
 
 To force cell type annotation to repeat, for example if you retain the same reference file names but changed their contents, use the `--repeat_celltyping` flag as well as the `--perform_celltyping` flag at runtime:
