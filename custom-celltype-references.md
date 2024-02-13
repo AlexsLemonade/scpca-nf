@@ -17,7 +17,7 @@ To perform cell type annotation with your own references, you will need to follo
 
 - [Create custom cell type references](#create-custom-cell-type-references)
   - [Creating a `SingleR` model from a custom reference dataset](#creating-a-singler-model-from-a-custom-reference-dataset)
-    - [Selecting and formatting a reference dataset](#selecting-and-formatting-a-reference-dataset)
+    - [Select and format a reference dataset](#select-and-format-a-reference-dataset)
     - [Train the `SingleR` model](#train-the-singler-model)
     - [Add additional fields to the model object](#add-additional-fields-to-the-model-object)
       - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
@@ -53,12 +53,12 @@ BiocManager::install("SinglerR")
 Trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
 Create this file by taking the following steps:
 
-1. [Identify an appropriate reference dataset](#identify-an-appropriate-reference-dataset)
+1. [Identify an appropriate reference dataset](#select-and-format-a-reference-dataset)
 2. [Train your model](#train-the-singler-model) based on your reference dataset with [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html)
 3. [Add additional fields](#add-additional-fields-to-the-model-object) to the established model object
 4. [Export the trained model](#export-the-model) to a file named `<singler_reference name>_model.rds`
 
-#### Selecting and formatting a reference dataset
+#### Select and format a reference dataset
 
 Either bulk gene expression (microarray or RNA-seq) or single-cell datasets with annotations can be used as references.
 To the best of your ability, you should identify and use a reference dataset that contains cell types that you expect will also be present in your data.
