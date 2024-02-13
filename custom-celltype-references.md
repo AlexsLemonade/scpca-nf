@@ -16,10 +16,10 @@ To perform cell type annotation with your own references, you will need to follo
 **Table of Contents**
 
 - [Create custom cell type references](#create-custom-cell-type-references)
-  - [Using a custom `SingleR` reference dataset](#using-a-custom-singler-reference-dataset)
+  - [Creating a `SingleR` model from a custom reference dataset](#creating-a-singler-model-from-a-custom-reference-dataset)
     - [Training the model](#training-the-model)
     - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
-  - [Creating a custom `CellAssign` marker-gene list](#creating-a-custom-cellassign-marker-gene-list)
+  - [Creating a custom `CellAssign` reference from a marker-gene list](#creating-a-custom-cellassign-reference-from-a-marker-gene-list)
 - [Create a cell type reference metadata file](#create-a-cell-type-reference-metadata-file)
 - [Run the workflow with custom references](#run-the-workflow-with-custom-references)
   - [Special considerations for repeating cell type annotation](#special-considerations-for-repeating-cell-type-annotation)
@@ -31,7 +31,7 @@ To perform cell type annotation with your own references, you will need to follo
 ## Create custom cell type references
 
 
-### Using a custom `SingleR` reference dataset
+### Creating a `SingleR` model from a custom reference dataset
 
 Your `SingleR` reference dataset should be a well-curated gene expression dataset that contains samples, or cells in the case of single-cell expression data, with known cell type annotations.
 [As described in the `SingleR` book](https://bioconductor.org/books/release/SingleRBook/), `SingleR` uses these reference expression values and associated labels to identify cells in your dataset with similar expression patterns.
@@ -113,7 +113,7 @@ singler_model$celltype_ontology_df <- data.frame(
 )
 ```
 
-### Creating a custom `CellAssign` marker-gene list
+### Creating a custom `CellAssign` reference from a marker-gene list
 
 The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
 This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene ids, as the rows.
@@ -166,8 +166,8 @@ You can skip this parameter if you are not performing cell type annotation with 
 
 When running the workflow, be sure to use the `--perform_celltyping` flag to perform cell type annotation.
 
-You can run the workflow using the below code. 
-The example below shows all parameters specified at the command line, but if specifying them in the configuration file you would be able to remove those lines. 
+You can run the workflow using the below code.
+The example below shows all parameters specified at the command line, but if specifying them in the configuration file you would be able to remove those lines.
 
 ```bash
 nextflow run AlexsLemonade/scpca-nf \
