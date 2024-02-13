@@ -48,7 +48,7 @@ This dataset should be either a [`SummarizedExperiment`](https://rdrr.io/bioc/Su
 Rows should be named with Ensembl gene ids.
     a. Some resources you can use to find a suitable reference dataset are the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) or the [`scRNA-seq` package](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), both from Bioconductor.
 Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
-2. Use [`SingleR::traingSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html) to train your model based on your chosen reference dataset.
+2. Use [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html) to train your model based on your chosen reference dataset.
 3. Add additional fields to the established model object, as needed (see instructions below).
 4. Export the trained model to a file `<singler_reference name>_model.rds`.
 
