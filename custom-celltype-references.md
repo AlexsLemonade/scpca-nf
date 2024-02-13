@@ -17,7 +17,7 @@ To perform cell type annotation with your own references, you will need to follo
 
 - [Create custom cell type references](#create-custom-cell-type-references)
   - [Creating a `SingleR` model from a custom reference dataset](#creating-a-singler-model-from-a-custom-reference-dataset)
-    - [Identify an appropriate reference dataset](#identify-an-appropriate-reference-dataset)
+    - [Selecting and formatting a reference dataset](#selecting-and-formatting-a-reference-dataset)
     - [Train the `SingleR` model](#train-the-singler-model)
     - [Add additional fields to the model object](#add-additional-fields-to-the-model-object)
       - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
