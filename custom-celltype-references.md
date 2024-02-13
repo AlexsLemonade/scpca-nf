@@ -167,7 +167,7 @@ The project cell type metadata file should contain these five columns with the f
 | `scpca_project_id`    | Project id matching values in the run metadata file |
 | `singler_ref_name`    | The name of your `SingleR` model which should match the `<singler_reference_name>` string you used when creating your `SingleR` reference RDS file. Use `NA` to skip `SingleR` annotation |
 | `singler_ref_file`    | The file name of your `SingleR` model, as `<singler_reference_name>_model.rds`. Use `NA` to skip `SingleR` annotation |
-| `cellassign_ref_name` |The name of your `CellAssign` model which should match the `<cellassign_ref_name>` string you used when creating your `CellAssign` reference TSV file. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_name` |The name of your `CellAssign` model which should match the `<cellassign_reference_name>` string you used when creating your `CellAssign` reference TSV file. Use `NA` to skip `CellAssign` annotation |
 | `cellassign_ref_file` | The file name of your `CellAssign` model, as `<cellassign_reference_name>.tsv`. Use `NA` to skip `CellAssign` annotation |
 
 ## Run the workflow with custom references
