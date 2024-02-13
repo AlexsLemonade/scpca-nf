@@ -39,7 +39,7 @@ Your `SingleR` reference dataset should be a well-curated gene expression datase
 [As described in the `SingleR` book](https://bioconductor.org/books/release/SingleRBook/), `SingleR` uses these reference expression values and associated labels to identify cells in your dataset with similar expression patterns.
 Either bulk gene expression (microarray or RNA-seq) or single-cell datasets with annotations can be used as references.
 To the best of your ability, you should identify and use a reference dataset that contains cell types that you expect will also be present in your data.
-The reference dataset should also be the same organism as the sample you are analyzing to ensure matching gene ids.
+The reference dataset should also be the same organism as the sample you are analyzing to ensure matching gene IDs.
 
 The `scpca-nf` workflow requires a _pre-trained `SingleR` model_ as built from your selected reference dataset.
 Therefore, you will need to install the `SingleR` package to prepare a reference model:
@@ -57,7 +57,7 @@ Create this file by taking the following steps:
 
 1. Identify an appropriate reference dataset to use.
 This dataset should be either a [`SummarizedExperiment`](https://rdrr.io/bioc/SummarizedExperiment/man/SummarizedExperiment-class.html) or [`SingleCellExperiment`](https://rdrr.io/bioc/SingleCellExperiment/man/SingleCellExperiment.html) object, where each column represents a sample or cell, and each row represents a gene.
-Rows should be named with Ensembl gene ids.
+Rows should be named with Ensembl gene IDs.
 Some resources you can use to find a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
 Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
 2. [Train your model](#train-the-singler-model) based on your reference dataset with [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html).
@@ -71,11 +71,12 @@ To train your model, use the following code, where
 
 - `ref` is your `SummarizedExperiment` or `SingleCellExperiment` reference dataset object with columns as samples or cells and rows as genes.
 - `labels` is a vector providing cell type labels for the sample or cells in the reference dataset.
-We encourage using [ontology ids for cell type labels](https://www.ebi.ac.uk/ols/ontologies/cl) when performing annotation.
-Ontology ids provide a standardized terminology for cell types and also allow for more complex relationships between cell types.
+We encourage using [Cell Ontology IDs for cell type labels](https://www.ebi.ac.uk/ols/ontologies/cl) when performing annotation.
+Ontology IDs provide a standardized terminology for cell types and also allow for more complex relationships between cell types.
 [See here for additional considerations](#special-considerations-when-using-ontology-labels) if you chose to provide ontology ids.
-- `restrict` can optionally be used to only consider genes which are present in the _mapping reference_ used by `scpca-nf`.
-This should be a vector of Ensembl gene ids.
+[See here for additional considerations](#special-considerations-when-using-ontology-labels) if you chose to provide ontology IDs.
+- `restrict` should be a vector of Ensembl gene IDs corresponding to the genes in the _mapping reference_ used by `scpca-nf`.
+You can optionally use a subset of those genes, if you want the model to be focused on a particular set of genes.
 
 ```
 singler_model <- SingleR::trainSingleR(
@@ -110,8 +111,7 @@ If you chose to use ontology labels, you may wish to set the `reference_label` f
 singler_model$reference_label <- "label.ont"
 ```
 
-Using this specific string will trigger the `scpca-nf` workflow to additionally expect a dataframe with two columns, `ontology_id` and `ontology_cell_names`, to be present in the `SingleR` model object in the field `celltype_ontology_df`.
-Therefore, if you supply the string `"label.ont"`, you must also add this field.
+If you use `"label.ont"`, you must also include a data frame named `celltype_ontology_df` in the singleR model object, which contains two columns: `ontology_id` and `ontology_cell_names`.
 The `ontology_id` column should contain ontology id values corresponding to labels in your `labels` vector, and the `ontology_cell_names` column should contain the human-readable cell type names associated with each ontology ID (e.g., `"B cell"`).
 The [`ontoProc` package](https://bioconductor.org/packages/release/bioc/html/ontoProc.html) from `Bioconductor` may be useful for compiling this information.
 
@@ -134,10 +134,10 @@ readr::write_rds(singler_model, model_file_name)
 
 ### Creating a custom `CellAssign` reference from a marker-gene list
 
-The `CellAssign` reference file should be created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
-This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene ids, as the rows.
+The `CellAssign` reference file is created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
+This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene IDs, as the rows.
 Values of `1` indicate that the given gene is a marker gene for the given cell type, and values of `0` indicate that the gene is not a marker gene for the cell type.
-When compiling this information, you should use marker genes (represented as Ensembl gene ids) from the same organism as the sample you are analyzing to ensure matching Ensembl gene ids.
+When compiling this information, be sure to use Ensembl gene IDs from the same organism as the sample you are analyzing!
 
 Some resources that you might find helpful for compiling marker gene lists include [PanglaoDB](https://panglaodb.se/) (note that the [pre-compiled `CellAssign` references in `scpca-nf`] were obtained from `PanglaoDB` marker gene lists), [`MSigDB`](https://www.gsea-msigdb.org/gsea/msigdb/genesets.jsp?collection=C8), [`CellMarker`](http://bio-bigdata.hrbmu.edu.cn/CellMarker/), and [`singleCellBase`](http://cloud.capitalbiotech.com/SingleCellBase/).
 Note that the [`CellAssign` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md/#cellassign-references) were derived from marker gene sets in `PanglaoDB`.
@@ -146,7 +146,7 @@ Note that the [`CellAssign` reference datasets which `scpca-nf` has pre-compiled
 
 This TSV file should have the following columns and values:
 
-1. `ensembl_id`, which contains Ensembl gene ids.
+1. `ensembl_id`, which contains Ensembl gene IDs.
 2. One column for each cell type label to use for annotation.
 All values in this column should be `1` or `0`, indicating whether that row's Ensembl gene id is a marker gene for that cell type (`1`) or not (`0`)
 3. `other`, which contains all values set to `0`.
@@ -164,7 +164,7 @@ The project cell type metadata file should contain these five columns with the f
 
 | column_id             | contents |
 | --------------------- | -------- |
-| `scpca_project_id`    | Project id matching values in the run metadata file |
+| `scpca_project_id`    | Project ID matching values in the run metadata file |
 | `singler_ref_name`    | The name of your `SingleR` model which should match the `<singler_reference_name>` string you used when creating your `SingleR` reference RDS file. Use `NA` to skip `SingleR` annotation |
 | `singler_ref_file`    | The file name of your `SingleR` model, as `<singler_reference_name>_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` |The name of your `CellAssign` model which should match the `<cellassign_reference_name>` string you used when creating your `CellAssign` reference TSV file. Use `NA` to skip `CellAssign` annotation |
