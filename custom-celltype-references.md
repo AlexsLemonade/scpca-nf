@@ -66,7 +66,11 @@ The reference dataset should be from the same organism as the sample you are ana
 
 Your reference dataset should be formatted as either a [`SummarizedExperiment`](https://rdrr.io/bioc/SummarizedExperiment/man/SummarizedExperiment-class.html) or [`SingleCellExperiment`](https://rdrr.io/bioc/SingleCellExperiment/man/SingleCellExperiment.html) object, where each column represents a sample or cell, and each row represents a gene.
 Rows should be named with Ensembl gene IDs.
-For more information on working with these types of objects, please see [this `SummarizedExperiment` object documentation](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html) and/or [this `SingleCellExperiment` object documentation](https://bioconductor.org/books/3.18/OSCA.intro/the-singlecellexperiment-class.html).
+For more information on creating these types of objects, please see the following resources:
+
+- [Constructing a `SummarizedExperiment` object](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html#constructing-a-summarizedexperiment)
+- An introduction to [the `SingleCellExperiment` class](https://bioconductor.org/books/3.18/OSCA.intro/the-singlecellexperiment-class.html#storing-primary-experimental-data)
+- [Converting `Seurat` objects](https://satijalab.org/seurat/reference/as.singlecellexperiment) or [Converting `AnnData` objects](https://bioconductor.org/packages/3.19/bioc/html/zellkonverter.html) to `SingleCellExperiment` objects
 
 Some resources you may find helpful for obtaining a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
 Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
@@ -80,7 +84,6 @@ To train your model, use the following code, where
 We encourage using [Cell Ontology IDs for cell type labels](https://www.ebi.ac.uk/ols/ontologies/cl) when performing annotation.
 Ontology IDs provide a standardized terminology for cell types and also allow for more complex relationships between cell types.
 [See here for additional considerations](#special-considerations-when-using-ontology-labels) if you chose to provide ontology ids.
-[See here for additional considerations](#special-considerations-when-using-ontology-labels) if you chose to provide ontology IDs.
 - `restrict` should be a vector of Ensembl gene IDs corresponding to the genes in the _mapping reference_ used by `scpca-nf`.
 You can optionally use a subset of those genes, if you want the model to be focused on a particular set of genes.
 
