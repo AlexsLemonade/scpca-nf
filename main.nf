@@ -272,7 +272,7 @@ workflow {
   // send library ids in post_process_ch.skip_processing to log
   post_process_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the processed object for ${it.library_id}.")
+      log.error("There are no cells found in the processed object for ${it[0].library_id}.")
     }
 
   // Cluster SCE
