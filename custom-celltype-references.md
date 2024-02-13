@@ -53,7 +53,7 @@ BiocManager::install("SinglerR")
 Trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
 Create this file by taking the following steps:
 
-1. [Identify an appropriate reference dataset](#select-and-format-a-reference-dataset)
+1. [Select and format an appropriate reference dataset](#select-and-format-a-reference-dataset)
 2. [Train your model](#train-the-singler-model) based on your reference dataset with [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html)
 3. [Add additional fields](#add-additional-fields-to-the-model-object) to the established model object
 4. [Export the trained model](#export-the-model) to a file named `<singler_reference name>_model.rds`
@@ -149,7 +149,7 @@ This matrix should have all possible cell types as the columns and all possible 
 Values of `1` indicate that the given gene is a marker gene for the given cell type, and values of `0` indicate that the gene is not a marker gene for the cell type.
 When compiling this information, be sure to use Ensembl gene IDs from the same organism as the sample you are analyzing!
 
-Some resources that you might find helpful for compiling marker gene lists include [PanglaoDB](https://panglaodb.se/) (note that the [pre-compiled `CellAssign` references in `scpca-nf`] were obtained from `PanglaoDB` marker gene lists), [`MSigDB`](https://www.gsea-msigdb.org/gsea/msigdb/genesets.jsp?collection=C8), [`CellMarker`](http://bio-bigdata.hrbmu.edu.cn/CellMarker/), and [`singleCellBase`](http://cloud.capitalbiotech.com/SingleCellBase/).
+Some resources that you might find helpful for compiling marker gene lists include [`PanglaoDB`](https://panglaodb.se/), [`MSigDB`](https://www.gsea-msigdb.org/gsea/msigdb/genesets.jsp?collection=C8), [`CellMarker`](http://bio-bigdata.hrbmu.edu.cn/CellMarker/), and [`singleCellBase`](http://cloud.capitalbiotech.com/SingleCellBase/).
 Note that the [`CellAssign` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md/#cellassign-references) were derived from marker gene sets in `PanglaoDB`.
 
 `CellAssign` reference files should be saved as TSV files and named `<cellassign_reference_name>.tsv`, where `<cellassign_reference_name>` is a string of your choosing.
