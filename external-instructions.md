@@ -137,7 +137,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
 | `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
-| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
+| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `tech_version` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
 | `files_directory`       | The full path/uri to directory containing fastq files (unique per run) |
@@ -164,7 +164,7 @@ Using `scpca-nf` requires a sample metadata file as a TSV (tab separated values)
 For each library that is processed, the corresponding sample metadata will be added to the `SingleCellExperiment` and `AnnData` objects output by the workflow (see the section on [Output files](#output-files)).
 
 _At a minimum, all sample metadata tables must contain a column with `scpca_sample_id` as the header_.
-The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
+The contents of this column should contain all unique sample IDs that are present in the `scpca_sample_id` column of the run metadata file.
 
 We encourage you to use standard terminology, such as ontology terms, to describe samples when possible.
 There is no limit to the number of columns allowed for the sample metadata, and you may include as many metadata fields as you please.
@@ -439,7 +439,7 @@ The cell type label file is a TSV file with the following required columns:
 | column_id              | contents                                            |
 | ---------------------- | --------------------------------------------------- |
 | `scpca_library_id`     | Library ID matching values in the run metadata file |
-| `cell_barcode`         | The cell id with the given annotation label         |
+| `cell_barcode`         | The cell ID with the given annotation label         |
 | `cell_type_assignment` | The annotation label for that cell                  |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
@@ -609,7 +609,7 @@ You will also need to provide a [docker image](https://docs.docker.com/get-start
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
 As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger).
 
-After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file.
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
 _Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
 
 ## Additional workflow settings
@@ -652,7 +652,7 @@ The `merge.nf` workflow requires two parameters to run:
 
 - `project`, the `scpca_project_id` whose objects should be merged
   * A comma-separated list of `scpca_project_id` values can also be provided.
-  In this case, a separate merged object will be created for each id.
+  In this case, a separate merged object will be created for each ID.
 - `run_metafile`, the run metadata file which was previously prepared when running the main workflow
 
 The `merge.nf` workflow runs by first finding all libraries present, for each project, in the specified `params.outdir`, which represents the output directory where `scpca-nf` will have stored results from a prior run.
@@ -665,7 +665,7 @@ The workflow can be run as shown:
 nextflow run AlexsLemonade/scpca-nf/merge.nf \
   -config <path to config file>  \
   -profile <name of profile> \
-  --project <project id whose libraries should be merged>
+  --project <project ID whose libraries should be merged>
 ```
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
@@ -677,18 +677,18 @@ nextflow run AlexsLemonade/scpca-nf/merge.nf \
   -r v0.7.2 \
   -config <path to config file>  \
   -profile <name of profile> \
-  --project <project id whose libraries should be merged>
+  --project <project ID whose libraries should be merged>
 ```
 
 ### Output files
 
-The `merge.nf` workflow will output, for each specified project id, an `.rds` file containing a merged `SingleCellExperiment` object, an `.hdf5` file containing a merged `AnnData` object, and a report which provides a brief summary of the types of libraries and their samples' diagnoses included in the merged object, as well as UMAP visualizations highlighting each library.
+The `merge.nf` workflow will output, for each specified project ID, an `.rds` file containing a merged `SingleCellExperiment` object, an `.hdf5` file containing a merged `AnnData` object, and a report which provides a brief summary of the types of libraries and their samples' diagnoses included in the merged object, as well as UMAP visualizations highlighting each library.
 
 These output files will follow this structure:
 
 ```
 merged
-└── <project id>
+└── <project_id>
     ├── <project_id>_merged.rds
     ├── <project_id>_merged_rna.hdf5
     └── <project_id>_merged-summary-report.html
@@ -708,7 +708,7 @@ The output files will follow this structure if CITE-seq data is present:
 
 ```
 merged
-└── <project id>
+└── <project_id>
     ├── <project_id>_merged.rds
     ├── <project_id>_merged_rna.hdf5
     ├── <project_id>_merged_adt.hdf5
