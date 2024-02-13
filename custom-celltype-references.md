@@ -95,7 +95,7 @@ Once the model object is built, you can optionally add two fields to the model o
 If you choose to add this information, use the following code:
 
 ```
-singler_model$reference_label <- "<name describing my labels>"
+singler_model$reference_label <- "<name describing your labels>"
 singler_model$reference_name <- "<name of your singler model>"
 ```
 
