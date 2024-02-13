@@ -90,7 +90,7 @@ You can optionally use a subset of those genes, if you want the model to be focu
 
 ```
 singler_model <- SingleR::trainSingleR(
-  ref = <your reference se or sce>,
+  ref = <your reference SummarizedExperiment or SingleCellExperiment object>,
   labels = <vector of labels for each sample or cell>,
   restrict = <optionally, vector of gene ids that are in the mapping reference>
 )
