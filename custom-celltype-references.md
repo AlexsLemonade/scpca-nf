@@ -16,13 +16,13 @@ To perform cell type annotation with your own references, you will need to follo
 **Table of Contents**
 
 - [Create custom cell type references](#create-custom-cell-type-references)
-  - [Creating a `SingleR` model from a custom reference dataset](#creating-a-singler-model-from-a-custom-reference-dataset)
+  - [Create a `SingleR` model from a custom reference dataset](#create-a-singler-model-from-a-custom-reference-dataset)
     - [Select and format a reference dataset](#select-and-format-a-reference-dataset)
     - [Train the `SingleR` model](#train-the-singler-model)
     - [Add additional fields to the model object](#add-additional-fields-to-the-model-object)
       - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
     - [Export the model](#export-the-model)
-  - [Creating a custom `CellAssign` reference from a marker-gene list](#creating-a-custom-cellassign-reference-from-a-marker-gene-list)
+  - [Create a custom `CellAssign` reference from a marker-gene list](#create-a-custom-cellassign-reference-from-a-marker-gene-list)
 - [Create a cell type reference metadata file](#create-a-cell-type-reference-metadata-file)
 - [Run the workflow with custom references](#run-the-workflow-with-custom-references)
   - [Special considerations for repeating cell type annotation](#special-considerations-for-repeating-cell-type-annotation)
@@ -34,7 +34,7 @@ To perform cell type annotation with your own references, you will need to follo
 ## Create custom cell type references
 
 
-### Creating a `SingleR` model from a custom reference dataset
+### Create a `SingleR` model from a custom reference dataset
 
 Your `SingleR` reference dataset should be a well-curated gene expression dataset that contains samples, or cells in the case of single-cell expression data, with known cell type annotations.
 [As described in the `SingleR` book](https://bioconductor.org/books/release/SingleRBook/), `SingleR` uses these reference expression values and associated labels to identify cells in your dataset with similar expression patterns.
@@ -142,7 +142,7 @@ readr::write_rds(singler_model, model_file_name)
 
 
 
-### Creating a custom `CellAssign` reference from a marker-gene list
+### Create a custom `CellAssign` reference from a marker-gene list
 
 The `CellAssign` reference file is created by converting a list of marker genes for a set of cell type labels into a binary matrix with values of `0` and `1`.
 This matrix should have all possible cell types as the columns and all possible genes, represented as Ensembl gene IDs, as the rows.
