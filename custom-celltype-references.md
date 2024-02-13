@@ -70,7 +70,7 @@ For more information on creating these types of objects, please see the followin
 
 - [Constructing a `SummarizedExperiment` object](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html#constructing-a-summarizedexperiment)
 - An introduction to [the `SingleCellExperiment` class](https://bioconductor.org/books/3.18/OSCA.intro/the-singlecellexperiment-class.html#storing-primary-experimental-data)
-- [Converting `Seurat` objects](https://satijalab.org/seurat/reference/as.singlecellexperiment) or [Converting `AnnData` objects](https://bioconductor.org/packages/3.19/bioc/html/zellkonverter.html) to `SingleCellExperiment` objects
+- [Converting `Seurat` objects](https://satijalab.org/seurat/reference/as.singlecellexperiment) or [`AnnData` objects](https://bioconductor.org/packages/3.19/bioc/html/zellkonverter.html) to `SingleCellExperiment` objects
 
 Some resources you may find helpful for obtaining a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
 Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
