@@ -17,6 +17,7 @@ To perform cell type annotation with your own references, you will need to follo
 
 - [Create custom cell type references](#create-custom-cell-type-references)
   - [Creating a `SingleR` model from a custom reference dataset](#creating-a-singler-model-from-a-custom-reference-dataset)
+    - [Identify an appropriate reference dataset](#identify-an-appropriate-reference-dataset)
     - [Train the `SingleR` model](#train-the-singler-model)
     - [Add additional fields to the model object](#add-additional-fields-to-the-model-object)
       - [Special considerations when using ontology labels](#special-considerations-when-using-ontology-labels)
@@ -37,9 +38,6 @@ To perform cell type annotation with your own references, you will need to follo
 
 Your `SingleR` reference dataset should be a well-curated gene expression dataset that contains samples, or cells in the case of single-cell expression data, with known cell type annotations.
 [As described in the `SingleR` book](https://bioconductor.org/books/release/SingleRBook/), `SingleR` uses these reference expression values and associated labels to identify cells in your dataset with similar expression patterns.
-Either bulk gene expression (microarray or RNA-seq) or single-cell datasets with annotations can be used as references.
-To the best of your ability, you should identify and use a reference dataset that contains cell types that you expect will also be present in your data.
-The reference dataset should also be the same organism as the sample you are analyzing to ensure matching gene IDs.
 
 The `scpca-nf` workflow requires a _pre-trained `SingleR` model_ as built from your selected reference dataset.
 Therefore, you will need to install the `SingleR` package to prepare a reference model:
@@ -55,15 +53,23 @@ BiocManager::install("SinglerR")
 Trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.
 Create this file by taking the following steps:
 
-1. Identify an appropriate reference dataset to use.
-This dataset should be either a [`SummarizedExperiment`](https://rdrr.io/bioc/SummarizedExperiment/man/SummarizedExperiment-class.html) or [`SingleCellExperiment`](https://rdrr.io/bioc/SingleCellExperiment/man/SingleCellExperiment.html) object, where each column represents a sample or cell, and each row represents a gene.
-Rows should be named with Ensembl gene IDs.
-Some resources you can use to find a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
-Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
-2. [Train your model](#train-the-singler-model) based on your reference dataset with [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html).
+1. [Identify an appropriate reference dataset](#identify-an-appropriate-reference-dataset)
+2. [Train your model](#train-the-singler-model) based on your reference dataset with [`SingleR::trainSingleR()`](https://rdrr.io/github/LTLA/SingleR/man/trainSingleR.html)
 3. [Add additional fields](#add-additional-fields-to-the-model-object) to the established model object
 4. [Export the trained model](#export-the-model) to a file named `<singler_reference name>_model.rds`
 
+#### Identify an appropriate reference dataset
+
+Either bulk gene expression (microarray or RNA-seq) or single-cell datasets with annotations can be used as references.
+To the best of your ability, you should identify and use a reference dataset that contains cell types that you expect will also be present in your data.
+The reference dataset should be from the same organism as the sample you are analyzing.
+
+Your reference dataset should be formatted as either a [`SummarizedExperiment`](https://rdrr.io/bioc/SummarizedExperiment/man/SummarizedExperiment-class.html) or [`SingleCellExperiment`](https://rdrr.io/bioc/SingleCellExperiment/man/SingleCellExperiment.html) object, where each column represents a sample or cell, and each row represents a gene.
+Rows should be named with Ensembl gene IDs.
+For more information on working with these types of objects, please see [this `SummarizedExperiment` object documentation](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html) and/or [this `SingleCellExperiment` object documentation](https://bioconductor.org/books/3.18/OSCA.intro/the-singlecellexperiment-class.html).
+
+Some resources you may find helpful for obtaining a suitable reference dataset are the Bioconductor packages [`celldex`](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) and [`scRNA-seq`](https://bioconductor.org/packages/release/data/experiment/html/scRNAseq.html), and the [`Azimuth`](https://azimuth.hubmapconsortium.org/references/) database.
+Note that the [`SingleR` reference datasets which `scpca-nf` has pre-compiled for use](./external-instructions.md#singler-references) are a selected subset of references from the `celldex` package.
 
 #### Train the `SingleR` model
 
