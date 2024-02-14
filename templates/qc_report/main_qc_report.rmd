@@ -60,8 +60,8 @@ unfiltered_sce <- params$unfiltered_sce
 filtered_sce <- params$filtered_sce
 processed_sce <- params$processed_sce
 
-has_filtered <- !is.null(filtered_sce) & (file.size(filtered_sce) != 0)
-has_processed <- !is.null(processed_sce) & (file.size(processed_sce) != 0)
+has_filtered <- !is.null(filtered_sce)
+has_processed <- !is.null(processed_sce)
 
 # if there is no filtered sce, use the unfiltered for both
 if (!has_filtered) {
