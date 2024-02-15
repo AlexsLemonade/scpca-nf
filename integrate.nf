@@ -180,4 +180,3 @@ workflow {
     // generate integration report
     integration_report(integrate_harmony.out, file(integration_template))
 }
-

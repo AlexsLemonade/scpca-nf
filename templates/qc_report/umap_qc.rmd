@@ -16,7 +16,7 @@ scater::plotUMAP(
   scale_y_continuous(labels = NULL, breaks = NULL) +
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
-  ) + 
+  ) +
   theme(aspect.ratio = 1)
 ```
 
