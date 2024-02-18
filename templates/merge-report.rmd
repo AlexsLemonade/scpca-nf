@@ -69,13 +69,14 @@ batch_column <- params$batch_column
 
 # set adt/multiplex values
 # this tells us if at least one library contains either of these modalities
-additional_modalities <- merged_sce$additional_modalities |>
+additional_sce_modalities <- merged_sce$additional_modalities |>
   stringr::str_split(pattern = ";") |>
   purrr::reduce(union) |>
   sort()
 
-has_adt <- "adt" %in% additional_modalities
-multiplexed <- "cellhash" %in% additional_modalities
+has_adt <- "adt" %in% additional_sce_modalities
+multiplexed <- "cellhash" %in% additional_sce_modalities
+not_multiplexed <- !multiplexed
 ```
 
 ```{r, integration-warning, eval=FALSE}
@@ -96,9 +97,9 @@ This report includes a brief summary of all libraries included in the merged obj
 This merged object is intended to facilitate downstream analyses across multiple samples.
 
 The libraries included in the merged object are _NOT integrated or batch-corrected_.
-To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately. 
+To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately.
 
-# Library information 
+# Library information
 
 ```{r}
 # extract coldata as data frame to use to create tables and UMAPs
@@ -116,8 +117,8 @@ num_libraries <- merged_sce$library_id |>
 The merged object summarized in this report is comprised of `r num_libraries` individual libraries, which are described in the following table.
 
 - `Technology version` indicates which 10X Genomics kit was used for library preparation.
-- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version. 
-- `Suspension type` indicates if the library was prepared from a single-cell (`cell`) or single-nuclei (`nucleus`) suspension. 
+- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version.
+- `Suspension type` indicates if the library was prepared from a single-cell (`cell`) or single-nuclei (`nucleus`) suspension.
 
 
 ```{r}
@@ -152,7 +153,8 @@ adt_table <- coldata_df |>
   dplyr::distinct() |>
   dplyr::mutate(
     contains_adt = ifelse(
-      "adt" %in% additional_modalities, "Contains ADT", "No ADT"
+      # check the corresponding column, same row
+      "adt" == additional_modalities, "Contains ADT", "No ADT"
     )
   ) |>
   dplyr::count(contains_adt) |>
@@ -179,7 +181,8 @@ multiplex_table <- coldata_df |>
   dplyr::distinct() |>
   dplyr::mutate(
     is_multiplexed = ifelse(
-      "cellhash" %in% additional_modalities, "Multiplexed", "Not multiplexed"
+      # check the corresponding column, same row
+      "cellhash" == additional_modalities, "Multiplexed", "Not multiplexed"
     )
   ) |>
   dplyr::count(is_multiplexed) |>
@@ -194,26 +197,24 @@ make_kable(multiplex_table)
 
 # Sample information
 
-```{r, results='asis'}
-if (multiplexed) {
-  # get the total number of libraries that have been multiplexed
-  n_multiplexed <- multiplex_table |>
-    dplyr::filter(`Library type` == "Multiplexed") |>
-    dplyr::pull(`Number of libraries`)
+```{r, eval = multiplexed, results='asis'}
+# get the total number of libraries that have been multiplexed
+n_multiplexed <- multiplex_table |>
+  dplyr::filter(`Library type` == "Multiplexed") |>
+  dplyr::pull(`Number of libraries`)
 
-  glue::glue("
-    <div class=\"alert alert-info\">
+glue::glue("
+  <div class=\"alert alert-info\">
 
-    This merged object contains {n_multiplexed} libraries that have been multiplexed.
-    Demultiplexing has not been performed, so sample information will not be displayed.
+  This merged object contains {n_multiplexed} libraries that have been multiplexed.
+  Demultiplexing has not been performed, so sample information will not be displayed.
 
-    </div>
-  ")
-}
+  </div>
+")
 ```
 
 
-```{r, eval=!multiplexed}
+```{r, eval=not_multiplexed}
 # get total number of samples and libraries
 num_samples <- merged_sce$sample_id |>
   unique() |>
@@ -221,7 +222,7 @@ num_samples <- merged_sce$sample_id |>
 ```
 
 
-```{r, eval=!multiplexed, results='asis'}
+```{r, eval=not_multiplexed, results='asis'}
 glue::glue(
   "
   The merged object summarized in this report contains {num_samples} samples.
@@ -230,7 +231,7 @@ glue::glue(
 ```
 
 
-```{r, eval=!multiplexed}
+```{r, eval=not_multiplexed}
 knitr::asis_output("
 ## Diagnoses
 
@@ -241,7 +242,7 @@ If a subdiagnosis is available, the total number of samples will be shown for ea
 ```
 
 
-```{r, eval=!multiplexed}
+```{r, eval=not_multiplexed}
 # table of diagnosis
 diagnosis_table <- coldata_df |>
   dplyr::select(sample_id, diagnosis, subdiagnosis) |>
@@ -272,7 +273,7 @@ make_kable(diagnosis_table)
 ```
 
 
-```{r, eval=!multiplexed}
+```{r, eval=not_multiplexed}
 knitr::asis_output(
   "
 ## Disease stage
@@ -284,7 +285,7 @@ The following table shows both the diagnosis and at what point during disease pr
 ```
 
 
-```{r, eval=!multiplexed}
+```{r, eval=not_multiplexed}
 # count number of samples per diagnosis/ disease timing combination
 disease_timing_table <- coldata_df |>
   dplyr::select(sample_id, diagnosis, disease_timing) |>
@@ -307,7 +308,7 @@ make_kable(disease_timing_table)
 ```{r, ref.label=c('integration-warning'), eval=TRUE, results='asis'}
 ```
 
-In this section, we present UMAPs showing all cells from all libraries included in the merged object. 
+In this section, we present UMAPs showing all cells from all libraries included in the merged object.
 For each library, a separate panel is shown, and cells from that library are colored, while all other cells are gray.
 
 **These merged object UMAP coordinates differ from UMAPs in individual library files.**
@@ -316,7 +317,7 @@ As a consequence, the PCA and UMAP coordinates found in the merged object will d
 
 ```{r}
 # Determine appropriate dimensions for UMAP based on number of libraries
-n_libraries <- tech_table$`Number of libraries`
+n_libraries <- sum(tech_table$`Number of libraries`)
 
 # Determine faceting layout based on n_libraries
 # TODO: This needs to be revisited when we run the merged objects through
