@@ -261,8 +261,22 @@ workflow {
   all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
 
+
+  post_process_ch = post_process_sce.out
+    // only continue processing any samples with > 0 cells left after processing
+    .branch{
+      continue_processing: it[3].size() > 0
+      skip_processing: true
+      }
+
+  // send library ids in post_process_ch.skip_processing to log
+  post_process_ch.skip_processing
+    .subscribe{
+      log.error("There are no cells found in the processed object for ${it[0].library_id}.")
+    }
+
   // Cluster SCE
-  cluster_sce(post_process_sce.out)
+  cluster_sce(post_process_ch.continue_processing)
 
   if(params.perform_celltyping){
     // Perform celltyping, if specified
@@ -270,6 +284,9 @@ workflow {
   } else {
     annotated_celltype_ch = cluster_sce.out
   }
+
+  // combine back with libraries that skipped post processing
+  sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
 
   // generate QC reports
   sce_qc_report(

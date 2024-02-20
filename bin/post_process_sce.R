@@ -275,5 +275,11 @@ if (length(reducedDimNames(processed_sce)) == 0) {
 # write out  filtered SCE with additional filtering column
 readr::write_rds(sce, opt$out_filtered_sce_file, compress = "gz")
 
-# write out processed SCE
-readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "gz")
+# only write out processed SCE if > 0 cells
+if (ncol(processed_sce) > 0) {
+  # write out processed SCE
+  readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "gz")
+} else {
+  # make an empty processed file
+  file.create(opt$out_processed_sce_file)
+}

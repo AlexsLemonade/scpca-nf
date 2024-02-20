@@ -16,7 +16,12 @@ repos:
         entry: Cannot commit .Rhistory, .RData, or .Rds files.
         language: fail
         files: '(?i)\.(Rhistory|RData|rds)$'
-        # `exclude: <regex>` to allow committing specific files
+        exclude: |
+          (?x)^(
+            test/references/celltype/singler_models/singler_model_file.rds|
+            test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
+            test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
+          )$
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
     rev: v2.2.0
@@ -25,7 +30,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.1.5
+    rev: v0.2.1
     hooks:
       # Run the linter.
       - id: ruff
@@ -33,7 +38,7 @@ repos:
       - id: ruff-format
   - repo: https://github.com/lorenzwalthert/precommit
     # R styling and linting
-    rev: v0.3.2.9025
+    rev: v0.4.0
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
@@ -52,3 +57,8 @@ repos:
         args: ["--maxkb=200"]
       - id: end-of-file-fixer
         exclude: '\.Rd'
+ci:
+  autofix_prs: true # set to false if we don't want fixes automatically applied by ci
+  autoupdate_branch: development
+  # skip spell check because it can't be quickly installed on CI
+  skip: [spell-check]

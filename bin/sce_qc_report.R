@@ -150,7 +150,13 @@ if (opt$workflow_commit == "null") {
 # read sce files
 unfiltered_sce <- readr::read_rds(opt$unfiltered_sce)
 filtered_sce <- readr::read_rds(opt$filtered_sce)
-processed_sce <- readr::read_rds(opt$processed_sce)
+
+# make sure processed sce has an object, otherwise set to NULL
+if (file.size(opt$processed_sce) > 0) {
+  processed_sce <- readr::read_rds(opt$processed_sce)
+} else {
+  processed_sce <- NULL
+}
 
 # Compile metadata for output files
 sce_meta <- metadata(unfiltered_sce)
