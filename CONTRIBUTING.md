@@ -22,15 +22,13 @@ When the changes in `development` merit a new release, a pull request will be fi
 
 ### Continuous integration in pull requests
 
-There are several automatic checks performed by GitHub Actions in all pull requests filed to `main` or `development`.
+There are several automatic checks performed by GitHub Actions in all pull requests filed to `main` or `development`:
 
-These checks are required to pass before pull requests can be merged:
+- [Check Nextflow config](.github/workflows/nextflow-config-check.yaml): This workflow ensures that there are no syntax errors in the Nextflow configuration files. This check is required to pass before pull requests can be merged.
+- [Check Nextflow stub](.github/workflows/nextflow-stub-check.yaml): This workflow ensures that the [stub workflow](#stub-workflows) runs without errors. This check is required to pass before pull requests can be merged.
+- [Spell check R Markdown and Markdown files](.github/workflows/spell-check.yml): This workflow ensures there are no spelling errors in R Markdown and Markdown files. This check is not required to pass before pull requests can be merged.
 
-- [Check Nextflow config](.github/workflows/nextflow-config-check.yaml): This workflow ensures that there are no syntax errors in the Nextflow configuration files
-- [Check Nextflow stub](.github/workflows/nextflow-stub-check.yaml): This workflow ensures that the [stub workflow](#stub-workflows) runs without errors.
-- [Spell check R Markdown and Markdown files](.github/workflows/spell-check.yml): This workflow ensures there are no spelling errors in R Markdown and Markdown files.
-
-There is also one additional `pre-commit ci` workflow which runs all [pre-commit hooks as described in this section](#pre-commit-hooks), except for the spell check pre-commit hook.
+There is also one additional `pre-commit ci` workflow which runs all [pre-commit hooks as described in this section](#pre-commit-hooks), except for the spell check pre-commit hook, on pull requests filed to the `development` branch.
 Although highly recommended, it is not required that this workflow passes before pull requests can be merged.
 
 ## Stub workflows
