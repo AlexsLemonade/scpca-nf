@@ -552,7 +552,7 @@ create_single_heatmap(
   row_title = "CellAssign annotations",
   column_title = "SingleR annotations",
   labels_font_size = find_label_size(all_celltypes),
-  keep_legend_name = "SingleR annotations",
+  keep_legend_name = "CellAssign annotations",
   col_fun = heatmap_col_fun,
   # additional arguments
   column_names_rot = 90
