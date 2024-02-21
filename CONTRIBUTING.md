@@ -20,6 +20,19 @@ To allow for efficient review, please include in any pull request a concise and 
 
 When the changes in `development` merit a new release, a pull request will be filed to merge the current version of the `development` branch into `main`, followed by tagging a release on the `main` branch.
 
+### Continuous integration in pull requests
+
+There are several automatic checks performed by GitHub Actions in all pull requests filed to `main` or `development`.
+
+These checks are required to pass before pull requests can be merged:
+
+- [Spell check R Markdown and Markdown files](.github/workflows/spell-check.yml): This workflow ensures there are no spelling errors in R Markdown and Markdown files.
+- [Check Nextflow stub](.github/workflows/nextflow-stub-check.yaml): This workflow ensures that the [stub workflow](#stub-workflows) runs without errors.
+- [Check Nextflow config](.github/workflows/nextflow-config-check.yaml): This workflow ensures that there are no syntax errors in the Nextflow configuration files
+
+There is also one additional `pre-commit ci` workflow which runs all [pre-commit hooks as described in this section](#pre-commit-hooks), except for the spell check pre-commit hook.
+Although highly recommended, it is not required that this workflow passes before pull requests can be merged.
+
 ## Stub workflows
 
 All Nextflow processes should include a [`stub` block](https://www.nextflow.io/docs/latest/process.html#stub) with a minimal script that can be run quickly to produce files in the expected output locations.
