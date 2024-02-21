@@ -116,6 +116,7 @@ ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
 #' @param labels_font_size Font size to use for rows and column labels.
 #' @param keep_legend_name The name to use in the legend
 #' @param col_fun Color function for the heatmap palette. Default is `heatmap_col_fun`.
+#' @param override_keep_legend Boolean to always keep the legend regardless of other logic
 #' @param ... Additional arguments to pass to `ComplexHeatmap::Heatmap()`
 #'
 #' @return A ComplexHeatmap object
@@ -126,6 +127,7 @@ create_single_heatmap <- function(
     labels_font_size,
     keep_legend_name,
     col_fun = heatmap_col_fun,
+    override_keep_legend = FALSE,
     ...) {
   heat <- ComplexHeatmap::Heatmap(
     t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
@@ -153,7 +155,7 @@ create_single_heatmap <- function(
       legend_width = unit(1.5, "in")
     ),
     # only keep legends that match `keep_legend_name`
-    show_heatmap_legend = row_title == keep_legend_name,
+    show_heatmap_legend = override_keep_legend || row_title == keep_legend_name,
   )
 
   return(heat)
@@ -555,7 +557,8 @@ create_single_heatmap(
   keep_legend_name = "SingleR annotations",
   col_fun = heatmap_col_fun,
   # additional arguments
-  column_names_rot = 90
+  column_names_rot = 90,
+  override_keep_legend = TRUE
 ) |>
   ComplexHeatmap::draw(
     heatmap_legend_side = "bottom"
