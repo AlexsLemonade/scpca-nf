@@ -76,7 +76,6 @@ additional_sce_modalities <- merged_sce$additional_modalities |>
 
 has_adt <- "adt" %in% additional_sce_modalities
 multiplexed <- "cellhash" %in% additional_sce_modalities
-not_multiplexed <- !multiplexed
 ```
 
 ```{r, integration-warning, eval=FALSE}
@@ -214,7 +213,7 @@ glue::glue("
 ```
 
 
-```{r, eval=not_multiplexed}
+```{r, eval=!multiplexed}
 # get total number of samples and libraries
 num_samples <- merged_sce$sample_id |>
   unique() |>
@@ -222,7 +221,7 @@ num_samples <- merged_sce$sample_id |>
 ```
 
 
-```{r, eval=not_multiplexed, results='asis'}
+```{r, eval=!multiplexed, results='asis'}
 glue::glue(
   "
   The merged object summarized in this report contains {num_samples} samples.
@@ -231,7 +230,7 @@ glue::glue(
 ```
 
 
-```{r, eval=not_multiplexed}
+```{r, eval=!multiplexed}
 knitr::asis_output("
 ## Diagnoses
 
@@ -242,7 +241,7 @@ If a subdiagnosis is available, the total number of samples will be shown for ea
 ```
 
 
-```{r, eval=not_multiplexed}
+```{r, eval=!multiplexed}
 # table of diagnosis
 diagnosis_table <- coldata_df |>
   dplyr::select(sample_id, diagnosis, subdiagnosis) |>
@@ -273,7 +272,7 @@ make_kable(diagnosis_table)
 ```
 
 
-```{r, eval=not_multiplexed}
+```{r, eval=!multiplexed}
 knitr::asis_output(
   "
 ## Disease stage
@@ -285,7 +284,7 @@ The following table shows both the diagnosis and at what point during disease pr
 ```
 
 
-```{r, eval=not_multiplexed}
+```{r, eval=!multiplexed}
 # count number of samples per diagnosis/ disease timing combination
 disease_timing_table <- coldata_df |>
   dplyr::select(sample_id, diagnosis, disease_timing) |>
