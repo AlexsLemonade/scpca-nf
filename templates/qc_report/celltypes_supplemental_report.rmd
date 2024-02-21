@@ -154,7 +154,8 @@ create_single_heatmap <- function(
       direction = "horizontal",
       legend_width = unit(1.5, "in")
     ),
-    # only keep legends that match `keep_legend_name`
+    # only keep legends if override_keep_legend is TRUE, or
+    # if the row title matches `keep_legend_name`
     show_heatmap_legend = override_keep_legend || row_title == keep_legend_name,
   )
 
