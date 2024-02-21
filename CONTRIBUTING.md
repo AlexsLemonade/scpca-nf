@@ -28,7 +28,7 @@ There are several automatic checks performed by GitHub Actions in all pull reque
 - [Check Nextflow stub](.github/workflows/nextflow-stub-check.yaml): This workflow ensures that the [stub workflow](#stub-workflows) runs without errors. This check is required to pass before pull requests can be merged.
 - [Spell check R Markdown and Markdown files](.github/workflows/spell-check.yml): This workflow ensures there are no spelling errors in R Markdown and Markdown files. This check is not required to pass before pull requests can be merged.
 
-There is also one additional `pre-commit ci` workflow which runs all [pre-commit hooks as described in this section](#pre-commit-hooks), except for the spell check pre-commit hook, on pull requests filed to the `development` branch.
+There is also one additional `pre-commit ci` workflow which runs all [pre-commit hooks as described in this section](#pre-commit-hooks), except for the spell check pre-commit hook.
 Although highly recommended, it is not required that this workflow passes before pull requests can be merged.
 
 ## Stub workflows
