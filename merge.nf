@@ -30,7 +30,7 @@ if(param_error){
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_32'
-  publishDir "${params.results_dir}/merged/${merge_group_id}"
+  publishDir "${params.results_dir}/${merge_group_id}/merged"
   input:
     tuple val(merge_group_id), val(has_adt), val(multiplexed), val(library_ids), path(scpca_nf_file)
   output:
@@ -60,7 +60,7 @@ process merge_sce {
 // create merge report
 process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
-  publishDir "${params.results_dir}/merged/${merge_group_id}"
+  publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_16'
   input:
     tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
@@ -89,7 +89,7 @@ process export_anndata{
     container params.SCPCATOOLS_CONTAINER
     label 'mem_32'
     tag "${merge_group_id}"
-    publishDir "${params.results_dir}/merged/${merge_group_id}", mode: 'copy'
+    publishDir "${params.results_dir}/${merge_group_id}/merged", mode: 'copy'
     input:
       tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
     output:
