@@ -123,11 +123,23 @@ workflow {
     // grab project ids to run
     project_ids = params.project?.tokenize(',') ?: []
 
+    // grab run ids to include
+    run_ids = params.merge_run_ids?.tokenize(',') ?: []
+    // if no run ids, run all
+    run_all = run_ids[0] == "All"
+
     // read in run metafile and filter to projects of interest
     libraries_ch = Channel.fromPath(params.run_metafile)
       .splitCsv(header: true, sep: '\t')
       // filter to only include specified project ids
       .filter{it.scpca_project_id in project_ids}
+      // filter to run all ids or just specified ones
+      .filter{
+        run_all
+        || (it.scpca_run_id in run_ids)
+        || (it.scpca_library_id in run_ids)
+        || (it.scpca_sample_id in run_ids)
+      }
       .map{[
         seq_unit: it.seq_unit,
         technology: it.technology,
