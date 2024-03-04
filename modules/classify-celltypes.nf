@@ -49,7 +49,7 @@ process classify_cellassign {
       mode: 'copy',
       pattern: "${cellassign_dir}"
     )
-  label 'mem_488'
+  label 'mem_512'
   label 'cpus_12'
   tag "${meta.library_id}"
   input:
