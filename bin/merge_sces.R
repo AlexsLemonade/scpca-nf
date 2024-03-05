@@ -9,12 +9,12 @@ option_list <- list(
   make_option(
     opt_str = c("--input_library_ids"),
     type = "character",
-    help = "Comma separated list of library IDs corresponding to the libraries being integrated."
+    help = "Comma separated list of library IDs corresponding to the libraries being merged."
   ),
   make_option(
     opt_str = c("--input_sce_files"),
     type = "character",
-    help = "Comma separated list of input sce file paths corresponding to the sces being integrated."
+    help = "Comma separated list of input sce file paths corresponding to the sces being merged."
   ),
   make_option(
     opt_str = c("-o", "--output_sce_file"),
@@ -68,7 +68,7 @@ if (is.null(opt$input_sce_files)) {
 }
 
 if (length(input_sce_files) == 1) {
-  stop("Only 1 input file provided, no merging or integration will be performed for this group")
+  stop("Only 1 input file provided, no merging will be performed for this group")
 }
 
 # use library ids to name list of input files
