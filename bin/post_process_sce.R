@@ -144,6 +144,10 @@ if (alt_exp %in% altExpNames(sce)) {
 # filter sce using criteria in scpca_filter (not adt_scpca_filter)
 processed_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
+# drop miQC model from processed object
+metadata(processed_sce)$miQC_model <- NULL
+
+
 # replace existing stats with recalculated gene stats
 drop_cols <- colnames(rowData(processed_sce, alt)) %in% c("mean", "detected")
 rowData(processed_sce) <- rowData(processed_sce)[!drop_cols]
