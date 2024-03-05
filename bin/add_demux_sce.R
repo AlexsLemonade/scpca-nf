@@ -125,4 +125,4 @@ if (length(cellhash_ids) > 1) {
 }
 
 # write filtered sce to output
-readr::write_rds(sce, opt$output_sce_file, compress = "gz")
+readr::write_rds(sce, opt$output_sce_file, compress = "bz2")

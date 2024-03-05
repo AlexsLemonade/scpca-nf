@@ -144,6 +144,10 @@ if (alt_exp %in% altExpNames(sce)) {
 # filter sce using criteria in scpca_filter (not adt_scpca_filter)
 processed_sce <- sce[, which(sce$scpca_filter == "Keep")]
 
+# drop miQC model from processed object
+metadata(processed_sce)$miQC_model <- NULL
+
+
 # replace existing stats with recalculated gene stats
 drop_cols <- colnames(rowData(processed_sce, alt)) %in% c("mean", "detected")
 rowData(processed_sce) <- rowData(processed_sce)[!drop_cols]
@@ -273,7 +277,7 @@ if (length(reducedDimNames(processed_sce)) == 0) {
 # Export --------------
 
 # write out  filtered SCE with additional filtering column
-readr::write_rds(sce, opt$out_filtered_sce_file, compress = "gz")
+readr::write_rds(sce, opt$out_filtered_sce_file, compress = "bz2")
 
 # write out processed SCE
-readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "gz")
+readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "bz2")
