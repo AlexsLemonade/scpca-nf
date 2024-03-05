@@ -175,7 +175,7 @@ if ("cellassign" %in% all_celltypes) {
 
 # Update some SCE information  -------------------------------------------------
 # - Add a new colData column with any additional modalities
-# - Remove cluster parameters from metadata
+# - Remove cluster parameters and miQC model from metadata
 sce_list <- sce_list |>
   purrr::map(\(sce){
     additional_modalities <- altExpNames(sce)
@@ -187,6 +187,7 @@ sce_list <- sce_list |>
     metadata(sce)$cluster_algorithm <- NULL
     metadata(sce)$cluster_weighting <- NULL
     metadata(sce)$cluster_nn <- NULL
+    metadata(sce)$miQC_model <- NULL
 
     return(sce)
   })
