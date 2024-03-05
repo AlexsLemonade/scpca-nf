@@ -107,4 +107,4 @@ colData(sce) <- DataFrame(
 metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "submitter")
 
 # Write SCE back to file
-readr::write_rds(sce, opt$sce_file, compress = "gz")
+readr::write_rds(sce, opt$sce_file, compress = "bz2")

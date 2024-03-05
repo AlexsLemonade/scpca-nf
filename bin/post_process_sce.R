@@ -277,7 +277,7 @@ if (length(reducedDimNames(processed_sce)) == 0) {
 # Export --------------
 
 # write out  filtered SCE with additional filtering column
-readr::write_rds(sce, opt$out_filtered_sce_file, compress = "gz")
+readr::write_rds(sce, opt$out_filtered_sce_file, compress = "bz2")
 
 # write out processed SCE
-readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "gz")
+readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "bz2")
