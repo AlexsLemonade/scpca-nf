@@ -140,13 +140,13 @@
       "properties": {
         "ref_json": {
           "type": "string",
-          "default": "references/scpca-refs.json",
+          "default": "${projectDir}/references/scpca-refs.json",
           "format": "file-path",
           "mimetype": "application/json"
         },
         "ref_metadata": {
           "type": "string",
-          "default": "references/ref-metadata.tsv",
+          "default": "${projectDir}/references/ref-metadata.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values"
         },
@@ -186,13 +186,13 @@
         },
         "celltype_ref_metadata": {
           "type": "string",
-          "default": "references/celltype-reference-metadata.tsv",
+          "default": "${projectDir}/references/celltype-reference-metadata.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values"
         },
         "panglao_marker_genes_file": {
           "type": "string",
-          "default": "references/PanglaoDB_markers_2020-03-27.tsv",
+          "default": "${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values"
         }
