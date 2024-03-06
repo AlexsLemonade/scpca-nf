@@ -262,6 +262,15 @@ merged_sce <- scpcaTools::merge_sce_list(
   preserve_altexp_rowdata_cols = preserve_altexp_rowdata_list
 )
 
+# add sample metadata to colData
+merged_sce <- scpcaTools::metadata_to_coldata(
+  merged_sce,
+  join_columns = "library_id"
+)
+
+# remove sample metadata
+metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
+
 # grab technology and EFO from metadata$library_metadata
 library_df <- names(sce_list) |>
   purrr::map(\(library_id){
