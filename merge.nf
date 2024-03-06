@@ -190,10 +190,5 @@ workflow {
     generate_merge_report(merge_sce.out, file(merge_template))
 
     // export merged objects to AnnData
-    anndata_ch = merge_sce.out
-      .filter{!it[3]} // remove multiplexed samples before export
-      .map{it.take(3)} // keep everything but multiplexed logical
-
-
-    export_anndata(anndata_ch)
+    export_anndata(merge_sce.out)
 }
