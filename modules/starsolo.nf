@@ -1,6 +1,6 @@
 include { index_bam } from './samtools.nf'
 
-process starsolo{
+process starsolo {
   container params.STAR_CONTAINER
   tag "${meta.run_id}"
   label 'cpus_8'
@@ -54,7 +54,7 @@ process starsolo{
 }
 
 
-workflow starsolo_map{
+workflow starsolo_map {
   take:
     singlecell_ch
 

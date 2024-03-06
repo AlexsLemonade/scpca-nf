@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 include { build_celltype_ref } from './build-celltype-ref.nf'
 
 // generate fasta and annotation files with spliced cDNA + intronic reads
-process generate_reference{
+process generate_reference {
   container params.SCPCATOOLS_CONTAINER
   // publish fasta and annotation files within reference directory
   publishDir "${params.ref_rootdir}/${meta.ref_dir}", mode: 'copy'
@@ -32,7 +32,7 @@ process generate_reference{
 }
 
 
-process salmon_index{
+process salmon_index {
   container params.SALMON_CONTAINER
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
@@ -67,7 +67,7 @@ process salmon_index{
     """
 }
 
-process cellranger_index{
+process cellranger_index {
   container params.CELLRANGER_CONTAINER
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
@@ -90,7 +90,7 @@ process cellranger_index{
     """
 }
 
-process star_index{
+process star_index {
   container params.STAR_CONTAINER
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'

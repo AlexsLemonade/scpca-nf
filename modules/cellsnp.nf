@@ -1,5 +1,5 @@
 
-process cellsnp{
+process cellsnp {
   container params.CELLSNP_CONTAINER
   label 'cpus_8'
   label 'mem_16'
@@ -39,7 +39,7 @@ process cellsnp{
     """
 }
 
-process vireo{
+process vireo {
   container params.VIREO_CONTAINER
   publishDir "${meta.vireo_publish_dir}", mode: 'copy'
   tag "${meta.run_id}"

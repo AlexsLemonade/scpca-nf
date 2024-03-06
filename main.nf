@@ -97,24 +97,24 @@ if (params.perform_celltyping) {
 }
 
 
-if(param_error){
+if (param_error) {
   System.exit(1)
 }
 
 // Main workflow
 workflow {
   // select runs to use
-  if (params.project){
+  if (params.project) {
     // projects will use all runs in the project & supersede run_ids
     run_ids = []
     // allow for processing of multiple projects at once
     project_ids = params.project?.tokenize(',') ?: []
-  }else{
+  } else {
     run_ids = params.run_ids?.tokenize(',') ?: []
     project_ids = []
   }
   run_all = run_ids[0] == "All"
-  if (run_all){
+  if (run_all) {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
@@ -264,7 +264,7 @@ workflow {
   // Cluster SCE
   cluster_sce(post_process_sce.out)
 
-  if(params.perform_celltyping){
+  if (params.perform_celltyping) {
     // Perform celltyping, if specified
     annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
   } else {
