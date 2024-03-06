@@ -49,7 +49,7 @@
           "hidden": true,
           "fa_icon": "fas fa-folder-minus",
           "format": "directory-path",
-          "description": "directory for final output files"
+          "description": "Directory for final output files"
         },
         "checkpoints_dir": {
           "type": "string",
@@ -57,7 +57,7 @@
           "hidden": true,
           "fa_icon": "fas fa-folder-minus",
           "format": "directory-path",
-          "description": "directory to store checkpoint files, used optionally skipping steps"
+          "description": "Directory to store checkpoint files, used when optionally skipping steps"
         }
       }
     },
@@ -102,27 +102,161 @@
         },
         "repeat_mapping": {
           "type": "boolean",
-          "description": "if alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default"
+          "description": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default"
         },
         "repeat_genetic_demux": {
           "type": "boolean",
-          "description": "if genetic demultiplexing has been performed and output files exist, genetic demux is skipped by default"
+          "description": "If genetic demultiplexing has been performed and output files exist, genetic demux is skipped by default"
         },
         "skip_genetic_demux": {
           "type": "boolean",
-          "description": "skip genetic demultiplexing steps, even if bulk data is present"
+          "description": "Skip genetic demultiplexing steps, even if bulk data is present"
         },
         "perform_celltyping": {
           "type": "boolean",
-          "description": "specify whether or not to incorporate cell type annotations"
+          "description": "Specify whether or not to incorporate cell type annotations"
         },
         "repeat_celltyping": {
           "type": "boolean",
-          "description": "if cell type annotations already exist, cell type classification with SingleR and CellAssign is skipped by default"
+          "description": "If cell type annotations already exist, cell type classification with SingleR and CellAssign is skipped by default"
         },
         "publish_fry_outs": {
           "type": "boolean",
           "description": "alevin-fry outputs are not published by default. Use this option to publish them to the `checkpoints` folder"
+        },
+        "merge_run_ids": {
+          "type": "string",
+          "default": "All",
+          "description": "Which runs to merge when using the merge.nf workflow",
+          "hidden": true
+        }
+      }
+    },
+    "reference_files": {
+      "title": "Reference files",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "ref_json": {
+          "type": "string",
+          "default": "references/scpca-refs.json",
+          "format": "file-path",
+          "mimetype": "application/json"
+        },
+        "ref_metadata": {
+          "type": "string",
+          "default": "references/ref-metadata.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values"
+        },
+        "celltype_organism": {
+          "type": "string",
+          "default": "Homo_sapiens.GRCh38.104"
+        },
+        "ref_rootdir": {
+          "type": "string",
+          "default": "s3://scpca-references",
+          "format": "directory-path"
+        },
+        "barcode_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/barcodes/10X",
+          "format": "directory-path"
+        },
+        "celltype_ref_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype",
+          "format": "directory-path"
+        },
+        "singler_references_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/singler_references",
+          "format": "directory-path"
+        },
+        "singler_models_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/singler_models",
+          "format": "directory-path"
+        },
+        "cellassign_ref_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/cellassign_references",
+          "format": "directory-path"
+        },
+        "celltype_ref_metadata": {
+          "type": "string",
+          "default": "references/celltype-reference-metadata.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values"
+        },
+        "panglao_marker_genes_file": {
+          "type": "string",
+          "default": "references/PanglaoDB_markers_2020-03-27.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values"
+        }
+      }
+    },
+    "algorithm_parameters": {
+      "title": "Algorithm parameters",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "seed": {
+          "type": "integer",
+          "default": 2021,
+          "description": "Random number seed"
+        },
+        "af_resolution": {
+          "type": "string",
+          "default": "cr-like-em",
+          "description": "alevin-fry quant resolution method",
+          "enum": ["cr-like-em", "cr-like", "full", "parsimony", "trivial"]
+        },
+        "spliced_only": {
+          "type": "boolean",
+          "description": "Only count spliced RNA reads"
+        },
+        "prob_compromised_cutoff": {
+          "type": "number",
+          "default": 0.75,
+          "description": "Cutoff for MiQC to keep a cell"
+        },
+        "gene_cutoff": {
+          "type": "integer",
+          "default": 200,
+          "description": "Minimum number of genes detected per cell"
+        },
+        "num_hvg": {
+          "type": "integer",
+          "default": 2000,
+          "description": "Number of highly variable genes to use for dimension reduction"
+        },
+        "num_pcs": {
+          "type": "integer",
+          "default": 50,
+          "description": "Number of principal components to keep from PCA"
+        },
+        "cluster_algorithm": {
+          "type": "string",
+          "default": "louvain",
+          "enum": ["louvain", "leiden", "walktrap"]
+        },
+        "cluster_weighting": {
+          "type": "string",
+          "default": "jaccard",
+          "enum": ["rank", "number", "jaccard"]
+        },
+        "nearest_neighbors": {
+          "type": "integer",
+          "default": 20
+        },
+        "singler_label_name": {
+          "type": "string",
+          "default": "label.ont",
+          "description": "Label name for singleR references"
         }
       }
     },
@@ -197,119 +331,13 @@
       "$ref": "#/definitions/processing_options"
     },
     {
+      "$ref": "#/definitions/reference_files"
+    },
+    {
+      "$ref": "#/definitions/algorithm_parameters"
+    },
+    {
       "$ref": "#/definitions/containers"
     }
-  ],
-  "properties": {
-    "af_resolution": {
-      "type": "string",
-      "default": "cr-like-em",
-      "description": "alevin-fry quant resolution method",
-      "enum": ["cr-like-em", "cr-like", "full", "parsimony", "trivial"]
-    },
-    "spliced_only": {
-      "type": "boolean",
-      "description": "Only count spliced RNA reads"
-    },
-    "seed": {
-      "type": "integer",
-      "default": 2021,
-      "description": "random number seed"
-    },
-    "prob_compromised_cutoff": {
-      "type": "number",
-      "default": 0.75,
-      "description": "cutoff for MiQC to keep a cell"
-    },
-    "gene_cutoff": {
-      "type": "integer",
-      "default": 200,
-      "description": "Minimum number of genes detected per cell"
-    },
-    "num_hvg": {
-      "type": "integer",
-      "default": 2000,
-      "description": "Number of highly variable genes to use for dimension reduction"
-    },
-    "num_pcs": {
-      "type": "integer",
-      "default": 50,
-      "description": "Number of principal components to keep from PCA"
-    },
-    "cluster_algorithm": {
-      "type": "string",
-      "default": "louvain"
-    },
-    "cluster_weighting": {
-      "type": "string",
-      "default": "jaccard"
-    },
-    "nearest_neighbors": {
-      "type": "integer",
-      "default": 20
-    },
-    "singler_label_name": {
-      "type": "string",
-      "default": "label.ont",
-      "description": "Label name for singleR references"
-    },
-    "ref_json": {
-      "type": "string",
-      "default": "references/scpca-refs.json",
-      "format": "file-path",
-      "mimetype": "application/json"
-    },
-    "ref_metadata": {
-      "type": "string",
-      "default": "references/ref-metadata.tsv",
-      "format": "file-path",
-      "mimetype": "text/ttext/tab-separated-values"
-    },
-    "ref_rootdir": {
-      "type": "string",
-      "default": "s3://scpca-references",
-      "format": "directory-path"
-    },
-    "barcode_dir": {
-      "type": "string",
-      "default": "s3://scpca-references/barcodes/10X",
-      "format": "directory-path"
-    },
-    "celltype_organism": {
-      "type": "string",
-      "default": "Homo_sapiens.GRCh38.104"
-    },
-    "celltype_ref_dir": {
-      "type": "string",
-      "default": "s3://scpca-references/celltype",
-      "format": "directory-path"
-    },
-    "singler_references_dir": {
-      "type": "string",
-      "default": "s3://scpca-references/celltype/singler_references",
-      "format": "directory-path"
-    },
-    "singler_models_dir": {
-      "type": "string",
-      "default": "s3://scpca-references/celltype/singler_models",
-      "format": "directory-path"
-    },
-    "cellassign_ref_dir": {
-      "type": "string",
-      "default": "s3://scpca-references/celltype/cellassign_references",
-      "format": "directory-path"
-    },
-    "celltype_ref_metadata": {
-      "type": "string",
-      "default": "references/celltype-reference-metadata.tsv",
-      "format": "file-path",
-      "mimetype": "text/tab-separated-values"
-    },
-    "panglao_marker_genes_file": {
-      "type": "string",
-      "default": "references/PanglaoDB_markers_2020-03-27.tsv",
-      "format": "file-path",
-      "mimetype": "text/tab-separated-values"
-    }
-  }
+  ]
 }
