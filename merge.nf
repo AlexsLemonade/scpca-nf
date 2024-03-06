@@ -162,6 +162,8 @@ workflow {
     grouped_libraries_ch = libraries_ch
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
+      // remove any multiplexed projects
+      .filter{!(it.project_id in multiplex_projects.getVal())}
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
         it.project_id,
