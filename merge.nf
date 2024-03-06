@@ -32,9 +32,9 @@ process merge_sce {
   label 'mem_32'
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   input:
-    tuple val(merge_group_id), val(has_adt), val(multiplexed), val(library_ids), path(scpca_nf_file)
+    tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
   output:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
+    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -46,7 +46,6 @@ process merge_sce {
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \
       ${has_adt ? "--include_altexp" : ''} \
-      ${multiplexed ? "--multiplexed" : '' } \
       --threads ${task.cpus}
     """
   stub:
@@ -63,7 +62,7 @@ process generate_merge_report {
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_16'
   input:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt), val(multiplexed)
+    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
     path(report_template)
   output:
     path(merge_report)
@@ -163,6 +162,7 @@ workflow {
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
       // remove any multiplexed projects
+      // future todo: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
       .filter{!(it.project_id in multiplex_projects.getVal())}
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
@@ -180,7 +180,6 @@ workflow {
       .map{project_id, library_id_list, sce_file_list -> tuple(
         project_id,
         project_id in adt_projects.getVal(), // determines if altExp should be included in the merged object
-        project_id in multiplex_projects.getVal(), // determines if sample metadata should be added to colData and to skip anndata
         library_id_list,
         sce_file_list
       )}
