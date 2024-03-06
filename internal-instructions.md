@@ -214,10 +214,12 @@ Note that the workflow will also merge any present alternative experiments (e.g.
 
 The merge workflow requires two parameters:
 
-- `project`, the SCPCA project id whose objects should be merged
+- `project`, the SCPCA project id whose objects should be merged.
+If running multiple projects, provide a comma separated list of project IDs.
+- `merge_run_ids`, the set of run ids, library ids, or sample ids to include in the merged object.
+By default all runs ids for the given project will be included
 - `run_metafile`, the metadata file (`scpca-library-metadata.tsv`) which contains information about libraries to merge
   - This is specified in the `ccdl` profile configuration file
-
 
 Data Lab members with access to AWS can run the workflow with the following command(s):
 
@@ -227,4 +229,7 @@ nextflow run merge.nf -profile ccdl,batch --project SCPCP000000
 
 # Run more than one project
 nextflow run merge.nf -profile ccdl,batch --project SCPCP00000X,SCPCP00000Y
+
+# Specify a set of run ids to use
+nextflow run merge.nf -profile ccdl,batch --project SCPCP000000 --run_ids SCPCR00000X,SCPCR00000Y
 ```
