@@ -5,15 +5,12 @@ on:
     branches:
       - main
       - development
-  push:
-    branches:
-      - jashapiro/*
 jobs:
   nf-config-check:
     runs-on: ubuntu-22.04
     container: nfcore/tools:2.13.1
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check nextflow params
         run: nextflow config
       - name: Check nextflow_schema file
