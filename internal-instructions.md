@@ -214,7 +214,8 @@ Note that the workflow will also merge any present alternative experiments (e.g.
 
 The merge workflow requires two parameters:
 
-- `project`, the SCPCA project id whose objects should be merged
+- `project`, the SCPCA project id whose objects should be merged.
+If running multiple projects, provide a comma separated list of project IDs.
 - `merge_run_ids`, the set of run ids, library ids, or sample ids to include in the merged object.
 By default all runs ids for the given project will be included
 - `run_metafile`, the metadata file (`scpca-library-metadata.tsv`) which contains information about libraries to merge
