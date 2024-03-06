@@ -1,5 +1,5 @@
 // perform graph-based clustering on a processed SCE object
-process cluster_sce{
+process cluster_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"

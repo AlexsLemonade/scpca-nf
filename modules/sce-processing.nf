@@ -1,7 +1,7 @@
 // generate unfiltered and filtered RDS files using scpcaTools
 
 // RNA only libraries
-process make_unfiltered_sce{
+process make_unfiltered_sce {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_8'
     tag "${meta.library_id}"
@@ -45,7 +45,7 @@ process make_unfiltered_sce{
 }
 
 // channels with RNA and feature data
-process make_merged_unfiltered_sce{
+process make_merged_unfiltered_sce {
     label 'mem_8'
     tag "${rna_meta.library_id}"
     container params.SCPCATOOLS_CONTAINER
@@ -104,7 +104,7 @@ process make_merged_unfiltered_sce{
         """
 }
 
-process filter_sce{
+process filter_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
@@ -137,7 +137,7 @@ process filter_sce{
     """
 }
 
-process genetic_demux_sce{
+process genetic_demux_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
@@ -163,7 +163,7 @@ process genetic_demux_sce{
     """
 }
 
-process cellhash_demux_sce{
+process cellhash_demux_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
@@ -191,7 +191,7 @@ process cellhash_demux_sce{
     """
 }
 
-process post_process_sce{
+process post_process_sce {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
