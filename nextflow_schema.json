@@ -138,63 +138,79 @@
       "description": "",
       "default": "",
       "properties": {
+        "barcode_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/barcodes/10X",
+          "format": "directory-path",
+          "description": "Directory for 10x barcode files"
+        },
+        "ref_rootdir": {
+          "type": "string",
+          "default": "s3://scpca-references",
+          "format": "directory-path",
+          "description": "Root location for reference files"
+        },
         "ref_json": {
           "type": "string",
           "default": "${projectDir}/references/scpca-refs.json",
           "format": "file-path",
-          "mimetype": "application/json"
+          "mimetype": "application/json",
+          "description": "JSON file describing the locations of reference files within the root directory"
+        },
+        "celltype_ref_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype",
+          "format": "directory-path",
+          "description": "Directory of cell type reference files"
+        },
+        "singler_models_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/singler_models",
+          "format": "directory-path",
+          "description": "Directory of singleR model files"
+        },
+        "cellassign_ref_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/cellassign_references",
+          "format": "directory-path",
+          "description": "Directory of CellAssign reference data"
         },
         "ref_metadata": {
           "type": "string",
           "default": "${projectDir}/references/ref-metadata.tsv",
           "format": "file-path",
-          "mimetype": "text/tab-separated-values"
+          "mimetype": "text/tab-separated-values",
+          "description": "Reference metadata used in `build-index.nf`",
+          "hidden": true
         },
         "celltype_organism": {
           "type": "string",
-          "default": "Homo_sapiens.GRCh38.104"
-        },
-        "ref_rootdir": {
-          "type": "string",
-          "default": "s3://scpca-references",
-          "format": "directory-path"
-        },
-        "barcode_dir": {
-          "type": "string",
-          "default": "s3://scpca-references/barcodes/10X",
-          "format": "directory-path"
-        },
-        "celltype_ref_dir": {
-          "type": "string",
-          "default": "s3://scpca-references/celltype",
-          "format": "directory-path"
+          "default": "Homo_sapiens.GRCh38.104",
+          "description": "Organism for cell type references, used in `build-celltype-ref.nf`",
+          "hidden": true
         },
         "singler_references_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_references",
-          "format": "directory-path"
-        },
-        "singler_models_dir": {
-          "type": "string",
-          "default": "s3://scpca-references/celltype/singler_models",
-          "format": "directory-path"
-        },
-        "cellassign_ref_dir": {
-          "type": "string",
-          "default": "s3://scpca-references/celltype/cellassign_references",
-          "format": "directory-path"
+          "format": "directory-path",
+          "description": "Directory of singleR reference files, used in `build-celltype-ref.nf`",
+          "hidden": true
         },
         "celltype_ref_metadata": {
           "type": "string",
           "default": "${projectDir}/references/celltype-reference-metadata.tsv",
           "format": "file-path",
-          "mimetype": "text/tab-separated-values"
+          "mimetype": "text/tab-separated-values",
+          "description": "Cell type reference metadata, used in `build-celltype-ref.nf`",
+          "hidden": true
         },
         "panglao_marker_genes_file": {
           "type": "string",
           "default": "${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv",
           "format": "file-path",
-          "mimetype": "text/tab-separated-values"
+          "mimetype": "text/tab-separated-values",
+          "hidden": true,
+          "description": "Panglao marker genes file, used in `build-celltype-ref.nf`"
         }
       }
     },
@@ -242,16 +258,19 @@
         "cluster_algorithm": {
           "type": "string",
           "default": "louvain",
-          "enum": ["louvain", "leiden", "walktrap"]
+          "enum": ["louvain", "leiden", "walktrap"],
+          "description": "Cluster algorithm to use."
         },
         "cluster_weighting": {
           "type": "string",
           "default": "jaccard",
-          "enum": ["rank", "number", "jaccard"]
+          "enum": ["rank", "number", "jaccard"],
+          "description": "Edge weighting to use for clustering"
         },
         "nearest_neighbors": {
           "type": "integer",
-          "default": 20
+          "default": 20,
+          "description": "Number of neighbors to use for clustering"
         },
         "singler_label_name": {
           "type": "string",
