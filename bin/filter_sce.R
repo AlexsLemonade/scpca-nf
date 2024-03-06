@@ -202,4 +202,4 @@ if (!is.null(ambient_profile)) {
 
 
 # write filtered sce to output
-readr::write_rds(filtered_sce, opt$filtered_file, compress = "gz")
+readr::write_rds(filtered_sce, opt$filtered_file, compress = "bz2")
