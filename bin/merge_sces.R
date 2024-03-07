@@ -223,8 +223,8 @@ possible_columns <- c(
   "altexps_cellhash_sum",
   "altexps_cellhash_detected",
   "altexps_cellhash_percent",
-  "hashedDrops_sampleID",
-  "HTODemux_sampleID",
+  "hashedDrops_sampleid",
+  "HTODemux_sampleid",
   "vireo_sampleid"
 )
 
