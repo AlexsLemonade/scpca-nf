@@ -158,12 +158,23 @@ workflow {
       .collect{it.project_id}
       .map{it.unique()}
 
-    grouped_libraries_ch = libraries_ch
+    filtered_libraries_ch = libraries_ch
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
       // remove any multiplexed projects
       // future todo: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
-      .filter{!(it.project_id in multiplex_projects.getVal())}
+      .branch{
+        multiplexed: it.project_id in multiplex_projects.getVal()
+        single_sample: true
+      }
+    
+    filtered_libraries_ch.multiplexed
+      .unique{ it.project_id }
+      .subscribe{
+        log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
+      }
+      
+    grouped_libraries_ch = filtered_libraries.single_sample 
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
         it.project_id,
