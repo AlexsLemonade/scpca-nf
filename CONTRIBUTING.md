@@ -27,8 +27,7 @@ This file can most easily be updated using the [`nf-core/tools` package](https:/
 Then run `nf-core schema build` in the `scpca-nf` directory to update the schema file to match the current config file.
 You can also use the web editor that it launches to further customize the schema file.
 Note that you may get warnings about any config parameters that include `${projectDir}`, as the build tool wants those to be replaced with absolute paths.
-This is not necessary for the schema to be valid, so please keep those paths with the `${projectDir}` variable.
-
+This is not necessary for the schema to be valid, so please keep those paths with the `${projectDir}` variable (enter `n` at the prompt).
 ### Continuous integration in pull requests
 
 There are several automatic checks performed by GitHub Actions in all pull requests filed to `main` or `development`:
