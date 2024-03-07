@@ -10,7 +10,7 @@
       "type": "object",
       "fa_icon": "fas fa-terminal",
       "description": "Define where the pipeline should find input data and save output data.",
-      "required": ["outdir", "run_metafile"],
+      "required": ["outdir", "run_metafile", "sample_metafile"],
       "properties": {
         "outdir": {
           "type": "string",
@@ -41,7 +41,7 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "A file containing information to map cellhash barcodes to samples.  See  https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries"
+          "description": "A file containing information to map cellhash barcodes to samples.  See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries"
         },
         "results_dir": {
           "type": "string",
@@ -167,13 +167,13 @@
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_models",
           "format": "directory-path",
-          "description": "Directory of singleR model files"
+          "description": "Directory of `SingleR` model files"
         },
         "cellassign_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/cellassign_references",
           "format": "directory-path",
-          "description": "Directory of CellAssign reference data"
+          "description": "Directory of `CellAssign` reference data"
         },
         "ref_metadata": {
           "type": "string",
@@ -193,7 +193,7 @@
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_references",
           "format": "directory-path",
-          "description": "Directory of singleR reference files, used in `build-celltype-ref.nf`",
+          "description": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`",
           "hidden": true
         },
         "celltype_ref_metadata": {
@@ -238,7 +238,7 @@
         "prob_compromised_cutoff": {
           "type": "number",
           "default": 0.75,
-          "description": "Cutoff for MiQC to keep a cell"
+          "description": "Cutoff for `miQC` to keep a cell"
         },
         "gene_cutoff": {
           "type": "integer",
@@ -275,7 +275,7 @@
         "singler_label_name": {
           "type": "string",
           "default": "label.ont",
-          "description": "Label name for singleR references"
+          "description": "Label name for `SingleR` references"
         }
       }
     },

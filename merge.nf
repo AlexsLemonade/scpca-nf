@@ -22,7 +22,7 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if(param_error) {
+if (param_error) {
   System.exit(1)
 }
 
