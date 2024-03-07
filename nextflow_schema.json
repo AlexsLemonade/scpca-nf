@@ -25,7 +25,7 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "The input file with information for each run to be processed. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file for format information"
+          "description": "The input file with information for each run to be processed. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file for format information."
         },
         "sample_metafile": {
           "type": "string",
@@ -33,7 +33,7 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "A sample information file. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file for information"
+          "description": "A sample information file. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file for information."
         },
         "cellhash_pool_file": {
           "type": "string",
@@ -41,7 +41,7 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "A file containing information to map cellhash barcodes to samples.  See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries"
+          "description": "A file containing information to map cellhash barcodes to samples. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries for more information."
         },
         "results_dir": {
           "type": "string",
@@ -49,7 +49,7 @@
           "hidden": true,
           "fa_icon": "fas fa-folder-minus",
           "format": "directory-path",
-          "description": "Directory for final output files"
+          "description": "Directory for final output files."
         },
         "checkpoints_dir": {
           "type": "string",
@@ -57,7 +57,7 @@
           "hidden": true,
           "fa_icon": "fas fa-folder-minus",
           "format": "directory-path",
-          "description": "Directory to store checkpoint files, used when optionally skipping steps"
+          "description": "Directory to store checkpoint files, used when optionally skipping steps."
         }
       }
     },
@@ -88,13 +88,13 @@
     "processing_options": {
       "title": "Processing options",
       "type": "object",
-      "description": "Define optional settings for processing",
+      "description": "Define optional settings for processing.",
       "default": "",
       "properties": {
         "run_ids": {
           "type": "string",
           "default": "All",
-          "description": "Specify a comma-separated list of run IDs to run. Use \"All\" to run all samples in the run_metafile"
+          "description": "Specify a comma-separated list of run IDs to run. Use \"All\" to run all samples in the run_metafile."
         },
         "project": {
           "type": "string",
@@ -102,32 +102,32 @@
         },
         "repeat_mapping": {
           "type": "boolean",
-          "description": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default"
+          "description": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default."
         },
         "repeat_genetic_demux": {
           "type": "boolean",
-          "description": "If genetic demultiplexing has been performed and output files exist, genetic demux is skipped by default"
+          "description": "If genetic demultiplexing has been performed and output files exist, genetic demux is skipped by default."
         },
         "skip_genetic_demux": {
           "type": "boolean",
-          "description": "Skip genetic demultiplexing steps, even if bulk data is present"
+          "description": "Skip genetic demultiplexing steps, even if bulk data is present."
         },
         "perform_celltyping": {
           "type": "boolean",
-          "description": "Specify whether or not to incorporate cell type annotations"
+          "description": "Specify whether or not to incorporate cell type annotations."
         },
         "repeat_celltyping": {
           "type": "boolean",
-          "description": "If cell type annotations already exist, cell type classification with SingleR and CellAssign is skipped by default"
+          "description": "If cell type annotations already exist, cell type classification with `SingleR` and `CellAssign` is skipped by default."
         },
         "publish_fry_outs": {
           "type": "boolean",
-          "description": "alevin-fry outputs are not published by default. Use this option to publish them to the `checkpoints` folder"
+          "description": "alevin-fry outputs are not published by default. Use this option to publish them to the `checkpoints` folder."
         },
         "merge_run_ids": {
           "type": "string",
           "default": "All",
-          "description": "Which runs to merge when using the merge.nf workflow",
+          "description": "Which runs to merge when using the merge.nf workflow.",
           "hidden": true
         }
       }
@@ -138,62 +138,62 @@
       "description": "",
       "default": "",
       "properties": {
-        "barcode_dir": {
-          "type": "string",
-          "default": "s3://scpca-references/barcodes/10X",
-          "format": "directory-path",
-          "description": "Directory for 10x barcode files"
-        },
         "ref_rootdir": {
           "type": "string",
           "default": "s3://scpca-references",
           "format": "directory-path",
-          "description": "Root location for reference files"
+          "description": "Root location for reference files."
+        },
+        "barcode_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/barcodes/10X",
+          "format": "directory-path",
+          "description": "Directory for 10x barcode files."
         },
         "ref_json": {
           "type": "string",
           "default": "${projectDir}/references/scpca-refs.json",
           "format": "file-path",
           "mimetype": "application/json",
-          "description": "JSON file describing the locations of reference files within the root directory"
+          "description": "JSON file describing the locations of reference files within the root directory."
         },
         "celltype_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype",
           "format": "directory-path",
-          "description": "Directory of cell type reference files"
+          "description": "Directory of cell type reference files."
         },
         "singler_models_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_models",
           "format": "directory-path",
-          "description": "Directory of `SingleR` model files"
+          "description": "Directory of `SingleR` model files."
         },
         "cellassign_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/cellassign_references",
           "format": "directory-path",
-          "description": "Directory of `CellAssign` reference data"
+          "description": "Directory of `CellAssign` reference data."
         },
         "ref_metadata": {
           "type": "string",
           "default": "${projectDir}/references/ref-metadata.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "Reference metadata used in `build-index.nf`",
+          "description": "Reference metadata used in `build-index.nf`.",
           "hidden": true
         },
         "celltype_organism": {
           "type": "string",
           "default": "Homo_sapiens.GRCh38.104",
-          "description": "Organism for cell type references, used in `build-celltype-ref.nf`",
+          "description": "Organism for cell type references, used in `build-celltype-ref.nf`.",
           "hidden": true
         },
         "singler_references_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_references",
           "format": "directory-path",
-          "description": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`",
+          "description": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
           "hidden": true
         },
         "celltype_ref_metadata": {
@@ -201,7 +201,7 @@
           "default": "${projectDir}/references/celltype-reference-metadata.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "Cell type reference metadata, used in `build-celltype-ref.nf`",
+          "description": "Cell type reference metadata, used in `build-celltype-ref.nf`.",
           "hidden": true
         },
         "panglao_marker_genes_file": {
@@ -210,7 +210,7 @@
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
           "hidden": true,
-          "description": "Panglao marker genes file, used in `build-celltype-ref.nf`"
+          "description": "Panglao marker genes file, used in `build-celltype-ref.nf`."
         }
       }
     },
@@ -228,32 +228,32 @@
         "af_resolution": {
           "type": "string",
           "default": "cr-like-em",
-          "description": "alevin-fry quant resolution method",
+          "description": "alevin-fry quant resolution method.",
           "enum": ["cr-like-em", "cr-like", "full", "parsimony", "trivial"]
         },
         "spliced_only": {
           "type": "boolean",
-          "description": "Only count spliced RNA reads"
+          "description": "Only count spliced RNA reads."
         },
         "prob_compromised_cutoff": {
           "type": "number",
           "default": 0.75,
-          "description": "Cutoff for `miQC` to keep a cell"
+          "description": "Cutoff for `miQC` to keep a cell."
         },
         "gene_cutoff": {
           "type": "integer",
           "default": 200,
-          "description": "Minimum number of genes detected per cell"
+          "description": "Minimum number of genes detected per cell."
         },
         "num_hvg": {
           "type": "integer",
           "default": 2000,
-          "description": "Number of highly variable genes to use for dimension reduction"
+          "description": "Number of highly variable genes to use for dimension reduction."
         },
         "num_pcs": {
           "type": "integer",
           "default": 50,
-          "description": "Number of principal components to keep from PCA"
+          "description": "Number of principal components to keep from PCA."
         },
         "cluster_algorithm": {
           "type": "string",
@@ -265,24 +265,25 @@
           "type": "string",
           "default": "jaccard",
           "enum": ["rank", "number", "jaccard"],
-          "description": "Edge weighting to use for clustering"
+          "description": "Edge weighting to use for clustering."
         },
         "nearest_neighbors": {
           "type": "integer",
           "default": 20,
-          "description": "Number of neighbors to use for clustering"
+          "description": "Number of neighbors to use for clustering."
         },
         "singler_label_name": {
           "type": "string",
           "default": "label.ont",
-          "description": "Label name for `SingleR` references"
+          "hidden": true,
+          "description": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
         }
       }
     },
     "containers": {
       "title": "Containers",
       "type": "object",
-      "description": "Docker containers required for workflow steps",
+      "description": "Docker containers required for workflow steps.",
       "default": "",
       "fa_icon": "fas fa-box-open",
       "properties": {
