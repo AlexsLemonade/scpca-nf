@@ -35,6 +35,13 @@ option_list <- list(
     help = "Keep any altExp present in the merged object."
   ),
   make_option(
+    opt_str = c("--multiplexed"),
+    action = "store_true",
+    default = FALSE,
+    help = "Indicates if the provided SCE's contain multiplexed data.
+      If so, the sample metadata will not be added to the colData."
+  ),
+  make_option(
     opt_str = c("-t", "--threads"),
     type = "integer",
     default = 1,
@@ -269,14 +276,16 @@ merged_sce <- scpcaTools::merge_sce_list(
   preserve_altexp_rowdata_cols = preserve_altexp_rowdata_list
 )
 
-# add sample metadata to colData
-merged_sce <- scpcaTools::metadata_to_coldata(
-  merged_sce,
-  join_columns = "library_id"
-)
+# add sample metadata to colData as long as there are no multiplexed data
+if (!opt$multiplexed) {
+  merged_sce <- scpcaTools::metadata_to_coldata(
+    merged_sce,
+    join_columns = "library_id"
+  )
 
-# remove sample metadata
-metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
+  # remove sample metadata
+  metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
+}
 
 # grab technology and EFO from metadata$library_metadata
 library_df <- names(sce_list) |>
