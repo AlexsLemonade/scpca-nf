@@ -211,7 +211,14 @@ possible_columns <- c(
   "adt_scpca_filter",
   "altexps_adt_sum",
   "altexps_adt_detected",
-  "altexps_adt_percent"
+  "altexps_adt_percent",
+  # cellhash statistics & demux results
+  "altexps_cellhash_sum",
+  "altexps_cellhash_detected",
+  "altexps_cellhash_percent",
+  "hashedDrops_sampleid",
+  "HTODemux_sampleid",
+  "vireo_sampleid"
 )
 
 # Define colData columns to retain based on intersection with present columns
