@@ -167,14 +167,14 @@ workflow {
         multiplexed: it.project_id in multiplex_projects.getVal()
         single_sample: true
       }
-    
+
     filtered_libraries_ch.multiplexed
       .unique{ it.project_id }
       .subscribe{
         log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
       }
-      
-    grouped_libraries_ch = filtered_libraries.single_sample 
+
+    grouped_libraries_ch = filtered_libraries_ch.single_sample
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
         it.project_id,
