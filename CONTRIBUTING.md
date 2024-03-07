@@ -22,7 +22,7 @@ When the changes in `development` merit a new release, a pull request will be fi
 
 ### Updating `nextflow_schema.json`
 
-Any changes that affect the Nextflow configuration files should be reflected in the `nextflow_schema.json` file.
+Any changes that affect the Nextflow configuration files should be reflected in the [`nextflow_schema.json` file](https://nf-co.re/tools#pipeline-schema).
 This file can most easily be updated using the [`nf-core/tools` package](https://nf-co.re/tools), which can be installed with `conda install nf-core`.
 Then run `nf-core schema build` in the `scpca-nf` directory to update the schema file to match the current config file.
 You can also use the web editor that it launches to further customize the schema file.
