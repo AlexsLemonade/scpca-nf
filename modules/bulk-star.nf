@@ -1,6 +1,6 @@
 include { index_bam } from './samtools.nf'
 
-process bulkmap_star{
+process bulkmap_star {
   container params.STAR_CONTAINER
   tag "${meta.run_id}"
   label 'cpus_8'
@@ -29,7 +29,7 @@ process bulkmap_star{
     """
 }
 
-workflow star_bulk{
+workflow star_bulk {
   take:
     bulk_channel // a channel with a map of metadata for each rna library to process
 

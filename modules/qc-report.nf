@@ -1,7 +1,7 @@
 
 // generate QC report from unfiltered and filtered SCE.rds files using scpcaTools
 
-process sce_qc_report{
+process sce_qc_report {
   container params.SCPCATOOLS_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"

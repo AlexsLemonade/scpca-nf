@@ -1,6 +1,6 @@
 
 // generates RAD file using alevin
-process alevin_rad{
+process alevin_rad {
   container params.SALMON_CONTAINER
   label 'cpus_12'
   label 'mem_24'
@@ -53,7 +53,7 @@ process alevin_rad{
 }
 
 // quantify rna from RAD input
-process fry_quant_rna{
+process fry_quant_rna {
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   label 'mem_8'

@@ -42,7 +42,7 @@ class Utils {
    * @param file A Nextflow file object with metadata in JSON format
    * @return A value from the metadata
    */
-  static def getMetaVal(file, key){
+  static def getMetaVal(file, key) {
     def obj = new JsonSlurper().parse(file)
     def value = obj[key]
 
@@ -62,7 +62,7 @@ class Utils {
    * @return The input string unless it was NA or a variant thereof, in which case returns ""
    */
   static def parseNA(str) {
-    if (str){
+    if (str) {
       if (str instanceof String) { // has to be a string to have NA vals replaced
         str.toLowerCase() in ['na','n/a','nan']? '' : str
       } else { // not a string, so just return the unmodified value

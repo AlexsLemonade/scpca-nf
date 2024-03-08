@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-process spaceranger{
+process spaceranger {
   container params.SPACERANGER_CONTAINER
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
@@ -44,7 +44,7 @@ process spaceranger{
     """
 }
 
-process spaceranger_publish{
+process spaceranger_publish {
   container params.SCPCATOOLS_CONTAINER
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
@@ -92,7 +92,7 @@ process spaceranger_publish{
     """
 }
 
-def getCRsamples(files_dir){
+def getCRsamples(files_dir) {
   // takes the path to the directory holding the fastq files for each sample
   // returns just the 'sample info' portion of the file names,
   // as spaceranger would interpret them, comma separated

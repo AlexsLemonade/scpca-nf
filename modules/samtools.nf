@@ -1,5 +1,5 @@
 
-process index_bam{
+process index_bam {
   container params.SAMTOOLS_CONTAINER
   tag "${meta.run_id}"
   input:

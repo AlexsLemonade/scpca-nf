@@ -22,7 +22,7 @@ if (!file(params.run_metafile).exists()) {
   param_error = true
 }
 
-if(param_error){
+if (param_error) {
   System.exit(1)
 }
 
@@ -84,7 +84,7 @@ process generate_merge_report {
     """
 }
 
-process export_anndata{
+process export_anndata {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_32'
     tag "${merge_group_id}"

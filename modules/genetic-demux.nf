@@ -6,7 +6,7 @@ include { starsolo_map } from './starsolo.nf'
 include { cellsnp_vireo } from './cellsnp.nf'
 
 
-workflow genetic_demux_vireo{
+workflow genetic_demux_vireo {
   take:
     multiplex_run_ch
     unfiltered_runs_ch

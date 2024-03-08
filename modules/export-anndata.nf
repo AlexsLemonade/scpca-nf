@@ -1,6 +1,6 @@
 
 // process for converting rds files containing an SCE to h5 containing anndata containing the RNA data
-process export_anndata{
+process export_anndata {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_16'
     tag "${meta.library_id}"
@@ -42,7 +42,7 @@ process export_anndata{
 }
 
 
-workflow sce_to_anndata{
+workflow sce_to_anndata {
     take:
       // tuple of [meta, unfiltered rds, filtered rds, processed rds, metadata json]
       sce_files_ch
