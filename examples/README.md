@@ -42,8 +42,13 @@ Be sure to enter the **full** path to the directory containing the fastq files i
 You will also need to create a tab-separated values **sample** metadata file.
 At a minimum, the sample metadata file must contain a column with `scpca_sample_id` as the header.
 The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
-Additionally, you may include columns indicating the sample type, such as `is_cell_line` and `is_xenograft`.
-If the sample is from a cell line, `is_cell_line` should be `TRUE`, and if the sample is from a patient-derived xenograft, `is_xenograft` should be `TRUE`.
+Additionally, you may include columns `is_cell_line` and `is_xenograft` to indicate the sample type:
+
+- `is_cell_line`: Use `TRUE` if the sample is from a cell line and `FALSE` otherwise.
+Cell type annotation will not be performed for samples that are `TRUE`.
+- `is_xenograft`: Use `TRUE` is the sample is from a patient-derived xenograft and `FALSE` otherwise.
+
+This information will be reflected in the summary QC report.
 
 Below is an example of a sample metadata file:
 
