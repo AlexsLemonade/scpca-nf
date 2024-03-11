@@ -169,6 +169,9 @@ The contents of this column should contain all unique sample IDs that are presen
 We encourage you to use standard terminology, such as ontology terms, to describe samples when possible.
 There is no limit to the number of columns allowed for the sample metadata, and you may include as many metadata fields as you please.
 Some suggested columns include diagnosis, tissue, age, sex, stage of disease, cell line.
+Additionally, you may include columns indicating the sample type, such as `is_cell_line` and `is_xenograft`.
+If the sample is from a cell line, `is_cell_line` should be `TRUE`, and if the sample is from a patient-derived xenograft, `is_xenograft` should be `TRUE`.
+
 
 We have provided an example run metadata file for reference.
 
