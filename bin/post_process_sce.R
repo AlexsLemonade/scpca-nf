@@ -282,7 +282,7 @@ readr::write_rds(sce, opt$out_filtered_sce_file, compress = "bz2")
 # only write out processed SCE if > 0 cells
 if (ncol(processed_sce) > 0) {
   # write out processed SCE
-  readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "gz")
+  readr::write_rds(processed_sce, opt$out_processed_sce_file, compress = "bz2")
 } else {
   # make an empty processed file
   file.create(opt$out_processed_sce_file)
