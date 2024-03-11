@@ -46,7 +46,7 @@ Additionally, you may include columns `is_cell_line` and `is_xenograft` to indic
 
 - `is_cell_line`: Use `TRUE` if the sample is from a cell line and `FALSE` otherwise.
 Cell type annotation will not be performed for samples that are `TRUE`.
-- `is_xenograft`: Use `TRUE` is the sample is from a patient-derived xenograft and `FALSE` otherwise.
+- `is_xenograft`: Use `TRUE` if the sample is from a patient-derived xenograft and `FALSE` otherwise.
 
 This information will be reflected in the summary QC report.
 
