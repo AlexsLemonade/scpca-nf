@@ -184,6 +184,14 @@ unfiltered_sce <- unfiltered_sce |>
   # `add_sample_metadata` will filter sample_metadata_df to the relevant sample ids
   add_sample_metadata(metadata_df = sample_metadata_df)
 
+# if columns with sample type info aren't provided, set to NA
+if (!("is_xenograft" %in% colnames(sample_metadata_df))) {
+  sample_metadata_df$is_xenograft <- NA
+}
+if (!("is_cell_line" %in% colnames(sample_metadata_df))) {
+  sample_metadata_df$is_cell_line <- NA
+}
+
 # add explicit metadata field for the sample type
 sample_type <- sample_metadata_df |>
   dplyr::filter(sample_id %in% sample_ids) |>
@@ -191,6 +199,8 @@ sample_type <- sample_metadata_df |>
     sample_type = dplyr::case_when(
       is_xenograft ~ "patient-derived xenograft",
       is_cell_line ~ "cell line",
+      # if neither column was provided, note that
+      is.na(is_xenograft) & is.na(is_cell_line) ~ "Not provided",
       .default = "patient tissue"
     )
   ) |>
