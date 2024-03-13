@@ -5,13 +5,13 @@ on:
     branches:
       - main
       - development
-
 jobs:
   nf-config-check:
     runs-on: ubuntu-22.04
+    container: nfcore/tools:2.13.1
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check nextflow params
-        uses: docker://nextflow/nextflow:21.10.6
-        with:
-          args: nextflow config
+        run: nextflow config
+      - name: Check nextflow_schema file
+        run: nf-core schema lint nextflow_schema.json

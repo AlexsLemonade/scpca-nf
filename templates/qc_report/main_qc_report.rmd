@@ -53,6 +53,12 @@ reformat_nulls <- function(df) {
 set.seed(params$seed)
 ```
 
+
+<!-- source functions --> 
+```{r, child='utils/report_functions.rmd'}
+```
+
+
 ```{r sce_setup}
 # save some typing later
 library_id <- params$library
@@ -114,7 +120,7 @@ if (has_processed) {
 
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &
+  has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
     !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
@@ -134,6 +140,11 @@ if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
 sample_types <- metadata(unfiltered_sce)$sample_type
+
+# determine UMAP point sizing
+umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
+umap_point_size <- umap_points_sizes[1]
+umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
@@ -170,6 +181,7 @@ if ("patient-derived xenograft" %in% sample_types) {
 
 if ("cell line" %in% sample_types) {
   if (has_multiplex) {
+    # get a list of samples in the library that are cell lines
     cell_line_samples <- names(sample_types[sample_types == "cell line"])
     cell_line_samples_bullets <- paste0("<li>", paste(cell_line_samples, collapse = "</li><li>", "</li>"))
 
@@ -515,6 +527,11 @@ if (skip_miQC) {
   } else {
     miQC_plot <- miQC::plotModel(filtered_sce, model = miQC_model)
   }
+
+  # set line thickness
+  line_aes <- list(linewidth = 1, alpha = 0.8)
+  miQC_plot$layers[[2]]$aes_params <- line_aes
+  miQC_plot$layers[[3]]$aes_params <- line_aes
 
   miQC_plot +
     coord_cartesian(ylim = c(0, 100)) +

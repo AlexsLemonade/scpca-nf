@@ -1,0 +1,363 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/scpca-nf/master/nextflow_schema.json",
+  "title": "scpca-nf pipeline parameters",
+  "description": "A nextflow workflow for processing single-cell RNA-seq data as part of the ScPCA project.",
+  "type": "object",
+  "definitions": {
+    "input_output_options": {
+      "title": "Input/output options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define where the pipeline should find input data and save output data.",
+      "required": ["outdir", "run_metafile", "sample_metafile"],
+      "properties": {
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+          "fa_icon": "fas fa-folder-open",
+          "default": "scpca_out"
+        },
+        "run_metafile": {
+          "type": "string",
+          "default": "run_metadata.tsv",
+          "fa_icon": "fas fa-file-alt",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "The input file with information for each run to be processed. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file for format information."
+        },
+        "sample_metafile": {
+          "type": "string",
+          "default": "sample_metadata.tsv",
+          "fa_icon": "fas fa-file-alt",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "A sample information file. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file for information."
+        },
+        "cellhash_pool_file": {
+          "type": "string",
+          "default": "multiplex_pools.tsv",
+          "fa_icon": "fas fa-file-alt",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "A file containing information to map cellhash barcodes to samples. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries for more information."
+        },
+        "results_dir": {
+          "type": "string",
+          "default": "scpca_out/results",
+          "hidden": true,
+          "fa_icon": "fas fa-folder-minus",
+          "format": "directory-path",
+          "description": "Directory for final output files."
+        },
+        "checkpoints_dir": {
+          "type": "string",
+          "default": "scpca_out/checkpoints",
+          "hidden": true,
+          "fa_icon": "fas fa-folder-minus",
+          "format": "directory-path",
+          "description": "Directory to store checkpoint files, used when optionally skipping steps."
+        }
+      }
+    },
+    "resource_maximums": {
+      "title": "Resource maximums",
+      "type": "object",
+      "fa_icon": "fab fa-acquisitions-incorporated",
+      "description": "Set the top limit for requested resources for any single job.",
+      "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
+      "properties": {
+        "max_cpus": {
+          "type": "integer",
+          "description": "Maximum number of CPUs that can be requested for any single job.",
+          "default": 24,
+          "fa_icon": "fas fa-microchip",
+          "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
+        },
+        "max_memory": {
+          "type": "string",
+          "description": "Maximum amount of memory that can be requested for any single job.",
+          "default": "96 GB",
+          "fa_icon": "fas fa-memory",
+          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
+          "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
+        }
+      }
+    },
+    "processing_options": {
+      "title": "Processing options",
+      "type": "object",
+      "description": "Define optional settings for processing.",
+      "default": "",
+      "properties": {
+        "run_ids": {
+          "type": "string",
+          "default": "All",
+          "description": "Specify a comma-separated list of run IDs to run. Use \"All\" to run all samples in the run_metafile."
+        },
+        "project": {
+          "type": "string",
+          "description": "Run samples only from a given project ID"
+        },
+        "repeat_mapping": {
+          "type": "boolean",
+          "description": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default."
+        },
+        "repeat_genetic_demux": {
+          "type": "boolean",
+          "description": "If genetic demultiplexing has been performed and output files exist, genetic demux is skipped by default."
+        },
+        "skip_genetic_demux": {
+          "type": "boolean",
+          "description": "Skip genetic demultiplexing steps, even if bulk data is present."
+        },
+        "perform_celltyping": {
+          "type": "boolean",
+          "description": "Specify whether or not to incorporate cell type annotations."
+        },
+        "repeat_celltyping": {
+          "type": "boolean",
+          "description": "If cell type annotations already exist, cell type classification with `SingleR` and `CellAssign` is skipped by default."
+        },
+        "publish_fry_outs": {
+          "type": "boolean",
+          "description": "alevin-fry outputs are not published by default. Use this option to publish them to the `checkpoints` folder."
+        },
+        "merge_run_ids": {
+          "type": "string",
+          "default": "All",
+          "description": "Which runs to merge when using the merge.nf workflow.",
+          "hidden": true
+        }
+      }
+    },
+    "reference_files": {
+      "title": "Reference files",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "ref_rootdir": {
+          "type": "string",
+          "default": "s3://scpca-references",
+          "format": "directory-path",
+          "description": "Root location for reference files."
+        },
+        "barcode_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/barcodes/10X",
+          "format": "directory-path",
+          "description": "Directory for 10x barcode files."
+        },
+        "ref_json": {
+          "type": "string",
+          "default": "${projectDir}/references/scpca-refs.json",
+          "format": "file-path",
+          "mimetype": "application/json",
+          "description": "JSON file describing the locations of reference files within the root directory."
+        },
+        "celltype_ref_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype",
+          "format": "directory-path",
+          "description": "Directory of cell type reference files."
+        },
+        "singler_models_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/singler_models",
+          "format": "directory-path",
+          "description": "Directory of `SingleR` model files."
+        },
+        "cellassign_ref_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/cellassign_references",
+          "format": "directory-path",
+          "description": "Directory of `CellAssign` reference data."
+        },
+        "ref_metadata": {
+          "type": "string",
+          "default": "${projectDir}/references/ref-metadata.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Reference metadata used in `build-index.nf`.",
+          "hidden": true
+        },
+        "celltype_organism": {
+          "type": "string",
+          "default": "Homo_sapiens.GRCh38.104",
+          "description": "Organism for cell type references, used in `build-celltype-ref.nf`.",
+          "hidden": true
+        },
+        "singler_references_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/singler_references",
+          "format": "directory-path",
+          "description": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
+          "hidden": true
+        },
+        "celltype_ref_metadata": {
+          "type": "string",
+          "default": "${projectDir}/references/celltype-reference-metadata.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Cell type reference metadata, used in `build-celltype-ref.nf`.",
+          "hidden": true
+        },
+        "panglao_marker_genes_file": {
+          "type": "string",
+          "default": "${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "hidden": true,
+          "description": "Panglao marker genes file, used in `build-celltype-ref.nf`."
+        }
+      }
+    },
+    "algorithm_parameters": {
+      "title": "Algorithm parameters",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "seed": {
+          "type": "integer",
+          "default": 2021,
+          "description": "Random number seed"
+        },
+        "af_resolution": {
+          "type": "string",
+          "default": "cr-like-em",
+          "description": "alevin-fry quant resolution method.",
+          "enum": ["cr-like-em", "cr-like", "full", "parsimony", "trivial"]
+        },
+        "spliced_only": {
+          "type": "boolean",
+          "description": "Only count spliced RNA reads."
+        },
+        "prob_compromised_cutoff": {
+          "type": "number",
+          "default": 0.75,
+          "description": "Cutoff for `miQC` to keep a cell."
+        },
+        "gene_cutoff": {
+          "type": "integer",
+          "default": 200,
+          "description": "Minimum number of genes detected per cell."
+        },
+        "num_hvg": {
+          "type": "integer",
+          "default": 2000,
+          "description": "Number of highly variable genes to use for dimension reduction."
+        },
+        "num_pcs": {
+          "type": "integer",
+          "default": 50,
+          "description": "Number of principal components to keep from PCA."
+        },
+        "cluster_algorithm": {
+          "type": "string",
+          "default": "louvain",
+          "enum": ["louvain", "leiden", "walktrap"],
+          "description": "Cluster algorithm to use."
+        },
+        "cluster_weighting": {
+          "type": "string",
+          "default": "jaccard",
+          "enum": ["rank", "number", "jaccard"],
+          "description": "Edge weighting to use for clustering."
+        },
+        "nearest_neighbors": {
+          "type": "integer",
+          "default": 20,
+          "description": "Number of neighbors to use for clustering."
+        },
+        "singler_label_name": {
+          "type": "string",
+          "default": "label.ont",
+          "hidden": true,
+          "description": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
+        }
+      }
+    },
+    "containers": {
+      "title": "Containers",
+      "type": "object",
+      "description": "Docker containers required for workflow steps.",
+      "default": "",
+      "fa_icon": "fas fa-box-open",
+      "properties": {
+        "SCPCATOOLS_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpca-tools:edge"
+        },
+        "ALEVINFRY_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1"
+        },
+        "BCFTOOLS_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/bcftools:1.14--h88f3f91_0"
+        },
+        "CELLSNP_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0"
+        },
+        "CONDA_CONTAINER": {
+          "type": "string",
+          "default": "continuumio/miniconda3:4.10.3p0"
+        },
+        "FASTP_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/fastp:0.23.0--h79da9fb_0"
+        },
+        "SALMON_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1"
+        },
+        "SAMTOOLS_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/samtools:1.14--hb421002_0"
+        },
+        "STAR_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
+        },
+        "TIDYVERSE_CONTAINER": {
+          "type": "string",
+          "default": "rocker/tidyverse:4.3.1"
+        },
+        "VIREO_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/vireo-snp:v0.5.7"
+        },
+        "CELLRANGER_CONTAINER": {
+          "type": "string"
+        },
+        "SPACERANGER_CONTAINER": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/input_output_options"
+    },
+    {
+      "$ref": "#/definitions/resource_maximums"
+    },
+    {
+      "$ref": "#/definitions/processing_options"
+    },
+    {
+      "$ref": "#/definitions/reference_files"
+    },
+    {
+      "$ref": "#/definitions/algorithm_parameters"
+    },
+    {
+      "$ref": "#/definitions/containers"
+    }
+  ]
+}

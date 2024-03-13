@@ -152,6 +152,11 @@ if (opt$feature_dir != "") {
   unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
   # add alt experiment features stats
   altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
+
+  # if CITE, add `adt_id` column to rowData with rownames
+  if (opt$feature_name == "adt") {
+    rowData(altExp(unfiltered_sce, "adt"))$adt_id <- rownames(rowData(altExp(unfiltered_sce, "adt")))
+  }
 }
 
 
@@ -179,6 +184,14 @@ unfiltered_sce <- unfiltered_sce |>
   # `add_sample_metadata` will filter sample_metadata_df to the relevant sample ids
   add_sample_metadata(metadata_df = sample_metadata_df)
 
+# if columns with sample type info aren't provided, set to NA
+if (!("is_xenograft" %in% colnames(sample_metadata_df))) {
+  sample_metadata_df$is_xenograft <- NA
+}
+if (!("is_cell_line" %in% colnames(sample_metadata_df))) {
+  sample_metadata_df$is_cell_line <- NA
+}
+
 # add explicit metadata field for the sample type
 sample_type <- sample_metadata_df |>
   dplyr::filter(sample_id %in% sample_ids) |>
@@ -186,6 +199,8 @@ sample_type <- sample_metadata_df |>
     sample_type = dplyr::case_when(
       is_xenograft ~ "patient-derived xenograft",
       is_cell_line ~ "cell line",
+      # if neither column was provided, note that
+      is.na(is_xenograft) && is.na(is_cell_line) ~ "Not provided",
       .default = "patient tissue"
     )
   ) |>
@@ -200,4 +215,4 @@ if (length(sample_type) == 1) {
 metadata(unfiltered_sce)$sample_type <- sample_type
 
 # write to rds
-readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "gz")
+readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "bz2")

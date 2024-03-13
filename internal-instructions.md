@@ -10,13 +10,18 @@
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding additional organisms](#adding-additional-organisms)
   - [Adding additional cell type references](#adding-additional-cell-type-references)
+- [Running the merge workflow](#running-the-merge-workflow)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Running `scpca-nf` as a Data Lab staff member
 
 This section provides instructions for running the main workflow, found in [`main.nf`](main.nf).
-Note that there are two other workflows: [`build-index.nf`](build-index.nf) for building reference indices (see #adding-additional-organisms), and [`build-celltype-ref.nf`](build-cellltype-ref.nf) for creating cell type annotation references.
+Note that there are three other workflows:
+
+- [`build-index.nf`](build-index.nf) for building reference indices (see #adding-additional-organisms)
+- [`build-celltype-ref.nf`](build-cellltype-ref.nf) for creating cell type annotation references (see #adding-additional-cell-type-references)
+- [`merge.nf`](merge.nf) for merging processed objects produced by the main workflow (see #running-the-merge-workflow)
 
 The instructions below assume that you are a member of the Data Lab with access to AWS.
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure.
@@ -82,7 +87,7 @@ Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more
 When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.7.3 -profile ccdl,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.8.0 -profile ccdl,batch --project SCPCP000000
 ```
 
 ### Processing example data
@@ -199,3 +204,32 @@ Corresponding "trained" model files for use in the cell type annotation workflow
   - `<celltype_ref_name>` is a given reference name established by the Data Lab.
   - `<celltype_ref_source>` is `PanglaoDB`
   - `<date>` is the `PanglaoDB` date, which serves as their version, in ISO8601 format.
+
+
+## Running the merge workflow
+
+The workflow in `merge.nf` merges (but **does not integrate**) processed objects produced by the main `scpca-nf` workflow.
+For a given SCPCA project id, the workflow creates a merged `SCE` object, a merged `AnnData` object, and an associated merged object HTML report.
+Note that the workflow will also merge any present alternative experiments (e.g., ADT data from CITE-seq) _except_ for cell hashing alternative experiments.
+
+The merge workflow requires two parameters:
+
+- `project`, the SCPCA project id whose objects should be merged.
+If running multiple projects, provide a comma separated list of project IDs.
+- `merge_run_ids`, the set of run ids, library ids, or sample ids to include in the merged object.
+By default all runs ids for the given project will be included
+- `run_metafile`, the metadata file (`scpca-library-metadata.tsv`) which contains information about libraries to merge
+  - This is specified in the `ccdl` profile configuration file
+
+Data Lab members with access to AWS can run the workflow with the following command(s):
+
+```
+# Run a single project
+nextflow run merge.nf -profile ccdl,batch --project SCPCP000000
+
+# Run more than one project
+nextflow run merge.nf -profile ccdl,batch --project SCPCP00000X,SCPCP00000Y
+
+# Specify a set of run ids to use
+nextflow run merge.nf -profile ccdl,batch --project SCPCP000000 --run_ids SCPCR00000X,SCPCR00000Y
+```

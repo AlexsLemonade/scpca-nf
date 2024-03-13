@@ -28,7 +28,7 @@ process index_feature{
 }
 
 // generates RAD file for alevin feature matrix using alevin
-process alevin_feature{
+process alevin_feature {
   container params.SALMON_CONTAINER
   label 'cpus_8'
   label 'mem_8'
@@ -86,7 +86,7 @@ process alevin_feature{
 }
 
 // quantify features from rad input
-process fry_quant_feature{
+process fry_quant_feature {
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
   tag "${meta.run_id}-features"
@@ -137,7 +137,7 @@ process fry_quant_feature{
 }
 
 
-workflow map_quant_feature{
+workflow map_quant_feature {
   take: feature_channel
   // a channel with a groovy map of metadata for each feature barcode library to process
   main:

@@ -1,0 +1,383 @@
+---
+params:
+  merge_group: "example_group"
+  merged_sce_file: NULL
+  batch_column: "library_id"
+title: "`r glue::glue('ScPCA merged report for {params$merge_group}')`"
+author: "Childhood Cancer Data Lab"
+date: "`r params$date`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    number_sections: false
+    code_download: true
+---
+
+```{r setup, warning = FALSE, message = FALSE, echo = FALSE}
+# knitr options
+knitr::opts_chunk$set(
+  echo = FALSE
+)
+
+library(SingleCellExperiment)
+library(ggplot2)
+
+# Set default ggplot theme, customized for UMAPs
+theme_set(
+  theme_bw() +
+    theme(
+      plot.margin = margin(rep(20, 4)),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid = element_blank(),
+      aspect.ratio = 1
+    )
+)
+```
+
+```{r}
+# define a simple function for creating tables
+make_kable <- function(df) {
+  knitr::kable(df, align = "r") |>
+    kableExtra::kable_styling(
+      bootstrap_options = "striped",
+      full_width = FALSE,
+      position = "left"
+    ) |>
+    kableExtra::column_spec(2, monospace = TRUE)
+}
+```
+
+
+```{r}
+# check that input file is provided and ends in rds
+if (is.null(params$merged_sce_file)) {
+  stop("Must provide a merged SCE object file.")
+}
+if (!stringr::str_ends(params$merged_sce_file, ".rds")) {
+  stop("Merged object file must end in .rds.")
+}
+
+# read in merged sce from file
+merged_sce <- readr::read_rds(params$merged_sce_file)
+
+# define batch column
+batch_column <- params$batch_column
+
+# set adt/multiplex values
+# this tells us if at least one library contains either of these modalities
+additional_sce_modalities <- merged_sce$additional_modalities |>
+  stringr::str_split(pattern = ";") |>
+  purrr::reduce(union) |>
+  sort()
+
+has_adt <- "adt" %in% additional_sce_modalities
+multiplexed <- "cellhash" %in% additional_sce_modalities
+```
+
+```{r, integration-warning, eval=FALSE}
+glue::glue("
+    <div class=\"alert alert-warning\">
+
+    <b>CAUTION: The libraries included in the merged object are NOT integrated or batch-corrected.</b>
+
+    </div>
+  ")
+```
+
+```{r, ref.label=c('integration-warning'), eval=TRUE, results='asis'}
+```
+
+
+This report includes a brief summary of all libraries included in the merged object for `r params$merge_group`.
+This merged object is intended to facilitate downstream analyses across multiple samples.
+
+The libraries included in the merged object are _NOT integrated or batch-corrected_.
+To conduct any downstream analyses that require batch correction (e.g., UMAP or clustering), batch correction must be performed separately.
+
+# Library information
+
+```{r}
+# extract coldata as data frame to use to create tables and UMAPs
+coldata_df <- scuttle::makePerCellDF(merged_sce, use.dimred = "UMAP") |>
+  dplyr::rename(
+    UMAP1 = UMAP.1,
+    UMAP2 = UMAP.2
+  )
+
+num_libraries <- merged_sce$library_id |>
+  unique() |>
+  length()
+```
+
+The merged object summarized in this report is comprised of `r num_libraries` individual libraries, which are described in the following table.
+
+- `Technology version` indicates which 10X Genomics kit was used for library preparation.
+- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version.
+- `Suspension type` indicates if the library was prepared from a single-cell (`cell`) or single-nuclei (`nucleus`) suspension.
+
+
+```{r}
+# table summarizing number of libraries with tech version and seq unit
+tech_table <- coldata_df |>
+  dplyr::select(library_id, tech_version, assay_ontology_term_id, suspension_type) |>
+  dplyr::distinct() |>
+  dplyr::count(tech_version, assay_ontology_term_id, suspension_type) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Technology version" = "tech_version",
+    "Experimental factor ontology" = "assay_ontology_term_id",
+    "Suspension type" = "suspension_type",
+    "Number of libraries" = "n"
+  )
+
+make_kable(tech_table)
+```
+
+
+```{r, eval=has_adt}
+knitr::asis_output(glue::glue(
+  "
+  This merged object contains one or more libraries with accompanying antibody-derived tag (ADT) expression data.
+  The following table summarizes the number of libraries with and without ADT data.
+  "
+))
+
+# count number of libraries with and without ADT
+adt_table <- coldata_df |>
+  dplyr::select(library_id, additional_modalities) |>
+  dplyr::distinct() |>
+  dplyr::mutate(
+    contains_adt = ifelse(
+      # check the corresponding column, same row
+      "adt" == additional_modalities, "Contains ADT", "No ADT"
+    )
+  ) |>
+  dplyr::count(contains_adt) |>
+  dplyr::rename(
+    "Library type" = "contains_adt",
+    "Number of libraries" = "n"
+  )
+
+make_kable(adt_table)
+```
+
+
+```{r, eval=multiplexed }
+knitr::asis_output(glue::glue(
+  "
+  This merged object contains one or more libraries that have been multiplexed.
+  The following table summarizes the number of libraries that have and have not been multiplexed.
+  "
+))
+
+# count number of libraries with and without multiplexing
+multiplex_table <- coldata_df |>
+  dplyr::select(library_id, additional_modalities) |>
+  dplyr::distinct() |>
+  dplyr::mutate(
+    is_multiplexed = ifelse(
+      # check the corresponding column, same row
+      "cellhash" == additional_modalities, "Multiplexed", "Not multiplexed"
+    )
+  ) |>
+  dplyr::count(is_multiplexed) |>
+  dplyr::rename(
+    "Library type" = "is_multiplexed",
+    "Number of libraries" = "n"
+  )
+
+make_kable(multiplex_table)
+```
+
+
+# Sample information
+
+```{r, eval = multiplexed, results='asis'}
+# get the total number of libraries that have been multiplexed
+n_multiplexed <- multiplex_table |>
+  dplyr::filter(`Library type` == "Multiplexed") |>
+  dplyr::pull(`Number of libraries`)
+
+glue::glue("
+  <div class=\"alert alert-info\">
+
+  This merged object contains {n_multiplexed} libraries that have been multiplexed.
+  Demultiplexing has not been performed, so sample information will not be displayed.
+
+  </div>
+")
+```
+
+
+```{r, eval=!multiplexed}
+# get total number of samples and libraries
+num_samples <- merged_sce$sample_id |>
+  unique() |>
+  length()
+```
+
+
+```{r, eval=!multiplexed, results='asis'}
+glue::glue(
+  "
+  The merged object summarized in this report contains {num_samples} samples.
+  "
+)
+```
+
+
+```{r, eval=!multiplexed}
+knitr::asis_output("
+## Diagnoses
+
+The following table shows the total number of samples associated with each diagnosis.
+If a subdiagnosis is available, the total number of samples will be shown for each unique combination of diagnosis and subdiagnosis.
+
+")
+```
+
+
+```{r, eval=!multiplexed}
+# table of diagnosis
+diagnosis_table <- coldata_df |>
+  dplyr::select(sample_id, diagnosis, subdiagnosis) |>
+  dplyr::distinct()
+
+# if subdiagnosis is present, summarize both
+if (!all(is.na(diagnosis_table$subdiagnosis))) {
+  diagnosis_table <- diagnosis_table |>
+    dplyr::count(diagnosis, subdiagnosis) |>
+    dplyr::arrange(desc(n)) |>
+    dplyr::rename(
+      "Diagnosis" = "diagnosis",
+      "Subdiagnosis" = "subdiagnosis",
+      "Number of samples" = "n"
+    )
+} else {
+  # otherwise only count diagnosis
+  diagnosis_table <- diagnosis_table |>
+    dplyr::count(diagnosis) |>
+    dplyr::arrange(desc(n)) |>
+    dplyr::rename(
+      "Diagnosis" = "diagnosis",
+      "Number of samples" = "n"
+    )
+}
+
+make_kable(diagnosis_table)
+```
+
+
+```{r, eval=!multiplexed}
+knitr::asis_output(
+  "
+## Disease stage
+
+The following table shows both the diagnosis and at what point during disease progression (`Disease stage`) the sample was taken.
+
+"
+)
+```
+
+
+```{r, eval=!multiplexed}
+# count number of samples per diagnosis/ disease timing combination
+disease_timing_table <- coldata_df |>
+  dplyr::select(sample_id, diagnosis, disease_timing) |>
+  dplyr::distinct() |>
+  dplyr::count(diagnosis, disease_timing) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Diagnosis" = "diagnosis",
+    "Disease stage" = "disease_timing",
+    "Number of samples" = "n"
+  )
+
+make_kable(disease_timing_table)
+```
+
+
+
+# UMAPs
+
+```{r, ref.label=c('integration-warning'), eval=TRUE, results='asis'}
+```
+
+In this section, we present UMAPs showing all cells from all libraries included in the merged object.
+For each library, a separate panel is shown, and cells from that library are colored, while all other cells are gray.
+
+**These merged object UMAP coordinates differ from UMAPs in individual library files.**
+After individual objects were merged, PCA and UMAP coordinate were recalculated so that each library would contribute equally to the overall scaling.
+As a consequence, the PCA and UMAP coordinates found in the merged object will differ from the coordinates found in individual libraries.
+
+```{r}
+# Determine appropriate dimensions for UMAP based on number of libraries
+n_libraries <- sum(tech_table$`Number of libraries`)
+
+# Determine faceting layout based on n_libraries
+# TODO: This needs to be revisited when we run the merged objects through
+facet_ncol <- dplyr::case_when(
+  n_libraries <= 20 ~ 4,
+  n_libraries <= 50 ~ 6,
+  n_libraries <= 80 ~ 8,
+  .default = 10
+)
+
+# TODO: For now, 3 inches per UMAP row
+umap_height <- ceiling(n_libraries / facet_ncol) * 3
+```
+
+
+
+```{r, eval = multiplexed, results = 'asis'}
+glue::glue("
+ <div class=\"alert alert-info\">
+ This merged object contains multiplexed data.
+ Each UMAP facet displays a given library, which may be comprised of multiple samples.
+  </div>
+")
+```
+
+
+```{r, fig.width = 8, fig.height = umap_height}
+ggplot(
+  coldata_df,
+  aes(x = UMAP1, y = UMAP2, color = {{ batch_column }})
+) +
+  # set points for all "other" points
+  geom_point(
+    data = dplyr::select(
+      coldata_df, -{{ batch_column }}
+    ),
+    color = "gray80",
+    alpha = 0.5,
+    size = 0.1
+  ) +
+  # set points for desired cell type
+  geom_point(
+    alpha = 0.5,
+    size = 0.1,
+    color = "firebrick3"
+  ) +
+  facet_wrap(
+    {{ batch_column }}, # do NOT use vars()
+    ncol = facet_ncol
+  )
+```
+
+
+# Session Info
+<details>
+<summary>R session information</summary>
+```{r session_info}
+if (requireNamespace("sessioninfo", quietly = TRUE)) {
+  sessioninfo::session_info()
+} else {
+  sessionInfo()
+}
+```
+</details>

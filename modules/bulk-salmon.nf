@@ -1,5 +1,5 @@
 
-process fastp{
+process fastp {
   container params.FASTP_CONTAINER
   label 'cpus_8'
   label 'mem_8'
@@ -26,7 +26,7 @@ process fastp{
     """
 }
 
-process salmon{
+process salmon {
   container params.SALMON_CONTAINER
   label 'cpus_12'
   label 'mem_24'

@@ -106,5 +106,5 @@ metadata(singler_results)$cell_ontology_df <- singler_model$cell_ontology_df
 readr::write_rds(
   singler_results,
   opt$output_singler_results_file,
-  compress = "gz"
+  compress = "bz2"
 )

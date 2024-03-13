@@ -29,6 +29,14 @@
   - [Spatial transcriptomics libraries](#spatial-transcriptomics-libraries)
 - [Additional workflow settings](#additional-workflow-settings)
   - [Repeating mapping steps](#repeating-mapping-steps)
+- [The `merge.nf` workflow](#the-mergenf-workflow)
+  - [Overview](#overview-1)
+  - [Steps for running the `merge.nf` workflow](#steps-for-running-the-mergenf-workflow)
+    - [Running the `merge.nf` workflow](#running-the-mergenf-workflow)
+  - [Output files](#output-files-1)
+  - [Special considerations for specific data types when running `merge.nf`](#special-considerations-for-specific-data-types-when-running-mergenf)
+    - [Merging libraries with CITE-seq data](#merging-libraries-with-cite-seq-data)
+    - [Merging libraries with cellhash data](#merging-libraries-with-cellhash-data)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -78,12 +86,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.3` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.8.0` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.7.3 \
+  -r v0.8.0 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -129,7 +137,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
 | `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, or `10Xv31`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` |
-| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term id associated with the `tech_version` |
+| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `tech_version` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
 | `files_directory`       | The full path/uri to directory containing fastq files (unique per run) |
@@ -156,11 +164,16 @@ Using `scpca-nf` requires a sample metadata file as a TSV (tab separated values)
 For each library that is processed, the corresponding sample metadata will be added to the `SingleCellExperiment` and `AnnData` objects output by the workflow (see the section on [Output files](#output-files)).
 
 _At a minimum, all sample metadata tables must contain a column with `scpca_sample_id` as the header_.
-The contents of this column should contain all unique sample ids that are present in the `scpca_sample_id` column of the run metadata file.
+The contents of this column should contain all unique sample IDs that are present in the `scpca_sample_id` column of the run metadata file.
 
 We encourage you to use standard terminology, such as ontology terms, to describe samples when possible.
 There is no limit to the number of columns allowed for the sample metadata, and you may include as many metadata fields as you please.
 Some suggested columns include diagnosis, tissue, age, sex, stage of disease, cell line.
+Additionally, you may include columns `is_cell_line` and `is_xenograft` to indicate the sample type:
+
+- `is_cell_line`: Use `TRUE` if the sample is from a cell line and `FALSE` otherwise.
+Cell type annotation will not be performed for samples that are `TRUE`.
+- `is_xenograft`: Use `TRUE` if the sample is from a patient-derived xenograft and `FALSE` otherwise.
 
 We have provided an example run metadata file for reference.
 
@@ -312,7 +325,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.7.3`, then you will want to set `-r v0.7.3` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.8.0`, then you will want to set `-r v0.8.0` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -358,6 +371,8 @@ All references listed in this table are publicly available on S3 for use with ce
 It is possible to provide your own references as well; instructions for this are forthcoming.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
+If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
+
 #### `SingleR` references
 
 The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
@@ -383,9 +398,9 @@ The project cell type metadata file should contain these five columns with the f
 | --------------------- | -------- |
 | `scpca_project_id`    | Project ID matching values in the run metadata file |
 | `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation |
-| `singler_ref_file`    | Path/uri to `SingleR` reference file, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | `SingleR` reference file name, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
-| `cellassign_ref_file` | Path/uri to `CellAssign` reference file, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
+| `cellassign_ref_file` | `CellAssign` reference file name, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
 
 We have provided an example project cell type metadata file for reference.
 
@@ -394,7 +409,20 @@ We have provided an example project cell type metadata file for reference.
 
 ### Repeating cell type annotation
 
-When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder, as long as the cell type reference file is unchanged.
+When cell typing is turned on with `--perform_celltyping`, `scpca-nf` will skip annotation for any libraries whose cell type annotation results already exist in the `checkpoints` folder, as long as the cell type reference file name is unchanged.
+The cell type annotations in the `checkpoints` folder will have the following structure:
+
+```
+checkpoints
+└── celltype
+    └── library01
+    │   ├── library01_cellassign
+    │   └── library01_singler
+    └── library02
+        ├── library02_cellassign
+        └── library02_singler
+```
+
 
 This saves substantial processing time if the cell type annotation reference versions are unchanged.
 However, you may wish to repeat the cell typing process if there have been other changes to the data or analysis.
@@ -416,11 +444,10 @@ The cell type label file is a TSV file with the following required columns:
 | column_id              | contents                                            |
 | ---------------------- | --------------------------------------------------- |
 | `scpca_library_id`     | Library ID matching values in the run metadata file |
-| `cell_barcode`         | The cell id with the given annotation label         |
+| `cell_barcode`         | The cell ID with the given annotation label         |
 | `cell_type_assignment` | The annotation label for that cell                  |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
-
 
 ## Output files
 
@@ -491,8 +518,6 @@ This will tell the workflow to save the `alevin-fry` outputs to a folder labeled
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config <path to config file>  \
-  -profile <name of profile> \
   --publish_fry_outs
 ```
 
@@ -589,7 +614,7 @@ You will also need to provide a [docker image](https://docs.docker.com/get-start
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
 As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger).
 
-After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image id in the `user_template.config` file.
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
 _Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
 
 ## Additional workflow settings
@@ -606,3 +631,96 @@ To force repeating the mapping process, use the `--repeat_mapping` flag at the c
 nextflow run AlexsLemonade/scpca-nf \
   --repeat_mapping
 ```
+
+
+## The `merge.nf` workflow
+
+### Overview
+
+In addition to the main `scpca-nf` workflow, this repository contains a separate workflow called `merge.nf` that will merge a set of processed ScPCA `SingleCellExperiment` objects into a single merged `SingleCellExperiment` object containing all counts from the specified libraries.
+This workflow creates a merged `SingleCellExperiment` object, a merged `AnnData` object, and an associated merged object HTML report encompassing all libraries with the same `scpca_project_id`.
+**This workflow only merges objects; it does not integrate libraries or perform any batch-correction**.
+
+### Steps for running the `merge.nf` workflow
+
+This workflow is specifically designed to run on processed `SingleCellExperiment` object files output by the `scpca-nf` workflow.
+Therefore, you will need to take the following steps to run the `merge.nf` workflow:
+
+1. Follow the instructions above to prepare to run the `scpca-nf` workflow, including [organizing your files](#file-organization), preparing both the [run metadata](#prepare-the-run-metadata-file) and [sample metadata](#prepare-the-sample-metadata-file) files, and [configuring your environment](#configuring-scpca-nf-for-your-environment).
+The `scpca_project_id` values you specify in the metadata files will be used to determine which libraries should be merged together in the `merge.nf` workflow.
+2. Run the `scpca-nf` workflow.
+3. Run the `merge.nf` workflow, as described below.
+
+#### Running the `merge.nf` workflow
+
+The `merge.nf` workflow requires two parameters to run:
+
+- `project`, the `scpca_project_id` whose objects should be merged
+  * A comma-separated list of `scpca_project_id` values can also be provided.
+  In this case, a separate merged object will be created for each ID.
+- `run_metafile`, the run metadata file which was previously prepared when running the main workflow
+
+The `merge.nf` workflow runs by first finding all libraries present, for each project, in the specified `params.outdir`, which represents the output directory where `scpca-nf` will have stored results from a prior run.
+If you specified a different parameter value from the default `scpca-out` for the `outdir` parameter in your `scpca-nf` configuration file, you will need to ensure that same value is provided to `merge.nf`.
+Results from running the `merge.nf` workflow will also be added to this `params.outdir` directory in a sub-directory called `merged`.
+
+The workflow can be run as shown:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/merge.nf \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --project <project ID whose libraries should be merged>
+```
+
+To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.7.2` version.
+Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/merge.nf \
+  -r v0.7.2 \
+  -config <path to config file>  \
+  -profile <name of profile> \
+  --project <project ID whose libraries should be merged>
+```
+
+### Output files
+
+The `merge.nf` workflow will output, for each specified project ID, an `.rds` file containing a merged `SingleCellExperiment` object, an `.hdf5` file containing a merged `AnnData` object, and a report which provides a brief summary of the types of libraries and their samples' diagnoses included in the merged object, as well as UMAP visualizations highlighting each library.
+
+These output files will follow this structure:
+
+```
+merged
+└── <project_id>
+    ├── <project_id>_merged.rds
+    ├── <project_id>_merged_rna.hdf5
+    └── <project_id>_merged-summary-report.html
+```
+
+
+### Special considerations for specific data types when running `merge.nf`
+
+There are some additional considerations to be aware of for libraries which contain additional modalities, such as ADT counts from CITE-seq or HTO counts from multiplexing.
+
+#### Merging libraries with CITE-seq data
+
+If any libraries in a merge group have ADT counts, these counts will also be merged and included in the final merged object.
+In the case of `SingleCellExperiment` objects, ADT counts will be provided as an alternative experiment called `"adt"` in same object.
+In the case of `AnnData`, a separate file will be exported with the extension `_adt.hdf5` that contains the merged ADT counts.
+The output files will follow this structure if CITE-seq data is present:
+
+```
+merged
+└── <project_id>
+    ├── <project_id>_merged.rds
+    ├── <project_id>_merged_rna.hdf5
+    ├── <project_id>_merged_adt.hdf5
+    └── <project_id>_merged-summary-report.html
+```
+
+#### Merging libraries with cellhash data
+
+The `merge.nf` workflow currently does not support merging HTO counts from multiplexed libraries.
+If any libraries contain HTO counts, the RNA counts will still be merged and exported, but the HTO counts will not be included.

@@ -43,6 +43,8 @@ is_supplemental <- TRUE
 <!-- Import shared functions for cell type wrangling -->
 ```{r, child='utils/celltype_functions.rmd'}
 ```
+```{r, child='utils/report_functions.rmd'}
+```
 
 
 <!-- Define helper functions for calculating Jaccard matrices -->
@@ -259,7 +261,8 @@ processed_sce <- params$processed_sce
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
-has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods
+has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
+  !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
 # check for umap
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
@@ -272,6 +275,12 @@ available_celltypes <- c(
 ) |>
   na.omit() |>
   as.character()
+
+# was cellassign run?
+cellassign_not_run <- check_cellassign_not_run(
+  has_cellassign,
+  colData(processed_sce)
+)
 
 # This variable need to be defined for edge conditions when certain cell types
 #  aren't available:
@@ -287,6 +296,11 @@ plot_height <- 1
 #  sample_id should be defined with length > 1
 sample_id <- metadata(processed_sce)$sample_id
 has_multiplex <- length(sample_id) > 1
+
+# determine UMAP point sizing
+umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
+umap_point_size <- umap_points_sizes[1]
+umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 <!-- If multiplexed, open with warning  --> 
@@ -315,6 +329,7 @@ When multiple methods annotate a given cell as the same or similar cell type, th
 
 Note that the contents of this report will vary based on which cell type annotations are present.
 Further, be aware that different cell type annotation methods may assign different labels to the same or similar cell type (e.g., the different string representations `B cell naive` and `Naive B cell`), due to use of different underlying reference datasets.
+Please note that all cell type annotation reference datasets are derived from normal (not tumor) tissue.
 
 <!--Note that the specific contents of this report will depend on which cell type annotations are present.-->
 **This library contains the following cell type annotations:**
@@ -356,6 +371,14 @@ if (has_cellassign) {
 }
 
 glue::glue("{methods_text}")
+```
+
+```{r eval=cellassign_not_run, results='asis'}
+glue::glue("
+   <div class=\"alert alert-info\">
+   Cell type annotation with [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)), was attempted but not run due to an insufficient number of cells.
+  </div>
+")
 ```
 
 
@@ -530,7 +553,7 @@ create_single_heatmap(
   row_title = "CellAssign annotations",
   column_title = "SingleR annotations",
   labels_font_size = find_label_size(all_celltypes),
-  keep_legend_name = "SingleR annotations",
+  keep_legend_name = "CellAssign annotations",
   col_fun = heatmap_col_fun,
   # additional arguments
   column_names_rot = 90
