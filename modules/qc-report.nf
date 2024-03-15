@@ -3,7 +3,7 @@
 
 process sce_qc_report {
   container params.SCPCATOOLS_CONTAINER
-  label 'mem_8'
+  label 'mem_16'
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:

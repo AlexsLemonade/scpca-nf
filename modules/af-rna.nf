@@ -56,7 +56,7 @@ process alevin_rad {
 process fry_quant_rna {
   container params.ALEVINFRY_CONTAINER
   label 'cpus_8'
-  label 'mem_8'
+  label 'mem_16'
   tag "${meta.run_id}-rna"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
 
