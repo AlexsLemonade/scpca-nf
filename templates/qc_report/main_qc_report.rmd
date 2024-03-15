@@ -526,12 +526,11 @@ if (skip_miQC) {
     miQC_plot <- miQC::plotMetrics(filtered_sce)
   } else {
     miQC_plot <- miQC::plotModel(filtered_sce, model = miQC_model)
+    # set line thickness
+    line_aes <- list(linewidth = 1, alpha = 0.8)
+    miQC_plot$layers[[2]]$aes_params <- line_aes
+    miQC_plot$layers[[3]]$aes_params <- line_aes
   }
-
-  # set line thickness
-  line_aes <- list(linewidth = 1, alpha = 0.8)
-  miQC_plot$layers[[2]]$aes_params <- line_aes
-  miQC_plot$layers[[3]]$aes_params <- line_aes
 
   miQC_plot +
     coord_cartesian(ylim = c(0, 100)) +
