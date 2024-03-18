@@ -48,7 +48,7 @@ repos:
       - id: parsable-R
   - repo: https://github.com/pre-commit/mirrors-prettier
     # Format YAML and other languages
-    rev: v4.0.0-alpha.8
+    rev: v3.0.3
     hooks:
       - id: prettier
         exclude: '\.md$'
@@ -62,5 +62,6 @@ repos:
 ci:
   autofix_prs: true # set to false if we don't want fixes automatically applied by ci
   autoupdate_branch: development
+  autoupdate_schedule: quarterly
   # skip spell check because it can't be quickly installed on CI
   skip: [spell-check]
