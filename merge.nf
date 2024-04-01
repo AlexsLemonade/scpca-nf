@@ -29,6 +29,7 @@ if (param_error) {
 // merge individual SCE objects into one SCE object
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
+  tag "${merge_group_id}"
   label 'mem_max'
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   input:
@@ -59,6 +60,7 @@ process merge_sce {
 // create merge report
 process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
+  tag "${merge_group_id}"
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_max'
   input:
