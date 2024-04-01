@@ -100,21 +100,37 @@ if (opt$threads > 1) {
   bp_param <- BiocParallel::SerialParam()
 }
 
+# Functions
+
+read_trim_sce <- function(sce_file) {
+  # Read in SCE and update some information to reduce size/memory usage
+
+  sce <- readr::read_rds(sce_file)
+  if (!is(sce, "SingleCellExperiment")) {
+    stop("Input file must contain a `SingleCellExperiment` object.")
+  }
+  # Update some SCE information  -------------------------------------------------
+  # - Add a new colData column with any additional modalities
+  # - Remove cluster parameters and miQC model from metadata
+  additional_modalities <- altExpNames(sce)
+  if (length(additional_modalities) == 0) {
+    additional_modalities <- NA
+  }
+  sce$additional_modalities <- paste0(additional_modalities, collapse = ";")
+
+  metadata(sce)$cluster_algorithm <- NULL
+  metadata(sce)$cluster_weighting <- NULL
+  metadata(sce)$cluster_nn <- NULL
+  metadata(sce)$miQC_model <- NULL
+
+  return(sce)
+}
+
+
 # Read in SCEs -----------------------------------------------------------------
 
 # get list of sces
-sce_list <- purrr::map(input_sce_files, readr::read_rds)
-
-# check that all input RDS files contain SCE objects
-sce_checks <- purrr::map_lgl(
-  sce_list,
-  \(x) is(x, "SingleCellExperiment")
-)
-if (!all(sce_checks)) {
-  stop(
-    "All input files must contain a `SingleCellExperiment` object."
-  )
-}
+sce_list <- purrr::map(input_sce_files, read_trim_sce)
 
 # Add cell type annotation columns where needed  -------------------------------
 
@@ -172,25 +188,6 @@ if ("cellassign" %in% all_celltypes) {
     })
 }
 
-
-# Update some SCE information  -------------------------------------------------
-# - Add a new colData column with any additional modalities
-# - Remove cluster parameters and miQC model from metadata
-sce_list <- sce_list |>
-  purrr::map(\(sce){
-    additional_modalities <- altExpNames(sce)
-    if (length(additional_modalities) == 0) {
-      additional_modalities <- NA
-    }
-    sce$additional_modalities <- paste0(additional_modalities, collapse = ";")
-
-    metadata(sce)$cluster_algorithm <- NULL
-    metadata(sce)$cluster_weighting <- NULL
-    metadata(sce)$cluster_nn <- NULL
-    metadata(sce)$miQC_model <- NULL
-
-    return(sce)
-  })
 
 # Determine SCE columns to retain  ---------------------------------------------
 
