@@ -51,6 +51,7 @@ process classify_cellassign {
     )
   label 'mem_max'
   label 'cpus_12'
+  label 'long_running'
   tag "${meta.library_id}"
   input:
     tuple val(meta), path(processed_rds), path(cellassign_reference_file)

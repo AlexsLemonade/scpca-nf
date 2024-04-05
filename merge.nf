@@ -31,6 +31,7 @@ process merge_sce {
   container params.SCPCATOOLS_CONTAINER
   tag "${merge_group_id}"
   label 'mem_max'
+  label 'long_running'
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   input:
     tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
