@@ -122,7 +122,7 @@ read_trim_sce <- function(sce_file) {
   metadata(sce)$cluster_weighting <- NULL
   metadata(sce)$cluster_nn <- NULL
   metadata(sce)$miQC_model <- NULL
-
+  gc(verbose = FALSE)
   return(sce)
 }
 
@@ -145,7 +145,7 @@ all_celltypes <- sce_list |>
 if ("submitter" %in% all_celltypes) {
   # Add `"Submitter-excluded"` value to any libraries without submitter
   sce_list <- sce_list |>
-    purrr::map(\(sce){
+    purrr::map(\(sce) {
       if (!"submitter" %in% metadata(sce)$celltype_methods) {
         colData(sce)$submitter_celltype_annotation <- "Submitter-excluded"
       }
@@ -155,7 +155,7 @@ if ("submitter" %in% all_celltypes) {
 if ("singler" %in% all_celltypes) {
   # Check if the label used for annotation was ontology in at least 1 SCE
   use_ontology <- sce_list |>
-    purrr::map(\(sce){
+    purrr::map(\(sce) {
       metadata(sce)$singler_reference_label == "label.ont"
     }) |>
     # avoid warning with unlist; can't use map_lgl since ^ would always need to
@@ -165,7 +165,7 @@ if ("singler" %in% all_celltypes) {
 
   # Add `"Cell type annotation not performed"` string to libraries without SingleR
   sce_list <- sce_list |>
-    purrr::map(\(sce){
+    purrr::map(\(sce) {
       if (!"singler" %in% metadata(sce)$celltype_methods) {
         colData(sce)$singler_celltype_annotation <- "Cell type annotation not performed"
         if (use_ontology) {
@@ -250,8 +250,8 @@ adt_present_columns <- sce_list |>
 
 # ensure that there are indeed no "adt" altExps if adt_present_columns is empty
 adt_altexps <- sce_list |>
-  purrr::keep(\(sce) "adt" %in% altExpNames(sce))
-if (is.null(adt_present_columns) && length(adt_altexps) > 0) {
+  purrr::map(\(sce) "adt" %in% altExpNames(sce))
+if (is.null(adt_present_columns) && sum(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
 
@@ -260,7 +260,7 @@ preserve_altexp_rowdata_list <- list("adt" = c("adt_id", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
 
-
+sce_names <- names(sce_list)
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
@@ -272,6 +272,10 @@ merged_sce <- scpcaTools::merge_sce_list(
   retain_altexp_coldata_cols = retain_altexp_coldata_list,
   preserve_altexp_rowdata_cols = preserve_altexp_rowdata_list
 )
+
+# clean up
+rm(sce_list)
+gc(verbose = FALSE)
 
 # add sample metadata to colData as long as there are no multiplexed data
 if (!opt$multiplexed) {
@@ -285,8 +289,8 @@ if (!opt$multiplexed) {
 }
 
 # grab technology and EFO from metadata$library_metadata
-library_df <- names(sce_list) |>
-  purrr::map(\(library_id){
+library_df <- sce_names |>
+  purrr::map(\(library_id) {
     lib_meta <- metadata(merged_sce) |>
       purrr::pluck("library_metadata", library_id)
     data.frame(
