@@ -90,6 +90,7 @@ process generate_merge_report {
 process export_anndata {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_max'
+    label 'long_running'
     tag "${merge_group_id}"
     publishDir "${params.results_dir}/${merge_group_id}/merged", mode: 'copy'
     input:
