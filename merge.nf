@@ -205,7 +205,7 @@ workflow {
 
     pre_merged_ch = grouped_libraries_ch.has_merge
       .map{[ // merge file, project id, has adt
-        file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds")
+        file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"),
         it[0],
         it[1]
       ]}
