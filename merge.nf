@@ -198,8 +198,21 @@ workflow {
         library_id_list,
         sce_file_list
       )}
+      .branch(
+        has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists()
+        make_merge: true
+      )
 
-    merge_sce(grouped_libraries_ch)
+    merged_ch = grouped_libraries_ch.has_merge
+      .map{[ # merge file, project id, has adt
+        file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds")
+        it[0],
+        it[1]
+      ]}
+
+    // merge SCE objects
+    merge_sce(grouped_libraries_ch.make_merge)
+      .mix(grouped_libraries_ch.make_merge)
 
     // generate merge report
     generate_merge_report(merge_sce.out, file(merge_template))
