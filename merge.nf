@@ -199,7 +199,7 @@ workflow {
         sce_file_list
       )}
       .branch{
-        has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && !params.repeat_merge
+        has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && params.reuse_merge
         make_merge: true
       }
 
