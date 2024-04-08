@@ -130,6 +130,7 @@ format_czi <- function(sce) {
 
 # read in sce
 sce <- readr::read_rds(opt$input_sce_file)
+message("sce read")
 
 # grab sample metadata
 # we need this if we have any feature data that we need to add it o
@@ -142,6 +143,8 @@ if (opt$is_merged) {
   sce <- format_czi(sce)
 }
 
+message("Formatting done")
+
 
 
 # export sce as anndata object
@@ -152,6 +155,8 @@ scpcaTools::sce_to_anndata(
   anndata_file = opt$output_rna_h5,
   compression = ifelse(opt$compress_output, "gzip", "none")
 )
+
+message("Exported RNA")
 
 # AltExp to AnnData -----------------------------------------------------------
 
@@ -183,6 +188,7 @@ if (!is.null(opt$feature_name)) {
 
       # make sce czi compliant
       alt_sce <- format_czi(alt_sce)
+      message("alt formatted")
 
       # export altExp sce as anndata object
       scpcaTools::sce_to_anndata(

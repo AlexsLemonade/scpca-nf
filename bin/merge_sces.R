@@ -155,12 +155,9 @@ if ("submitter" %in% all_celltypes) {
 if ("singler" %in% all_celltypes) {
   # Check if the label used for annotation was ontology in at least 1 SCE
   use_ontology <- sce_list |>
-    purrr::map(\(sce) {
-      metadata(sce)$singler_reference_label == "label.ont"
+    purrr::map_lgl(\(sce) {
+      any(metadata(sce)$singler_reference_label == "label.ont")
     }) |>
-    # avoid warning with unlist; can't use map_lgl since ^ would always need to
-    #  return length 1
-    unlist() |>
     any()
 
   # Add `"Cell type annotation not performed"` string to libraries without SingleR
