@@ -1,0 +1,14 @@
+name: nextflow
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - pytorch
+dependencies:
+  - python=3.11
+  - nextflow
+  - nf-core
+  - ruamel.yaml
+  - pip
+  - pip:
+      - git+https://github.com/rabix/sbpack.git@2024.02.02rc1
