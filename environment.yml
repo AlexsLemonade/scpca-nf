@@ -3,7 +3,6 @@ channels:
   - conda-forge
   - bioconda
   - defaults
-  - pytorch
 dependencies:
   - python=3.11
   - nextflow
