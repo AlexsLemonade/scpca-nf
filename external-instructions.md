@@ -461,11 +461,11 @@ All files in that folder will be prefixed by the library ID.
 
 The files with the suffixes `_unfiltered.rds`, `_filtered.rds`, and `_processed.rds` provide quantified gene expression data as [`SingleCellExperiment` objects](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
-The files with the suffixes `_unfiltered_rna.hdf5`, `_filtered_rna.hdf5`, and `_processed_rna.hdf5` provide the quantified gene expression data as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
-If the input data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.hdf5`, `_filtered_adt.hdf5`, and `_processed_adt.hdf5`will be provided for each library.
+The files with the suffixes `_unfiltered_rna.h5ad`, `_filtered_rna.h5ad`, and `_processed_rna.h5ad` provide the quantified gene expression data as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
+If the input data contains libraries with ADT tags, three additional files with the suffixes `_unfiltered_adt.h5ad`, `_filtered_adt.h5ad`, and `_processed_adt.h5ad`will be provided for each library.
 These files contain the quantified ADT tag data as an [`AnnData` object](https://anndata.readthedocs.io/en/latest/).
 
-**Note: We currently do not output `AnnData` objects (`.hdf5` files) for any multiplexed libraries.
+**Note: We currently do not output `AnnData` objects (`.h5ad` files) for any multiplexed libraries.
 Only `SingleCellExperiment` objects (`.rds` files) will be provided for multiplexed libraries.**
 
 For more information on the contents of these files, see the [ScPCA portal docs section on single cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html).
@@ -478,9 +478,9 @@ results
     ├── library_id_unfiltered.rds
     ├── library_id_filtered.rds
     ├── library_id_processed.rds
-    ├── library_id_unfiltered_rna.hdf5
-    ├── library_id_filtered_rna.hdf5
-    ├── library_id_processed_rna.hdf5
+    ├── library_id_unfiltered_rna.h5ad
+    ├── library_id_filtered_rna.h5ad
+    ├── library_id_processed_rna.h5ad
     ├── library_id_metadata.json
     └── library_id_qc.html
 ```
@@ -687,7 +687,7 @@ nextflow run AlexsLemonade/scpca-nf/merge.nf \
 
 ### Output files
 
-The `merge.nf` workflow will output, for each specified project ID, an `.rds` file containing a merged `SingleCellExperiment` object, an `.hdf5` file containing a merged `AnnData` object, and a report which provides a brief summary of the types of libraries and their samples' diagnoses included in the merged object, as well as UMAP visualizations highlighting each library.
+The `merge.nf` workflow will output, for each specified project ID, an `.rds` file containing a merged `SingleCellExperiment` object, an `.h5ad` file containing a merged `AnnData` object, and a report which provides a brief summary of the types of libraries and their samples' diagnoses included in the merged object, as well as UMAP visualizations highlighting each library.
 
 These output files will follow this structure:
 
@@ -695,7 +695,7 @@ These output files will follow this structure:
 merged
 └── <project_id>
     ├── <project_id>_merged.rds
-    ├── <project_id>_merged_rna.hdf5
+    ├── <project_id>_merged_rna.h5ad
     └── <project_id>_merged-summary-report.html
 ```
 
@@ -708,15 +708,15 @@ There are some additional considerations to be aware of for libraries which cont
 
 If any libraries in a merge group have ADT counts, these counts will also be merged and included in the final merged object.
 In the case of `SingleCellExperiment` objects, ADT counts will be provided as an alternative experiment called `"adt"` in same object.
-In the case of `AnnData`, a separate file will be exported with the extension `_adt.hdf5` that contains the merged ADT counts.
+In the case of `AnnData`, a separate file will be exported with the extension `_adt.h5ad` that contains the merged ADT counts.
 The output files will follow this structure if CITE-seq data is present:
 
 ```
 merged
 └── <project_id>
     ├── <project_id>_merged.rds
-    ├── <project_id>_merged_rna.hdf5
-    ├── <project_id>_merged_adt.hdf5
+    ├── <project_id>_merged_rna.h5ad
+    ├── <project_id>_merged_adt.h5ad
     └── <project_id>_merged-summary-report.html
 ```
 
