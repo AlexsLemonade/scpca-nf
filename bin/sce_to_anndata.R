@@ -21,7 +21,7 @@ option_list <- list(
   make_option(
     opt_str = c("--output_rna_h5"),
     type = "character",
-    help = "path to output hdf5 file to store RNA counts as AnnData object. Must end in .hdf5 or .h5"
+    help = "path to output hdf5 file to store RNA counts as AnnData object. Must end in .hdf5, .h5ad, or .h5"
   ),
   make_option(
     opt_str = c("--feature_name"),
