@@ -8,36 +8,36 @@ process export_anndata {
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path("${meta.library_id}_${file_type}_*.hdf5"), val(file_type)
+      tuple val(meta), path("${meta.library_id}_${file_type}_*.h5ad"), val(file_type)
     script:
-      rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
-      feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
+      rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
       feature_present = meta.feature_type in ["adt"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
-        --output_rna_h5 ${rna_hdf5_file} \
-        --output_feature_h5 ${feature_hdf5_file} \
+        --output_rna_h5 ${rna_h5ad_file} \
+        --output_feature_h5 ${feature_h5ad_file} \
         ${feature_present ? "--feature_name ${meta.feature_type}" : ''} \
         ${file_type != "processed" ? "--compress_output" : ''}
 
       # move any normalized counts to X in AnnData
       if [ "${file_type}" = "processed" ]; then
-        move_counts_anndata.py --anndata_file ${rna_hdf5_file}
+        move_counts_anndata.py --anndata_file ${rna_h5ad_file}
         # move counts in feature data, if the file exists
-        if [ -f "${feature_hdf5_file}" ]; then
-          move_counts_anndata.py --anndata_file ${feature_hdf5_file}
+        if [ -f "${feature_h5ad_file}" ]; then
+          move_counts_anndata.py --anndata_file ${feature_h5ad_file}
         fi
       fi
 
       """
     stub:
-      rna_hdf5_file = "${meta.library_id}_${file_type}_rna.hdf5"
-      feature_hdf5_file = "${meta.library_id}_${file_type}_${meta.feature_type}.hdf5"
+      rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
       feature_present = meta.feature_type in ["adt"]
       """
-      touch ${rna_hdf5_file}
-      ${feature_present ? "touch ${feature_hdf5_file}" : ''}
+      touch ${rna_h5ad_file}
+      ${feature_present ? "touch ${feature_h5ad_file}" : ''}
       """
 }
 
@@ -69,16 +69,16 @@ workflow sce_to_anndata {
 
       // combine all anndata files by library id
       anndata_ch = export_anndata.out
-        .map{ meta, hdf5_files, file_type -> tuple(
+        .map{ meta, h5ad_files, file_type -> tuple(
           meta.library_id, // pull out library id for grouping
           meta,
-          hdf5_files // either rna.hdf5 or [ rna.hdf5, feature.hdf5 ]
+          h5ad_files // either rna.h5ad or [ rna.h5ad, feature.h5ad ]
         )}
         // group by library id result is
-        // [library id, [meta, meta, meta], [hdf5 files]]
+        // [library id, [meta, meta, meta], [h5ad files]]
         .groupTuple(by: 0, size: 3, remainder: true)
-        // pull out just 1 meta object and hdf5 files
-        // [meta, [hdf5 files]]
+        // pull out just 1 meta object and h5ad files
+        // [meta, [h5ad files]]
         .map{ [it[1][0]] +  it[2] }
 
     emit: anndata_ch

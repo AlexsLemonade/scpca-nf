@@ -67,11 +67,11 @@ process classify_cellassign {
     # Convert SCE to AnnData
     sce_to_anndata.R \
         --input_sce_file "${processed_rds}" \
-        --output_rna_h5 "processed.hdf5"
+        --output_rna_h5 "processed.h5ad"
 
     # Run CellAssign
     predict_cellassign.py \
-      --input_hdf5_file "processed.hdf5" \
+      --anndata_file "processed.h5ad" \
       --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
       --reference "${cellassign_reference_file}" \
       --seed ${params.seed} \
