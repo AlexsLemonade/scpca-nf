@@ -1,4 +1,4 @@
-name: nextflow
+name: sbpack
 channels:
   - conda-forge
   - bioconda
