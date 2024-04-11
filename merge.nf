@@ -94,26 +94,26 @@ process export_anndata {
     output:
       tuple val(merge_group_id), path("${merge_group_id}_merged_*.h5ad")
     script:
-      rna_hdf5_file = "${merge_group_id}_merged_rna.h5ad"
-      feature_hdf5_file = "${merge_group_id}_merged_adt.h5ad"
+      rna_h5ad_file = "${merge_group_id}_merged_rna.h5ad"
+      feature_h5ad_file = "${merge_group_id}_merged_adt.h5ad"
       """
       sce_to_anndata.R \
         --input_sce_file ${merged_sce_file} \
-        --output_rna_h5 ${rna_hdf5_file} \
-        --output_feature_h5 ${feature_hdf5_file} \
+        --output_rna_h5 ${rna_h5ad_file} \
+        --output_feature_h5 ${feature_h5ad_file} \
         --is_merged \
         ${has_adt ? "--feature_name adt" : ''}
 
       # move normalized counts to X in AnnData
-      move_counts_anndata.py --anndata_file ${rna_hdf5_file}
-      ${has_adt ? "move_counts_anndata.py --anndata_file ${feature_hdf5_file}" : ''}
+      move_counts_anndata.py --anndata_file ${rna_h5ad_file}
+      ${has_adt ? "move_counts_anndata.py --anndata_file ${feature_h5ad_file}" : ''}
       """
     stub:
-      rna_hdf5_file = "${merge_group_id}_merged_rna.h5ad"
-      feature_hdf5_file = "${merge_group_id}_merged_adt.h5ad"
+      rna_h5ad_file = "${merge_group_id}_merged_rna.h5ad"
+      feature_h5ad_file = "${merge_group_id}_merged_adt.h5ad"
       """
-      touch ${rna_hdf5_file}
-      ${has_adt ? "touch ${feature_hdf5_file}" : ''}
+      touch ${rna_h5ad_file}
+      ${has_adt ? "touch ${feature_h5ad_file}" : ''}
       """
 }
 
