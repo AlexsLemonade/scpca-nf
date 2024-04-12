@@ -209,7 +209,17 @@ workflow {
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
   rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
+    // only continue processing any samples with > 0 cells left after filtering
+    .branch{
+      continue_processing: it[2].size() > 0
+      skip_processing: true
+      }
 
+  // send library ids in rna_sce_ch.skip_processing to log
+  rna_sce_ch.skip_processing
+    .subscribe{
+      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+    }
 
   // **** Process feature data ****
   map_quant_feature(runs_ch.feature)
@@ -223,17 +233,31 @@ workflow {
     .map{it.drop(1)} // remove library_id index
 
   // make rds for merged RNA and feature quants
-  feature_sce_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
+  all_feature_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
+    .branch{
+      continue_processing: it[2].size() > 0
+      skip_processing: true
+    }
+
+  // send library ids in all_feature_ch.skip_processing to log
+  all_feature_ch.skip_processing
+    .subscribe{
+      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+    }
+
+  // pull out cell hash libraries for demuxing
+  feature_sce_ch = all_feature_ch.continue_processing
     .branch{ // branch cellhash libs
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
     }
+
   // apply cellhash demultiplexing
   cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
   merged_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
-  sce_ch = rna_sce_ch.mix(merged_sce_ch)
+  sce_ch = rna_sce_ch.continue_processing.mix(merged_sce_ch)
     .branch{
       genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
       no_genetic: true
@@ -285,8 +309,19 @@ workflow {
     annotated_celltype_ch = cluster_sce.out
   }
 
-  // combine back with libraries that skipped post processing
+  // first mix any skipped libraries from both rna and feature libs
+  no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing)
+    // add a fake processed file
+    .map{meta, unfiltered, filtered -> tuple(
+      meta,
+      unfiltered,
+      filtered,
+      "${projectDir}/assets/NO_FILE"
+    )}
+
+  // combine back with libraries that skipped filtering and post processing
   sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
+    .mix(no_filtered_ch)
 
   // generate QC reports
   sce_qc_report(
