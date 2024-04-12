@@ -95,111 +95,117 @@ filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 # remove unfiltered for memory saving
 rm(unfiltered_sce)
 
-# need to remove old gene-level rowData statistics first
-drop_cols <- colnames(rowData(filtered_sce)) %in% c("mean", "detected")
-rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
+# if no cells left, write out empty file, otherwise continue processing
+if (ncol(filtered_sce) == 0) {
+  # make an empty filtered file
+  file.create(opt$filtered_file)
+} else {
+  # need to remove old gene-level rowData statistics first
+  drop_cols <- colnames(rowData(filtered_sce)) %in% c("mean", "detected")
+  rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
-# recalculate rowData and add to filtered sce
-filtered_sce <- filtered_sce |>
-  scuttle::addPerFeatureQCMetrics()
+  # recalculate rowData and add to filtered sce
+  filtered_sce <- filtered_sce |>
+    scuttle::addPerFeatureQCMetrics()
 
-# add prob_compromised to colData and miQC model to metadata
-# since this can fail, we will check for success
-miQC_worked <- FALSE
-try({
-  filtered_sce <- scpcaTools::add_miQC(
-    filtered_sce,
-    posterior_cutoff = opt$prob_compromised_cutoff,
-    enforce_left_cutoff = opt$enforce_left_cutoff
-  )
-  metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
-  miQC_worked <- TRUE
-})
+  # add prob_compromised to colData and miQC model to metadata
+  # since this can fail, we will check for success
+  miQC_worked <- FALSE
+  try({
+    filtered_sce <- scpcaTools::add_miQC(
+      filtered_sce,
+      posterior_cutoff = opt$prob_compromised_cutoff,
+      enforce_left_cutoff = opt$enforce_left_cutoff
+    )
+    metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
+    miQC_worked <- TRUE
+  })
 
-# set prob_compromised to NA if miQC failed
-if (!miQC_worked) {
-  warning("miQC failed. Setting `prob_compromised` to NA.")
-  filtered_sce$prob_compromised <- NA_real_
-  filtered_sce$miQC_pass <- NA
-  metadata(filtered_sce)$prob_compromised_cutoff <- NA
-}
-
-# grab names of altExp, if any
-alt_names <- altExpNames(filtered_sce)
-
-for (alt in alt_names) {
-  # remove old row data from unfiltered
-  drop_cols <- colnames(rowData(altExp(filtered_sce, alt))) %in% c("mean", "detected")
-  rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
-
-  # add alt experiment features stats for filtered data
-  altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
-}
-
-
-# calculate filtering QC from ADTs, if present
-if (!is.null(ambient_profile)) {
-  # Create data frame of ADTs and their target types
-  # If `target_type` column is not present, assume all ADTs are targets
-  adt_barcode_df <- readr::read_tsv(
-    opt$adt_barcode_file,
-    # if only 2 columns exist, only the first two col_names will be used
-    col_names = c("name", "barcode", "target_type")
-  )
-
-  # Assign default of `target` if no third column provided
-  if (!"target_type" %in% names(adt_barcode_df)) {
-    adt_barcode_df$target_type <- "target"
+  # set prob_compromised to NA if miQC failed
+  if (!miQC_worked) {
+    warning("miQC failed. Setting `prob_compromised` to NA.")
+    filtered_sce$prob_compromised <- NA_real_
+    filtered_sce$miQC_pass <- NA
+    metadata(filtered_sce)$prob_compromised_cutoff <- NA
   }
-  # Check for valid target types and warn if invalid found
-  expected_adt_values <- c("target", "neg_control", "pos_control")
-  if (!all(adt_barcode_df$target_type %in% expected_adt_values)) {
-    warning(
-      glue::glue(
-        "Warning: Invalid ADT type values provided in the ADT barcode file. Expected values are:
-        - target
-        - neg_control
-        - pos_control
-      Unknown ADT types will be treated as targets."
+
+  # grab names of altExp, if any
+  alt_names <- altExpNames(filtered_sce)
+
+  for (alt in alt_names) {
+    # remove old row data from unfiltered
+    drop_cols <- colnames(rowData(altExp(filtered_sce, alt))) %in% c("mean", "detected")
+    rowData(altExp(filtered_sce, alt)) <- rowData(altExp(filtered_sce, alt))[!drop_cols]
+
+    # add alt experiment features stats for filtered data
+    altExp(filtered_sce, alt) <- scuttle::addPerFeatureQCMetrics(altExp(filtered_sce, alt))
+  }
+
+
+  # calculate filtering QC from ADTs, if present
+  if (!is.null(ambient_profile)) {
+    # Create data frame of ADTs and their target types
+    # If `target_type` column is not present, assume all ADTs are targets
+    adt_barcode_df <- readr::read_tsv(
+      opt$adt_barcode_file,
+      # if only 2 columns exist, only the first two col_names will be used
+      col_names = c("name", "barcode", "target_type")
+    )
+
+    # Assign default of `target` if no third column provided
+    if (!"target_type" %in% names(adt_barcode_df)) {
+      adt_barcode_df$target_type <- "target"
+    }
+    # Check for valid target types and warn if invalid found
+    expected_adt_values <- c("target", "neg_control", "pos_control")
+    if (!all(adt_barcode_df$target_type %in% expected_adt_values)) {
+      warning(
+        glue::glue(
+          "Warning: Invalid ADT type values provided in the ADT barcode file. Expected values are:
+          - target
+          - neg_control
+          - pos_control
+        Unknown ADT types will be treated as targets."
+        )
       )
+    }
+
+    # Check that barcode file ADTs match SCE ADTs
+    if (!all.equal(sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))))) {
+      stop("Mismatch between provided ADT barcode file and ADTs in SCE.")
+    }
+
+    # Find any negative controls
+    neg_controls <- adt_barcode_df |>
+      dplyr::filter(target_type == "neg_control") |>
+      dplyr::pull(name)
+
+    # Calculate QC stats, providing negative controls if present
+    # note: function fails if controls is length 0 or null, so keep the `if`
+    if (length(neg_controls) == 0) {
+      adt_qc_df <- DropletUtils::cleanTagCounts(
+        counts(altExp(filtered_sce, adt_exp)),
+        ambient = ambient_profile
+      )
+    } else {
+      adt_qc_df <- DropletUtils::cleanTagCounts(
+        counts(altExp(filtered_sce, adt_exp)),
+        ambient = ambient_profile,
+        controls = neg_controls
+      )
+    }
+
+    # Save QC stats to the altexp
+    colData(altExp(filtered_sce, adt_exp)) <- cbind(
+      colData(altExp(filtered_sce, adt_exp)),
+      adt_qc_df
     )
+
+    # Add `target_type` to rowData
+    rowData(altExp(filtered_sce, adt_exp))$target_type <- adt_barcode_df$target_type
   }
 
-  # Check that barcode file ADTs match SCE ADTs
-  if (!all.equal(sort(adt_barcode_df$name), sort(rownames(altExp(filtered_sce, adt_exp))))) {
-    stop("Mismatch between provided ADT barcode file and ADTs in SCE.")
-  }
 
-  # Find any negative controls
-  neg_controls <- adt_barcode_df |>
-    dplyr::filter(target_type == "neg_control") |>
-    dplyr::pull(name)
-
-  # Calculate QC stats, providing negative controls if present
-  # note: function fails if controls is length 0 or null, so keep the `if`
-  if (length(neg_controls) == 0) {
-    adt_qc_df <- DropletUtils::cleanTagCounts(
-      counts(altExp(filtered_sce, adt_exp)),
-      ambient = ambient_profile
-    )
-  } else {
-    adt_qc_df <- DropletUtils::cleanTagCounts(
-      counts(altExp(filtered_sce, adt_exp)),
-      ambient = ambient_profile,
-      controls = neg_controls
-    )
-  }
-
-  # Save QC stats to the altexp
-  colData(altExp(filtered_sce, adt_exp)) <- cbind(
-    colData(altExp(filtered_sce, adt_exp)),
-    adt_qc_df
-  )
-
-  # Add `target_type` to rowData
-  rowData(altExp(filtered_sce, adt_exp))$target_type <- adt_barcode_df$target_type
+  # write filtered sce to output
+  readr::write_rds(filtered_sce, opt$filtered_file, compress = "bz2")
 }
-
-
-# write filtered sce to output
-readr::write_rds(filtered_sce, opt$filtered_file, compress = "bz2")
