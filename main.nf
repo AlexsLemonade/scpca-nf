@@ -235,7 +235,7 @@ workflow {
   // make rds for merged RNA and feature quants
   all_feature_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
     .branch{
-      continue_processing: it[2].size() > 0 || it[2].name.contains("STUBL")
+      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
       skip_processing: true
     }
 
@@ -289,7 +289,7 @@ workflow {
   post_process_ch = post_process_sce.out
     // only continue processing any samples with > 0 cells left after processing
     .branch{
-      continue_processing: it[3].size() > 0 || it[3].name.contains("STUBL")
+      continue_processing: it[3].size() > 0 || it[3].name.startsWith("STUB")
       skip_processing: true
       }
 
