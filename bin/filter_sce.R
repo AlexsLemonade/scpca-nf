@@ -95,13 +95,15 @@ filtered_sce <- scpcaTools::filter_counts(unfiltered_sce)
 # remove unfiltered for memory saving
 rm(unfiltered_sce)
 
-# if no cells left, write out empty file, otherwise continue processing
+# if no cells left, write out empty file and quit, otherwise continue processing
 if (ncol(filtered_sce) == 0) {
   # make an empty filtered file
   file.create(opt$filtered_file)
-} else {
-  # need to remove old gene-level rowData statistics first
-  drop_cols <- colnames(rowData(filtered_sce)) %in% c("mean", "detected")
+  quit(save = "no")
+}
+ 
+# need to remove old gene-level rowData statistics first
+drop_cols <- colnames(rowData(filtered_sce)) %in% c("mean", "detected")
   rowData(filtered_sce) <- rowData(filtered_sce)[!drop_cols]
 
   # recalculate rowData and add to filtered sce

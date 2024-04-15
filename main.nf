@@ -211,7 +211,7 @@ workflow {
   rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
     // only continue processing any samples with > 0 cells left after filtering
     .branch{
-      continue_processing: it[2].size() > 0 || it[2].name.contains("STUBL")
+      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true
       }
 
