@@ -129,9 +129,7 @@ if (!is.null(opt$report_template) && !file.exists(opt$report_template)) {
 if (is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)) {
   stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
 }
-if (is.null(opt$filtered_sce) || !file.exists(opt$filtered_sce)) {
-  stop("Filtered .rds file missing or `filtered_sce` not specified.")
-}
+
 demux_methods <- c("vireo", "HTODemux", "HashedDrops")
 if (!opt$demux_method %in% demux_methods) {
   stop("Unknown `demux_method` value. Must be one of `vireo`, `HTOdemux`, or `HashedDrops`")
@@ -147,21 +145,27 @@ if (opt$workflow_commit == "null") {
   opt$workflow_commit <- NA
 }
 
-# read sce files
+# read sce files and compile metadata for output files
 unfiltered_sce <- readr::read_rds(opt$unfiltered_sce)
-filtered_sce <- readr::read_rds(opt$filtered_sce)
+sce_meta <- metadata(unfiltered_sce)
+
+# make sure filtered sce has an object, otherwise set to NULL
+if (file.size(opt$filtered_sce) > 0) {
+  filtered_sce <- readr::read_rds(opt$filtered_sce)
+  filtered_sce_meta <- metadata(filtered_sce)
+} else {
+  filtered_sce <- NULL
+  filtered_sce_meta <- NULL
+}
 
 # make sure processed sce has an object, otherwise set to NULL
 if (file.size(opt$processed_sce) > 0) {
   processed_sce <- readr::read_rds(opt$processed_sce)
+  processed_sce_meta <- metadata(processed_sce)
 } else {
   processed_sce <- NULL
+  processed_sce_meta <- NULL
 }
-
-# Compile metadata for output files
-sce_meta <- metadata(unfiltered_sce)
-filtered_sce_meta <- metadata(filtered_sce)
-processed_sce_meta <- metadata(processed_sce)
 
 # Parse sample ids
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
