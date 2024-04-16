@@ -61,7 +61,7 @@ process sce_qc_report {
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}" \
-      ${genetic_demux ? "--demux_method 'vireo'" : "--demux_method 'HashedDrops'"} \
+      ${genetic_demux ? "--demux_method 'vireo'" : "--demux_method 'hashedDrops'"} \
       --seed "${params.seed}"
     """
   stub:

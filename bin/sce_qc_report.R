@@ -106,7 +106,7 @@ option_list <- list(
     opt_str = "--demux_method",
     type = "character",
     default = "vireo",
-    help = "demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `HashedDrops`"
+    help = "demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `hashedDrops`"
   ),
   make_option(
     opt_str = "--seed",
@@ -130,9 +130,9 @@ if (is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)) {
   stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
 }
 
-demux_methods <- c("vireo", "HTODemux", "HashedDrops")
+demux_methods <- c("vireo", "HTODemux", "hashedDrops")
 if (!opt$demux_method %in% demux_methods) {
-  stop("Unknown `demux_method` value. Must be one of `vireo`, `HTOdemux`, or `HashedDrops`")
+  stop("Unknown `demux_method` value. Must be one of `vireo`, `HTOdemux`, or `hashedDrops`")
 }
 
 if (opt$workflow_url == "null") {
