@@ -187,7 +187,13 @@ if (!is.null(opt$cellassign_predictions)) {
     stop("Cell type reference metadata filename must be provided")
   }
 
-  predictions <- readr::read_tsv(opt$cellassign_predictions)
+  # if the predictions file isn't emtpy read it in
+  if (file.size(opt$cellassign_predictions) > 0) {
+    predictions <- readr::read_tsv(opt$cellassign_predictions)
+  } else {
+    # if it's empty, then sce could not be converted to anndata and cell assign was not run
+    sce$cellassign_celltype_annotation <- "Not run"
+  }
 
   # if the only column is the barcode column then CellAssign didn't complete successfully
   # otherwise add in cell type annotations and metadata to SCE
