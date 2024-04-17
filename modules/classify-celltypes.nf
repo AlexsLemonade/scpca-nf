@@ -38,6 +38,7 @@ process classify_singler {
     """
     mkdir "${singler_dir}"
     echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
+    touch "${singler_dir}/singler_results.rds"
     """
 }
 
@@ -81,12 +82,12 @@ process classify_cellassign {
         --seed ${params.seed} \
         --threads ${task.cpus}
 
-      # write out meta file
-      echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
-
     else
       touch "${cellassign_dir}/cellassign_predictions.tsv"
     fi
+
+    # write out meta file
+      echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
 
     """
   stub:
@@ -96,6 +97,7 @@ process classify_cellassign {
     """
     mkdir "${cellassign_dir}"
     echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
+    touch "${cellassign_dir}/cellassign_predictions.tsv"
     """
 }
 
