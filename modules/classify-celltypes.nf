@@ -69,16 +69,25 @@ process classify_cellassign {
         --input_sce_file "${processed_rds}" \
         --output_rna_h5 "processed.h5ad"
 
-    # Run CellAssign
-    predict_cellassign.py \
-      --anndata_file "processed.h5ad" \
-      --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
-      --reference "${cellassign_reference_file}" \
-      --seed ${params.seed} \
-      --threads ${task.cpus}
+    # only run cell assign if a h5ad file was able to be created
+    # otherwise create an empty predictions file
+    if [[ -e "processed.h5ad" ]]; then
 
-    # write out meta file
-    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
+      # Run CellAssign
+      predict_cellassign.py \
+        --anndata_file "processed.h5ad" \
+        --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
+        --reference "${cellassign_reference_file}" \
+        --seed ${params.seed} \
+        --threads ${task.cpus}
+
+      # write out meta file
+      echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
+
+    else
+      touch "${cellassign_dir}/cellassign_predictions.tsv"
+    fi
+
     """
   stub:
     cellassign_dir = file(meta.cellassign_dir).name
