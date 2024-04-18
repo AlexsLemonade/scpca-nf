@@ -107,21 +107,27 @@ cellhash_ids <- rownames(altExp(sce))
 
 # only perform demultiplexing if more than one HTO is detected
 if (length(cellhash_ids) > 1) {
+  demux_methods <- c()
   # add HashedDrops results
   if (opt$hash_demux) {
     sce <- scpcaTools::add_demux_hashedDrops(sce)
+    demux_methods <- c(demux_methods, "hashedDrops")
   }
 
   # add Seurat results
   if (opt$seurat_demux) {
     sce <- scpcaTools::add_demux_seurat(sce)
+    demux_methods <- c(demux_methods, "HTODemux")
   }
 
   # add vireo results
   if (!is.null(opt$vireo_dir)) {
     vireo_table <- readr::read_tsv(vireo_file)
     sce <- scpcaTools::add_demux_vireo(sce, vireo_table)
+    demux_methods <- c(demux_methods, "vireo")
   }
+
+  metadata(sce)$demux_methods <- demux_methods
 }
 
 # write filtered sce to output
