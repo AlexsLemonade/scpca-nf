@@ -7,7 +7,7 @@ process sce_qc_report {
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), val(genetic_demux)
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     tuple path(template_dir), val(template_file), val(celltype_template_file)
   output:
     tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
@@ -61,7 +61,6 @@ process sce_qc_report {
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}" \
-      ${genetic_demux ? "--demux_method 'vireo'" : "--demux_method 'hashedDrops'"} \
       --seed "${params.seed}"
     """
   stub:
