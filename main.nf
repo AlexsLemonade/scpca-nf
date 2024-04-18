@@ -322,13 +322,6 @@ workflow {
   // combine back with libraries that skipped filtering and post processing
   sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
     .mix(no_filtered_ch)
-    .map{meta, unfiltered, filtered, processed -> tuple(
-      meta,
-      unfiltered,
-      filtered,
-      processed,
-      meta["library_id"] in genetic_multiplex_libs.getVal()
-    )}
 
   // generate QC reports
   sce_qc_report(
