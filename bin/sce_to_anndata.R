@@ -131,6 +131,11 @@ format_czi <- function(sce) {
 # read in sce
 sce <- readr::read_rds(opt$input_sce_file)
 
+# if not enough cells to convert, quit and don't do anything
+if (ncol(sce) < 2) {
+  quit(save = "no")
+}
+
 # grab sample metadata
 # we need this if we have any feature data that we need to add it o
 sample_metadata <- metadata(sce)$sample_metadata
