@@ -227,7 +227,7 @@ if (has_citeseq) {
 # estimate cell counts for multiplexed samples
 if (multiplexed) {
   # grab demux method to use for sample cell estimate from metadata
-  demux_methods <- metadata(sce)$demux_methods
+  demux_methods <- filtered_sce_meta$demux_methods
 
   # use vireo by default, otherwise use the first one in the list
   if ("vireo" %in% demux_methods) {
@@ -246,7 +246,7 @@ if (multiplexed) {
   metadata_list <- append(
     metadata_list,
     list(
-      demux_method = opt$demux_method,
+      demux_method = demux_method,
       demux_samples = sample_ids,
       sample_cell_estimates = demux_counts
     )
