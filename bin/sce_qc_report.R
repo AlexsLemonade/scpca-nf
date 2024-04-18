@@ -103,12 +103,6 @@ option_list <- list(
     help = "workflow commit hash"
   ),
   make_option(
-    opt_str = "--demux_method",
-    type = "character",
-    default = "vireo",
-    help = "demultiplexing method to use for multiplexed samples. One of `vireo`, `HTOdemux`, or `hashedDrops`"
-  ),
-  make_option(
     opt_str = "--seed",
     type = "integer",
     default = NULL,
@@ -128,11 +122,6 @@ if (!is.null(opt$report_template) && !file.exists(opt$report_template)) {
 
 if (is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)) {
   stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
-}
-
-demux_methods <- c("vireo", "HTODemux", "hashedDrops")
-if (!opt$demux_method %in% demux_methods) {
-  stop("Unknown `demux_method` value. Must be one of `vireo`, `HTOdemux`, or `hashedDrops`")
 }
 
 if (opt$workflow_url == "null") {
@@ -237,7 +226,18 @@ if (has_citeseq) {
 
 # estimate cell counts for multiplexed samples
 if (multiplexed) {
-  demux_column <- paste0(opt$demux_method, "_sampleid")
+  # grab demux method to use for sample cell estimate from metadata
+  demux_methods <- metadata(sce)$demux_methods
+
+  # use vireo by default, otherwise use the first one in the list
+  if ("vireo" %in% demux_methods) {
+    demux_method <- "vireo"
+  } else {
+    demux_method <- demux_methods[1]
+  }
+
+  # get cell count estimates
+  demux_column <- paste0(demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
     table() |>
     as.list() # save as a list for json output
