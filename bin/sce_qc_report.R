@@ -251,7 +251,7 @@ if (multiplexed) {
     metadata_list,
     list(
       demux_method = demux_method,
-      demux_samples = sample_ids,
+      demux_samples = names(demux_counts), # make sure order of sample ids matches counts order
       sample_cell_estimates = demux_counts
     )
   )
