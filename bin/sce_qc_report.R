@@ -242,6 +242,10 @@ if (multiplexed) {
     table() |>
     as.list() # save as a list for json output
 
+  # for any ids that have no cells, set count to 0
+  missing_sample_ids <- setdiff(sample_ids, names(demux_counts))
+  demux_counts[missing_sample_ids] <- 0
+
   # add demux info to the metadata list
   metadata_list <- append(
     metadata_list,
