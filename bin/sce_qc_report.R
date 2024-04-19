@@ -239,6 +239,7 @@ if (multiplexed) {
   # get cell count estimates
   demux_column <- paste0(demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
+    factor(levels = sample_ids) |> # use a factor get any zero counts
     table() |>
     as.list() # save as a list for json output
 
@@ -247,7 +248,7 @@ if (multiplexed) {
     metadata_list,
     list(
       demux_method = demux_method,
-      demux_samples = sample_ids,
+      demux_samples = names(demux_counts), # make sure order of sample ids matches counts order
       sample_cell_estimates = demux_counts
     )
   )
