@@ -174,8 +174,8 @@ if (!is.null(opt$feature_name)) {
     # convert altExp
   } else {
     # check for output file
-    if (!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))) {
-      stop("output feature file name must end in .hdf5 or .h5")
+    if (!(stringr::str_ends(opt$output_feature_h5, ".h5ad|.hdf5|.h5"))) {
+      stop("output feature file name must end in .h5ad, .hdf5, or .h5")
     }
 
     # extract altExp
