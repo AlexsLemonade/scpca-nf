@@ -239,12 +239,9 @@ if (multiplexed) {
   # get cell count estimates
   demux_column <- paste0(demux_method, "_sampleid")
   demux_counts <- colData(filtered_sce)[[demux_column]] |>
+    factor(levels = sample_ids) |> # use a factor get any zero counts
     table() |>
     as.list() # save as a list for json output
-
-  # for any ids that have no cells, set count to 0
-  missing_sample_ids <- setdiff(sample_ids, names(demux_counts))
-  demux_counts[missing_sample_ids] <- 0
 
   # add demux info to the metadata list
   metadata_list <- append(
