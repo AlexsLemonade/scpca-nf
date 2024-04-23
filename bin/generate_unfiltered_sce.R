@@ -200,7 +200,7 @@ sample_type <- sample_metadata_df |>
       is_xenograft ~ "patient-derived xenograft",
       is_cell_line ~ "cell line",
       # if neither column was provided, note that
-      is.na(is_xenograft) && is.na(is_cell_line) ~ "Not provided",
+      is.na(is_xenograft) & is.na(is_cell_line) ~ "Not provided",
       .default = "patient tissue"
     )
   ) |>
