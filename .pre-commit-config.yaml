@@ -32,7 +32,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.3.2
+    rev: v0.3.3
     hooks:
       # Run the linter.
       - id: ruff
@@ -62,5 +62,6 @@ repos:
 ci:
   autofix_prs: true # set to false if we don't want fixes automatically applied by ci
   autoupdate_branch: development
+  autoupdate_schedule: quarterly
   # skip spell check because it can't be quickly installed on CI
   skip: [spell-check]

@@ -129,6 +129,9 @@ if (has_processed) {
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
+  has_singler <- FALSE
+  has_cellassign <- FALSE
+  has_submitter <- FALSE
   has_celltypes <- FALSE
 }
 

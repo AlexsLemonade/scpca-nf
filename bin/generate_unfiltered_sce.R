@@ -161,7 +161,7 @@ if (opt$feature_dir != "") {
 
 
 # read in sample metadata
-sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file) |>
+sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file, col_types = "c") |>
   # rename sample id column
   dplyr::rename("sample_id" = "scpca_sample_id") |>
   # add library ID as column in sample metadata

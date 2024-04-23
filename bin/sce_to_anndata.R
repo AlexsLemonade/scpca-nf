@@ -21,7 +21,7 @@ option_list <- list(
   make_option(
     opt_str = c("--output_rna_h5"),
     type = "character",
-    help = "path to output hdf5 file to store RNA counts as AnnData object. Must end in .hdf5 or .h5"
+    help = "path to output hdf5 file to store RNA counts as AnnData object. Must end in .hdf5, .h5ad, or .h5"
   ),
   make_option(
     opt_str = c("--feature_name"),
@@ -132,6 +132,11 @@ format_czi <- function(sce) {
 sce <- readr::read_rds(opt$input_sce_file)
 message("sce read")
 
+# if not enough cells to convert, quit and don't do anything
+if (ncol(sce) < 2) {
+  quit(save = "no")
+}
+
 # grab sample metadata
 # we need this if we have any feature data that we need to add it o
 sample_metadata <- metadata(sce)$sample_metadata
@@ -174,8 +179,8 @@ if (!is.null(opt$feature_name)) {
     # convert altExp
   } else {
     # check for output file
-    if (!(stringr::str_ends(opt$output_feature_h5, ".hdf5|.h5"))) {
-      stop("output feature file name must end in .hdf5 or .h5")
+    if (!(stringr::str_ends(opt$output_feature_h5, ".h5ad|.hdf5|.h5"))) {
+      stop("output feature file name must end in .h5ad, .hdf5, or .h5")
     }
 
     # extract altExp

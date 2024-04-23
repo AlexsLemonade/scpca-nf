@@ -18,8 +18,8 @@ from scvi.external import CellAssign
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-i",
-    "--input_hdf5_file",
-    dest="input_hdf5_file",
+    "--anndata_file",
+    dest="anndata_file",
     required=True,
     help="Path to HDF5 file with processed AnnData object to annotate",
 )
@@ -63,14 +63,14 @@ scvi.settings.seed = args.seed
 scvi.settings.num_threads = args.threads
 
 # compile extension regex
-file_ext = re.compile(r"\.hdf5$|.h5$", re.IGNORECASE)
+file_ext = re.compile(r"\.h5ad$|\.hdf5$|.h5$", re.IGNORECASE)
 
 # check that input file exists, if it does exist, make sure it's an h5 file
-if not os.path.exists(args.input_hdf5_file):
-    raise FileExistsError("--input_hdf5_file file not found.")
-elif not file_ext.search(args.input_hdf5_file):
+if not os.path.exists(args.anndata_file):
+    raise FileExistsError("--anndata_file file not found.")
+elif not file_ext.search(args.anndata_file):
     raise ValueError(
-        "--input_hdf5_file must end in either .hdf5 or .h5 and contain a processed AnnData object."
+        "--anndata_file must end in .h5ad, .hdf5, or .h5 and contain a processed AnnData object."
     )
 
 # check that marker file exists and make sure its a tsv
@@ -85,7 +85,7 @@ if not args.output_predictions.endswith(".tsv"):
 ref_matrix = pd.read_csv(args.reference, sep="\t", index_col="ensembl_id")
 
 # file path to annotated sce
-annotated_adata = adata.read_h5ad(args.input_hdf5_file)
+annotated_adata = adata.read_h5ad(args.anndata_file)
 
 # subset anndata to contain only genes in the reference file
 # note that the gene names must be the rownames of the reference matrix
@@ -95,7 +95,7 @@ shared_genes = list(set(ref_matrix.index) & set(annotated_adata.var_names))
 # check that shared_genes actually has some genes
 if not shared_genes:
     raise ValueError(
-        "--reference does not include any genes found in the provided --input_hdf5_file."
+        "--reference does not include any genes found in the provided --anndata_file."
     )
 
 # create a new anndata object with only shared genes
