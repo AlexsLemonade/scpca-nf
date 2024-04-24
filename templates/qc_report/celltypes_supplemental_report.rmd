@@ -416,7 +416,7 @@ glue::glue("
 ```
 
 <!-- If not multiplexed, show the header, text, and heatmap --> 
-```{r, eval = !has_multiplex, results='asis'}
+```{r, eval = !has_multiplex & has_clusters, results='asis'}
 glue::glue("
   ## Unsupervised clustering
 
@@ -448,7 +448,7 @@ plot_height <- calculate_plot_height(
 ```
 
 
-```{r, eval = !has_multiplex, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
+```{r, eval = !has_multiplex & has_clusters, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
   create_heatmap_list(
     column_title = "Clusters",

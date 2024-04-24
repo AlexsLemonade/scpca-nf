@@ -93,7 +93,7 @@ plot_umap <- function(
     umap_df,
     color_variable,
     legend_title,
-    point_size = umap_point_size,
+    point_size = point_size,
     legend_nrow = 2) {
   ggplot(umap_df) +
     aes(
@@ -370,7 +370,7 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 ```
 
 
-```{r, eval = has_umap}
+```{r, eval = has_umap & has_clusters}
 knitr::asis_output(glue::glue("
 ## UMAPs
 
@@ -388,7 +388,7 @@ umap_df <- lump_wrap_celltypes(celltype_df)
 
 <!-- First UMAP: clusters -->
 
-```{r, eval = has_umap && has_multiplex, results='asis'}
+```{r, eval = has_umap && has_multiplex && has_clusters, results='asis'}
 glue::glue("
   <div class=\"alert alert-info\">
     This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
@@ -398,7 +398,7 @@ glue::glue("
 ```
 
 
-```{r eval = has_umap, message=FALSE, warning=FALSE}
+```{r eval = has_umap & has_clusters, message=FALSE, warning=FALSE}
 clusters_plot <- plot_umap(
   umap_df,
   cluster,
@@ -418,7 +418,7 @@ if (length(levels(umap_df$cluster)) <= 8) {
 ```
 
 
-```{r, eval = has_umap}
+```{r, eval = has_umap & has_celltypes}
 knitr::asis_output(
   'Next, we show UMAPs colored by cell types.
 For each cell typing method, we show a separate faceted UMAP.
