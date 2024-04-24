@@ -101,6 +101,7 @@ Each of these files should be present, with the expected input columns as descri
 - `example_run_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-run-metadata-file))
 - `example_sample_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-sample-metadata-file))
 - `example_project_celltype_metadata.tsv` ([documentation](./external-instructions.md#preparing-the-project-cell-type-metadata-file))
+- `example_multiplex_pools.tsv` ([documentation](./external-instructions.md#multiplexed-cellhash-libraries))
 
 Once you have confirmed that the metadata looks correct, use the following commands to run the workflow and re-process the example data:
 
