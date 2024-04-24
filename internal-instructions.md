@@ -95,7 +95,7 @@ nextflow run AlexsLemonade/scpca-nf -r v0.8.1 -profile ccdl,batch --project SCPC
 We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users.
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
-First, please check the metadata files present in `s3://scpca-references/example-data` are up to date with changes in the workflow.
+First, please check the metadata files present in `s3://scpca-references/example-data` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
 Each of these files should be present, with the expected input columns as described in each documentation link.
 
 - `example_run_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-run-metadata-file))
