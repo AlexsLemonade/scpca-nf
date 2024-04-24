@@ -69,7 +69,7 @@ if (!resolution_strategies.contains(params.af_resolution)) {
 }
 
 if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
-  log.error("The 'cellhash_pool_file' file ${cellhash_pool_file} can not be found.")
+  log.error("The 'cellhash_pool_file' file ${params.cellhash_pool_file} can not be found.")
   param_error = true
 }
 

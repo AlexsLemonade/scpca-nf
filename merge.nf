@@ -29,7 +29,9 @@ if (param_error) {
 // merge individual SCE objects into one SCE object
 process merge_sce {
   container params.SCPCATOOLS_CONTAINER
+  tag "${merge_group_id}"
   label 'mem_max'
+  label 'long_running'
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   input:
     tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
@@ -59,6 +61,7 @@ process merge_sce {
 // create merge report
 process generate_merge_report {
   container params.SCPCATOOLS_CONTAINER
+  tag "${merge_group_id}"
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_max'
   input:
@@ -87,6 +90,7 @@ process generate_merge_report {
 process export_anndata {
     container params.SCPCATOOLS_CONTAINER
     label 'mem_max'
+    label 'long_running'
     tag "${merge_group_id}"
     publishDir "${params.results_dir}/${merge_group_id}/merged", mode: 'copy'
     input:
@@ -194,12 +198,27 @@ workflow {
         library_id_list,
         sce_file_list
       )}
+      .branch{
+        has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && params.reuse_merge
+        make_merge: true
+      }
 
-    merge_sce(grouped_libraries_ch)
+    pre_merged_ch = grouped_libraries_ch.has_merge
+      .map{[ // merge file, project id, has adt
+        file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"),
+        it[0],
+        it[1]
+      ]}
+
+    // merge SCE objects
+    merge_sce(grouped_libraries_ch.make_merge)
+
+    merged_ch = merge_sce.out.mix(pre_merged_ch)
+
 
     // generate merge report
-    generate_merge_report(merge_sce.out, file(merge_template))
+    generate_merge_report(merged_ch, file(merge_template))
 
     // export merged objects to AnnData
-    export_anndata(merge_sce.out)
+    export_anndata(merged_ch)
 }
