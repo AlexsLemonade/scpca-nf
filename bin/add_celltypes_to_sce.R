@@ -191,13 +191,13 @@ if (!is.null(opt$cellassign_predictions)) {
   if (file.size(opt$cellassign_predictions) > 0) {
     predictions <- readr::read_tsv(opt$cellassign_predictions)
   } else {
-    # if it's empty, then sce could not be converted to anndata and cell assign was not run
-    sce$cellassign_celltype_annotation <- "Not run"
+    predictions <- NULL
   }
 
-  # if the only column is the barcode column then CellAssign didn't complete successfully
+  # if the only column is the barcode column or if the predictions file was empty
+  # then CellAssign didn't complete successfully
   # otherwise add in cell type annotations and metadata to SCE
-  if (all(colnames(predictions) == "barcode")) {
+  if (is.null(predictions) | all(colnames(predictions) == "barcode")) {
     # if failed then note that in the cell type column
     sce$cellassign_celltype_annotation <- "Not run"
   } else {
