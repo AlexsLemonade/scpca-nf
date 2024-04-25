@@ -266,6 +266,7 @@ has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
 
 # check for umap
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
+has_clusters <- "cluster" %in% names(colData(processed_sce))
 
 # what celltypes are available?
 available_celltypes <- c(
