@@ -370,7 +370,7 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 ```
 
 
-```{r, eval = has_umap & has_clusters}
+```{r, eval = has_umap && has_clusters}
 knitr::asis_output(glue::glue("
 ## UMAPs
 
@@ -398,7 +398,7 @@ glue::glue("
 ```
 
 
-```{r eval = has_umap & has_clusters, message=FALSE, warning=FALSE}
+```{r eval = has_umap && has_clusters, message=FALSE, warning=FALSE}
 clusters_plot <- plot_umap(
   umap_df,
   cluster,
@@ -418,7 +418,7 @@ if (length(levels(umap_df$cluster)) <= 8) {
 ```
 
 
-```{r, eval = has_umap & has_celltypes}
+```{r, eval = has_umap && has_celltypes}
 knitr::asis_output(
   'Next, we show UMAPs colored by cell types.
 For each cell typing method, we show a separate faceted UMAP.

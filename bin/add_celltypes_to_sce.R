@@ -197,7 +197,7 @@ if (!is.null(opt$cellassign_predictions)) {
   # if the only column is the barcode column or if the predictions file was empty
   # then CellAssign didn't complete successfully
   # otherwise add in cell type annotations and metadata to SCE
-  if (is.null(predictions) | all(colnames(predictions) == "barcode")) {
+  if (is.null(predictions) || all(colnames(predictions) == "barcode")) {
     # if failed then note that in the cell type column
     sce$cellassign_celltype_annotation <- "Not run"
   } else {
