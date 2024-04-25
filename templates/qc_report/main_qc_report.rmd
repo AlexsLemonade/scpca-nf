@@ -117,7 +117,7 @@ if (has_cellhash) {
 # check for umap and celltypes, but need to be sure that processed_sce exists first
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
-
+  has_clusters <- "cluster" %in% names(colData(processed_sce))
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
   has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
@@ -129,6 +129,7 @@ if (has_processed) {
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
+  has_clusters <- FALSE
   has_singler <- FALSE
   has_cellassign <- FALSE
   has_submitter <- FALSE
