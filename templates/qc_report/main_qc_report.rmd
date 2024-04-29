@@ -144,11 +144,6 @@ if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
 sample_types <- metadata(unfiltered_sce)$sample_type
-
-# determine UMAP point sizing
-umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
-umap_point_size <- umap_points_sizes[1]
-umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 

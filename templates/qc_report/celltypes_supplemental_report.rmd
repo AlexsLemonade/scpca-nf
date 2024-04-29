@@ -300,11 +300,6 @@ plot_height <- 1
 #  sample_id should be defined with length > 1
 sample_id <- metadata(processed_sce)$sample_id
 has_multiplex <- length(sample_id) > 1
-
-# determine UMAP point sizing
-umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
-umap_point_size <- umap_points_sizes[1]
-umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 <!-- If multiplexed, open with warning  --> 
