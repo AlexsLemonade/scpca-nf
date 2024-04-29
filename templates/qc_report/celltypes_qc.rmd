@@ -1,5 +1,10 @@
 # Cell type Annotation Summary
 
+<!--
+This file is meant to be run as a child report within either `main_qc_report.rmd` or `celltypes_supplemental_report.rmd`. 
+-->
+
+
 ```{r}
 ## function definitions ##
 
@@ -86,14 +91,14 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
 #' @param color_variable Column in data frame to color by, not a string.
 #' @param legend_title Title for legend.
 #' @param legend_nrow Number of rows in legend. Default is 2.
-#' @param point_size Point size
+#' @param point_size Point size. Default is 1
 #'
 #' @return UMAP plot as a ggplot2 object
 plot_umap <- function(
     umap_df,
     color_variable,
     legend_title,
-    point_size = point_size,
+    point_size = 1,
     legend_nrow = 2) {
   ggplot(umap_df) +
     aes(
@@ -131,14 +136,14 @@ plot_umap <- function(
 #' @param umap_df Data frame with UMAP1 and UMAP2 columns
 #' @param n_celltypes The number of cell types (facets) displayed in the plot
 #' @param annotation_column Column containing cell type annotations
-#' @param point_size Point size
+#' @param point_size Point size. Default is 1
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
 faceted_umap <- function(umap_df,
                          n_celltypes,
                          annotation_column,
-                         point_size = umap_facet_point_size) {
+                         point_size = 1) {
   # Determine legend y-coordinate based on n_celltypes
   if (n_celltypes %in% 7:8) {
     legend_y <- 0.33
@@ -283,6 +288,11 @@ glue::glue("
 ```{r, warning = FALSE}
 # Create data frame of cell types
 celltype_df <- create_celltype_df(processed_sce)
+
+# determine UMAP point sizing
+umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
+umap_point_size <- umap_points_sizes[1]
+umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
