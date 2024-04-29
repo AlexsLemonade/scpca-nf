@@ -402,7 +402,8 @@ glue::glue("
 clusters_plot <- plot_umap(
   umap_df,
   cluster,
-  "Cluster"
+  "Cluster",
+  point_size = umap_point_size
 ) +
   ggtitle("UMAP colored by cluster identity")
 
@@ -447,7 +448,8 @@ if (has_submitter & has_umap) {
 faceted_umap(
   umap_df,
   submitter_n_celltypes,
-  submitter_celltype_annotation_lumped
+  submitter_celltype_annotation_lumped,
+  point_size = umap_facet_point_size
 ) +
   ggtitle("UMAP colored by submitter-provided annotations")
 ```
@@ -469,7 +471,8 @@ if (has_singler & has_umap) {
 faceted_umap(
   umap_df,
   singler_n_celltypes,
-  singler_celltype_annotation_lumped
+  singler_celltype_annotation_lumped,
+  point_size = umap_facet_point_size
 ) +
   ggtitle("UMAP colored by SingleR annotations")
 ```
@@ -490,7 +493,8 @@ if (has_cellassign & has_umap) {
 faceted_umap(
   umap_df,
   cellassign_n_celltypes,
-  cellassign_celltype_annotation_lumped
+  cellassign_celltype_annotation_lumped,
+  point_size = umap_facet_point_size
 ) +
   ggtitle("UMAP colored by CellAssign annotations")
 ```
