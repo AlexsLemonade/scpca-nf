@@ -179,7 +179,7 @@ workflow {
       }
 
     // print out warning message for any libraries not included in merging
-    merge_libaries = filtered_libraries_ch
+    merge_libaries = filtered_libraries_ch.single_sample
       .collect{it.library_id}
     libraries_ch
     .filter{!(it.library_id in merge_libaries.getVal())}
