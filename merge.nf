@@ -178,6 +178,15 @@ workflow {
         log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
       }
 
+    // print out warning message for any libraries not included in merging
+    merge_libaries = filtered_libraries_ch
+      .collect{it.library_id}
+    libraries_ch
+    .filter{!(it.library_id in merge_libaries.getVal())}
+    .subscribe{
+      log.warn("Processed files do not exist for ${it.library_id}. This library will not be included in the merged object.")
+    }
+
     grouped_libraries_ch = filtered_libraries_ch.single_sample
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
