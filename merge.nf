@@ -179,12 +179,14 @@ workflow {
       }
 
     // print out warning message for any libraries not included in merging
-    merge_libaries = filtered_libraries_ch.single_sample
-      .collect{it.library_id}
-    libraries_ch
-    .filter{!(it.library_id in merge_libaries.getVal())}
+    filtered_libraries_ch.single_sample
+      .map{[
+        it.library_id,
+        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      ]}
+    .filter{!(it[1].exists() && it[1].size() > 0)}
     .subscribe{
-      log.warn("Processed files do not exist for ${it.library_id}. This library will not be included in the merged object.")
+      log.warn("Processed files do not exist for ${it[0]}. This library will not be included in the merged object.")
     }
 
     grouped_libraries_ch = filtered_libraries_ch.single_sample
