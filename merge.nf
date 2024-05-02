@@ -178,6 +178,17 @@ workflow {
         log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
       }
 
+    // print out warning message for any libraries not included in merging
+    filtered_libraries_ch.single_sample
+      .map{[
+        it.library_id,
+        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      ]}
+    .filter{!(it[1].exists() && it[1].size() > 0)}
+    .subscribe{
+      log.warn("Processed files do not exist for ${it[0]}. This library will not be included in the merged object.")
+    }
+
     grouped_libraries_ch = filtered_libraries_ch.single_sample
       // create tuple of [project id, library_id, processed_sce_file]
       .map{[
@@ -185,8 +196,8 @@ workflow {
         it.library_id,
         file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
       ]}
-      // only include libraries that have been processed through scpca-nf
-      .filter{file(it[2]).exists()}
+      // only include libraries that have been processed through scpca-nf and aren't empty
+      .filter{it[2].exists() && it[2].size() > 0}
       // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
       .unique()
       // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
