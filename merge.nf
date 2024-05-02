@@ -197,7 +197,7 @@ workflow {
         file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
       ]}
       // only include libraries that have been processed through scpca-nf and aren't empty
-      .filter{file(it[2]).exists() && file(it[2]).size() > 0}
+      .filter{it[2].exists() && it[2].size() > 0}
       // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
       .unique()
       // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
