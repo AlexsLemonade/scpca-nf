@@ -289,7 +289,27 @@
       "properties": {
         "SCPCATOOLS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-tools:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools:edge"
+        },
+        "SCPCATOOLS_SLIM_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:edge"
+        },
+        "SCPCATOOLS_ANNDATA_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:edge"
+        },
+        "SCPCATOOLS_REPORTS_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:edge"
+        },
+        "SCPCATOOLS_SEURAT_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:edge"
+        },
+        "SCPCATOOLS_SCVI_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:edge"
         },
         "ALEVINFRY_CONTAINER": {
           "type": "string",
