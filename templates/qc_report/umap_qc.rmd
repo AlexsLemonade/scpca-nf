@@ -2,6 +2,14 @@
 
 The below plot shows the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell, coloring each cell by the total number of genes detected per cell.
 
+```{r}
+# determine UMAP point sizing
+umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
+umap_point_size <- umap_points_sizes[1]
+umap_facet_point_size <- umap_points_sizes[2]
+```
+
+
 ```{r message=FALSE}
 # create UMAP colored by number of genes detected
 scater::plotUMAP(

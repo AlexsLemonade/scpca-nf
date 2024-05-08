@@ -264,8 +264,12 @@ has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
   !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
-# check for umap
+# If at least 1 is present, we have cell type annotations.
+has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+
+# check for umap and clusters
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
+has_clusters <- "cluster" %in% names(colData(processed_sce))
 
 # what celltypes are available?
 available_celltypes <- c(
@@ -296,11 +300,6 @@ plot_height <- 1
 #  sample_id should be defined with length > 1
 sample_id <- metadata(processed_sce)$sample_id
 has_multiplex <- length(sample_id) > 1
-
-# determine UMAP point sizing
-umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
-umap_point_size <- umap_points_sizes[1]
-umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 <!-- If multiplexed, open with warning  --> 
@@ -416,7 +415,7 @@ glue::glue("
 ```
 
 <!-- If not multiplexed, show the header, text, and heatmap --> 
-```{r, eval = !has_multiplex, results='asis'}
+```{r, eval = !has_multiplex && has_clusters, results='asis'}
 glue::glue("
   ## Unsupervised clustering
 
@@ -448,7 +447,7 @@ plot_height <- calculate_plot_height(
 ```
 
 
-```{r, eval = !has_multiplex, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
+```{r, eval = !has_multiplex && has_clusters, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
 jaccard_cluster_matrices |>
   create_heatmap_list(
     column_title = "Clusters",
