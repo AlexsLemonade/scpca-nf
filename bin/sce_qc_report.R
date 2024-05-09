@@ -285,17 +285,20 @@ if (opt$celltype_report_file != "") {
     stop("Supplemental cell types report template not found.")
   }
 
-  # render report
-  rmarkdown::render(
-    input = opt$celltype_report_template,
-    output_file = basename(opt$celltype_report_file),
-    output_dir = dirname(opt$celltype_report_file),
-    intermediates_dir = tempdir(),
-    knit_root_dir = tempdir(),
-    envir = new.env(),
-    params = list(
-      library = metadata_list$library_id,
-      processed_sce = processed_sce
+  # only render supplemental report if there's more than one cell
+  if (ncol(processed_sce) > 1) {
+    # render report
+    rmarkdown::render(
+      input = opt$celltype_report_template,
+      output_file = basename(opt$celltype_report_file),
+      output_dir = dirname(opt$celltype_report_file),
+      intermediates_dir = tempdir(),
+      knit_root_dir = tempdir(),
+      envir = new.env(),
+      params = list(
+        library = metadata_list$library_id,
+        processed_sce = processed_sce
+      )
     )
-  )
+  }
 }

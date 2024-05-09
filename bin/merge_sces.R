@@ -247,7 +247,7 @@ adt_present_columns <- sce_list |>
 
 # ensure that there are indeed no "adt" altExps if adt_present_columns is empty
 adt_altexps <- sce_list |>
-  purrr::map(\(sce) "adt" %in% altExpNames(sce))
+  purrr::map_lgl(\(sce) "adt" %in% altExpNames(sce))
 if (is.null(adt_present_columns) && sum(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
