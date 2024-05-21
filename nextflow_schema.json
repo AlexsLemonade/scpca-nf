@@ -345,7 +345,7 @@
         },
         "TIDYVERSE_CONTAINER": {
           "type": "string",
-          "default": "rocker/tidyverse:4.3.1"
+          "default": "rocker/tidyverse:4.4.0"
         },
         "VIREO_CONTAINER": {
           "type": "string",
