@@ -44,7 +44,7 @@ process classify_singler {
 
 
 process classify_cellassign {
-  container params.SCPCATOOLS_CONTAINER
+  container params.SCPCATOOLS_CELLASSIGN_CONTAINER
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy',
@@ -103,7 +103,7 @@ process classify_cellassign {
 }
 
 process add_celltypes_to_sce {
-  container params.SCPCATOOLS_CONTAINER
+  container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_4'
   label 'cpus_2'
   tag "${meta.library_id}"
