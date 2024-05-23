@@ -164,7 +164,7 @@ process genetic_demux_sce {
 }
 
 process cellhash_demux_sce {
-  container params.SCPCATOOLS_CONTAINER
+  container params.SCPCATOOLS_SEURAT_CONTAINER
   label 'mem_8'
   tag "${meta.library_id}"
   input:
