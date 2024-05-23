@@ -2,7 +2,7 @@
 // generate QC report from unfiltered and filtered SCE.rds files using scpcaTools
 
 process sce_qc_report {
-  container params.SCPCATOOLS_CONTAINER
+  container params.SCPCATOOLS_REPORTS_CONTAINER
   label 'mem_16'
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'

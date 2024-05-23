@@ -66,7 +66,7 @@ process salmon {
 }
 
 process merge_bulk_quants {
-  container params.SCPCATOOLS_CONTAINER
+  container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_8'
   publishDir "${params.results_dir}/${meta.project_id}", mode: 'copy'
   tag "${meta.project_id}"
