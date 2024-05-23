@@ -2,7 +2,7 @@
 
 // RNA only libraries
 process make_unfiltered_sce {
-    container params.SCPCATOOLS_CONTAINER
+    container params.SCPCATOOLS_SLIM_CONTAINER
     label 'mem_8'
     tag "${meta.library_id}"
     input:
