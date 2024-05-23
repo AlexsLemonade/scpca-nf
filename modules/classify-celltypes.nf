@@ -44,7 +44,7 @@ process classify_singler {
 
 
 process classify_cellassign {
-  container params.SCPCATOOLS_CELLASSIGN_CONTAINER
+  container params.SCPCATOOLS_SCVI_CONTAINER
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy',
