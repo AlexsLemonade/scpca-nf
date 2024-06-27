@@ -226,13 +226,57 @@ glue::glue("
 ")
 ```
 
-## Raw Sample Metrics
+## Sample metadata 
+
+```{r}
+# extract sce metadata containing processing information as table
+unfiltered_meta <- metadata(unfiltered_sce)
+
+# extract sample metadata table
+if ("sample_metadata" %in% names(unfiltered_meta)) {
+  # do we also want to include ontology IDs?
+  # need to account for no sample metadata in the first place
+  unfiltered_meta$sample_metadata |>
+    dplyr::select(
+      "Sample ID" = "sample_id",
+      "Diagnosis" = "diagnosis",
+      "Subdiagnosis" = "subdiagnosis",
+      "Tissue location" = tissue_location,
+      "Disease timing" = disease_timing,
+      "Age" = age,
+      "Sex" = sex,
+      "Organism" = organism
+    ) |>
+    dplyr::mutate(
+      "Sample type" = unfiltered_meta$sample_type # how would this work for multiplexed samples though?
+    ) |>
+    t() |>
+    knitr::kable(align = "r") |>
+    kableExtra::kable_styling(
+      bootstrap_options = "striped",
+      full_width = FALSE,
+      position = "left"
+    ) |>
+    kableExtra::column_spec(2, monospace = TRUE)
+} else {
+  glue::glue("
+    <div class=\"alert alert-info\">
+
+    No sample metadata is available for this library.
+
+    </div>
+  ")
+}
+```
+
+
+## Raw library Metrics
 
 ```{r }
 # extract sce metadata containing processing information as table
 unfiltered_meta <- metadata(unfiltered_sce)
 
-sample_information <- tibble::tibble(
+library_information <- tibble::tibble(
   "Library id" = library_id,
   "Sample id" = paste(sample_id, collapse = ", "),
   "Tech version" = format(unfiltered_meta$tech_version), # format to keep nulls
@@ -251,7 +295,7 @@ if (has_adt) {
   adt_exp <- altExp(filtered_sce, "adt") # must be filtered_sce in case has_processed is FALSE
   adt_meta <- metadata(adt_exp)
 
-  sample_information <- sample_information |>
+  library_information <- library_information |>
     mutate(
       "Number of antibodies assayed" =
         format(nrow(adt_exp), big.mark = ",", scientific = FALSE),
@@ -266,7 +310,7 @@ if (has_cellhash) {
   multiplex_exp <- altExp(filtered_sce, "cellhash")
   multiplex_meta <- metadata(multiplex_exp)
 
-  sample_information <- sample_information |>
+  library_information <- library_information |>
     mutate(
       "Number of HTOs assayed" =
         format(nrow(multiplex_exp), big.mark = ",", scientific = FALSE),
@@ -277,12 +321,12 @@ if (has_cellhash) {
     )
 }
 
-sample_information <- sample_information |>
+library_information <- library_information |>
   reformat_nulls() |>
   t()
 
 # make table with sample information
-knitr::kable(sample_information, align = "r") |>
+knitr::kable(library_information, align = "r") |>
   kableExtra::kable_styling(
     bootstrap_options = "striped",
     full_width = FALSE,
