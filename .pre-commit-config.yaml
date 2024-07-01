@@ -32,7 +32,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.4.5
+    rev: v0.5.0
     hooks:
       # Run the linter.
       - id: ruff
@@ -48,7 +48,7 @@ repos:
       - id: parsable-R
   - repo: https://github.com/pre-commit/mirrors-prettier
     # Format YAML and other languages
-    rev: v3.1.0
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         exclude: '\.md$'
