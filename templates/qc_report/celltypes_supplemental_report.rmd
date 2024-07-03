@@ -385,7 +385,7 @@ glue::glue("
 
 The below table summarizes clinical metadata for the sample associated with this library. 
 Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
-These links will direct you to the [`Ontobee`](https://ontobee.org/) page for that ontology term identifier.  
+These links will direct you to a web page with information about that ontology term identifier.   
 
 ```{r}
 # extract sce metadata containing processing information as table
