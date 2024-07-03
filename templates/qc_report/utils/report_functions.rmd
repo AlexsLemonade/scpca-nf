@@ -59,8 +59,8 @@ print_sample_metadata <- function(meta_list) {
         # format linked url with hr value for table
         # if NA term ID, don't link
         url = dplyr::if_else(
-          is.na(ontology_term_id), 
-          kableExtra::text_spec(hr_value, "html"), 
+          is.na(ontology_term_id),
+          kableExtra::text_spec(hr_value, "html"),
           kableExtra::text_spec(hr_value, "html", link = url)
         )
       )
