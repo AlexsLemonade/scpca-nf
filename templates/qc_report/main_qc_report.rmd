@@ -208,8 +208,7 @@ if ("cell line" %in% sample_types) {
 }
 ```
 
-
-# Processing Information for `r library_id`
+# Metadata and Processing Information for `r library_id`
 
 ```{r, eval = has_multiplex, results='asis'}
 # convert sample id to bullet separated list
@@ -226,51 +225,34 @@ glue::glue("
 ")
 ```
 
-## Sample metadata 
+## Sample Metadata
+
+The below table summarizes clinical metadata for the sample associated with this library. 
+Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
+These links will direct you to the [`Ontobee`](https://ontobee.org/) page for that ontology term identifier.  
 
 ```{r}
 # extract sce metadata containing processing information as table
 unfiltered_meta <- metadata(unfiltered_sce)
 
-# extract sample metadata table
-if ("sample_metadata" %in% names(unfiltered_meta)) {
-  # do we also want to include ontology IDs?
-  # need to account for no sample metadata in the first place
-  unfiltered_meta$sample_metadata |>
-    dplyr::select(
-      "Sample ID" = "sample_id",
-      "Diagnosis" = "diagnosis",
-      "Subdiagnosis" = "subdiagnosis",
-      "Tissue location" = tissue_location,
-      "Disease timing" = disease_timing,
-      "Age" = age,
-      "Sex" = sex,
-      "Organism" = organism
-    ) |>
-    dplyr::mutate(
-      "Sample type" = unfiltered_meta$sample_type # how would this work for multiplexed samples though?
-    ) |>
-    t() |>
-    knitr::kable(align = "r") |>
-    kableExtra::kable_styling(
-      bootstrap_options = "striped",
-      full_width = FALSE,
-      position = "left"
-    ) |>
-    kableExtra::column_spec(2, monospace = TRUE)
+# if data is not multiplexed, print out sample metadata
+if (!has_multiplex) {
+  print_sample_metadata(unfiltered_meta)
 } else {
-  glue::glue("
-    <div class=\"alert alert-info\">
+  # otherwise print out an info box that no sample metadata will be displayed
+  knitr::asis_output(
+    glue::glue("
+  <div class=\"alert alert-info\">
 
-    No sample metadata is available for this library.
-
-    </div>
-  ")
+  This library is multiplexed and contains data from more than one sample.
+  Demultiplexing has not been performed, so sample metadata will not be displayed.
+  </div>
+")
+  )
 }
 ```
 
-
-## Raw library Metrics
+## Raw Library Metrics
 
 ```{r }
 # extract sce metadata containing processing information as table

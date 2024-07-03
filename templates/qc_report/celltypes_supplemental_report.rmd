@@ -381,6 +381,32 @@ glue::glue("
 ```
 
 
+# Sample metadata 
+
+The below table summarizes clinical metadata for the sample associated with this library. 
+Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
+These links will direct you to the [`Ontobee`](https://ontobee.org/) page for that ontology term identifier.  
+
+```{r}
+# extract sce metadata containing processing information as table
+processed_meta <- metadata(processed_sce)
+
+# if data is not multiplexed, print out sample metadata
+if (!has_multiplex) {
+  print_sample_metadata(processed_meta)
+} else {
+  # otherwise print out an info box that no sample metadata will be displayed
+  knitr::asis_output(glue::glue("
+  <div class=\"alert alert-info\">
+
+  This library is multiplexed and contains data from more than one sample.
+  Demultiplexing has not been performed, so sample metadata will not be displayed.
+  </div>
+"))
+}
+```
+
+
 <!------- Call the celltypes_qc report section from the main report ----------->
 ```{r, child='celltypes_qc.rmd'}
 ```
