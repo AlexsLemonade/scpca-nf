@@ -28,7 +28,7 @@ determine_umap_point_size <- function(n_processed_cells) {
 ```
 
 ```{r}
-#' Create sample metadata table
+#' Print table with sample metadata
 #'
 #' @param meta_list List of metadata from SCE object.
 #'   Must contain `sample_metadata`.
