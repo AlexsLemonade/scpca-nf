@@ -242,12 +242,12 @@ if (!has_multiplex) {
   # otherwise print out an info box that no sample metadata will be displayed
   knitr::asis_output(
     glue::glue("
-  <div class=\"alert alert-info\">
+      <div class=\"alert alert-info\">
 
-  This library is multiplexed and contains data from more than one sample.
-  Demultiplexing has not been performed, so sample metadata will not be displayed.
-  </div>
-")
+      This library is multiplexed and contains data from more than one sample.
+      Demultiplexing has not been performed, so sample metadata will not be displayed.
+      </div>
+    ")
   )
 }
 ```
