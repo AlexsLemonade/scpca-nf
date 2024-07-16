@@ -49,6 +49,7 @@ if "logcounts" in object.layers:
     # move logcounts to X and rename
     object.X = object.layers["logcounts"]
     object.uns["X_name"] = "logcounts"
+    del object.layers["logcounts"]
 
     # export object
     object.write_h5ad(args.anndata_file, compression="gzip" if args.compress else None)

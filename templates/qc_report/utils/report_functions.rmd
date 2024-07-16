@@ -26,3 +26,84 @@ determine_umap_point_size <- function(n_processed_cells) {
   return(c(umap_point_size, umap_facet_point_size))
 }
 ```
+
+```{r}
+#' Print table with sample metadata
+#'
+#' @param meta_list List of metadata from SCE object.
+#'   Must contain `sample_metadata`.
+#'
+#' @return table with sample metadata
+
+print_sample_metadata <- function(meta_list) {
+  # get sample metadata as a data frame
+  sample_metadata <- meta_list$sample_metadata
+
+  # only print table if sample metadata is present
+  if (!is.null(sample_metadata)) {
+    # build urls using ontology terms
+    # first create a tibble with term, human readable value, and ontology ID
+    ontology_link_df <- tibble::tribble(
+      ~term, ~hr_value, ~ontology_term_id,
+      "age", as.character(sample_metadata$age), sample_metadata$development_stage_ontology_term_id,
+      "sex", sample_metadata$sex, sample_metadata$sex_ontology_term_id,
+      "organism", sample_metadata$organism, sample_metadata$organism_ontology_id,
+      "diagnosis", sample_metadata$diagnosis, sample_metadata$disease_ontology_term_id,
+      "tissue_location", sample_metadata$tissue_location, sample_metadata$tissue_ontology_term_id
+    ) |>
+      dplyr::mutate(
+        # replace ID with _ to construct url
+        ontology_term_id = stringr::str_replace(ontology_term_id, ":", "_"),
+        # build url
+        url = glue::glue("http://purl.obolibrary.org/obo/{ontology_term_id}"),
+        # format linked url with hr value for table
+        # if NA term ID, don't link
+        url = dplyr::if_else(
+          is.na(ontology_term_id),
+          kableExtra::text_spec(hr_value, "html"),
+          kableExtra::text_spec(hr_value, "html", link = url)
+        )
+      )
+
+    # create a named list of urls to use for easy table building
+    url_list <- as.list(ontology_link_df$url) |>
+      purrr::set_names(ontology_link_df$term)
+
+    # construct table to print
+    # fill in with sample metadata information for non ontology IDs and use urls for all ontology IDs
+    table <- tibble::tibble(
+      "Sample ID" = sample_metadata$sample_id,
+      "Diagnosis" = url_list$diagnosis,
+      "Subdiagnosis" = sample_metadata$subdiagnosis,
+      "Tissue location" = url_list$tissue_location,
+      "Disease timing" = sample_metadata$disease_timing,
+      "Age" = url_list$age,
+      "Sex" = url_list$sex,
+      "Organism" = url_list$organism,
+      "Sample type" = meta_list$sample_type
+    ) |>
+      t() |>
+      # account for html links
+      knitr::kable(format = "html", escape = FALSE, align = "r") |>
+      kableExtra::kable_styling(
+        bootstrap_options = "striped",
+        full_width = FALSE,
+        position = "left"
+      ) |>
+      kableExtra::column_spec(2, monospace = TRUE)
+
+    return(table)
+  } else {
+    # if no sample metadata, print out a message
+    knitr::asis_output(
+      glue::glue("
+    <div class=\"alert alert-info\">
+
+    No sample metadata is available for this library.
+
+    </div>
+  ")
+    )
+  }
+}
+```

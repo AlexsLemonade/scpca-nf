@@ -89,21 +89,14 @@ bulk_metadata_df <- library_metadata |>
       scpca_project_id %in% opt$project_id
   ) |>
   dplyr::select(
-    scpca_sample_id, scpca_library_id, scpca_project_id,
-    technology, seq_unit
+    scpca_project_id, scpca_sample_id, scpca_library_id,
+    seq_unit, technology
   ) |>
   # rename column names to match format of metadata files from other modalities
   dplyr::rename(
+    project_id = scpca_project_id,
     sample_id = scpca_sample_id,
-    library_id = scpca_library_id,
-    project_id = scpca_project_id
-  ) |>
-  # add columns with processing information and date processed (same for all libraries )
-  dplyr::mutate(
-    genome_assembly = opt$genome_assembly,
-    workflow = opt$workflow_url,
-    workflow_version = opt$workflow_version,
-    workflow_commit = opt$workflow_commit
+    library_id = scpca_library_id
   )
 
 
@@ -128,10 +121,11 @@ get_processing_info <- function(library_id) {
 
   library_processing <- data.frame(
     library_id = library_id,
-    salmon_version = cmd_info$salmon_version,
-    mapping_index = cmd_info$index,
     total_reads = meta_info$num_processed,
     mapped_reads = meta_info$num_mapped,
+    genome_assembly = opt$genome_assembly,
+    mapping_index = cmd_info$index,
+    salmon_version = cmd_info$salmon_version,
     date_processed = lubridate::format_ISO8601(date_processed, usetz = TRUE)
   )
 
@@ -141,7 +135,13 @@ get_processing_info <- function(library_id) {
 bulk_processing_metadata <- purrr::map_dfr(library_ids, get_processing_info)
 
 bulk_metadata_df <- bulk_metadata_df |>
-  dplyr::left_join(bulk_processing_metadata, by = c("library_id"))
+  dplyr::left_join(bulk_processing_metadata, by = c("library_id")) |>
+  # add columns with processing information and date processed (same for all libraries )
+  dplyr::mutate(
+    workflow = opt$workflow_url,
+    workflow_version = opt$workflow_version,
+    workflow_commit = opt$workflow_commit
+  )
 
 # write out file
 readr::write_tsv(bulk_metadata_df, file = opt$metadata_output)
