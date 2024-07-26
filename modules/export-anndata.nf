@@ -12,21 +12,23 @@ process export_anndata {
     script:
       rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
       feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
+      pca_meta_file = "${meta.library_id}_${file_type}_pca.tsv"
       feature_present = meta.feature_type in ["adt"]
       """
       sce_to_anndata.R \
         --input_sce_file ${sce_file} \
         --output_rna_h5 ${rna_h5ad_file} \
         --output_feature_h5 ${feature_h5ad_file} \
+        --output_pca_tsv ${pca_meta_file} \
         ${feature_present ? "--feature_name ${meta.feature_type}" : ''} \
         ${file_type != "processed" ? "--compress_output" : ''}
 
-      # move any normalized counts to X in AnnData
+      # move any normalized counts to X in AnnData, convert matrices, and add PCA metadata
       if [ "${file_type}" = "processed" ]; then
-        move_counts_anndata.py --anndata_file ${rna_h5ad_file}
+        reformat_anndata.py --anndata_file ${rna_h5ad_file} --pca_meta_file ${pca_meta_file}
         # move counts in feature data, if the file exists
         if [ -f "${feature_h5ad_file}" ]; then
-          move_counts_anndata.py --anndata_file ${feature_h5ad_file}
+          reformat_anndata.py --anndata_file ${feature_h5ad_file}
         fi
       fi
 

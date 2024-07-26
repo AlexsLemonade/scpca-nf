@@ -23,17 +23,17 @@ parser.add_argument(
     help="Path to HDF5 file with processed AnnData object",
 )
 parser.add_argument(
+    "--pca_meta_file",
+    dest="pca_meta_file",
+    required=False,
+    help="Path to file with a table of variance explained by each PCA component",
+)
+parser.add_argument(
     "-u",
     "--uncompressed",
     dest="compress",
     action="store_false",
     help="Output an uncompressed HDF5 file",
-)
-parser.add_argument(
-    "--pca_meta_file",
-    dest="pca_meta_file",
-    required=False,
-    help="Path to file with a table of variance explained by each PCA component",
 )
 
 args = parser.parse_args()
