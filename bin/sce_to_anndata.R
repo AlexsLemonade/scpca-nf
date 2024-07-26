@@ -120,8 +120,8 @@ format_czi <- function(sce) {
   # so everything gets set to false
   rowData(sce)$feature_is_filtered <- FALSE
 
-  # paste X to any present reduced dim names
-  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  # paste X to any present reduced dim names, converting to lower case
+  reducedDimNames(sce) <- glue::glue("X_{tolower(reducedDimNames(sce))}")
 
   return(sce)
 }
