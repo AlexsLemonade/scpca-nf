@@ -3,12 +3,15 @@
 # This script takes an AnnData object and checks for the `logcounts`
 # in layers. If present, `logcounts` is moved to `X` and `X` (which has the raw counts)
 # is moved to `raw.X`
+# In addition, any DataFrames in `obsm` are conerted to ndarrays
+
 
 import argparse
 import os
 import re
 
 import anndata as adata
+import pandas as pd
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -51,5 +54,10 @@ if "logcounts" in object.layers:
     object.uns["X_name"] = "logcounts"
     del object.layers["logcounts"]
 
-    # export object
-    object.write_h5ad(args.anndata_file, compression="gzip" if args.compress else None)
+# convert DataFrames in obsm to ndarrays
+for key, value in object.obsm.items():
+    if isinstance(value, pd.DataFrame):
+        object.obsm[key] = value.to_numpy()
+
+# export object
+object.write_h5ad(args.anndata_file, compression="gzip" if args.compress else None)
