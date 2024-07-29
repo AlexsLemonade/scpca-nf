@@ -29,6 +29,18 @@ parser.add_argument(
     help="Path to file with a table of variance explained by each PCA component",
 )
 parser.add_argument(
+    "--pca_not_centered",
+    dest="pca_centered",
+    action="store_false",
+    help="Indicate that the PCA table is not zero-centered",
+)
+parser.add_argument(
+    "--mask_var",
+    dest="mask_var",
+    default="highly_variable",
+    help="Indicate that variable used for highly variable genes. Use the value 'None' if no highly variable genes were used.",
+)
+parser.add_argument(
     "-u",
     "--uncompressed",
     dest="compress",
@@ -87,9 +99,9 @@ if args.pca_meta_file:
         )
     pca_object = {
         "param": {
-            "zero_center": True,
-            "use_highly_variable": True,
-            "mask_var": "highly_variable",
+            "zero_center": args.pca_centered,
+            "use_highly_variable": args.highly_variable.casefold() != "none",
+            "mask_var": args.highly_variable,
         },
         "variance": pca_meta["variance"].to_numpy(),
         "variance_ratio": pca_meta["variance_ratio"].to_numpy(),
