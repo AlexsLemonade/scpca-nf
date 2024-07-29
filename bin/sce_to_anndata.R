@@ -78,7 +78,7 @@ if (!is.null(opt$output_pca_tsv) && !stringr::str_ends(opt$output_pca_tsv, ".tsv
 # this function updates merged object formatting for anndata export
 format_merged_sce <- function(sce) {
   # paste X to any present reduced dim names
-  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  reducedDimNames(sce) <- glue::glue("X_{tolower(reducedDimNames(sce))}")
   return(sce)
 }
 
