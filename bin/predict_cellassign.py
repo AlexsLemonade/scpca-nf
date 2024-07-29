@@ -63,7 +63,7 @@ scvi.settings.seed = args.seed
 scvi.settings.num_threads = args.threads
 
 # compile extension regex
-file_ext = re.compile(r"\.h5ad$|\.hdf5$|.h5$", re.IGNORECASE)
+file_ext = re.compile(r"\.(hdf5|h5|h5ad)$", re.IGNORECASE)
 
 # check that input file exists, if it does exist, make sure it's an h5 file
 if not os.path.exists(args.anndata_file):
@@ -78,7 +78,7 @@ if not os.path.exists(args.reference):
     raise FileExistsError("--reference file not found.")
 
 # make sure output file path is tsv file
-if not args.output_predictions.endswith(".tsv"):
+if not args.output_predictions.casefold().endswith(".tsv"):
     raise ValueError("--output_predictions must provide a file path ending in tsv")
 
 # read in references as marker gene tables

@@ -39,7 +39,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # compile extension regex
-file_ext = re.compile(r"\.hdf5$|\.h5$|\.h5ad$", re.IGNORECASE)
+file_ext = re.compile(r"\.(hdf5|h5|h5ad)$", re.IGNORECASE)
 
 # check that input file exists, if it does exist, make sure it's an h5 file
 if not os.path.exists(args.anndata_file):
@@ -53,7 +53,7 @@ elif not file_ext.search(args.anndata_file):
 if args.pca_meta_file:
     if not os.path.exists(args.pca_meta_file):
         raise FileExistsError("`pca_meta_file` does not exist.")
-    elif not args.pca_meta_file.endswith(".tsv"):
+    elif not args.pca_meta_file.casefold().endswith(".tsv"):
         raise ValueError("`pca_meta_file` must end in .tsv.")
 
 # read in anndata
