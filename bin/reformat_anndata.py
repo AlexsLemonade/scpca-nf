@@ -35,10 +35,13 @@ parser.add_argument(
     help="Indicate that the PCA table is not zero-centered",
 )
 parser.add_argument(
-    "--mask_var",
-    dest="mask_var",
-    default="highly_variable",
-    help="Indicate the name used to store highly variable genes associated with the PCA present in the exported AnnData object. Use the value 'None' if no highly variable genes were used.",
+    "--hvg_name",
+    dest="hvg_name",
+    default="highly_variable_genes",
+    help=(
+        "Indicate the name used to store highly variable genes associated with the PCA in the exported AnnData object."
+        " Use the value 'none' if no highly variable genes were not used."
+    ),
 )
 parser.add_argument(
     "-u",
@@ -85,10 +88,13 @@ for key, value in adata.obsm.items():
     if isinstance(value, pd.DataFrame):
         adata.obsm[key] = value.to_numpy()
 
-# convert highly variable genes to a column
-adata.var["highly_variable"] = adata.var.gene_ids.isin(
-    adata.uns["highly_variable_genes"]
-)
+# convert highly variable genes to a column if given
+use_hvg = args.hvg_name.casefold() != "none"
+if use_hvg:
+    if args.hvg_name not in adata.uns.keys():
+        raise ValueError("`hvg_name` must be present in the `uns` data for the object")
+    adata.var["highly_variable"] = adata.var.gene_ids.isin(adata.uns[args.hvg_name])
+
 
 # add pca adata to uns if pca_meta_file is provided in the format created by scanpy
 if args.pca_meta_file:
@@ -100,8 +106,8 @@ if args.pca_meta_file:
     pca_object = {
         "param": {
             "zero_center": args.pca_centered,
-            "use_highly_variable": args.mask_var.casefold() != "none",
-            "mask_var": args.mask_var,
+            "use_highly_variable": use_hvg,
+            "mask_var": ("highly_variable" if use_hvg else None),
         },
         "variance": pca_meta["variance"].to_numpy(),
         "variance_ratio": pca_meta["variance_ratio"].to_numpy(),
