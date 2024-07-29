@@ -38,7 +38,7 @@ parser.add_argument(
     "--mask_var",
     dest="mask_var",
     default="highly_variable",
-    help="Indicate that variable used for highly variable genes. Use the value 'None' if no highly variable genes were used.",
+    help="Indicate the name used to store highly variable genes associated with the PCA present in the exported AnnData object. Use the value 'None' if no highly variable genes were used.",
 )
 parser.add_argument(
     "-u",
@@ -100,8 +100,8 @@ if args.pca_meta_file:
     pca_object = {
         "param": {
             "zero_center": args.pca_centered,
-            "use_highly_variable": args.highly_variable.casefold() != "none",
-            "mask_var": args.highly_variable,
+            "use_highly_variable": args.mask_var.casefold() != "none",
+            "mask_var": args.mask_var,
         },
         "variance": pca_meta["variance"].to_numpy(),
         "variance_ratio": pca_meta["variance_ratio"].to_numpy(),
