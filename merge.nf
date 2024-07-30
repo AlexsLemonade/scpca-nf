@@ -109,8 +109,8 @@ process export_anndata {
         ${has_adt ? "--feature_name adt" : ''}
 
       # move normalized counts to X in AnnData
-      move_counts_anndata.py --anndata_file ${rna_h5ad_file}
-      ${has_adt ? "move_counts_anndata.py --anndata_file ${feature_h5ad_file}" : ''}
+      reformat_anndata.py --anndata_file ${rna_h5ad_file}
+      ${has_adt ? "reformat_anndata.py --anndata_file ${feature_h5ad_file}" : ''}
       """
     stub:
       rna_h5ad_file = "${merge_group_id}_merged_rna.h5ad"
