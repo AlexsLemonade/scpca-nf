@@ -144,11 +144,11 @@ workflow {
         || (it.scpca_sample_id in run_ids)
       }
       .map{[
-        seq_unit: it.seq_unit,
-        technology: it.technology,
         project_id: it.scpca_project_id,
         library_id: it.scpca_library_id,
-        sample_id: it.scpca_sample_id.split(";").sort().join(",")
+        sample_id: it.scpca_sample_id.split(";").sort().join(","),
+        seq_unit: it.seq_unit,
+        technology: it.technology
       ]}
 
     // get all projects that contain at least one library with CITEseq
@@ -162,13 +162,23 @@ workflow {
       .collect{it.project_id}
       .map{it.unique()}
 
+    oversized_projects = libraries_ch
+      .map{[
+        it.project_id, // pull out project id for grouping
+        it
+      ]}
+      .groupTuple(by: 0) // group by project id
+      .filter{it[1].size() > params.max_merge_libraries} // get projects with more samples than max merge
+      .collect{it[0]} // get project id
+
     filtered_libraries_ch = libraries_ch
       // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
       .filter{it.seq_unit in ['cell', 'nucleus']}
-      // remove any multiplexed projects
+      // remove any multiplexed projects or oversized projects
       // future todo: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
       .branch{
         multiplexed: it.project_id in multiplex_projects.getVal()
+        oversized: it.project_id in oversized_projects.getVal()
         single_sample: true
       }
 
@@ -176,6 +186,12 @@ workflow {
       .unique{ it.project_id }
       .subscribe{
         log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
+      }
+
+    filtered_libraries_ch.oversized
+      .unique{ it.project_id }
+      .subscribe{
+        log.warn("Not merging ${it.project_id} because it contains too many libraries.")
       }
 
     // print out warning message for any libraries not included in merging
