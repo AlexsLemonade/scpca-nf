@@ -232,5 +232,6 @@ if (!is.null(opt$feature_name)) {
         ")
       )
     }
+    message("Exported alt")
   }
 }

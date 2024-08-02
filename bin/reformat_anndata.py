@@ -40,7 +40,7 @@ parser.add_argument(
     default="highly_variable_genes",
     help=(
         "Indicate the name used to store highly variable genes associated with the PCA in the exported AnnData object."
-        " Use the value 'none' if no highly variable genes were not used."
+        "Use the value 'none' if no highly variable genes were used."
     ),
 )
 parser.add_argument(
