@@ -28,7 +28,7 @@ process export_anndata {
         reformat_anndata.py --anndata_file ${rna_h5ad_file} --pca_meta_file ${pca_meta_file}
         # move counts in feature data, if the file exists
         if [ -f "${feature_h5ad_file}" ]; then
-          reformat_anndata.py --anndata_file ${feature_h5ad_file}
+          reformat_anndata.py --anndata_file ${feature_h5ad_file} --hvg_name "none"
         fi
       fi
 
