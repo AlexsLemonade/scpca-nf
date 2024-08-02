@@ -24,6 +24,12 @@ option_list <- list(
     help = "path to output hdf5 file to store RNA counts as AnnData object. Must end in .hdf5, .h5ad, or .h5"
   ),
   make_option(
+    opt_str = c("--output_pca_tsv"),
+    default = NULL,
+    type = "character",
+    help = "path to output a table of variance explained by each principal component. Must end in .tsv"
+  ),
+  make_option(
     opt_str = c("--feature_name"),
     type = "character",
     help = "Feature type. Must match the altExp name, if present."
@@ -62,12 +68,17 @@ if (!(stringr::str_ends(opt$output_rna_h5, ".hdf5|.h5|.h5ad"))) {
   stop("output rna file name must end in .hdf5, .h5, or .h5ad")
 }
 
+# check that the pca file is a tsv
+if (!is.null(opt$output_pca_tsv) && !stringr::str_ends(opt$output_pca_tsv, ".tsv")) {
+  stop("output pca file name must end in .tsv")
+}
+
 # Merged object function  ------------------------------------------------------
 
 # this function updates merged object formatting for anndata export
 format_merged_sce <- function(sce) {
   # paste X to any present reduced dim names
-  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  reducedDimNames(sce) <- glue::glue("X_{tolower(reducedDimNames(sce))}")
   return(sce)
 }
 
@@ -120,8 +131,8 @@ format_czi <- function(sce) {
   # so everything gets set to false
   rowData(sce)$feature_is_filtered <- FALSE
 
-  # paste X to any present reduced dim names
-  reducedDimNames(sce) <- glue::glue("X_{reducedDimNames(sce)}")
+  # paste X to any present reduced dim names, converting to lower case
+  reducedDimNames(sce) <- glue::glue("X_{tolower(reducedDimNames(sce))}")
 
   return(sce)
 }
@@ -160,6 +171,18 @@ scpcaTools::sce_to_anndata(
   anndata_file = opt$output_rna_h5,
   compression = ifelse(opt$compress_output, "gzip", "none")
 )
+
+# Get PCA metadata for AnnData
+if (!is.null(opt$output_pca_tsv) && "X_pca" %in% reducedDimNames(sce)) {
+  pca_meta_df <- data.frame(
+    PC = 1:ncol(reducedDims(sce)$X_pca),
+    variance = attr(reducedDims(sce)$X_pca, "varExplained"),
+    variance_ratio = attr(reducedDims(sce)$X_pca, "percentVar") / 100
+  )
+
+  # write pca to tsv
+  readr::write_tsv(pca_meta_df, opt$output_pca_tsv)
+}
 
 message("Exported RNA")
 
@@ -209,5 +232,6 @@ if (!is.null(opt$feature_name)) {
         ")
       )
     }
+    message("Exported alt")
   }
 }
