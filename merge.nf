@@ -163,6 +163,7 @@ workflow {
       .map{it.unique()}
 
     oversized_projects = libraries_ch
+      .filter{it.technology.startsWith("10X")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
       .map{[
         it.project_id, // pull out project id for grouping
         it
