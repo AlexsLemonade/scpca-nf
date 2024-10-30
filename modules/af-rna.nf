@@ -108,8 +108,10 @@ process fry_quant_rna {
 
 
 workflow map_quant_rna {
-  take: rna_channel
-  // a channel with a map of metadata for each rna library to process
+
+  take:
+    rna_channel // a channel with a map of metadata for each rna library to process
+    cell_barcodes // map of cell barcode files for each technology
   main:
     // add rad publish directory, rad directory, and barcode file to meta
     rna_channel = rna_channel
@@ -117,7 +119,7 @@ workflow map_quant_rna {
         def meta = it.clone();
         meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}";
         meta.rad_dir = "${meta.rad_publish_dir}/${meta.run_id}-rna";
-        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
+        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
        // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
