@@ -10,6 +10,8 @@ workflow genetic_demux_vireo {
   take:
     multiplex_run_ch
     unfiltered_runs_ch
+    cell_barcodes // map of cell barcode files for each technology
+    bulk_techs // list of bulk technologies
   main:
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
@@ -17,7 +19,7 @@ workflow genetic_demux_vireo {
         def meta = it.clone();
         meta.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
         meta.vireo_dir = "${meta.vireo_publish_dir}/${meta.library_id}-vireo";
-        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
+        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
        // split based in whether repeat_genetic_demux is true and a previous dir exists
@@ -48,7 +50,7 @@ workflow genetic_demux_vireo {
 
     // make a channel of the bulk samples we need to process
     bulk_ch = unfiltered_runs_ch
-      .filter{it.technology in params.bulk_techs}
+      .filter{it.technology in bulk_techs}
       .filter{it.sample_id in bulk_samples.getVal()}
 
     // map bulk samples
@@ -58,7 +60,7 @@ workflow genetic_demux_vireo {
     pileup_multibulk(multiplex_ch.make_demux, star_bulk.out)
 
     // map multiplexed single cell samples
-    starsolo_map(multiplex_ch.make_demux)
+    starsolo_map(multiplex_ch.make_demux, cell_barcodes)
 
     // call cell snps and genotype cells
     cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)

@@ -57,6 +57,7 @@ process starsolo {
 workflow starsolo_map {
   take:
     singlecell_ch
+    cell_barcodes
 
   main:
     sc_reads_ch = singlecell_ch
@@ -64,7 +65,7 @@ workflow starsolo_map {
         meta,
         file("${meta.files_directory}/*_R1_*.fastq.gz"),
         file("${meta.files_directory}/*_R2_*.fastq.gz"),
-        file("${params.barcode_dir}/${params.cell_barcodes[meta.technology]}"),
+        file("${params.barcode_dir}/${cell_barcodes[meta.technology]}"),
         file(meta.star_index, type: 'dir')
       )}
     starsolo(sc_reads_ch)
