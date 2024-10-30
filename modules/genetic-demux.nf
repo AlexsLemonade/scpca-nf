@@ -60,7 +60,7 @@ workflow genetic_demux_vireo {
     pileup_multibulk(multiplex_ch.make_demux, star_bulk.out)
 
     // map multiplexed single cell samples
-    starsolo_map(multiplex_ch.make_demux)
+    starsolo_map(multiplex_ch.make_demux, cell_barcodes)
 
     // call cell snps and genotype cells
     cellsnp_vireo(starsolo_map.out.bam,  starsolo_map.out.quant, pileup_multibulk.out)
