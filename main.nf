@@ -31,10 +31,10 @@ celltype_report_template_file = "celltypes_supplemental_report.rmd"
 report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
 
 // include processes from modules
-include { map_quant_rna } from './modules/af-rna.nf' addParams(cell_barcodes: cell_barcodes)
-include { map_quant_feature } from './modules/af-features.nf' addParams(cell_barcodes: cell_barcodes)
+include { map_quant_rna } from './modules/af-rna.nf'
+include { map_quant_feature } from './modules/af-features.nf'
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
-include { genetic_demux_vireo } from './modules/genetic-demux.nf' addParams(cell_barcodes: cell_barcodes, bulk_techs: bulk_techs)
+include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
@@ -202,7 +202,7 @@ workflow {
   bulk_quant_rna(runs_ch.bulk)
 
   // **** Process RNA-seq data ****
-  map_quant_rna(runs_ch.rna)
+  map_quant_rna(runs_ch.rna, cell_barcodes)
 
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
@@ -222,7 +222,7 @@ workflow {
     }
 
   // **** Process feature data ****
-  map_quant_feature(runs_ch.feature)
+  map_quant_feature(runs_ch.feature, cell_barcodes)
 
   // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
@@ -266,7 +266,7 @@ workflow {
   // **** Perform Genetic Demultiplexing ****
   genetic_multiplex_run_ch = runs_ch.rna
     .filter{it.library_id in genetic_multiplex_libs.getVal()}
-  genetic_demux_vireo(genetic_multiplex_run_ch, unfiltered_runs_ch)
+  genetic_demux_vireo(genetic_multiplex_run_ch, unfiltered_runs_ch, cell_barcodes, bulk_techs)
 
 
   // join demux result with SCE output (fail if there are any missing or extra libraries)
