@@ -32,7 +32,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.5.0
+    rev: v0.6.9
     hooks:
       # Run the linter.
       - id: ruff
@@ -40,14 +40,14 @@ repos:
       - id: ruff-format
   - repo: https://github.com/lorenzwalthert/precommit
     # R styling and linting
-    rev: v0.4.2
+    rev: v0.4.3.9001
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
       # - id: lintr #skip R linting for now...
       - id: parsable-R
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=200"]

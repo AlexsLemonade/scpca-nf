@@ -138,8 +138,9 @@ process fry_quant_feature {
 
 
 workflow map_quant_feature {
-  take: feature_channel
-  // a channel with a groovy map of metadata for each feature barcode library to process
+  take:
+    feature_channel // a channel with a groovy map of metadata for each feature barcode library to process
+    cell_barcodes // map of cell barcode files for each technology
   main:
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
@@ -156,7 +157,7 @@ workflow map_quant_feature {
         def meta = it.clone();
         meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}";
         meta.feature_rad_dir = "${meta.feature_rad_publish_dir}/${meta.run_id}-features";
-        meta.barcode_file = "${params.barcode_dir}/${params.cell_barcodes[meta.technology]}";
+        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}";
         meta // return modified meta object
       }
       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
