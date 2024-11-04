@@ -61,7 +61,7 @@ workflow sce_to_anndata {
         // number of cells are stored in each metadata.json file
         .filter{
           def cells = Utils.getMetaVal(file(it[3]), "${it[2]}_cells");
-          cells == '' || cells > 1  // if no cell count, keep file for testing, otherwise require at least 2 cells
+          cells == '' || cells > 2  // if no cell count, keep file for testing, otherwise require at least 3 cells
         }
         // remove metadata.json file from tuple
         .map{it.dropRight(1)}
