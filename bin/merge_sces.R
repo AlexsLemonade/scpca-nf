@@ -132,6 +132,18 @@ read_trim_sce <- function(sce_file) {
 # get list of sces
 sce_list <- purrr::map(input_sce_files, read_trim_sce)
 
+# filter out libraries with fewer than 3 cells (causes errors with PCA)
+n_cells <- sce_list |> purrr::map_int(ncol)
+included_libs <- names(sce_list)[which(n_cells >= 3)]
+if (length(included_libs) < length(sce_list)) {
+  message(
+    "The following libraries have fewer than 3 cells and will be excluded from the merged object: ",
+    paste(setdiff(names(sce_list), included_libs), collapse = ", ")
+  )
+}
+sce_list <- sce_list[included_libs]
+
+
 # Add cell type annotation columns where needed  -------------------------------
 
 # check for present cell type annotations
