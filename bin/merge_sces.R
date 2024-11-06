@@ -135,10 +135,11 @@ sce_list <- purrr::map(input_sce_files, read_trim_sce)
 # filter out libraries with fewer than 3 cells (causes errors with PCA)
 n_cells <- sce_list |> purrr::map_int(ncol)
 included_libs <- names(sce_list)[which(n_cells >= 3)]
-if (length(included_libs) < length(sce_list)) {
+lib_diff <- setdiff(names(sce_list), included_libs)
+if (length(lib_diff) > 0) {
   message(
     "The following libraries have fewer than 3 cells and will be excluded from the merged object: ",
-    paste(setdiff(names(sce_list), included_libs), collapse = ", ")
+    paste(lib_diff, collapse = ", ")
   )
 }
 sce_list <- sce_list[included_libs]
