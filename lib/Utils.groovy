@@ -43,6 +43,10 @@ class Utils {
    * @return A value from the metadata
    */
   static def getMetaVal(file, key) {
+    if (!file.exists()) {
+      return(null)
+    }
+
     def obj = new JsonSlurper().parse(file)
     def value = obj[key]
 
