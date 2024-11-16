@@ -216,11 +216,6 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 params.run_metafile = '<path to run metadata file>'
 params.sample_metafile = '<path to sample metadata file>'
 params.outdir = '<path to output>'
-params.max_cpus = 24
-params.max_memory = 96.GB
-```
-
-The `max_cpus` and `max_memory` parameters should reflect the maximum number of CPUs and memory available for a single process in your environment.
 
 This file is then used with the `-config` (or `-c`) argument at the command line:
 
