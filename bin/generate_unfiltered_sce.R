@@ -198,7 +198,7 @@ sample_type <- sample_metadata_df |>
   dplyr::mutate(
     sample_type = dplyr::case_when(
       # account for sample being both cell line and PDX
-      is_xenograft & is_cell_line ~ c("cell line", "patient-derived xenograft"),
+      is_xenograft & is_cell_line ~ "cell line, patient-derived xenograft",
       is_xenograft ~ "patient-derived xenograft",
       is_cell_line ~ "cell line",
       # if neither column was provided, note that
@@ -207,8 +207,9 @@ sample_type <- sample_metadata_df |>
     )
   ) |>
   dplyr::select(sample_id, sample_type) |>
-  # convert into named vector
-  tibble::deframe()
+  # convert into named list
+  tibble::deframe() |>
+  strsplit(sample_type, split = ", ")
 
 # unname if length is 1, and add to sce metadata
 if (length(sample_type) == 1) {
