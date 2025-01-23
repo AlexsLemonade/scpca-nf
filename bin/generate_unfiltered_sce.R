@@ -209,7 +209,7 @@ sample_type <- sample_metadata_df |>
   dplyr::select(sample_id, sample_type) |>
   # convert into named list
   tibble::deframe() |>
-  strsplit(sample_type, split = ", ")
+  strsplit(split = ", ")
 
 # unname if length is 1, and add to sce metadata
 if (length(sample_type) == 1) {
