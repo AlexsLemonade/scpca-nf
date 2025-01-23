@@ -197,6 +197,8 @@ sample_type <- sample_metadata_df |>
   dplyr::filter(sample_id %in% sample_ids) |>
   dplyr::mutate(
     sample_type = dplyr::case_when(
+      # account for sample being both cell line and PDX
+      is_xenograft & is_cell_line ~ c("cell line", "patient-derived xenograft"),
       is_xenograft ~ "patient-derived xenograft",
       is_cell_line ~ "cell line",
       # if neither column was provided, note that
