@@ -213,7 +213,8 @@ sample_type <- sample_metadata_df |>
 
 # unname if length is 1, and add to sce metadata
 if (length(sample_type) == 1) {
-  sample_type <- unname(sample_type)
+  sample_type <- unlist(sample_type) |>
+    unname()
 }
 metadata(unfiltered_sce)$sample_type <- sample_type
 
