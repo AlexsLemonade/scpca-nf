@@ -80,7 +80,7 @@ print_sample_metadata <- function(meta_list) {
       "Age" = url_list$age,
       "Sex" = url_list$sex,
       "Organism" = url_list$organism,
-      "Sample type" = meta_list$sample_type
+      "Sample type" = paste0(meta_list$sample_type, collapse = ", ")
     ) |>
       t() |>
       # account for html links
