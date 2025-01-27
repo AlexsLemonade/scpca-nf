@@ -1,10 +1,10 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/scpca-nf/master/nextflow_schema.json",
   "title": "scpca-nf pipeline parameters",
   "description": "A nextflow workflow for processing single-cell RNA-seq data as part of the ScPCA project.",
   "type": "object",
-  "definitions": {
+  "$defs": {
     "input_output_options": {
       "title": "Input/output options",
       "type": "object",
@@ -122,6 +122,15 @@
           "default": "All",
           "description": "Which runs to merge when using the merge.nf workflow.",
           "hidden": true
+        },
+        "reuse_merge": {
+          "type": "boolean",
+          "description": "If merge results already exist, recreating them can be skipped if desired"
+        },
+        "max_merge_libraries": {
+          "type": "integer",
+          "default": 100,
+          "description": "The maximum number of libraries to merge into a single object"
         }
       }
     },
@@ -282,27 +291,27 @@
       "properties": {
         "SCPCATOOLS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.1"
         },
         "SCPCATOOLS_SLIM_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.1"
         },
         "SCPCATOOLS_ANNDATA_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.1"
         },
         "SCPCATOOLS_REPORTS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.1"
         },
         "SCPCATOOLS_SEURAT_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.1"
         },
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.1"
         },
         "ALEVINFRY_CONTAINER": {
           "type": "string",
@@ -351,22 +360,22 @@
   },
   "allOf": [
     {
-      "$ref": "#/definitions/input_output_options"
+      "$ref": "#/$defs/input_output_options"
     },
     {
-      "$ref": "#/definitions/resource_maximums"
+      "$ref": "#/$defs/resource_maximums"
     },
     {
-      "$ref": "#/definitions/processing_options"
+      "$ref": "#/$defs/processing_options"
     },
     {
-      "$ref": "#/definitions/reference_files"
+      "$ref": "#/$defs/reference_files"
     },
     {
-      "$ref": "#/definitions/algorithm_parameters"
+      "$ref": "#/$defs/algorithm_parameters"
     },
     {
-      "$ref": "#/definitions/containers"
+      "$ref": "#/$defs/containers"
     }
   ]
 }
