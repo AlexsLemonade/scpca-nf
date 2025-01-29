@@ -57,10 +57,10 @@ txi_salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
 txi_salmon$counts |>
   as.data.frame() |>
   tibble::rownames_to_column("gene_id") |>
-  readr::write_tsv(file = opt$count_file)
+  readr::write_tsv(file = opt$counts_file)
 
 # write TPM matrix to text file
 txi_salmon$abundance |>
   as.data.frame() |>
   tibble::rownames_to_column("gene_id") |>
-  readr::write_tsv(file = opt$output_file)
+  readr::write_tsv(file = opt$tpm_file)
