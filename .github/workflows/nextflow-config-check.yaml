@@ -8,10 +8,10 @@ on:
 jobs:
   nf-config-check:
     runs-on: ubuntu-22.04
-    container: nfcore/tools:2.13.1
+    container: nfcore/tools:3.2.0
     steps:
       - uses: actions/checkout@v4
       - name: Check nextflow params
         run: nextflow config
       - name: Check nextflow_schema file
-        run: nf-core schema lint nextflow_schema.json
+        run: nf-core pipelines schema lint
