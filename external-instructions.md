@@ -469,18 +469,22 @@ See below for the expected structure of the `results` folder:
 
 ```
 results
-└── sample_id
-    ├── library_id_unfiltered.rds
-    ├── library_id_filtered.rds
-    ├── library_id_processed.rds
-    ├── library_id_unfiltered_rna.h5ad
-    ├── library_id_filtered_rna.h5ad
-    ├── library_id_processed_rna.h5ad
-    ├── library_id_metadata.json
-    └── library_id_qc.html
+└── {project_id}
+    └── {sample_id}
+        ├── {library_id}_unfiltered.rds
+        ├── {library_id}_filtered.rds
+        ├── {library_id}_processed.rds
+        ├── {library_id}_unfiltered_rna.h5ad
+        ├── {library_id}_filtered_rna.h5ad
+        ├── {library_id}_processed_rna.h5ad
+        ├── {library_id}_metadata.json
+        └── {library_id}_qc.html
 ```
 
-If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
+If bulk libraries were processed, the following three files will also be present in the `project_id` directory:
+- `{project_id}_bulk_metadata.tsv`: a summary table of metadata across all project bulk libraries
+- `{project_id}_bulk_quant.tsv`: a matrix of gene expression count values for all bulk libraries
+- `{project_id}_bulk_tpm.tsv`: a matrix of gene expression TPM values for all bulk libraries
 
 If you performed cell type annotation, an additional QC report specific to cell typing results called `library_id_celltype-report.html` will also be present in the `results` directory.
 
