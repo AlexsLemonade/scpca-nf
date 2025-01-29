@@ -2,7 +2,7 @@
 
 # This script grabs the quant.sf output files from Salmon for all samples within a project
 # The files are then imported use tximport to generate a gene x count matrix
-# Output includes a counts matrix as a tab separated tsv file and a .Rds object containing the tximport object
+# Outputs a counts matrix and TPM matrix as separate TSV files.
 
 
 # load needed packages
@@ -23,9 +23,14 @@ option_list <- list(
     help = "Path to text file containing salmon output directories, one per line."
   ),
   make_option(
-    opt_str = c("-o", "--output_file"),
+    opt_str = c("-c", "--counts_file"),
     type = "character",
-    help = "Path to output RDS file, must end in .rds"
+    help = "Path to output counts matrix file."
+  ),
+  make_option(
+    opt_str = c("-m", "--tpm_file"),
+    type = "character",
+    help = "Path to output TPM matrix file."
   ),
   make_option(
     opt_str = c("-t", "--tx2gene"),
@@ -48,8 +53,14 @@ names(salmon_files) <- library_ids
 # import using tximport
 txi_salmon <- tximport(salmon_files, type = "salmon", tx2gene = tx2gene)
 
-# write counts matrix to txt file
+# write counts matrix to text file
 txi_salmon$counts |>
+  as.data.frame() |>
+  tibble::rownames_to_column("gene_id") |>
+  readr::write_tsv(file = opt$count_file)
+
+# write TPM matrix to text file
+txi_salmon$abundance |>
   as.data.frame() |>
   tibble::rownames_to_column("gene_id") |>
   readr::write_tsv(file = opt$output_file)
