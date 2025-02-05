@@ -31,6 +31,9 @@ process spaceranger {
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
+    # remove Space Ranger intermediates directory
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
+
     # remove bam and bai files
     rm ${out_id}/outs/*.bam*
     """
