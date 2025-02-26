@@ -4,7 +4,7 @@
 
 - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
   - [Additional flags and parameters](#additional-flags-and-parameters)
-  - [Testing the workflow](#testing-the-workflow)
+  - [Testing the workflow with stub processes](#testing-the-workflow-with-stub-processes)
   - [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release)
   - [Processing example data](#processing-example-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
@@ -27,11 +27,11 @@ The instructions below assume that you are a member of the Data Lab with access 
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure.
 To process samples that are not part of the ScPCA project, please see the [instructions on using `scpca-nf` with external data](external-data-instructions.md).
 
-To process single-cell and single-nuclei samples using `scpca-nf` you will need access to 24 GB of RAM and 12 CPUs, so we recommend using AWS batch.
+To process single-cell and single-nuclei samples using `scpca-nf` you will need access to at least 24 GB of RAM and 12 CPUs, so we recommend using AWS batch.
 The first step in running the workflow is ensuring that your AWS credentials are configured.
 
 You can then run the workflow with the `batch` profile, which has been named in the `nextflow.config` file with full settings set up in the `profile_awsbatch.config` file.
-Note that you will also need to use the `ccdl` profile to set file paths, and you can specify both profiles by separating them with a comma.
+Note that you will also need to use the `ccdl` profile to set input and output paths, and you can specify both profiles by separating them with a comma.
 
 You can then run the workflow use the following command:
 
@@ -39,12 +39,16 @@ You can then run the workflow use the following command:
 nextflow run AlexsLemonade/scpca-nf -profile ccdl,batch
 ```
 
+Note that not all projects and samples are available at the paths specified in the `ccdl` profile.
+This profile is primarily intended for development and testing purposes.
+See the [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release) section for details on full runs.
+
 ### Additional flags and parameters
 
 There are several flags and/or parameters which you may additionally wish to specify, as follows.
 
 - Nextflow flags:
-  - `-resume`: Resume workflow from most recent checkpoint
+  - `-resume`: Resume workflow from most recent cached results
   - `-with-tower`: Use `Nextflow Tower` to monitor workflow (requires separate [Nextflow Tower registration](https://tower.nf/))
 - Workflow parameters:
   - `--run_ids list,of,ids`: A custom comma-separated list of ids (run, library, or sample) for this run.
@@ -68,8 +72,10 @@ There are several flags and/or parameters which you may additionally wish to spe
 
 Please refer to [`nextflow.config`](nextflow.config) and [other configuration files](config/) for other parameters which can be modified.
 
-### Testing the workflow
+### Testing the workflow with stub processes
 
+Stub testing is useful for initial tests to be sure that the general workflow logic is correct.
+However, it does not test the actual processing of data, so will miss errors in command execution or data processing.
 To test the workflow with the `stub`, use the following command:
 
 ```
@@ -84,11 +90,25 @@ Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more
 
 ### Running `scpca-nf` for ScPCA Portal release
 
-When running the workflow for a project or group of samples that is ready to be released on ScPCA portal, please use the tag for the latest release:
+When preparing for a new portal release, the workflow should first be run using the `ccdl_staging` profile.
+Be sure to use the `-r` flag to specify the latest release tag for the workflow, and use the `--project` flag to specify the project id(s) to process.
+
+For example:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.8.6 -profile ccdl,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.8.6 -profile ccdl_staging,batch --project SCPCP000000
 ```
+
+When that run has completed successfully, check that the outputs are as expected.
+You can then run the workflow using the `ccdl_prod` profile:
+
+```
+nextflow run AlexsLemonade/scpca-nf -r v0.8.6 -profile ccdl_prod,batch --project SCPCP000000
+```
+
+Both of these profiles have `-with-tower` set by default, and will use the [ScPCA workspace](https://cloud.seqera.io/orgs/CCDL/workspaces/ScPCA/watch) for monitoring (allowing all team members to see progress).
+*Be sure to have set the `TOWER_ACCESS_TOKEN` environment variable to your Seqera platform token when triggering a run, or these runs will fail.*
+The best way to do this is to store the token in 1Password, set the `TOWER_ACCESS_TOKEN` environment variable to the appropriate [secret reference](https://developer.1password.com/docs/cli/secret-references/), and then run the Nextflow command as above but prefixed with `op run -- `.
 
 ### Processing example data
 
