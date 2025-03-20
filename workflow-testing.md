@@ -42,3 +42,9 @@ These metrics should be calculated, if required, and compiled at the end of the 
 | `filtered_altexp_total`      | total number of reads from altExp (ADT or cellhash)               | `{library_id}_filtered.rds`                                   |
 | `processed_altexp_total`     | total number of reads from altExp (ADT or cellhash)               | `{library_id}_processed.rds`                                  |
 | `adt_scpca_filter_count`     | count of cells that pass ADT filtering (labeled as `Keep`)        | `{library_id}_filtered.rds`                                   |
+
+### Metric comparisons
+
+After a workflow run is complete, we can use the `_metrics.json` files to compare the metrics from the current run to the metrics from a previous run.
+We will write a script to perform these comparisons and generate a report that highlights any significant changes in the metrics.
+This will allow us to identify any changes in the output metrics that may indicate unexpected effects of changes to the pipeline.
