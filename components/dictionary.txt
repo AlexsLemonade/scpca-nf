@@ -32,6 +32,7 @@ HTOs
 intronic
 Jaccard
 JSON
+logcounts
 Lun
 miQC
 Nextflow
