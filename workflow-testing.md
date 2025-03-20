@@ -36,7 +36,7 @@ These metrics should be calculated, if required, and compiled at the end of the 
 | `cluster_sizes`              | an array with the number of cells in each cluster                 | `{library_id}_processed.rds`                                  |
 | `singler_reference`          | The reference used for SingleR                                    | `{library_id}_processed.rds`                                  |
 | `singler_celltypes`          | a dictionary with cell counts for each SingleR-based cell type    | `{library_id}_processed.rds`                                  |
-| `cellasssing_reference`      | the reference used for CellAssign                                 | `{library_id}_processed.rds`                                  |
+| `cellasssign_reference`      | the reference used for CellAssign                                 | `{library_id}_processed.rds`                                  |
 | `cellassign_celltypes`       | a dictionary with cell counts for each CellAssign-based cell type | `{library_id}_processed.rds`                                  |
 | `unfiltered_altexp_total`    | total number of reads from altExp (ADT or cellhash)               | `{library_id}_unfiltered.rds`                                 |
 | `filtered_altexp_total`      | total number of reads from altExp (ADT or cellhash)               | `{library_id}_filtered.rds`                                   |
