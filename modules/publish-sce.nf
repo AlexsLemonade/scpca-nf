@@ -77,6 +77,7 @@ process qc_publish_sce {
     processed_out = "${meta.library_id}_processed.rds"
     qc_report = "${meta.library_id}_qc.html"
     metadata_json = "${meta.library_id}_metadata.json"
+    metrics_json = "${meta.library_id}_metrics.json"
 
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
     celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
