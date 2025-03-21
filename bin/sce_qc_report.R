@@ -25,28 +25,39 @@ option_list <- list(
   ),
   make_option(
     opt_str = c("-u", "--unfiltered_sce"),
+    default = "",
     type = "character",
     help = "path to rds file with unfiltered sce object"
   ),
   make_option(
     opt_str = c("-f", "--filtered_sce"),
+    default = "",
     type = "character",
     help = "path to rds file with filtered sce object"
   ),
   make_option(
     opt_str = c("-p", "--processed_sce"),
+    default = "",
     type = "character",
     help = "path to rds file with processed sce object"
   ),
   make_option(
     opt_str = c("-l", "--library_id"),
+    default = "",
     type = "character",
     help = "library identifier for report and metadata file"
   ),
   make_option(
     opt_str = c("-s", "--sample_id"),
+    default = "",
     type = "character",
     help = "sample identifier(s) for metadata file. For a multiplexed library, a comma or semicolon separated list"
+  ),
+  make_option(
+    opt_str = c("--project_id"),
+    default = "",
+    type = "character",
+    help = "project identifier for metadata file"
   ),
   make_option(
     opt_str = c("-q", "--qc_report_file"),
@@ -111,18 +122,11 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
-if (is.null(opt$library_id)) {
-  stop("A `library_id` is required.")
-}
-
-# check that template file, if given, exists
-if (!is.null(opt$report_template) && !file.exists(opt$report_template)) {
-  stop("Specified `report_template` could not be found.")
-}
-
-if (is.null(opt$unfiltered_sce) || !file.exists(opt$unfiltered_sce)) {
-  stop("Unfiltered .rds file missing or `unfiltered_sce` not specified.")
-}
+stopifnot(
+  "A `library_id` is required." = opt$library_id != "",
+  "Specified `report_template` could not be found." = file.exists(opt$report_template),
+  "Unfiltered .rds file missing or `unfiltered_sce` not specified." = file.exists(opt$unfiltered_sce),
+)
 
 if (opt$workflow_url == "null") {
   opt$workflow_url <- NA
@@ -163,16 +167,12 @@ sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 multiplexed <- length(sample_ids) > 1
 
 # sanity check ids
-if (!is.null(sce_meta$sample_id)) {
-  if (!all.equal(sample_ids, sce_meta$sample_id)) {
-    stop("--sample_id  does not match SCE metadata")
-  }
-}
-if (!is.null(sce_meta$library_id)) {
-  if (opt$library_id != sce_meta$library_id) {
-    stop("--library_id  does not match SCE metadata")
-  }
-}
+stopifnot(
+  "--sample_id does not match SCE metadata" = all.equal(sample_ids, sce_meta$sample_id),
+  "--library_id does not match SCE metadata" = opt$library_id == sce_meta$library_id,
+  "--project_id does not match SCE metadata" = opt$project_id == sce_meta$project_id
+)
+
 
 # check for alt experiments (CITE-seq, etc)
 alt_expts <- altExpNames(unfiltered_sce)
@@ -183,6 +183,7 @@ has_cellhash <- "cellhash" %in% alt_expts
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
+  project_id = opt$project_id,
   technology = opt$technology,
   seq_unit = opt$seq_unit,
   is_multiplexed = multiplexed,
