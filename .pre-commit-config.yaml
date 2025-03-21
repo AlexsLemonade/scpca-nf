@@ -32,7 +32,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.9.7
+    rev: v0.11.1
     hooks:
       # Run the linter.
       - id: ruff
@@ -40,7 +40,7 @@ repos:
       - id: ruff-format
   - repo: https://github.com/lorenzwalthert/precommit
     # R styling and linting
-    rev: v0.4.3.9003
+    rev: v0.4.3.9007
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
