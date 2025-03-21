@@ -13,6 +13,7 @@ process qc_publish_sce {
     tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
     path qc_report, emit: report
     path celltype_report, emit: celltype_report, optional: true
+    path metrics_json, emit: metrics
   script:
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     workflow_version = workflow.revision ?: workflow.manifest.version
@@ -22,6 +23,7 @@ process qc_publish_sce {
     filtered_out = "${meta.library_id}_filtered.rds"
     processed_out = "${meta.library_id}_processed.rds"
     metadata_json = "${meta.library_id}_metadata.json"
+    metrics_json = "${meta.library_id}_metrics.json"
     qc_report = "${meta.library_id}_qc.html"
 
     // check for cell types
@@ -61,6 +63,13 @@ process qc_publish_sce {
       --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}" \
       --seed "${params.seed}"
+
+    sce_metrics.R \
+      --metadata_json "${metadata_json}" \
+      --unfiltered_sce "${unfiltered_out}" \
+      --filtered_sce "${filtered_out}" \
+      --processed_sce "${processed_out}" \
+      --metrics_json "${metrics_json}"
     """
   stub:
     unfiltered_out = "${meta.library_id}_unfiltered.rds"
@@ -77,6 +86,7 @@ process qc_publish_sce {
     touch ${filtered_out}
     touch ${processed_out}
     touch ${qc_report}
+    touch ${metrics_json}
     ${has_celltypes ? "touch ${celltype_report}" : ""}
 
     echo '{"unfiltered_cells": 10, "filtered_cells": 10, "processed_cells": 10}' > ${metadata_json}
