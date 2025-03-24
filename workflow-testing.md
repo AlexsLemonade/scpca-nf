@@ -25,8 +25,11 @@ These metrics should be calculated, if required, and compiled at the end of the 
 | `cell_filtering_method`      | method used to filter cells                                       | `{library_id}_metadata.json` or `{library_id}_processed.rds`  |
 | `miqc_pass_count`            | count of cells that pass miQC filtering                           | `{library_id}_filtered.rds`                                   |
 | `unfiltered_total_counts`    | sum of counts matrix in unfiltered SCE object                     | `{library_id}_unfiltered.rds`                                 |
+| `unfiltered_total_spliced`   | sum of spliced counts matrix in unfiltered SCE object             | `{library_id}_unfiltered.rds`                                 |
 | `filtered_total_counts`      | sum of counts matrix in filtered SCE object                       | `{library_id}_filtered.rds`                                   |
+| `filtered_total_spliced`     | sum of spliced counts matrix in filtered SCE object               | `{library_id}_filtered.rds`                                   |
 | `processed_total_counts`     | sum of counts matrix in processed SCE object                      | `{library_id}_processed.rds`                                  |
+| `processed_total_spliced`    | sum of spliced counts matrix in processed SCE object              | `{library_id}_processed.rds`                                  |
 | `processed_total_logcounts`  | sum of logcounts matrix in processed SCE object                   | `{library_id}_processed.rds`                                  |
 | `unfiltered_expressed_genes` | count of genes with total count > 0 in unfiltered SCE object      | `{library_id}_unfiltered.rds`                                 |
 | `filtered_expressed_genes`   | count of genes with total count > 0 in filtered SCE object        | `{library_id}_filtered.rds`                                   |
@@ -38,9 +41,9 @@ These metrics should be calculated, if required, and compiled at the end of the 
 | `singler_celltypes`          | a dictionary with cell counts for each SingleR-based cell type    | `{library_id}_processed.rds`                                  |
 | `cellasssign_reference`      | the reference used for CellAssign                                 | `{library_id}_processed.rds`                                  |
 | `cellassign_celltypes`       | a dictionary with cell counts for each CellAssign-based cell type | `{library_id}_processed.rds`                                  |
-| `unfiltered_altexp_total`    | total number of reads from altExp (ADT or cellhash)               | `{library_id}_unfiltered.rds`                                 |
+| `unfiltered_altexp_total`    | total number of reads from altExps (dictionary of values)         | `{library_id}_unfiltered.rds`                                 |
 | `filtered_altexp_total`      | total number of reads from altExp (ADT or cellhash)               | `{library_id}_filtered.rds`                                   |
-| `processed_altexp_total`     | total number of reads from altExp (ADT or cellhash)               | `{library_id}_processed.rds`                                  |
+| `processed_altexp_total`     | total number of reads from altExp (dictionary of values)          | `{library_id}_processed.rds`                                  |
 | `adt_scpca_filter_count`     | count of cells that pass ADT filtering (labeled as `Keep`)        | `{library_id}_filtered.rds`                                   |
 
 ### Metric comparisons
