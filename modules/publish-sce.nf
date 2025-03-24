@@ -22,9 +22,9 @@ process qc_publish_sce {
     unfiltered_out = "${meta.library_id}_unfiltered.rds"
     filtered_out = "${meta.library_id}_filtered.rds"
     processed_out = "${meta.library_id}_processed.rds"
+    qc_report = "${meta.library_id}_qc.html"
     metadata_json = "${meta.library_id}_metadata.json"
     metrics_json = "${meta.library_id}_metrics.json"
-    qc_report = "${meta.library_id}_qc.html"
 
     // check for cell types
     // only provide report template if cell typing was performed and either singler or cellassign was used
