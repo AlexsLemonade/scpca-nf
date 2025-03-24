@@ -8,7 +8,7 @@ process qc_publish_sce {
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
-    tuple path(qc_template_file), path(celltype_template_file)
+    tuple path(template_dir), val(qc_template_file), val(celltype_template_file)
   output:
     tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
     path qc_report, emit: report
@@ -45,7 +45,7 @@ process qc_publish_sce {
 
     # generate report and supplemental cell type report, if applicable
     sce_qc_report.R \
-      --report_template "${qc_template_file}" \
+      --report_template "${template_dir / qc_template_file}" \
       --library_id "${meta.library_id}" \
       --sample_id "${meta.sample_id}" \
       --project_id "${meta.project_id}" \
@@ -53,7 +53,7 @@ process qc_publish_sce {
       --filtered_sce ${filtered_out} \
       --processed_sce ${processed_out} \
       --qc_report_file ${qc_report} \
-      --celltype_report_template "${celltype_template_file}" \
+      --celltype_report_template "${template_dir / celltype_template_file}" \
       ${has_celltypes ? "--celltype_report_file ${celltype_report}" : ""} \
       --metadata_json ${metadata_json} \
       --technology "${meta.technology}" \

@@ -25,9 +25,10 @@ citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 // report template paths
-qc_report_template_file = file("${projectDir}/templates/qc_report/main_qc_report.rmd")
-celltype_report_template_file = file("${projectDir}/templates/qc_report/celltypes_supplemental_report.rmd")
-report_template_tuple = tuple(qc_report_template_file, celltype_report_template_file)
+report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
+report_template_file = "main_qc_report.rmd"
+celltype_report_template_file = "celltypes_supplemental_report.rmd"
+report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
@@ -35,7 +36,7 @@ include { map_quant_feature } from './modules/af-features.nf'
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { generate_sce; generate_sce_with_feature; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
@@ -72,12 +73,12 @@ if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
   param_error = true
 }
 
-// report files check
-if (!qc_report_template_file.exists()) {
-  log.error("The 'report_template_file' file '${qc_report_template_file}' can not be found.")
+// QC report files check
+if (!(report_template_dir / report_template_file).exists()) {
+  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
   param_error = true
 }
-if (!celltype_report_template_file.exists()) {
+if (!(report_template_dir / celltype_report_template_file).exists()) {
   log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
   param_error = true
 }
@@ -230,8 +231,8 @@ workflow {
           by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
 
-  // make rds for merged RNA and feature quants
-  all_feature_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
+  // make rds for RNA with feature quants
+  all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, sample_metafile)
     .branch{
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
       skip_processing: true
@@ -252,10 +253,10 @@ workflow {
 
   // apply cellhash demultiplexing
   cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
-  merged_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
+  combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
-  sce_ch = rna_sce_ch.continue_processing.mix(merged_sce_ch)
+  sce_ch = rna_sce_ch.continue_processing.mix(combined_feature_sce_ch)
     .branch{
       genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
       no_genetic: true
