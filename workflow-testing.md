@@ -41,9 +41,9 @@ These metrics should be calculated, if required, and compiled at the end of the 
 | `singler_celltypes`          | a dictionary with cell counts for each SingleR-based cell type    | `{library_id}_processed.rds`                                  |
 | `cellasssign_reference`      | the reference used for CellAssign                                 | `{library_id}_processed.rds`                                  |
 | `cellassign_celltypes`       | a dictionary with cell counts for each CellAssign-based cell type | `{library_id}_processed.rds`                                  |
-| `unfiltered_altexp_total`    | total number of reads from altExps (dictionary of values)         | `{library_id}_unfiltered.rds`                                 |
-| `filtered_altexp_total`      | total number of reads from altExp (ADT or cellhash)               | `{library_id}_filtered.rds`                                   |
-| `processed_altexp_total`     | total number of reads from altExp (dictionary of values)          | `{library_id}_processed.rds`                                  |
+| `unfiltered_altexp_total`    | total number of reads from unfiltered altExps (dict of values)    | `{library_id}_unfiltered.rds`                                 |
+| `filtered_altexp_total`      | total number of reads from filtered altExps (dict of values)      | `{library_id}_filtered.rds`                                   |
+| `processed_altexp_total`     | total number of reads from processed altExps (dict of values)     | `{library_id}_processed.rds`                                  |
 | `adt_scpca_filter_count`     | count of cells that pass ADT filtering (labeled as `Keep`)        | `{library_id}_filtered.rds`                                   |
 
 ### Metric comparisons
