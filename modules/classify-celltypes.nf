@@ -110,6 +110,8 @@ process add_celltypes_to_sce {
   input:
     tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir)
     path(celltype_ref_metadata) // TSV file of references metadata needed for CellAssign only
+    path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
+    path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
   output:
     tuple val(meta), path(annotated_rds)
   script:
@@ -126,7 +128,11 @@ process add_celltypes_to_sce {
       ${singler_present ? "--singler_model_file ${meta.singler_model_file}" : ''} \
       ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
       ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
-      ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''}
+      ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''} \
+      ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
+      --consensus_celltype_ref ${consensus_ref_file}
+
+
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
@@ -272,7 +278,9 @@ workflow annotate_celltypes {
     // incorporate annotations into SCE object
     add_celltypes_to_sce(
       assignment_input_ch.add_celltypes,
-      file(params.celltype_ref_metadata) // file with CellAssign reference organs
+      file(params.celltype_ref_metadata), // file with CellAssign reference organs
+      file(params.panglao_ref_file), // used for assigning ontology IDs for CellAssign results
+      file(params.consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
     )
 
     // mix in libraries without new celltypes
