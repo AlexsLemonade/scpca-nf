@@ -14,7 +14,8 @@ option_list <- list(
   make_option(
     opt_str = c("-i", "--input_sce_file"),
     type = "character",
-    help = "path to rds file with input sce object"
+    help = "path to rds file with input sce object",
+    default = ""
   ),
   make_option(
     opt_str = c("-o", "--output_sce_file"),
@@ -24,30 +25,48 @@ option_list <- list(
   make_option(
     opt_str = c("--singler_results"),
     type = "character",
-    help = "path to rds file containing SingleR results object"
+    help = "path to rds file containing SingleR results object",
+    default = ""
   ),
   make_option(
     opt_str = c("--singler_model_file"),
     type = "character",
     help = "Name of file containing a single model generated for SingleR annotation.
-            File name is expected to be in form: `<ref_name>_<source>_<version>_model.rds`."
+            File name is expected to be in form: `<ref_name>_<source>_<version>_model.rds`.",
+    default = ""
   ),
   make_option(
     opt_str = c("--cellassign_predictions"),
     type = "character",
-    help = "path to tsv file containing the prediction matrix returned by running CellAssign"
+    help = "path to tsv file containing the prediction matrix returned by running CellAssign",
+    default = ""
   ),
   make_option(
     opt_str = c("--cellassign_ref_file"),
     type = "character",
     help = "Name of marker by cell type reference file used with CellAssign.
-            File name is expected to be in form: `<ref_name>_<source>_<version>.tsv`"
+            File name is expected to be in form: `<ref_name>_<source>_<version>.tsv`",
+    default = ""
   ),
   make_option(
     opt_str = c("--celltype_ref_metafile"),
     type = "character",
     help = "Metadata TSV file containing cell type reference metadata.
-            This file is used to obtain a list of organs used for CellAssign annotation and is only required if CellAssign results provided as input."
+            This file is used to obtain a list of organs used for CellAssign annotation and is only required if CellAssign results provided as input.",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--panglao_ontology_ref"),
+    type = "character",
+    help = "Path to TSV file with panglao assignments and associated cell ontology ids.
+            This file is used to assign Cell Ontology identifier to the CellAssign annotations",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--consensus_celltype_ref"),
+    type = "character",
+    help = "Path to file containing the reference for assigning consensus cell type labels",
+    default = ""
   )
 )
 
@@ -74,30 +93,22 @@ get_ref_info <- function(ref_filename, extension) {
   return(ref_info)
 }
 
-# check that input file exists
-if (!file.exists(opt$input_sce_file)) {
-  stop("Missing input SCE file")
-}
-
-# check that output file ends in rds
-if (!(stringr::str_ends(opt$output_sce_file, ".rds"))) {
-  stop("output sce file name must end in .rds")
-}
+# check that input file exists and output file ends in rds
+stopifnot(
+  "Missing input SCE file" = file.exists(opt$input_sce_file),
+  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds")
+)
 
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
 
 # SingleR results --------------------------------------------------------------
 
-if (!is.null(opt$singler_results)) {
-  if (!file.exists(opt$singler_results)) {
-    stop("Missing SingleR results file")
-  }
+if (file.exists(opt$singler_results)) {
+  # check singler model has been provided
+  stopifnot("Singler model file does not exist" = file.exists(opt$singler_model_file))
 
-  if (is.null(opt$singler_model_file)) {
-    stop("SingleR model filename must be provided")
-  }
-
+  has_singler <- TRUE # use to decide if we should assign consensus labels
   singler_results <- readr::read_rds(opt$singler_results)
 
   # get label type from metadata of singler object
@@ -169,29 +180,30 @@ if (!is.null(opt$singler_results)) {
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
+} else {
+  has_singler <- FALSE # use to decide if we should assign consensus labels
 }
 
 # CellAssign results -----------------------------------------------------------
 
-if (!is.null(opt$cellassign_predictions)) {
-  # check that cellassign predictions file was provided
-  if (!file.exists(opt$cellassign_predictions)) {
-    stop("Missing CellAssign predictions file")
-  }
+if (file.exists(opt$cellassign_predictions)) {
+  # check that cellassign predictions file exists
+  stopifnot(
+    "CellAssign reference file does not exist" = file.exists(opt$cellassign_ref_file),
+    "Cell type reference metadata file does not exist" = file.exists(opt$celltype_ref_metafile),
+    "Panglo ontology reference file does not exist" = !is.null(opt$panglao_ontology_ref)
+  )
 
-  if (is.null(opt$cellassign_ref_file)) {
-    stop("CellAssign reference filename must be provided")
-  }
-
-  if (is.null(opt$celltype_ref_metafile)) {
-    stop("Cell type reference metadata filename must be provided")
-  }
+  # read in panglao ontology reference
+  panglao_ref_df <- readr::read_tsv(opt$panglao_ontology_ref)
 
   # if the predictions file isn't emtpy read it in
   if (file.size(opt$cellassign_predictions) > 0) {
     predictions <- readr::read_tsv(opt$cellassign_predictions)
+    has_cellassign <- TRUE # use to decide if we should assign consensus labels
   } else {
     predictions <- NULL
+    has_cellassign <- FALSE # if cell assign wasn't run correctly, don't assign consensus
   }
 
   # if the only column is the barcode column or if the predictions file was empty
@@ -210,7 +222,9 @@ if (!is.null(opt$cellassign_predictions)) {
       ) |>
       dplyr::group_by(barcode) |>
       dplyr::slice_max(prediction, n = 1) |>
-      dplyr::ungroup()
+      dplyr::ungroup() |>
+      # add ontology ID column
+      dplyr::left_join(panglao_ref_df, by = c("celltype" = "panglao_cell_type"))
 
     # join by barcode to make sure assignments are in the right order
     celltype_assignments <- data.frame(barcode = sce$barcodes) |>
@@ -220,6 +234,7 @@ if (!is.null(opt$cellassign_predictions)) {
 
     # add cell type and prediction to colData
     sce$cellassign_celltype_annotation <- celltype_assignments$celltype
+    sce$cellassign_celltype_ontology <- celltype_assignments$ontology
     sce$cellassign_max_prediction <- celltype_assignments$prediction
 
     # get reference name, source and version
@@ -250,6 +265,44 @@ if (!is.null(opt$cellassign_predictions)) {
     }
     metadata(sce)$cellassign_reference_organs <- cellassign_organs
   }
+} else {
+  has_cellassign <- FALSE # use to decide if we should assign consensus labels
+}
+
+# assign consensus cell type labels
+if (has_singler & has_cellassign) {
+  # now make sure that reference file exists
+  stopifnot(
+    "Consensus cell type reference file does not exist" = file.exists(opt$consensus_celltype_ref)
+  )
+
+  # read in consensus table
+  consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref)
+
+  # create df with consensus assignments
+  celltype_df <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::select(
+      barcodes,
+      contains("celltype") # get both singler and cellassign with ontology
+    ) |>
+    # then add consensus labels
+    dplyr::left_join(
+      consensus_ref_df,
+      by = c(
+        "singler_celltype_ontology" = "blueprint_ontology",
+        "cellassign_celltype_ontology" = "panglao_ontology",
+        "panglao_ontology"
+      )
+    ) |>
+    # use unknown for NA annotation but keep ontology ID as NA
+    # if the sample type is cell line, keep as NA
+    dplyr::mutate(consensus_annotation = dplyr::if_else(is.na(consensus_annotation), "Unknown", consensus_annotation))
+
+
+  # add consensus cell type and ontology to sce
+  sce$consensus_celltype_annotation <- celltype_df$consensus_annotation
+  sce$consensus_celltype_ontology <- celltype_df$consensus_ontology
 }
 
 # export annotated object with cellassign assignments
