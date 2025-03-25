@@ -36,7 +36,7 @@ option_list <- list(
   make_option(
     opt_str = "--metadata_json",
     type = "character",
-    help = "path to metadata json  file",
+    help = "path to metadata json file",
     default = ""
   ),
   make_option(
