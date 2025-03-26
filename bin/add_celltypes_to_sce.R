@@ -215,6 +215,8 @@ if (file.exists(opt$cellassign_predictions)) {
   } else {
     # get cell type with maximum prediction value for each cell
     celltype_assignments <- predictions |>
+      # account for the fact that we could have lost some cells we had previously when re-processing through filtering steps
+      dplyr::filter(barcode %in% colnames(sce)) |>
       tidyr::pivot_longer(
         !barcode,
         names_to = "celltype",
@@ -277,7 +279,10 @@ if (has_singler & has_cellassign) {
   )
 
   # read in consensus table
-  consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref)
+  consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref) |>
+    # select unique combinations of consensus refs based on ontology columns
+    dplyr::select(blueprint_ontology, panglao_ontology, consensus_ontology, consensus_annotation) |>
+    unique()
 
   # create df with consensus assignments
   celltype_df <- colData(sce) |>
@@ -292,7 +297,8 @@ if (has_singler & has_cellassign) {
       by = c(
         "singler_celltype_ontology" = "blueprint_ontology",
         "cellassign_celltype_ontology" = "panglao_ontology"
-      )
+      ),
+      relationship = "many-to-many"
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
     # if the sample type is cell line, keep as NA
