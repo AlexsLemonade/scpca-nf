@@ -36,10 +36,10 @@ include { map_quant_feature } from './modules/af-features.nf'
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_merged_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { generate_sce; generate_sce_with_feature; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
-include { sce_qc_report } from './modules/qc-report.nf'
+include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
 
 
@@ -73,9 +73,13 @@ if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
   param_error = true
 }
 
-// QC report check
-if (!file("${projectDir}/templates/qc_report/${report_template_file}").exists()) {
+// QC report files check
+if (!(report_template_dir / report_template_file).exists()) {
   log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
+  param_error = true
+}
+if (!(report_template_dir / celltype_report_template_file).exists()) {
+  log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
   param_error = true
 }
 
@@ -87,11 +91,6 @@ if (params.perform_celltyping) {
   }
   if (!file(params.celltype_ref_metadata).exists()) {
     log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
-    param_error = true
-  }
-
-  if (!file("${projectDir}/templates/qc_report/${celltype_report_template_file}").exists()) {
-    log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
     param_error = true
   }
 }
@@ -232,8 +231,8 @@ workflow {
           by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{it.drop(1)} // remove library_id index
 
-  // make rds for merged RNA and feature quants
-  all_feature_ch = generate_merged_sce(feature_rna_quant_ch, sample_metafile)
+  // make rds for RNA with feature quants
+  all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, sample_metafile)
     .branch{
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
       skip_processing: true
@@ -254,10 +253,10 @@ workflow {
 
   // apply cellhash demultiplexing
   cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
-  merged_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
+  combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
-  sce_ch = rna_sce_ch.continue_processing.mix(merged_sce_ch)
+  sce_ch = rna_sce_ch.continue_processing.mix(combined_feature_sce_ch)
     .branch{
       genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
       no_genetic: true
@@ -323,14 +322,14 @@ workflow {
   sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
     .mix(no_filtered_ch)
 
-  // generate QC reports
-  sce_qc_report(
+  // generate QC reports & metrics, then publish sce
+  qc_publish_sce(
     sce_output_ch,
     report_template_tuple
   )
 
   // convert SCE object to anndata
-  anndata_ch = sce_qc_report.out.data
+  anndata_ch = qc_publish_sce.out.data
     // skip multiplexed libraries
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)

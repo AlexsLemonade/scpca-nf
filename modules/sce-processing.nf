@@ -45,7 +45,7 @@ process make_unfiltered_sce {
 }
 
 // channels with RNA and feature data
-process make_merged_unfiltered_sce {
+process make_unfiltered_sce_with_feature {
     label 'mem_8'
     tag "${rna_meta.library_id}"
     container params.SCPCATOOLS_SLIM_CONTAINER
@@ -251,7 +251,7 @@ workflow generate_sce {
   // a tuple of meta and the filtered and unfiltered rds files
 }
 
-workflow generate_merged_sce {
+workflow generate_sce_with_feature {
   // generate rds files for feature + quant samples
   // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take:
@@ -267,13 +267,13 @@ workflow generate_merged_sce {
                           file(it[2].submitter_cell_types_file ?: empty_file, checkIfExists: true)
                          ]}
 
-    make_merged_unfiltered_sce(feature_sce_ch, sample_metafile)
+    make_unfiltered_sce_with_feature(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
-    unfiltered_merged_sce_ch = make_merged_unfiltered_sce.out
+    unfiltered_feature_sce_ch = make_unfiltered_sce_with_feature.out
       .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)]}
 
-    filter_sce(unfiltered_merged_sce_ch)
+    filter_sce(unfiltered_feature_sce_ch)
 
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
