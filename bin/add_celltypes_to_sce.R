@@ -106,7 +106,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 
 if (file.exists(opt$singler_results)) {
   # check singler model has been provided
-  stopifnot("Singler model file does not exist" = file.exists(opt$singler_model_file))
+  stopifnot("Singler model filename must be provided" = opt$singler_model_file != "")
 
   has_singler <- TRUE # use to decide if we should assign consensus labels
   singler_results <- readr::read_rds(opt$singler_results)
@@ -187,11 +187,11 @@ if (file.exists(opt$singler_results)) {
 # CellAssign results -----------------------------------------------------------
 
 if (file.exists(opt$cellassign_predictions)) {
-  # check that cellassign predictions file exists
+  # check that cellassign reference info is provided
   stopifnot(
-    "CellAssign reference file does not exist" = file.exists(opt$cellassign_ref_file),
+    "CellAssign reference filename must be provided" = opt$cellassign_ref_file != "",
     "Cell type reference metadata file does not exist" = file.exists(opt$celltype_ref_metafile),
-    "Panglo ontology reference file does not exist" = !is.null(opt$panglao_ontology_ref)
+    "Panglo ontology reference file does not exist" = file.exists(opt$panglao_ontology_ref)
   )
 
   # read in panglao ontology reference
@@ -291,8 +291,7 @@ if (has_singler & has_cellassign) {
       consensus_ref_df,
       by = c(
         "singler_celltype_ontology" = "blueprint_ontology",
-        "cellassign_celltype_ontology" = "panglao_ontology",
-        "panglao_ontology"
+        "cellassign_celltype_ontology" = "panglao_ontology"
       )
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
