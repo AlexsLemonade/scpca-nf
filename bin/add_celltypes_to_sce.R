@@ -298,7 +298,7 @@ if (has_singler & has_cellassign) {
         "singler_celltype_ontology" = "blueprint_ontology",
         "cellassign_celltype_ontology" = "panglao_ontology"
       ),
-      relationship = "many-to-many"
+      relationship = "many-to-many" # account for multiple of the same cell type
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
     # if the sample type is cell line, keep as NA
