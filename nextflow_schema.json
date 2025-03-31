@@ -216,7 +216,7 @@
         },
         "panglao_ref_file": {
           "type": "string",
-          "default": "https://raw.githubusercontent.com/AlexsLemonade/OpenScPCA-analysis/refs/tags/v0.2.2/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv",
+          "default": "${projectDir}/references/panglao-cell-type-ontologies.tsv",
           "pattern": "\\.tsv$",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
@@ -224,7 +224,7 @@
         },
         "consensus_ref_file": {
           "type": "string",
-          "default": "https://raw.githubusercontent.com/AlexsLemonade/OpenScPCA-analysis/refs/tags/v0.2.2/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv",
+          "default": "${projectDir}/references/consensus-cell-type-reference.tsv",
           "pattern": "\\.tsv$",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
