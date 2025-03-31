@@ -104,11 +104,11 @@ sce <- readr::read_rds(opt$input_sce_file)
 
 # SingleR results --------------------------------------------------------------
 
-if (file.exists(opt$singler_results)) {
+has_singler <- file.exists(opt$singler_results)
+if (has_singler) {
   # check singler model has been provided
   stopifnot("Singler model filename must be provided" = opt$singler_model_file != "")
 
-  has_singler <- TRUE # use to decide if we should assign consensus labels
   singler_results <- readr::read_rds(opt$singler_results)
 
   # get label type from metadata of singler object
@@ -186,7 +186,8 @@ if (file.exists(opt$singler_results)) {
 
 # CellAssign results -----------------------------------------------------------
 
-if (file.exists(opt$cellassign_predictions)) {
+has_cellassign <- file.exists(opt$cellassign_predictions) && (file.size(opt$cellassign_predictions) > 0)
+if (has_cellassign) {
   # check that cellassign reference info is provided
   stopifnot(
     "CellAssign reference filename must be provided" = opt$cellassign_ref_file != "",
@@ -197,14 +198,8 @@ if (file.exists(opt$cellassign_predictions)) {
   # read in panglao ontology reference
   panglao_ref_df <- readr::read_tsv(opt$panglao_ontology_ref)
 
-  # if the predictions file isn't emtpy read it in
-  if (file.size(opt$cellassign_predictions) > 0) {
-    predictions <- readr::read_tsv(opt$cellassign_predictions)
-    has_cellassign <- TRUE # use to decide if we should assign consensus labels
-  } else {
-    predictions <- NULL
-    has_cellassign <- FALSE # if cell assign wasn't run correctly, don't assign consensus
-  }
+  # read in predictions file
+  predictions <- readr::read_tsv(opt$cellassign_predictions)
 
   # if the only column is the barcode column or if the predictions file was empty
   # then CellAssign didn't complete successfully
@@ -272,7 +267,7 @@ if (file.exists(opt$cellassign_predictions)) {
 }
 
 # assign consensus cell type labels
-if (has_singler & has_cellassign) {
+if (has_singler && has_cellassign) {
   # now make sure that reference file exists
   stopifnot(
     "Consensus cell type reference file does not exist" = file.exists(opt$consensus_celltype_ref)
@@ -282,7 +277,7 @@ if (has_singler & has_cellassign) {
   consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref) |>
     # select unique combinations of consensus refs based on ontology columns
     dplyr::select(blueprint_ontology, panglao_ontology, consensus_ontology, consensus_annotation) |>
-    unique()
+    dplyr::distinct()
 
   # create df with consensus assignments
   celltype_df <- colData(sce) |>
