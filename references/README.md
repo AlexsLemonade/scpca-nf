@@ -21,7 +21,7 @@ These files are used by `build-celltype-ref.nf` to generate cell type annotation
 - `PanglaoDB_markers_<date>.tsv` is the full set of marker genes exported from [PanglaoDB](https://panglaodb.se), versioned at the given date.
 
 These files are copies of reference files that were created as part of `OpenScPCA`. 
-See the [`cell-type-consensus` module as part of the `OpenScPCA-analysis` repository](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/main/analyses/cell-type-consensus) to learn more about how these file were originally created. 
+See the [`cell-type-consensus` module as part of the `OpenScPCA-analysis` repository](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus) to learn more about how these file were originally created. 
 
 - `panglao-cell-type-ontologies.tsv` contains the [Cell Ontology identifier term](https://www.ebi.ac.uk/ols4/ontologies/cl) for all cell types available in the `PanglaoDB` reference used when running `CellAssign`. 
 The table includes the following columns:
