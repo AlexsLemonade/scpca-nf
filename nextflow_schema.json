@@ -213,6 +213,22 @@
           "mimetype": "text/tab-separated-values",
           "hidden": true,
           "description": "Panglao marker genes file, used in `build-celltype-ref.nf`."
+        },
+        "panglao_ref_file": {
+          "type": "string",
+          "default": "${projectDir}/references/panglao-cell-type-ontologies.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB cell types"
+        },
+        "consensus_ref_file": {
+          "type": "string",
+          "default": "${projectDir}/references/consensus-cell-type-reference.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Consensus cell types reference file"
         }
       }
     },

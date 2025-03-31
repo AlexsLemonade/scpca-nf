@@ -1,0 +1,179 @@
+ontology_id	human_readable_value	panglao_cell_type
+CL:0000236	B cell	B cells
+CL:0000084	T cell	T cells
+CL:0002038	T follicular helper cell	T follicular helper cells
+CL:0000622	acinar cell	Acinar cells
+CL:0000136	adipocyte	Adipocytes
+CL:0000109	adrenergic neuron	Adrenergic neurons
+CL:0000583	alveolar macrophage	Alveolar macrophages
+CL:0000127	astrocyte	Astrocytes
+CL:0000646	basal cell	Basal cells
+CL:0000767	basophil	Basophils
+CL:1000488	cholangiocyte	Cholangiocytes
+CL:0000108	cholinergic neuron	Cholinergic neurons
+CL:0000138	chondrocyte	Chondrocytes
+CL:0000166	chromaffin cell	Chromaffin cells
+CL:0000064	ciliated cell	Ciliated cells
+CL:2000002	decidual cell	Decidual cells
+CL:0000451	dendritic cell	Dendritic cells
+CL:0000700	dopaminergic neuron	Dopaminergic neurons
+CL:0002322	embryonic stem cell	Embryonic stem cells
+CL:0000115	endothelial cell	Endothelial cells
+CL:0007011	enteric neuron	Enteric neurons
+CL:0000584	enterocyte	Enterocytes
+CL:0000164	enteroendocrine cell	Enteroendocrine cells
+CL:0000771	eosinophil	Eosinophils
+CL:0000065	ependymal cell	Ependymal cells
+CL:0000352	epiblast cell	Epiblast cells
+CL:0000066	epithelial cell	Epithelial cells
+CL:0000765	erythroblast	Erythroblasts
+CL:0000057	fibroblast	Fibroblasts
+CL:0000586	germ cell	Germ cells
+CL:1001509	glycinergic neuron	Glycinergic neurons
+CL:0000160	goblet cell	Goblet cells
+CL:0000501	granulosa cell	Granulosa cells
+CL:0002418	hemangioblast	Hemangioblasts
+CL:0000037	hematopoietic stem cell	Hematopoietic stem cells
+CL:0000632	hepatic stellate cell	Hepatic stellate cells
+CL:0005026	hepatoblast	Hepatoblasts
+CL:0000182	hepatocyte	Hepatocytes
+CL:0000099	interneuron	Interneurons
+CL:0005006	ionocyte	Ionocytes
+CL:0000312	keratinocyte	Keratinocytes
+CL:0000175	luteal cell	Luteal cells
+CL:0000235	macrophage	Macrophages
+CL:0000097	mast cell	Mast cells
+CL:0000556	megakaryocyte	Megakaryocytes
+CL:0000148	melanocyte	Melanocytes
+CL:0000650	mesangial cell	Mesangial cells
+CL:0000077	mesothelial cell	Mesothelial cells
+CL:0000576	monocyte	Monocytes
+CL:0000100	motor neuron	Motor neurons
+CL:0000056	myoblast	Myoblasts
+CL:0000185	myoepithelial cell	Myoepithelial cells
+CL:0000165	neuroendocrine cell	Neuroendocrine cells
+CL:0000540	neuron	Neurons
+CL:0000775	neutrophil	Neutrophils
+CL:0008025	noradrenergic neuron	Noradrenergic neurons
+CL:0002167	olfactory epithelial cell	Olfactory epithelial cells
+CL:0000128	oligodendrocyte	Oligodendrocytes
+CL:0000062	osteoblast	Osteoblasts
+CL:0000092	osteoclast	Osteoclasts
+CL:0000137	osteocyte	Osteocytes
+CL:0002410	pancreatic stellate cell	Pancreatic stellate cells
+CL:0000510	paneth cell	Paneth cells
+CL:0000162	parietal cell	Parietal cells
+CL:0000669	pericyte	Pericytes
+CL:0002481	peritubular myoid cell	Peritubular myoid cells
+CL:0000210	photoreceptor cell	Photoreceptor cells
+CL:0000652	pinealocyte	Pinealocytes
+CL:0000786	plasma cell	Plasma cells
+CL:0000784	plasmacytoid dendritic cell	Plasmacytoid dendritic cells
+CL:0000233	platelet	Platelets
+CL:0002248	pluripotent stem cell	Pluripotent stem cells
+CL:0000653	podocyte	Podocytes
+CL:0000558	reticulocyte	Reticulocytes
+CL:0000740	retinal ganglion cell	Retinal ganglion cells
+CL:0002672	retinal progenitor cell	Retinal progenitor cells
+CL:0000850	serotonergic neuron	Serotonergic neurons
+CL:0000192	smooth muscle cell	Smooth muscle cells
+CL:0000017	spermatocyte	Spermatocytes
+CL:0000499	stromal cell	Stromal cells
+CL:0002085	tanycyte	Tanycytes
+CL:0000209	taste receptor cell	Taste receptor cells
+CL:0000893	thymocyte	Thymocytes
+CL:4023169	trigeminal neuron	Trigeminal neurons
+CL:0000351	trophoblast cell	Trophoblast cells
+CL:0000731	urothelial cell	Urothelial cells
+CL:0002334	preadipocyte	Adipocyte progenitor cells
+CL:0002368	respiratory epithelial cell	Airway epithelial cells
+CL:0002370	respiratory goblet cell	Airway goblet cells
+CL:0019019	tracheobronchial smooth muscle cell	Airway smooth muscle cells
+CL:0000171	pancreatic A cell	Alpha cells
+CL:2000004	pituitary gland cell	Anterior pituitary gland cells
+CL:0000787	memory B cell	B cells memory
+CL:0000788	naive B cell	B cells naive
+CL:0000644	Bergmann glial cell	Bergmann glia
+CL:0000169	type B pancreatic cell	Beta cells
+CL:0000695	Cajal-Retzius cell	Cajal-Retzius cells
+CL:0002664	cardioblast	Cardiac stem and precursor cells
+CL:0000746	cardiac muscle cell	Cardiomyocytes
+CL:0000706	choroid plexus epithelial cell	Choroid plexus cells
+CL:0000158	club cell	Clara cells
+CL:0002250	intestinal crypt stem cell	Crypt cells
+CL:0000173	pancreatic D cell	Delta cells
+CL:0002305	epithelial cell of distal tubule	Distal tubule cells
+CL:0002079	pancreatic ductal cell	Ductal cells
+CL:0002544	aortic endothelial cell	Endothelial cells (aorta)
+CL:2000044	brain microvascular endothelial cell	Endothelial cells (blood brain barrier)
+CL:4040002	enteroglial cell	Enteric glia cells
+CL:0000504	enterochromaffin-like cell	Enterochromaffin cells
+CL:0005019	pancreatic epsilon cell	Epsilon cells
+CL:0000038	erythroid progenitor cell	Erythroid-like and erythroid precursor cells
+CL:0002258	thyroid follicular cell	Follicular cells
+CL:0002179	foveolar cell of stomach	Foveolar cells
+CL:0000617	GABAergic neuron	GABAergic neurons
+CL:0000696	PP cell	Gamma (PP) cells
+CL:0000798	gamma-delta T cell	Gamma delta T cells
+CL:0000155	peptic cell	Gastric chief cells
+CL:0002292	type I cell of carotid body	Glomus cells
+CL:0000679	glutamatergic neuron	Glutaminergic neurons
+CL:0010007	His-Purkinje system cell	His bundle cells
+CL:4042021	neuronal-restricted precursor	Immature neurons
+CL:0005010	renal intercalated cell	Intercalated cells
+CL:1000618	juxtaglomerular complex cell	Juxtaglomerular cells
+CL:0000324	metanephric mesenchyme stem cell	Kidney progenitor cells
+CL:0000091	Kupffer cell	Kupffer cells
+CL:0000453	Langerhans cell	Langerhans cells
+CL:0000178	Leydig cell	Leydig cells
+CL:1000909	kidney loop of Henle epithelial cell	Loop of Henle cells
+CL:0002326	luminal epithelial cell of mammary gland	Luminal epithelial cells
+CL:0002327	mammary gland epithelial cell	Mammary epithelial cells
+CL:0000708	leptomeningeal cell	Meningeal cells
+CL:0000242	Merkel cell	Merkel cells
+CL:0000682	M cell of gut	Microfold cells
+CL:0000129	microglial cell	Microglia
+CL:0000636	Mueller cell	Müller cells
+CL:0000889	myeloid suppressor cell	Myeloid-derived suppressor cells
+CL:0000746	cardiac muscle cell	Myocytes
+CL:0000186	myofibroblast cell	Myofibroblasts
+CL:0000814	mature NK T cell	Natural killer T cells
+CL:0000047	neural stem cell	Neural stem/precursor cells
+CL:0000338	neuroblast (sensu Nematoda and Protostomia)	Neuroblasts
+CL:0000623	natural killer cell	NK cells
+CL:0001069	group 2 innate lymphoid cell	Nuocytes
+CL:0002453	oligodendrocyte precursor cell	Oligodendrocyte progenitor cells
+CL:0000576	monocyte	Osteoclast precursor cells
+CL:0002199	oxyphil cell of parathyroid gland	Oxyphil cells
+CL:0002351	progenitor cell of endocrine pancreas	Pancreatic progenitor cells
+CL:0000446	chief cell of parathyroid gland	Parathyroid chief cells
+CL:0002573	Schwann cell	Peri-islet Schwann cells
+CL:0005009	renal principal cell	Principal cells
+CL:0002306	epithelial cell of proximal tubule	Proximal tubule cells
+CL:0002062	pulmonary alveolar type 1 cell	Pulmonary alveolar type I cells
+CL:0002063	pulmonary alveolar type 2 cell	Pulmonary alveolar type II cells
+CL:0000359	vascular associated smooth muscle cell	Pulmonary vascular smooth muscle cells
+CL:0002068	Purkinje myocyte	Purkinje fiber cells
+CL:0000121	Purkinje cell	Purkinje neurons
+CL:0000598	pyramidal neuron	Pyramidal cells
+CL:0000681	radial glial cell	Radial glia cells
+CL:0000874	splenic red pulp macrophage	Red pulp macrophages
+CL:1001596	salivary gland glandular cell	Salivary mucous cells
+CL:0000594	skeletal muscle satellite cell	Satellite cells
+CL:0000516	perineural satellite cell	Satellite glial cells
+CL:0002573	Schwann cell	Schwann cells
+CL:0002140	acinar cell of sebaceous gland	Sebocytes
+CL:0000216	Sertoli cell	Sertoli cells
+CL:0000019	sperm	Spermatozoa
+CL:0000898	naive T cell	T cells naive
+CL:0000910	cytotoxic T cell	T cytotoxic cells
+CL:0000912	helper T cell	T helper cells
+CL:0000813	memory T cell	T memory cells
+CL:0000815	regulatory T cell	T regulatory cells
+NA	NA	Transient cells
+CL:0002562	hair germinal matrix cell	Trichocytes
+CL:0000351	trophoblast cell	Trophoblast progenitor cells
+CL:0000351	trophoblast cell	Trophoblast stem cells
+CL:0002204	brush cell	Tuft cells
+NA	NA	Undefined placental cells
+CL:0000359	vascular associated smooth muscle cell	Vascular smooth muscle cells
