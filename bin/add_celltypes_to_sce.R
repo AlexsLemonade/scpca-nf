@@ -180,13 +180,11 @@ if (has_singler) {
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
-} else {
-  has_singler <- FALSE # use to decide if we should assign consensus labels
 }
 
 # CellAssign results -----------------------------------------------------------
 
-has_cellassign <- file.exists(opt$cellassign_predictions) && (file.size(opt$cellassign_predictions) > 0)
+has_cellassign <- file.exists(opt$cellassign_predictions)
 if (has_cellassign) {
   # check that cellassign reference info is provided
   stopifnot(
@@ -198,8 +196,14 @@ if (has_cellassign) {
   # read in panglao ontology reference
   panglao_ref_df <- readr::read_tsv(opt$panglao_ontology_ref)
 
-  # read in predictions file
-  predictions <- readr::read_tsv(opt$cellassign_predictions)
+  # if cell assign predictions file exists but is empty then cell assign failed and we want to account for that with Not Run
+  if (file.size(opt$cellassign_predictions) > 0) {
+    # read in predictions file
+    predictions <- readr::read_tsv(opt$cellassign_predictions)
+  } else {
+    predictions <- NULL
+    has_cellassign <- FALSE # reset to false so that we don't add in consensus cell types
+  }
 
   # if the only column is the barcode column or if the predictions file was empty
   # then CellAssign didn't complete successfully
@@ -262,8 +266,6 @@ if (has_cellassign) {
     }
     metadata(sce)$cellassign_reference_organs <- cellassign_organs
   }
-} else {
-  has_cellassign <- FALSE # use to decide if we should assign consensus labels
 }
 
 # assign consensus cell type labels
@@ -296,9 +298,7 @@ if (has_singler && has_cellassign) {
       relationship = "many-to-many" # account for multiple of the same cell type
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
-    # if the sample type is cell line, keep as NA
-    dplyr::mutate(consensus_annotation = dplyr::if_else(is.na(consensus_annotation), "Unknown", consensus_annotation))
-
+    tidyr::replace_na(list(consensus_annotation = "Unknown"))
 
   # add consensus cell type and ontology to sce
   sce$consensus_celltype_annotation <- celltype_df$consensus_annotation
