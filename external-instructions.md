@@ -342,6 +342,8 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 ## Cell type annotation
 
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
+Additionally, annotations from `SingleR` and `CellAssign` are used to assign a consensus cell type annotation. 
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus). 
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
