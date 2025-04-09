@@ -147,15 +147,12 @@ sce_list <- sce_list[included_libs]
 
 # Add cell type annotation columns where needed  -------------------------------
 
-# check for present cell type annotations
-all_celltypes <- sce_list |>
-  purrr::map(\(sce) {
-    metadata(sce)$celltype_methods
-  }) |>
+# list of all existing columns
+present_columns <- sce_list |>
+  purrr::map(\(sce) names(colData(sce))) |>
   purrr::reduce(union)
 
-
-if ("submitter" %in% all_celltypes) {
+if ("submitter_celltype_annotation" %in% present_columns) {
   # Add `"Submitter-excluded"` value to any libraries without submitter
   sce_list <- sce_list |>
     purrr::map(\(sce) {
@@ -165,7 +162,7 @@ if ("submitter" %in% all_celltypes) {
       return(sce)
     })
 }
-if ("singler" %in% all_celltypes) {
+if ("singler_celltype_annotation" %in% present_columns) {
   # Check if the label used for annotation was ontology in at least 1 SCE
   use_ontology <- sce_list |>
     purrr::map_lgl(\(sce) {
@@ -185,18 +182,31 @@ if ("singler" %in% all_celltypes) {
       return(sce)
     })
 }
-if ("cellassign" %in% all_celltypes) {
+if ("cellassign_celltype_annotation" %in% present_columns) {
   # Add `"Cell type annotation not performed"` string to libraries without CellAssign,
   #  and make the max prediction `NA_real_` for extra safety
   sce_list <- sce_list |>
     purrr::map(\(sce){
       if (!"cellassign" %in% metadata(sce)$celltype_methods) {
         colData(sce)$cellassign_celltype_annotation <- "Cell type annotation not performed"
+        colData(sce)$cellassign_celltype_ontology <- "Cell type annotation not performed"
         colData(sce)$cellassign_max_prediction <- NA_real_
       }
       return(sce)
     })
 }
+# check for consensus cell types in all objects
+if ("consensus_celltype_annotation" %in% present_columns) {
+  sce_list <- sce_list |>
+    purrr::map(\(sce){
+      if (!"consensus_celltype_annotation" %in% names(colData(sce))) {
+        colData(sce)$consensus_celltype_annotation <- "No consensus cell type assigned"
+        colData(sce)$consensus_celltype_ontology <- "No consensus cell type assigned"
+      }
+      return(sce)
+    })
+}
+
 
 
 # Determine SCE columns to retain  ---------------------------------------------
@@ -220,7 +230,10 @@ possible_columns <- c(
   "singler_celltype_annotation",
   "singler_celltype_ontology",
   "cellassign_celltype_annotation",
+  "cellassign_celltype_ontology",
   "cellassign_max_prediction",
+  "consensus_celltype_annotation",
+  "consensus_celltype_ontology",
   # ADT statistics
   "adt_scpca_filter",
   "altexps_adt_sum",
@@ -236,9 +249,6 @@ possible_columns <- c(
 )
 
 # Define colData columns to retain based on intersection with present columns
-present_columns <- sce_list |>
-  purrr::map(\(sce) names(colData(sce))) |>
-  purrr::reduce(union)
 retain_coldata_columns <- intersect(possible_columns, present_columns)
 
 # Define altExp columns to retain/preserve, currently only for "adt"
