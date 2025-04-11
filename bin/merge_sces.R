@@ -147,57 +147,54 @@ sce_list <- sce_list[included_libs]
 
 # Add cell type annotation columns where needed  -------------------------------
 
-# check for present cell type annotations
-all_celltypes <- sce_list |>
-  purrr::map(\(sce) {
-    metadata(sce)$celltype_methods
-  }) |>
+# list of all existing columns
+present_columns <- sce_list |>
+  purrr::map(\(sce) names(colData(sce))) |>
   purrr::reduce(union)
 
 
-if ("submitter" %in% all_celltypes) {
-  # Add `"Submitter-excluded"` value to any libraries without submitter
-  sce_list <- sce_list |>
-    purrr::map(\(sce) {
-      if (!"submitter" %in% metadata(sce)$celltype_methods) {
-        colData(sce)$submitter_celltype_annotation <- "Submitter-excluded"
-      }
-      return(sce)
-    })
-}
-if ("singler" %in% all_celltypes) {
-  # Check if the label used for annotation was ontology in at least 1 SCE
-  use_ontology <- sce_list |>
-    purrr::map_lgl(\(sce) {
-      any(metadata(sce)$singler_reference_label == "label.ont")
-    }) |>
-    any()
+# we need to account for any libraries that are missing cell type columns
+# if cell types are missing, populate the columns with these messages
+annotation_list <- c(
+  "submitter" = "Submitter-excluded",
+  "singler" = "Cell type annotation not performed",
+  "cellassign" = "Cell type annotation not performed",
+  "consensus" = "No consensus cell type assigned"
+)
 
-  # Add `"Cell type annotation not performed"` string to libraries without SingleR
-  sce_list <- sce_list |>
-    purrr::map(\(sce) {
-      if (!"singler" %in% metadata(sce)$celltype_methods) {
-        colData(sce)$singler_celltype_annotation <- "Cell type annotation not performed"
-        if (use_ontology) {
-          colData(sce)$singler_celltype_ontology <- "Cell type annotation not performed"
+# go through each annotation and check that the columns for annotation and/or ontology are present
+# if they aren't present in each library, add them
+for (annotation in names(annotation_list)) {
+  contents <- annotation_list[[annotation]]
+  annotation_col <- glue::glue("{annotation}_celltype_annotation")
+  ontology_col <- glue::glue("{annotation}_celltype_ontology")
+
+  # first check for annotation column
+  if (annotation_col %in% present_columns) {
+    sce_list <- sce_list |>
+      purrr::map(\(sce) {
+        if (!annotation_col %in% names(colData(sce))) {
+          sce[[annotation_col]] <- contents
         }
-      }
-      return(sce)
-    })
-}
-if ("cellassign" %in% all_celltypes) {
-  # Add `"Cell type annotation not performed"` string to libraries without CellAssign,
-  #  and make the max prediction `NA_real_` for extra safety
-  sce_list <- sce_list |>
-    purrr::map(\(sce){
-      if (!"cellassign" %in% metadata(sce)$celltype_methods) {
-        colData(sce)$cellassign_celltype_annotation <- "Cell type annotation not performed"
-        colData(sce)$cellassign_max_prediction <- NA_real_
-      }
-      return(sce)
-    })
-}
+        # if cellassign, make sure the max prediction column exists
+        if (annotation == "cellassign" & !("cellassign_max_prediction" %in% names(colData(sce)))) {
+          sce$cellassign_max_prediction <- NA_real_
+        }
+        return(sce)
+      })
+  }
 
+  # now for ontology column
+  if (ontology_col %in% present_columns) {
+    sce_list <- sce_list |>
+      purrr::map(\(sce) {
+        if (!ontology_col %in% names(colData(sce))) {
+          sce[[ontology_col]] <- contents
+        }
+        return(sce)
+      })
+  }
+}
 
 # Determine SCE columns to retain  ---------------------------------------------
 
@@ -220,7 +217,10 @@ possible_columns <- c(
   "singler_celltype_annotation",
   "singler_celltype_ontology",
   "cellassign_celltype_annotation",
+  "cellassign_celltype_ontology",
   "cellassign_max_prediction",
+  "consensus_celltype_annotation",
+  "consensus_celltype_ontology",
   # ADT statistics
   "adt_scpca_filter",
   "altexps_adt_sum",
@@ -236,9 +236,6 @@ possible_columns <- c(
 )
 
 # Define colData columns to retain based on intersection with present columns
-present_columns <- sce_list |>
-  purrr::map(\(sce) names(colData(sce))) |>
-  purrr::reduce(union)
 retain_coldata_columns <- intersect(possible_columns, present_columns)
 
 # Define altExp columns to retain/preserve, currently only for "adt"

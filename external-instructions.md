@@ -86,12 +86,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.8.6` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.8.7` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.8.6 \
+  -r v0.8.7 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -216,11 +216,6 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 params.run_metafile = '<path to run metadata file>'
 params.sample_metafile = '<path to sample metadata file>'
 params.outdir = '<path to output>'
-params.max_cpus = 24
-params.max_memory = 96.GB
-```
-
-The `max_cpus` and `max_memory` parameters should reflect the maximum number of CPUs and memory available for a single process in your environment.
 
 This file is then used with the `-config` (or `-c`) argument at the command line:
 
@@ -325,7 +320,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.8.6`, then you will want to set `-r v0.8.6` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.8.7`, then you will want to set `-r v0.8.7` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -347,6 +342,8 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 ## Cell type annotation
 
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
+Additionally, annotations from `SingleR` and `CellAssign` are used to assign a consensus cell type annotation. 
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus). 
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
@@ -474,18 +471,22 @@ See below for the expected structure of the `results` folder:
 
 ```
 results
-└── sample_id
-    ├── library_id_unfiltered.rds
-    ├── library_id_filtered.rds
-    ├── library_id_processed.rds
-    ├── library_id_unfiltered_rna.h5ad
-    ├── library_id_filtered_rna.h5ad
-    ├── library_id_processed_rna.h5ad
-    ├── library_id_metadata.json
-    └── library_id_qc.html
+└── {project_id}
+    └── {sample_id}
+        ├── {library_id}_unfiltered.rds
+        ├── {library_id}_filtered.rds
+        ├── {library_id}_processed.rds
+        ├── {library_id}_unfiltered_rna.h5ad
+        ├── {library_id}_filtered_rna.h5ad
+        ├── {library_id}_processed_rna.h5ad
+        ├── {library_id}_metadata.json
+        └── {library_id}_qc.html
 ```
 
-If bulk libraries were processed, a `bulk_quant.tsv` and `bulk_metadata.tsv` summarizing the counts data and metadata across all libraries will also be present in the `results` directory.
+If bulk libraries were processed, the following three files will also be present in the `project_id` directory:
+- `{project_id}_bulk_metadata.tsv`: a summary table of metadata across all project bulk libraries
+- `{project_id}_bulk_quant.tsv`: a matrix of gene expression count values for all bulk libraries
+- `{project_id}_bulk_tpm.tsv`: a matrix of gene expression TPM values for all bulk libraries
 
 If you performed cell type annotation, an additional QC report specific to cell typing results called `library_id_celltype-report.html` will also be present in the `results` directory.
 

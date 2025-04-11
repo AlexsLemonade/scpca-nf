@@ -74,19 +74,22 @@ process merge_bulk_quants {
     tuple val(meta), path(salmon_directories), path(t2g_bulk)
     path(library_metadata)
   output:
-      path(tximport_file), emit: bulk_counts
+      path(counts_file), emit: bulk_counts
+      path(tpm_file), emit: bulk_tpm
       path(bulk_metadata_file), emit: bulk_metadata
   script:
-    tximport_file = "${meta.project_id}_bulk_quant.tsv"
+    counts_file = "${meta.project_id}_bulk_quant.tsv"
+    tpm_file = "${meta.project_id}_bulk_tpm.tsv"
     bulk_metadata_file = "${meta.project_id}_bulk_metadata.tsv"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     """
     ls -d ${salmon_directories} > salmon_directories.txt
 
-    merge_counts_tximport.R \
+    tximport_bulk.R \
       --project_id ${meta.project_id} \
       --salmon_dirs salmon_directories.txt \
-      --output_file ${tximport_file} \
+      --counts_file ${counts_file} \
+      --tpm_file ${tpm_file} \
       --tx2gene ${t2g_bulk}
 
     generate_bulk_metadata.R \
@@ -100,10 +103,12 @@ process merge_bulk_quants {
       --workflow_commit "${workflow.commitId}"
     """
   stub:
-    tximport_file = "${meta.project_id}_bulk_quant.tsv"
+    counts_file = "${meta.project_id}_bulk_quant.tsv"
+    tpm_file = "${meta.project_id}_bulk_tpm.tsv"
     bulk_metadata_file = "${meta.project_id}_bulk_metadata.tsv"
     """
-    touch ${tximport_file}
+    touch ${counts_file}
+    touch ${tpm_file}
     touch ${bulk_metadata_file}
     """
 
@@ -187,5 +192,6 @@ workflow bulk_quant_rna {
 
   emit:
     bulk_counts = merge_bulk_quants.out.bulk_counts
+    bulk_tpm = merge_bulk_quants.out.bulk_tpm
     bulk_metadata = merge_bulk_quants.out.bulk_metadata
 }

@@ -1,10 +1,10 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/scpca-nf/master/nextflow_schema.json",
   "title": "scpca-nf pipeline parameters",
   "description": "A nextflow workflow for processing single-cell RNA-seq data as part of the ScPCA project.",
   "type": "object",
-  "definitions": {
+  "$defs": {
     "input_output_options": {
       "title": "Input/output options",
       "type": "object",
@@ -68,20 +68,13 @@
       "description": "Set the top limit for requested resources for any single job.",
       "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
       "properties": {
-        "max_cpus": {
-          "type": "integer",
-          "description": "Maximum number of CPUs that can be requested for any single job.",
-          "default": 24,
-          "fa_icon": "fas fa-microchip",
-          "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
-        },
         "max_memory": {
           "type": "string",
-          "description": "Maximum amount of memory that can be requested for any single job.",
-          "default": "96 GB",
+          "description": "Maximum memory used for high memory jobs.",
+          "default": "512 GB",
           "fa_icon": "fas fa-memory",
           "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
+          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `--max_memory '512.GB'`"
         }
       }
     },
@@ -129,6 +122,15 @@
           "default": "All",
           "description": "Which runs to merge when using the merge.nf workflow.",
           "hidden": true
+        },
+        "reuse_merge": {
+          "type": "boolean",
+          "description": "If merge results already exist, recreating them can be skipped if desired"
+        },
+        "max_merge_libraries": {
+          "type": "integer",
+          "default": 100,
+          "description": "The maximum number of libraries to merge into a single object"
         }
       }
     },
@@ -211,6 +213,22 @@
           "mimetype": "text/tab-separated-values",
           "hidden": true,
           "description": "Panglao marker genes file, used in `build-celltype-ref.nf`."
+        },
+        "panglao_ref_file": {
+          "type": "string",
+          "default": "${projectDir}/references/panglao-cell-type-ontologies.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB cell types"
+        },
+        "consensus_ref_file": {
+          "type": "string",
+          "default": "${projectDir}/references/consensus-cell-type-reference.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Consensus cell types reference file"
         }
       }
     },
@@ -289,27 +307,27 @@
       "properties": {
         "SCPCATOOLS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.1"
         },
         "SCPCATOOLS_SLIM_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.1"
         },
         "SCPCATOOLS_ANNDATA_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.1"
         },
         "SCPCATOOLS_REPORTS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.1"
         },
         "SCPCATOOLS_SEURAT_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.1"
         },
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:edge"
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.1"
         },
         "ALEVINFRY_CONTAINER": {
           "type": "string",
@@ -322,10 +340,6 @@
         "CELLSNP_CONTAINER": {
           "type": "string",
           "default": "quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0"
-        },
-        "CONDA_CONTAINER": {
-          "type": "string",
-          "default": "continuumio/miniconda3:4.10.3p0"
         },
         "FASTP_CONTAINER": {
           "type": "string",
@@ -362,22 +376,22 @@
   },
   "allOf": [
     {
-      "$ref": "#/definitions/input_output_options"
+      "$ref": "#/$defs/input_output_options"
     },
     {
-      "$ref": "#/definitions/resource_maximums"
+      "$ref": "#/$defs/resource_maximums"
     },
     {
-      "$ref": "#/definitions/processing_options"
+      "$ref": "#/$defs/processing_options"
     },
     {
-      "$ref": "#/definitions/reference_files"
+      "$ref": "#/$defs/reference_files"
     },
     {
-      "$ref": "#/definitions/algorithm_parameters"
+      "$ref": "#/$defs/algorithm_parameters"
     },
     {
-      "$ref": "#/definitions/containers"
+      "$ref": "#/$defs/containers"
     }
   ]
 }

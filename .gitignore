@@ -3,10 +3,11 @@
 
 # ignore work directory
 work/
+# ignore default output directory
+scpca_out/
 
 # ignore scpca-references
 scpca-references/
-
 
 # ignore template htmls
 main_qc_report.html

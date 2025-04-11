@@ -3,9 +3,11 @@ ADTs
 al
 alevin
 ALSF
+altExp
 AMI
 barcode
 cDNA
+CellAssign
 cellhash
 config
 customizable
@@ -29,6 +31,8 @@ HTO
 HTOs
 intronic
 Jaccard
+JSON
+logcounts
 Lun
 miQC
 Nextflow
@@ -39,9 +43,13 @@ PanglaoDB
 parallelizing
 pre
 reproducibly
+SCE
 scpca
 ScPCA
+Seqera
+SingleR
 subdiagnosis
+TPM
 transcriptome
 transcriptomic
 TSV
