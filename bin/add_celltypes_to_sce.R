@@ -211,6 +211,7 @@ if (has_cellassign) {
   if (is.null(predictions) || all(colnames(predictions) == "barcode")) {
     # if failed then note that in the cell type column
     sce$cellassign_celltype_annotation <- "Not run"
+    has_cellassign <- FALSE # reset to false if cellassign didn't complete so we dont' add consensus
   } else {
     # get cell type with maximum prediction value for each cell
     celltype_assignments <- predictions |>
