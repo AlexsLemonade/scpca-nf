@@ -1,0 +1,89 @@
+---
+params:
+  reference_url: s3://nextflow-ccdl-results/scpca-prod
+  comparison_url: s3://nextflow-ccdl-results/scpca-staging
+title: "`scpca-nf` Metrics Comparison"
+author: "Childhood Cancer Data Lab"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Setup steps
+
+(Not to be included in the report text, but code needed)
+
+Scan through S3 buckets to read in all `_metrics.json` files.
+All should be read into a single data frame, as possible, with a column for `reference` and `comparison`.
+
+```r
+#| include: false
+
+ref_metrics_files <- s3fs::s3_dir_ls(
+  reference_url,
+  recurse = TRUE,
+  glob = "*_metrics.json"
+) |>
+  s3fs::s3_file_url() # get signed URLs for reading
+
+comp_metrics_paths <- s3fs::s3_dir_ls(
+  comparison_url,
+  recurse = TRUE,
+  glob = "*_metrics.json"
+) |>
+  s3fs::s3_file_url()
+
+ref_data <- purrr::map(ref_metrics_files, \(url){
+  jsonlite::read_json(url, simplifyVector = TRUE)
+})
+
+comp_data <- purrr::map(comp_metrics_paths, \(url){
+  jsonlite::read_json(url, simplifyVector = TRUE)
+})
+```
+
+
+## Project and sample changes
+
+Describe which projects and samples were added or removed, if any.
+This should list any changes in the libraries included as well.
+
+Output table:
+
+| Project | Sample | Library | Added/Removed |
+| ------- | ------ | ------- | ------------ |
+| `SCPCP999999` | `SCPCS999999` | `SCPCL999999` | Added |
+| `SCPCP999998` | `SCPCS999998` | `SCPCL999998` | Removed |
+
+
+## Processing changes
+
+Describe any changes to the software versions or parameters used to process the data.
+
+Fields to compare:
+
+- `droplet_filtering_method`
+- `normalization_method`
+- `cell_filtering_method`
+- `cluster_algorithm`
+- `singler_reference`
+- `cellassign_reference`
+
+Some fields are not present in the metrics files, but could be read from the `_metadata.json` files if we want to include those as well (and we probably do):
+
+- `workflow_version`
+- `date_processed`
+- `salmon_version`
+- `alevinfry_version`
+- `min_gene_cutoff`
+- `prob_compromised_cutoff`
+
+I think the way to handle these may be to create a table of changes, with the counts of the number of samples with each change.
+Something like the below:
+
+| Field | Reference Value | Comparison Value | Number of samples changed |
+| ----- | --------- | --------- | ---------------- :|
+| `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` | 10 |
+
+If desired, we could also include a hidden table with individual sample changes.
+
+## Changes in cell counts
