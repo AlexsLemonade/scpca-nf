@@ -5,7 +5,12 @@ params:
 title: "`scpca-nf` Metrics Comparison"
 author: "Childhood Cancer Data Lab"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    code_folding: hide
 ---
 
 ## Setup steps
@@ -55,7 +60,7 @@ Output table:
 | `SCPCP999998` | `SCPCS999998` | `SCPCL999998` | Removed |
 
 
-## Processing changes
+## Processing changes {.tabset}
 
 Describe any changes to the software versions or parameters used to process the data.
 
@@ -77,7 +82,7 @@ Some fields are not present in the metrics files, but could be read from the `_m
 - `min_gene_cutoff`
 - `prob_compromised_cutoff`
 
-
+### Summary
 For these metrics, we can create table of changes, with the counts of the number of samples with each change.
 Something like the below:
 
@@ -85,11 +90,12 @@ Something like the below:
 | ----- | --------- | --------- | ---------------- |
 | `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` | 10 |
 
+### Detail
 If desired, we could also include a hidden table with individual sample changes.
 
 ## Changes in cell and read counts
 
-### Cell count changes
+### Cell count changes {.tabset}
 
 For each sample, we will want to first compare:
 
@@ -105,11 +111,14 @@ What defines a large change?
 Perhaps start with a change > 0.5% of the total?
 Alternatively, if we see a large fraction of samples changing, we would want to note that.
 
-The main display item would be a summary table (perhaps displayed first):
+#### Summary
+The main display item would be a summary table, in the first tab:
 
 | Metric | Number of samples changed | % of samples changed | Mean % change |
 | ----- | --------- | --------- | ---------------- |
 | `scpca_filter_count` | 100 | 20 | -10 |
+
+#### Detail
 
 A detail table of changed samples/metrics might then look like the following:
 
@@ -118,7 +127,7 @@ A detail table of changed samples/metrics might then look like the following:
 | `SCPCS999999` | `unfiltered_cells` | 1000 | 1005 | 5 | 0.5 |
 
 
-### Read count changes
+### Read count changes {.tabset}
 
 If there are changes in the cell counts, we expect changes in the read counts as well.
 So we may only want to proceed with read count changes for samples where cell counts are unchanged.

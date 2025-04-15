@@ -51,6 +51,7 @@ ScPCA
 Seqera
 SingleR
 subdiagnosis
+tabset
 TPM
 transcriptome
 transcriptomic
