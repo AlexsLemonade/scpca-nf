@@ -77,13 +77,97 @@ Some fields are not present in the metrics files, but could be read from the `_m
 - `min_gene_cutoff`
 - `prob_compromised_cutoff`
 
-I think the way to handle these may be to create a table of changes, with the counts of the number of samples with each change.
+
+For these metrics, we can create table of changes, with the counts of the number of samples with each change.
 Something like the below:
 
-| Field | Reference Value | Comparison Value | Number of samples changed |
-| ----- | --------- | --------- | ---------------- :|
+| Processing field | Reference value | Comparison value | Number of samples changed |
+| ----- | --------- | --------- | ---------------- |
 | `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` | 10 |
 
 If desired, we could also include a hidden table with individual sample changes.
 
-## Changes in cell counts
+## Changes in cell and read counts
+
+### Cell count changes
+
+For each sample, we will want to first compare:
+
+- `unfiltered_cells`
+- `filtered_cells`
+- `processed_cells`
+- `miqc_pass_count`
+- `scpca_filter_count`
+- `adt_scpca_filter_count`
+
+If there are changes in any of those, we will report those, with prominent warnings for any large changes.
+What defines a large change?
+Perhaps start with a change > 0.5% of the total?
+Alternatively, if we see a large fraction of samples changing, we would want to note that.
+
+The main display item would be a summary table (perhaps displayed first):
+
+| Metric | Number of samples changed | % of samples changed | Mean % change |
+| ----- | --------- | --------- | ---------------- |
+| `scpca_filter_count` | 100 | 20 | -10 |
+
+A detail table of changed samples/metrics might then look like the following:
+
+| Sample | Metric | Reference Value | Comparison Value | Change | % change |
+| ------- | ---------------- | --------------- | ---------------- | ------ | -------- |
+| `SCPCS999999` | `unfiltered_cells` | 1000 | 1005 | 5 | 0.5 |
+
+
+### Read count changes
+
+If there are changes in the cell counts, we expect changes in the read counts as well.
+So we may only want to proceed with read count changes for samples where cell counts are unchanged.
+Here again, I think we should warn/highlight any changes > 0.5% of the total.
+
+- `unfiltered_total_counts`
+- `unfiltered_total_spliced`
+- `unfiltered_expressed_genes`
+- `filtered_total_counts`
+- `filtered_total_spliced`
+- `filtered_expressed_genes`
+- `processed_total_counts`
+- `processed_total_spliced`
+- `processed_total_logcounts`
+- `processed_expressed_genes`
+
+We will also include changes in altExps using the following fields:
+
+- `unfiltered_altexp_total`
+- `filtered_altexp_total`
+- `processed_altexp_total`
+
+These will require a bit of extra processing, in that we will probably want to extract the altExp names and add those to the field names.
+For example, we would want to use a field like `unfiltered_altexp_total_adt` in the comparison table.
+
+
+Again, we would report only changed metrics, starting with a summary table:
+
+| Metric | Number of samples changed | % of samples changed | Mean % change |
+| ----- | --------- | --------- | ---------------- |
+| `scpca_filter_count` | 100 | 20 | -10 |
+
+We could then list individual samples with changes, similar to the cell count table.
+
+## Analysis changes
+
+### Highly variable genes
+
+Here we will report changes in the sets of HVGs, both in the set of genes and the order.
+
+### Clustering
+
+Report changes in the number of clusters, as well as changes in the sizes of the assigned clusters.
+We will ignore changes in the ordering of clusters by sorting by cluster size before comparisons.
+As a summary statistic, we might use adjusted Rand index (ARI) or adjusted mutual information (AMI) to compare the two sets of clusters, reporting when we are well below 1.
+
+### Cell type assignments
+
+Report changes to the set of cell types assigned, and to the number of cells for each cell type.
+This will include SingleR, CellAssign and consensus cell types, if present.
+
+My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.

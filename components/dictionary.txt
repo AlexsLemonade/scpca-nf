@@ -5,6 +5,7 @@ alevin
 ALSF
 altExp
 AMI
+ARI
 barcode
 cDNA
 CellAssign
@@ -29,6 +30,7 @@ Hippen
 HPC
 HTO
 HTOs
+HVGs
 intronic
 Jaccard
 JSON
