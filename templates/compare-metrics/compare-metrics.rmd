@@ -101,7 +101,12 @@ Something like the below:
 
 ### Detail
 
-If desired, we could also include a hidden table with individual sample changes.
+This would be a detailed table of the samples with changes, similar to the one below:
+
+| Sample | Processing field | Reference value | Comparison value |
+| ------- | ---------------- | --------------- | ---------------- |
+| `SCPCS999999` | `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` |
+
 
 ## Changes in cell and read counts
 
@@ -127,6 +132,9 @@ The main display item would be a summary table, in the first tab:
 | Metric | Number of samples changed | % of samples changed | Mean % change |
 | ----- | --------- | --------- | ---------------- |
 | `scpca_filter_count` | 100 | 20 | -10 |
+
+We will also include a plot with a histogram of the % changes for each metric where at least one sample changed.
+
 
 #### Detail
 
