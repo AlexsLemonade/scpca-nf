@@ -2,7 +2,9 @@
 params:
   reference_url: s3://nextflow-ccdl-results/scpca-prod
   comparison_url: s3://nextflow-ccdl-results/scpca-staging
+  project_id: "all"
 title: "`scpca-nf` Metrics Comparison"
+subtitle: "Project: `r params$project_id`"
 author: "Childhood Cancer Data Lab"
 date: "`r Sys.Date()`"
 output:
@@ -23,17 +25,23 @@ All should be read into a single data frame, as possible, with a column for `ref
 ```r
 #| include: false
 
+metrics_regex = ifelse(
+  toLower(params$project_id) == "all",
+  "_metrics.json$",
+  paste0(params$project_id, ".+_metrics.json$")
+)
+
 ref_metrics_files <- s3fs::s3_dir_ls(
   reference_url,
   recurse = TRUE,
-  glob = "*_metrics.json"
+  regexp = metrics_regex
 ) |>
   s3fs::s3_file_url() # get signed URLs for reading
 
 comp_metrics_paths <- s3fs::s3_dir_ls(
   comparison_url,
   recurse = TRUE,
-  glob = "*_metrics.json"
+  regexp = metrics_regex
 ) |>
   s3fs::s3_file_url()
 
@@ -83,6 +91,7 @@ Some fields are not present in the metrics files, but could be read from the `_m
 - `prob_compromised_cutoff`
 
 ### Summary
+
 For these metrics, we can create table of changes, with the counts of the number of samples with each change.
 Something like the below:
 
@@ -91,6 +100,7 @@ Something like the below:
 | `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` | 10 |
 
 ### Detail
+
 If desired, we could also include a hidden table with individual sample changes.
 
 ## Changes in cell and read counts
