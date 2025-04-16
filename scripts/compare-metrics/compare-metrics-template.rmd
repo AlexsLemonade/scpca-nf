@@ -22,7 +22,14 @@ output:
 Scan through S3 buckets to read in all `_metrics.json` files.
 All should be read into a single data frame, as possible, with a column for `reference` and `comparison`.
 
-```r
+```{r setup}
+#| include: false
+
+library(ggplot2)
+set.seed(1234)
+```
+
+```{r}
 #| include: false
 
 if (toLower(params$project_id[1]) == "all") {
@@ -30,6 +37,7 @@ if (toLower(params$project_id[1]) == "all") {
 } else {
   metrics_regex <- paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
 }
+
 
 ref_metrics_files <- s3fs::s3_dir_ls(
   reference_url,
