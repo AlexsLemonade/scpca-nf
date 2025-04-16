@@ -25,11 +25,11 @@ All should be read into a single data frame, as possible, with a column for `ref
 ```r
 #| include: false
 
-metrics_regex = ifelse(
-  toLower(params$project_id) == "all",
-  "_metrics.json$",
-  paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
-)
+if (toLower(params$project_id[1]) == "all") {
+  metrics_regex <- "_metrics.json$"
+} else {
+  metrics_regex <- paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
+}
 
 ref_metrics_files <- s3fs::s3_dir_ls(
   reference_url,
