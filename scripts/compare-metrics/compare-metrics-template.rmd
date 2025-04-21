@@ -125,6 +125,7 @@ If there are changes in any of those, we will report those, with prominent warni
 What defines a large change?
 Perhaps start with a change > 0.5% of the total?
 Alternatively, if we see a large fraction of samples changing, we would want to note that.
+If there are any changes to the number of unfiltered cells, that should be highlighted, as we do not expect this to change between runs.
 
 #### Summary
 The main display item would be a summary table, in the first tab:
@@ -150,6 +151,7 @@ A detail table of changed samples/metrics might then look like the following:
 If there are changes in the cell counts, we expect changes in the read counts as well.
 So we may only want to proceed with read count changes for samples where cell counts are unchanged.
 Here again, I think we should warn/highlight any changes > 0.5% of the total.
+Changes to unfiltered counts should also be highlighted, as we do not expect these to change between runs.
 
 - `unfiltered_total_counts`
 - `unfiltered_total_spliced`
