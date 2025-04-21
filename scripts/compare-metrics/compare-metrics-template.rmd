@@ -24,6 +24,7 @@ All should be read into a single data frame, as possible, with a column for `ref
 
 ```{r setup}
 #| include: false
+
 knitr::opts_chunk$set(
   include = FALSE
 )
@@ -57,6 +58,7 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ```
 
 ```{r read metrics files}
+#| cache: true
 ref_data <- purrr::map(ref_metrics_files, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 })
@@ -64,12 +66,55 @@ ref_data <- purrr::map(ref_metrics_files, \(url) {
 comp_data <- purrr::map(comp_metrics_paths, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 })
+
+# convert to tibbles and join
+metrics <- list(reference = ref_data, comparison = comp_data) |>
+  purrr::map(\(x) {
+    purrr::list_transpose(x) |>
+      tibble::as_tibble()
+  }) |>
+  purrr::list_rbind(names_to = "source")
+
+# temporary write for testing
+readr::write_rds(metrics, "metrics.rds")
+```
+
+```{r}
+# temporary chunk for testing
+metrics <- readr::read_rds("metrics.rds")
 ```
 
 
-
-
 ## Project and sample changes
+
+```{r}
+ref_samples <- metrics |>
+  dplyr::filter(source == "reference") |>
+  dplyr::select(project_id, sample_id, library_id)
+
+comp_samples <- metrics |>
+  dplyr::filter(source == "comparison") |>
+  dplyr::select(project_id, sample_id, library_id)
+
+# make a table of added and removed
+added_samples <- dplyr::anti_join(comp_samples, ref_samples, by = c("project_id", "sample_id", "library_id")) |>
+  dplyr::mutate(added_removed = "Added")
+removed_samples <- dplyr::anti_join(ref_samples, comp_samples, by = c("project_id", "sample_id", "library_id")) |>
+  dplyr::mutate(added_removed = "Removed")
+
+sample_changes <- dplyr::bind_rows(added_samples, removed_samples) |>
+  dplyr::arrange(project_id, sample_id, library_id)
+```
+
+```{r}
+DT::datatable(
+  sample_changes,
+  colnames = c("Project", "Sample", "Library", "Added/Removed"),
+  rownames = FALSE
+)
+```
+
+
 
 Describe which projects and samples were added or removed, if any.
 This should list any changes in the libraries included as well.
