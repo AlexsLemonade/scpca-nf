@@ -1,7 +1,7 @@
 ---
 params:
-  reference_url: s3://nextflow-ccdl-results/scpca-prod
-  comparison_url: s3://nextflow-ccdl-results/scpca-staging
+  reference_s3: s3://nextflow-ccdl-results/scpca-prod
+  comparison_s3: s3://nextflow-ccdl-results/scpca-staging
   project_id: "all"
 title: "`scpca-nf` Metrics Comparison"
 subtitle: "Project: `r params$project_id`"
@@ -24,43 +24,49 @@ All should be read into a single data frame, as possible, with a column for `ref
 
 ```{r setup}
 #| include: false
+knitr::opts_chunk$set(
+  include = FALSE
+)
 
 library(ggplot2)
 set.seed(1234)
 ```
 
-```{r}
-#| include: false
+```{r get metrics urls}
+#| cache: true
 
-if (toLower(params$project_id[1]) == "all") {
+if (tolower(params$project_id[1]) == "all") {
   metrics_regex <- "_metrics.json$"
 } else {
   metrics_regex <- paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
 }
 
-
 ref_metrics_files <- s3fs::s3_dir_ls(
-  reference_url,
+  params$reference_s3,
   recurse = TRUE,
   regexp = metrics_regex
 ) |>
   s3fs::s3_file_url() # get signed URLs for reading
 
 comp_metrics_paths <- s3fs::s3_dir_ls(
-  comparison_url,
+  params$comparison_s3,
   recurse = TRUE,
   regexp = metrics_regex
 ) |>
   s3fs::s3_file_url()
+```
 
-ref_data <- purrr::map(ref_metrics_files, \(url){
+```{r read metrics files}
+ref_data <- purrr::map(ref_metrics_files, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 })
 
-comp_data <- purrr::map(comp_metrics_paths, \(url){
+comp_data <- purrr::map(comp_metrics_paths, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 })
 ```
+
+
 
 
 ## Project and sample changes
