@@ -34,8 +34,6 @@ set.seed(1234)
 ```
 
 ```{r get metrics urls}
-#| cache: true
-
 if (tolower(params$project_id[1]) == "all") {
   metrics_regex <- "_metrics.json$"
 } else {
@@ -58,57 +56,59 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ```
 
 ```{r read metrics files}
-#| cache: true
 ref_data <- purrr::map(ref_metrics_files, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
-})
+}) |>
+  purrr::list_transpose() |>
+  tibble::as_tibble()
 
 comp_data <- purrr::map(comp_metrics_paths, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
-})
+}) |>
+  purrr::list_transpose() |>
+  tibble::as_tibble()
 
-# convert to tibbles and join
-metrics <- list(reference = ref_data, comparison = comp_data) |>
-  purrr::map(\(x) {
-    purrr::list_transpose(x) |>
-      tibble::as_tibble()
-  }) |>
-  purrr::list_rbind(names_to = "source")
+# join the two data frames
 
+metrics_df <- dplyr::full_join(
+  ref_data,
+  comp_data,
+  by = c("project_id", "sample_id", "library_id"),
+  suffix = c(".ref", ".comp")
+)
 # temporary write for testing
-readr::write_rds(metrics, "metrics.rds")
+readr::write_rds(metrics_df, "metrics.rds")
 ```
 
 ```{r}
 # temporary chunk for testing
-metrics <- readr::read_rds("metrics.rds")
+metrics_df <- readr::read_rds("metrics.rds")
 ```
 
 
 ## Project and sample changes
 
 ```{r}
-ref_samples <- metrics |>
-  dplyr::filter(source == "reference") |>
-  dplyr::select(project_id, sample_id, library_id)
-
-comp_samples <- metrics |>
-  dplyr::filter(source == "comparison") |>
-  dplyr::select(project_id, sample_id, library_id)
-
-# make a table of added and removed
-added_samples <- dplyr::anti_join(comp_samples, ref_samples, by = c("project_id", "sample_id", "library_id")) |>
-  dplyr::mutate(added_removed = "Added")
-removed_samples <- dplyr::anti_join(ref_samples, comp_samples, by = c("project_id", "sample_id", "library_id")) |>
-  dplyr::mutate(added_removed = "Removed")
-
-sample_changes <- dplyr::bind_rows(added_samples, removed_samples) |>
-  dplyr::arrange(project_id, sample_id, library_id)
+lib_changes <- metrics_df |>
+  dplyr::filter(dplyr::if_any(dplyr::starts_with("mapped_reads"), is.na)) |>
+  dplyr::mutate(
+    added_removed = ifelse(is.na(mapped_reads.ref), "Added", "Removed")
+  ) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    added_removed
+  )
 ```
+
+Below is a table of added or removed samples and libraries.
+There are **`r sum(lib_changes$added_removed == "Added")`** added libraries and **`r sum(lib_changes$added_removed == "Added")`** removed libraries.
+These come from **`r length(distinct(lib_changes$project_id)`** project(s).
 
 ```{r}
 DT::datatable(
-  sample_changes,
+  lib_changes,
   colnames = c("Project", "Sample", "Library", "Added/Removed"),
   rownames = FALSE
 )
@@ -116,19 +116,11 @@ DT::datatable(
 
 
 
-Describe which projects and samples were added or removed, if any.
-This should list any changes in the libraries included as well.
-
-Output table:
-
-| Project | Sample | Library | Added/Removed |
-| ------- | ------ | ------- | ------------ |
-| `SCPCP999999` | `SCPCS999999` | `SCPCL999999` | Added |
-| `SCPCP999998` | `SCPCS999998` | `SCPCL999998` | Removed |
-
-
 ## Processing changes {.tabset}
 
+
+```{r}
+```
 Describe any changes to the software versions or parameters used to process the data.
 
 Fields to compare:
