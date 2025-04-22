@@ -3,7 +3,7 @@ params:
   reference_s3: s3://nextflow-ccdl-results/scpca-prod
   comparison_s3: s3://nextflow-ccdl-results/scpca-staging
   project_id: "all"
-  download_s3: false
+  use_cache: false
 title: "`scpca-nf` Metrics Comparison"
 subtitle: "Project: `r params$project_id`"
 author: "Childhood Cancer Data Lab"
@@ -23,11 +23,13 @@ knitr::opts_chunk$set(
   echo = FALSE
 )
 
+use_cache <- params$use_cache && file.exists("metrics.rds")
+
 library(ggplot2)
 set.seed(1234)
 ```
 
-```{r, eval = params$download_s3}
+```{r, eval = !use_cache}
 #| include: false
 # get metrics files by scanning S3
 if (tolower(params$project_id[1]) == "all") {
@@ -51,7 +53,7 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
   s3fs::s3_file_url()
 ```
 
-```{r, eval = params$download_s3}
+```{r, eval = !use_cache}
 #| include: false
 # read metrics files from S3
 ref_data <- purrr::map(ref_metrics_files, \(url) {
@@ -77,7 +79,7 @@ metrics_df <- dplyr::full_join(
 readr::write_rds(metrics_df, "metrics.rds")
 ```
 
-```{r, eval = !params$download_s3}
+```{r, eval = use_cache}
 #| include: false
 # temporary chunk for testing
 metrics_df <- readr::read_rds("metrics.rds")

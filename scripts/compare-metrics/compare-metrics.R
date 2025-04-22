@@ -32,7 +32,7 @@ option_list <- list(
     help = "Output file name for the rendered report"
   ),
   make_option(
-    c("--skip_download"),
+    c("--use_cache"), # temporary option for testing
     action = "store_true",
     default = FALSE,
     help = "Skip downloading files from S3 and use cached metrics data."
@@ -59,7 +59,7 @@ rmarkdown::render(
     reference_s3 = opt$ref_s3,
     comparison_s3 = opt$comp_s3,
     project_id = project_ids,
-    download_s3 = !opt$skip_download
+    use_cache = opt$use_cache
   ),
   envir = new.env()
 )
