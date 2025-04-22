@@ -59,7 +59,7 @@ rmarkdown::render(
     reference_s3 = opt$ref_s3,
     comparison_s3 = opt$comp_s3,
     project_id = project_ids,
-    skip_download = opt$skip_download
+    download_s3 = !opt$skip_download
   ),
   envir = new.env()
 )
