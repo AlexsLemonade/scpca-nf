@@ -30,6 +30,12 @@ option_list <- list(
     type = "character",
     default = "compare-metrics.html",
     help = "Output file name for the rendered report"
+  ),
+  make_option(
+    c("--skip_download"),
+    action = "store_true",
+    default = FALSE,
+    help = "Skip downloading files from S3 and use cached metrics data."
   )
 )
 
@@ -52,7 +58,8 @@ rmarkdown::render(
   params = list(
     reference_s3 = opt$ref_s3,
     comparison_s3 = opt$comp_s3,
-    project_id = project_ids
+    project_id = project_ids,
+    skip_download = opt$skip_download
   ),
   envir = new.env()
 )
