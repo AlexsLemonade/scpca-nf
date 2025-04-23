@@ -1,0 +1,11 @@
+[workspace]
+authors = ["Joshua Shapiro <josh.shapiro@ccdatalab.org>"]
+channels = ["conda-forge", "bioconda"]
+name = "scpca-nf"
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+nextflow = ">=24.10.5,<25"
