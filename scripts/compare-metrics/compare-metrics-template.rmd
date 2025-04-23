@@ -1,7 +1,7 @@
 ---
 params:
-  reference_s3: s3://nextflow-ccdl-results/scpca-prod
-  comparison_s3: s3://nextflow-ccdl-results/scpca-staging
+  reference_s3: s3://nextflow-ccdl-results/scpca-prod/results
+  comparison_s3: s3://nextflow-ccdl-results/scpca-staging/results
   project_id: "all"
   use_cache: false
 title: "`scpca-nf` Metrics Comparison"
@@ -65,9 +65,9 @@ report_table <- function(df, options = list(), ...) {
 #| include: false
 # get metrics files by scanning S3
 if (tolower(params$project_id[1]) == "all") {
-  metrics_regex <- "_metrics.json$"
+  metrics_regex <- "SCPCL[0-9]{6}_metrics.json$"
 } else {
-  metrics_regex <- paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
+  metrics_regex <- paste0("(", params$project_id, ".+SCPCL[0-9]{6}_metrics.json$)", collapse = "|")
 }
 
 ref_metrics_files <- s3fs::s3_dir_ls(
@@ -91,13 +91,13 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ref_data <- purrr::map(ref_metrics_files, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 }) |>
-  purrr::list_transpose() |>
+  purrr::list_transpose(default = NA) |>
   tibble::as_tibble()
 
 comp_data <- purrr::map(comp_metrics_paths, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 }) |>
-  purrr::list_transpose() |>
+  purrr::list_transpose(default = NA) |>
   tibble::as_tibble()
 
 # join the two data frames
@@ -212,7 +212,7 @@ if (has_processing_changes) {
   glue::glue("
     The tables below show the processing changes between the reference and comparison workflow runs.<br>
     There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with processing changes
-    from **{n_projects}** {ifelse(n_projects == 0, 'project', 'projects')}.
+    from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
   ") |>
     knitr::asis_output()
 }
