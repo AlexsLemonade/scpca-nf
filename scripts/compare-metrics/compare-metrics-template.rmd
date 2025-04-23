@@ -91,13 +91,13 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ref_data <- purrr::map(ref_metrics_files, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 }) |>
-  purrr::list_transpose() |>
+  purrr::list_transpose(default = NA) |>
   tibble::as_tibble()
 
 comp_data <- purrr::map(comp_metrics_paths, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
 }) |>
-  purrr::list_transpose() |>
+  purrr::list_transpose(default = NA) |>
   tibble::as_tibble()
 
 # join the two data frames
