@@ -61,7 +61,7 @@ report_table <- function(df, options = list(), ...) {
 }
 ```
 
-```{r, eval = !use_cache}
+```{r, eval=!use_cache}
 #| include: false
 # get metrics files by scanning S3
 if (tolower(params$project_id[1]) == "all") {
@@ -85,7 +85,7 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
   s3fs::s3_file_url()
 ```
 
-```{r, eval = !use_cache}
+```{r, eval=!use_cache}
 #| include: false
 # read metrics files from S3
 ref_data <- purrr::map(ref_metrics_files, \(url) {
@@ -111,7 +111,7 @@ metrics_df <- dplyr::full_join(
 readr::write_rds(metrics_df, "metrics.rds")
 ```
 
-```{r, eval = use_cache}
+```{r, eval=use_cache}
 #| include: false
 # temporary chunk for testing
 metrics_df <- readr::read_rds("metrics.rds")
@@ -134,8 +134,6 @@ lib_changes <- metrics_df |>
     added_removed
   )
 ```
-
-
 
 ```{r}
 # Text summary of added/removed libraries
@@ -197,11 +195,12 @@ processing_changes <- metrics_df |>
   dplyr::filter(
     ref != comp
   )
+
+has_processing_changes <- nrow(processing_changes) > 0
 ```
 
 ```{r}
 # Text summary of processing changes
-has_processing_changes <- nrow(processing_changes) == 0
 if (has_processing_changes) {
   knitr::asis_output(
     "All processing fields are the same between the reference and comparison runs."
@@ -219,11 +218,10 @@ if (has_processing_changes) {
 }
 ```
 
-```{r, eval=has_processing_changes}
-knitr::asis_output("
-### Summary
-")
 
+```{r, eval=has_processing_changes}
+knitr::asis_output("### Summary")
+```
 
 ```{r, eval=has_processing_changes}
 processing_summary <- processing_changes |>
@@ -234,24 +232,24 @@ processing_summary <- processing_changes |>
     name = "n_changed"
   )
 
-  report_table(
-    processing_summary,
-    colnames = c("Processing field", "Reference value", "Comparison value", "Number of libraries changed")
-  )
+report_table(
+  processing_summary,
+  colnames = c("Processing field", "Reference value", "Comparison value", "Number of libraries changed")
+)
 ```
 
 
 ```{r, eval=has_processing_changes}
-knitr::asis_output("
-### Detail
-")
+knitr::asis_output("### Detail")
+```
 
 ```{r, eval=has_processing_changes}
-  report_table(
-    processing_changes,
-    colnames = c("Project", "Sample", "Library", "Field", "Reference value", "Comparison value")
-  )
+report_table(
+  processing_changes,
+  colnames = c("Project", "Sample", "Library", "Field", "Reference value", "Comparison value")
+)
 ```
+
 ## Changes in cell and read counts
 
 ### Cell count changes {.tabset}
