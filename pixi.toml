@@ -9,9 +9,20 @@ version = "0.1.0"
 
 [dependencies]
 nextflow = ">=24.10.5,<25"
+
+
+[feature.nfcore.dependencies]
+nf-core = "3.2.*"
+
+
+[feature.cavatica.dependencies]
 python = "3.11.*"
 nf-core = "2.1.*"
 setuptools = ">=79.0.0,<80"
 
-[pypi-dependencies]
+[feature.cavatica.pypi-dependencies]
 sbpack = { git = "https://github.com/rabix/sbpack", tag = "2024.10.30" }
+
+[environments]
+default = ["default", "nfcore"]
+cavatica = ["cavatica", "default"]
