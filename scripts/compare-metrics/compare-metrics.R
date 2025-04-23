@@ -11,13 +11,13 @@ option_list <- list(
   make_option(
     c("-r", "--ref_s3"),
     type = "character",
-    default = "s3://nextflow-ccdl-results/scpca-prod",
+    default = "s3://nextflow-ccdl-results/scpca-prod/results",
     help = "S3 URI for the bucket and prefix for the reference files"
   ),
   make_option(
     c("-c", "--comp_s3"),
     type = "character",
-    default = "s3://nextflow-ccdl-results/scpca-staging",
+    default = "s3://nextflow-ccdl-results/metrics-test",
     help = "S3 URI for the bucket and prefix for the comparison S3 files"
   ),
   make_option(c("-p", "--project_id"),
