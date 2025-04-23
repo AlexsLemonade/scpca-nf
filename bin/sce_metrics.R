@@ -134,11 +134,12 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
   # cluster counts as unnamed vector
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
-  metrics$singler_reference <- metadata(processed_sce)$singler_reference
-  metrics$cellassign_reference <- metadata(processed_sce)$cellassign_reference
+  metrics$singler_reference <- ifelse(is.null(metadata(processed_sce)$singler_reference), NA_character_, metadata(processed_sce)$singler_reference)
+  metrics$cellassign_reference <- ifelse(is.null(metadata(processed_sce)$cellassign_reference), NA_character_, metadata(processed_sce)$cellassign_reference)
   # convert celltype annotation counts to named lists
   metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_ontology))
   metrics$cellassign_celltypes <- as.list(table(processed_sce$cellassign_celltype_annotation))
+  metrics$consensus_celltypes <- as.list(table(processed_sce$consensus_celltype_ontology))
 }
 
 jsonlite::write_json(
