@@ -201,7 +201,8 @@ processing_changes <- metrics_df |>
 
 ```{r}
 # Text summary of processing changes
-if (nrow(processing_changes) == 0) {
+has_processing_changes <- nrow(processing_changes) == 0
+if (has_processing_changes) {
   knitr::asis_output(
     "All processing fields are the same between the reference and comparison runs."
   )
@@ -218,10 +219,13 @@ if (nrow(processing_changes) == 0) {
 }
 ```
 
+```{r, eval=has_processing_changes}
+knitr::asis_output("
 ### Summary
+")
 
 
-```{r}
+```{r, eval=has_processing_changes}
 processing_summary <- processing_changes |>
   dplyr::count(
     field,
@@ -230,32 +234,23 @@ processing_summary <- processing_changes |>
     name = "n_changed"
   )
 
-if (nrow(processing_summary) == 0) {
-  knitr::asis_output(
-    "<p>No processing changes</p>"
-  )
-} else {
   report_table(
     processing_summary,
     colnames = c("Processing field", "Reference value", "Comparison value", "Number of libraries changed")
   )
-}
 ```
 
 
+```{r, eval=has_processing_changes}
+knitr::asis_output("
 ### Detail
+")
 
-```{r}
-if (nrow(processing_changes) == 0) {
-  knitr::asis_output(
-    "<p>No processing changes</p>"
-  )
-} else {
+```{r, eval=has_processing_changes}
   report_table(
     processing_changes,
     colnames = c("Project", "Sample", "Library", "Field", "Reference value", "Comparison value")
   )
-}
 ```
 ## Changes in cell and read counts
 
