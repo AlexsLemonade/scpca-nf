@@ -1,8 +1,9 @@
 ---
 params:
-  reference_url: s3://nextflow-ccdl-results/scpca-prod
-  comparison_url: s3://nextflow-ccdl-results/scpca-staging
+  reference_s3: s3://nextflow-ccdl-results/scpca-prod
+  comparison_s3: s3://nextflow-ccdl-results/scpca-staging
   project_id: "all"
+  use_cache: false
 title: "`scpca-nf` Metrics Comparison"
 subtitle: "Project: `r params$project_id`"
 author: "Childhood Cancer Data Lab"
@@ -15,98 +16,239 @@ output:
     code_folding: hide
 ---
 
-## Setup steps
+```{r setup}
+#| include: false
+library(ggplot2)
 
-(Not to be included in the report text, but code needed)
+knitr::opts_chunk$set(
+  echo = FALSE
+)
 
-Scan through S3 buckets to read in all `_metrics.json` files.
-All should be read into a single data frame, as possible, with a column for `reference` and `comparison`.
+use_cache <- params$use_cache && file.exists("metrics.rds")
 
-```r
+set.seed(1234)
+```
+
+```{r}
+# Functions
 #| include: false
 
-if (toLower(params$project_id[1]) == "all") {
+report_table <- function(df, options = list(), ...) {
+  # pass standard settings for report to DT::datatable
+  # df: data frame to display
+  # options: list of options to pass to DT::datatable
+  # ...: additional arguments to pass to DT::datatable
+  default_opts <- list(
+    scroller = TRUE,
+    deferRender = TRUE,
+    scrollY = 400,
+    scrollCollapse = TRUE,
+    language = list(search = "Filter:")
+  )
+  if (length(options) > 0) {
+    # merge default options with user options
+    opts <- modifyList(default_opts, options)
+  } else {
+    opts <- default_opts
+  }
+  DT::datatable(
+    df,
+    rownames = FALSE,
+    extensions = "Scroller",
+    options = opts,
+    ...
+  )
+}
+```
+
+```{r, eval=!use_cache}
+#| include: false
+# get metrics files by scanning S3
+if (tolower(params$project_id[1]) == "all") {
   metrics_regex <- "_metrics.json$"
 } else {
   metrics_regex <- paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
 }
 
 ref_metrics_files <- s3fs::s3_dir_ls(
-  reference_url,
+  params$reference_s3,
   recurse = TRUE,
   regexp = metrics_regex
 ) |>
   s3fs::s3_file_url() # get signed URLs for reading
 
 comp_metrics_paths <- s3fs::s3_dir_ls(
-  comparison_url,
+  params$comparison_s3,
   recurse = TRUE,
   regexp = metrics_regex
 ) |>
   s3fs::s3_file_url()
+```
 
-ref_data <- purrr::map(ref_metrics_files, \(url){
+```{r, eval=!use_cache}
+#| include: false
+# read metrics files from S3
+ref_data <- purrr::map(ref_metrics_files, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
-})
+}) |>
+  purrr::list_transpose() |>
+  tibble::as_tibble()
 
-comp_data <- purrr::map(comp_metrics_paths, \(url){
+comp_data <- purrr::map(comp_metrics_paths, \(url) {
   jsonlite::read_json(url, simplifyVector = TRUE)
-})
+}) |>
+  purrr::list_transpose() |>
+  tibble::as_tibble()
+
+# join the two data frames
+metrics_df <- dplyr::full_join(
+  ref_data,
+  comp_data,
+  by = c("project_id", "sample_id", "library_id"),
+  suffix = c(".ref", ".comp")
+)
+# temporary write for testing
+readr::write_rds(metrics_df, "metrics.rds")
+```
+
+```{r, eval=use_cache}
+#| include: false
+# temporary chunk for testing
+metrics_df <- readr::read_rds("metrics.rds")
 ```
 
 
 ## Project and sample changes
 
-Describe which projects and samples were added or removed, if any.
-This should list any changes in the libraries included as well.
+```{r}
+# filter to get added or removed samples
+lib_changes <- metrics_df |>
+  dplyr::filter(if_any(starts_with("mapped_reads"), is.na)) |>
+  dplyr::mutate(
+    added_removed = ifelse(is.na(mapped_reads.ref), "Added", "Removed")
+  ) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    added_removed
+  )
+```
 
-Output table:
+```{r}
+# Text summary of added/removed libraries
+if (nrow(lib_changes) == 0) {
+  knitr::asis_output(
+    "There are no added or removed libraries."
+  )
+} else {
+  n_added <- sum(lib_changes$added_removed == "Added")
+  n_removed <- sum(lib_changes$added_removed == "Removed")
+  n_projects <- dplyr::n_distinct(lib_changes$project_id)
 
-| Project | Sample | Library | Added/Removed |
-| ------- | ------ | ------- | ------------ |
-| `SCPCP999999` | `SCPCS999999` | `SCPCL999999` | Added |
-| `SCPCP999998` | `SCPCS999998` | `SCPCL999998` | Removed |
+  glue::glue("
+    Below is a table of added or removed samples and libraries.<br>
+    There {ifelse(n_added == 1, 'is', 'are')} **{n_added}** added {ifelse(n_added == 1, 'library', 'libraries')} and
+    **{n_removed}** removed {ifelse(n_removed == 1, 'library', 'libraries')}.
+
+    These come from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+
+
+  ") |>
+    knitr::asis_output()
+}
+```
+
+```{r, eval = nrow(lib_changes) > 0}
+report_table(
+  lib_changes,
+  colnames = c("Project", "Sample", "Library", "Added/Removed")
+)
+```
 
 
 ## Processing changes {.tabset}
 
-Describe any changes to the software versions or parameters used to process the data.
+```{r}
+processing_fields <- c(
+  "droplet_filtering_method",
+  "normalization_method",
+  "cell_filtering_method",
+  "cluster_algorithm",
+  "singler_reference",
+  "cellassign_reference"
+)
 
-Fields to compare:
+processing_changes <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(processing_fields)
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(processing_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(
+    ref != comp
+  )
 
-- `droplet_filtering_method`
-- `normalization_method`
-- `cell_filtering_method`
-- `cluster_algorithm`
-- `singler_reference`
-- `cellassign_reference`
+has_processing_changes <- nrow(processing_changes) > 0
+```
 
-Some fields are not present in the metrics files, but could be read from the `_metadata.json` files if we want to include those as well (and we probably do):
+```{r}
+# Text summary of processing changes
+if (has_processing_changes) {
+  knitr::asis_output(
+    "All processing fields are the same between the reference and comparison runs."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(processing_changes$project_id)
+  n_libraries <- dplyr::n_distinct(processing_changes$library_id)
 
-- `workflow_version`
-- `date_processed`
-- `salmon_version`
-- `alevinfry_version`
-- `min_gene_cutoff`
-- `prob_compromised_cutoff`
+  glue::glue("
+    The tables below show the processing changes between the reference and comparison workflow runs.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with processing changes
+    from **{n_projects}** {ifelse(n_projects == 0, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
 
-### Summary
 
-For these metrics, we can create table of changes, with the counts of the number of samples with each change.
-Something like the below:
+```{r, eval=has_processing_changes}
+knitr::asis_output("### Summary")
+```
 
-| Processing field | Reference value | Comparison value | Number of samples changed |
-| ----- | --------- | --------- | ---------------- |
-| `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` | 10 |
+```{r, eval=has_processing_changes}
+processing_summary <- processing_changes |>
+  dplyr::count(
+    field,
+    ref,
+    comp,
+    name = "n_changed"
+  )
 
-### Detail
+report_table(
+  processing_summary,
+  colnames = c("Processing field", "Reference value", "Comparison value", "Number of libraries changed")
+)
+```
 
-This would be a detailed table of the samples with changes, similar to the one below:
 
-| Sample | Processing field | Reference value | Comparison value |
-| ------- | ---------------- | --------------- | ---------------- |
-| `SCPCS999999` | `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` |
+```{r, eval=has_processing_changes}
+knitr::asis_output("### Detail")
+```
 
+```{r, eval=has_processing_changes}
+report_table(
+  processing_changes,
+  colnames = c("Project", "Sample", "Library", "Field", "Reference value", "Comparison value")
+)
+```
 
 ## Changes in cell and read counts
 
@@ -200,3 +342,12 @@ Report changes to the set of cell types assigned, and to the number of cells for
 This will include SingleR, CellAssign and consensus cell types, if present.
 
 My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
+
+
+## Session Info
+<details>
+<summary>Click to expand</summary>
+```{r}
+sessionInfo()
+```
+</details>
