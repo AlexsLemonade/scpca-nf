@@ -88,7 +88,13 @@ metrics <- list(
   processed_cells = metadata$processed_cells,
   droplet_filtering_method = metadata$droplet_filtering_method,
   normalization_method = metadata$normalization_method,
-  cell_filtering_method = metadata$cell_filtering_method
+  cell_filtering_method = metadata$cell_filtering_method,
+  workflow_version = metadata$workflow_version,
+  date_processed = metadata$date_processed,
+  salmon_version = metadata$salmon_version,
+  alevinfry_version = metadata$alevinfry_version,
+  min_gene_cutoff = metadata$min_gene_cutoff,
+  prob_compromised_cutoff = metadata$prob_compromised_cutoff
 )
 
 # read sce files and compile metrics for output files
@@ -128,11 +134,12 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
   # cluster counts as unnamed vector
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
-  metrics$singler_reference <- metadata(processed_sce)$singler_reference
-  metrics$cellassign_reference <- metadata(processed_sce)$cellassign_reference
+  metrics$singler_reference <- ifelse(is.null(metadata(processed_sce)$singler_reference), NA_character_, metadata(processed_sce)$singler_reference)
+  metrics$cellassign_reference <- ifelse(is.null(metadata(processed_sce)$cellassign_reference), NA_character_, metadata(processed_sce)$cellassign_reference)
   # convert celltype annotation counts to named lists
   metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_ontology))
   metrics$cellassign_celltypes <- as.list(table(processed_sce$cellassign_celltype_annotation))
+  metrics$consensus_celltypes <- as.list(table(processed_sce$consensus_celltype_ontology))
 }
 
 jsonlite::write_json(
