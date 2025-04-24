@@ -16,14 +16,14 @@ pre-commit = ">=4.2.0,<5"
 nf-core = "3.*"
 
 
-[feature.cavatica.dependencies]
+[feature.sbpack.dependencies]
 python = "3.11.*"
 nf-core = "2.1.*"
 setuptools = ">=79.0.0,<80"
 
-[feature.cavatica.pypi-dependencies]
+[feature.sbpack.pypi-dependencies]
 sbpack = { git = "https://github.com/rabix/sbpack", tag = "2024.10.30" }
 
 [environments]
 default = ["nfcore"]
-cavatica = ["cavatica"]
+cavatica = ["sbpack"]
