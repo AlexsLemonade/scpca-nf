@@ -123,7 +123,7 @@ As an alternative to `black`, you can also use [`ruff`](https://docs.astral.sh/r
 
 To ease installation of dependencies and help with reproducibility, we have included a [pixi](https://pixi.sh) configuration file (`pixi.toml`) and lockfile (`pixi.lock`) in the root of the repository.
 `pixi` is a package manager that takes advantage of the conda ecosystem, but faster and with some nice extra features like automatically keeping the environment in sync with the lockfile and the ability to create multiple environments for a project.
-The `pixi.toml` file contains a list the high-level dependencies needed to run the workflow, and the `pixi.lock` file contains the exact versions of those dependencies that were used when the lockfile was created.
+The `pixi.toml` file contains a list of the high-level dependencies needed to run the workflow, and the `pixi.lock` file contains the exact versions of those dependencies that were used when the lockfile was created.
 
 The included default environment includes `nextflow`, `nf-core`, `pre-commit`, and their dependencies.
 
@@ -141,7 +141,7 @@ Either method will automatically update the environment to match the package ver
 
 For convenience, we have included a set of [pre-commit hooks](https://pre-commit.com/) that can be used to automatically format code according to the above specifications, as well as to spellcheck and check for other common errors.
 
-To use these hooks if you are using `pixi`, you can run `pixi run pre-commit install` from the `scpca-nf` directory.
+Once you have [installed `pixi`](#environment-management-with-pixi), you can run `pixi run pre-commit install` from the `scpca-nf` directory to use these hooks. 
 Alternatively, install the `pre-commit` package according to your favorite method (`pip`, `conda`, etc.) and then run `pre-commit install` in the `scpca-nf` directory.
 This will install the hooks in the `.git/hooks` directory, and they will be run automatically when you commit changes.
 If any of the hooks fail, the commit will be aborted, and you will need to fix the errors and re-commit.
