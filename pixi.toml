@@ -8,12 +8,12 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-nextflow = ">=24.10.5,<25"
+nextflow = ">=24.10.6,<25"
 pre-commit = ">=4.2.0,<5"
 
 
 [feature.nfcore.dependencies]
-nf-core = "3.2.*"
+nf-core = "3.*"
 
 
 [feature.cavatica.dependencies]

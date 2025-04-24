@@ -10,6 +10,7 @@ barcode
 cDNA
 CellAssign
 cellhash
+conda
 config
 customizable
 data's
@@ -34,6 +35,7 @@ HVGs
 intronic
 Jaccard
 JSON
+lockfile
 logcounts
 Lun
 miQC
@@ -43,7 +45,9 @@ nf
 Oligos
 PanglaoDB
 parallelizing
+pixi
 pre
+reproducibility
 reproducibly
 SCE
 scpca
