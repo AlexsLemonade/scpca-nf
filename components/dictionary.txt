@@ -7,9 +7,11 @@ altExp
 AMI
 ARI
 barcode
+Cavatica
 cDNA
 CellAssign
 cellhash
+CLI
 conda
 config
 customizable
