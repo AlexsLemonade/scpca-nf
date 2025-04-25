@@ -7,9 +7,12 @@ altExp
 AMI
 ARI
 barcode
+Cavatica
 cDNA
 CellAssign
 cellhash
+CLI
+conda
 config
 customizable
 data's
@@ -34,6 +37,7 @@ HVGs
 intronic
 Jaccard
 JSON
+lockfile
 logcounts
 Lun
 miQC
@@ -43,7 +47,9 @@ nf
 Oligos
 PanglaoDB
 parallelizing
+pixi
 pre
+reproducibility
 reproducibly
 SCE
 scpca

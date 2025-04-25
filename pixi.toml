@@ -1,0 +1,29 @@
+[workspace]
+authors = ["Joshua Shapiro <josh.shapiro@ccdatalab.org>"]
+channels = ["conda-forge", "bioconda"]
+name = "scpca-nf"
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+nextflow = ">=24.10.6,<25"
+pre-commit = ">=4.2.0,<5"
+
+
+[feature.nfcore.dependencies]
+nf-core = "3.*"
+
+
+[feature.sbpack.dependencies]
+python = "3.11.*"
+nf-core = "2.1.*"
+setuptools = ">=79.0.0,<80"
+
+[feature.sbpack.pypi-dependencies]
+sbpack = { git = "https://github.com/rabix/sbpack", tag = "2024.10.30" }
+
+[environments]
+default = ["nfcore"]
+cavatica = ["sbpack"]

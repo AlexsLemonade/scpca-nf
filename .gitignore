@@ -17,3 +17,7 @@ merged-report.html
 
 # ignore hidden `DS_Store`
 .DS_Store
+
+# pixi environments
+.pixi
+*.egg-info

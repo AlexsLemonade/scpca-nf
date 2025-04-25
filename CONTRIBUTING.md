@@ -2,6 +2,25 @@
 
 We welcome contributions to the `scpca-nf` workflow, including usage reports and suggestions from users.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Issues](#issues)
+- [Pull requests and branch structure](#pull-requests-and-branch-structure)
+  - [Updating `nextflow_schema.json`](#updating-nextflow_schemajson)
+  - [Continuous integration in pull requests](#continuous-integration-in-pull-requests)
+- [Stub workflows](#stub-workflows)
+- [Code style](#code-style)
+  - [Nextflow](#nextflow)
+    - [A note on variables in Nextflow/Groovy](#a-note-on-variables-in-nextflowgroovy)
+  - [R and R Markdown](#r-and-r-markdown)
+  - [Python](#python)
+- [Environment management with `pixi`](#environment-management-with-pixi)
+- [Pre-commit hooks](#pre-commit-hooks)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Issues
 
 Most updates to the `scpca-nf` workflow will begin with an issue that describes a change to be made and the reasoning behind that change.
@@ -23,11 +42,12 @@ When the changes in `development` merit a new release, a pull request will be fi
 ### Updating `nextflow_schema.json`
 
 Any changes that affect the Nextflow configuration files should be reflected in the [`nextflow_schema.json` file](https://nf-co.re/tools#pipeline-schema).
-This file can most easily be updated using the [`nf-core/tools` package](https://nf-co.re/tools), which can be installed with `conda install nf-core`.
-Then run `nf-core schema build` in the `scpca-nf` directory to update the schema file to match the current config file.
+This file can most easily be updated using the [`nf-core/tools` package](https://nf-co.re/tools), which is included in the [`pixi` environment](#environment-management-with-pixi) (or it can be installed separately).
+Run `nf-core schema build` in the `scpca-nf` directory to update the schema file to match the current config file.
 You can also use the web editor that it launches to further customize the schema file.
 Note that you may get warnings about any config parameters that include `${projectDir}`, as the build tool wants those to be replaced with absolute paths.
 This is not necessary for the schema to be valid, so please keep those paths with the `${projectDir}` variable (enter `n` at the prompt).
+
 ### Continuous integration in pull requests
 
 There are several automatic checks performed by GitHub Actions in all pull requests filed to `main` or `development`:
@@ -88,6 +108,7 @@ good.map{
 
 For R code, we try to follow [`tidyverse` style conventions](https://style.tidyverse.org), and encourage the use of the [`styler`](https://styler.r-lib.org/) package to ensure that code is formatted consistently.
 
+
 ### Python
 
 For python code, we encourage the use of the [`black` code formatter](https://black.readthedocs.io/en/stable/) to ensure consistent formatting.
@@ -97,11 +118,31 @@ If you use Visual Studio Code, you can install the [`black` extension](https://m
 As an alternative to `black`, you can also use [`ruff`](https://docs.astral.sh/ruff/) for formatting and linting; it follows the same code style conventions.
 `ruff` is also available as a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
+
+## Environment management with `pixi`
+
+To ease installation of dependencies and help with reproducibility, we have included a [pixi](https://pixi.sh) configuration file (`pixi.toml`) and lockfile (`pixi.lock`) in the root of the repository.
+`pixi` is a package manager that takes advantage of the conda ecosystem, but faster and with some nice extra features like automatically keeping the environment in sync with the lockfile and the ability to create multiple environments for a project.
+The `pixi.toml` file contains a list of the high-level dependencies needed to run the workflow, and the `pixi.lock` file contains the exact versions of those dependencies that were used when the lockfile was created.
+
+The included default environment includes `nextflow`, `nf-core`, `pre-commit`, and their dependencies.
+
+To use this, you will need to have installed the `pixi` package manager, which is most easily done with the following command ([other installation methods](https://pixi.sh/latest/advanced/installation/)):
+
+```bash
+curl -fsSL https://pixi.sh/install.sh | bash
+```
+
+To use the default environment, you can then either prefix your command with `pixi run` (e.g. `pixi run nextflow`), or you can launch a shell with the environment activated by running `pixi shell`.
+Either method will automatically update the environment to match the package versions defined the `pixi.toml` and/or `pixi.lock` files.
+
+
 ## Pre-commit hooks
 
 For convenience, we have included a set of [pre-commit hooks](https://pre-commit.com/) that can be used to automatically format code according to the above specifications, as well as to spellcheck and check for other common errors.
 
-To use these hooks, install the `pre-commit` package according to your favorite method (`pip install pre-commit` or `conda install pre-commit`), then run `pre-commit install` in the `scpca-nf` directory.
+Once you have [installed `pixi`](#environment-management-with-pixi), you can run `pixi run pre-commit install` from the `scpca-nf` directory to use these hooks. 
+Alternatively, install the `pre-commit` package according to your favorite method (`pip`, `conda`, etc.) and then run `pre-commit install` in the `scpca-nf` directory.
 This will install the hooks in the `.git/hooks` directory, and they will be run automatically when you commit changes.
 If any of the hooks fail, the commit will be aborted, and you will need to fix the errors and re-commit.
 
