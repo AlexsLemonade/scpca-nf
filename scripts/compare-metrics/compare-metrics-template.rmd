@@ -33,6 +33,22 @@ set.seed(1234)
 # Functions
 #| include: false
 
+
+read_metrics_files <- function(urls) {
+  # read a set of metrics files
+  # url: URL of the metrics files, each in json format
+  # returns: data frame (tibble) of combined metrics
+  purrr::map(urls, \(url) {
+    jsonlite::read_json(url, simplifyVector = TRUE) |>
+      # handle bare NAs, which may be quoted
+      purrr::modify_if(\(x){
+        length(x) == 1 && x == "NA"
+      }, ~NA)
+  }) |>
+    purrr::list_transpose(default = NA) |>
+    tibble::as_tibble()
+}
+
 report_table <- function(df, options = list(), ...) {
   # pass standard settings for report to DT::datatable
   # df: data frame to display
@@ -88,17 +104,8 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ```{r, eval=!use_cache}
 #| include: false
 # read metrics files from S3
-ref_data <- purrr::map(ref_metrics_files, \(url) {
-  jsonlite::read_json(url, simplifyVector = TRUE)
-}) |>
-  purrr::list_transpose(default = NA) |>
-  tibble::as_tibble()
-
-comp_data <- purrr::map(comp_metrics_paths, \(url) {
-  jsonlite::read_json(url, simplifyVector = TRUE)
-}) |>
-  purrr::list_transpose(default = NA) |>
-  tibble::as_tibble()
+ref_data <- read_metrics_files(ref_metrics_files)
+comp_data <- read_metrics_files(comp_metrics_paths)
 
 # join the two data frames
 metrics_df <- dplyr::full_join(
