@@ -261,30 +261,86 @@ report_table(
 
 ### Cell count changes {.tabset}
 
-For each sample, we will want to first compare:
+```{r}
+# calculate the difference between reference and comparison for selected fields
 
-- `unfiltered_cells`
-- `filtered_cells`
-- `processed_cells`
-- `miqc_pass_count`
-- `scpca_filter_count`
-- `adt_scpca_filter_count`
+cell_fields <- c(
+  "unfiltered_cells",
+  "filtered_cells",
+  "processed_cells",
+  "miqc_pass_count",
+  "scpca_filter_count",
+  "adt_scpca_filter_count"
+)
 
-If there are changes in any of those, we will report those, with prominent warnings for any large changes.
-What defines a large change?
-Perhaps start with a change > 0.5% of the total?
-Alternatively, if we see a large fraction of samples changing, we would want to note that.
-If there are any changes to the number of unfiltered cells, that should be highlighted, as we do not expect this to change between runs.
+cell_changes <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(cell_fields)
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(cell_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  )
+```
+
+
+The tables below show any changes in cell counts at different stages of filtering.
 
 #### Summary
-The main display item would be a summary table, in the first tab:
 
-| Metric | Number of samples changed | % of samples changed | Mean % change |
-| ----- | --------- | --------- | ---------------- |
-| `scpca_filter_count` | 100 | 20 | -10 |
+```{r}
+# Text summary of cell count changes
+cell_summary <- cell_changes |>
+  dplyr::summarise(
+    .by = c("field"),
+    # count where at least one version has a value
+    n = dplyr::n(),
+    n_changed = sum(is.na(change) | change != 0),
+    sample_change_frac = n_changed / n,
+    mean_change_frac = mean(change_frac, na.rm = TRUE)
+  )
+
+report_table(
+  cell_summary,
+  colnames = c("Metric", "Samples", "Number of samples changed", "% of samples changed", "Mean % change")
+) |>
+  DT::formatPercentage(c(4, 5), 2)
+```
+
 
 We will also include a plot with a histogram of the % changes for each metric where at least one sample changed.
 
+```{r}
+change_fields <- cell_summary |>
+  dplyr::filter(n_changed > 0) |>
+  dplyr::pull(field)
+
+cell_plot_df <- cell_changes |>
+  dplyr::filter(field %in% change_fields, change != 0) |>
+  dplyr::mutate(
+    field = factor(field, levels = cell_fields),
+  )
+
+ggplot(cell_plot_df, aes(x = change_frac)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(field)) +
+  labs(
+    title = "Histogram of changes in cell counts",
+    x = "Change proportion",
+    y = "Number of samples"
+  ) +
+  theme_bw()
+```
 
 #### Detail
 
