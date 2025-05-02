@@ -292,7 +292,10 @@ cell_changes <- metrics_df |>
     change_frac = change / ref
   )
 
-has_cell_changes <- any(cell_changes$change != 0)
+changed_cell_counts <- cell_changes |>
+  dplyr::filter(is.na(change) | change != 0)
+
+has_cell_changes <- nrow(changed_cell_counts) > 0
 ```
 
 ```{r}
@@ -302,8 +305,8 @@ if (!has_cell_changes) {
     "There are no changes in cell counts between the reference and comparison runs."
   )
 } else {
-  n_projects <- dplyr::n_distinct(cell_changes$project_id)
-  n_libraries <- dplyr::n_distinct(cell_changes$library_id)
+  n_projects <- dplyr::n_distinct(changed_cell_counts$project_id)
+  n_libraries <- dplyr::n_distinct(changed_cell_counts$library_id)
 
   glue::glue("
     The tables below show changes in cell counts changes between the reference and comparison workflow runs at various stages of processing.<br>
@@ -385,8 +388,7 @@ knitr::asis_output("#### Detail")
 ```{r}
 # Detail table of cell count changes
 
-cell_detail <- cell_changes |>
-  dplyr::filter(change != 0) |>
+cell_detail <- changed_cell_counts |>
   dplyr::select(
     project_id,
     sample_id,
