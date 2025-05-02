@@ -378,13 +378,33 @@ ggplot(cell_plot_df, aes(x = change_frac)) +
   theme_bw()
 ```
 
-#### Detail
+```{r, eval=has_cell_changes}
+knitr::asis_output("#### Detail")
+```
 
-A detail table of changed samples/metrics might then look like the following:
+```{r}
+# Detail table of cell count changes
 
-| Sample | Metric | Reference Value | Comparison Value | Change | % change |
-| ------- | ---------------- | --------------- | ---------------- | ------ | -------- |
-| `SCPCS999999` | `unfiltered_cells` | 1000 | 1005 | 5 | 0.5 |
+cell_detail <- cell_changes |>
+  dplyr::filter(change != 0) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    field,
+    ref,
+    comp,
+    change,
+    change_frac
+  )
+
+report_table(
+  cell_detail,
+  colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
+) |>
+  DT::formatPercentage(c(8), 2)
+```
+
 
 
 ### Read count changes {.tabset}
