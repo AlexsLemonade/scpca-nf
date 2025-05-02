@@ -145,6 +145,5 @@ if (file.size(opt$processed_sce) > 0) {
 jsonlite::write_json(
   metrics,
   path = opt$metrics_json,
-  auto_unbox = TRUE,
   pretty = TRUE
 )
