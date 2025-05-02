@@ -59,8 +59,18 @@ report_table <- function(df, options = list(), ...) {
     deferRender = TRUE,
     scrollY = 400,
     scrollCollapse = TRUE,
-    language = list(search = "Filter:")
+    language = list(search = "Filter:"),
+    columnDefs = list(list(
+      # render missing values as "NA" rather than blanks in the table
+      targets = "_all",
+      render = DT::JS(
+        "function(data, type, row, meta) {",
+        "return data === null ? 'NA' : data;",
+        "}"
+      )
+    ))
   )
+
   if (length(options) > 0) {
     # merge default options with user options
     opts <- modifyList(default_opts, options)
