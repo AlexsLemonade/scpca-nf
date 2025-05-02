@@ -291,15 +291,53 @@ cell_changes <- metrics_df |>
     change = comp - ref,
     change_frac = change / ref
   )
+
+has_cell_changes <- any(cell_changes$change != 0)
 ```
 
+```{r}
+# summary text for cell count section
+if (!has_cell_changes) {
+  knitr::asis_output(
+    "There are no changes in cell counts between the reference and comparison runs."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(cell_changes$project_id)
+  n_libraries <- dplyr::n_distinct(cell_changes$library_id)
 
-The tables below show any changes in cell counts at different stages of filtering.
-
-#### Summary
+  glue::glue("
+    The tables below show changes in cell counts changes between the reference and comparison workflow runs at various stages of processing.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with cell count changes
+    from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
 
 ```{r}
-# Text summary of cell count changes
+# warn if any unfiltered cell counts have changed
+unfiltered_cell_changes <- cell_changes |>
+  dplyr::filter(field == "unfiltered_cells") |>
+  dplyr::summarize(n_changed = sum(change != 0)) |>
+  dplyr::pull(n_changed)
+
+
+if (unfiltered_cell_changes > 0) {
+  knitr::asis_output(c(
+    "<div class=\"alert alert-danger\">",
+    "**Warning**: Unfiltered cell counts have changed between the reference and comparison runs.",
+    "</div>"
+  ))
+}
+```
+
+```{r, eval=has_cell_changes}
+knitr::asis_output("#### Summary")
+```
+
+```{r}
+# Summary table of cell count changes
+
 cell_summary <- cell_changes |>
   dplyr::summarise(
     .by = c("field"),
@@ -318,8 +356,6 @@ report_table(
 ```
 
 
-We will also include a plot with a histogram of the % changes for each metric where at least one sample changed.
-
 ```{r}
 change_fields <- cell_summary |>
   dplyr::filter(n_changed > 0) |>
@@ -333,7 +369,7 @@ cell_plot_df <- cell_changes |>
 
 ggplot(cell_plot_df, aes(x = change_frac)) +
   geom_histogram(bins = 20) +
-  facet_wrap(vars(field)) +
+  facet_wrap(vars(field), ncol = 3) +
   labs(
     title = "Histogram of changes in cell counts",
     x = "Change proportion",
