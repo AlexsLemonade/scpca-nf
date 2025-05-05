@@ -447,6 +447,65 @@ We will also include changes in altExps using the following fields:
 These will require a bit of extra processing, in that we will probably want to extract the altExp names and add those to the field names.
 For example, we would want to use a field like `unfiltered_altexp_total_adt` in the comparison table.
 
+```{r}
+# calculate the read count differences between reference and comparison for selected fields
+read_fields <- c(
+  "unfiltered_total_counts",
+  "unfiltered_total_spliced",
+  "unfiltered_expressed_genes",
+  "filtered_total_counts",
+  "filtered_total_spliced",
+  "filtered_expressed_genes",
+  "processed_total_counts",
+  "processed_total_spliced",
+  "processed_total_logcounts",
+  "processed_expressed_genes",
+  "unfiltered_altexp_total",
+  "filtered_altexp_total",
+  "processed_altexp_total"
+)
+
+read_changes <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(read_fields)
+  ) |>
+  tidyr::unnest_wider( # create columns for separated altexps
+    contains("altexp"),
+    names_sep = "_"
+  ) |>
+  dplyr::rename_with( # rename to keep ref/comp at end
+    \(name) stringr::str_replace(name, "\\.(ref|comp)(_.+)$", "\\2.\\1"),
+    contains("altexp")
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(read_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  )
+
+changed_read_counts <- read_changes |>
+  dplyr::filter(is.na(change) | change != 0) |>
+  # filter out fields that correspond to known cell count changes
+  dplyr::mutate(
+    # make corresponding field names for cell counts
+    cell_count_field = stringr::str_replace(field, "^(.+?)_.+", "\\1_cells")
+  ) |>
+  dplyr::anti_join( # remove rows that have corresponding cell count changes
+    changed_cell_counts,
+    by = c("project_id", "sample_id", "library_id", "cell_count_field" = "field")
+  )
+```
+
+
 
 Again, we would report only changed metrics, starting with a summary table:
 
