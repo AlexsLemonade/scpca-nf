@@ -117,9 +117,11 @@ if (file.size(opt$filtered_sce) > 0) {
   metrics$filtered_altexp_total <- altexp_totals(filtered_sce)
   metrics$miqc_pass_count <- sum(filtered_sce$miQC_pass)
   metrics$scpca_filter_count <- sum(filtered_sce$scpca_filter == "Keep")
-  if (!is.null(filtered_sce$adt_scpca_filter)) {
-    metrics$adt_scpca_filter_count <- sum(filtered_sce$adt_scpca_filter == "Keep")
-  }
+  metrics$adt_scpca_filter_count <- ifelse(
+    is.null(filtered_sce$adt_scpca_filter),
+    NA_integer_,
+    sum(filtered_sce$adt_scpca_filter == "Keep")
+  )
 
   rm(filtered_sce)
 }
@@ -136,8 +138,16 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
   # cluster counts as unnamed vector
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
-  metrics$singler_reference <- ifelse(is.null(metadata(processed_sce)$singler_reference), NA_character_, metadata(processed_sce)$singler_reference)
-  metrics$cellassign_reference <- ifelse(is.null(metadata(processed_sce)$cellassign_reference), NA_character_, metadata(processed_sce)$cellassign_reference)
+  metrics$singler_reference <- ifelse(
+    is.null(metadata(processed_sce)$singler_reference),
+    NA_character_,
+    metadata(processed_sce)$singler_reference
+  )
+  metrics$cellassign_reference <- ifelse(
+    is.null(metadata(processed_sce)$cellassign_reference),
+    NA_character_,
+    metadata(processed_sce)$cellassign_reference
+  )
   # convert celltype annotation counts to named lists
   metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_ontology))
   metrics$cellassign_celltypes <- as.list(table(processed_sce$cellassign_celltype_annotation))
