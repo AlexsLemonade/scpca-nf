@@ -330,10 +330,9 @@ if (!has_cell_changes) {
 
 ```{r}
 # warn if any unfiltered cell counts have changed
-unfiltered_cell_changes <- cell_changes |>
-  dplyr::filter(field == "unfiltered_cells", change != 0) |>
+unfiltered_cell_changes <- changed_cell_counts |>
+  dplyr::filter(stringr::str_detect(field, "^unfiltered_")) |>
   nrow()
-
 
 if (unfiltered_cell_changes > 0) {
   knitr::asis_output(glue::glue("
@@ -494,26 +493,120 @@ read_changes <- metrics_df |>
 
 changed_read_counts <- read_changes |>
   dplyr::filter(is.na(change) | change != 0) |>
-  # filter out fields that correspond to known cell count changes
-  dplyr::mutate(
-    # make corresponding field names for cell counts
+  dplyr::mutate( # make corresponding field names for cell counts
     cell_count_field = stringr::str_replace(field, "^(.+?)_.+", "\\1_cells")
   ) |>
   dplyr::anti_join( # remove rows that have corresponding cell count changes
     changed_cell_counts,
     by = c("project_id", "sample_id", "library_id", "cell_count_field" = "field")
   )
+
+has_read_changes <- nrow(changed_read_counts) > 0
+```
+
+```{r}
+# summary text for read count section
+if (!has_read_changes && !has_cell_changes) {
+  knitr::asis_output(
+    "There are no changes in read counts between the reference and comparison runs."
+  )
+} else if (has_cell_changes) {
+  knitr::asis_output(
+    "There may be changes in read counts, but only those expected due to changes in cell counts as described above."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(changed_read_counts$project_id)
+  n_libraries <- dplyr::n_distinct(changed_read_counts$library_id)
+  glue::glue("
+    The tables below show changes in read counts between the reference and comparison workflow runs at various stages of processing.
+    These include only changes that are not expected based on changes in cell counts.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')}
+    with read count changes from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
 ```
 
 
+```{r}
+# warn if any unfiltered read counts have changed
+unfiltered_read_changes <- changed_read_counts |>
+  dplyr::filter(stringr::str_detect(field, "^unfiltered_")) |>
+  nrow()
 
-Again, we would report only changed metrics, starting with a summary table:
+if (unfiltered_read_changes > 0) {
+  knitr::asis_output(c(
+    "<div class=\"alert alert-danger\">",
+    "**Warning**: Unfiltered read counts have changed between the reference and comparison runs.",
+    "</div>"
+  ))
+}
+```
 
-| Metric | Number of samples changed | % of samples changed | Mean % change |
-| ----- | --------- | --------- | ---------------- |
-| `scpca_filter_count` | 100 | 20 | -10 |
+```{r, eval=has_read_changes}
+knitr::asis_output("#### Summary")
+```
+```{r}
+# Summary table of read count changes
+read_summary <- read_changes |>
+  dplyr::summarise(
+    .by = c("field"),
+    # count where at least one version has a value
+    n = dplyr::n(),
+    n_changed = sum(is.na(change) | change != 0),
+    sample_change_frac = n_changed / n,
+    mean_change_frac = mean(change_frac, na.rm = TRUE)
+  )
+report_table(
+  read_summary,
+  colnames = c("Metric", "Samples", "Number of samples changed", "% of samples changed", "Mean % change")
+) |>
+  DT::formatPercentage(c(4, 5), 2)
+```
 
-We could then list individual samples with changes, similar to the cell count table.
+```{r eval=has_read_changes}
+# Plot of read count changes
+read_plot_df <- read_changes |>
+  dplyr::filter(field %in% read_fields, change != 0) |>
+  dplyr::mutate(
+    field = factor(field, levels = read_fields),
+  )
+ggplot(read_plot_df, aes(x = change_frac)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(field), ncol = 3) +
+  labs(
+    title = "Histogram of changes in read counts",
+    x = "Change proportion",
+    y = "Number of samples"
+  ) +
+  theme_bw()
+```
+
+```{r, eval=has_read_changes}
+knitr::asis_output("#### Detail")
+```
+
+```{r}
+# Detail table of read count changes
+read_detail <- changed_read_counts |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    field,
+    ref,
+    comp,
+    change,
+    change_frac
+  )
+report_table(
+  read_detail,
+  colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
+) |>
+  DT::formatPercentage(c(8), 2)
+```
+
+
 
 ## Analysis changes
 
