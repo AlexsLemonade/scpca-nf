@@ -319,7 +319,7 @@ if (!has_cell_changes) {
   n_libraries <- dplyr::n_distinct(changed_cell_counts$library_id)
 
   glue::glue("
-    The tables below show changes in cell counts changes between the reference and comparison workflow runs at various stages of processing.<br>
+    The tables below show changes in cell counts between the reference and comparison workflow runs at various stages of processing.<br>
     There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with cell count changes
     from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
   ") |>
