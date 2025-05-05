@@ -117,7 +117,9 @@ if (file.size(opt$filtered_sce) > 0) {
   metrics$filtered_altexp_total <- altexp_totals(filtered_sce)
   metrics$miqc_pass_count <- sum(filtered_sce$miQC_pass)
   metrics$scpca_filter_count <- sum(filtered_sce$scpca_filter == "Keep")
-  metrics$adt_scpca_filter_count <- sum(filtered_sce$adt_scpca_filter == "Keep")
+  if (!is.null(filtered_sce$adt_scpca_filter)) {
+    metrics$adt_scpca_filter_count <- sum(filtered_sce$adt_scpca_filter == "Keep")
+  }
 
   rm(filtered_sce)
 }
