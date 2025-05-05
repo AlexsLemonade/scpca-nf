@@ -331,15 +331,15 @@ if (!has_cell_changes) {
 ```{r}
 # warn if any unfiltered cell counts have changed
 unfiltered_cell_changes <- cell_changes |>
-  dplyr::filter(field == "unfiltered_cells") |>
-  dplyr::summarize(n_changed = sum(change != 0)) |>
-  dplyr::pull(n_changed)
+  dplyr::filter(field == "unfiltered_cells", change != 0) |>
+  nrow()
 
 
 if (unfiltered_cell_changes > 0) {
   knitr::asis_output(c(
     "<div class=\"alert alert-danger\">",
-    "**Warning**: Unfiltered cell counts have changed between the reference and comparison runs.",
+    "**Warning**: Unfiltered cell counts have changed between the reference and comparison runs. ",
+    glue::glue("**{unfiltered_cell_changes}** {ifelse(unfiltered_cell_changes == 1, 'library is', 'libraries are')} affected."),
     "</div>"
   ))
 }
