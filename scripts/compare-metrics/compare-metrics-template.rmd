@@ -57,6 +57,7 @@ report_table <- function(df, options = list(), ...) {
   default_opts <- list(
     scroller = TRUE,
     deferRender = TRUE,
+    scrollX = TRUE,
     scrollY = 400,
     scrollCollapse = TRUE,
     language = list(search = "Filter:"),
