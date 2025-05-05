@@ -336,12 +336,12 @@ unfiltered_cell_changes <- cell_changes |>
 
 
 if (unfiltered_cell_changes > 0) {
-  knitr::asis_output(c(
-    "<div class=\"alert alert-danger\">",
-    "**Warning**: Unfiltered cell counts have changed between the reference and comparison runs. ",
-    glue::glue("**{unfiltered_cell_changes}** {ifelse(unfiltered_cell_changes == 1, 'library is', 'libraries are')} affected."),
-    "</div>"
-  ))
+  knitr::asis_output(glue::glue("
+    <div class=\"alert alert-danger\">
+    **Warning**: Unfiltered cell counts have changed between the reference and comparison runs.
+    **{unfiltered_cell_changes}** {ifelse(unfiltered_cell_changes == 1, 'library is', 'libraries are')} affected.
+    </div>
+  "))
 }
 ```
 
