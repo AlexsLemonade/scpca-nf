@@ -358,12 +358,12 @@ cell_summary <- cell_changes |>
     n = dplyr::n(),
     n_changed = sum(is.na(change) | change != 0),
     sample_change_frac = n_changed / n,
-    mean_change_frac = mean(change_frac, na.rm = TRUE)
+    mean_change_frac = mean(abs(change_frac), na.rm = TRUE)
   )
 
 report_table(
   cell_summary,
-  colnames = c("Metric", "Samples", "Number of samples changed", "% of samples changed", "Mean % change")
+  colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
 ) |>
   DT::formatPercentage(c(4, 5), 2)
 ```
