@@ -359,7 +359,7 @@ cell_summary <- cell_changes |>
     n = dplyr::n(),
     n_changed = sum(is.na(change) | change != 0),
     library_change_frac = n_changed / n,
-    mean_change_frac = mean(abs(change_frac), na.rm = TRUE)
+    mean_change_frac = mean(abs(change_frac[which(change != 0)]))
   )
 
 report_table(
