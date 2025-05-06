@@ -1,382 +1,394 @@
 app_content:
-    entrypoint: main.nf
+  entrypoint: main.nf
 class: nextflow
 cwlVersion: None
-doc: '# `scpca-nf`
+doc: "# `scpca-nf`
 
 
-    The  `scpca-nf` workflow is used to process 10x single-cell data as part of the
-    [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
+  The  `scpca-nf` workflow is used to process 10x single-cell data as part of the
+  [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 
 
-    The workflow processes fastq files from single-cell and single-nuclei RNA-seq
-    samples using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create
-    gene by cell matrices.
+  The workflow processes fastq files from single-cell and single-nuclei RNA-seq
+  samples using [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create
+  gene by cell matrices.
 
-    The workflow outputs gene expression data in two formats: as [`SingleCellExperiment`
-    objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)
-    and as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
+  The workflow outputs gene expression data in two formats: as [`SingleCellExperiment`
+  objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)
+  and as [`AnnData` objects](https://anndata.readthedocs.io/en/latest/).
 
-    Reads from samples are aligned using selective alignment, to an index with transcripts
-    corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as
-    `splici`.
+  Reads from samples are aligned using selective alignment, to an index with transcripts
+  corresponding to spliced cDNA and to intronic regions, denoted by alevin-fry as
+  `splici`.
 
-    These matrices are filtered and additional processing is performed to calculate
-    quality control statistics, create reduced-dimension transformations, assign cell
-    types using both [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
-    and [`CellAssign`](https://docs.scvi-tools.org/en/stable/user_guide/models/cellassign.html),
-    and create output reports.
+  These matrices are filtered and additional processing is performed to calculate
+  quality control statistics, create reduced-dimension transformations, assign cell
+  types using both [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
+  and [`CellAssign`](https://docs.scvi-tools.org/en/stable/user_guide/models/cellassign.html),
+  and create output reports.
 
-    `scpca-nf` can also process libraries with ADT tags (e.g., CITE-seq), multiplexed
-    libraries (e.g., cell hashing), bulk RNA-seq, and spatial transcriptomics samples.
+  `scpca-nf` can also process libraries with ADT tags (e.g., CITE-seq), multiplexed
+  libraries (e.g., cell hashing), bulk RNA-seq, and spatial transcriptomics samples.
 
 
-    For more information on the contents of the output files and the processing of
-    all modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/).
+  For more information on the contents of the output files and the processing of
+  all modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/).
 
-    '
+  "
 hints:
--   class: sbg:NextflowExecutionMode
+  - class: sbg:NextflowExecutionMode
     value: multi-instance
 inputs:
--   doc: Select which profile(s) you want to use for task execution.
+  - doc: Select which profile(s) you want to use for task execution.
     id: profile
     inputBinding:
-        itemSeparator: ','
-        prefix: -profile
+      itemSeparator: ","
+      prefix: -profile
     label: Profiles
     type:
-    - 'null'
-    -   items:
-            name: profile
-            symbols:
+      - "null"
+      - items:
+          name: profile
+          symbols:
             - example
             - standard
             - stub
-            type: enum
+          type: enum
         type: array
--   doc: The output directory where the results will be saved. Use absolute paths
-        to storage on Cloud infrastructure.
+  - doc:
+      The output directory where the results will be saved. Use absolute paths
+      for storage on Cloud infrastructure.
     id: outdir
-    inputBinding:
-        prefix: --outdir
+
     label: Output directory
     sbg:category: Input/output options
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: scpca_out
     type: string
--   doc: The input file with information for each run to be processed. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file>
-        for format information.
+  - doc:
+      The input file with information for each run to be processed. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file>
+      for format information.
     format: text/tab-separated-values
     id: run_metafile
     inputBinding:
-        prefix: --run_metafile
+      prefix: --run_metafile
     label: Run metadata file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: run_metadata.tsv
     type:
-    - 'null'
-    - File
--   doc: A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file>
-        for more information.
+      - "null"
+      - File
+  - doc:
+      A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file>
+      for more information.
     format: text/tab-separated-values
     id: sample_metafile
     inputBinding:
-        prefix: --sample_metafile
+      prefix: --sample_metafile
     label: Sample metadata file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: sample_metadata.tsv
     type:
-    - 'null'
-    - File
--   doc: A file containing information to map cellhash barcodes to samples. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries>
-        for more information.
+      - "null"
+      - File
+  - doc:
+      A file containing information to map cellhash barcodes to samples. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries>
+      for more information.
     format: text/tab-separated-values
     id: cellhash_pool_file
     inputBinding:
-        prefix: --cellhash_pool_file
+      prefix: --cellhash_pool_file
     label: Cellhash pool file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: multiplex_pools.tsv
     type:
-    - 'null'
-    - File
--   doc: Directory for final output files.
+      - "null"
+      - File
+  - doc: Directory for final output files.
     id: results_dir
     inputBinding:
-        prefix: --results_dir
+      prefix: --results_dir
     label: Results directory
     sbg:category: Input/output options
     sbg:hidden: true
     sbg:icon: fas fa-folder-minus
     sbg:toolDefaultValue: scpca_out/results
     type:
-    - 'null'
-    - Directory
--   doc: Directory to store checkpoint files, used when optionally skipping steps.
+      - "null"
+      - Directory
+  - doc: Directory to store checkpoint files, used when optionally skipping steps.
     id: checkpoints_dir
     inputBinding:
-        prefix: --checkpoints_dir
+      prefix: --checkpoints_dir
     label: Checkpoints directory
     sbg:category: Input/output options
     sbg:hidden: true
     sbg:icon: fas fa-folder-minus
     sbg:toolDefaultValue: scpca_out/checkpoints
     type:
-    - 'null'
-    - Directory
--   doc: A comma-separated list of run IDs to run. Use "All" to run all samples in
-        the run_metafile.
+      - "null"
+      - Directory
+  - doc:
+      A comma-separated list of run IDs to run. Use "All" to run all samples in
+      the run_metafile.
     id: run_ids
     inputBinding:
-        prefix: --run_ids
+      prefix: --run_ids
     label: Run IDs
     sbg:category: Processing options
     sbg:toolDefaultValue: All
     type:
-    - 'null'
-    - string
--   doc: Run samples only from a given project ID
+      - "null"
+      - string
+  - doc: Run samples only from a given project ID
     id: project
     inputBinding:
-        prefix: --project
+      prefix: --project
     label: Project ID
     sbg:category: Processing options
     type:
-    - 'null'
-    - string
--   doc: If alevin or salmon mapping has already been performed and output files exist,
-        mapping is skipped by default.
+      - "null"
+      - string
+  - doc:
+      If alevin or salmon mapping has already been performed and output files exist,
+      mapping is skipped by default.
     id: repeat_mapping
     inputBinding:
-        prefix: --repeat_mapping
+      prefix: --repeat_mapping
     label: Repeat mapping
     sbg:category: Processing options
     type:
-    - 'null'
-    - boolean
--   doc: If genetic demultiplexing has already been performed and output files exist,
-        genetic demux is skipped by default.
+      - "null"
+      - boolean
+  - doc:
+      If genetic demultiplexing has already been performed and output files exist,
+      genetic demux is skipped by default.
     id: repeat_genetic_demux
     inputBinding:
-        prefix: --repeat_genetic_demux
+      prefix: --repeat_genetic_demux
     label: Repeat genetic demultiplexing
     sbg:category: Processing options
     type:
-    - 'null'
-    - boolean
--   doc: Skip genetic demultiplexing steps, even if bulk data is present.
+      - "null"
+      - boolean
+  - doc: Skip genetic demultiplexing steps, even if bulk data is present.
     id: skip_genetic_demux
     inputBinding:
-        prefix: --skip_genetic_demux
+      prefix: --skip_genetic_demux
     label: Skip genetic demultiplexing
     sbg:category: Processing options
     type:
-    - 'null'
-    - boolean
--   doc: Cell typing is skipped by default; use this option to incorporate cell type
-        annotations.
+      - "null"
+      - boolean
+  - doc:
+      Cell typing is skipped by default; use this option to incorporate cell type
+      annotations.
     id: perform_celltyping
     inputBinding:
-        prefix: --perform_celltyping
+      prefix: --perform_celltyping
     label: Perform cell typing
     sbg:category: Processing options
     type:
-    - 'null'
-    - boolean
--   doc: If cell type annotations have already been performed and output files exist,
-        cell typing is skipped by default.
+      - "null"
+      - boolean
+  - doc:
+      If cell type annotations have already been performed and output files exist,
+      cell typing is skipped by default.
     id: repeat_celltyping
     inputBinding:
-        prefix: --repeat_celltyping
+      prefix: --repeat_celltyping
     label: Repeat cell typing
     sbg:category: Processing options
     type:
-    - 'null'
-    - boolean
--   doc: alevin-fry outputs are not published by default. Use this option to publish
-        them to the `checkpoints` folder.
+      - "null"
+      - boolean
+  - doc:
+      alevin-fry outputs are not published by default. Use this option to publish
+      them to the `checkpoints` folder.
     id: publish_fry_outs
     inputBinding:
-        prefix: --publish_fry_outs
+      prefix: --publish_fry_outs
     label: Publish alevin-fry outputs
     sbg:category: Processing options
     type:
-    - 'null'
-    - boolean
--   doc: A comma-separated list of run IDs to merge. Use "All" to merge all runs in
-        the run_metafile.
+      - "null"
+      - boolean
+  - doc:
+      A comma-separated list of run IDs to merge. Use "All" to merge all runs in
+      the run_metafile.
     id: merge_run_ids
     inputBinding:
-        prefix: --merge_run_ids
+      prefix: --merge_run_ids
     label: Run IDs to merge
     sbg:category: Processing options
     sbg:hidden: true
     sbg:toolDefaultValue: All
     type:
-    - 'null'
-    - string
--   doc: If merge results already exist, recreating them can be skipped if desired.
+      - "null"
+      - string
+  - doc: If merge results already exist, recreating them can be skipped if desired.
     id: reuse_merge
     inputBinding:
-        prefix: --reuse_merge
+      prefix: --reuse_merge
     label: Reuse merge results
     sbg:category: Processing options
     sbg:hidden: true
     type:
-    - 'null'
-    - boolean
--   doc: The maximum number of libraries to merge into a single object. This is used
-        to limit the size of the merged object and can be adjusted based on the available
-        memory and processing power.
+      - "null"
+      - boolean
+  - doc:
+      The maximum number of libraries to merge into a single object. This is used
+      to limit the size of the merged object and can be adjusted based on the available
+      memory and processing power.
     id: max_merge_libraries
     inputBinding:
-        prefix: --max_merge_libraries
+      prefix: --max_merge_libraries
     label: Maximum number of libraries to merge
     sbg:category: Processing options
     sbg:hidden: true
     sbg:toolDefaultValue: 100
     type:
-    - 'null'
-    - int
--   doc: Root location containing reference files.
+      - "null"
+      - int
+  - doc: Root location containing reference files.
     id: ref_rootdir
     inputBinding:
-        prefix: --ref_rootdir
+      prefix: --ref_rootdir
     label: References root directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references
     type:
-    - 'null'
-    - Directory
--   doc: Directory containing 10x barcode files.
+      - "null"
+      - Directory
+  - doc: Directory containing 10x barcode files.
     id: barcode_dir
     inputBinding:
-        prefix: --barcode_dir
+      prefix: --barcode_dir
     label: Barcode file directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/barcodes/10X
     type:
-    - 'null'
-    - Directory
--   doc: JSON file describing the locations of reference files within the root directory.
+      - "null"
+      - Directory
+  - doc: JSON file describing the locations of reference files within the root directory.
     format: application/json
     id: ref_json
     inputBinding:
-        prefix: --ref_json
+      prefix: --ref_json
     label: Reference JSON file
     sbg:category: Reference files
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/scpca-refs.json
     type:
-    - 'null'
-    - File
--   doc: Directory containing cell type reference files.
+      - "null"
+      - File
+  - doc: Directory containing cell type reference files.
     id: celltype_ref_dir
     inputBinding:
-        prefix: --celltype_ref_dir
+      prefix: --celltype_ref_dir
     label: Cell type reference directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype
     type:
-    - 'null'
-    - Directory
--   doc: Directory containing `SingleR` model files.
+      - "null"
+      - Directory
+  - doc: Directory containing `SingleR` model files.
     id: singler_models_dir
     inputBinding:
-        prefix: --singler_models_dir
+      prefix: --singler_models_dir
     label: SingleR models directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype/singler_models
     type:
-    - 'null'
-    - Directory
--   doc: Directory containing `CellAssign` reference files.
+      - "null"
+      - Directory
+  - doc: Directory containing `CellAssign` reference files.
     id: cellassign_ref_dir
     inputBinding:
-        prefix: --cellassign_ref_dir
+      prefix: --cellassign_ref_dir
     label: CellAssign reference directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype/cellassign_references
     type:
-    - 'null'
-    - Directory
--   doc: Reference metadata used in `build-index.nf`.
+      - "null"
+      - Directory
+  - doc: Reference metadata used in `build-index.nf`.
     format: text/tab-separated-values
     id: ref_metadata
     inputBinding:
-        prefix: --ref_metadata
+      prefix: --ref_metadata
     label: Reference metadata
     sbg:category: Reference files
     sbg:hidden: true
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/ref-metadata.tsv
     type:
-    - 'null'
-    - File
--   doc: Organism for cell type references, used in `build-celltype-ref.nf`.
+      - "null"
+      - File
+  - doc: Organism for cell type references, used in `build-celltype-ref.nf`.
     id: celltype_organism
     inputBinding:
-        prefix: --celltype_organism
+      prefix: --celltype_organism
     label: Organism
     sbg:category: Reference files
     sbg:hidden: true
     sbg:toolDefaultValue: Homo_sapiens.GRCh38.104
     type:
-    - 'null'
-    - string
--   doc: Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.
+      - "null"
+      - string
+  - doc: Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.
     id: singler_references_dir
     inputBinding:
-        prefix: --singler_references_dir
+      prefix: --singler_references_dir
     label: SingleR references directory
     sbg:category: Reference files
     sbg:hidden: true
     sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype/singler_references
     type:
-    - 'null'
-    - Directory
--   doc: Cell type reference metadata, used in `build-celltype-ref.nf`.
+      - "null"
+      - Directory
+  - doc: Cell type reference metadata, used in `build-celltype-ref.nf`.
     format: text/tab-separated-values
     id: celltype_ref_metadata
     inputBinding:
-        prefix: --celltype_ref_metadata
+      prefix: --celltype_ref_metadata
     label: Cell type metadata
     sbg:category: Reference files
     sbg:hidden: true
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/celltype-reference-metadata.tsv
     type:
-    - 'null'
-    - File
--   doc: Panglao marker genes file, used in `build-celltype-ref.nf`.
+      - "null"
+      - File
+  - doc: Panglao marker genes file, used in `build-celltype-ref.nf`.
     format: text/tab-separated-values
     id: panglao_marker_genes_file
     inputBinding:
-        prefix: --panglao_marker_genes_file
+      prefix: --panglao_marker_genes_file
     label: Panglao marker genes
     sbg:category: Reference files
     sbg:hidden: true
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv
     type:
-    - 'null'
-    - File
--   doc: PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB
-        cell types.
+      - "null"
+      - File
+  - doc:
+      PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB
+      cell types.
     format: text/tab-separated-values
     id: panglao_ref_file
     inputBinding:
-        prefix: --panglao_ref_file
+      prefix: --panglao_ref_file
     label: Panglao ontology file
     sbg:category: Reference files
     sbg:hidden: true
@@ -384,13 +396,13 @@ inputs:
     sbg:pattern: \.tsv$
     sbg:toolDefaultValue: ${projectDir}/references/panglao-cell-type-ontologies.tsv
     type:
-    - 'null'
-    - File
--   doc: Reference file for consensus cell type calling.
+      - "null"
+      - File
+  - doc: Reference file for consensus cell type calling.
     format: text/tab-separated-values
     id: consensus_ref_file
     inputBinding:
-        prefix: --consensus_ref_file
+      prefix: --consensus_ref_file
     label: Consensus reference file
     sbg:category: Reference files
     sbg:hidden: true
@@ -398,341 +410,339 @@ inputs:
     sbg:pattern: \.tsv$
     sbg:toolDefaultValue: ${projectDir}/references/consensus-cell-type-reference.tsv
     type:
-    - 'null'
-    - File
--   id: seed
+      - "null"
+      - File
+  - id: seed
     inputBinding:
-        prefix: --seed
+      prefix: --seed
     label: Random number seed
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: 2021
     type:
-    - 'null'
-    - int
--   id: af_resolution
+      - "null"
+      - int
+  - id: af_resolution
     inputBinding:
-        prefix: --af_resolution
+      prefix: --af_resolution
     label: alevin-fry quant resolution method.
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: cr-like-em
     type:
-    - 'null'
-    -   name: af_resolution
+      - "null"
+      - name: af_resolution
         symbols:
-        - cr-like-em
-        - cr-like
-        - full
-        - parsimony
-        - trivial
+          - cr-like-em
+          - cr-like
+          - full
+          - parsimony
+          - trivial
         type: enum
--   id: spliced_only
+  - id: spliced_only
     inputBinding:
-        prefix: --spliced_only
+      prefix: --spliced_only
     label: Only count spliced RNA reads.
     sbg:category: Algorithm parameters
     type:
-    - 'null'
-    - boolean
--   doc: Cutoff for `miQC` to keep a cell.
+      - "null"
+      - boolean
+  - doc: Cutoff for `miQC` to keep a cell.
     id: prob_compromised_cutoff
     inputBinding:
-        prefix: --prob_compromised_cutoff
+      prefix: --prob_compromised_cutoff
     label: miQC cutoff value
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: 0.75
     type:
-    - 'null'
-    - float
--   doc: Minimum number of genes detected required to keep a cell.
+      - "null"
+      - float
+  - doc: Minimum number of genes detected required to keep a cell.
     id: gene_cutoff
     inputBinding:
-        prefix: --gene_cutoff
+      prefix: --gene_cutoff
     label: Minimum gene cutoff
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: 200
     type:
-    - 'null'
-    - int
--   doc: Number of highly variable genes to use for dimension reduction.
+      - "null"
+      - int
+  - doc: Number of highly variable genes to use for dimension reduction.
     id: num_hvg
     inputBinding:
-        prefix: --num_hvg
+      prefix: --num_hvg
     label: Number of highly variable genes
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: 2000
     type:
-    - 'null'
-    - int
--   doc: Number of principal components to keep from PCA.
+      - "null"
+      - int
+  - doc: Number of principal components to keep from PCA.
     id: num_pcs
     inputBinding:
-        prefix: --num_pcs
+      prefix: --num_pcs
     label: Number of principal components
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: 50
     type:
-    - 'null'
-    - int
--   doc: Cluster algorithm to apply.
+      - "null"
+      - int
+  - doc: Cluster algorithm to apply.
     id: cluster_algorithm
     inputBinding:
-        prefix: --cluster_algorithm
+      prefix: --cluster_algorithm
     label: Clustering algorithm
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: louvain
     type:
-    - 'null'
-    -   name: cluster_algorithm
+      - "null"
+      - name: cluster_algorithm
         symbols:
-        - louvain
-        - leiden
-        - walktrap
+          - louvain
+          - leiden
+          - walktrap
         type: enum
--   id: cluster_weighting
+  - id: cluster_weighting
     inputBinding:
-        prefix: --cluster_weighting
+      prefix: --cluster_weighting
     label: Edge weighting function to use with clustering algorithm.
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: jaccard
     type:
-    - 'null'
-    -   name: cluster_weighting
+      - "null"
+      - name: cluster_weighting
         symbols:
-        - rank
-        - number
-        - jaccard
+          - rank
+          - number
+          - jaccard
         type: enum
--   id: nearest_neighbors
+  - id: nearest_neighbors
     inputBinding:
-        prefix: --nearest_neighbors
+      prefix: --nearest_neighbors
     label: Number of neighbors to use with clustering algorithm.
     sbg:category: Algorithm parameters
     sbg:toolDefaultValue: 20
     type:
-    - 'null'
-    - int
--   doc: Label name for `SingleR` references, used in `build-celltype-ref.nf`.
+      - "null"
+      - int
+  - doc: Label name for `SingleR` references, used in `build-celltype-ref.nf`.
     id: singler_label_name
     inputBinding:
-        prefix: --singler_label_name
+      prefix: --singler_label_name
     label: SingleR label name
     sbg:category: Algorithm parameters
     sbg:hidden: true
     sbg:toolDefaultValue: label.ont
     type:
-    - 'null'
-    - string
--   doc: Use to set a limit for the highest memory jobs. Should be a string in the
-        format integer-unit e.g. `512.GB`
+      - "null"
+      - string
+  - doc:
+      Use to set a limit for the highest memory jobs. Should be a string in the
+      format integer-unit e.g. `512.GB`
     id: max_memory
     inputBinding:
-        prefix: --max_memory
+      prefix: --max_memory
     label: Maximum memory used for high memory jobs.
     sbg:category: Resource maximums
     sbg:icon: fas fa-memory
     sbg:pattern: ^\d+(\.\d+)?\.?\s*(K|M|G|T)?B$
     sbg:toolDefaultValue: 512 GB
     type:
-    - 'null'
-    - string
--   id: SCPCATOOLS_CONTAINER
+      - "null"
+      - string
+  - id: SCPCATOOLS_CONTAINER
     inputBinding:
-        prefix: --SCPCATOOLS_CONTAINER
+      prefix: --SCPCATOOLS_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools:v0.4.2
     type:
-    - 'null'
-    - string
--   id: SCPCATOOLS_SLIM_CONTAINER
+      - "null"
+      - string
+  - id: SCPCATOOLS_SLIM_CONTAINER
     inputBinding:
-        prefix: --SCPCATOOLS_SLIM_CONTAINER
+      prefix: --SCPCATOOLS_SLIM_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-slim:v0.4.2
     type:
-    - 'null'
-    - string
--   id: SCPCATOOLS_ANNDATA_CONTAINER
+      - "null"
+      - string
+  - id: SCPCATOOLS_ANNDATA_CONTAINER
     inputBinding:
-        prefix: --SCPCATOOLS_ANNDATA_CONTAINER
+      prefix: --SCPCATOOLS_ANNDATA_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-anndata:v0.4.2
     type:
-    - 'null'
-    - string
--   id: SCPCATOOLS_REPORTS_CONTAINER
+      - "null"
+      - string
+  - id: SCPCATOOLS_REPORTS_CONTAINER
     inputBinding:
-        prefix: --SCPCATOOLS_REPORTS_CONTAINER
+      prefix: --SCPCATOOLS_REPORTS_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-reports:v0.4.2
     type:
-    - 'null'
-    - string
--   id: SCPCATOOLS_SEURAT_CONTAINER
+      - "null"
+      - string
+  - id: SCPCATOOLS_SEURAT_CONTAINER
     inputBinding:
-        prefix: --SCPCATOOLS_SEURAT_CONTAINER
+      prefix: --SCPCATOOLS_SEURAT_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-seurat:v0.4.2
     type:
-    - 'null'
-    - string
--   id: SCPCATOOLS_SCVI_CONTAINER
+      - "null"
+      - string
+  - id: SCPCATOOLS_SCVI_CONTAINER
     inputBinding:
-        prefix: --SCPCATOOLS_SCVI_CONTAINER
+      prefix: --SCPCATOOLS_SCVI_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-scvi:v0.4.2
     type:
-    - 'null'
-    - string
--   id: ALEVINFRY_CONTAINER
+      - "null"
+      - string
+  - id: ALEVINFRY_CONTAINER
     inputBinding:
-        prefix: --ALEVINFRY_CONTAINER
+      prefix: --ALEVINFRY_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1
     type:
-    - 'null'
-    - string
--   id: BCFTOOLS_CONTAINER
+      - "null"
+      - string
+  - id: BCFTOOLS_CONTAINER
     inputBinding:
-        prefix: --BCFTOOLS_CONTAINER
+      prefix: --BCFTOOLS_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/bcftools:1.14--h88f3f91_0
     type:
-    - 'null'
-    - string
--   id: CELLSNP_CONTAINER
+      - "null"
+      - string
+  - id: CELLSNP_CONTAINER
     inputBinding:
-        prefix: --CELLSNP_CONTAINER
+      prefix: --CELLSNP_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0
     type:
-    - 'null'
-    - string
--   id: FASTP_CONTAINER
+      - "null"
+      - string
+  - id: FASTP_CONTAINER
     inputBinding:
-        prefix: --FASTP_CONTAINER
+      prefix: --FASTP_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/fastp:0.23.0--h79da9fb_0
     type:
-    - 'null'
-    - string
--   id: SALMON_CONTAINER
+      - "null"
+      - string
+  - id: SALMON_CONTAINER
     inputBinding:
-        prefix: --SALMON_CONTAINER
+      prefix: --SALMON_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1
     type:
-    - 'null'
-    - string
--   id: SAMTOOLS_CONTAINER
+      - "null"
+      - string
+  - id: SAMTOOLS_CONTAINER
     inputBinding:
-        prefix: --SAMTOOLS_CONTAINER
+      prefix: --SAMTOOLS_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/samtools:1.14--hb421002_0
     type:
-    - 'null'
-    - string
--   id: STAR_CONTAINER
+      - "null"
+      - string
+  - id: STAR_CONTAINER
     inputBinding:
-        prefix: --STAR_CONTAINER
+      prefix: --STAR_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/star:2.7.9a--h9ee0642_0
     type:
-    - 'null'
-    - string
--   id: TIDYVERSE_CONTAINER
+      - "null"
+      - string
+  - id: TIDYVERSE_CONTAINER
     inputBinding:
-        prefix: --TIDYVERSE_CONTAINER
+      prefix: --TIDYVERSE_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: rocker/tidyverse:4.4.0
     type:
-    - 'null'
-    - string
--   id: VIREO_CONTAINER
+      - "null"
+      - string
+  - id: VIREO_CONTAINER
     inputBinding:
-        prefix: --VIREO_CONTAINER
+      prefix: --VIREO_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/vireo-snp:v0.5.7
     type:
-    - 'null'
-    - string
--   id: CELLRANGER_CONTAINER
+      - "null"
+      - string
+  - id: CELLRANGER_CONTAINER
     inputBinding:
-        prefix: --CELLRANGER_CONTAINER
+      prefix: --CELLRANGER_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     type:
-    - 'null'
-    - string
--   id: SPACERANGER_CONTAINER
+      - "null"
+      - string
+  - id: SPACERANGER_CONTAINER
     inputBinding:
-        prefix: --SPACERANGER_CONTAINER
+      prefix: --SPACERANGER_CONTAINER
     sbg:category: Containers
     sbg:hidden: true
     sbg:icon: fab fa-docker
     type:
-    - 'null'
-    - string
--   doc: List of files not added as explicit workflow inputs but required for workflow
-        execution.
+      - "null"
+      - string
+  - doc:
+      List of files not added as explicit workflow inputs but required for workflow
+      execution.
     id: auxiliary_files
     label: Auxiliary files
     type:
-    - 'null'
-    -   items: File
+      - "null"
+      - items: File
         type: array
--   doc: Provide parameters through a JSON format input file.
+  - doc: Provide parameters through a JSON format input file.
     id: params_file
     inputBinding:
-        prefix: -params-file
+      prefix: -params-file
     label: Params files
     sbg:fileTypes: JSON
     type:
-    - 'null'
-    - File
+      - "null"
+      - File
 outputs:
--   doc: This is a template output. You can modify the glob pattern to make outputs
-        more specific.
-    id: nf_publishdir
-    label: Publish Directory
+  - doc: Output directory binding
+    id: output_directory
+    label: Output directory
     outputBinding:
-        glob: '*'
-    type:
-    - 'null'
-    -   items: File
-        type: array
+      glob: $(inputs.outdir)
+    type: Directory
 requirements:
--   class: InlineJavascriptRequirement
+  - class: InlineJavascriptRequirement
 sbg:links:
--   id: https://github.com/AlexsLemonade/scpca-nf
+  - id: https://github.com/AlexsLemonade/scpca-nf
     label: Home Page

@@ -16,7 +16,7 @@
           "type": "string",
           "format": "directory-path",
           "description": "Output directory",
-          "help_text": "The output directory where the results will be saved. Use absolute paths to storage on Cloud infrastructure.",
+          "help_text": "The output directory where the results will be saved. Use absolute paths for storage on Cloud infrastructure.",
           "fa_icon": "fas fa-folder-open",
           "default": "scpca_out"
         },
