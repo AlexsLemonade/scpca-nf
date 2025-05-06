@@ -366,7 +366,7 @@ report_table(
   cell_summary,
   colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
 ) |>
-  DT::formatPercentage(c(4, 5), 2)
+  DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
 ```
 
 
@@ -415,7 +415,7 @@ report_table(
   cell_detail,
   colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
 ) |>
-  DT::formatPercentage(c(8), 2)
+  DT::formatPercentage("change_frac", 2)
 ```
 
 
