@@ -17,6 +17,8 @@ work
 __pycache__
 .vscode
 .pixi
+pixi.lock
+pixi.toml
 .ruff_cache
 scpca_out
 scpca-references

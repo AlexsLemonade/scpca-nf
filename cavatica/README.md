@@ -14,31 +14,19 @@ Alternatively, you can launch a shell with the environment activated by running 
 ### Creating and updating the `sb_nextflow_schema.yaml` file
 
 The `sb_nextflow_schema.yaml` file is a configuration file that defines the Nextflow schema for the Cavatica port.
-This file was initially generated with the following command:
+This file can be generated or updated with the following command:
 
 ```bash
-pixi run -e cavatica sbpack_nf \
-  --workflow-path . \
-  --appid jashapiro/scpca-nf-test/scpca-nf \
-  --sb-doc cavatica/sb-doc.md \
-  --dump-sb-app
+cavatica-build.sh
 ```
-
-This command will create a new `sb_nextflow_schema.yaml` file in the current directory.
 
 #### Pushing to Cavatica
 
-To push the workflow to Cavatica, you can use the following command:
+To push the workflow to Cavatica, use the following command:
 
 ```bash
-op run -- pixi run -e cavatica sbpack_nf \
-  --profile . \
-  --workflow-path . \
-  --sb-schema sb_nextflow_schema.yaml \
-  --appid jashapiro/scpca-nf-test/scpca-nf \
-  --exclude $(< cavatica/sb-exclude.txt)
+op run -- cavatica-build.sh push
 ```
-
 
 
 ### API token

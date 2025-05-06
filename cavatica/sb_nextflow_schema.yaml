@@ -35,6 +35,9 @@ doc: '# `scpca-nf`
     all modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/).
 
     '
+hints:
+-   class: sbg:NextflowExecutionMode
+    value: multi-instance
 inputs:
 -   doc: Select which profile(s) you want to use for task execution.
     id: profile
