@@ -115,7 +115,11 @@ if (file.size(opt$filtered_sce) > 0) {
   metrics$filtered_total_spliced <- total_spliced(filtered_sce)
   metrics$filtered_expressed_genes <- sum(rowSums(counts(filtered_sce)) > 0)
   metrics$filtered_altexp_total <- altexp_totals(filtered_sce)
-  metrics$miqc_pass_count <- sum(filtered_sce$miQC_pass)
+  metrics$miqc_pass_count <- ifelse(
+    is.null(filtered_sce$miQC_pass),
+    NA_integer_,
+    sum(filtered_sce$miQC_pass)
+  )
   metrics$scpca_filter_count <- sum(filtered_sce$scpca_filter == "Keep")
   metrics$adt_scpca_filter_count <- ifelse(
     is.null(filtered_sce$adt_scpca_filter),
