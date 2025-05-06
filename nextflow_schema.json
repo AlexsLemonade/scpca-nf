@@ -15,7 +15,8 @@
         "outdir": {
           "type": "string",
           "format": "directory-path",
-          "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+          "description": "Output directory",
+          "help_text": "The output directory where the results will be saved. Use absolute paths to storage on Cloud infrastructure.",
           "fa_icon": "fas fa-folder-open",
           "default": "scpca_out"
         },
@@ -25,7 +26,8 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "The input file with information for each run to be processed. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file for format information."
+          "description": "Run metadata file",
+          "help_text": "The input file with information for each run to be processed. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file> for format information."
         },
         "sample_metafile": {
           "type": "string",
@@ -33,7 +35,8 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "A sample information file. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file for information."
+          "description": "Sample metadata file",
+          "help_text": "A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file> for more information."
         },
         "cellhash_pool_file": {
           "type": "string",
@@ -41,7 +44,8 @@
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "A file containing information to map cellhash barcodes to samples. See https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries for more information."
+          "description": "Cellhash pool file",
+          "help_text": "A file containing information to map cellhash barcodes to samples. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#multiplexed-cellhash-libraries> for more information."
         },
         "results_dir": {
           "type": "string",
@@ -49,7 +53,8 @@
           "hidden": true,
           "fa_icon": "fas fa-folder-minus",
           "format": "directory-path",
-          "description": "Directory for final output files."
+          "description": "Results directory",
+          "help_text": "Directory for final output files."
         },
         "checkpoints_dir": {
           "type": "string",
@@ -57,7 +62,8 @@
           "hidden": true,
           "fa_icon": "fas fa-folder-minus",
           "format": "directory-path",
-          "description": "Directory to store checkpoint files, used when optionally skipping steps."
+          "description": "Checkpoints directory",
+          "help_text": "Directory to store checkpoint files, used when optionally skipping steps."
         }
       }
     },
@@ -74,7 +80,7 @@
           "default": "512 GB",
           "fa_icon": "fas fa-memory",
           "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `--max_memory '512.GB'`"
+          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `512.GB`"
         }
       }
     },
@@ -87,50 +93,63 @@
         "run_ids": {
           "type": "string",
           "default": "All",
-          "description": "Specify a comma-separated list of run IDs to run. Use \"All\" to run all samples in the run_metafile."
+          "description" : "Run IDs",
+          "help_text": "A comma-separated list of run IDs to run. Use \"All\" to run all samples in the run_metafile."
         },
         "project": {
           "type": "string",
-          "description": "Run samples only from a given project ID"
+          "description": "Project ID",
+          "help_text": "Run samples only from a given project ID"
         },
         "repeat_mapping": {
           "type": "boolean",
-          "description": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default."
+          "description":"Repeat mapping",
+          "help_text": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default."
         },
         "repeat_genetic_demux": {
           "type": "boolean",
-          "description": "If genetic demultiplexing has been performed and output files exist, genetic demux is skipped by default."
+          "description": "Repeat genetic demultiplexing",
+          "help_text": "If genetic demultiplexing has already been performed and output files exist, genetic demux is skipped by default."
         },
         "skip_genetic_demux": {
           "type": "boolean",
-          "description": "Skip genetic demultiplexing steps, even if bulk data is present."
+          "description": "Skip genetic demultiplexing",
+          "help_text": "Skip genetic demultiplexing steps, even if bulk data is present."
         },
         "perform_celltyping": {
           "type": "boolean",
-          "description": "Specify whether or not to incorporate cell type annotations."
+          "description": "Perform cell typing",
+          "help_text": "Cell typing is skipped by default; use this option to incorporate cell type annotations."
         },
         "repeat_celltyping": {
           "type": "boolean",
-          "description": "If cell type annotations already exist, cell type classification with `SingleR` and `CellAssign` is skipped by default."
+          "description": "Repeat cell typing",
+          "help_text": "If cell type annotations have already been performed and output files exist, cell typing is skipped by default."
         },
         "publish_fry_outs": {
           "type": "boolean",
-          "description": "alevin-fry outputs are not published by default. Use this option to publish them to the `checkpoints` folder."
+          "description": "Publish alevin-fry outputs",
+          "help_text": "alevin-fry outputs are not published by default. Use this option to publish them to the `checkpoints` folder."
         },
         "merge_run_ids": {
           "type": "string",
           "default": "All",
-          "description": "Which runs to merge when using the merge.nf workflow.",
+          "description": "Run IDs to merge",
+          "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile.",
           "hidden": true
         },
         "reuse_merge": {
           "type": "boolean",
-          "description": "If merge results already exist, recreating them can be skipped if desired"
+          "description": "Reuse merge results",
+          "help_text": "If merge results already exist, recreating them can be skipped if desired.",
+          "hidden": true
         },
         "max_merge_libraries": {
           "type": "integer",
           "default": 100,
-          "description": "The maximum number of libraries to merge into a single object"
+          "description": "Maximum number of libraries to merge",
+          "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power.",
+          "hidden": true
         }
       }
     },
@@ -138,64 +157,74 @@
       "title": "Reference files",
       "type": "object",
       "description": "",
+      "help_text": "Locations of reference files for alignment and annotation.",
       "default": "",
       "properties": {
         "ref_rootdir": {
           "type": "string",
           "default": "s3://scpca-references",
           "format": "directory-path",
-          "description": "Root location for reference files."
+          "description": "References root directory",
+          "help_text": "Root location containing reference files."
         },
         "barcode_dir": {
           "type": "string",
           "default": "s3://scpca-references/barcodes/10X",
           "format": "directory-path",
-          "description": "Directory for 10x barcode files."
+          "description": "Barcode file directory",
+          "help_text": "Directory containing 10x barcode files."
         },
         "ref_json": {
           "type": "string",
           "default": "${projectDir}/references/scpca-refs.json",
           "format": "file-path",
           "mimetype": "application/json",
-          "description": "JSON file describing the locations of reference files within the root directory."
+          "description": "Reference JSON file",
+          "help_text": "JSON file describing the locations of reference files within the root directory."
         },
         "celltype_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype",
           "format": "directory-path",
-          "description": "Directory of cell type reference files."
+          "description": "Cell type reference directory",
+          "help_text": "Directory containing cell type reference files."
         },
         "singler_models_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_models",
           "format": "directory-path",
-          "description": "Directory of `SingleR` model files."
+          "description": "SingleR models directory",
+          "help_text": "Directory containing `SingleR` model files."
         },
         "cellassign_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/cellassign_references",
           "format": "directory-path",
-          "description": "Directory of `CellAssign` reference data."
+          "description": "CellAssign reference directory",
+          "help_text": "Directory containing `CellAssign` reference files."
         },
         "ref_metadata": {
           "type": "string",
           "default": "${projectDir}/references/ref-metadata.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "Reference metadata used in `build-index.nf`.",
+          "description": "Reference metadata",
+          "help_text": "Reference metadata used in `build-index.nf`.",
           "hidden": true
         },
         "celltype_organism": {
           "type": "string",
           "default": "Homo_sapiens.GRCh38.104",
-          "description": "Organism for cell type references, used in `build-celltype-ref.nf`.",
+          "description": "Organism",
+          "help_text": "Organism for cell type references, used in `build-celltype-ref.nf`.",
           "hidden": true
         },
         "singler_references_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_references",
           "format": "directory-path",
-          "description": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
+          "description": "SingleR references directory",
+          "help_text": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
           "hidden": true
         },
         "celltype_ref_metadata": {
@@ -203,7 +232,8 @@
           "default": "${projectDir}/references/celltype-reference-metadata.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "Cell type reference metadata, used in `build-celltype-ref.nf`.",
+          "description": "Cell type metadata",
+          "help_text": "Cell type reference metadata, used in `build-celltype-ref.nf`.",
           "hidden": true
         },
         "panglao_marker_genes_file": {
@@ -211,8 +241,9 @@
           "default": "${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "hidden": true,
-          "description": "Panglao marker genes file, used in `build-celltype-ref.nf`."
+          "description": "Panglao marker genes",
+          "help_text": "Panglao marker genes file, used in `build-celltype-ref.nf`.",
+          "hidden": true
         },
         "panglao_ref_file": {
           "type": "string",
@@ -220,7 +251,8 @@
           "pattern": "\\.tsv$",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB cell types"
+          "description": "Panglao ontology file",
+          "help_text": "PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB cell types."
         },
         "consensus_ref_file": {
           "type": "string",
@@ -228,7 +260,8 @@
           "pattern": "\\.tsv$",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
-          "description": "Consensus cell types reference file"
+          "description": "Consensus reference file",
+          "help_text": "Reference file for consensus cell type calling."
         }
       }
     },
@@ -256,45 +289,53 @@
         "prob_compromised_cutoff": {
           "type": "number",
           "default": 0.75,
-          "description": "Cutoff for `miQC` to keep a cell."
+          "description": "miQC cutoff value",
+          "help_text": "Cutoff for `miQC` to keep a cell."
         },
         "gene_cutoff": {
           "type": "integer",
           "default": 200,
-          "description": "Minimum number of genes detected per cell."
+          "description": "Minimum gene cutoff",
+          "help_text": "Minimum number of genes detected required to keep a cell."
         },
         "num_hvg": {
           "type": "integer",
           "default": 2000,
-          "description": "Number of highly variable genes to use for dimension reduction."
+          "description": "Number of highly variable genes",
+          "help_text": "Number of highly variable genes to use for dimension reduction."
         },
         "num_pcs": {
           "type": "integer",
           "default": 50,
-          "description": "Number of principal components to keep from PCA."
+          "description": "Number of principal components",
+          "help_text": "Number of principal components to keep from PCA."
         },
         "cluster_algorithm": {
           "type": "string",
           "default": "louvain",
           "enum": ["louvain", "leiden", "walktrap"],
-          "description": "Cluster algorithm to use."
+          "description": "Clustering algorithm",
+          "help_text": "Cluster algorithm to apply."
         },
         "cluster_weighting": {
           "type": "string",
           "default": "jaccard",
           "enum": ["rank", "number", "jaccard"],
-          "description": "Edge weighting to use for clustering."
+          "description": "Cluster weighting",
+          "description": "Edge weighting function to use with clustering algorithm."
         },
         "nearest_neighbors": {
           "type": "integer",
           "default": 20,
-          "description": "Number of neighbors to use for clustering."
+          "description": "Cluster nearest neighbors",
+          "description": "Number of neighbors to use with clustering algorithm."
         },
         "singler_label_name": {
           "type": "string",
           "default": "label.ont",
           "hidden": true,
-          "description": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
+          "description": "SingleR label name",
+          "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
         }
       }
     },
