@@ -67,23 +67,6 @@
         }
       }
     },
-    "resource_maximums": {
-      "title": "Resource maximums",
-      "type": "object",
-      "fa_icon": "fab fa-acquisitions-incorporated",
-      "description": "Set the top limit for requested resources for any single job.",
-      "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-      "properties": {
-        "max_memory": {
-          "type": "string",
-          "description": "Maximum memory used for high memory jobs.",
-          "default": "512 GB",
-          "fa_icon": "fas fa-memory",
-          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `512.GB`"
-        }
-      }
-    },
     "processing_options": {
       "title": "Processing options",
       "type": "object",
@@ -93,7 +76,7 @@
         "run_ids": {
           "type": "string",
           "default": "All",
-          "description" : "Run IDs",
+          "description": "Run IDs",
           "help_text": "A comma-separated list of run IDs to run. Use \"All\" to run all samples in the run_metafile."
         },
         "project": {
@@ -103,7 +86,7 @@
         },
         "repeat_mapping": {
           "type": "boolean",
-          "description":"Repeat mapping",
+          "description": "Repeat mapping",
           "help_text": "If alevin or salmon mapping has already been performed and output files exist, mapping is skipped by default."
         },
         "repeat_genetic_demux": {
@@ -151,7 +134,8 @@
           "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power.",
           "hidden": true
         }
-      }
+      },
+      "fa_icon": "fas fa-laptop-code"
     },
     "reference_files": {
       "title": "Reference files",
@@ -165,14 +149,16 @@
           "default": "s3://scpca-references",
           "format": "directory-path",
           "description": "References root directory",
-          "help_text": "Root location containing reference files."
+          "help_text": "Root location containing reference files.",
+          "fa_icon": "fas fa-folder-open"
         },
         "barcode_dir": {
           "type": "string",
           "default": "s3://scpca-references/barcodes/10X",
           "format": "directory-path",
           "description": "Barcode file directory",
-          "help_text": "Directory containing 10x barcode files."
+          "help_text": "Directory containing 10x barcode files.",
+          "fa_icon": "fas fa-folder-open"
         },
         "ref_json": {
           "type": "string",
@@ -180,28 +166,32 @@
           "format": "file-path",
           "mimetype": "application/json",
           "description": "Reference JSON file",
-          "help_text": "JSON file describing the locations of reference files within the root directory."
+          "help_text": "JSON file describing the locations of reference files within the root directory.",
+          "fa_icon": "fas fa-file-alt"
         },
         "celltype_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype",
           "format": "directory-path",
           "description": "Cell type reference directory",
-          "help_text": "Directory containing cell type reference files."
+          "help_text": "Directory containing cell type reference files.",
+          "fa_icon": "fas fa-folder-open"
         },
         "singler_models_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/singler_models",
           "format": "directory-path",
           "description": "SingleR models directory",
-          "help_text": "Directory containing `SingleR` model files."
+          "help_text": "Directory containing `SingleR` model files.",
+          "fa_icon": "fas fa-folder-open"
         },
         "cellassign_ref_dir": {
           "type": "string",
           "default": "s3://scpca-references/celltype/cellassign_references",
           "format": "directory-path",
           "description": "CellAssign reference directory",
-          "help_text": "Directory containing `CellAssign` reference files."
+          "help_text": "Directory containing `CellAssign` reference files.",
+          "fa_icon": "fas fa-folder-open"
         },
         "ref_metadata": {
           "type": "string",
@@ -210,7 +200,8 @@
           "mimetype": "text/tab-separated-values",
           "description": "Reference metadata",
           "help_text": "Reference metadata used in `build-index.nf`.",
-          "hidden": true
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         },
         "celltype_organism": {
           "type": "string",
@@ -225,7 +216,8 @@
           "format": "directory-path",
           "description": "SingleR references directory",
           "help_text": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
-          "hidden": true
+          "hidden": true,
+          "fa_icon": "fas fa-folder-open"
         },
         "celltype_ref_metadata": {
           "type": "string",
@@ -234,7 +226,8 @@
           "mimetype": "text/tab-separated-values",
           "description": "Cell type metadata",
           "help_text": "Cell type reference metadata, used in `build-celltype-ref.nf`.",
-          "hidden": true
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         },
         "panglao_marker_genes_file": {
           "type": "string",
@@ -243,7 +236,8 @@
           "mimetype": "text/tab-separated-values",
           "description": "Panglao marker genes",
           "help_text": "Panglao marker genes file, used in `build-celltype-ref.nf`.",
-          "hidden": true
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         },
         "panglao_ref_file": {
           "type": "string",
@@ -252,7 +246,9 @@
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
           "description": "Panglao ontology file",
-          "help_text": "PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB cell types."
+          "help_text": "PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB cell types.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         },
         "consensus_ref_file": {
           "type": "string",
@@ -261,9 +257,12 @@
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
           "description": "Consensus reference file",
-          "help_text": "Reference file for consensus cell type calling."
+          "help_text": "Reference file for consensus cell type calling.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         }
-      }
+      },
+      "fa_icon": "fas fa-copy"
     },
     "algorithm_parameters": {
       "title": "Algorithm parameters",
@@ -321,13 +320,11 @@
           "type": "string",
           "default": "jaccard",
           "enum": ["rank", "number", "jaccard"],
-          "description": "Cluster weighting",
           "description": "Edge weighting function to use with clustering algorithm."
         },
         "nearest_neighbors": {
           "type": "integer",
           "default": 20,
-          "description": "Cluster nearest neighbors",
           "description": "Number of neighbors to use with clustering algorithm."
         },
         "singler_label_name": {
@@ -337,6 +334,24 @@
           "description": "SingleR label name",
           "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
         }
+      },
+      "fa_icon": "fas fa-tasks"
+    },
+    "resource_maximums": {
+      "title": "Resource maximums",
+      "type": "object",
+      "fa_icon": "fab fa-acquisitions-incorporated",
+      "description": "Set the top limit for requested resources for any single job.",
+      "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
+      "properties": {
+        "max_memory": {
+          "type": "string",
+          "description": "Maximum memory used for high memory jobs.",
+          "default": "512 GB",
+          "fa_icon": "fas fa-memory",
+          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
+          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `512.GB`"
+        }
       }
     },
     "containers": {
@@ -344,73 +359,107 @@
       "type": "object",
       "description": "Docker containers required for workflow steps.",
       "default": "",
-      "fa_icon": "fas fa-box-open",
+      "fa_icon": "fab fa-docker",
       "properties": {
         "SCPCATOOLS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.1"
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.2",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SLIM_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.1"
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.2",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_ANNDATA_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.1"
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.2",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_REPORTS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.1"
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.2",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SEURAT_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.1"
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.2",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.1"
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.2",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "ALEVINFRY_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1"
+          "default": "quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "BCFTOOLS_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/bcftools:1.14--h88f3f91_0"
+          "default": "quay.io/biocontainers/bcftools:1.14--h88f3f91_0",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "CELLSNP_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0"
+          "default": "quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "FASTP_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/fastp:0.23.0--h79da9fb_0"
+          "default": "quay.io/biocontainers/fastp:0.23.0--h79da9fb_0",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SALMON_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1"
+          "default": "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SAMTOOLS_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/samtools:1.14--hb421002_0"
+          "default": "quay.io/biocontainers/samtools:1.14--hb421002_0",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "STAR_CONTAINER": {
           "type": "string",
-          "default": "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
+          "default": "quay.io/biocontainers/star:2.7.9a--h9ee0642_0",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "TIDYVERSE_CONTAINER": {
           "type": "string",
-          "default": "rocker/tidyverse:4.4.0"
+          "default": "rocker/tidyverse:4.4.0",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "VIREO_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/vireo-snp:v0.5.7"
+          "default": "ghcr.io/alexslemonade/vireo-snp:v0.5.7",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "CELLRANGER_CONTAINER": {
-          "type": "string"
+          "type": "string",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         },
         "SPACERANGER_CONTAINER": {
-          "type": "string"
+          "type": "string",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
         }
       }
     }
@@ -420,9 +469,6 @@
       "$ref": "#/$defs/input_output_options"
     },
     {
-      "$ref": "#/$defs/resource_maximums"
-    },
-    {
       "$ref": "#/$defs/processing_options"
     },
     {
@@ -430,6 +476,9 @@
     },
     {
       "$ref": "#/$defs/algorithm_parameters"
+    },
+    {
+      "$ref": "#/$defs/resource_maximums"
     },
     {
       "$ref": "#/$defs/containers"
