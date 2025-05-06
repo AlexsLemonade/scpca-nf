@@ -358,7 +358,7 @@ cell_summary <- cell_changes |>
     # count where at least one version has a value
     n = dplyr::n(),
     n_changed = sum(is.na(change) | change != 0),
-    sample_change_frac = n_changed / n,
+    library_change_frac = n_changed / n,
     mean_change_frac = mean(abs(change_frac), na.rm = TRUE)
   )
 
