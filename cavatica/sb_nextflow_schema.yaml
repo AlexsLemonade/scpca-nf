@@ -128,19 +128,6 @@ inputs:
     type:
     - 'null'
     - Directory
--   doc: Use to set a limit for the highest memory jobs. Should be a string in the
-        format integer-unit e.g. `512.GB`
-    id: max_memory
-    inputBinding:
-        prefix: --max_memory
-    label: Maximum memory used for high memory jobs.
-    sbg:category: Resource maximums
-    sbg:icon: fas fa-memory
-    sbg:pattern: ^\d+(\.\d+)?\.?\s*(K|M|G|T)?B$
-    sbg:toolDefaultValue: 512 GB
-    type:
-    - 'null'
-    - string
 -   doc: A comma-separated list of run IDs to run. Use "All" to run all samples in
         the run_metafile.
     id: run_ids
@@ -261,6 +248,7 @@ inputs:
         prefix: --ref_rootdir
     label: References root directory
     sbg:category: Reference files
+    sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references
     type:
     - 'null'
@@ -271,6 +259,7 @@ inputs:
         prefix: --barcode_dir
     label: Barcode file directory
     sbg:category: Reference files
+    sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/barcodes/10X
     type:
     - 'null'
@@ -282,6 +271,7 @@ inputs:
         prefix: --ref_json
     label: Reference JSON file
     sbg:category: Reference files
+    sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/scpca-refs.json
     type:
     - 'null'
@@ -292,6 +282,7 @@ inputs:
         prefix: --celltype_ref_dir
     label: Cell type reference directory
     sbg:category: Reference files
+    sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype
     type:
     - 'null'
@@ -302,6 +293,7 @@ inputs:
         prefix: --singler_models_dir
     label: SingleR models directory
     sbg:category: Reference files
+    sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype/singler_models
     type:
     - 'null'
@@ -312,6 +304,7 @@ inputs:
         prefix: --cellassign_ref_dir
     label: CellAssign reference directory
     sbg:category: Reference files
+    sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype/cellassign_references
     type:
     - 'null'
@@ -324,6 +317,7 @@ inputs:
     label: Reference metadata
     sbg:category: Reference files
     sbg:hidden: true
+    sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/ref-metadata.tsv
     type:
     - 'null'
@@ -346,6 +340,7 @@ inputs:
     label: SingleR references directory
     sbg:category: Reference files
     sbg:hidden: true
+    sbg:icon: fas fa-folder-open
     sbg:toolDefaultValue: s3://scpca-references/celltype/singler_references
     type:
     - 'null'
@@ -358,6 +353,7 @@ inputs:
     label: Cell type metadata
     sbg:category: Reference files
     sbg:hidden: true
+    sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/celltype-reference-metadata.tsv
     type:
     - 'null'
@@ -370,6 +366,7 @@ inputs:
     label: Panglao marker genes
     sbg:category: Reference files
     sbg:hidden: true
+    sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: ${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv
     type:
     - 'null'
@@ -382,6 +379,8 @@ inputs:
         prefix: --panglao_ref_file
     label: Panglao ontology file
     sbg:category: Reference files
+    sbg:hidden: true
+    sbg:icon: fas fa-file-alt
     sbg:pattern: \.tsv$
     sbg:toolDefaultValue: ${projectDir}/references/panglao-cell-type-ontologies.tsv
     type:
@@ -394,6 +393,8 @@ inputs:
         prefix: --consensus_ref_file
     label: Consensus reference file
     sbg:category: Reference files
+    sbg:hidden: true
+    sbg:icon: fas fa-file-alt
     sbg:pattern: \.tsv$
     sbg:toolDefaultValue: ${projectDir}/references/consensus-cell-type-reference.tsv
     type:
@@ -521,11 +522,26 @@ inputs:
     type:
     - 'null'
     - string
+-   doc: Use to set a limit for the highest memory jobs. Should be a string in the
+        format integer-unit e.g. `512.GB`
+    id: max_memory
+    inputBinding:
+        prefix: --max_memory
+    label: Maximum memory used for high memory jobs.
+    sbg:category: Resource maximums
+    sbg:icon: fas fa-memory
+    sbg:pattern: ^\d+(\.\d+)?\.?\s*(K|M|G|T)?B$
+    sbg:toolDefaultValue: 512 GB
+    type:
+    - 'null'
+    - string
 -   id: SCPCATOOLS_CONTAINER
     inputBinding:
         prefix: --SCPCATOOLS_CONTAINER
     sbg:category: Containers
-    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools:v0.4.1
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
+    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools:v0.4.2
     type:
     - 'null'
     - string
@@ -533,7 +549,9 @@ inputs:
     inputBinding:
         prefix: --SCPCATOOLS_SLIM_CONTAINER
     sbg:category: Containers
-    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-slim:v0.4.1
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
+    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-slim:v0.4.2
     type:
     - 'null'
     - string
@@ -541,7 +559,9 @@ inputs:
     inputBinding:
         prefix: --SCPCATOOLS_ANNDATA_CONTAINER
     sbg:category: Containers
-    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-anndata:v0.4.1
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
+    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-anndata:v0.4.2
     type:
     - 'null'
     - string
@@ -549,7 +569,9 @@ inputs:
     inputBinding:
         prefix: --SCPCATOOLS_REPORTS_CONTAINER
     sbg:category: Containers
-    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-reports:v0.4.1
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
+    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-reports:v0.4.2
     type:
     - 'null'
     - string
@@ -557,7 +579,9 @@ inputs:
     inputBinding:
         prefix: --SCPCATOOLS_SEURAT_CONTAINER
     sbg:category: Containers
-    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-seurat:v0.4.1
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
+    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-seurat:v0.4.2
     type:
     - 'null'
     - string
@@ -565,7 +589,9 @@ inputs:
     inputBinding:
         prefix: --SCPCATOOLS_SCVI_CONTAINER
     sbg:category: Containers
-    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-scvi:v0.4.1
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
+    sbg:toolDefaultValue: ghcr.io/alexslemonade/scpcatools-scvi:v0.4.2
     type:
     - 'null'
     - string
@@ -573,6 +599,8 @@ inputs:
     inputBinding:
         prefix: --ALEVINFRY_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1
     type:
     - 'null'
@@ -581,6 +609,8 @@ inputs:
     inputBinding:
         prefix: --BCFTOOLS_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/bcftools:1.14--h88f3f91_0
     type:
     - 'null'
@@ -589,6 +619,8 @@ inputs:
     inputBinding:
         prefix: --CELLSNP_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0
     type:
     - 'null'
@@ -597,6 +629,8 @@ inputs:
     inputBinding:
         prefix: --FASTP_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/fastp:0.23.0--h79da9fb_0
     type:
     - 'null'
@@ -605,6 +639,8 @@ inputs:
     inputBinding:
         prefix: --SALMON_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1
     type:
     - 'null'
@@ -613,6 +649,8 @@ inputs:
     inputBinding:
         prefix: --SAMTOOLS_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/samtools:1.14--hb421002_0
     type:
     - 'null'
@@ -621,6 +659,8 @@ inputs:
     inputBinding:
         prefix: --STAR_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: quay.io/biocontainers/star:2.7.9a--h9ee0642_0
     type:
     - 'null'
@@ -629,6 +669,8 @@ inputs:
     inputBinding:
         prefix: --TIDYVERSE_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: rocker/tidyverse:4.4.0
     type:
     - 'null'
@@ -637,6 +679,8 @@ inputs:
     inputBinding:
         prefix: --VIREO_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     sbg:toolDefaultValue: ghcr.io/alexslemonade/vireo-snp:v0.5.7
     type:
     - 'null'
@@ -645,6 +689,8 @@ inputs:
     inputBinding:
         prefix: --CELLRANGER_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     type:
     - 'null'
     - string
@@ -652,6 +698,8 @@ inputs:
     inputBinding:
         prefix: --SPACERANGER_CONTAINER
     sbg:category: Containers
+    sbg:hidden: true
+    sbg:icon: fab fa-docker
     type:
     - 'null'
     - string
