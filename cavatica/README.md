@@ -17,11 +17,27 @@ The `sb_nextflow_schema.yaml` file is a configuration file that defines the Next
 This file was initially generated with the following command:
 
 ```bash
-pixi run -e cavatica sbpack_nf --workflow-path . --appid jashapiro/scpca-nf-test/scpca-nf  --sb-doc cavatica/sb-doc.md --dump-sb-app
+pixi run -e cavatica sbpack_nf \
+  --workflow-path . \
+  --appid jashapiro/scpca-nf-test/scpca-nf \
+  --sb-doc cavatica/sb-doc.md \
+  --dump-sb-app
 ```
 
 This command will create a new `sb_nextflow_schema.yaml` file in the current directory.
 
+#### Pushing to Cavatica
+
+To push the workflow to Cavatica, you can use the following command:
+
+```bash
+op run -- pixi run -e cavatica sbpack_nf \
+  --profile . \
+  --workflow-path . \
+  --sb-schema sb_nextflow_schema.yaml \
+  --appid jashapiro/scpca-nf-test/scpca-nf \
+  --exclude $(< cavatica/sb-exclude.txt)
+```
 
 
 
