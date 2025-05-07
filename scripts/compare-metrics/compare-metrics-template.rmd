@@ -522,7 +522,7 @@ unfiltered_read_changes <- changed_read_counts |>
 if (unfiltered_read_changes > 0) {
   glue::glue("
     <div class=\"alert alert-danger\">
-    **Warning**: Unfiltered cell counts have changed between the reference and comparison runs.
+    **Warning**: Total reads for unfiltered cells have changed between the reference and comparison runs.
     **{unfiltered_read_changes}** {ifelse(unfiltered_read_changes == 1, 'library is', 'libraries are')} affected.
     </div>
   ") |>
