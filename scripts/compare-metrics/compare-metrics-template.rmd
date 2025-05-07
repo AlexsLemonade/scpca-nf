@@ -384,9 +384,7 @@ report_table(
 ```{r}
 # summary plot
 cell_plot_df <- changed_cell_counts |>
-  dplyr::mutate(
-    field = factor(field, levels = cell_fields),
-  )
+  tidyr::drop_na(change_frac) # remove NAs for plotting
 
 ggplot(cell_plot_df, aes(x = change_frac)) +
   geom_histogram(bins = 20) +
@@ -569,9 +567,8 @@ report_table(
 ```{r eval=has_read_changes}
 # Plot of read count changes
 read_plot_df <- changed_read_counts |>
-  dplyr::mutate(
-    field = factor(field, levels = read_fields),
-  )
+  tidyr::drop_na(change_frac) # remove NAs for plotting
+
 ggplot(read_plot_df, aes(x = change_frac)) +
   geom_histogram(bins = 20) +
   facet_wrap(vars(field), ncol = 3, scales = "free_x") +
@@ -606,8 +603,6 @@ report_table(
 ) |>
   DT::formatPercentage("change_frac", 2)
 ```
-
-
 
 ## Analysis changes
 
