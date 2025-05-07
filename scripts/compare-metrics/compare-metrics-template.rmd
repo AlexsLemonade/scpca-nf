@@ -219,7 +219,7 @@ has_processing_changes <- nrow(processing_changes) > 0
 
 ```{r}
 # Text summary of processing changes
-if (has_processing_changes) {
+if (!has_processing_changes) {
   knitr::asis_output(
     "All processing fields are the same between the reference and comparison runs."
   )
@@ -429,30 +429,6 @@ report_table(
 
 ### Read count changes {.tabset}
 
-If there are changes in the cell counts, we expect changes in the read counts as well.
-So we may only want to proceed with read count changes for samples where cell counts are unchanged.
-Here again, I think we should warn/highlight any changes > 0.5% of the total.
-Changes to unfiltered counts should also be highlighted, as we do not expect these to change between runs.
-
-- `unfiltered_total_counts`
-- `unfiltered_total_spliced`
-- `unfiltered_expressed_genes`
-- `filtered_total_counts`
-- `filtered_total_spliced`
-- `filtered_expressed_genes`
-- `processed_total_counts`
-- `processed_total_spliced`
-- `processed_total_logcounts`
-- `processed_expressed_genes`
-
-We will also include changes in altExps using the following fields:
-
-- `unfiltered_altexp_total`
-- `filtered_altexp_total`
-- `processed_altexp_total`
-
-These will require a bit of extra processing, in that we will probably want to extract the altExp names and add those to the field names.
-For example, we would want to use a field like `unfiltered_altexp_total_adt` in the comparison table.
 
 ```{r}
 # calculate the read count differences between reference and comparison for selected fields
@@ -501,10 +477,13 @@ read_changes <- metrics_df |>
 
 changed_read_counts <- read_changes |>
   dplyr::filter(is.na(change) | change != 0) |>
-  dplyr::mutate( # make corresponding field names for cell counts
+  dplyr::mutate(
+    # make corresponding field names for cell counts
     cell_count_field = stringr::str_replace(field, "^(.+?)_.+", "\\1_cells")
   ) |>
-  dplyr::anti_join( # remove rows that have corresponding cell count changes
+  dplyr::anti_join(
+    # remove rows that have corresponding cell count changes
+    # adt_scpca_filter_count does not filter cells, so we don't want to include those
     changed_cell_counts,
     by = c("project_id", "sample_id", "library_id", "cell_count_field" = "field")
   )
@@ -518,7 +497,7 @@ if (!has_read_changes && !has_cell_changes) {
   knitr::asis_output(
     "There are no changes in read counts between the reference and comparison runs."
   )
-} else if (has_cell_changes) {
+} else if (!has_read_changes) {
   knitr::asis_output(
     "There may be changes in read counts, but only those expected due to changes in cell counts as described above."
   )
@@ -595,7 +574,7 @@ read_plot_df <- changed_read_counts |>
   )
 ggplot(read_plot_df, aes(x = change_frac)) +
   geom_histogram(bins = 20) +
-  facet_wrap(vars(field), ncol = 3) +
+  facet_wrap(vars(field), ncol = 3, scales = "free_x") +
   labs(
     title = "Histogram of changes in read counts",
     x = "Change proportion",
