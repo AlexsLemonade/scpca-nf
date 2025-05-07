@@ -735,7 +735,7 @@ inputs:
       - "null"
       - File
 outputs:
-  - doc: Output directory binding
+  - doc: Output directory (set dynamically from the --outdir option)
     id: output_directory
     label: Output directory
     outputBinding:
