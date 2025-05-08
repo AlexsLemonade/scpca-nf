@@ -151,6 +151,10 @@ lib_changes <- metrics_df |>
     library_id,
     added_removed
   )
+
+# filter metrics down libraries in both sets for the remainder of the notebook
+metrics_df <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads"))
 ```
 
 ```{r}
@@ -198,7 +202,6 @@ processing_fields <- c(
 )
 
 processing_changes <- metrics_df |>
-  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
   dplyr::select(
     project_id,
     sample_id,
@@ -285,7 +288,6 @@ cell_fields <- c(
 )
 
 cell_changes <- metrics_df |>
-  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
   dplyr::select(
     project_id,
     sample_id,
@@ -447,7 +449,6 @@ read_fields <- c(
 )
 
 read_changes <- metrics_df |>
-  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
   dplyr::select(
     project_id,
     sample_id,
@@ -608,7 +609,24 @@ report_table(
 
 ### Highly variable genes
 
-Here we will report changes in the sets of HVGs, both in the set of genes and the order.
+```{r}
+hvg_changes <- metrics_df |>
+  dplyr::mutate(
+    hvg_removed = purrr::map2(hv_genes.ref, hv_genes.comp, setdiff),
+    hvg_added = purrr::map2(hv_genes.comp, hv_genes.ref, setdiff),
+    hvg_changes = purrr::map_int(hvg_added, length),
+    hvg_change_frac = hvg_changes / purrr::map_int(hv_genes.ref, length),
+    hvg_identical = purrr::map2_lgl(hv_genes.ref, hv_genes.comp, identical)
+  ) |>
+  dplyr::filter(!hvg_identical) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(c("hv_genes", "hvg"))
+  )
+```
+
 
 ### Clustering
 
