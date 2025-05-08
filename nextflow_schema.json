@@ -81,8 +81,8 @@
         },
         "project": {
           "type": "string",
-          "description": "Project ID",
-          "help_text": "Run samples only from a given project ID"
+          "description": "Project ID(s)",
+          "help_text": "A comma-separated list of project IDs. All samples with the provided project IDs will be run."
         },
         "repeat_mapping": {
           "type": "boolean",
@@ -118,7 +118,7 @@
           "type": "string",
           "default": "All",
           "description": "Run IDs to merge",
-          "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile.",
+          "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile. Only used in the merge.nf workflow",
           "hidden": true
         },
         "reuse_merge": {
