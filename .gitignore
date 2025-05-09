@@ -21,3 +21,6 @@ merged-report.html
 # pixi environments
 .pixi
 *.egg-info
+
+# schema backup file
+cavatica/sb_nextflow_schema.yaml.bak
