@@ -33,6 +33,22 @@ set.seed(1234)
 # Functions
 #| include: false
 
+
+read_metrics_files <- function(urls) {
+  # read a set of metrics files
+  # url: URL of the metrics files, each in json format
+  # returns: data frame (tibble) of combined metrics
+  purrr::map(urls, \(url) {
+    jsonlite::read_json(url, simplifyVector = TRUE) |>
+      # handle bare NAs, which may be quoted
+      purrr::modify_if(\(x){
+        length(x) == 1 && x == "NA"
+      }, ~NA)
+  }) |>
+    purrr::list_transpose(default = NA) |>
+    tibble::as_tibble()
+}
+
 report_table <- function(df, options = list(), ...) {
   # pass standard settings for report to DT::datatable
   # df: data frame to display
@@ -41,10 +57,21 @@ report_table <- function(df, options = list(), ...) {
   default_opts <- list(
     scroller = TRUE,
     deferRender = TRUE,
+    scrollX = TRUE,
     scrollY = 400,
     scrollCollapse = TRUE,
-    language = list(search = "Filter:")
+    language = list(search = "Filter:"),
+    columnDefs = list(list(
+      # render missing values as "NA" rather than blanks in the table
+      targets = "_all",
+      render = DT::JS(
+        "function(data, type, row, meta) {",
+        "return data === null ? 'NA' : data;",
+        "}"
+      )
+    ))
   )
+
   if (length(options) > 0) {
     # merge default options with user options
     opts <- modifyList(default_opts, options)
@@ -88,17 +115,8 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ```{r, eval=!use_cache}
 #| include: false
 # read metrics files from S3
-ref_data <- purrr::map(ref_metrics_files, \(url) {
-  jsonlite::read_json(url, simplifyVector = TRUE)
-}) |>
-  purrr::list_transpose(default = NA) |>
-  tibble::as_tibble()
-
-comp_data <- purrr::map(comp_metrics_paths, \(url) {
-  jsonlite::read_json(url, simplifyVector = TRUE)
-}) |>
-  purrr::list_transpose(default = NA) |>
-  tibble::as_tibble()
+ref_data <- read_metrics_files(ref_metrics_files)
+comp_data <- read_metrics_files(comp_metrics_paths)
 
 # join the two data frames
 metrics_df <- dplyr::full_join(
@@ -201,7 +219,7 @@ has_processing_changes <- nrow(processing_changes) > 0
 
 ```{r}
 # Text summary of processing changes
-if (has_processing_changes) {
+if (!has_processing_changes) {
   knitr::asis_output(
     "All processing fields are the same between the reference and comparison runs."
   )
@@ -254,75 +272,337 @@ report_table(
 
 ### Cell count changes {.tabset}
 
-For each sample, we will want to first compare:
+```{r}
+# calculate the difference between reference and comparison for selected fields
 
-- `unfiltered_cells`
-- `filtered_cells`
-- `processed_cells`
-- `miqc_pass_count`
-- `scpca_filter_count`
-- `adt_scpca_filter_count`
+cell_fields <- c(
+  "unfiltered_cells",
+  "filtered_cells",
+  "processed_cells",
+  "miqc_pass_count",
+  "scpca_filter_count",
+  "adt_scpca_filter_count"
+)
 
-If there are changes in any of those, we will report those, with prominent warnings for any large changes.
-What defines a large change?
-Perhaps start with a change > 0.5% of the total?
-Alternatively, if we see a large fraction of samples changing, we would want to note that.
-If there are any changes to the number of unfiltered cells, that should be highlighted, as we do not expect this to change between runs.
+cell_changes <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(cell_fields)
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(cell_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  )
 
-#### Summary
-The main display item would be a summary table, in the first tab:
+changed_cell_counts <- cell_changes |>
+  dplyr::filter(is.na(change) | change != 0)
 
-| Metric | Number of samples changed | % of samples changed | Mean % change |
-| ----- | --------- | --------- | ---------------- |
-| `scpca_filter_count` | 100 | 20 | -10 |
+has_cell_changes <- nrow(changed_cell_counts) > 0
+```
 
-We will also include a plot with a histogram of the % changes for each metric where at least one sample changed.
+```{r}
+# summary text for cell count section
+if (!has_cell_changes) {
+  knitr::asis_output(
+    "There are no changes in cell counts between the reference and comparison runs."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(changed_cell_counts$project_id)
+  n_libraries <- dplyr::n_distinct(changed_cell_counts$library_id)
+
+  glue::glue("
+    The tables below show changes in cell counts between the reference and comparison workflow runs at various stages of processing.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with cell count changes
+    from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
+
+```{r}
+# warn if any unfiltered cell counts have changed
+unfiltered_cell_changes <- changed_cell_counts |>
+  dplyr::filter(stringr::str_detect(field, "^unfiltered_")) |>
+  nrow()
+
+if (unfiltered_cell_changes > 0) {
+  glue::glue("
+    <div class=\"alert alert-danger\">
+    **Warning**: Unfiltered cell counts have changed between the reference and comparison runs.
+    **{unfiltered_cell_changes}** {ifelse(unfiltered_cell_changes == 1, 'library is', 'libraries are')} affected.
+    </div>
+  ") |>
+    knitr::asis_output()
+}
+```
+
+```{r, eval=has_cell_changes}
+knitr::asis_output("#### Summary")
+```
+
+```{r}
+# Summary table of cell count changes
+
+cell_field_n <- cell_changes |>
+  dplyr::count(field)
+
+cell_summary <- changed_cell_counts |>
+  dplyr::summarise(
+    .by = c("field"),
+    n_changed = sum(is.na(change) | change != 0),
+    mean_change_frac = mean(abs(change_frac[which(change != 0)]))
+  ) |>
+  dplyr::left_join(cell_field_n, by = "field") |>
+  dplyr::mutate(
+    library_change_frac = n_changed / n
+  ) |>
+  dplyr::select(
+    field,
+    n,
+    n_changed,
+    library_change_frac,
+    mean_change_frac
+  )
+
+report_table(
+  cell_summary,
+  colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
+) |>
+  DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
+```
 
 
-#### Detail
+```{r}
+# summary plot
+cell_plot_df <- changed_cell_counts |>
+  tidyr::drop_na(change_frac) # remove NAs for plotting
 
-A detail table of changed samples/metrics might then look like the following:
+ggplot(cell_plot_df, aes(x = change_frac)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(field), ncol = 3) +
+  labs(
+    title = "Histogram of changes in cell counts",
+    x = "Change proportion",
+    y = "Number of samples"
+  ) +
+  theme_bw()
+```
 
-| Sample | Metric | Reference Value | Comparison Value | Change | % change |
-| ------- | ---------------- | --------------- | ---------------- | ------ | -------- |
-| `SCPCS999999` | `unfiltered_cells` | 1000 | 1005 | 5 | 0.5 |
+```{r, eval=has_cell_changes}
+knitr::asis_output("#### Detail")
+```
+
+```{r}
+# Detail table of cell count changes
+
+cell_detail <- changed_cell_counts |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    field,
+    ref,
+    comp,
+    change,
+    change_frac
+  )
+
+report_table(
+  cell_detail,
+  colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
+
 
 
 ### Read count changes {.tabset}
 
-If there are changes in the cell counts, we expect changes in the read counts as well.
-So we may only want to proceed with read count changes for samples where cell counts are unchanged.
-Here again, I think we should warn/highlight any changes > 0.5% of the total.
-Changes to unfiltered counts should also be highlighted, as we do not expect these to change between runs.
 
-- `unfiltered_total_counts`
-- `unfiltered_total_spliced`
-- `unfiltered_expressed_genes`
-- `filtered_total_counts`
-- `filtered_total_spliced`
-- `filtered_expressed_genes`
-- `processed_total_counts`
-- `processed_total_spliced`
-- `processed_total_logcounts`
-- `processed_expressed_genes`
+```{r}
+# calculate the read count differences between reference and comparison for selected fields
+read_fields <- c(
+  "unfiltered_total_counts",
+  "unfiltered_total_spliced",
+  "unfiltered_expressed_genes",
+  "filtered_total_counts",
+  "filtered_total_spliced",
+  "filtered_expressed_genes",
+  "processed_total_counts",
+  "processed_total_spliced",
+  "processed_total_logcounts",
+  "processed_expressed_genes",
+  "unfiltered_altexp_total",
+  "filtered_altexp_total",
+  "processed_altexp_total"
+)
 
-We will also include changes in altExps using the following fields:
+read_changes <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads")) |> # remove added/removed libraries
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(read_fields)
+  ) |>
+  tidyr::unnest_wider( # create columns for separated altexps
+    contains("altexp"),
+    names_sep = "_"
+  ) |>
+  dplyr::rename_with( # rename altexp columns to keep ref/comp at end
+    \(name) stringr::str_replace(name, "\\.(ref|comp)(_.+)$", "\\2.\\1"),
+    contains("altexp")
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(read_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  )
 
-- `unfiltered_altexp_total`
-- `filtered_altexp_total`
-- `processed_altexp_total`
+changed_read_counts <- read_changes |>
+  dplyr::filter(is.na(change) | change != 0) |>
+  dplyr::mutate(
+    # make corresponding field names for cell counts
+    cell_count_field = stringr::str_replace(field, "^(.+?)_.+", "\\1_cells")
+  ) |>
+  dplyr::anti_join(
+    # remove rows that have corresponding cell count changes
+    # adt_scpca_filter_count does not filter cells, so we don't want to include those
+    changed_cell_counts,
+    by = c("project_id", "sample_id", "library_id", "cell_count_field" = "field")
+  )
 
-These will require a bit of extra processing, in that we will probably want to extract the altExp names and add those to the field names.
-For example, we would want to use a field like `unfiltered_altexp_total_adt` in the comparison table.
+has_read_changes <- nrow(changed_read_counts) > 0
+```
+
+```{r}
+# summary text for read count section
+if (!has_read_changes && !has_cell_changes) {
+  knitr::asis_output(
+    "There are no changes in read counts between the reference and comparison runs."
+  )
+} else if (!has_read_changes) {
+  knitr::asis_output(
+    "There may be changes in read counts, but only those expected due to changes in cell counts as described above."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(changed_read_counts$project_id)
+  n_libraries <- dplyr::n_distinct(changed_read_counts$library_id)
+  glue::glue("
+    The tables below show changes in read counts between the reference and comparison workflow runs at various stages of processing.
+    These include only changes that are not expected based on changes in cell counts.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')}
+    with read count changes from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
 
 
-Again, we would report only changed metrics, starting with a summary table:
+```{r}
+# warn if any unfiltered read counts have changed
+unfiltered_read_changes <- changed_read_counts |>
+  dplyr::filter(stringr::str_detect(field, "^unfiltered_")) |>
+  nrow()
 
-| Metric | Number of samples changed | % of samples changed | Mean % change |
-| ----- | --------- | --------- | ---------------- |
-| `scpca_filter_count` | 100 | 20 | -10 |
+if (unfiltered_read_changes > 0) {
+  glue::glue("
+    <div class=\"alert alert-danger\">
+    **Warning**: Total reads for unfiltered cells have changed between the reference and comparison runs.
+    **{unfiltered_read_changes}** {ifelse(unfiltered_read_changes == 1, 'library is', 'libraries are')} affected.
+    </div>
+  ") |>
+    knitr::asis_output()
+}
+```
 
-We could then list individual samples with changes, similar to the cell count table.
+```{r, eval=has_read_changes}
+knitr::asis_output("#### Summary")
+```
+
+```{r eval=has_read_changes}
+# Summary table of read count changes
+read_field_n <- read_changes |>
+  dplyr::count(field)
+
+read_summary <- changed_read_counts |>
+  dplyr::summarise(
+    .by = c("field"),
+    n_changed = sum(is.na(change) | change != 0),
+    mean_change_frac = mean(abs(change_frac[which(change != 0)]))
+  ) |>
+  dplyr::left_join(read_field_n, by = "field") |>
+  dplyr::mutate(
+    library_change_frac = n_changed / n
+  ) |>
+  dplyr::select(
+    field,
+    n,
+    n_changed,
+    library_change_frac,
+    mean_change_frac
+  )
+
+report_table(
+  read_summary,
+  colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
+) |>
+  DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
+```
+
+```{r eval=has_read_changes}
+# Plot of read count changes
+read_plot_df <- changed_read_counts |>
+  tidyr::drop_na(change_frac) # remove NAs for plotting
+
+ggplot(read_plot_df, aes(x = change_frac)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(field), ncol = 3, scales = "free_x") +
+  labs(
+    title = "Histogram of changes in read counts",
+    x = "Change proportion",
+    y = "Number of samples"
+  ) +
+  theme_bw()
+```
+
+```{r, eval=has_read_changes}
+knitr::asis_output("#### Detail")
+```
+
+```{r eval=has_read_changes}
+# Detail table of read count changes
+read_detail <- changed_read_counts |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    field,
+    ref,
+    comp,
+    change,
+    change_frac
+  )
+report_table(
+  read_detail,
+  colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
 
 ## Analysis changes
 
