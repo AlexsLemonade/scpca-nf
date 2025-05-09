@@ -13,7 +13,7 @@ exclude_file="sb_exclude.txt"
 # get the action from the command line, default is build
 ACTION=${1:-"build"}
 
-if [ $ACTION == "build" ]; then
+if [ "$ACTION" == "build" ]; then
     # default to multi-instance mode
     mode_arg="--execution-mode multi-instance"
 
@@ -33,6 +33,11 @@ if [ $ACTION == "build" ]; then
       --dump-sb-app
     mv ../sb_nextflow_schema.yaml .
 elif [ "$ACTION" == "push" ]; then
+    # Check if the sb_nextflow_schema.yaml file exists
+    if [ ! -f sb_nextflow_schema.yaml ]; then
+        echo "sb_nextflow_schema.yaml file not found. Please run the build action first."
+        exit 1
+    fi
     # Push the Docker image to the registry
     pixi run -e cavatica sbpack_nf \
       --profile . \
