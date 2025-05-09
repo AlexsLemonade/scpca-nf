@@ -124,14 +124,14 @@
         "reuse_merge": {
           "type": "boolean",
           "description": "Reuse merge results",
-          "help_text": "If merge results already exist, recreating them can be skipped if desired.",
+          "help_text": "If merge results already exist, recreating them can be skipped if desired. Only used in the merge.nf workflow.",
           "hidden": true
         },
         "max_merge_libraries": {
           "type": "integer",
           "default": 100,
           "description": "Maximum number of libraries to merge",
-          "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power.",
+          "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power. Only used in the merge.nf workflow.",
           "hidden": true
         }
       },

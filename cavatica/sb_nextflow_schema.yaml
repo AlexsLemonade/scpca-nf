@@ -59,6 +59,8 @@ inputs:
       The output directory where the results will be saved. Use absolute paths
       for storage on Cloud infrastructure.
     id: outdir
+    inputBinding:
+      prefix: --outdir
     label: Output directory
     sbg:category: Input/output options
     sbg:icon: fas fa-folder-open
@@ -142,11 +144,13 @@ inputs:
     type:
       - "null"
       - string
-  - doc: Run samples only from a given project ID
+  - doc:
+      A comma-separated list of project IDs. All samples with the provided project
+      IDs will be run.
     id: project
     inputBinding:
       prefix: --project
-    label: Project ID
+    label: Project ID(s)
     sbg:category: Processing options
     type:
       - "null"
@@ -215,43 +219,6 @@ inputs:
     type:
       - "null"
       - boolean
-  - doc:
-      A comma-separated list of run IDs to merge. Use "All" to merge all runs in
-      the run_metafile.
-    id: merge_run_ids
-    inputBinding:
-      prefix: --merge_run_ids
-    label: Run IDs to merge
-    sbg:category: Processing options
-    sbg:hidden: true
-    sbg:toolDefaultValue: All
-    type:
-      - "null"
-      - string
-  - doc: If merge results already exist, recreating them can be skipped if desired.
-    id: reuse_merge
-    inputBinding:
-      prefix: --reuse_merge
-    label: Reuse merge results
-    sbg:category: Processing options
-    sbg:hidden: true
-    type:
-      - "null"
-      - boolean
-  - doc:
-      The maximum number of libraries to merge into a single object. This is used
-      to limit the size of the merged object and can be adjusted based on the available
-      memory and processing power.
-    id: max_merge_libraries
-    inputBinding:
-      prefix: --max_merge_libraries
-    label: Maximum number of libraries to merge
-    sbg:category: Processing options
-    sbg:hidden: true
-    sbg:toolDefaultValue: 100
-    type:
-      - "null"
-      - int
   - doc: Root location containing reference files.
     id: ref_rootdir
     inputBinding:
@@ -319,98 +286,6 @@ inputs:
     type:
       - "null"
       - Directory
-  - doc: Reference metadata used in `build-index.nf`.
-    format: text/tab-separated-values
-    id: ref_metadata
-    inputBinding:
-      prefix: --ref_metadata
-    label: Reference metadata
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:icon: fas fa-file-alt
-    sbg:toolDefaultValue: ${projectDir}/references/ref-metadata.tsv
-    type:
-      - "null"
-      - File
-  - doc: Organism for cell type references, used in `build-celltype-ref.nf`.
-    id: celltype_organism
-    inputBinding:
-      prefix: --celltype_organism
-    label: Organism
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:toolDefaultValue: Homo_sapiens.GRCh38.104
-    type:
-      - "null"
-      - string
-  - doc: Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.
-    id: singler_references_dir
-    inputBinding:
-      prefix: --singler_references_dir
-    label: SingleR references directory
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/singler_references
-    type:
-      - "null"
-      - Directory
-  - doc: Cell type reference metadata, used in `build-celltype-ref.nf`.
-    format: text/tab-separated-values
-    id: celltype_ref_metadata
-    inputBinding:
-      prefix: --celltype_ref_metadata
-    label: Cell type metadata
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:icon: fas fa-file-alt
-    sbg:toolDefaultValue: ${projectDir}/references/celltype-reference-metadata.tsv
-    type:
-      - "null"
-      - File
-  - doc: Panglao marker genes file, used in `build-celltype-ref.nf`.
-    format: text/tab-separated-values
-    id: panglao_marker_genes_file
-    inputBinding:
-      prefix: --panglao_marker_genes_file
-    label: Panglao marker genes
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:icon: fas fa-file-alt
-    sbg:toolDefaultValue: ${projectDir}/references/PanglaoDB_markers_2020-03-27.tsv
-    type:
-      - "null"
-      - File
-  - doc:
-      PanglaoDB cell type reference file containing Cell Ontology terms for PanglaoDB
-      cell types.
-    format: text/tab-separated-values
-    id: panglao_ref_file
-    inputBinding:
-      prefix: --panglao_ref_file
-    label: Panglao ontology file
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:icon: fas fa-file-alt
-    sbg:pattern: \.tsv$
-    sbg:toolDefaultValue: ${projectDir}/references/panglao-cell-type-ontologies.tsv
-    type:
-      - "null"
-      - File
-  - doc: Reference file for consensus cell type calling.
-    format: text/tab-separated-values
-    id: consensus_ref_file
-    inputBinding:
-      prefix: --consensus_ref_file
-    label: Consensus reference file
-    sbg:category: Reference files
-    sbg:hidden: true
-    sbg:icon: fas fa-file-alt
-    sbg:pattern: \.tsv$
-    sbg:toolDefaultValue: ${projectDir}/references/consensus-cell-type-reference.tsv
-    type:
-      - "null"
-      - File
   - id: seed
     inputBinding:
       prefix: --seed
@@ -522,17 +397,6 @@ inputs:
     type:
       - "null"
       - int
-  - doc: Label name for `SingleR` references, used in `build-celltype-ref.nf`.
-    id: singler_label_name
-    inputBinding:
-      prefix: --singler_label_name
-    label: SingleR label name
-    sbg:category: Algorithm parameters
-    sbg:hidden: true
-    sbg:toolDefaultValue: label.ont
-    type:
-      - "null"
-      - string
   - doc:
       Use to set a limit for the highest memory jobs. Should be a string in the
       format integer-unit e.g. `512.GB`
