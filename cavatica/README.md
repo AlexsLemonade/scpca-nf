@@ -11,6 +11,27 @@ This is defined in the `pixi.toml` file in the root of the repository.
 To use `sbpack`, within this environment, prefix your command with `pixi run -e cavatica` (e.g. `pixi run -e cavatica sbpack_nf -h`).
 Alternatively, you can launch a shell with the environment activated by running `pixi shell -e cavatica`, and then run `sbpack` command without the prefix.
 
+### Creating and updating the `sb_nextflow_schema.yaml` file
+
+The `sb_nextflow_schema.yaml` file is a configuration file that defines the Nextflow schema for the Cavatica port.
+This file can be generated or updated with the following command:
+
+```bash
+cavatica-build.sh
+```
+
+This will use the existing file as a starting point in order to preserve any customizations.
+If you want to start fresh, you can delete the existing `sb_nextflow_schema.yaml` file and run the command again.
+
+#### Pushing to Cavatica
+
+To push the workflow to Cavatica, use the following command:
+
+```bash
+op run -- cavatica-build.sh push
+```
+
+
 ### API token
 
 To use the Cavatica API, you will need to create an account at https://cavatica.sbgenomics.com and obtain an authentication token.

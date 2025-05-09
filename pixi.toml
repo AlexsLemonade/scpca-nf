@@ -10,6 +10,7 @@ version = "0.1.0"
 [dependencies]
 nextflow = ">=24.10.6,<25"
 pre-commit = ">=4.2.0,<5"
+prettier = ">=3.5.3,<4"
 
 
 [feature.nfcore.dependencies]
