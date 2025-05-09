@@ -107,18 +107,27 @@ pair_sizes <- function(a_sizes, b_sizes) {
       a = a_sizes[a_i],
       b = b_sizes[b_i],
       share_frac = pmin(a, b) / pmax(a, b),
+      used = FALSE
     ) |>
     dplyr::arrange(desc(share_frac))
 
-  new_a <- c()
-  new_b <- c()
-  while (nrow(match_df)) {
-    # add indexes
-    new_a <- c(new_a, match_df$a_i[1])
-    new_b <- c(new_b, match_df$b_i[1])
+  # pre-allocate result vectors
+  new_a <- integer(min(length(a_sizes), length(b_sizes)))
+  new_b <- integer(min(length(a_sizes), length(b_sizes)))
+  pair_count <- 0
+  # loop until all pairs are used
+  while (!all(match_df$used)) {
+    # Find the first unused pair
+    idx <- which(!match_df$used)[1]
+    # add indexes to result vectors
+    pair_count <- pair_count + 1
+    new_a[pair_count] <- match_df$a_i[idx]
+    new_b[pair_count] <- match_df$b_i[idx]
     # remove the first row and any rows with those indexes
-    match_df <- match_df |>
-      dplyr::filter(a_i != match_df$a_i[1], b_i != match_df$b_i[1])
+    # Mark used pairs
+    used_a <- match_df$a_i == new_a[pair_count]
+    used_b <- match_df$b_i == new_b[pair_count]
+    match_df$used[used_a | used_b] <- TRUE
   }
   # add any missing indexes to the end
   new_a <- c(new_a, setdiff(seq_along(a_sizes), new_a))
