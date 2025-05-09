@@ -32,6 +32,8 @@ if [ "$ACTION" == "build" ]; then
       ${mode_arg} \
       --dump-sb-app
     mv ../sb_nextflow_schema.yaml .
+    # format the sb_nextflow_schema.yaml file consistently using prettier
+    pixi run prettier sb_nextflow_schema.yaml --write
 elif [ "$ACTION" == "push" ]; then
     # Check if the sb_nextflow_schema.yaml file exists
     if [ ! -f sb_nextflow_schema.yaml ]; then
