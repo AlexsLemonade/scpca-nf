@@ -163,8 +163,8 @@ workflow bulk_quant_rna {
     bulk_reads_ch = bulk_channel.make_quants
       .map{meta -> tuple(
         meta,
-        files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
-        files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
+        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
+        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
       )}
 
     // run fastp and salmon for libraries that are not skipping salmon
