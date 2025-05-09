@@ -33,7 +33,6 @@ set.seed(1234)
 # Functions
 #| include: false
 
-
 read_metrics_files <- function(urls) {
   # read a set of metrics files
   # url: URL of the metrics files, each in json format
@@ -85,6 +84,72 @@ report_table <- function(df, options = list(), ...) {
     options = opts,
     ...
   )
+}
+
+
+## Functions for cluster size comparison
+make_clusters <- function(x) {
+  # convert a vector of cluster sizes to a vector of cluster assignments
+  # x is a vector of cluster sizes
+  # returns a vector of cluster assignments
+  rep(seq_along(x), times = x)
+}
+
+pair_sizes <- function(a_sizes, b_sizes) {
+  # find the difference between every pair of a and b,
+  # then choose from smallest to largest, eliminating used pairs as you go
+
+  match_df <- expand.grid(
+    a_i = seq_along(a_sizes),
+    b_i = seq_along(b_sizes)
+  ) |>
+    dplyr::mutate(
+      a = a_sizes[a_i],
+      b = b_sizes[b_i],
+      share_frac = pmin(a, b) / pmax(a, b),
+    ) |>
+    dplyr::arrange(desc(share_frac))
+
+  new_a <- c()
+  new_b <- c()
+  while (nrow(match_df)) {
+    # add indexes
+    new_a <- c(new_a, match_df$a_i[1])
+    new_b <- c(new_b, match_df$b_i[1])
+    # remove the first row and any rows with those indexes
+    match_df <- match_df |>
+      dplyr::filter(a_i != match_df$a_i[1], b_i != match_df$b_i[1])
+  }
+  # add any missing indexes to the end
+  new_a <- c(new_a, setdiff(seq_along(a_sizes), new_a))
+  new_b <- c(new_b, setdiff(seq_along(b_sizes), new_b))
+  # return values
+  return(list(a_sizes[new_a], b_sizes[new_b]))
+}
+
+max_ari <- function(a_sizes, b_sizes) {
+  # calculate an approximate max ARI from vectors of cluster sizes
+  # a_sizes and b_sizes are vectors of cluster sizes
+  # we don't have individual assignments, so we can't calculate ARI directly
+
+  if (sum(a_sizes) != sum(b_sizes)) {
+    # if the total number of cells is different, we can't calculate ARI
+    return(NA)
+  }
+  # if the number of clusters is the same, we can just sort the sizes
+  if (length(a_sizes) == length(b_sizes)) {
+    a_sizes <- sort(a_sizes)
+    b_sizes <- sort(b_sizes)
+  } else {
+    # if the number of clusters is different, we need to pair them
+    # to minimize the differences between clusters
+    pairing <- pair_sizes(a_sizes, b_sizes)
+    a_sizes <- pairing[[1]]
+    b_sizes <- pairing[[2]]
+  }
+  # calculate ARI
+  max_ari <- mclust::adjustedRandIndex(make_clusters(a_sizes), make_clusters(b_sizes))
+  return(max_ari)
 }
 ```
 
@@ -612,11 +677,11 @@ report_table(
 ```{r}
 hvg_changes <- metrics_df |>
   dplyr::mutate(
+    hvg_identical = purrr::map2_lgl(hv_genes.ref, hv_genes.comp, identical),
     hvg_removed = purrr::map2(hv_genes.ref, hv_genes.comp, setdiff),
     hvg_added = purrr::map2(hv_genes.comp, hv_genes.ref, setdiff),
     hvg_changes = purrr::map_int(hvg_added, length),
-    hvg_change_frac = hvg_changes / purrr::map_int(hv_genes.ref, length),
-    hvg_identical = purrr::map2_lgl(hv_genes.ref, hv_genes.comp, identical)
+    hvg_change_frac = hvg_changes / purrr::map_int(hv_genes.ref, length)
   ) |>
   dplyr::filter(!hvg_identical) |>
   dplyr::select(
@@ -633,6 +698,30 @@ hvg_changes <- metrics_df |>
 Report changes in the number of clusters, as well as changes in the sizes of the assigned clusters.
 We will ignore changes in the ordering of clusters by sorting by cluster size before comparisons.
 As a summary statistic, we might use adjusted Rand index (ARI) or adjusted mutual information (AMI) to compare the two sets of clusters, reporting when we are well below 1.
+
+```{r}
+# compare clusters
+cluster_changes <- metrics_df |>
+  dplyr::mutate(
+    cluster_setequal = purrr::map2_lgl(cluster_sizes.ref, cluster_sizes.comp, setequal),
+    cluster_n_change = purrr::map2_int(
+      cluster_sizes.ref,
+      cluster_sizes.comp,
+      \(x, y) {
+        length(y) - length(x)
+      }
+    ),
+    cluster_n_change_frac = cluster_n_change / purrr::map_int(cluster_sizes.ref, length),
+    cluster_max_ari = purrr::map2_dbl(cluster_sizes.ref, cluster_sizes.comp, max_ari)
+  ) |>
+  dplyr::filter(!cluster_setequal) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("cluster")
+  )
+```
 
 ### Cell type assignments
 
