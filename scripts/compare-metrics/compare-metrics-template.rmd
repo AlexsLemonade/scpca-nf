@@ -49,9 +49,10 @@ read_metrics_files <- function(urls) {
     tibble::as_tibble()
 }
 
-report_table <- function(df, options = list(), ...) {
+report_table <- function(df, summary = FALSE, options = list(), ...) {
   # pass standard settings for report to DT::datatable
   # df: data frame to display
+  # summary: if TRUE, hide the search box
   # options: list of options to pass to DT::datatable
   # ...: additional arguments to pass to DT::datatable
   default_opts <- list(
@@ -60,6 +61,7 @@ report_table <- function(df, options = list(), ...) {
     scrollX = TRUE,
     scrollY = 400,
     scrollCollapse = TRUE,
+    searching = !summary,
     language = list(search = "Filter:"),
     columnDefs = list(list(
       # render missing values as "NA" rather than blanks in the table
@@ -328,6 +330,7 @@ processing_summary <- processing_changes |>
 
 report_table(
   processing_summary,
+  summary = TRUE,
   colnames = c("Processing field", "Reference value", "Comparison value", "Number of libraries changed")
 )
 ```
@@ -450,6 +453,7 @@ cell_summary <- changed_cell_counts |>
 
 report_table(
   cell_summary,
+  summary = TRUE,
   colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
 ) |>
   DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
@@ -634,6 +638,7 @@ read_summary <- changed_read_counts |>
 
 report_table(
   read_summary,
+  summary = TRUE,
   colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
 ) |>
   DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
@@ -871,7 +876,9 @@ if (!has_cluster_changes) {
     "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed ==1, 'has', 'have')} changes in clustering.<br>
     Among the libraries with changes, the mean change in the number of clusters is **{mean_n_change}**, which corresons  a mean percentage change of **{round(mean_n_change_frac * 100, digits = 2)}%**.
 
-    The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**. This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters. Note that this only includes comparisons where the number of clusters is consistent between the two sets.
+    The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**.
+    This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters.
+    Note that this only includes comparisons where the number of cells is unchanged between the two runs.
     "
   ))
 }
@@ -961,11 +968,13 @@ cluster_changes |>
     cluster_n_change_frac,
     cluster_max_ari
   ) |>
+  dplyr::mutate(
+    cluster_max_ari = sprintf("%.3f", cluster_max_ari),
+  ) |>
   report_table(
     colnames = c("Project", "Sample", "Library", "Number of clusters changed", "% change", "Max ARI")
   ) |>
-  DT::formatPercentage(c("cluster_n_change_frac"), 2) |>
-  DT::formatRound(c("cluster_max_ari"), digits = 4)
+  DT::formatPercentage(c("cluster_n_change_frac"), 2)
 ```
 
 ### Cell type assignments
