@@ -21,7 +21,8 @@ output:
 library(ggplot2)
 
 knitr::opts_chunk$set(
-  echo = FALSE
+  echo = FALSE,
+  fig.width = 8
 )
 
 use_cache <- params$use_cache && file.exists("metrics.rds")
@@ -245,10 +246,8 @@ if (nrow(lib_changes) == 0) {
   glue::glue("
     Below is a table of added or removed samples and libraries.<br>
     There {ifelse(n_added == 1, 'is', 'are')} **{n_added}** added {ifelse(n_added == 1, 'library', 'libraries')} and
-    **{n_removed}** removed {ifelse(n_removed == 1, 'library', 'libraries')}.
-
+    **{n_removed}** removed {ifelse(n_removed == 1, 'library', 'libraries')}.<br>
     These come from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
-
 
   ") |>
     knitr::asis_output()
@@ -605,6 +604,7 @@ if (unfiltered_read_changes > 0) {
 }
 ```
 
+
 ```{r, eval=has_read_changes}
 knitr::asis_output("#### Summary")
 ```
@@ -655,6 +655,8 @@ ggplot(read_plot_df, aes(x = change_frac)) +
   theme_bw()
 ```
 
+
+
 ```{r, eval=has_read_changes}
 knitr::asis_output("#### Detail")
 ```
@@ -681,28 +683,137 @@ report_table(
 
 ## Analysis changes
 
-### Highly variable genes
+### Highly variable genes {.tabset}
 
 ```{r}
-hvg_changes <- metrics_df |>
+hvg_stats <- metrics_df |>
   dplyr::mutate(
-    hvg_identical = purrr::map2_lgl(hv_genes.ref, hv_genes.comp, identical),
+    hvg_identical = purrr::map2_lgl(hv_genes.ref, hv_genes.comp, identical), # identical content and order
     hvg_removed = purrr::map2(hv_genes.ref, hv_genes.comp, setdiff),
     hvg_added = purrr::map2(hv_genes.comp, hv_genes.ref, setdiff),
-    hvg_changes = purrr::map_int(hvg_added, length),
-    hvg_change_frac = hvg_changes / purrr::map_int(hv_genes.ref, length)
+    hvg_n_changed = purrr::map_int(hvg_added, length), # since the number of genes is constant, we can just use one value
+    hvg_change_frac = purrr::map2_dbl(hvg_added, hv_genes.ref, \(added, ref) length(added) / length(ref)),
+    hvg_jaccard = purrr::map2_dbl(
+      hv_genes.ref, hv_genes.comp,
+      \(x, y){
+        length(intersect(x, y)) / length(union(x, y))
+      }
+    ),
+    hvg_rank_cor = purrr::map2_dbl(
+      hv_genes.ref, hv_genes.comp,
+      \(x, y) {
+        cor(
+          seq_along(x),
+          # get the ordering of a elements in b
+          as.integer(factor(y, levels = x)),
+          use = "complete.obs", # discard
+        )
+      }
+    )
   ) |>
-  dplyr::filter(!hvg_identical) |>
   dplyr::select(
     project_id,
     sample_id,
     library_id,
     starts_with(c("hv_genes", "hvg"))
   )
+
+hvg_changes <- hvg_stats |>
+  dplyr::filter(!hvg_identical)
+
+has_hvg_changes <- nrow(hvg_changes) > 0
+```
+
+```{r}
+# HVG change summary
+hvg_summary <- hvg_stats |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    n_changed = n - sum(hvg_identical),
+    mean_change = mean(hvg_n_changed[which(!hvg_identical)]),
+    mean_change_frac = mean(hvg_change_frac[which(!hvg_identical)]),
+    mean_jaccard = mean(hvg_jaccard[which(!hvg_identical)]),
+    mean_cor = mean(hvg_rank_cor[which(!hvg_identical)])
+  )
+
+knitr::asis_output(glue::glue_data(
+  hvg_summary,
+  "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed == 1, 'has', 'have')} changes in highly variable genes.
+
+
+  Among the libraries with changes, the mean number of genes changed is **{mean_change}**, which is a mean percentage change of **{round(mean_change_frac * 100, digits = 2)}%**.
+  The mean Jaccard index (reflecting the proportions shared genes) is **{round(mean_jaccard, digits = 2)}**, and the mean rank correlation (reflecting changes in ordering among the genes) is **{round(mean_cor, digits = 2)}**.
+  "
+))
 ```
 
 
-### Clustering
+```{r, eval=has_hvg_changes}
+knitr::asis_output("#### Summary")
+```
+
+
+```{r, eval=has_hvg_changes}
+# plot hvg metrics
+hvg_plot_df <- hvg_changes |>
+  dplyr::select(
+    hvg_change_frac,
+    hvg_jaccard,
+    hvg_rank_cor
+  ) |>
+  tidyr::pivot_longer(
+    cols = everything(),
+    names_to = "metric",
+    values_to = "value"
+  )
+
+ggplot(hvg_plot_df, aes(x = value)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(metric), ncol = 3, scales = "free_x") +
+  labs(
+    title = "Histograms of change metrics for highly variable genes",
+    x = "",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+```
+
+
+```{r, eval=has_hvg_changes}
+knitr::asis_output("#### Detail")
+```
+
+```{r, eval=has_hvg_changes}
+# detail table of hvg changes
+
+hvg_changes <- hvg_changes |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    hvg_n_changed,
+    hvg_change_frac,
+    hvg_jaccard,
+    hvg_rank_cor
+  )
+
+
+report_table(
+  hvg_changes,
+  colnames = c(
+    "Project",
+    "Sample",
+    "Library",
+    "Number of genes changed",
+    "% change",
+    "Jaccard index",
+    "Rank correlation"
+  )
+) |>
+  DT::formatPercentage(c("hvg_change_frac"), 2)
+```
+
+### Clustering {.tabset}
 
 Report changes in the number of clusters, as well as changes in the sizes of the assigned clusters.
 We will ignore changes in the ordering of clusters by sorting by cluster size before comparisons.
@@ -710,7 +821,7 @@ As a summary statistic, we might use adjusted Rand index (ARI) or adjusted mutua
 
 ```{r}
 # compare clusters
-cluster_changes <- metrics_df |>
+cluster_stats <- metrics_df |>
   dplyr::mutate(
     cluster_setequal = purrr::map2_lgl(cluster_sizes.ref, cluster_sizes.comp, setequal),
     cluster_n_change = purrr::map2_int(
@@ -721,15 +832,140 @@ cluster_changes <- metrics_df |>
       }
     ),
     cluster_n_change_frac = cluster_n_change / purrr::map_int(cluster_sizes.ref, length),
+    paired_clusters = purrr::map2(cluster_sizes.ref, cluster_sizes.comp, pair_sizes),
+    cluster_sizes.ref = purrr::map(paired_clusters, \(x) x[[1]]),
+    cluster_sizes.comp = purrr::map(paired_clusters, \(x) x[[2]]),
     cluster_max_ari = purrr::map2_dbl(cluster_sizes.ref, cluster_sizes.comp, max_ari)
   ) |>
-  dplyr::filter(!cluster_setequal) |>
   dplyr::select(
     project_id,
     sample_id,
     library_id,
     starts_with("cluster")
   )
+
+cluster_changes <- cluster_stats |>
+  dplyr::filter(!cluster_setequal)
+
+has_cluster_changes <- nrow(cluster_changes) > 0
+```
+
+```{r}
+# cluster change overall summary
+cluster_summary <- cluster_stats |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    n_changed = n - sum(cluster_setequal),
+    mean_n_change = mean(abs(cluster_n_change[which(!cluster_setequal)])),
+    mean_n_change_frac = mean(abs(cluster_n_change_frac[which(!cluster_setequal)])),
+    mean_max_ari = mean(cluster_max_ari[which(!cluster_setequal & cluster_n_change == 0)])
+  )
+
+if (!has_cluster_changes) {
+  knitr::asis_output(
+    "There are no changes in clustering between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue_data(
+    cluster_summary,
+    "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed ==1, 'has', 'have')} changes in clustering.<br>
+    Among the libraries with changes, the mean change in the number of clusters is **{mean_n_change}**, which corresons  a mean percentage change of **{round(mean_n_change_frac * 100, digits = 2)}%**.
+
+    The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**. This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters. Note that this only includes comparisons where the number of clusters is consistent between the two sets.
+    "
+  ))
+}
+```
+
+
+```{r, eval=has_cluster_changes}
+knitr::asis_output("#### Summary")
+```
+
+```{r, eval=has_cluster_changes}
+# cluster change plots
+cluster_plot_df <- cluster_changes |>
+  dplyr::select(cluster_n_change_frac, cluster_max_ari) |>
+  tidyr::pivot_longer(
+    cols = everything(),
+    names_to = "metric",
+    values_to = "value"
+  )
+
+
+cluster_plot <- ggplot(cluster_plot_df, aes(x = value)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(metric), scales = "free_x") +
+  labs(
+    title = "Histograms of change metrics for clustering",
+    x = "",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+suppressWarnings(print(cluster_plot))
+```
+
+```{r}
+# plot top changed clusters
+plot_df <- cluster_changes |>
+  dplyr::arrange(desc(cluster_max_ari)) |>
+  head(6) |> # only plot the top 6
+  dplyr::select(project_id, sample_id, library_id, cluster_sizes.ref, cluster_sizes.comp) |>
+  tidyr::pivot_longer(
+    cols = starts_with("cluster_sizes"),
+    names_to = "set",
+    names_pattern = ".+\\.(ref|comp)$",
+    values_to = "cluster_sizes"
+  ) |>
+  tidyr::unnest_longer(
+    cluster_sizes,
+    indices_to = "cluster",
+    values_to = "size"
+  ) |>
+  dplyr::mutate(cluster = as.factor(cluster))
+
+# rotating color palette
+cluster_colors <- palette.colors(
+  palette = "Tableau",
+  n = length(levels(plot_df$cluster)),
+  recycle = TRUE
+)
+
+ggplot(plot_df, aes(x = set, y = size, fill = cluster)) +
+  geom_col(position = position_stack(reverse = TRUE)) +
+  facet_wrap(vars(library_id), scales = "free_y") +
+  labs(
+    title = "Cluster sizes for the libraries with the largest max ARI changes",
+    x = "",
+    y = "Cell count",
+  ) +
+  scale_fill_discrete(type = cluster_colors) +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+
+```{r, eval=has_cluster_changes}
+knitr::asis_output("#### Detail")
+```
+
+```{r, eval=has_cluster_changes}
+# Detail table of cluster changes
+cluster_changes |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    cluster_n_change,
+    cluster_n_change_frac,
+    cluster_max_ari
+  ) |>
+  report_table(
+    colnames = c("Project", "Sample", "Library", "Number of clusters changed", "% change", "Max ARI")
+  ) |>
+  DT::formatPercentage(c("cluster_n_change_frac"), 2) |>
+  DT::formatRound(c("cluster_max_ari"), digits = 4)
 ```
 
 ### Cell type assignments
@@ -738,6 +974,22 @@ Report changes to the set of cell types assigned, and to the number of cells for
 This will include SingleR, CellAssign and consensus cell types, if present.
 
 My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
+
+```{r}
+# compare cell type assignments
+
+celltypes_changes <- function(ref_celltypes, comp_celltypes) {
+  type_matrix <- dplyr::bind_rows(a, b) |> as.matrix()
+  rownames(type_matrix) <- c("ref", "comp")
+  type_matrix[is.na(type_matrix)] <- 0
+
+  added <- colnames(type_matrix)[which(type_matrix["ref"] == 0 && type_matrix["comp"] > 0)]
+  removed <- colnames(type_matrix)[which(type_matrix["comp"] == 0 && type_matrix["ref"] > 0)]
+  n_changes <- dist(type_matrix, method = "manhattan")[1]
+  euclidean_distance <- dist(type_matrix, method = "euclidean")[1]
+}
+```
+
 
 
 ## Session Info
