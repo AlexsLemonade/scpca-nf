@@ -919,10 +919,13 @@ suppressWarnings(print(cluster_plot))
 ```
 
 ```{r}
-# plot top changed clusters
+# plot most changed clusters based on low ARI scores
 plot_df <- cluster_changes |>
-  dplyr::arrange(desc(cluster_max_ari)) |>
+  dplyr::arrange(cluster_max_ari) |>
   head(6) |> # only plot the top 6
+  dplyr::mutate( # keep the order
+    library_id = factor(library_id, levels = library_id)
+  ) |>
   dplyr::select(project_id, sample_id, library_id, cluster_sizes.ref, cluster_sizes.comp) |>
   tidyr::pivot_longer(
     cols = starts_with("cluster_sizes"),
@@ -948,7 +951,7 @@ ggplot(plot_df, aes(x = set, y = size, fill = cluster)) +
   geom_col(position = position_stack(reverse = TRUE)) +
   facet_wrap(vars(library_id), scales = "free_y") +
   labs(
-    title = "Cluster sizes for the libraries with the largest max ARI changes",
+    title = "Cluster sizes for the libraries with smallest max ARI",
     x = "",
     y = "Cell count",
   ) +
