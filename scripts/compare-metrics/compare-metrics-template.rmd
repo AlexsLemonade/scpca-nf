@@ -89,6 +89,18 @@ report_table <- function(df, summary = FALSE, options = list(), ...) {
   )
 }
 
+## Functions for calculating correlations among named, ordered vectors
+rank_cor <- function(a, b) {
+  # calculate the rank correlation between two vectors of ids
+  # a and b are vectors of ids that may not have the same sets of values, but must be equal in size
+
+  all_levels <- union(a, b) # keeps these ordered by appearance, with `a` first.
+  a_order <- match(a, all_levels)
+  b_order <- match(b, all_levels)
+
+  cor(a_order, b_order, method = "spearman")
+}
+
 
 ## Functions for cluster size comparison
 make_clusters <- function(x) {
@@ -148,13 +160,12 @@ max_ari <- function(a_sizes, b_sizes) {
     # if the total number of cells is different, we can't calculate ARI
     return(NA)
   }
-  # if the number of clusters is the same, we can just sort the sizes
-  if (length(a_sizes) == length(b_sizes)) {
-    a_sizes <- sort(a_sizes)
-    b_sizes <- sort(b_sizes)
+  # if the sets are the same, maxARI is 1
+  if (setequal(a_sizes, b_sizes)) {
+    return(1)
   } else {
     # if the number of clusters is different, we need to pair them
-    # to minimize the differences between clusters
+    # pair to minimize the differences between clusters
     pairing <- pair_sizes(a_sizes, b_sizes)
     a_sizes <- pairing[[1]]
     b_sizes <- pairing[[2]]
@@ -704,17 +715,7 @@ hvg_stats <- metrics_df |>
         length(intersect(x, y)) / length(union(x, y))
       }
     ),
-    hvg_rank_cor = purrr::map2_dbl(
-      hv_genes.ref, hv_genes.comp,
-      \(x, y) {
-        cor(
-          seq_along(x),
-          # get the ordering of a elements in b
-          as.integer(factor(y, levels = x)),
-          use = "complete.obs", # discard
-        )
-      }
-    )
+    hvg_rank_cor = purrr::map2_dbl(hv_genes.ref, hv_genes.comp, rank_cor)
   ) |>
   dplyr::select(
     project_id,
@@ -800,6 +801,10 @@ hvg_changes <- hvg_changes |>
     hvg_change_frac,
     hvg_jaccard,
     hvg_rank_cor
+  ) |>
+  dplyr::mutate(
+    hvg_jaccard = sprintf("%.2f", hvg_jaccard),
+    hvg_rank_cor = sprintf("%.2f", hvg_rank_cor)
   )
 
 
