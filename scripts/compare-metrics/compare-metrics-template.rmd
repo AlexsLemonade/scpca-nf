@@ -19,6 +19,7 @@ output:
 ```{r setup}
 #| include: false
 library(ggplot2)
+library(patchwork)
 
 knitr::opts_chunk$set(
   echo = FALSE,
@@ -755,6 +756,8 @@ knitr::asis_output(glue::glue_data(
 
   Among the libraries with changes, the mean number of genes changed is **{mean_change}**, which is a mean percentage change of **{round(mean_change_frac * 100, digits = 2)}%**.
   The mean Jaccard index (reflecting the proportions shared genes) is **{round(mean_jaccard, digits = 2)}**, and the mean rank correlation (reflecting changes in ordering among the genes) is **{round(mean_cor, digits = 2)}**.
+
+  The plots and tables below show only the libraries that have changes in either the content or ordering of the highly variable genes.
   "
 ))
 ```
@@ -767,27 +770,28 @@ knitr::asis_output("#### Summary")
 
 ```{r, eval=has_hvg_changes}
 # plot hvg metrics
-hvg_plot_df <- hvg_changes |>
-  dplyr::select(
-    hvg_change_frac,
-    hvg_jaccard,
-    hvg_rank_cor
-  ) |>
-  tidyr::pivot_longer(
-    cols = everything(),
-    names_to = "metric",
-    values_to = "value"
-  )
-
-ggplot(hvg_plot_df, aes(x = value)) +
+jaccard_plot <- ggplot(hvg_changes, aes(x = hvg_jaccard)) +
   geom_histogram(bins = 20) +
-  facet_wrap(vars(metric), ncol = 3, scales = "free_x") +
   labs(
-    title = "Histograms of change metrics for highly variable genes",
-    x = "",
+    x = "Jaccard index",
     y = "Number of libraries"
   ) +
   theme_bw()
+
+rankcor_plot <- ggplot(hvg_changes, aes(x = hvg_rank_cor)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Gene rank correlation",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+jaccard_plot + rankcor_plot +
+  patchwork::plot_annotation(
+    title = "Histograms of metrics for changes in highly variable genes",
+    subtitle = "Only libraries with changes in HVG content or ordering are shown."
+  )
 ```
 
 
@@ -831,23 +835,19 @@ report_table(
 
 ### Clustering {.tabset}
 
-Report changes in the number of clusters, as well as changes in the sizes of the assigned clusters.
-We will ignore changes in the ordering of clusters by sorting by cluster size before comparisons.
-As a summary statistic, we might use adjusted Rand index (ARI) or adjusted mutual information (AMI) to compare the two sets of clusters, reporting when we are well below 1.
-
 ```{r}
 # compare clusters
 cluster_stats <- metrics_df |>
   dplyr::mutate(
     cluster_setequal = purrr::map2_lgl(cluster_sizes.ref, cluster_sizes.comp, setequal),
-    cluster_n_change = purrr::map2_int(
-      cluster_sizes.ref,
-      cluster_sizes.comp,
+    # change in the number of clusters
+    cluster_number_change = purrr::map2_int(
+      cluster_sizes.ref, cluster_sizes.comp,
       \(x, y) {
         length(y) - length(x)
       }
     ),
-    cluster_n_change_frac = cluster_n_change / purrr::map_int(cluster_sizes.ref, length),
+    cluster_number_change_frac = cluster_number_change / purrr::map_int(cluster_sizes.ref, length),
     paired_clusters = purrr::map2(cluster_sizes.ref, cluster_sizes.comp, pair_sizes),
     cluster_sizes.ref = purrr::map(paired_clusters, \(x) x[[1]]),
     cluster_sizes.comp = purrr::map(paired_clusters, \(x) x[[2]]),
@@ -872,9 +872,9 @@ cluster_summary <- cluster_stats |>
   dplyr::summarise(
     n = dplyr::n(),
     n_changed = n - sum(cluster_setequal),
-    mean_n_change = mean(abs(cluster_n_change[which(!cluster_setequal)])),
-    mean_n_change_frac = mean(abs(cluster_n_change_frac[which(!cluster_setequal)])),
-    mean_max_ari = mean(cluster_max_ari[which(!cluster_setequal & cluster_n_change == 0)])
+    mean_cluster_number_change = mean(abs(cluster_number_change[which(!cluster_setequal)])),
+    mean_cluster_number_change_frac = mean(abs(cluster_number_change_frac[which(!cluster_setequal)])),
+    mean_max_ari = mean(cluster_max_ari[which(!cluster_setequal & cluster_number_change == 0)])
   )
 
 if (!has_cluster_changes) {
@@ -885,11 +885,12 @@ if (!has_cluster_changes) {
   knitr::asis_output(glue::glue_data(
     cluster_summary,
     "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed ==1, 'has', 'have')} changes in clustering.<br>
-    Among the libraries with changes, the mean change in the number of clusters is **{mean_n_change}**, which corresonds to a mean percentage change of **{round(mean_n_change_frac * 100, digits = 2)}%**.
+    Among the libraries with changes, the mean change in the number of clusters is **{mean_cluster_number_change}**,
+    which corresonds to a mean percentage change of **{round(mean_cluster_number_change_frac * 100, digits = 2)}%**.
 
     The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**.
     This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters.
-    Note that this only includes comparisons where the number of cells is unchanged between the two runs.
+    Note that this only includes comparisons that have the same number of cells between the two runs.
     "
   ))
 }
@@ -901,34 +902,47 @@ knitr::asis_output("#### Summary")
 ```
 
 ```{r, eval=has_cluster_changes}
-# cluster change plots
-cluster_plot_df <- cluster_changes |>
-  dplyr::select(cluster_n_change_frac, cluster_max_ari) |>
-  tidyr::pivot_longer(
-    cols = everything(),
-    names_to = "metric",
-    values_to = "value"
-  )
-
-
-cluster_plot <- ggplot(cluster_plot_df, aes(x = value)) +
+# plot cluster metrics
+cluster_number_plot <- ggplot(cluster_changes, aes(x = cluster_number_change_frac)) +
   geom_histogram(bins = 20) +
-  facet_wrap(vars(metric), scales = "free_x") +
   labs(
-    title = "Histograms of change metrics for clustering",
-    x = "",
+    x = "Proportional change in the number of clusters",
     y = "Number of libraries"
   ) +
   theme_bw()
 
-suppressWarnings(print(cluster_plot))
+cluster_changes_ari <- cluster_changes |>
+  dplyr::filter(is.finite(cluster_max_ari))
+max_ari_plot <- ggplot(cluster_changes_ari, aes(x = cluster_max_ari)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "maxARI",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+cluster_number_plot + max_ari_plot +
+  patchwork::plot_annotation(
+    title = "Histograms of metrics for changes in clustering",
+    subtitle = "Only libraries with changes are shown, and maxARI is only calculated for libraries when the number of cells is unchanged."
+  )
 ```
 
-```{r}
-# plot most changed clusters based on low ARI scores
-plot_df <- cluster_changes |>
+```{r, eval=has_cluster_changes}
+knitr::asis_output(
+  "The stacked bar plots below show the sizes of each cluster for the libraries with the largest changes in clustering (smallest max ARI).
+  Changes in relative cluster sizes should be visible as changes in the banding patterns of the bars."
+)
+```
+
+```{r, eval=has_cluster_changes}
+# Create stacked bar plots to show changes in the clustering patterns.
+# We will plot the top 6 clusters with the smallest max ARI
+
+cluster_plot_df <- cluster_changes |>
   dplyr::arrange(cluster_max_ari) |>
-  head(6) |> # only plot the top 6
+  head(6) |>
   dplyr::mutate( # keep the order
     library_id = factor(library_id, levels = library_id)
   ) |>
@@ -949,15 +963,15 @@ plot_df <- cluster_changes |>
 # rotating color palette
 cluster_colors <- palette.colors(
   palette = "Tableau",
-  n = length(levels(plot_df$cluster)),
+  n = length(levels(cluster_plot_df$cluster)),
   recycle = TRUE
 )
 
-ggplot(plot_df, aes(x = set, y = size, fill = cluster)) +
+ggplot(cluster_plot_df, aes(x = set, y = size, fill = cluster)) +
   geom_col(position = position_stack(reverse = TRUE)) +
   facet_wrap(vars(library_id), scales = "free_y") +
   labs(
-    title = "Cluster sizes for the libraries with smallest max ARI",
+    title = "Clustering comparison plots",
     x = "",
     y = "Cell count",
   ) +
@@ -978,17 +992,17 @@ cluster_changes |>
     project_id,
     sample_id,
     library_id,
-    cluster_n_change,
-    cluster_n_change_frac,
+    cluster_number_change,
+    cluster_number_change_frac,
     cluster_max_ari
   ) |>
   dplyr::mutate(
     cluster_max_ari = sprintf("%.3f", cluster_max_ari),
   ) |>
   report_table(
-    colnames = c("Project", "Sample", "Library", "Number of clusters changed", "% change", "Max ARI")
+    colnames = c("Project", "Sample", "Library", "Change in number of clusters", "% change", "Max ARI")
   ) |>
-  DT::formatPercentage(c("cluster_n_change_frac"), 2)
+  DT::formatPercentage(c("cluster_number_change_frac"), 2)
 ```
 
 ### Cell type assignments
