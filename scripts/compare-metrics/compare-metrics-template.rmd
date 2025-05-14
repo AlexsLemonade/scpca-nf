@@ -111,43 +111,49 @@ make_clusters <- function(x) {
 }
 
 pair_sizes <- function(a_sizes, b_sizes) {
-  # find the difference between every pair of a and b,
-  # then choose from smallest to largest, eliminating used pairs as you go
+  # a_sizes and b_sizes are vectors of cluster sizes from two groups of clusters
+  # this function will pair the clusters to minimize the differences between ordered pairs
 
+  # create a data frame of all pairs of clusters between the two sets
+  # start by generating all pairs of cluster indices
   match_df <- expand.grid(
     a_i = seq_along(a_sizes),
     b_i = seq_along(b_sizes)
   ) |>
     dplyr::mutate(
+      # add the sizes of the indexed clusters
       a = a_sizes[a_i],
       b = b_sizes[b_i],
+      # calculate the similarity in size between the two clusters (1 if they are the same size)
       share_frac = pmin(a, b) / pmax(a, b),
       used = FALSE
     ) |>
+    # sort by share_frac, so that the most similar pairs are first
     dplyr::arrange(desc(share_frac))
 
-  # pre-allocate result vectors
+  # pre-allocate result vectors that will hold the cluster indices
+  # these are only as long as the smaller of the two sets
   new_a <- integer(min(length(a_sizes), length(b_sizes)))
   new_b <- integer(min(length(a_sizes), length(b_sizes)))
-  pair_count <- 0
+  i_pair <- 0 # index for the result vectors
   # loop until all pairs are used
   while (!all(match_df$used)) {
+    i_pair <- i_pair + 1
     # Find the first unused pair
     idx <- which(!match_df$used)[1]
-    # add indexes to result vectors
-    pair_count <- pair_count + 1
-    new_a[pair_count] <- match_df$a_i[idx]
-    new_b[pair_count] <- match_df$b_i[idx]
-    # remove the first row and any rows with those indexes
+    # add indexes to the result vectors
+    new_a[i_pair] <- match_df$a_i[idx]
+    new_b[i_pair] <- match_df$b_i[idx]
     # Mark used pairs
-    used_a <- match_df$a_i == new_a[pair_count]
-    used_b <- match_df$b_i == new_b[pair_count]
+    used_a <- match_df$a_i == new_a[i_pair]
+    used_b <- match_df$b_i == new_b[i_pair]
     match_df$used[used_a | used_b] <- TRUE
   }
-  # add any missing indexes to the end
+  # At this point we have the indices of the smaller number of pairs
+  # add any indices that were not used (one of these setdiffs will be empty)
   new_a <- c(new_a, setdiff(seq_along(a_sizes), new_a))
   new_b <- c(new_b, setdiff(seq_along(b_sizes), new_b))
-  # return values
+  # return the cluster size values, not the indices
   return(list(a_sizes[new_a], b_sizes[new_b]))
 }
 
