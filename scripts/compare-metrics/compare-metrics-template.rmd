@@ -980,7 +980,10 @@ cluster_plot_df <- cluster_changes |>
     indices_to = "cluster",
     values_to = "size"
   ) |>
-  dplyr::mutate(cluster = as.factor(cluster))
+  dplyr::mutate(
+    cluster = as.factor(cluster), # factors for plotting
+    set = factor(set, levels = c("ref", "comp"), labels = c("reference", "comparison")) # set order and labels
+  )
 
 # rotating color palette
 cluster_colors <- palette.colors(
