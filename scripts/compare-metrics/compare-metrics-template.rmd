@@ -104,6 +104,7 @@ rank_cor <- function(a, b) {
 
 
 ## Functions for cluster size comparison
+
 make_clusters <- function(x) {
   # convert a vector of cluster sizes to a vector of cluster assignments
   # x is a vector of cluster sizes
@@ -111,9 +112,32 @@ make_clusters <- function(x) {
   rep(seq_along(x), times = x)
 }
 
+rescale_sizes <- function(sizes, target_sum) {
+  # adjust the sizes of an integer vector to ensure the sum matches the target
+  sizes <- round(sizes * target_sum / sum(sizes))
+  diff <- target_sum - sum(sizes)
+  # adjust sizes to match target total
+  if (diff != 0) {
+    # get indices in the order of the absolute difference from the target
+    indices <- abs(sizes - sizes * target_sum / sum(sizes)) |>
+      order(decreasing = TRUE) |>
+      head(abs(diff)) # only keep the top `abs(diff)` indices
+    sizes[indices] <- sizes[indices] + sign(diff) # adjust each by 1
+  }
+  return(sizes)
+}
+
+
 pair_sizes <- function(a_sizes, b_sizes) {
   # a_sizes and b_sizes are vectors of cluster sizes from two groups of clusters
   # this function will pair the clusters to minimize the differences between ordered pairs
+  # and rescale the sizes to match the smaller of the two sets
+
+  # equalize the sums of the two sets of clusters
+  # scale the larger set down to the size of the smaller set
+  min_size <- min(sum(a_sizes), sum(b_sizes))
+  a_sizes <- rescale_sizes(a_sizes, min_size)
+  b_sizes <- rescale_sizes(b_sizes, min_size)
 
   # create a data frame of all pairs of clusters between the two sets
   # start by generating all pairs of cluster indices
@@ -162,17 +186,15 @@ max_ari <- function(a_sizes, b_sizes) {
   # calculate an approximate max ARI from vectors of cluster sizes
   # a_sizes and b_sizes are vectors of cluster sizes
   # we don't have individual assignments, so we can't calculate ARI directly
+  # but we can calculate the maximum ARI by assuming the best correspondence
 
-  if (sum(a_sizes) != sum(b_sizes)) {
-    # if the total number of cells is different, we can't calculate ARI
-    return(NA)
-  }
   # if the sets are the same, maxARI is 1
   if (setequal(a_sizes, b_sizes)) {
     return(1)
   } else {
     # if the number of clusters is different, we need to pair them
     # pair to minimize the differences between clusters
+    # this will also rescale the sizes to match the smaller of the two sets
     pairing <- pair_sizes(a_sizes, b_sizes)
     a_sizes <- pairing[[1]]
     b_sizes <- pairing[[2]]
@@ -889,8 +911,8 @@ if (!has_cluster_changes) {
     which corresonds to a mean percentage change of **{round(mean_cluster_number_change_frac * 100, digits = 2)}%**.
 
     The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**.
-    This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters.
-    Note that this only includes comparisons that have the same number of cells between the two runs.
+    This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters
+    after scaling the total cell number to the smaller library size.
     "
   ))
 }
@@ -968,12 +990,12 @@ cluster_colors <- palette.colors(
 )
 
 ggplot(cluster_plot_df, aes(x = set, y = size, fill = cluster)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  facet_wrap(vars(library_id), scales = "free_y") +
+  geom_col(position = position_fill(reverse = TRUE)) +
+  facet_wrap(vars(library_id)) +
   labs(
     title = "Clustering comparison plots",
     x = "",
-    y = "Cell count",
+    y = "Cluster fraction",
   ) +
   scale_fill_discrete(type = cluster_colors) +
   theme_bw() +
