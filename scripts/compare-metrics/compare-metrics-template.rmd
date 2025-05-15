@@ -1037,21 +1037,6 @@ This will include SingleR, CellAssign and consensus cell types, if present.
 
 My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
 
-```{r}
-# compare cell type assignments
-
-celltypes_changes <- function(ref_celltypes, comp_celltypes) {
-  type_matrix <- dplyr::bind_rows(a, b) |> as.matrix()
-  rownames(type_matrix) <- c("ref", "comp")
-  type_matrix[is.na(type_matrix)] <- 0
-
-  added <- colnames(type_matrix)[which(type_matrix["ref"] == 0 && type_matrix["comp"] > 0)]
-  removed <- colnames(type_matrix)[which(type_matrix["comp"] == 0 && type_matrix["ref"] > 0)]
-  n_changes <- dist(type_matrix, method = "manhattan")[1]
-  euclidean_distance <- dist(type_matrix, method = "euclidean")[1]
-}
-```
-
 
 
 ## Session Info
