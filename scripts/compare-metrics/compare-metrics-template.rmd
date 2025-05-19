@@ -1030,7 +1030,7 @@ cluster_changes |>
   DT::formatPercentage(c("cluster_number_change_frac"), 2)
 ```
 
-### Cell type assignments
+### Cell type assignments {.tabset}
 
 Report changes to the set of cell types assigned, and to the number of cells for each cell type.
 This will include SingleR, CellAssign and consensus cell types, if present.
@@ -1070,10 +1070,10 @@ celltype_changes <- function(ref_celltypes, comp_celltypes) {
   types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
 
   return(list(
-    types_added = types_added,
-    types_removed = types_removed,
     types_n_changes = types_n_changes,
-    types_scaled_dist = types_scaled_dist
+    types_scaled_dist = types_scaled_dist,
+    types_added = types_added,
+    types_removed = types_removed
   ))
 }
 ```
@@ -1081,16 +1081,18 @@ celltype_changes <- function(ref_celltypes, comp_celltypes) {
 ```{r}
 # create cell type change dataframe
 types_stats <- metrics_df |>
+  # create new list columns with celltype_changes function
   dplyr::mutate(
     singler = purrr::map2(
       singler_celltypes.ref, singler_celltypes.comp,
       celltype_changes
     ),
     cellassign = purrr::map2(
-      singler_celltypes.ref, singler_celltypes.comp,
+      cellassign_celltypes.ref, cellassign_celltypes.comp,
       celltype_changes
     )
   ) |>
+  # add consensus cell type changes if present
   (\(data){
     if (all(c("consensus_celltypes.ref", "consensus_celltypes.comp") %in% names(data))) {
       dplyr::mutate(
@@ -1110,14 +1112,48 @@ types_stats <- metrics_df |>
     library_id,
     any_of(c("singler", "cellassign", "consensus"))
   ) |>
+  # spread out the list columns
   tidyr::unnest_wider(
     any_of(c("singler", "cellassign", "consensus")),
     names_sep = "_"
+  ) |>
+  # pivot by celltype method
+  tidyr::pivot_longer(
+    cols = starts_with(c("singler", "cellassign", "consensus")),
+    names_to = c("celltype_method", ".value"),
+    names_pattern = "(singler|cellassign|consensus)_(.*)"
   )
+
+changed_types <- types_stats |>
+  dplyr::filter(types_n_changes > 0)
+
+has_changed_types <- nrow(changed_types) > 0
 ```
 
 
+```{r eval=has_changed_types}
+knitr::asis_output("#### Detail")
+```
 
+```{r eval=has_changed_types}
+# Detail table of cell type changes
+changed_types |>
+  dplyr::mutate(
+    types_scaled_dist = sprintf("%.4f", types_scaled_dist),
+    # join added and removed types for display
+    across(
+      c("types_added", "types_removed"),
+      ~ purrr::map_chr(.x, \(types) paste0(types, collapse = ", "))
+    )
+  ) |>
+  report_table(
+    colnames = c(
+      "Project", "Sample", "Library",
+      "Cell type method", "Number changed", "Scaled distance",
+      "Added cell types", "Removed cell types"
+    )
+  )
+```
 ## Session Info
 <details>
 <summary>Click to expand</summary>
