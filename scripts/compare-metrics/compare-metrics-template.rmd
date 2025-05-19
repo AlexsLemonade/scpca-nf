@@ -1122,7 +1122,12 @@ types_stats <- metrics_df |>
     cols = starts_with(c("singler", "cellassign", "consensus")),
     names_to = c("celltype_method", ".value"),
     names_pattern = "(singler|cellassign|consensus)_(.*)"
-  )
+  ) |>
+  dplyr::mutate(
+    types_added_count = purrr::map_int(types_added, length),
+    types_removed_count = purrr::map_int(types_removed, length)
+  ) |>
+  dplyr::relocate(types_added_count, types_removed_count, .before = types_added)
 
 changed_types <- types_stats |>
   dplyr::filter(types_n_changes > 0)
@@ -1130,6 +1135,34 @@ changed_types <- types_stats |>
 has_changed_types <- nrow(changed_types) > 0
 ```
 
+
+```{r, eval=has_changed_types}
+knitr::asis_output("#### Summary")
+```
+
+```{r, eval=has_changed_types}
+# Summary plot of cell type changes
+count_hist <- ggplot(changed_types, aes(x = types_n_changes)) +
+  geom_histogram(bins = 20) +
+  facet_grid(cols = vars(celltype_method)) +
+  labs(
+    x = "Number of cells changed",
+    y = "Count"
+  ) +
+  theme_bw()
+
+distance_hist <- ggplot(changed_types, aes(x = types_scaled_dist)) +
+  geom_histogram(bins = 20) +
+  facet_grid(cols = vars(celltype_method)) +
+  labs(
+    x = "Scaled distance",
+    y = "Count"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+count_hist / distance_hist
+```
 
 ```{r eval=has_changed_types}
 knitr::asis_output("#### Detail")
@@ -1149,7 +1182,8 @@ changed_types |>
   report_table(
     colnames = c(
       "Project", "Sample", "Library",
-      "Cell type method", "Number changed", "Scaled distance",
+      "Cell type method", "Number of changed cell types", "Scaled distance",
+      "Added cell type count", "Removed cell type count",
       "Added cell types", "Removed cell types"
     )
   )
