@@ -203,6 +203,51 @@ max_ari <- function(a_sizes, b_sizes) {
   max_ari <- mclust::adjustedRandIndex(make_clusters(a_sizes), make_clusters(b_sizes))
   return(max_ari)
 }
+
+
+## Functions for cell type changes
+
+celltype_changes <- function(ref_celltypes, comp_celltypes) {
+  # Take two vectors of cell type assignments where
+  # each is a _named_ vector with cell type names as names and the number of cells as values.
+  # returns a list of change metrics, with the following elements:
+  #   - types_n_changes: The minimum number of cell type changes to convert one set to the other
+  #   - types_scaled_dist: A scaled distance metric between the two sets of cell types, ranging from 0 (no change) to 1 (all changed)
+  #   - types_added: The cell types that were added, if any
+  #   - types_removed: The cell types that were removed, if any
+
+  if (is.null(ref_celltypes) || is.null(comp_celltypes)) {
+    return(NA)
+  }
+
+  n_ref <- sum(unlist(ref_celltypes))
+  n_comp <- sum(unlist(comp_celltypes))
+  count_diff <- n_comp - n_ref
+
+  # create a matrix with all cell types, filling in zeros for missing types
+  type_matrix <- dplyr::bind_rows(ref_celltypes, comp_celltypes) |> as.matrix()
+  rownames(type_matrix) <- c("ref", "comp")
+  type_matrix[is.na(type_matrix)] <- 0
+
+  # get the added and removed cell types
+  types_added <- names(which(type_matrix["ref", ] == 0 & type_matrix["comp", ] > 0))
+  types_removed <- names(which(type_matrix["comp", ] == 0 & type_matrix["ref", ] > 0))
+
+  # get the total number of cells that have changed type (less added or removed cells)
+  types_n_changes <- dist(type_matrix, method = "manhattan")[1]
+
+  # calculate a scaled Manhattan distance
+  # divide by two to make the max value 1
+  type_prop_matrix <- type_matrix / rowSums(type_matrix)
+  types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
+
+  return(list(
+    types_n_changes = types_n_changes,
+    types_scaled_dist = types_scaled_dist,
+    types_added = types_added,
+    types_removed = types_removed
+  ))
+}
 ```
 
 ```{r, eval=!use_cache}
@@ -1032,46 +1077,6 @@ cluster_changes |>
 
 ### Cell type assignments {.tabset}
 
-```{r}
-## Functions for cell type changes
-
-celltype_changes <- function(ref_celltypes, comp_celltypes) {
-  # Take two vectors of cell type assignments where
-  # each is a named vector with cell type names as names and the number of cells as values.
-
-  if (is.null(ref_celltypes) || is.null(comp_celltypes)) {
-    return(NA)
-  }
-
-  n_ref <- sum(unlist(ref_celltypes))
-  n_comp <- sum(unlist(comp_celltypes))
-  count_diff <- n_comp - n_ref
-
-  # create a matrix with all cell types, filling in zeros for missing types
-  type_matrix <- dplyr::bind_rows(ref_celltypes, comp_celltypes) |> as.matrix()
-  rownames(type_matrix) <- c("ref", "comp")
-  type_matrix[is.na(type_matrix)] <- 0
-
-  # get the added and removed cell types
-  types_added <- names(which(type_matrix["ref", ] == 0 & type_matrix["comp", ] > 0))
-  types_removed <- names(which(type_matrix["comp", ] == 0 & type_matrix["ref", ] > 0))
-
-  # get the total number of cells that have changed type (less added or removed cells)
-  types_n_changes <- dist(type_matrix, method = "manhattan")[1]
-
-  # calculate a scaled Manhattan distance
-  # divide by two to make the max value 1
-  type_prop_matrix <- type_matrix / rowSums(type_matrix)
-  types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
-
-  return(list(
-    types_n_changes = types_n_changes,
-    types_scaled_dist = types_scaled_dist,
-    types_added = types_added,
-    types_removed = types_removed
-  ))
-}
-```
 
 ```{r}
 # create cell type change dataframe
