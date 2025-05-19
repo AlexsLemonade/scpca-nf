@@ -1038,18 +1038,82 @@ This will include SingleR, CellAssign and consensus cell types, if present.
 My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
 
 ```{r}
-# compare cell type assignments
+## Functions for cell type changes
 
-celltypes_changes <- function(ref_celltypes, comp_celltypes) {
-  type_matrix <- dplyr::bind_rows(a, b) |> as.matrix()
+celltype_changes <- function(ref_celltypes, comp_celltypes) {
+  # Take two vectors of cell type assignments where
+  # each is a named vector with cell type names as names and the number of cells as values.
+
+  if (is.null(ref_celltypes) || is.null(comp_celltypes)) {
+    return(NA)
+  }
+
+  n_ref <- sum(unlist(ref_celltypes))
+  n_comp <- sum(unlist(comp_celltypes))
+  count_diff <- n_comp - n_ref
+
+  # create a matrix with all cell types, filling in zeros for missing types
+  type_matrix <- dplyr::bind_rows(ref_celltypes, comp_celltypes) |> as.matrix()
   rownames(type_matrix) <- c("ref", "comp")
   type_matrix[is.na(type_matrix)] <- 0
 
-  added <- colnames(type_matrix)[which(type_matrix["ref"] == 0 && type_matrix["comp"] > 0)]
-  removed <- colnames(type_matrix)[which(type_matrix["comp"] == 0 && type_matrix["ref"] > 0)]
-  n_changes <- dist(type_matrix, method = "manhattan")[1]
-  euclidean_distance <- dist(type_matrix, method = "euclidean")[1]
+  # get the added and removed cell types
+  types_added <- names(which(type_matrix["ref", ] == 0 & type_matrix["comp", ] > 0))
+  types_removed <- names(which(type_matrix["comp", ] == 0 & type_matrix["ref", ] > 0))
+
+  # get the total number of cells that have changed type (less added or removed cells)
+  types_n_changes <- dist(type_matrix, method = "manhattan")[1]
+
+  # calculate a scaled manhattan distance
+  # divide by two to make the max value 1
+  type_prop_matrix <- type_matrix / rowSums(type_matrix)
+  types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
+
+  return(list(
+    types_added = types_added,
+    types_removed = types_removed,
+    types_n_changes = types_n_changes,
+    types_scaled_dist = types_scaled_dist
+  ))
 }
+```
+
+```{r}
+# create cell type change dataframe
+types_stats <- metrics_df |>
+  dplyr::mutate(
+    singler = purrr::map2(
+      singler_celltypes.ref, singler_celltypes.comp,
+      celltype_changes
+    ),
+    cellassign = purrr::map2(
+      singler_celltypes.ref, singler_celltypes.comp,
+      celltype_changes
+    )
+  ) |>
+  (\(data){
+    if (all(c("consensus_celltypes.ref", "consensus_celltypes.comp") %in% names(data))) {
+      dplyr::mutate(
+        data,
+        consensus = purrr::map2(
+          consensus_celltypes.ref, consensus_celltypes.comp,
+          celltype_changes
+        )
+      )
+    } else {
+      data
+    }
+  })() |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    any_of(c("singler", "cellassign", "consensus"))
+  ) |>
+  tidyr::unnest_wider(
+    any_of(c("singler", "cellassign", "consensus")),
+    names_sep = "_"
+  )
 ```
 
 
