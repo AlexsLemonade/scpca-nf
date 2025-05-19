@@ -356,7 +356,7 @@ if (!has_processing_changes) {
 
 
 ```{r, eval=has_processing_changes}
-knitr::asis_output("### Summary")
+knitr::asis_output("\n\n### Summary\n\n")
 ```
 
 ```{r, eval=has_processing_changes}
@@ -377,7 +377,7 @@ report_table(
 
 
 ```{r, eval=has_processing_changes}
-knitr::asis_output("### Detail")
+knitr::asis_output("\n\n### Detail\n\n")
 ```
 
 ```{r, eval=has_processing_changes}
@@ -464,7 +464,7 @@ if (unfiltered_cell_changes > 0) {
 ```
 
 ```{r, eval=has_cell_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 ```{r}
@@ -517,7 +517,7 @@ ggplot(cell_plot_df, aes(x = change_frac)) +
 ```
 
 ```{r, eval=has_cell_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r}
@@ -650,7 +650,7 @@ if (unfiltered_read_changes > 0) {
 
 
 ```{r, eval=has_read_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 ```{r eval=has_read_changes}
@@ -703,7 +703,7 @@ ggplot(read_plot_df, aes(x = change_frac)) +
 
 
 ```{r, eval=has_read_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r eval=has_read_changes}
@@ -786,7 +786,7 @@ knitr::asis_output(glue::glue_data(
 
 
 ```{r, eval=has_hvg_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 
@@ -818,7 +818,7 @@ jaccard_plot + rankcor_plot +
 
 
 ```{r, eval=has_hvg_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r, eval=has_hvg_changes}
@@ -920,7 +920,7 @@ if (!has_cluster_changes) {
 
 
 ```{r, eval=has_cluster_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 ```{r, eval=has_cluster_changes}
@@ -1007,7 +1007,7 @@ ggplot(cluster_plot_df, aes(x = set, y = size, fill = cluster)) +
 
 
 ```{r, eval=has_cluster_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r, eval=has_cluster_changes}
@@ -1059,7 +1059,7 @@ celltype_changes <- function(ref_celltypes, comp_celltypes) {
   # get the total number of cells that have changed type (less added or removed cells)
   types_n_changes <- dist(type_matrix, method = "manhattan")[1]
 
-  # calculate a scaled manhattan distance
+  # calculate a scaled Manhattan distance
   # divide by two to make the max value 1
   type_prop_matrix <- type_matrix / rowSums(type_matrix)
   types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
@@ -1211,7 +1211,7 @@ count_hist / distance_hist
 ```
 
 ```{r eval=has_changed_types}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r eval=has_changed_types}
