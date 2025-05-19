@@ -1032,11 +1032,6 @@ cluster_changes |>
 
 ### Cell type assignments {.tabset}
 
-Report changes to the set of cell types assigned, and to the number of cells for each cell type.
-This will include SingleR, CellAssign and consensus cell types, if present.
-
-My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
-
 ```{r}
 ## Functions for cell type changes
 
@@ -1135,10 +1130,59 @@ changed_types <- types_stats |>
 has_changed_types <- nrow(changed_types) > 0
 ```
 
+```{r}
+# Summary table for cell type changes
+
+types_summary <- types_stats |>
+  dplyr::summarize(
+    .by = celltype_method,
+    n_libraries = dplyr::n(),
+    n_libraries_changed = sum(types_n_changes > 0),
+    frac_libraries_changed = n_libraries_changed / n_libraries,
+    mean_n_changed = mean(types_n_changes[types_n_changes > 0]),
+    mean_scaled_dist = mean(types_scaled_dist[types_n_changes > 0]) |> round(4),
+    mean_n_added = mean(types_added_count[types_n_changes > 0]),
+    mean_n_removed = mean(types_removed_count[types_n_changes > 0])
+  )
+
+# Overall text summary
+if (!has_changed_types) {
+  knitr::asis_output("No change in cell type assignments.")
+} else {
+  type_n_libraries_changed <- length(unique(changed_types$library_id))
+  type_n_projects_changed <- length(unique(changed_types$project_id))
+
+
+  glue::glue("
+    A total of {type_n_libraries_changed} {ifelse(type_n_libraries_changed == 1, 'library', 'libraries')}
+    from {type_n_projects_changed} {ifelse(type_n_projects_changed == 1, 'project', 'projects')} had changes in cell type assignments.
+
+    In the table below, we show the mean of the minimum number of cells changed, and a scaled measure of the distance between sets of cell assignments.
+    With this distance measure, a value of `0` means the cell types are identical, and `1` means that every has changed cell type.
+    Note that for each of these we calculate the best score for a given set of cell type assignments, as we do not record per-cell assignments in the metrics files used here.
+  ") |>
+    knitr::asis_output()
+}
+```
+
 
 ```{r, eval=has_changed_types}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
+
+
+```{r, eval=has_changed_types}
+report_table(
+  types_summary,
+  summary = TRUE,
+  colnames = c(
+    "Cell typing method", "Libraries", "Number of libraries changed", "% of libraries changed",
+    "Mean minimum cells changed", "Mean scaled distance", "Mean number of cell types added", "Mean number of cell types removed"
+  )
+) |>
+  DT::formatPercentage("frac_libraries_changed", 2)
+```
+
 
 ```{r, eval=has_changed_types}
 # Summary plot of cell type changes
@@ -1146,8 +1190,9 @@ count_hist <- ggplot(changed_types, aes(x = types_n_changes)) +
   geom_histogram(bins = 20) +
   facet_grid(cols = vars(celltype_method)) +
   labs(
+    title = "Minimum number of cells changed",
     x = "Number of cells changed",
-    y = "Count"
+    y = "Number of libraries",
   ) +
   theme_bw()
 
@@ -1155,8 +1200,9 @@ distance_hist <- ggplot(changed_types, aes(x = types_scaled_dist)) +
   geom_histogram(bins = 20) +
   facet_grid(cols = vars(celltype_method)) +
   labs(
+    title = "Scaled distance between cell type assignment sets",
     x = "Scaled distance",
-    y = "Count"
+    y = "Number of libraries"
   ) +
   theme_bw()
 
@@ -1182,7 +1228,7 @@ changed_types |>
   report_table(
     colnames = c(
       "Project", "Sample", "Library",
-      "Cell type method", "Number of changed cell types", "Scaled distance",
+      "Cell type method", "Minimum changed cell types", "Scaled distance",
       "Added cell type count", "Removed cell type count",
       "Added cell types", "Removed cell types"
     )
