@@ -26,3 +26,4 @@ main_qc_report.html
 celltypes_supplemental_report.html
 merged-report.html
 *_qc.html
+scripts/compare-metrics
