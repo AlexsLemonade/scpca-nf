@@ -6,5 +6,5 @@ run04	library03	sample03;sample04	project01	10Xv3.1	EFO:0009922	cell	Mus_musculu
 run05	library03	sample03;sample04	project01	cellhash_10Xv3.1	EFO:0030012	cell	Mus_musculus.GRCm39.104	example_fastqs/run05	example_barcode_files/cellhash_barcodes.tsv	2[1-10]	NA	NA	NA
 run06	library04	sample05	project01	paired_end	EFO:0003747	bulk	Mus_musculus.GRCm39.104	example_fastqs/run06	NA	NA	NA	NA	NA
 run07	library05	sample06	project01	10Xv3.1	EFO:0009922	cell	Homo_sapiens.GRCh38.104	example_fastqs/run07	NA	NA	NA	NA	example_metadata_files/submitter_celltypes.tsv
-run08	library06	sample07	project02	10X_flex_single	EFO:0022606	nucleus	Homo_sapiens.GRCh38.110	example_fastqs/run08	NA	NA	NA	NA	NA
-run09	library07	sample08;sample09;sample10;sample11	project02	10X_flex_multi	EFO:0022606	cell	Homo_sapiens.GRCh38.110	example_fastqs/run09	NA	NA	NA	NA	NA
+run08	library06	sample07	project02	10Xflex_v1.1_single	EFO:0022606	nucleus	Homo_sapiens.GRCh38.110	example_fastqs/run08	NA	NA	NA	NA	NA
+run09	library07	sample08;sample09;sample10;sample11	project02	10Xflex_v1.1_multi	EFO:0022606	cell	Homo_sapiens.GRCh38.110	example_fastqs/run09	NA	NA	NA	NA	NA
