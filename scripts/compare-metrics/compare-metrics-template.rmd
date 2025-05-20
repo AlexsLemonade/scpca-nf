@@ -211,7 +211,7 @@ celltype_changes <- function(ref_celltypes, comp_celltypes) {
   # Take two vectors of cell type assignments where
   # each is a _named_ vector with cell type names as names and the number of cells as values.
   # returns a list of change metrics, with the following elements:
-  #   - types_n_changes: The minimum number of cell type changes to convert one set to the other
+  #   - types_n_changes: The minimum number of cell type changes to convert one set to the other (Manhattan distance)
   #   - types_scaled_dist: A scaled distance metric between the two sets of cell types, ranging from 0 (no change) to 1 (all changed)
   #   - types_added: The cell types that were added, if any
   #   - types_removed: The cell types that were removed, if any
@@ -1159,11 +1159,11 @@ if (!has_changed_types) {
 
 
   glue::glue("
-    A total of {type_n_libraries_changed} {ifelse(type_n_libraries_changed == 1, 'library', 'libraries')}
-    from {type_n_projects_changed} {ifelse(type_n_projects_changed == 1, 'project', 'projects')} had changes in cell type assignments.
+    A total of **{type_n_libraries_changed}** {ifelse(type_n_libraries_changed == 1, 'library', 'libraries')}
+    from **{type_n_projects_changed}** {ifelse(type_n_projects_changed == 1, 'project', 'projects')} had changes in cell type assignments.
 
     In the table below, we show the mean of the minimum number of cells changed, and a scaled measure of the distance between sets of cell assignments.
-    With this distance measure, a value of `0` means the cell types are identical, and `1` means that every has changed cell type.
+    With this distance measure, a value of `0` means the cell types are identical, and `1` means that every cell has changed cell type.
     Note that for each of these we calculate the best score for a given set of cell type assignments, as we do not record per-cell assignments in the metrics files used here.
   ") |>
     knitr::asis_output()
