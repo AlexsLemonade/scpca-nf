@@ -1,0 +1,2 @@
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	assay_ontology_term_id	seq_unit	sample_reference	files_directory	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	submitter_cell_types_file
+run01	library01	sample01	project01	10Xv3.1	EFO:0009922	cell	Homo_sapiens.GRCh38.104	example_fastqs/run01	NA	NA	NA	NA	NA
