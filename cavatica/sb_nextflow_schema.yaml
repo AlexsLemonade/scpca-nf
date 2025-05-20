@@ -65,9 +65,7 @@ inputs:
     label: Run metadata file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
-    sbg:toolDefaultValue: run_metadata.tsv
     type:
-      - "null"
       - File
   - doc:
       A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file>
@@ -80,6 +78,16 @@ inputs:
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: sample_metadata.tsv
+    type:
+      - File
+  - doc: The project cell type metadata file. Only used if perform cell typing is on.
+    format: text/tab-separated-values
+    id: project_celltype_metafile
+    inputBinding:
+      prefix: --project_celltype_metafile
+    label: Project cell type metadata file
+    sbg:category: Input/output options
+    sbg:icon: fas fa-file-alt
     type:
       - "null"
       - File
@@ -424,6 +432,12 @@ outputs:
     label: Output directory
     outputBinding:
       glob: $(inputs.results_dir)
+    type: Directory
+  - doc: Checkpoints directory (set dynamically from the --checkpoints_dir option)
+    id: checkpoints_directory
+    label: Checkpoints directory
+    outputBinding:
+      glob: $(inputs.checkpoints_dir)
     type: Directory
 requirements:
   - class: InlineJavascriptRequirement
