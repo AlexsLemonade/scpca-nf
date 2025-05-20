@@ -1092,7 +1092,7 @@ types_stats <- metrics_df |>
       celltype_changes
     )
   ) |>
-  # add consensus cell type changes if present
+  # add consensus cell type changes if present (temporary fix until all metrics files have consensus calls)
   (\(data){
     if (all(c("consensus_celltypes.ref", "consensus_celltypes.comp") %in% names(data))) {
       dplyr::mutate(
