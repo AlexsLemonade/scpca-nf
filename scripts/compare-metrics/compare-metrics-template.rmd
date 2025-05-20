@@ -203,6 +203,51 @@ max_ari <- function(a_sizes, b_sizes) {
   max_ari <- mclust::adjustedRandIndex(make_clusters(a_sizes), make_clusters(b_sizes))
   return(max_ari)
 }
+
+
+## Functions for cell type changes
+
+celltype_changes <- function(ref_celltypes, comp_celltypes) {
+  # Take two vectors of cell type assignments where
+  # each is a _named_ vector with cell type names as names and the number of cells as values.
+  # returns a list of change metrics, with the following elements:
+  #   - types_n_changes: The minimum number of cell type changes to convert one set to the other (Manhattan distance)
+  #   - types_scaled_dist: A scaled distance metric between the two sets of cell types, ranging from 0 (no change) to 1 (all changed)
+  #   - types_added: The cell types that were added, if any
+  #   - types_removed: The cell types that were removed, if any
+
+  if (is.null(ref_celltypes) || is.null(comp_celltypes)) {
+    return(NA)
+  }
+
+  n_ref <- sum(unlist(ref_celltypes))
+  n_comp <- sum(unlist(comp_celltypes))
+  count_diff <- n_comp - n_ref
+
+  # create a matrix with all cell types, filling in zeros for missing types
+  type_matrix <- dplyr::bind_rows(ref_celltypes, comp_celltypes) |> as.matrix()
+  rownames(type_matrix) <- c("ref", "comp")
+  type_matrix[is.na(type_matrix)] <- 0
+
+  # get the added and removed cell types
+  types_added <- names(which(type_matrix["ref", ] == 0 & type_matrix["comp", ] > 0))
+  types_removed <- names(which(type_matrix["comp", ] == 0 & type_matrix["ref", ] > 0))
+
+  # get the total number of cells that have changed type (less added or removed cells)
+  types_n_changes <- dist(type_matrix, method = "manhattan")[1]
+
+  # calculate a scaled Manhattan distance
+  # divide by two to make the max value 1
+  type_prop_matrix <- type_matrix / rowSums(type_matrix)
+  types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
+
+  return(list(
+    types_n_changes = types_n_changes,
+    types_scaled_dist = types_scaled_dist,
+    types_added = types_added,
+    types_removed = types_removed
+  ))
+}
 ```
 
 ```{r, eval=!use_cache}
@@ -356,7 +401,7 @@ if (!has_processing_changes) {
 
 
 ```{r, eval=has_processing_changes}
-knitr::asis_output("### Summary")
+knitr::asis_output("\n\n### Summary\n\n")
 ```
 
 ```{r, eval=has_processing_changes}
@@ -377,7 +422,7 @@ report_table(
 
 
 ```{r, eval=has_processing_changes}
-knitr::asis_output("### Detail")
+knitr::asis_output("\n\n### Detail\n\n")
 ```
 
 ```{r, eval=has_processing_changes}
@@ -464,7 +509,7 @@ if (unfiltered_cell_changes > 0) {
 ```
 
 ```{r, eval=has_cell_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 ```{r}
@@ -517,7 +562,7 @@ ggplot(cell_plot_df, aes(x = change_frac)) +
 ```
 
 ```{r, eval=has_cell_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r}
@@ -650,7 +695,7 @@ if (unfiltered_read_changes > 0) {
 
 
 ```{r, eval=has_read_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 ```{r eval=has_read_changes}
@@ -703,7 +748,7 @@ ggplot(read_plot_df, aes(x = change_frac)) +
 
 
 ```{r, eval=has_read_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r eval=has_read_changes}
@@ -786,7 +831,7 @@ knitr::asis_output(glue::glue_data(
 
 
 ```{r, eval=has_hvg_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 
@@ -818,7 +863,7 @@ jaccard_plot + rankcor_plot +
 
 
 ```{r, eval=has_hvg_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r, eval=has_hvg_changes}
@@ -920,7 +965,7 @@ if (!has_cluster_changes) {
 
 
 ```{r, eval=has_cluster_changes}
-knitr::asis_output("#### Summary")
+knitr::asis_output("\n\n#### Summary\n\n")
 ```
 
 ```{r, eval=has_cluster_changes}
@@ -1007,7 +1052,7 @@ ggplot(cluster_plot_df, aes(x = set, y = size, fill = cluster)) +
 
 
 ```{r, eval=has_cluster_changes}
-knitr::asis_output("#### Detail")
+knitr::asis_output("\n\n#### Detail\n\n")
 ```
 
 ```{r, eval=has_cluster_changes}
@@ -1030,15 +1075,170 @@ cluster_changes |>
   DT::formatPercentage(c("cluster_number_change_frac"), 2)
 ```
 
-### Cell type assignments
-
-Report changes to the set of cell types assigned, and to the number of cells for each cell type.
-This will include SingleR, CellAssign and consensus cell types, if present.
-
-My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
+### Cell type assignments {.tabset}
 
 
+```{r}
+# create cell type change dataframe
+types_stats <- metrics_df |>
+  # create new list columns with celltype_changes function
+  dplyr::mutate(
+    singler = purrr::map2(
+      singler_celltypes.ref, singler_celltypes.comp,
+      celltype_changes
+    ),
+    cellassign = purrr::map2(
+      cellassign_celltypes.ref, cellassign_celltypes.comp,
+      celltype_changes
+    )
+  ) |>
+  # add consensus cell type changes if present (temporary fix until all metrics files have consensus calls)
+  (\(data){
+    if (all(c("consensus_celltypes.ref", "consensus_celltypes.comp") %in% names(data))) {
+      dplyr::mutate(
+        data,
+        consensus = purrr::map2(
+          consensus_celltypes.ref, consensus_celltypes.comp,
+          celltype_changes
+        )
+      )
+    } else {
+      data
+    }
+  })() |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    any_of(c("singler", "cellassign", "consensus"))
+  ) |>
+  # spread out the list columns
+  tidyr::unnest_wider(
+    any_of(c("singler", "cellassign", "consensus")),
+    names_sep = "_"
+  ) |>
+  # pivot by celltype method
+  tidyr::pivot_longer(
+    cols = starts_with(c("singler", "cellassign", "consensus")),
+    names_to = c("celltype_method", ".value"),
+    names_pattern = "(singler|cellassign|consensus)_(.*)"
+  ) |>
+  dplyr::mutate(
+    types_added_count = purrr::map_int(types_added, length),
+    types_removed_count = purrr::map_int(types_removed, length)
+  ) |>
+  dplyr::relocate(types_added_count, types_removed_count, .before = types_added)
 
+changed_types <- types_stats |>
+  dplyr::filter(types_n_changes > 0)
+
+has_changed_types <- nrow(changed_types) > 0
+```
+
+```{r}
+# Summary table for cell type changes
+
+types_summary <- types_stats |>
+  dplyr::summarize(
+    .by = celltype_method,
+    n_libraries = dplyr::n(),
+    n_libraries_changed = sum(types_n_changes > 0),
+    frac_libraries_changed = n_libraries_changed / n_libraries,
+    mean_n_changed = mean(types_n_changes[types_n_changes > 0]),
+    mean_scaled_dist = mean(types_scaled_dist[types_n_changes > 0]) |> round(4),
+    mean_n_added = mean(types_added_count[types_n_changes > 0]),
+    mean_n_removed = mean(types_removed_count[types_n_changes > 0])
+  )
+
+# Overall text summary
+if (!has_changed_types) {
+  knitr::asis_output("No change in cell type assignments.")
+} else {
+  type_n_libraries_changed <- length(unique(changed_types$library_id))
+  type_n_projects_changed <- length(unique(changed_types$project_id))
+
+
+  glue::glue("
+    A total of **{type_n_libraries_changed}** {ifelse(type_n_libraries_changed == 1, 'library', 'libraries')}
+    from **{type_n_projects_changed}** {ifelse(type_n_projects_changed == 1, 'project', 'projects')} had changes in cell type assignments.
+
+    In the table below, we show the mean of the minimum number of cells changed, and a scaled measure of the distance between sets of cell assignments.
+    With this distance measure, a value of `0` means the cell types are identical, and `1` means that every cell has changed cell type.
+    Note that for each of these we calculate the best score for a given set of cell type assignments, as we do not record per-cell assignments in the metrics files used here.
+  ") |>
+    knitr::asis_output()
+}
+```
+
+
+```{r, eval=has_changed_types}
+knitr::asis_output("\n\n#### Summary\n\n")
+```
+
+
+```{r, eval=has_changed_types}
+report_table(
+  types_summary,
+  summary = TRUE,
+  colnames = c(
+    "Cell typing method", "Libraries", "Number of libraries changed", "% of libraries changed",
+    "Mean minimum cells changed", "Mean scaled distance", "Mean number of cell types added", "Mean number of cell types removed"
+  )
+) |>
+  DT::formatPercentage("frac_libraries_changed", 2)
+```
+
+
+```{r, eval=has_changed_types}
+# Summary plot of cell type changes
+count_hist <- ggplot(changed_types, aes(x = types_n_changes)) +
+  geom_histogram(bins = 20) +
+  facet_grid(cols = vars(celltype_method)) +
+  labs(
+    title = "Minimum number of cells changed",
+    x = "Number of cells changed",
+    y = "Number of libraries",
+  ) +
+  theme_bw()
+
+distance_hist <- ggplot(changed_types, aes(x = types_scaled_dist)) +
+  geom_histogram(bins = 20) +
+  facet_grid(cols = vars(celltype_method)) +
+  labs(
+    title = "Scaled distance between cell type assignment sets",
+    x = "Scaled distance",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+count_hist / distance_hist
+```
+
+```{r eval=has_changed_types}
+knitr::asis_output("\n\n#### Detail\n\n")
+```
+
+```{r eval=has_changed_types}
+# Detail table of cell type changes
+changed_types |>
+  dplyr::mutate(
+    types_scaled_dist = sprintf("%.4f", types_scaled_dist),
+    # join added and removed types for display
+    across(
+      c("types_added", "types_removed"),
+      ~ purrr::map_chr(.x, \(types) paste0(types, collapse = ", "))
+    )
+  ) |>
+  report_table(
+    colnames = c(
+      "Project", "Sample", "Library",
+      "Cell type method", "Minimum changed cell types", "Scaled distance",
+      "Added cell type count", "Removed cell type count",
+      "Added cell types", "Removed cell types"
+    )
+  )
+```
 ## Session Info
 <details>
 <summary>Click to expand</summary>
