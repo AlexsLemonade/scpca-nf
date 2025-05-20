@@ -56,17 +56,6 @@ inputs:
           type: enum
         type: array
   - doc:
-      The output directory where the results will be saved. Use absolute paths
-      for storage on Cloud infrastructure.
-    id: outdir
-    inputBinding:
-      prefix: --outdir
-    label: Output directory
-    sbg:category: Input/output options
-    sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: scpca_out
-    type: string
-  - doc:
       The input file with information for each run to be processed. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-run-metadata-file>
       for format information.
     format: text/tab-separated-values
@@ -430,11 +419,11 @@ inputs:
       - "null"
       - File
 outputs:
-  - doc: Output directory (set dynamically from the --outdir option)
+  - doc: Results directory (set dynamically from the --results_dir option)
     id: output_directory
     label: Output directory
     outputBinding:
-      glob: $(inputs.outdir)
+      glob: $(inputs.results_dir)
     type: Directory
 requirements:
   - class: InlineJavascriptRequirement
