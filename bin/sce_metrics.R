@@ -153,9 +153,9 @@ if (file.size(opt$processed_sce) > 0) {
     metadata(processed_sce)$cellassign_reference
   )
   # convert celltype annotation counts to named lists
-  metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_ontology))
+  metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_annotation))
   metrics$cellassign_celltypes <- as.list(table(processed_sce$cellassign_celltype_annotation))
-  metrics$consensus_celltypes <- as.list(table(processed_sce$consensus_celltype_ontology))
+  metrics$consensus_celltypes <- as.list(table(processed_sce$consensus_celltype_annotation))
 }
 
 jsonlite::write_json(
