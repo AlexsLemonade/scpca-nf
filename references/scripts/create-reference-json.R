@@ -32,6 +32,9 @@ create_ref_entry <- function(
     organism,
     assembly,
     version,
+    include_salmon,
+    include_cellranger,
+    include_star,
     reference_name) {
   # create base reference directory
   ref_dir <- file.path(
@@ -59,32 +62,73 @@ create_ref_entry <- function(
     mito_file = file.path(
       annotation_dir,
       glue::glue("{reference_name}.mitogenes.txt")
-    ),
-    t2g_3col_path = file.path(
-      annotation_dir,
-      glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")
-    ),
-    t2g_bulk_path = file.path(
-      annotation_dir,
-      glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")
-    ),
-    splici_index = file.path(
-      ref_dir, "salmon_index",
-      glue::glue("{reference_name}.spliced_intron.txome")
-    ),
-    salmon_bulk_index = file.path(
-      ref_dir, "salmon_index",
-      glue::glue("{reference_name}.spliced_cdna.txome")
-    ),
-    cellranger_index = file.path(
-      ref_dir, "cellranger_index",
-      glue::glue("{reference_name}_cellranger_full")
-    ),
-    star_index = file.path(
-      ref_dir, "star_index",
-      glue::glue("{reference_name}.star_idx")
     )
   )
+
+  # fill in values related to salmon/alevin-fry index
+  if (include_salmon) {
+    json_entry <- c(
+      json_entry,
+      list(
+        t2g_3col_path = file.path(
+          annotation_dir,
+          glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")
+        ),
+        t2g_bulk_path = file.path(
+          annotation_dir,
+          glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")
+        ),
+        splici_index = file.path(
+          ref_dir, "salmon_index",
+          glue::glue("{reference_name}.spliced_intron.txome")
+        ),
+        salmon_bulk_index = file.path(
+          ref_dir, "salmon_index",
+          glue::glue("{reference_name}.spliced_cdna.txome")
+        )
+      )
+    )
+  } else {
+    json_entry <- c(
+      json_entry,
+      list(
+        t2g_3col_path = NA,
+        t2g_bulk_path = NA,
+        splici_index = NA,
+        salmon_bulk_index = NA
+      )
+    )
+  }
+
+  # fill in values related to cellranger index
+  if (include_cellranger) {
+    json_entry <- c(
+      json_entry,
+      list(
+        cellranger_index = file.path(
+          ref_dir, "cellranger_index",
+          glue::glue("{reference_name}_cellranger_full")
+        )
+      )
+    )
+  } else {
+    json_entry$cellranger_index <- NA
+  }
+
+  # fill in values related to star index
+  if (include_star) {
+    json_entry <- c(
+      json_entry,
+      list(
+        star_index = file.path(
+          ref_dir, "star_index",
+          glue::glue("{reference_name}.star_idx")
+        )
+      )
+    )
+  } else {
+    json_entry$star_index <- NA
+  }
 
   return(json_entry)
 }

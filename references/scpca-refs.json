@@ -12,6 +12,19 @@
     "cellranger_index": "homo_sapiens/ensembl-104/cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full",
     "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx"
   },
+  "Homo_sapiens.GRCh38.110": {
+    "ref_dir": "homo_sapiens/ensembl-110",
+    "ref_fasta": "homo_sapiens/ensembl-110/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "homo_sapiens/ensembl-110/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
+    "ref_gtf": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110.gtf.gz",
+    "mito_file": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110.mitogenes.txt",
+    "t2g_3col_path": null,
+    "t2g_bulk_path": null,
+    "splici_index": null,
+    "salmon_bulk_index": null,
+    "cellranger_index": "homo_sapiens/ensembl-110/cellranger_index/Homo_sapiens.GRCh38.110_cellranger_full",
+    "star_index": null
+  },
   "Mus_musculus.GRCm39.104": {
     "ref_dir": "mus_musculus/ensembl-104",
     "ref_fasta": "mus_musculus/ensembl-104/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz",
