@@ -173,7 +173,7 @@ Adding additional organisms is handled, in part, by the `build-index.nf` workflo
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-   Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `s3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
@@ -186,9 +186,11 @@ homo_sapiens
 ```
 
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
+Specify which indexes should be built for this reference version, using the `include_salmon`, `include_cellranger`, and `include_star` columns. 
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
-5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
+To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`. 
+5. Ensure that the new reference files are public and in the correct location on S3 (`s://scpca-references`).
 
 ### Adding additional cell type references
 
