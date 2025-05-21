@@ -22,5 +22,8 @@ merged-report.html
 .pixi
 *.egg-info
 
+# ignore local data cache
+scripts/compare-metrics/metrics.rds
+
 # schema backup file
 cavatica/sb_nextflow_schema.yaml.bak

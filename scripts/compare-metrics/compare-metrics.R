@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # get script location and activate renv
-script_dir <- here::here("scripts/compare-metrics")
+script_dir <- file.path(rprojroot::find_root(rprojroot::is_git_root), "scripts/compare-metrics")
 renv::load(script_dir)
 
 # parse options
