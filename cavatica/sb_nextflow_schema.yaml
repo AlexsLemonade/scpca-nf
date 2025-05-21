@@ -75,7 +75,6 @@ inputs:
     label: Sample metadata file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
-    sbg:toolDefaultValue: sample_metadata.tsv
     type: File
   - doc:
       The project cell type metadata file. Only used if perform cell typing is
@@ -87,6 +86,7 @@ inputs:
     label: Project cell type metadata file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
+    sbg:toolDefaultValue: ""
     type:
       - "null"
       - File
@@ -100,6 +100,7 @@ inputs:
     label: Cellhash pool file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
+    sbg:toolDefaultValue: ""
     type:
       - "null"
       - File
@@ -109,11 +110,8 @@ inputs:
       prefix: --results_dir
     label: Results directory
     sbg:category: Input/output options
-    sbg:hidden: true
     sbg:icon: fas fa-folder-minus
-    sbg:toolDefaultValue: scpca_out/results
     type:
-      - "null"
       - Directory
   - doc: Directory to store checkpoint files, used when optionally skipping steps.
     id: checkpoints_dir
@@ -121,11 +119,8 @@ inputs:
       prefix: --checkpoints_dir
     label: Checkpoints directory
     sbg:category: Input/output options
-    sbg:hidden: true
     sbg:icon: fas fa-folder-minus
-    sbg:toolDefaultValue: scpca_out/checkpoints
     type:
-      - "null"
       - Directory
   - doc:
       A comma-separated list of run IDs to run. Use "All" to run all samples in
@@ -290,108 +285,6 @@ inputs:
     type:
       - "null"
       - int
-  - id: af_resolution
-    inputBinding:
-      prefix: --af_resolution
-    label: alevin-fry quant resolution method.
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: cr-like-em
-    type:
-      - "null"
-      - name: af_resolution
-        symbols:
-          - cr-like-em
-          - cr-like
-          - full
-          - parsimony
-          - trivial
-        type: enum
-  - id: spliced_only
-    inputBinding:
-      prefix: --spliced_only
-    label: Only count spliced RNA reads.
-    sbg:category: Algorithm parameters
-    type:
-      - "null"
-      - boolean
-  - doc: Cutoff for `miQC` to keep a cell.
-    id: prob_compromised_cutoff
-    inputBinding:
-      prefix: --prob_compromised_cutoff
-    label: miQC cutoff value
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: 0.75
-    type:
-      - "null"
-      - float
-  - doc: Minimum number of genes detected required to keep a cell.
-    id: gene_cutoff
-    inputBinding:
-      prefix: --gene_cutoff
-    label: Minimum gene cutoff
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: 200
-    type:
-      - "null"
-      - int
-  - doc: Number of highly variable genes to use for dimension reduction.
-    id: num_hvg
-    inputBinding:
-      prefix: --num_hvg
-    label: Number of highly variable genes
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: 2000
-    type:
-      - "null"
-      - int
-  - doc: Number of principal components to keep from PCA.
-    id: num_pcs
-    inputBinding:
-      prefix: --num_pcs
-    label: Number of principal components
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: 50
-    type:
-      - "null"
-      - int
-  - doc: Cluster algorithm to apply.
-    id: cluster_algorithm
-    inputBinding:
-      prefix: --cluster_algorithm
-    label: Clustering algorithm
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: louvain
-    type:
-      - "null"
-      - name: cluster_algorithm
-        symbols:
-          - louvain
-          - leiden
-          - walktrap
-        type: enum
-  - id: cluster_weighting
-    inputBinding:
-      prefix: --cluster_weighting
-    label: Edge weighting function to use with clustering algorithm.
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: jaccard
-    type:
-      - "null"
-      - name: cluster_weighting
-        symbols:
-          - rank
-          - number
-          - jaccard
-        type: enum
-  - id: nearest_neighbors
-    inputBinding:
-      prefix: --nearest_neighbors
-    label: Number of neighbors to use with clustering algorithm.
-    sbg:category: Algorithm parameters
-    sbg:toolDefaultValue: 20
-    type:
-      - "null"
-      - int
   - doc:
       Use to set a limit for the highest memory jobs. Should be a string in the
       format integer-unit e.g. `512.GB`
@@ -431,12 +324,12 @@ outputs:
     outputBinding:
       glob: $(inputs.results_dir)
     type: Directory
-  - doc: Checkpoints directory (set dynamically from the --checkpoints_dir option)
-    id: checkpoints_directory
-    label: Checkpoints directory
-    outputBinding:
-      glob: $(inputs.checkpoints_dir)
-    type: Directory
+  # - doc: Checkpoints directory (set dynamically from the --checkpoints_dir option)
+  #   id: checkpoints_directory
+  #   label: Checkpoints directory
+  #   outputBinding:
+  #     glob: $(inputs.checkpoints_dir)
+  #   type: Directory
 requirements:
   - class: InlineJavascriptRequirement
 sbg:links:
