@@ -50,8 +50,7 @@ inputs:
       - items:
           name: profile
           symbols:
-            - example
-            - standard
+            - cavatica
             - stub
           type: enum
         type: array
@@ -65,8 +64,7 @@ inputs:
     label: Run metadata file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
-    type:
-      - File
+    type: File
   - doc:
       A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file>
       for more information.
@@ -78,9 +76,10 @@ inputs:
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
     sbg:toolDefaultValue: sample_metadata.tsv
-    type:
-      - File
-  - doc: The project cell type metadata file. Only used if perform cell typing is on.
+    type: File
+  - doc:
+      The project cell type metadata file. Only used if perform cell typing is
+      on.
     format: text/tab-separated-values
     id: project_celltype_metafile
     inputBinding:
@@ -101,7 +100,6 @@ inputs:
     label: Cellhash pool file
     sbg:category: Input/output options
     sbg:icon: fas fa-file-alt
-    sbg:toolDefaultValue: multiplex_pools.tsv
     type:
       - "null"
       - File
