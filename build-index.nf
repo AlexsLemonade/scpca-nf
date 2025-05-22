@@ -83,10 +83,13 @@ process cellranger_index {
     gunzip -c ${gtf} > genome.gtf
 
     cellranger mkref \
-      --genome=${cellranger_index} \
+      --genome=temp_index \
       --fasta=genome.fasta \
       --genes=genome.gtf \
       --nthreads=${task.cpus}
+
+    # copy index to output directory and clean up 
+    cp -r temp_index ${cellranger_index} && rm -rf temp_index
     """
 }
 
