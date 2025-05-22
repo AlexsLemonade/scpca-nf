@@ -9,7 +9,6 @@
   - [Processing example data](#processing-example-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding additional organisms](#adding-additional-organisms)
-  - [Adding references for processing 10x Flex data](#adding-references-for-processing-10x-flex-data)
   - [Adding additional cell type references](#adding-additional-cell-type-references)
 - [Running the merge workflow](#running-the-merge-workflow)
 
@@ -188,32 +187,10 @@ homo_sapiens
 
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
 Specify which indexes should be built for this reference version, using the `include_salmon`, `include_cellranger`, and `include_star` columns. 
-If you would like to add a probe set reference for processing 10x Flex samples, you will also need to download a probe set reference and provide the filename in the `flex_probe_ref_file` column of the metadata file. 
-See the [full instructions for adding references for 10x flex data below](#adding-references-for-processing-10x-flex-data).
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`. 
 5. Ensure that the new reference files are public and in the correct location on S3 (`s://scpca-references`).
-
-### Adding references for processing 10x Flex data
-
-To process any data generated using the [10x Flex platform](https://10x.vercel.app/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) you will need to download the [probe set reference CSV](https://10x.vercel.app/support/flex-gene-expression/documentation/steps/probe-sets/chromium-frp-probe-set-files) and save it to S3 and add the path to the `scpca-refs.json` file. 
-Follow the below steps to add the probe set reference: 
-
-1. Each probe set reference is associated with a specific Ensembl version.
-To locate the appropriate Ensembl version see the [FAQ on using probe sets with transcriptome references](https://10x.vercel.app/support/flex-gene-expression/documentation/steps/probe-sets/chromium-frp-probe-sets-overview) and the [reference release notes](https://10x.vercel.app/support/software/cell-ranger/latest/release-notes/cr-reference-release-notes) from 10x Genomics. 
-Then save the probe set reference file to the appropriate folder associated with that organism and Ensembl version. 
-
-```
-homo_sapiens
-└── ensembl-104
-    ├── 10X_flex_probes
-        └── Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv
-```
-
-2. Add the file name to the `flex_probe_ref_file` column of `ref-metadata.tsv` for the row corresponding to that Ensembl version. 
-3. Update `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory. 
-This should now add the path to the probe set file to the `flex_probe_ref` entry for the specified transcriptome reference. 
 
 ### Adding additional cell type references
 
