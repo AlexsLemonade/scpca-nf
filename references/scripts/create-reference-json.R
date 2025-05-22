@@ -36,6 +36,7 @@ create_ref_entry <- function(
     include_salmon,
     include_cellranger,
     include_star,
+    flex_probe_ref_file = NA,
     reference_name) {
   # create base reference directory
   ref_dir <- file.path(
@@ -70,6 +71,7 @@ create_ref_entry <- function(
     splici_index = NA,
     salmon_bulk_index = NA,
     cellranger_index = NA,
+    flex_probe_ref = NA,
     star_index = NA
   )
 
@@ -98,6 +100,13 @@ create_ref_entry <- function(
     json_entry$cellranger_index <- file.path(
       ref_dir, "cellranger_index",
       glue::glue("{reference_name}_cellranger_full")
+    )
+  }
+  # if using flex, add in the path to the probe file
+  if (!is.na(flex_probe_ref_file)) {
+    json_entry$flex_probe_ref <- file.path(
+      ref_dir, "10X_flex_probes",
+      flex_probe_ref_file
     )
   }
 
