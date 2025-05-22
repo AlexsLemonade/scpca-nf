@@ -15,6 +15,11 @@ cell_barcodes = [
   'cellhash_10Xv3.1': '3M-february-2018.txt'
 ]
 
+// 10X flex probe set files
+probe_set_files = [
+  'v1.1.0' = 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
+]
+
 // supported technologies
 single_cell_techs = cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
@@ -23,6 +28,7 @@ all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
+flex_techs = single_cell_techs.findAll{it.startsWith('10Xflex')}
 
 // report template paths
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
@@ -141,18 +147,17 @@ workflow {
         slide_serial_number: Utils.parseNA(it.slide_serial_number),
         slide_section: Utils.parseNA(it.slide_section),
         ref_assembly: it.sample_reference,
-        ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
-        ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
-        ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
-        // need to account for the refs sometimes being null 
-        salmon_splici_index: sample_refs?.splici_index ? "${params.ref_rootdir}/${sample_refs.splici_index}" : null,
-        t2g_3col_path: sample_refs?.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : null,
-        mito_file: sample_refs?.mito_file ? "${params.ref_rootdir}/${sample_refs.mito_file}" : null,
-        salmon_bulk_index: sample_refs?.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : null,
-        t2g_bulk_path: sample_refs?.t2g_bulk_path ? "${params.ref_rootdir}/${sample_refs.t2g_bulk_path}" : null,
-        cellranger_index: sample_refs?.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : null,
-        star_index: sample_refs?.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : null,
-        flex_probe_ref: sample_refs?.flex_probe_ref ? "${params.ref_rootdir}/${sample_refs.flex_probe_ref}" : null,
+        ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
+        ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
+        ref_gtf: "${params.ref_rootdir}/${sample_refs.ref_gtf}",
+        mito_file: "${params.ref_rootdir}/${sample_refs.mito_file}",
+        // account for the refs sometimes being null 
+        salmon_splici_index: sample_refs.splici_index ? "${params.ref_rootdir}/${sample_refs.splici_index}" : null,
+        t2g_3col_path: sample_refs.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : null,
+        salmon_bulk_index: sample_refs.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : null,
+        t2g_bulk_path: sample_refs.t2g_bulk_path ? "${params.ref_rootdir}/${sample_refs.t2g_bulk_path}" : null,
+        cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : null,
+        star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : null,
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
