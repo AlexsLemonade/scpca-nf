@@ -1,4 +1,4 @@
-organism	assembly	version	include_salmon	include_cellranger	include_star	flex_probe_ref_file
-Homo_sapiens	GRCh38	104	TRUE	TRUE	TRUE	NA
-Homo_sapiens	GRCh38	110	FALSE	TRUE	FALSE	Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv
-Mus_musculus	GRCm39	104	TRUE	TRUE	TRUE	NA
+organism	assembly	version	include_salmon	include_cellranger	include_star
+Homo_sapiens	GRCh38	104	TRUE	TRUE	TRUE
+Homo_sapiens	GRCh38	110	FALSE	TRUE	FALSE
+Mus_musculus	GRCm39	104	TRUE	TRUE	TRUE
