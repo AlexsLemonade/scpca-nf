@@ -142,9 +142,9 @@ workflow {
       [
         reference_name, 
         ref_paths[reference_name],
-        it.include_salmon?.toUpperCase() == "TRUE",
-        it.include_cellranger?.toUpperCase() == "TRUE",
-        it.include_star?.toUpperCase() == "TRUE"
+        it.include_salmon.toUpperCase() == "TRUE",
+        it.include_cellranger.toUpperCase() == "TRUE",
+        it.include_star.toUpperCase() == "TRUE"
         ]
     }
     // filter to only regenerate specified references
