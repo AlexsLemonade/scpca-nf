@@ -16,8 +16,9 @@ cell_barcodes = [
 ]
 
 // 10X flex probe set files
-probe_set_files = [
-  'v1.1.0' = 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
+flex_probesets = [
+  '10Xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
+  '10Xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
 ]
 
 // supported technologies
