@@ -29,7 +29,6 @@ all_techs = single_cell_techs + bulk_techs + spatial_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
-flex_techs = single_cell_techs.findAll{it.startsWith('10Xflex')}
 
 // report template paths
 report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
