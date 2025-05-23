@@ -152,12 +152,12 @@ workflow {
         ref_gtf: "${params.ref_rootdir}/${sample_refs.ref_gtf}",
         mito_file: "${params.ref_rootdir}/${sample_refs.mito_file}",
         // account for the refs sometimes being null 
-        salmon_splici_index: sample_refs.splici_index ? "${params.ref_rootdir}/${sample_refs.splici_index}" : null,
-        t2g_3col_path: sample_refs.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : null,
-        salmon_bulk_index: sample_refs.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : null,
-        t2g_bulk_path: sample_refs.t2g_bulk_path ? "${params.ref_rootdir}/${sample_refs.t2g_bulk_path}" : null,
-        cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : null,
-        star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : null,
+        salmon_splici_index: sample_refs.splici_index ? "${params.ref_rootdir}/${sample_refs.splici_index}" : '',
+        t2g_3col_path: sample_refs.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : '',
+        salmon_bulk_index: sample_refs.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : '',
+        t2g_bulk_path: sample_refs.t2g_bulk_path ? "${params.ref_rootdir}/${sample_refs.t2g_bulk_path}" : '',
+        cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
+        star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
