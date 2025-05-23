@@ -64,7 +64,7 @@ create_ref_entry <- function(
       annotation_dir,
       glue::glue("{reference_name}.mitogenes.txt")
     ),
-    # fill in optional entries with NA
+    # fill in optional entries with empty strings
     t2g_3col_path = "",
     t2g_bulk_path = "",
     splici_index = "",
