@@ -13,7 +13,6 @@ process cellranger_flex_single {
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.cellranger_multi_publish_dir).name
-    index="${task.workDir}/${cellranger_index}"
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
@@ -22,13 +21,13 @@ process cellranger_flex_single {
 
     echo '
     [gene-expression] 
-    reference,${index}
+    reference,${cellranger_index}
     probe-set,${meta.flex_probeset}
     create-bam,false
 
     [libraries]
     fastq_id,fastqs,feature_types
-    ${meta.cr_sample_id},\$PWD/${fastq_dir},Gene Expression
+    ${meta.cr_sample_id},${fastq_dir},Gene Expression
     ' > \$config_file
 
     cat \$config_file
