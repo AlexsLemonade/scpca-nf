@@ -8,7 +8,7 @@ process cellranger_flex_single {
   label 'cpus_12'
   label 'mem_24'
   input:
-    tuple val(meta), path(fastq_dir), path(cellranger_index)
+    tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
   output:
     tuple val(meta), path(out_id)
   script:
@@ -19,16 +19,16 @@ process cellranger_flex_single {
     # create config file
     config_file="${meta.library_id}-config.csv"
 
-    echo '
-    [gene-expression] 
-    reference,${cellranger_index}
-    probe-set,${meta.flex_probeset}
-    create-bam,false
+    tee \$config_file <<-END_CONFIG
+        [gene-expression]
+        reference,\$(realpath ${cellranger_index})
+        probe-set,\$(realpath ${flex_probeset})
+        create-bam,false
 
-    [libraries]
-    fastq_id,fastqs,feature_types
-    ${meta.cr_sample_id},${fastq_dir},Gene Expression
-    ' > \$config_file
+        [libraries]
+        fastq_id,fastqs,feature_types
+        ${meta.cr_sample_id},\$(realpath ${fastq_dir}),Gene Expression
+        END_CONFIG
 
     cat \$config_file
 
@@ -95,8 +95,9 @@ workflow flex_quant{
     flex_reads = flex_channel.make_cellranger_flex
       .map{ meta -> tuple(
         meta, 
-        file(meta.files_directory, type: 'dir'),
-        file(meta.cellranger_index, type: 'dir')
+        file(meta.files_directory, type: 'dir', checkIfExists: true),
+        file(meta.cellranger_index, type: 'dir', checkIfExists: true)
+        file(meta.flex_probset, type: 'file', checkIfExists: true)
       )}
       .branch{ it -> 
         single: it[0]["technology"].contains("single")
