@@ -13,28 +13,32 @@ process cellranger_flex_single {
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.cellranger_multi_publish_dir).name
+    index="${task.workDir}/${cellranger_index}"
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     # create config file
     config_file="${meta.library_id}-config.csv"
 
-    echo "[gene-expression]" > \$config_file
-    echo "reference,${cellranger_index}" >> \$config_file
-    echo "probe-set,${meta.flex_probeset}" >> \$config_file
-    echo "create-bam,false" >> \$config_file
-    echo "" >> \$config_file
+    echo '
+    [gene-expression] 
+    reference,${index}
+    probe-set,${meta.flex_probeset}
+    create-bam,false
 
-    echo "[libraries]" >> \$config_file
-    echo "fastq_id,fastqs,feature_types" >> \$config_file
-    echo "${meta.cr_sample_id},${fastq_dir},Gene Expression" >> \$config_file
+    [libraries]
+    fastq_id,fastqs,feature_types
+    ${meta.cr_sample_id},\$PWD/${fastq_dir},Gene Expression
+    ' > \$config_file
+
+    cat \$config_file
 
     # run cellranger multi
-    #cellranger multi \
-    #  --id=${out_id} \
-    #  --csv=\$config_file \
-    #  --localcores=${task.cpus} \
-    #  --localmem=${task.memory.toGiga()}
+    cellranger multi \
+      --id=${out_id} \
+      --csv=\$config_file \
+      --localcores=${task.cpus} \
+      --localmem=${task.memory.toGiga()}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
