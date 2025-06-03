@@ -16,21 +16,16 @@ process cellranger_flex_single {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
+  
     # create config file
     config_file="${meta.library_id}-config.csv"
 
-    tee \$config_file <<-END_CONFIG
-        [gene-expression]
-        reference,\$(realpath ${cellranger_index})
-        probe-set,\$(realpath ${flex_probeset})
-        create-bam,false
-
-        [libraries]
-        fastq_id,fastqs,feature_types
-        ${meta.cr_sample_id},\$(realpath ${fastq_dir}),Gene Expression
-        END_CONFIG
-
-    cat \$config_file
+    python create_cellranger_config.py \
+      --config \$config_file \
+      --transcriptome_reference ${cellranger_index} \
+      --probe_set_reference ${flex_probeset} \
+      --sample_id ${meta.cr_sample_id} \
+      --fastq_dir ${fastq_dir}
 
     # run cellranger multi
     cellranger multi \
@@ -96,8 +91,8 @@ workflow flex_quant{
       .map{ meta -> tuple(
         meta, 
         file(meta.files_directory, type: 'dir', checkIfExists: true),
-        file(meta.cellranger_index, type: 'dir', checkIfExists: true)
-        file(meta.flex_probset, type: 'file', checkIfExists: true)
+        file(meta.cellranger_index, type: 'dir', checkIfExists: true),
+        file(meta.flex_probeset, type: 'file', checkIfExists: true)
       )}
       .branch{ it -> 
         single: it[0]["technology"].contains("single")
