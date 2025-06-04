@@ -102,35 +102,6 @@ workflow flex_quant{
     // run cellranger flex single
     cellranger_flex_single(flex_reads.single)
 
-    // TODO: Update with handling for multiplexed channel  
-    // only run if a pool file is provided and there are multiplexed libraries
-    multiplex_pools_ch = Channel.fromPath(pool_file)
-      .splitCsv(header: true, sep: '\t')
-      .map { pool_meta -> tuple(
-        [pool_meta[0], pool_meta[1]],
-        pool_meta
-      )
-      }
-
-    flex_multi_ch = flex_reads.multi
-      .map{ meta, files_dir, index -> tuple(
-        meta.library_id,
-        meta.sample_id.tokenize(","),
-        meta,
-        files_dir,
-        index
-      )}
-      .transpose()
-      .map{ library_id, sample_id, meta, files_dir, index -> tuple(
-        [library_id, sample_id],
-        meta,
-        files_dir, 
-        index
-      )}
-      // tuple of [[library id, sample id], meta, files_dir, index, barcode]
-      .join(multiplex_pools_ch) // join by both library and sample ID
-
-
     // TODO: Run cellranger multiplexed and then join with single channel 
 
     // need to join back with skipped reads before outputting
