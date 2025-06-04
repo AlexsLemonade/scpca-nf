@@ -12,6 +12,7 @@ process cellranger_flex_single {
   output:
     tuple val(meta), path(out_id)
   script:
+    out_id = file(meta.cellranger_multi_publish_dir).name
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
@@ -28,13 +29,13 @@ process cellranger_flex_single {
 
     # run cellranger multi
     cellranger multi \
-      --id=${meta.run_id} \
+      --id=${out_id} \
       --csv=\$config_file \
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()}
 
     # write metadata
-    echo '${meta_json}' > ${meta.run_id}/scpca-meta.json
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
   stub:
     out_id = file(meta.cellranger_multi_publish_dir).name
