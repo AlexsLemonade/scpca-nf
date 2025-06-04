@@ -5,6 +5,7 @@
 from pathlib import Path
 import argparse
 import textwrap
+import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -21,12 +22,6 @@ parser.add_argument(
     required=True,
     type=Path,
     help="Path to probe set reference",
-)
-parser.add_argument(
-    "--sample_id",
-    required=True,
-    type=str,
-    help="cellranger sample ID obtained from FASTQ file names",
 )
 parser.add_argument(
     "--fastq_dir",
@@ -62,9 +57,29 @@ config_content = textwrap.dedent(
     
     [libraries]
     fastq_id,fastqs,feature_types
-    {args.sample_id},{args.fastq_dir.resolve()},Gene Expression
 """.lstrip()
 )  # remove leading newline
+
+# regex for extracting sample ID from the FASTQ files
+pattern = re.compile(r"^(.+)_S.+_L.+_[RI].+\.fastq\.gz$")
+
+# Get sample IDs needed for cellranger from fastq files
+fastq_path = args.fastq_dir.resolve()
+fastq_ids = set()
+for fastq_file in fastq_path.glob("*.fastq.gz"):
+    match = pattern.match(fastq_file.name)
+    if match:
+        fastq_ids.add(match.group(1))
+
+# make sure sample ids were found
+if not fastq_ids:
+    raise ValueError(
+        f"{fastq_path} does not contain FASTQ files that match the expected naming convention."
+    )
+
+# add fastq_ids to config content
+for fastq_id in fastq_ids:
+    config_content += f"{fastq_id},{fastq_path},Gene_Expression\n"
 
 # save config content to file
 args.config.write_text(config_content)

@@ -22,7 +22,6 @@ process cellranger_flex_single {
       --config flex_config.csv \
       --transcriptome_reference ${cellranger_index} \
       --probe_set_reference ${flex_probeset} \
-      --sample_id ${meta.cr_sample_id} \
       --fastq_dir ${fastq_dir}
 
     # run cellranger multi
@@ -57,10 +56,6 @@ workflow flex_quant{
       // add sample names and output directory to metadata
       .map{
         def meta = it.clone();
-        // get sample id in fastq files folder that is required by cellranger
-        // cellranger multi only uses a single sample ID so grab from the first fastq file 
-        def fastq_file = file(meta.files_directory).list().findAll{it.contains('.fastq.gz')}[0];
-        meta.cr_sample_id = (fastq_file =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1];
         meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}";
         meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}";
         meta // return modified meta object
