@@ -4,6 +4,7 @@
 
 from pathlib import Path
 import argparse
+import textwrap
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -52,15 +53,16 @@ if not args.fastq_dir.exists():
     raise FileNotFoundError(f"FASTQ directory not found: {args.fastq_dir}")
 
 # build config file content
-config_content = [
-    "[gene-expression]\n",
-    f"reference,{args.transcriptome_reference.resolve()}\n",
-    f"probe-set,{args.probe_set_reference.resolve()}\n",
-    "create-bam,false\n\n",
-    "[libraries]\n",
-    "fastq_id,fastqs,feature_types\n",
-    f"{args.sample_id},{args.fastq_dir.resolve()},Gene Expression\n",
-]
+config_content = textwrap.dedent(f"""
+    [gene-expression]
+    reference,{args.transcriptome_reference.resolve()}
+    probe-set,{args.probe_set_reference.resolve()}
+    create-bam,false
+    
+    [libraries]
+    fastq_id,fastqs,feature_types
+    {args.sample_id},{args.fastq_dir.resolve()},Gene Expression
+""".lstrip()) # remove leading newline
 
 # save config content to file
-args.config.write_text("".join(config_content))
+args.config.write_text(config_content)

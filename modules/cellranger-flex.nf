@@ -18,10 +18,8 @@ process cellranger_flex_single {
     """
   
     # create config file
-    config_file="${meta.library_id}-config.csv"
-
     create_cellranger_config.py \
-      --config \$config_file \
+      --config flex_config.csv \
       --transcriptome_reference ${cellranger_index} \
       --probe_set_reference ${flex_probeset} \
       --sample_id ${meta.cr_sample_id} \
@@ -30,7 +28,7 @@ process cellranger_flex_single {
     # run cellranger multi
     cellranger multi \
       --id=${out_id} \
-      --csv=\$config_file \
+      --csv=flex_config.csv
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()}
 
