@@ -53,7 +53,8 @@ if not args.fastq_dir.exists():
     raise FileNotFoundError(f"FASTQ directory not found: {args.fastq_dir}")
 
 # build config file content
-config_content = textwrap.dedent(f"""
+config_content = textwrap.dedent(
+    f"""
     [gene-expression]
     reference,{args.transcriptome_reference.resolve()}
     probe-set,{args.probe_set_reference.resolve()}
@@ -62,7 +63,8 @@ config_content = textwrap.dedent(f"""
     [libraries]
     fastq_id,fastqs,feature_types
     {args.sample_id},{args.fastq_dir.resolve()},Gene Expression
-""".lstrip()) # remove leading newline
+""".lstrip()
+)  # remove leading newline
 
 # save config content to file
 args.config.write_text(config_content)
