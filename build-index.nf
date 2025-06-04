@@ -78,18 +78,19 @@ process cellranger_index {
     path cellranger_index
   script:
     cellranger_index = file("${meta.cellranger_index}").name
+    assembly = ref_name.split("\\.")[1] // extract assembly from ref_name
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
 
     cellranger mkref \
-      --genome=temp_index \
+      --genome=${assembly} \
       --fasta=genome.fasta \
       --genes=genome.gtf \
       --nthreads=${task.cpus}
 
     # copy index to output directory and clean up 
-    cp -r temp_index ${cellranger_index} && rm -rf temp_index
+    cp -r ${assembly} ${cellranger_index} && rm -rf ${assembly}
     """
 }
 
