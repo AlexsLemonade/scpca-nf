@@ -25,7 +25,8 @@ flex_probesets = [
 single_cell_techs = cell_barcodes.keySet()
 bulk_techs = ['single_end', 'paired_end']
 spatial_techs = ['visium']
-all_techs = single_cell_techs + bulk_techs + spatial_techs
+flex_techs = flex_probesets.keySet()
+all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
 rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
 citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
@@ -42,6 +43,7 @@ include { map_quant_feature } from './modules/af-features.nf'
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
+include { flex_quant } from './modules/cellranger-flex.nf'
 include { generate_sce; generate_sce_with_feature; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
@@ -181,6 +183,7 @@ workflow {
       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
       rna: it.technology in rna_techs
       spatial: it.technology in spatial_techs
+      flex: it.technology in flex_techs
     }
 
   // generate lists of library ids for feature libraries & RNA-only
@@ -207,7 +210,13 @@ workflow {
   // **** Process Bulk RNA-seq data ***
   bulk_quant_rna(runs_ch.bulk)
 
-  // **** Process RNA-seq data ****
+  // **** Process Spatial Transcriptomics data ****
+  spaceranger_quant(runs_ch.spatial)
+
+  // **** Process 10x flex RNA-seq data ***
+  flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file))
+
+  // **** Process 10x tag-based RNA-seq data ****
   map_quant_rna(runs_ch.rna, cell_barcodes)
 
   // get RNA-only libraries
@@ -341,6 +350,4 @@ workflow {
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
-   // **** Process Spatial Transcriptomics data ****
-  spaceranger_quant(runs_ch.spatial)
 }
