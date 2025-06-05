@@ -57,7 +57,7 @@ config_content = textwrap.dedent(
     
     [libraries]
     fastq_id,fastqs,feature_types
-    """.lstrip() # remove leading newline
+    """.lstrip()  # remove leading newline
 )
 
 # regex for extracting ID from the FASTQ files
