@@ -57,10 +57,10 @@ config_content = textwrap.dedent(
     
     [libraries]
     fastq_id,fastqs,feature_types
-""".lstrip()
-)  # remove leading newline
+    """.lstrip() # remove leading newline
+)
 
-# regex for extracting sample ID from the FASTQ files
+# regex for extracting ID from the FASTQ files
 pattern = re.compile(r"^(.+)_S.+_L.+_[RI].+\.fastq\.gz$")
 
 # Get sample IDs needed for cellranger from fastq files
