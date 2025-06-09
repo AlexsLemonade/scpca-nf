@@ -44,6 +44,56 @@ process cellranger_flex_single {
     """
 }
 
+process cellranger_flex_multi {
+  container params.CELLRANGER_CONTAINER
+  publishDir "${meta.cellranger_multi_publish_dir}", mode: 'copy'
+  tag "${meta.run_id}-cellranger-multi"
+  label 'cpus_12'
+  label 'mem_24'
+  input:
+    tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
+    path multiplex_pools_file
+  output:
+    tuple val(meta), path(out_id)
+  script:
+    out_id = file(meta.cellranger_multi_publish_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
+    """
+  
+    # create config file
+    create_cellranger_config.py \
+      --config flex_config.csv \
+      --transcriptome_reference ${cellranger_index} \
+      --probe_set_reference ${flex_probeset} \
+      --fastq_dir ${fastq_dir} \
+      --multiplex_pools_file ${multiplex_pools_file} \
+      --library_id ${meta.library_id}
+
+    # print for debugging
+    cat flex_config.csv
+
+    # run cellranger multi
+    cellranger multi \
+      --id=${out_id} \
+      --csv=flex_config.csv
+      --localcores=${task.cpus} \
+      --localmem=${task.memory.toGiga()}
+
+    # write metadata
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+    """
+  stub:
+    out_id = file(meta.cellranger_multi_publish_dir).name
+    meta += Utils.getVersions(workflow, nextflow)
+    meta_json = Utils.makeJson(meta)
+    """
+    mkdir -p ${out_id}/outs
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+    """
+}
+
+
 
 workflow flex_quant{
   take: 
@@ -96,6 +146,7 @@ workflow flex_quant{
     cellranger_flex_single(flex_reads.single)
 
     // TODO: Run cellranger multiplexed and then join with single channel 
+    cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
     // need to join back with skipped reads before outputting
     flex_quants_ch = flex_channel.has_cellranger_flex
