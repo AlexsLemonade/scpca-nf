@@ -40,9 +40,13 @@ hints:
   - class: sbg:NextflowExecutionMode
     value: multi-instance
 inputs:
-  - id: outdir
+  - doc: Name of the directory to use for workflow outputs
+    id: outdir
+    label: Output directory
     inputBinding:
       prefix: --outdir
+    sbg:category: Input/output options
+    sbg:toolDefaultValue: scpca_out
     type:
       - string
       - "null"
@@ -134,28 +138,6 @@ inputs:
     type:
       - "null"
       - string
-  - doc:
-      If alevin or salmon mapping has already been performed and output files exist,
-      mapping is skipped by default.
-    id: repeat_mapping
-    inputBinding:
-      prefix: --repeat_mapping
-    label: Repeat mapping
-    sbg:category: Processing options
-    type:
-      - "null"
-      - boolean
-  - doc:
-      If genetic demultiplexing has already been performed and output files exist,
-      genetic demux is skipped by default.
-    id: repeat_genetic_demux
-    inputBinding:
-      prefix: --repeat_genetic_demux
-    label: Repeat genetic demultiplexing
-    sbg:category: Processing options
-    type:
-      - "null"
-      - boolean
   - doc: Skip genetic demultiplexing steps, even if bulk data is present.
     id: skip_genetic_demux
     inputBinding:
@@ -172,17 +154,6 @@ inputs:
     inputBinding:
       prefix: --perform_celltyping
     label: Perform cell typing
-    sbg:category: Processing options
-    type:
-      - "null"
-      - boolean
-  - doc:
-      If cell type annotations have already been performed and output files exist,
-      cell typing is skipped by default.
-    id: repeat_celltyping
-    inputBinding:
-      prefix: --repeat_celltyping
-    label: Repeat cell typing
     sbg:category: Processing options
     type:
       - "null"
@@ -307,9 +278,10 @@ inputs:
       - "null"
       - File
 outputs:
-  - id: output_directory
+  - id: output_dir
+    label: Workflow output directory
     outputBinding:
-      glob: "$(inputs.outdir)"
+      glob: $(inputs.outdir)
     type: Directory
 requirements:
   - class: InlineJavascriptRequirement
