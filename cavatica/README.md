@@ -17,7 +17,7 @@ The `sb_nextflow_schema.yaml` file is a configuration file that defines the Next
 This file can be generated or updated with the following command:
 
 ```bash
-cavatica-build.sh
+./cavatica-build.sh
 ```
 
 This will use the existing file as a starting point in order to preserve any customizations.
@@ -28,7 +28,7 @@ If you want to start fresh, you can delete the existing `sb_nextflow_schema.yaml
 To push the workflow to Cavatica, use the following command:
 
 ```bash
-op run -- cavatica-build.sh push
+op run -- ./cavatica-build.sh push
 ```
 
 

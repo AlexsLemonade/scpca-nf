@@ -40,6 +40,12 @@ hints:
   - class: sbg:NextflowExecutionMode
     value: multi-instance
 inputs:
+  - id: outdir
+    inputBinding:
+      prefix: --outdir
+    type:
+      - string
+      - "null"
   - doc: Select which profile(s) you want to use for task execution.
     id: profile
     inputBinding:
@@ -105,22 +111,6 @@ inputs:
     type:
       - "null"
       - File
-  - doc: Directory for final output files.
-    id: results_dir
-    inputBinding:
-      prefix: --results_dir
-    label: Results directory
-    sbg:category: Input/output options
-    sbg:icon: fas fa-folder-minus
-    type: Directory
-  - doc: Directory to store checkpoint files, used when optionally skipping steps.
-    id: checkpoints_dir
-    inputBinding:
-      prefix: --checkpoints_dir
-    label: Checkpoints directory
-    sbg:category: Input/output options
-    sbg:icon: fas fa-folder-minus
-    type: Directory
   - doc:
       A comma-separated list of run IDs to run. Use "All" to run all samples in
       the run_metafile.
@@ -317,17 +307,9 @@ inputs:
       - "null"
       - File
 outputs:
-  - doc: Results directory (set dynamically from the --results_dir option)
-    id: results_directory
-    label: Results directory
+  - id: output_directory
     outputBinding:
-      glob: $(inputs.results_dir)
-    type: Directory
-  - doc: Checkpoints directory (set dynamically from the --checkpoints_dir option)
-    id: checkpoints_directory
-    label: Checkpoints directory
-    outputBinding:
-      glob: $(inputs.checkpoints_dir)
+      glob: "$(inputs.outdir)"
     type: Directory
 requirements:
   - class: InlineJavascriptRequirement
