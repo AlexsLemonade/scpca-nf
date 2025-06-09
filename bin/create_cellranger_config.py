@@ -6,7 +6,7 @@ from pathlib import Path
 import argparse
 import textwrap
 import re
-import pandas
+import csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -39,7 +39,7 @@ parser.add_argument(
 parser.add_argument(
     "--library_id",
     required=False,
-    type="str",
+    type=str,
     help="Library ID for multiplexed library. Used to filter the multiplex_pools_file to samples present in the multiplexed library.",
 )
 
@@ -61,7 +61,7 @@ if not args.fastq_dir.exists():
     raise FileNotFoundError(f"FASTQ directory not found: {args.fastq_dir}")
 
 # check that multiplex pools file and library id exist
-if args.mutliplex_pools_file:
+if args.multiplex_pools_file:
     if not args.multiplex_pools_file.exists():
         raise FileNotFoundError(
             f"Multiplex pools file not found: {args.multiplex_pools_file}"
@@ -102,27 +102,29 @@ if not fastq_ids:
 
 # add fastq_ids to config content
 for fastq_id in fastq_ids:
-    config_content += f"{fastq_id},{fastq_path},Gene_Expression\n"
+    config_content += f"{fastq_id},{fastq_path},Gene Expression\n"
 
 # add multiplex content if present
 if args.multiplex_pools_file:
-    multiplex_pools = pandas.read_csv(args.multiplex_pools_file, sep="\t")
+    with open(args.multiplex_pools_file) as pools_file:
+        reader = csv.DictReader(pools_file, delimiter="\t")
+        rows = list(reader)
 
     # check required columns are present
     required_columns = {"scpca_library_id", "scpca_sample_id", "barcode_id"}
-    if not required_columns.issubset(multiplex_pools.columns):
+    if not required_columns.issubset(reader.fieldnames):
         raise ValueError(
             f"{args.multiplex_pools_file} must contain columns: {', '.join(required_columns)}"
         )
 
-    # check that library id is present
-    if not multiplex_pools["scpca_library_id"].str.contains(args.library_id).any():
-        raise ValueError(f"{args.library_id} not found in {args.multiplex_pools_file}")
-
-    # filter to samples in multiplexed library
-    filtered_pools = multiplex_pools[
-        multiplex_pools["scpca_library_id"] == args.library_id
+    #  filter to samples in multiplexed library
+    filtered_pools = [
+        sample for sample in rows if sample["scpca_library_id"] == args.library_id
     ]
+
+    # check that library id is present
+    if not filtered_pools:
+        raise ValueError(f"{args.library_id} not found in {args.multiplex_pools_file}")
 
     # add [samples] section to config
     config_content += textwrap.dedent(
@@ -133,7 +135,7 @@ if args.multiplex_pools_file:
     )
 
     # add a row for each sample to the config file
-    for _, row in filtered_pools.iterrows():
+    for row in filtered_pools:
         config_content += f"{row['scpca_sample_id']},{row['barcode_id']}\n"
 
 # save config content to file
