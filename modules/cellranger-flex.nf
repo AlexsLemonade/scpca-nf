@@ -76,7 +76,7 @@ process cellranger_flex_multi {
     # run cellranger multi
     cellranger multi \
       --id=${out_id} \
-      --csv=flex_config.csv
+      --csv=flex_config.csv \
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()}
 
