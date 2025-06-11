@@ -152,7 +152,7 @@ workflow flex_quant{
     // run cellranger flex single
     cellranger_flex_single(flex_reads.single)
 
-    // run cellranger multiplexed and then join with single channel 
+    // run cellranger multiplexed
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
     // combine single and multi outputs
