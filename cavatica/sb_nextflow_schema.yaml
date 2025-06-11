@@ -281,7 +281,7 @@ outputs:
   - id: output_dir
     label: Workflow output directory
     outputBinding:
-      glob: $(inputs.outdir)
+      glob: $(inputs.outdir || 'scpca_out')
     type: Directory
 requirements:
   - class: InlineJavascriptRequirement
