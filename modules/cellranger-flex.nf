@@ -12,7 +12,7 @@ process cellranger_flex_single {
   output:
     tuple val(meta), path(out_id)
   script:
-    out_id = file(meta.cellranger_multi_publish_dir).name
+    out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
@@ -33,9 +33,12 @@ process cellranger_flex_single {
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    # remove Cell Ranger intermediates directory
+    rm -rf ${out_id}/SC_MULTI_CS
     """
   stub:
-    out_id = file(meta.cellranger_multi_publish_dir).name
+    out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
@@ -56,7 +59,7 @@ process cellranger_flex_multi {
   output:
     tuple val(meta), path(out_id)
   script:
-    out_id = file(meta.cellranger_multi_publish_dir).name
+    out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
@@ -82,9 +85,12 @@ process cellranger_flex_multi {
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    # remove Cell Ranger intermediates directory
+    rm -rf ${out_id}/SC_MULTI_CS
     """
   stub:
-    out_id = file(meta.cellranger_multi_publish_dir).name
+    out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
@@ -107,6 +113,7 @@ workflow flex_quant{
       .map{
         def meta = it.clone();
         meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}";
+        meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi";
         meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}";
         meta // return modified meta object
       }
@@ -115,11 +122,11 @@ workflow flex_quant{
           // input files exist
           it.files_directory && file(it.files_directory, type: 'dir').exists() && (
             params.repeat_mapping
-            || !file(it.cellranger_multi_publish_dir).exists()
-            || Utils.getMetaVal(file("${it.cellranger_multi_publish_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || !file(it.cellranger_multi_results_dir).exists()
+            || Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
           )
         )
-        has_cellranger_flex: file(it.cellranger_multi_publish_dir).exists()
+        has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()
         missing_inputs: true
       }
 
@@ -145,8 +152,11 @@ workflow flex_quant{
     // run cellranger flex single
     cellranger_flex_single(flex_reads.single)
 
-    // TODO: Run cellranger multiplexed and then join with single channel 
+    // run cellranger multiplexed and then join with single channel 
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
+
+    // combine single and multi outputs
+    cellranger_flex_ch = cellranger_flex_single.out.mix(cellranger_flex_multi.out)
 
     // need to join back with skipped reads before outputting
     flex_quants_ch = flex_channel.has_cellranger_flex
@@ -155,8 +165,8 @@ workflow flex_quant{
         file(meta.cellranger_multi_publish_dir, type: 'dir')
       )}
 
-    // TODO: Make sure both single and multi are incldued before mixing
-    all_flex_ch = cellranger_flex_single.out.mix(flex_quants_ch)
+    // Combine single, multi, and skipped libraries
+    all_flex_ch = cellranger_flex_ch.mix(flex_quants_ch)
 
   emit: all_flex_ch
 
