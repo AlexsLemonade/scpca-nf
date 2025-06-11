@@ -38,29 +38,30 @@ Below is a (partial) list of some of the changes updates that were made to prepa
   ```yaml
   type: File
   ```
-  
+
   instead of the original:
-  
+
   ```yaml
   type:
     - "null"
     - File
   ```
 
-- Updated the list of profiles to include only the profiles to be used on Cavatica, including only the `cavatica` and `stub` profiles for now.
-  - In the future I hope to make the `cavatica` profile the default, so we can remove this list entirely, or at least not require it to be set by the user.
-- Added a customized `outputs` block to fill in the correct path for the output directory from the `--outdir` parameter, with a fallback if the `inputs.outdir` is null :
+- Updated the list of profiles to include only the profiles to be used on Cavatica: `cavatica` and `stub` for now.
+- Added a customized `outputs` block to fill in the correct path for the output directory from the `--outdir` parameter:
 
 ```yaml
 outputs:
   - id: output_dir
     label: Workflow output directory
     outputBinding:
-      glob: $(inputs.outdir) 
+      glob: $(inputs.outdir)
     type: Directory
 ```
 
-- Set the default `profile` to `cavatica`
+- Add default values to options using the `default:` property (which is distinct form the `sbg:toolDefaultValue:` property that is only used for documentation):
+  - set default value for the `--outdir` to `scpca_out` to avoid errors if this is left blank
+  - Set the default `-profile` to `cavatica`
 
 
 
