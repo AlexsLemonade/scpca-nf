@@ -161,8 +161,8 @@ workflow flex_quant{
     // need to join back with skipped reads before outputting
     flex_quants_ch = flex_channel.has_cellranger_flex
       .map{meta -> tuple(
-        Utils.readMeta(file("${meta.cellranger_multi_publish_dir}/scpca-meta.json")),
-        file(meta.cellranger_multi_publish_dir, type: 'dir')
+        Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json")),
+        file(meta.cellranger_multi_results_dir, type: 'dir')
       )}
 
     // Combine single, multi, and skipped libraries
