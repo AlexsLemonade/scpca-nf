@@ -23,6 +23,47 @@ This file can be generated or updated with the following command:
 This will use the existing file as a starting point in order to preserve any customizations.
 If you want to start fresh, you can delete the existing `sb_nextflow_schema.yaml` file and run the command again.
 
+### Customizing the `sb_nextflow_schema.yaml` file
+
+The `sb_nextflow_schema.yaml` file created by the `sbpack_nf` command will not automatically include all of the customizations that we need for the Cavatica port.
+Below is a (partial) list of some of the changes updates that were made to prepare the file for use on Cavatica:
+
+- Removed many parameters that are not expected to be used on Cavatica
+  - This includes most parameters related to rerunning with cached results, as we do not currently expect rerunning to be a common use case on Cavatica, and we are not certain that we will be able to support reusing `checkpoint` files.
+  - Docker image parameters are also removed, so that the default values will always be used.
+  - In the `nextflow_schema.json` file, we use the `"hidden": true` property to hide these parameters, but this option does not appear to be supported by Cavatica.
+- Modified required parameters to remove the `null` type. This seems to be the way to designate a parameter as required in Cavatica.
+  - For example, the `run_metafile` and `sample_metafile` parameters are required, so they are changed to:
+
+  ```yaml
+  type: File
+  ```
+  
+  instead of the original:
+  
+  ```yaml
+  type:
+    - "null"
+    - File
+  ```
+
+- Updated the list of profiles to include only the profiles to be used on Cavatica, including only the `cavatica` and `stub` profiles for now.
+  - In the future I hope to make the `cavatica` profile the default, so we can remove this list entirely, or at least not require it to be set by the user.
+- Added a customized `outputs` block to fill in the correct path for the output directory from the `--outdir` parameter, with a fallback if the `inputs.outdir` is null :
+
+```yaml
+outputs:
+  - id: output_dir
+    label: Workflow output directory
+    outputBinding:
+      glob: $(inputs.outdir) 
+    type: Directory
+```
+
+- Set the default `profile` to `cavatica`
+
+
+
 #### Pushing to Cavatica
 
 To push the workflow to Cavatica, use the following command:
