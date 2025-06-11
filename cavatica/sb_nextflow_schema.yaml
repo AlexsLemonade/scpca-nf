@@ -47,9 +47,10 @@ inputs:
       prefix: --outdir
     sbg:category: Input/output options
     sbg:toolDefaultValue: scpca_out
+    default: scpca_out
     type:
-      - string
       - "null"
+      - string
   - doc: Select which profile(s) you want to use for task execution.
     id: profile
     inputBinding:
@@ -285,7 +286,7 @@ outputs:
   - id: output_dir
     label: Workflow output directory
     outputBinding:
-      glob: $(inputs.outdir || 'scpca_out')
+      glob: $(inputs.outdir)
     type: Directory
 requirements:
   - class: InlineJavascriptRequirement
