@@ -55,6 +55,8 @@ inputs:
     inputBinding:
       itemSeparator: ","
       prefix: -profile
+    default:
+      - cavatica
     label: Profiles
     type:
       - "null"
@@ -278,6 +280,8 @@ inputs:
       - "null"
       - File
 outputs:
+  # currently this requires the outdir to be a String
+  # I might want to test if setting it as a Directory and using inputs.outdir.path can work
   - id: output_dir
     label: Workflow output directory
     outputBinding:
