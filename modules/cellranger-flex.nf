@@ -57,7 +57,7 @@ process cellranger_flex_multi {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
     path multiplex_pools_file
   output:
-    tuple val(meta), path("${out_id}/per_sample_outs/SCPCS*", type: 'dir')
+    tuple val(meta), path("${out_id}/outs/per_sample_outs/SCPCS*", type: 'dir')
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -164,7 +164,7 @@ workflow flex_quant{
         // check that name of out directory is in expected sample IDs 
         def expected_sample_ids = updated_meta.sample_id.split(",")
         if(!(sample_id in expected_sample_ids)) {
-            throw new RuntimeException("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
+            log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
         // update sample ID and return new meta with out_dir
