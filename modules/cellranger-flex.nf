@@ -57,7 +57,7 @@ process cellranger_flex_multi {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
     path multiplex_pools_file
   output:
-    tuple val(meta), path(out_id)
+    tuple val(meta), path("${out_id}/per_sample_outs/SCPCS*", type: 'dir')
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -94,7 +94,7 @@ process cellranger_flex_multi {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
-    mkdir -p ${out_id}/outs
+    mkdir -p ${out_id}/outs/per_sample_outs/SCPCS000000
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
 }
@@ -113,7 +113,7 @@ workflow flex_quant{
       .map{
         def meta = it.clone();
         meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}";
-        meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi";
+        meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi/test";
         meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}";
         meta // return modified meta object
       }
@@ -155,19 +155,60 @@ workflow flex_quant{
     // run cellranger multiplexed
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
-    // combine single and multi outputs
-    cellranger_flex_ch = cellranger_flex_single.out.mix(cellranger_flex_multi.out)
+    // transpose cellranger multi output to have one row per output folder
+    cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
+      .map{
+        def updated_meta = it[0].clone(); // clone meta before replacing sample ID
+        def out_dir = it[1]; // path to individual output dir
+        def sample_id = out_dir.name; // name of individual output directory is sample id
+        // check that name of out directory is in expected sample IDs 
+        def expected_sample_ids = updated_meta.sample_id.split(",")
+        if(!(sample_id in expected_sample_ids)) {
+            throw new RuntimeException("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
+        }
 
-    // need to join back with skipped reads before outputting
-    flex_quants_ch = flex_channel.has_cellranger_flex
+        // update sample ID and return new meta with out_dir
+        updated_meta.sample_id = sample_id;
+        return [updated_meta, out_dir]
+      }
+
+    // combine single and multi outputs
+    cellranger_flex_ch = cellranger_flex_single.out.mix(cellranger_flex_multi_flat_ch)
+
+    // split up has flex based on technology
+    has_flex_ch = flex_channel.has_cellranger_flex
+      .branch{ it -> 
+        single: it.technology.contains("single")
+        multi: it.technology.contains("multi")
+      }
+
+    // define output file and meta data using existing information 
+    has_flex_single_ch = has_flex_ch.single
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json")),
         file(meta.cellranger_multi_results_dir, type: 'dir')
       )}
 
+    has_flex_multi_ch = has_flex_ch.multi
+      // [tuple(sample_ids), meta]
+      .map{ meta -> tuple(
+        meta.sample_id.tokenize(","),
+        Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
+      )}
+      .transpose() // [sample id, meta]
+      // replace existing sample id and define path to existing directory 
+      .map{ sample_id, meta -> 
+        def updated_meta = meta.clone();
+        def demux_dir = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}", type: 'dir');
+        updated_meta.sample_id = sample_id;
+        return [updated_meta, demux_dir]
+      }
+
+    flex_quants_ch = has_flex_single_ch.mix(has_flex_multi_ch)
+
     // Combine single, multi, and skipped libraries
     all_flex_ch = cellranger_flex_ch.mix(flex_quants_ch)
 
-  emit: all_flex_ch
+  emit: cellranger_flex_ch
 
 }
