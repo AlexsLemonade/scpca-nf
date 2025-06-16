@@ -57,7 +57,7 @@ process cellranger_flex_multi {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
     path multiplex_pools_file
   output:
-    tuple val(meta), path("${out_id}/outs/per_sample_outs/SCPCS*", type: 'dir')
+    tuple val(meta), path(out_id), path("${out_id}/outs/per_sample_outs/SCPCS*", type: 'dir')
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -159,7 +159,7 @@ workflow flex_quant{
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
       .map{
         def updated_meta = it[0].clone(); // clone meta before replacing sample ID
-        def out_dir = it[1]; // path to individual output dir
+        def out_dir = it[2]; // path to individual output dir
         def sample_id = out_dir.name; // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs 
         def expected_sample_ids = updated_meta.sample_id.split(",")
