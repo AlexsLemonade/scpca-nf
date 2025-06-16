@@ -15,6 +15,7 @@ CLI
 conda
 config
 customizable
+customizations
 data's
 demultiplexed
 demultiplexing

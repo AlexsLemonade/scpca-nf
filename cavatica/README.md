@@ -11,6 +11,69 @@ This is defined in the `pixi.toml` file in the root of the repository.
 To use `sbpack`, within this environment, prefix your command with `pixi run -e cavatica` (e.g. `pixi run -e cavatica sbpack_nf -h`).
 Alternatively, you can launch a shell with the environment activated by running `pixi shell -e cavatica`, and then run `sbpack` command without the prefix.
 
+### Creating and updating the `sb_nextflow_schema.yaml` file
+
+The `sb_nextflow_schema.yaml` file is a configuration file that defines the Nextflow schema for the Cavatica port.
+This file can be generated or updated with the following command:
+
+```bash
+./cavatica-build.sh
+```
+
+This will use the existing file as a starting point in order to preserve any customizations.
+If you want to start fresh, you can delete the existing `sb_nextflow_schema.yaml` file and run the command again.
+
+### Customizing the `sb_nextflow_schema.yaml` file
+
+The `sb_nextflow_schema.yaml` file created by the `sbpack_nf` command will not automatically include all of the customizations that we need for the Cavatica port.
+Below is a (partial) list of some of the changes that were made to prepare the file for use on Cavatica:
+
+- Removed many parameters that are not expected to be used on Cavatica
+  - This includes most parameters related to rerunning with cached results, as we do not currently expect rerunning to be a common use case on Cavatica, and we are not certain that we will be able to support reusing `checkpoint` files.
+  - Docker image parameters are also removed, so that the default values will always be used.
+  - In the `nextflow_schema.json` file, we use the `"hidden": true` property to hide these parameters, but this option does not appear to be supported by Cavatica.
+- Modified required parameters to remove the `null` type. This seems to be the way to designate a parameter as required in Cavatica.
+  - For example, the `run_metafile` and `sample_metafile` parameters are required, so they are changed to:
+
+  ```yaml
+  type: File
+  ```
+
+  instead of the original:
+
+  ```yaml
+  type:
+    - "null"
+    - File
+  ```
+
+- Updated the list of profiles to include only the profiles to be used on Cavatica: `cavatica` and `stub` for now.
+- Added a customized `outputs` block to fill in the correct path for the output directory from the `--outdir` parameter:
+
+```yaml
+outputs:
+  - id: output_dir
+    label: Workflow output directory
+    outputBinding:
+      glob: $(inputs.outdir)
+    type: Directory
+```
+
+- Add default values to options using the `default:` property (which is distinct form the `sbg:toolDefaultValue:` property that is only used for documentation):
+  - set default value for the `--outdir` to `scpca_out` to avoid errors if this is left blank
+  - Set the default `-profile` to `cavatica`
+
+
+
+#### Pushing to Cavatica
+
+To push the workflow to Cavatica, use the following command:
+
+```bash
+op run -- ./cavatica-build.sh push
+```
+
+
 ### API token
 
 To use the Cavatica API, you will need to create an account at https://cavatica.sbgenomics.com and obtain an authentication token.
