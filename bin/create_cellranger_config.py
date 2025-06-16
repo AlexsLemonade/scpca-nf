@@ -108,6 +108,7 @@ for fastq_id in fastq_ids:
 if args.multiplex_pools_file:
     with open(args.multiplex_pools_file) as pools_file:
         reader = csv.DictReader(pools_file, delimiter="\t")
+        rows = list(reader)
 
     # check required columns are present
     required_columns = {"scpca_library_id", "scpca_sample_id", "barcode_id"}
@@ -118,7 +119,7 @@ if args.multiplex_pools_file:
 
     #  filter to samples in multiplexed library
     filtered_pools = [
-        row for row in reader if row["scpca_library_id"] == args.library_id
+        sample for sample in rows if sample["scpca_library_id"] == args.library_id
     ]
 
     # check that library id is present
