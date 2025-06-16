@@ -26,7 +26,7 @@ If you want to start fresh, you can delete the existing `sb_nextflow_schema.yaml
 ### Customizing the `sb_nextflow_schema.yaml` file
 
 The `sb_nextflow_schema.yaml` file created by the `sbpack_nf` command will not automatically include all of the customizations that we need for the Cavatica port.
-Below is a (partial) list of some of the changes updates that were made to prepare the file for use on Cavatica:
+Below is a (partial) list of some of the changes that were made to prepare the file for use on Cavatica:
 
 - Removed many parameters that are not expected to be used on Cavatica
   - This includes most parameters related to rerunning with cached results, as we do not currently expect rerunning to be a common use case on Cavatica, and we are not certain that we will be able to support reusing `checkpoint` files.
