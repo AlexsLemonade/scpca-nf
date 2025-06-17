@@ -13,20 +13,24 @@ process make_unfiltered_sce {
     script:
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
-        generate_unfiltered_sce.R \
+        generate_unfiltered_sce_alevin.R \
           --alevin_dir ${alevin_dir} \
           --unfiltered_file ${unfiltered_rds} \
-          --mito_file ${mito_file} \
-          --gtf_file ${ref_gtf} \
           --technology ${meta.technology} \
           --seq_unit ${meta.seq_unit} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
-          --sample_metadata_file ${sample_metafile} \
           ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
+        format_unfiltered_sce.R |
+          --sce_file ${unfiltered_rds} \
+          --mito_file ${mito_file} \
+          --gtf_file ${ref_gtf} \
+          --library_id "${meta.library_id}" \
+          --sample_id "${meta.sample_id}" \
+          --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
         if [ "${submitter_cell_types_file.name}" != "NO_FILE" ]; then
@@ -69,21 +73,26 @@ process make_unfiltered_sce_with_feature {
 
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
-        generate_unfiltered_sce.R \
+        generate_unfiltered_sce_alevin.R \
           --alevin_dir ${alevin_dir} \
           --feature_dir ${feature_alevin_dir} \
           --feature_name ${meta.feature_type} \
           --unfiltered_file ${unfiltered_rds} \
-          --mito_file ${mito_file} \
-          --gtf_file ${ref_gtf} \
           --technology ${meta.technology} \
           --seq_unit ${meta.seq_unit} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
-          --sample_metadata_file ${sample_metafile} \
           ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
+
+        format_unfiltered_sce.R |
+          --sce_file ${unfiltered_rds} \
+          --mito_file ${mito_file} \
+          --gtf_file ${ref_gtf} \
+          --library_id "${meta.library_id}" \
+          --sample_id "${meta.sample_id}" \
+          --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
         if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
@@ -245,9 +254,7 @@ workflow generate_sce {
     unfiltered_sce_ch = make_unfiltered_sce.out
       .map{it.toList() + [file(empty_file, checkIfExists: true)]}
 
-    filter_sce(unfiltered_sce_ch)
-
-  emit: filter_sce.out
+  emit: unfiltered_sce_ch
   // a tuple of meta and the filtered and unfiltered rds files
 }
 
@@ -273,8 +280,6 @@ workflow generate_sce_with_feature {
     unfiltered_feature_sce_ch = make_unfiltered_sce_with_feature.out
       .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)]}
 
-    filter_sce(unfiltered_feature_sce_ch)
-
-  emit: filter_sce.out
+  emit: unfiltered_feature_sce_ch
   // a tuple of meta and the filtered and unfiltered rds files
 }
