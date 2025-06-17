@@ -169,13 +169,19 @@ workflow flex_quant{
             log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
-        // update sample ID and return new meta with out_dir
+        // update sample ID and return new meta with path to h5 file for each sample
         updated_meta.sample_id = sample_id;
-        return [updated_meta, out_dir]
+        return [updated_meta, file("${out_dir}/count/sample_raw_feature_bc_matrix.h5")]
       }
 
     // combine single and multi outputs
-    cellranger_flex_ch = cellranger_flex_single.out.mix(cellranger_flex_multi_flat_ch)
+    cellranger_flex_ch = cellranger_flex_single.out
+      // get path to individual h5 file for singleplexed
+      .map{ meta, out_dir -> tuple(
+        meta, 
+        file("${out_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
+      )}
+    .mix(cellranger_flex_multi_flat_ch)
 
     // split up has flex based on technology
     has_flex_ch = flex_channel.has_cellranger_flex
@@ -188,7 +194,7 @@ workflow flex_quant{
     has_flex_single_ch = has_flex_ch.single
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json")),
-        file(meta.cellranger_multi_results_dir, type: 'dir')
+        file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
       )}
 
     has_flex_multi_ch = has_flex_ch.multi
@@ -198,12 +204,12 @@ workflow flex_quant{
         Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
       )}
       .transpose() // [sample id, meta]
-      // replace existing sample id and define path to existing directory 
+      // replace existing sample id and define path to existing directory with H5 file
       .map{ sample_id, meta -> 
         def updated_meta = meta.clone();
-        def demux_dir = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}", type: 'dir');
+        def demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5");
         updated_meta.sample_id = sample_id;
-        return [updated_meta, demux_dir]
+        return [updated_meta, demux_h5_file]
       }
 
     flex_quants_ch = has_flex_single_ch.mix(has_flex_multi_ch)
