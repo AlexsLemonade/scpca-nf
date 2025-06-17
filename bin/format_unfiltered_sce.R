@@ -49,14 +49,14 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 # check inputs and outputs
 stopifnot(
-  "input SCE file not found" = file.exists(opt$input_sce_file),
+  "input SCE file not found" = file.exists(opt$sce_file),
   "Mitochondrial gene list file not found" = file.exists(opt$mito_file),
   "gtf file not found" = file.exists(opt$gtf_file),
   "sample metadata file not found" = file.exists(opt$sample_metadata_file)
 )
 
 # read in sce
-unfiltered_sce <- readr::read_rds(opt$input_sce_file)
+unfiltered_sce <- readr::read_rds(opt$sce_file)
 
 # read in mitochondrial gene list
 mito_genes <- unique(scan(opt$mito_file, what = "character"))
@@ -126,4 +126,4 @@ if (length(sample_type) == 1) {
 metadata(unfiltered_sce)$sample_type <- sample_type
 
 # write to rds
-readr::write_rds(unfiltered_sce, opt$input_sce_file, compress = "bz2")
+readr::write_rds(unfiltered_sce, opt$sce_file, compress = "bz2")

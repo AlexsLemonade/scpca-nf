@@ -14,7 +14,14 @@ option_list <- list(
   make_option(
     opt_str = c("-a", "--alevin_dir"),
     type = "character",
+    default = "",
     help = "directory with alevin output files for RNA-seq quantification"
+  ),
+  make_option(
+    opt_str = c("--cellranger_file"),
+    type = "character",
+    default = "",
+    help = "path to raw H5AD file output by cellranger"
   ),
   make_option(
     opt_str = c("-f", "--feature_dir"),
