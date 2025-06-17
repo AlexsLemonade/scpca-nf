@@ -44,7 +44,7 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { flex_quant } from './modules/cellranger-flex.nf'
-include { generate_sce; generate_sce_with_feature; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { generate_sce; generate_sce_with_feature; generate_sce_cellranger; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
@@ -215,6 +215,17 @@ workflow {
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file))
+  flex_sce_ch = generate_sce_cellranger(flex_quant.out, sample_metafile)
+    .branch{
+      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
+      skip_processing: true
+      }
+
+  // send library ids in flex_sce_ch.skip_processing to log
+  flex_sce_ch.skip_processing
+    .subscribe{
+      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+    }
 
   // **** Process 10x tag-based RNA-seq data ****
   map_quant_rna(runs_ch.rna, cell_barcodes)
@@ -297,7 +308,7 @@ workflow {
   // **** Post processing and generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files
-  all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
+  all_sce_ch = sce_ch.no_genetic.mix(flex_sce_ch.continue_processing, genetic_demux_sce.out)
   post_process_sce(all_sce_ch)
 
 
@@ -325,7 +336,7 @@ workflow {
   }
 
   // first mix any skipped libraries from both rna and feature libs
-  no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing)
+  no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing, flex_sce_ch.skip_processing)
     // add a fake processed file
     .map{meta, unfiltered, filtered -> tuple(
       meta,
