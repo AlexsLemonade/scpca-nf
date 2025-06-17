@@ -158,6 +158,7 @@ workflow flex_quant{
 
     // transpose cellranger multi output to have one row per output folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
+      .transpose()
       .map{
         def updated_meta = it[0].clone(); // clone meta before replacing sample ID
         def out_dir = it[2]; // path to individual output dir
