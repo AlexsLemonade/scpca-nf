@@ -24,7 +24,7 @@ process make_unfiltered_sce {
           ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
-        format_unfiltered_sce.R |
+        format_unfiltered_sce.R \
           --sce_file ${unfiltered_rds} \
           --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
@@ -86,7 +86,7 @@ process make_unfiltered_sce_with_feature {
           ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
           ${params.spliced_only ? '--spliced_only' : ''}
 
-        format_unfiltered_sce.R |
+        format_unfiltered_sce.R \
           --sce_file ${unfiltered_rds} \
           --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
