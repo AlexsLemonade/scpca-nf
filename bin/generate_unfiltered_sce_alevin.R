@@ -1,0 +1,127 @@
+#!/usr/bin/env Rscript
+
+# This script takes the output folder from alevin-fry as input and
+# returns the unfiltered counts matrices as a SingleCellExperiment stored in a .rds file
+
+# import libraries
+suppressPackageStartupMessages({
+  library(optparse)
+  library(SingleCellExperiment)
+  library(scpcaTools)
+})
+# set up arguments
+option_list <- list(
+  make_option(
+    opt_str = c("-a", "--alevin_dir"),
+    type = "character",
+    help = "directory with alevin output files for RNA-seq quantification"
+  ),
+  make_option(
+    opt_str = c("-f", "--feature_dir"),
+    type = "character",
+    default = "",
+    help = "directory with alevin output files for feature quantification"
+  ),
+  make_option(
+    opt_str = c("-n", "--feature_name"),
+    type = "character",
+    default = "ALT",
+    help = "Feature type"
+  ),
+  make_option(
+    opt_str = c("-u", "--unfiltered_file"),
+    type = "character",
+    help = "path to output unfiltered rds file. Must end in .rds"
+  ),
+  make_option(
+    opt_str = c("-t", "--technology"),
+    type = "character",
+    help = "sequencing technology string to store in metadata"
+  ),
+  make_option(
+    opt_str = c("--assay_ontology_term_id"),
+    type = "character",
+    default = NULL,
+    help = "Experimental Factor Ontology term associated with provided tech_version"
+  ),
+  make_option(
+    opt_str = c("-s", "--seq_unit"),
+    type = "character",
+    help = "sequencing unit string to store in metadata (e.g., cell, nucleus)"
+  ),
+  make_option(
+    opt_str = c("--library_id"),
+    type = "character",
+    help = "library id"
+  ),
+  make_option(
+    opt_str = c("--sample_id"),
+    type = "character",
+    help = "sample id(s). If more than one, separated by commas and/or semicolons."
+  ),
+  make_option(
+    opt_str = c("--project_id"),
+    type = "character",
+    help = "project id"
+  ),
+  make_option(
+    opt_str = c("--spliced_only"),
+    action = "store_true",
+    default = FALSE,
+    help = "include only the spliced counts as the main counts assay in the returned SCE object"
+  )
+)
+
+opt <- parse_args(OptionParser(option_list = option_list))
+
+# check that output file name ends in .rds
+if (!(stringr::str_ends(opt$unfiltered_file, ".rds"))) {
+  stop("unfiltered file name must end in .rds")
+}
+
+# parse sample id list
+sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
+
+# set include unspliced for non feature data
+include_unspliced <- !opt$spliced_only
+
+# get unfiltered sce
+unfiltered_sce <- read_alevin(
+  quant_dir = opt$alevin_dir,
+  include_unspliced = include_unspliced,
+  fry_mode = TRUE,
+  tech_version = opt$technology,
+  assay_ontology_term_id = opt$assay_ontology_term_id,
+  seq_unit = opt$seq_unit,
+  library_id = opt$library_id,
+  sample_id = sample_ids,
+  project_id = opt$project_id
+)
+
+# read and merge feature counts if present
+if (opt$feature_dir != "") {
+  feature_sce <- read_alevin(
+    quant_dir = opt$feature_dir,
+    include_unspliced = FALSE,
+    fry_mode = TRUE,
+    feature_data = TRUE,
+    tech_version = opt$technology,
+    assay_ontology_term_id = opt$assay_ontology_term_id,
+    seq_unit = opt$seq_unit,
+    library_id = opt$library_id,
+    sample_id = sample_ids,
+    project_id = opt$project_id
+  )
+
+  unfiltered_sce <- merge_altexp(unfiltered_sce, feature_sce, opt$feature_name)
+  # add alt experiment features stats
+  altExp(unfiltered_sce, opt$feature_name) <- scuttle::addPerFeatureQCMetrics(altExp(unfiltered_sce, opt$feature_name))
+
+  # if CITE, add `adt_id` column to rowData with rownames
+  if (opt$feature_name == "adt") {
+    rowData(altExp(unfiltered_sce, "adt"))$adt_id <- rownames(rowData(altExp(unfiltered_sce, "adt")))
+  }
+}
+
+# write to rds
+readr::write_rds(unfiltered_sce, opt$unfiltered_file, compress = "bz2")
