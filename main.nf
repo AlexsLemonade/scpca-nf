@@ -44,7 +44,7 @@ include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
 include { flex_quant } from './modules/cellranger-flex.nf'
-include { generate_sce; generate_sce_with_feature; filter_sce; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { generate_sce; generate_sce_with_feature; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
@@ -223,7 +223,18 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  generate_sce(rna_quant_ch, sample_metafile)
+  rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
+    // only continue processing any samples with > 0 cells left after filtering
+    .branch{
+      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
+      skip_processing: true
+      }
+
+  // send library ids in rna_sce_ch.skip_processing to log
+  rna_sce_ch.skip_processing
+    .subscribe{
+      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+    }
 
   // **** Process feature data ****
   map_quant_feature(runs_ch.feature, cell_barcodes)
@@ -237,36 +248,31 @@ workflow {
     .map{it.drop(1)} // remove library_id index
 
   // make rds for RNA with feature quants
-  generate_sce_with_feature(feature_rna_quant_ch, sample_metafile)
-
-  // combine all unfiltered sce and filter 
-  sce_ch = generate_sce.out.mix(generate_sce_with_feature.out)
-  filter_sce(sce_ch)
-
-  filter_sce_ch = filter_sce.out
-    // only continue processing any samples with > 0 cells left after filtering
+  all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, sample_metafile)
     .branch{
-      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
+      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
       skip_processing: true
-      }
+    }
 
-  // send library ids in filter_sce_ch.skip_processing to log
-  filter_sce_ch.skip_processing
+  // send library ids in all_feature_ch.skip_processing to log
+  all_feature_ch.skip_processing
     .subscribe{
       log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
     }
 
   // pull out cell hash libraries for demuxing
-  cellhash_sce_ch = filter_sce_ch.continue_processing
-    .filter{ // branch cellhash libs
-      it[0]["feature_meta"]["technology"] in cellhash_techs
+  feature_sce_ch = all_feature_ch.continue_processing
+    .branch{ // branch cellhash libs
+      cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
+      single: true
     }
 
   // apply cellhash demultiplexing
-  cellhash_demux_ch = cellhash_demux_sce(cellhash_sce_ch, file(params.cellhash_pool_file))
+  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
+  combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
-  sce_ch = filter_sce_ch.continue_processing.mix(cellhash_demux_ch)
+  sce_ch = rna_sce_ch.continue_processing.mix(combined_feature_sce_ch)
     .branch{
       genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
       no_genetic: true
@@ -319,7 +325,7 @@ workflow {
   }
 
   // first mix any skipped libraries from both rna and feature libs
-  no_filtered_ch = filter_sce_ch.skip_processing
+  no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing)
     // add a fake processed file
     .map{meta, unfiltered, filtered -> tuple(
       meta,
