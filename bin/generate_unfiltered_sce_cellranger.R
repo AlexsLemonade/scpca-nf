@@ -72,10 +72,10 @@ unfiltered_sce <- DropletUtils::read10xCounts(
 )
 
 # update the column names to remove the -1 and be consistent with other quantifiers
-colnames(unfiltered_sce) <- str_extract(colnames(unfiltered_sce), "^([ACGT]+)")
+colnames(unfiltered_sce) <- stringr::str_extract(colnames(unfiltered_sce), "^([ACGT]+)")
 
 # remove existing colData
-SummarizedExperiment::colData(unfiltered_sce) <- NULL
+colData(unfiltered_sce) <- NULL
 
 # make metadata list with scpca information and add to object
 metadata_list <- lst(

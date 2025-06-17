@@ -118,7 +118,7 @@ process make_unfiltered_sce_cellranger {
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(cellranger_file), path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
+        tuple val(meta), path(cellranger_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -137,7 +137,6 @@ process make_unfiltered_sce_cellranger {
 
         format_unfiltered_sce.R \
           --sce_file ${unfiltered_rds} \
-          --mito_file ${mito_file} \
           --gtf_file ${ref_gtf} \
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
@@ -342,8 +341,7 @@ workflow generate_sce_cellranger {
   main:
 
     sce_ch = quant_channel
-      .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
-                          file(it[0].ref_gtf, checkIfExists: true),
+      .map{it.toList() + [file(it[0].ref_gtf, checkIfExists: true),
                           // either submitter cell type files, or empty file if not available
                           file(it[0].submitter_cell_types_file ?: empty_file, checkIfExists: true)
                          ]}

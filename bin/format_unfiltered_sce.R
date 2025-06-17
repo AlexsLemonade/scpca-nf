@@ -21,7 +21,9 @@ option_list <- list(
   make_option(
     opt_str = c("-m", "--mito_file"),
     type = "character",
-    help = "path to list of mitochondrial genes"
+    default = "",
+    help = "path to list of mitochondrial genes.
+      If not provided, the MT genes from the provided --gtf_file will be used"
   ),
   make_option(
     opt_str = c("-g", "--gtf_file"),
@@ -50,7 +52,6 @@ opt <- parse_args(OptionParser(option_list = option_list))
 # check inputs and outputs
 stopifnot(
   "input SCE file not found" = file.exists(opt$sce_file),
-  "Mitochondrial gene list file not found" = file.exists(opt$mito_file),
   "gtf file not found" = file.exists(opt$gtf_file),
   "sample metadata file not found" = file.exists(opt$sample_metadata_file)
 )
@@ -58,11 +59,14 @@ stopifnot(
 # read in sce
 unfiltered_sce <- readr::read_rds(opt$sce_file)
 
-# read in mitochondrial gene list
-mito_genes <- unique(scan(opt$mito_file, what = "character"))
-
 # read in gtf file (genes only for speed)
 gtf <- rtracklayer::import(opt$gtf_file, feature.type = "gene")
+if (file.exists(opt$mito_file)) {
+  # read in mitochondrial gene list
+  mito_genes <- unique(scan(opt$mito_file, what = "character"))
+} else {
+  mito_genes <- gtf[seqnames(gtf) == "MT"]
+}
 
 # parse sample id list
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
