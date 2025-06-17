@@ -57,7 +57,7 @@ process cellranger_flex_multi {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
     path multiplex_pools_file
   output:
-    tuple val(meta), path(out_id), path("${out_id}/outs/per_sample_outs/SCPCS*", type: 'dir')
+    tuple val(meta), path(out_id), path("${out_id}/outs/per_sample_outs/*", type: 'dir')
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -91,10 +91,11 @@ process cellranger_flex_multi {
     """
   stub:
     out_id = file(meta.cellranger_multi_results_dir).name
+    sample_ids = meta.sample_id.tokenize(",")
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
-    mkdir -p ${out_id}/outs/per_sample_outs/SCPCS000000
+    ${sample_ids.collect { "mkdir -p ${out_id}/outs/per_sample_outs/${it}" }.join("\n")}
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
 }
@@ -209,6 +210,6 @@ workflow flex_quant{
     // Combine single, multi, and skipped libraries
     all_flex_ch = cellranger_flex_ch.mix(flex_quants_ch)
 
-  emit: cellranger_flex_ch
+  emit: all_flex_ch
 
 }
