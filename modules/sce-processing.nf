@@ -254,7 +254,9 @@ workflow generate_sce {
     unfiltered_sce_ch = make_unfiltered_sce.out
       .map{it.toList() + [file(empty_file, checkIfExists: true)]}
 
-  emit: unfiltered_sce_ch
+    filter_sce(unfiltered_sce_ch)
+
+  emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
 
@@ -280,6 +282,8 @@ workflow generate_sce_with_feature {
     unfiltered_feature_sce_ch = make_unfiltered_sce_with_feature.out
       .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)]}
 
-  emit: unfiltered_feature_sce_ch
+    filter_sce(unfiltered_feature_sce_ch)
+
+  emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
