@@ -118,7 +118,7 @@ process make_unfiltered_sce_cellranger {
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(cellranger_file), path(versions_file), path(ref_gtf), path(submitter_cell_types_file)
+        tuple val(meta), path(cellranger_dir), path(versions_file), path(ref_gtf), path(submitter_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -126,7 +126,7 @@ process make_unfiltered_sce_cellranger {
         unfiltered_rds = "${meta.library_id}_unfiltered.rds"
         """
         generate_unfiltered_sce_cellranger.R \
-          --cellranger_file ${cellranger_file} \
+          --cellranger_dir ${cellranger_dir} \
           --unfiltered_file ${unfiltered_rds} \
           --versions_file ${versions_file} \
           --reference_index ${meta.cellranger_index} \

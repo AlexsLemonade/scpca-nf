@@ -11,9 +11,10 @@ suppressPackageStartupMessages({
 # set up arguments
 option_list <- list(
   make_option(
-    opt_str = c("--cellranger_file"),
+    opt_str = c("--cellranger_dir"),
     type = "character",
-    help = "path to raw H5AD file output by cellranger"
+    help = "path to directory containing raw data output by cellranger.
+      Should contain three files: `barcodes.tsv.gz`, `features.tsv.gz`, and `matrix.mtx.gz`"
   ),
   make_option(
     opt_str = c("-u", "--unfiltered_file"),
@@ -76,7 +77,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 # check that input file exists and output file name ends in rds
 stopifnot(
-  "--cellranger_file does not exist" = file.exists(opt$cellranger_file),
+  "--cellranger_dir does not exist" = dir.exists(opt$cellranger_dir),
   "unfiltered file name must end in .rds" = stringr::str_ends(opt$unfiltered_file, ".rds")
 )
 
@@ -85,8 +86,9 @@ sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # create sce
 unfiltered_sce <- DropletUtils::read10xCounts(
-  opt$cellranger_file,
-  col.names = TRUE
+  opt$cellranger_dir,
+  col.names = TRUE,
+  type = "sparse"
 )
 
 # update the column names to remove the -1 and be consistent with other quantifiers

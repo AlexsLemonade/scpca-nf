@@ -171,7 +171,7 @@ workflow flex_quant{
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
     // get version files from output
-    // first mix multi and single versions back together and then will combine with h5 file output
+    // first mix multi and single versions back together and then will combine with cellranger output
     versions_ch = cellranger_flex_single.out.versions.mix(cellranger_flex_multi.out.versions)
       .map{ meta, versions_file -> tuple(
         meta.library_id,
@@ -179,7 +179,7 @@ workflow flex_quant{
       )}
 
     // transpose cellranger multi output to have one row per output folder
-    // for multiplexed data, the raw H5 is in the per_sample_outs folder
+    // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.per_sample
       .transpose() // [meta, out_dir]
       .map{
@@ -194,26 +194,26 @@ workflow flex_quant{
 
         // update sample ID and return new meta with path to h5 file for each sample
         updated_meta.sample_id = sample_id;
-        return [updated_meta, file("${out_dir}/count/sample_raw_feature_bc_matrix.h5")]
+        return [updated_meta, file("${out_dir}/count/sample_raw_feature_bc_matrix", type: 'dir')]
       }
 
     // combine single and multi outputs
-    // for singleplexed data, the raw H5 is in the multi folder
+    // for singleplexed data, the raw output is in the multi folder
     cellranger_flex_ch = cellranger_flex_single.out.multi
-      // get path to individual h5 file for singleplexed
+      // get path to raw output directory for singleplexed
       .map{ meta, out_dir -> tuple(
         meta, 
-        file("${out_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
+        file("${out_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
       )}
     .mix(cellranger_flex_multi_flat_ch)
     .map{[it[0]["library_id"]] + it } // pull out library id for joining with versions
     .join(versions_ch)
-    .map{it.drop(1)} // remove library_id to get [meta, h5, versions]
+    .map{it.drop(1)} // remove library_id to get [meta, out directory, versions]
 
     // make sure the libraries that we are skipping processing on have the correct channel format 
-    // path to the raw H5 file is dependent on single or multiplexed so split up skipped libraries based on technology
+    // path to the raw output is dependent on single or multiplexed so split up skipped libraries based on technology
     // transpose to have one sample ID for each row
-    // use existing meta to define the output H5 file for each sample in the library 
+    // use existing meta to define the output directory for each sample in the library 
     has_flex_ch = flex_channel.has_cellranger_flex
       // [tuple(sample_ids), meta]
       .map{ meta -> tuple(
@@ -221,15 +221,15 @@ workflow flex_quant{
         Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
       )}
       .transpose() // [sample id, meta]
-      // replace existing sample id and define path to existing directory with H5 file
+      // replace existing sample id and define path to existing directory with raw output
       .map{ sample_id, meta ->
         def updated_meta = meta.clone();
         // path depends on whether singleplex or multiplex
         def demux_h5_file
         if(meta.technology.contains("single")){
-            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
+            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
           } else if(meta.technology.contains("multi")) {
-            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5")
+            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
           }
         def versions_file = file("${meta.cellranger_multi_results_dir}/_versions");
         updated_meta.sample_id = sample_id;
