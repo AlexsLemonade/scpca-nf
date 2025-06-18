@@ -6,6 +6,7 @@ from pathlib import Path
 import argparse
 import textwrap
 import re
+import csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -29,6 +30,18 @@ parser.add_argument(
     type=Path,
     help="Path to directory containing input FASTQ files",
 )
+parser.add_argument(
+    "--multiplex_pools_file",
+    required=False,
+    type=Path,
+    help="Path to TSV file containing library IDs, sample IDs, and associated barcode IDs for multiplexed libraries",
+)
+parser.add_argument(
+    "--library_id",
+    required=False,
+    type=str,
+    help="Library ID for multiplexed library. Used to filter the multiplex_pools_file to samples present in the multiplexed library.",
+)
 
 args = parser.parse_args()
 
@@ -46,6 +59,16 @@ if not args.probe_set_reference.exists():
 # check that path to FASTQ directory exists
 if not args.fastq_dir.exists():
     raise FileNotFoundError(f"FASTQ directory not found: {args.fastq_dir}")
+
+# check that multiplex pools file and library id exist
+if args.multiplex_pools_file:
+    if not args.multiplex_pools_file.exists():
+        raise FileNotFoundError(
+            f"Multiplex pools file not found: {args.multiplex_pools_file}"
+        )
+    if not args.library_id:
+        raise ValueError("A library_id must be provided with the multiplex_pools_file")
+
 
 # build config file content
 config_content = textwrap.dedent(
@@ -79,7 +102,41 @@ if not fastq_ids:
 
 # add fastq_ids to config content
 for fastq_id in fastq_ids:
-    config_content += f"{fastq_id},{fastq_path},Gene_Expression\n"
+    config_content += f"{fastq_id},{fastq_path},Gene Expression\n"
+
+# add multiplex content if present
+if args.multiplex_pools_file:
+    with open(args.multiplex_pools_file) as pools_file:
+        reader = csv.DictReader(pools_file, delimiter="\t")
+        rows = list(reader)
+
+    # check required columns are present
+    required_columns = {"scpca_library_id", "scpca_sample_id", "barcode_id"}
+    if not required_columns.issubset(reader.fieldnames):
+        raise ValueError(
+            f"{args.multiplex_pools_file} must contain columns: {', '.join(required_columns)}"
+        )
+
+    #  filter to samples in multiplexed library
+    filtered_pools = [
+        sample for sample in rows if sample["scpca_library_id"] == args.library_id
+    ]
+
+    # check that library id is present
+    if not filtered_pools:
+        raise ValueError(f"{args.library_id} not found in {args.multiplex_pools_file}")
+
+    # add [samples] section to config
+    config_content += textwrap.dedent(
+        """
+        [samples]
+        sample_id,probe_barcode_ids
+        """.lstrip()
+    )
+
+    # add a row for each sample to the config file
+    for row in filtered_pools:
+        config_content += f"{row['scpca_sample_id']},{row['barcode_id']}\n"
 
 # save config content to file
 args.config.write_text(config_content)
