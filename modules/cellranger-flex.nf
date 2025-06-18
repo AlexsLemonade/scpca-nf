@@ -210,10 +210,10 @@ workflow flex_quant{
         file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
       )}
 
-    // define output H5 file for multiplexed
+    // define output H5 files for multiplexed
     // transpose to have one sample ID for each row
     // use existing meta to define the output H5 file for each sample in the library 
-    has_flex_multi_ch = has_flex_ch.multi
+    has_flex_ch = flex_channel.has_cellranger_flex
       // [tuple(sample_ids), meta]
       .map{ meta -> tuple(
         meta.sample_id.tokenize(","),
@@ -221,18 +221,21 @@ workflow flex_quant{
       )}
       .transpose() // [sample id, meta]
       // replace existing sample id and define path to existing directory with H5 file
-      .map{ sample_id, meta -> 
+      .map{ sample_id, meta ->
         def updated_meta = meta.clone();
-        def demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5");
+        // path depends on whether singleplex or multiplex
+        def demux_h5_file = if(meta.technology.contains("single")){
+            file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
+          } else if(meta.technology.contains("multi")) {
+            file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5")
+          };
         updated_meta.sample_id = sample_id;
         return [updated_meta, demux_h5_file]
       }
 
-    // create channel of skipped libraries
-    flex_quants_ch = has_flex_single_ch.mix(has_flex_multi_ch)
 
     // Combine single, multi, and skipped libraries
-    all_flex_ch = cellranger_flex_ch.mix(flex_quants_ch)
+    all_flex_ch = cellranger_flex_ch.mix(has_flex_ch)
 
   emit: all_flex_ch
 
