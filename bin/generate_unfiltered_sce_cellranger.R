@@ -97,6 +97,15 @@ colnames(unfiltered_sce) <- stringr::str_extract(colnames(unfiltered_sce), "^([A
 # remove existing colData
 colData(unfiltered_sce) <- NULL
 
+# select just ID column of rowData and rename
+rowdata_df <- rowData(unfiltered_sce) |>
+  as.data.frame() |>
+  dplyr::select(
+    "gene_ids" = "ID"
+  )
+
+rowData(unfiltered_sce) <- DataFrame(rowdata_df, row.names = rowdata_df$gene_ids)
+
 # get cellranger version
 if (file.exists(opt$versions_file)) {
   versions <- jsonlite::fromJSON(opt$versions_file)
