@@ -10,7 +10,9 @@ process cellranger_flex_single {
   input:
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
   output:
-    tuple val(meta), path(out_id)
+    tuple val(meta), path("${out_id}/outs/per_sample_outs/*", type: 'dir'), emit: "per_sample"
+    tuple val(meta), path("${out_id}/outs/multi"), emit: "multi"
+    tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -42,7 +44,9 @@ process cellranger_flex_single {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
-    mkdir -p ${out_id}/outs
+    mkdir -p ${out_id}/outs/per_sample_outs/${meta.sample_id}
+    mkdir -p ${out_id}/outs/multi
+    touch ${out_id}/outs/config.csv
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
 }
@@ -59,7 +63,7 @@ process cellranger_flex_multi {
   output:
     tuple val(meta), path("${out_id}/outs/per_sample_outs/*", type: 'dir'), emit: "per_sample"
     tuple val(meta), path("${out_id}/outs/multi"), emit: "multi"
-    tuple val(meta), path("${out_id}/outs/config.csv", emit: "config"
+    tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -98,6 +102,8 @@ process cellranger_flex_multi {
     meta_json = Utils.makeJson(meta)
     """
     ${sample_ids.collect { "mkdir -p ${out_id}/outs/per_sample_outs/${it}" }.join("\n")}
+    mkdir -p ${out_id}/outs/multi
+    touch ${out_id}/outs/config.csv
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
 }
@@ -121,6 +127,7 @@ workflow flex_quant{
         meta // return modified meta object
       }
       .branch{
+        // branch based on if cellranger results exist or repeat mapping is used 
         make_cellranger_flex: (
           // input files exist
           it.files_directory && file(it.files_directory, type: 'dir').exists() && (
@@ -140,6 +147,7 @@ workflow flex_quant{
       }
 
     // tuple of inputs for running cell ranger regardless of multi or single
+    // this channel only has libraries that need to be processed through cellranger
     flex_reads = flex_channel.make_cellranger_flex
       .map{ meta -> tuple(
         meta, 
@@ -159,6 +167,7 @@ workflow flex_quant{
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
     // transpose cellranger multi output to have one row per output folder
+    // for multiplexed data, the raw H5 is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.per_sample
       .transpose()
       .map{
@@ -177,7 +186,8 @@ workflow flex_quant{
       }
 
     // combine single and multi outputs
-    cellranger_flex_ch = cellranger_flex_single.out
+    // for singleplexed data, the raw H5 is in the multi folder
+    cellranger_flex_ch = cellranger_flex_single.out.multi
       // get path to individual h5 file for singleplexed
       .map{ meta, out_dir -> tuple(
         meta, 
@@ -185,20 +195,24 @@ workflow flex_quant{
       )}
     .mix(cellranger_flex_multi_flat_ch)
 
-    // split up has flex based on technology
+    // make sure the libraries that we are skipping processing on have the correct channel format 
+    // path to the raw H5 file is dependent on single or multiplexed so split up skipped libraries based on technology
     has_flex_ch = flex_channel.has_cellranger_flex
       .branch{ it -> 
         single: it.technology.contains("single")
         multi: it.technology.contains("multi")
       }
 
-    // define output file and meta data using existing information 
+    // define output H5 file and meta data using existing meta for singleplexed
     has_flex_single_ch = has_flex_ch.single
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json")),
         file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
       )}
 
+    // define output H5 file for multiplexed
+    // transpose to have one sample ID for each row
+    // use existing meta to define the output H5 file for each sample in the library 
     has_flex_multi_ch = has_flex_ch.multi
       // [tuple(sample_ids), meta]
       .map{ meta -> tuple(
@@ -214,6 +228,7 @@ workflow flex_quant{
         return [updated_meta, demux_h5_file]
       }
 
+    // create channel of skipped libraries
     flex_quants_ch = has_flex_single_ch.mix(has_flex_multi_ch)
 
     // Combine single, multi, and skipped libraries
