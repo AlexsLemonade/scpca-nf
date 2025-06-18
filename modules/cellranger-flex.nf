@@ -197,20 +197,6 @@ workflow flex_quant{
 
     // make sure the libraries that we are skipping processing on have the correct channel format 
     // path to the raw H5 file is dependent on single or multiplexed so split up skipped libraries based on technology
-    has_flex_ch = flex_channel.has_cellranger_flex
-      .branch{ it -> 
-        single: it.technology.contains("single")
-        multi: it.technology.contains("multi")
-      }
-
-    // define output H5 file and meta data using existing meta for singleplexed
-    has_flex_single_ch = has_flex_ch.single
-      .map{meta -> tuple(
-        Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json")),
-        file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
-      )}
-
-    // define output H5 files for multiplexed
     // transpose to have one sample ID for each row
     // use existing meta to define the output H5 file for each sample in the library 
     has_flex_ch = flex_channel.has_cellranger_flex
@@ -224,11 +210,12 @@ workflow flex_quant{
       .map{ sample_id, meta ->
         def updated_meta = meta.clone();
         // path depends on whether singleplex or multiplex
-        def demux_h5_file = if(meta.technology.contains("single")){
-            file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
+        def demux_h5_file
+        if(meta.technology.contains("single")){
+            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
           } else if(meta.technology.contains("multi")) {
-            file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5")
-          };
+            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5")
+          }
         updated_meta.sample_id = sample_id;
         return [updated_meta, demux_h5_file]
       }
