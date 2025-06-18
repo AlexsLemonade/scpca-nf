@@ -22,6 +22,24 @@ option_list <- list(
     help = "path to output unfiltered rds file. Must end in .rds"
   ),
   make_option(
+    opt_str = c("--versions_file"),
+    type = "character",
+    default = "",
+    help = "path to file containing celltype version used for processing"
+  ),
+  make_option(
+    opt_str = c("--reference_index"),
+    type = "character",
+    default = "",
+    help = "path to reference index used with cellranger"
+  ),
+  make_option(
+    opt_str = c("--reference_probeset"),
+    type = "character",
+    default = "",
+    help = "path to reference probe set used withi cellranger"
+  ),
+  make_option(
     opt_str = c("-t", "--technology"),
     type = "character",
     help = "sequencing technology string to store in metadata"
@@ -77,16 +95,24 @@ colnames(unfiltered_sce) <- stringr::str_extract(colnames(unfiltered_sce), "^([A
 # remove existing colData
 colData(unfiltered_sce) <- NULL
 
+# get cellranger version
+if (file.exists(opt$versions_file)) {
+  versions <- jsonlite::fromJSON(opt$versions_file)
+  cellranger_version <- versions$pipelines
+} else {
+  cellranger_version <- NA
+}
+
 # make metadata list with scpca information and add to object
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = sample_ids,
   project_id = opt$project_id,
-  # TODO: Add in version info and total number of reads and mapped reads?
-  # These live in metrics_summary.csv, but the metric name depends on if it's single or multiplexed
-  # one option is to add to meta.json file for these libraries?
-  cellranger_version = NA,
-  reference_index = NA,
+  cellranger_version = cellranger_version,
+  reference_index = basename(opt$reference_index),
+  reference_probeset = basename(opt$reference_probeset),
+  # TODO: Add in total number of reads and mapped reads?
+  # Total reads live in metrics_summary.csv and mapped reads is provided as % of reads in cells
   total_reads = NA,
   mapped_reads = NA,
   mapping_tool = "cellranger-multi",

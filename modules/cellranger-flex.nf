@@ -13,6 +13,7 @@ process cellranger_flex_single {
     tuple val(meta), path("${out_id}/outs/per_sample_outs/*", type: 'dir'), emit: "per_sample"
     tuple val(meta), path("${out_id}/outs/multi"), emit: "multi"
     tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
+    tuple val(meta), path("${out_id}/_versions"), emit: "versions"
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -33,7 +34,7 @@ process cellranger_flex_single {
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()}
 
-    # write metadata
+    # write metadata and add cellranger version 
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
     # remove Cell Ranger intermediates directory
@@ -47,6 +48,7 @@ process cellranger_flex_single {
     mkdir -p ${out_id}/outs/per_sample_outs/${meta.sample_id}
     mkdir -p ${out_id}/outs/multi
     touch ${out_id}/outs/config.csv
+    touch ${out_id}/_versions
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
 }
@@ -64,6 +66,7 @@ process cellranger_flex_multi {
     tuple val(meta), path("${out_id}/outs/per_sample_outs/*", type: 'dir'), emit: "per_sample"
     tuple val(meta), path("${out_id}/outs/multi"), emit: "multi"
     tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
+    tuple val(meta), path("${out_id}/_versions"), emit: "versions"
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -104,6 +107,7 @@ process cellranger_flex_multi {
     ${sample_ids.collect { "mkdir -p ${out_id}/outs/per_sample_outs/${it}" }.join("\n")}
     mkdir -p ${out_id}/outs/multi
     touch ${out_id}/outs/config.csv
+    touch ${out_id}/_versions
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
 }
@@ -166,10 +170,18 @@ workflow flex_quant{
     // run cellranger multiplexed
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
+    // get version files from output
+    // first mix multi and single versions back together and then will combine with h5 file output
+    versions_ch = cellranger_flex_single.out.versions.mix(cellranger_flex_multi.out.versions)
+      .map{ meta, versions_file -> tuple(
+        meta.library_id,
+        versions_file
+      )}
+
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the raw H5 is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.per_sample
-      .transpose()
+      .transpose() // [meta, out_dir]
       .map{
         def updated_meta = it[0].clone(); // clone meta before replacing sample ID
         def out_dir = it[1]; // path to individual output dir
@@ -194,6 +206,9 @@ workflow flex_quant{
         file("${out_dir}/outs/multi/count/raw_feature_bc_matrix.h5")
       )}
     .mix(cellranger_flex_multi_flat_ch)
+    .map{[it[0]["library_id"]] + it } // pull out library id for joining with versions
+    .join(versions_ch)
+    .map{it.drop(1)} // remove library_id to get [meta, h5, versions]
 
     // make sure the libraries that we are skipping processing on have the correct channel format 
     // path to the raw H5 file is dependent on single or multiplexed so split up skipped libraries based on technology
@@ -216,8 +231,9 @@ workflow flex_quant{
           } else if(meta.technology.contains("multi")) {
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix.h5")
           }
+        def versions_file = file("${meta.cellranger_multi_results_dir}/_versions");
         updated_meta.sample_id = sample_id;
-        return [updated_meta, demux_h5_file]
+        return [updated_meta, demux_h5_file, versions_file]
       }
 
 
