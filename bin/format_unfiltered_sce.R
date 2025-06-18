@@ -65,7 +65,7 @@ if (file.exists(opt$mito_file)) {
   # read in mitochondrial gene list
   mito_genes <- unique(scan(opt$mito_file, what = "character"))
 } else {
-  mito_genes <- gtf[seqnames(gtf) == "MT"]
+  mito_genes <- unique(gtf[seqnames(gtf) == "MT"]$gene_id)
 }
 
 # parse sample id list
