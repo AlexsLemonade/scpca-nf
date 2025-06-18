@@ -78,7 +78,7 @@ colnames(unfiltered_sce) <- stringr::str_extract(colnames(unfiltered_sce), "^([A
 colData(unfiltered_sce) <- NULL
 
 # make metadata list with scpca information and add to object
-metadata_list <- lst(
+metadata_list <- list(
   library_id = opt$library_id,
   sample_id = sample_ids,
   project_id = opt$project_id,
