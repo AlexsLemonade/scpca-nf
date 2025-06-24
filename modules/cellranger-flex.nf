@@ -10,10 +10,16 @@ process cellranger_flex_single {
   input:
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
   output:
-    tuple val(meta), path("${out_id}/outs/per_sample_outs/*", type: 'dir'), emit: "per_sample"
-    tuple val(meta), path("${out_id}/outs/multi"), emit: "multi"
-    tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
-    tuple val(meta), path("${out_id}/_versions"), emit: "versions"
+    tuple val(meta), 
+      path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
+      path("${out_id}/_versions"),
+      path("${out_id}/outs/config.csv"),
+      emit: "per_sample"
+    tuple val(meta),
+      path("${out_id}/outs/multi", type: 'dir'), 
+      path("${out_id}/_versions"),
+      path("${out_id}/outs/config.csv"),
+      emit: "multi"
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -69,12 +75,10 @@ process cellranger_flex_multi {
       path("${out_id}/outs/config.csv"),
       emit: "per_sample"
     tuple val(meta),
-      path("${out_id}/outs/multi", type = 'dir'), 
+      path("${out_id}/outs/multi", type: 'dir'), 
       path("${out_id}/_versions"),
       path("${out_id}/outs/config.csv"),
       emit: "multi"
-    tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
-    tuple val(meta), path("${out_id}/_versions"), emit: "versions"
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -178,14 +182,6 @@ workflow flex_quant{
     // run cellranger multiplexed
     cellranger_flex_multi(flex_reads.multi, file(pool_file))
 
-    // get version files from output
-    // first mix multi and single versions back together and then will combine with cellranger output
-    versions_ch = cellranger_flex_single.out.versions.mix(cellranger_flex_multi.out.versions)
-      .map{ meta, versions_file -> tuple(
-        meta.library_id,
-        versions_file
-      )}
-
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.per_sample
@@ -200,23 +196,22 @@ workflow flex_quant{
             log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
-        // update sample ID and return new meta with path to h5 file for each sample
+        // update sample ID 
         updated_meta.sample_id = sample_id;
-        return [updated_meta, file("${out_dir}/count/sample_raw_feature_bc_matrix", type: 'dir')]
+        // [meta, raw output dir, versions file]
+        return [updated_meta, file("${out_dir}/count/sample_raw_feature_bc_matrix", type: 'dir'), file(it[2])]
       }
 
     // combine single and multi outputs
     // for singleplexed data, the raw output is in the multi folder
     cellranger_flex_ch = cellranger_flex_single.out.multi
-      // get path to raw output directory for singleplexed
-      .map{ meta, out_dir -> tuple(
+      // get path to raw output directory for singleplexed 
+      .map{ meta, out_dir, versions, config -> tuple(
         meta, 
-        file("${out_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
+        file("${out_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir'),
+        file(versions)
       )}
     .mix(cellranger_flex_multi_flat_ch)
-    .map{[it[0]["library_id"]] + it } // pull out library id for joining with versions
-    .join(versions_ch)
-    .map{it.drop(1)} // remove library_id to get [meta, out directory, versions]
 
     // make sure the libraries that we are skipping processing on have the correct channel format 
     // path to the raw output is dependent on single or multiplexed so split up skipped libraries based on technology
