@@ -63,8 +63,16 @@ process cellranger_flex_multi {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
     path multiplex_pools_file
   output:
-    tuple val(meta), path("${out_id}/outs/per_sample_outs/*", type: 'dir'), emit: "per_sample"
-    tuple val(meta), path("${out_id}/outs/multi"), emit: "multi"
+    tuple val(meta), 
+      path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
+      path("${out_id}/_versions"),
+      path("${out_id}/outs/config.csv"),
+      emit: "per_sample"
+    tuple val(meta),
+      path("${out_id}/outs/multi", type = 'dir'), 
+      path("${out_id}/_versions"),
+      path("${out_id}/outs/config.csv"),
+      emit: "multi"
     tuple val(meta), path("${out_id}/outs/config.csv"), emit: "config"
     tuple val(meta), path("${out_id}/_versions"), emit: "versions"
   script:
@@ -181,7 +189,7 @@ workflow flex_quant{
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.per_sample
-      .transpose() // [meta, out_dir]
+      .transpose() // [meta, out_dir, versions, config]
       .map{
         def updated_meta = it[0].clone(); // clone meta before replacing sample ID
         def out_dir = it[1]; // path to individual output dir
