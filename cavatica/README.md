@@ -1,6 +1,11 @@
 # Cavatica port documentation
 
-## Prerequisites
+This document provides instructions for developers on how to port the `scpca-nf` workflow to Cavatica, a cloud-based platform for running bioinformatics workflows.
+
+Instructions for Cavatica users can be found in the [Cavatica documentation](sb_doc.md) file.
+Additional details about required input files and other options can also be found in the [external instructions](../external-instructions.md).
+
+## Instructions for developers
 
 ### Software installation
 
