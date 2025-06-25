@@ -16,7 +16,7 @@ Full documentation for the workflow is available in the [scpca-nf GitHub reposit
 ### Prerequisites
 
 If you are reading this on Cavatica, you should have already created a Cavatica project to run the workflow, and copied the `scpca-nf` app to your project.
-If you have not yet done this, create a project in Cavatica and within that project go to the Apps tab, click "Add apps > Projects" and copy the `scpca-nf` app from the `scpca-nf-test` project (you will need to have been granted access to this project).
+If you have not yet done this, create a project in Cavatica and within that project go to the Apps tab, click "Add apps > Projects" and copy the `scpca-nf` app from the `scpca-nf-test` project (you will need to have been granted access to this project by an ALSF Data Lab member).
 
 Make sure that your project settings include "Allow network access", so that the workflow can download the required reference files and software dependencies. 
 We also highly recommend that you enable spot instances.
@@ -79,7 +79,7 @@ To run the workflow, you can use the Cavatica web interface to launch the `scpca
 - Go to the Apps tab in your project, and click the button "Run" next to the `scpca-nf` app.
 - In the "Inputs" section, you will need to select the "Run metadata file" and "Sample metadata file" that you prepared earlier.
 - All other fields are optional, but the following are the ones most likely to be useful:
-  - "Output directory" can be changed to a name of your choice. The default is `scpca_out`, and Cavatica will create a unique name if the named  directory already exists.
+  - "Output directory" can be changed to a name of your choice. The default is `scpca_out`, and Cavatica will create a unique name if the named directory already exists.
   - "Perform cell typing" is False by default, as cell typing is slow, but it can be enabled if desired.
   - "Project ID(s)" and "Run IDs" can be used to limit the runs to a subset of those in the run metadata file. Each takes a comma-separated list of values.
 
