@@ -622,6 +622,7 @@ _Note: The workflow is currently set up to work only with spatial transcriptomic
 ### 10x Flex gene expression libraries 
 
 Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`. 
+*Note:* Currently only libraries processed using the v1.1.0 probe set are supported. 
 
 There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`. 
 
