@@ -44,9 +44,10 @@ You will also need to have set up [credentials for the Seven Bridges CLI](https:
 
 #### Additional files for specific modalities
 
-- For ADT (CITE-seq) libraries, you will also need to provide a feature barcode file
+- For ADT (CITE-seq) libraries or samples multiplexed via cell hashing, you will also need to provide a feature barcode file
   - The feature barcode file is a tab separated file with one line per barcode and no header, and should be uploaded to your Cavatica project.
   - The path to the feature barcode file must be included in the run metadata file, in the `feature_barcode_file` column.
+  - For multiplexed libraries, you will also need a `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples
   - See [Libraries with additional feature data](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#libraries-with-additional-feature-data-adt-or-cellhash) for more details.
 
 
