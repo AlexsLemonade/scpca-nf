@@ -257,21 +257,39 @@ if (!has_multiplex) {
 ```{r }
 # extract sce metadata containing processing information as table
 unfiltered_meta <- metadata(unfiltered_sce)
+mapping_tool <- unfiltered_meta$mapping_tool
 
 library_information <- tibble::tibble(
   "Library id" = library_id,
   "Sample id" = paste(sample_id, collapse = ", "),
   "Tech version" = format(unfiltered_meta$tech_version), # format to keep nulls
   "Data modalities" = paste(modalities, collapse = ", "),
-  "Cells reported by alevin-fry" =
-    format(unfiltered_meta$af_num_cells, big.mark = ",", scientific = FALSE),
-  "Number of genes assayed" =
-    format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
   "Number of RNA-seq reads sequenced" =
     format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
   "Percent of RNA-seq reads mapped to transcripts" =
-    paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%")
+    paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%"),
+  mapping_tool = format(mapping_tool)
 )
+
+if (mapping_tool == "alevin-fry") {
+  library_information <- library_information |>
+    mutate(
+      "Cells reported by alevin-fry" =
+        format(unfiltered_meta$af_num_cells, big.mark = ",", scientific = FALSE),
+      "Number of genes assayed" =
+        format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
+    )
+}
+
+if (mapping_tool == "cellranger-multi") {
+  library_information <- library_information |>
+    mutate(
+      "Cells reported by cellranger multi" =
+        format(unfiltered_meta$cellranger_num_cells, big.mark = ",", scientific = FALSE),
+      "Number of probes assayed" =
+        format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE)
+    )
+}
 
 if (has_adt) {
   adt_exp <- altExp(filtered_sce, "adt") # must be filtered_sce in case has_processed is FALSE
@@ -323,20 +341,32 @@ knitr::kable(library_information, align = "r") |>
 # define transcript type
 transcript_type <- paste(unfiltered_meta$transcript_type, collapse = " ")
 
-processing_info <- tibble::tibble(
-  "Salmon version" = format(unfiltered_meta$salmon_version),
-  "Alevin-fry version" = format(unfiltered_meta$alevinfry_version),
-  "Transcriptome index" = format(unfiltered_meta$reference_index),
-  "Alevin-fry droplet detection" = format(unfiltered_meta$af_permit_type),
-  "Resolution" = format(unfiltered_meta$af_resolution),
-  "Transcripts included" = dplyr::case_when(
-    transcript_type == "total spliced" ~ "Total and spliced only",
-    transcript_type == "spliced" ~ "Spliced only",
-    TRUE ~ transcript_type
-  )
-) |>
-  reformat_nulls() |>
-  t()
+if (mapping_tool == "alevin-fry") {
+  processing_info <- tibble::tibble(
+    "Salmon version" = format(unfiltered_meta$salmon_version),
+    "Alevin-fry version" = format(unfiltered_meta$alevinfry_version),
+    "Transcriptome index" = format(unfiltered_meta$reference_index),
+    "Alevin-fry droplet detection" = format(unfiltered_meta$af_permit_type),
+    "Resolution" = format(unfiltered_meta$af_resolution),
+    "Transcripts included" = dplyr::case_when(
+      transcript_type == "total spliced" ~ "Total and spliced only",
+      transcript_type == "spliced" ~ "Spliced only",
+      TRUE ~ transcript_type
+    )
+  ) |>
+    reformat_nulls() |>
+    t()
+}
+
+if (mapping_tool == "cellranger-multi") {
+  processing_info <- tibble::tibble(
+    "Cellranger version" = format(unfiltered_meta$cellranger_version),
+    "Transcriptome index" = format(unfiltered_meta$reference_index),
+    "Reference probe set" = format(unfiltered_meta$reference_probeset)
+  ) |>
+    reformat_nulls() |>
+    t()
+}
 
 
 # make table with processing information
@@ -405,7 +435,7 @@ if (
     <div class=\"alert alert-warning\">
 
     This library may contain a low number of cells and was unable to be filtered using `DropletUtils`.
-    Droplets with a total UMI count ≥ {metadata(filtered_sce)$umi_cutoff} are included in the filtered `SingleCellExperiment` object.
+    Droplets with a total UMI count <U+2265> {metadata(filtered_sce)$umi_cutoff} are included in the filtered `SingleCellExperiment` object.
 
     </div>
   ")
