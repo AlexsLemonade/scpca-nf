@@ -57,7 +57,6 @@ SCE
 scpca
 ScPCA
 Seqera
-Singleplexed
 singleplexed
 SingleR
 subdiagnosis
