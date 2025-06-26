@@ -11,9 +11,9 @@ process cellranger_flex_single {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
   output:
     tuple val(meta), 
+      path("${out_id}/outs/multi", type: 'dir'), 
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
       path("${out_id}/_versions"),
-      path("${out_id}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv"),
       path("${out_id}/outs/config.csv")
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
@@ -66,10 +66,10 @@ process cellranger_flex_multi {
     path multiplex_pools_file
   output:
     tuple val(meta), 
+      path("${out_id}/outs/multi", type: 'dir'), 
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
       path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv"),
-      emit: "per_sample"
+      path("${out_id}/outs/config.csv")
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -177,10 +177,10 @@ workflow flex_quant{
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
-      .transpose() // [meta, out_dir, versions, config]
+      .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions, config]
       .map{
         def updated_meta = it[0].clone(); // clone meta before replacing sample ID
-        def out_dir = it[1]; // path to individual output dir
+        def out_dir = it[2]; // path to individual output dir, use per_sample_outs
         def sample_id = out_dir.name; // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs 
         def expected_sample_ids = updated_meta.sample_id.split(",")
@@ -194,7 +194,7 @@ workflow flex_quant{
         return [
           updated_meta, 
           file("${out_dir}/count/sample_raw_feature_bc_matrix", type: 'dir'), 
-          file(it[2]), 
+          file(it[3]),
           file("${out_dir}/metrics_summary.csv")
           ]
       }
@@ -203,11 +203,11 @@ workflow flex_quant{
     // for singleplexed data, the raw output is in the multi folder
     cellranger_flex_ch = cellranger_flex_single.out
       // get path to raw output directory for singleplexed 
-      .map{ meta, out_dir, versions, metrics, config -> tuple(
+      .map{ meta, multi_out, per_sample_out, versions, config -> tuple(
         meta, 
-        file("${out_dir}/count/raw_feature_bc_matrix", type: 'dir'),
+        file("${multi_out}/count/raw_feature_bc_matrix", type: 'dir'),
         versions,
-        metrics
+        file("${per_sample_out}/${meta.library_id}/metrics_summary.csv")
       )}
     .mix(cellranger_flex_multi_flat_ch)
 

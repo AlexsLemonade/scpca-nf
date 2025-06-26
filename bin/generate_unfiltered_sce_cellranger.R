@@ -134,20 +134,16 @@ if (file.exists(opt$metrics_file)) {
       metric = `Metric Name`,
       value = `Metric Value`
     )
+
   # grab total number of reads and reformat
   total_reads <- metrics_df |>
     dplyr::filter(metric == "Number of reads in the library") |>
-    dplyr::pull(value) |>
-    stringr::str_remove_all(",") |>
-    as.numeric()
+    dplyr::pull(value)
 
   # grab percentage of total mapped reads and reformat
   pct_mapped_reads <- metrics_df |>
     dplyr::filter(metric == "Confidently mapped reads in cells") |>
-    dplyr::pull(value) |>
-    # mapped reads is provided as % of reads in cells so convert to number
-    stringr::str_remove("%") |>
-    as.numeric()
+    dplyr::pull(value)
 } else {
   total_reads <- NA
   pct_mapped_reads <- NA
