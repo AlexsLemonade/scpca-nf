@@ -214,13 +214,15 @@ Follow these steps to add support for additional cell type references.
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3.
 
-`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`.
-Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_model.rds`.
+`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`. 
+Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_<genes_ref>_model.rds`. 
 
   - `<celltype_ref_name>` is a given `celldex` dataset.
     - Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
   - `<celltype_ref_source>` is `celldex`.
   - `<version>` is the `celldex` version used during reference building, where we use dashes in place of periods (e.g., version `x.y.z` would be represented as `x-y-z`).
+  - `<genes_ref>` refers to the reference transcriptome or probe set used for mapping. 
+Currently, one model for the transcriptome references and one model for the flex probe sets are saved. 
 
 `CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<date>.tsv`.
 
