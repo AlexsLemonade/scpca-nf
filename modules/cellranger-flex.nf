@@ -206,8 +206,8 @@ workflow flex_quant{
       .map{ meta, out_dir, versions, metrics, config -> tuple(
         meta, 
         file("${out_dir}/count/raw_feature_bc_matrix", type: 'dir'),
-        file(versions),
-        file(metrics)
+        versions,
+        metrics
       )}
     .mix(cellranger_flex_multi_flat_ch)
 

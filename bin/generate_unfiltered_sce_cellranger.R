@@ -121,13 +121,19 @@ if (file.exists(opt$versions_file)) {
 }
 
 if (file.exists(opt$metrics_file)) {
-  metrics_df <- readr::read_csv(opt$metrics_file) |>
-    # the numbers shown in the web summary correspond to GEX_1 column
-    dplyr::filter(`Group Name` == "GEX_1") |>
-    dplyr::select(
-      metric = `Metric Name`,
-      value = `Metric Value`
-    )
+metrics_df <- readr::read_csv(
+  opt$metrics_file,
+  col_types = readr::cols( 
+    `Metric Value` = readr::col_number(),
+    .default = readr::col_character()
+  )
+) |>
+  # the numbers shown in the web summary correspond to GEX_1 column
+  dplyr::filter(`Group Name` == "GEX_1") |>
+  dplyr::select(
+    metric = `Metric Name`,
+    value = `Metric Value`
+  )
   # grab total number of reads and reformat
   total_reads <- metrics_df |>
     dplyr::filter(metric == "Number of reads in the library") |>
