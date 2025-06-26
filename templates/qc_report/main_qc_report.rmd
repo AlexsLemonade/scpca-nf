@@ -264,7 +264,7 @@ library_information <- tibble::tibble(
   "Sample id" = paste(sample_id, collapse = ", "),
   "Tech version" = format(unfiltered_meta$tech_version), # format to keep nulls
   "Data modalities" = paste(modalities, collapse = ", "),
-  mapping_tool = format(mapping_tool)
+  "Mapping tool" = format(mapping_tool)
 )
 
 if (mapping_tool == "alevin-fry") {
