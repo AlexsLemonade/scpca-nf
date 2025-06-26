@@ -135,16 +135,16 @@ if (file.exists(opt$metrics_file)) {
     stringr::str_remove_all(",") |>
     as.numeric()
 
-  # calculate total mapped reads and reformat
-  mapped_reads <- metrics_df |>
+  # grab percentage of total mapped reads and reformat
+  pct_mapped_reads <- metrics_df |>
     dplyr::filter(metric == "Confidently mapped reads in cells") |>
     dplyr::pull(value) |>
     # mapped reads is provided as % of reads in cells so convert to number
     stringr::str_remove("%") |>
-    as.numeric() * total_reads
+    as.numeric()
 } else {
   total_reads <- NA
-  mapped_reads <- NA
+  pct_mapped_reads <- NA
 }
 
 # make metadata list with scpca information and add to object
@@ -156,9 +156,9 @@ metadata_list <- list(
   reference_index = basename(opt$reference_index),
   reference_probeset = basename(opt$reference_probeset),
   total_reads = total_reads,
-  mapped_reads = mapped_reads,
+  pct_mapped_reads = pct_mapped_reads,
   mapping_tool = "cellranger-multi",
-  cellranger_num_cells = nrow(unfiltered_sce),
+  cellranger_num_cells = ncol(unfiltered_sce),
   tech_version = opt$technology,
   assay_ontology_term_id = opt$assay_ontology_term_id,
   seq_unit = opt$seq_unit,

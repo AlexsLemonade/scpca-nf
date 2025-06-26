@@ -264,10 +264,6 @@ library_information <- tibble::tibble(
   "Sample id" = paste(sample_id, collapse = ", "),
   "Tech version" = format(unfiltered_meta$tech_version), # format to keep nulls
   "Data modalities" = paste(modalities, collapse = ", "),
-  "Number of RNA-seq reads sequenced" =
-    format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
-  "Percent of RNA-seq reads mapped to transcripts" =
-    paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%"),
   mapping_tool = format(mapping_tool)
 )
 
@@ -278,6 +274,10 @@ if (mapping_tool == "alevin-fry") {
         format(unfiltered_meta$af_num_cells, big.mark = ",", scientific = FALSE),
       "Number of genes assayed" =
         format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
+      "Number of RNA-seq reads sequenced" =
+        format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
+      "Percent of RNA-seq reads mapped to transcripts" =
+        paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%"),
     )
 }
 
@@ -287,7 +287,11 @@ if (mapping_tool == "cellranger-multi") {
       "Cells reported by cellranger multi" =
         format(unfiltered_meta$cellranger_num_cells, big.mark = ",", scientific = FALSE),
       "Number of probes assayed" =
-        format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE)
+        format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
+      "Number of RNA-seq reads sequenced" =
+        format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
+      "Percent of RNA-seq reads mapped to probes" =
+        paste0(unfiltered_meta$pct_mapped_reads, "%"),
     )
 }
 
