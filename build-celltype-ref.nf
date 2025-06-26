@@ -23,7 +23,7 @@ process save_singler_refs {
 
 }
 
-process train_singler_models {
+process train_singler_models_transcriptome {
   container params.SCPCATOOLS_CONTAINER
   publishDir "${params.singler_models_dir}"
   label 'cpus_4'
@@ -31,11 +31,12 @@ process train_singler_models {
   input:
     tuple val(ref_name), path(ref_file)
     path t2g_3col_path
+    val ref_assembly // corresponds to assembly in meta.json files output from main.nf 
   output:
     path celltype_model
   script:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_model.rds"
+    celltype_model = "${ref_file_basename}_${ref_assembly}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -47,7 +48,37 @@ process train_singler_models {
     """
   stub:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_model.rds"
+    celltype_model = "${ref_file_basename}_${ref_assembly}_model.rds"
+    """
+    touch ${celltype_model}
+    """
+}
+
+process train_singler_models_flex {
+  container params.SCPCATOOLS_CONTAINER
+  publishDir "${params.singler_models_dir}"
+  label 'cpus_4'
+  label 'mem_16'
+  input:
+    tuple val(ref_name), path(ref_file)
+    path flex_probeset
+  output:
+    path celltype_model
+  script:
+    ref_file_basename = file("${ref_file}").baseName
+    celltype_model = "${ref_file_basename}_v1.1-flex-probes_model.rds"
+    """
+    train_SingleR.R \
+      --ref_file ${ref_file} \
+      --output_file ${celltype_model} \
+      --flex_probeset ${flex_probeset} \
+      --label_name ${params.singler_label_name} \
+      --seed ${params.seed} \
+      --threads ${task.cpus}
+    """
+  stub:
+    ref_file_basename = file("${ref_file}").baseName
+    celltype_model = "${ref_file_basename}_v1.1-flex-probes_model.rds"
     """
     touch ${celltype_model}
     """
@@ -121,9 +152,10 @@ workflow build_celltype_ref {
 
   // read in json file with all reference paths
   ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
-  // get path to tx2gene and gtf
+  // get path to tx2gene, gtf, and probeset
   t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
+  flex_probeset = file("${params.probes_dir}/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
 
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
@@ -143,27 +175,31 @@ workflow build_celltype_ref {
   // download and save reference files
   save_singler_refs(singler_refs_ch)
 
-  // train cell type references using SingleR
-  train_singler_models(save_singler_refs.out, t2g_3col_path)
+  // train cell type references using SingleR with transcriptome
+  train_singler_models_transcriptome(save_singler_refs.out, t2g_3col_path, params.celltype_organism)
 
-  // join model file names into a comma separated string
-  singler_models = train_singler_models.out.reduce{a, b -> "$a,$b"}
+  // train cell type references with probe sets for 10x flex
+  train_singler_models_flex(save_singler_refs.out, flex_probeset)
+
+  // combine all output model files and join join file names into a comma separated string
+  singler_models = train_singler_models_transcriptome.out.mix(train_singler_models_flex.out)
+    .reduce{a, b -> "$a,$b"}
   catalog_singler_models(singler_models)
 
   // cellassign refs
-  cellassign_refs_ch = celltype_refs_ch.cellassign
-    // create a channel with ref_name, source, organs
-    .map{[
-      ref_name: it.celltype_ref_name,
-      ref_source: it.celltype_ref_source,
-      organs: it.organs
-    ]}
-
-  generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
-
-  // join reference file names into a comma separated string
-  cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
-  catalog_cellassign_refs(cellassign_refs)
+  //cellassign_refs_ch = celltype_refs_ch.cellassign
+  //  // create a channel with ref_name, source, organs
+  //  .map{[
+  //    ref_name: it.celltype_ref_name,
+  //    ref_source: it.celltype_ref_source,
+  //    organs: it.organs
+  //  ]}
+//
+  //generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
+//
+  //// join reference file names into a comma separated string
+  //cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
+  //catalog_cellassign_refs(cellassign_refs)
 
 }
 
