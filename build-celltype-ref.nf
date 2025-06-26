@@ -36,7 +36,8 @@ process train_singler_models_transcriptome {
     path celltype_model
   script:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_${ref_assembly}_model.rds"
+    ref_genes = ref_assembly.replaceAll('_', '-') // replace _ to ensure full name gets saved to metadata file later
+    celltype_model = "${ref_file_basename}_${ref_genes}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -48,7 +49,8 @@ process train_singler_models_transcriptome {
     """
   stub:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_${ref_assembly}_model.rds"
+    ref_genes = ref_assembly.replaceAll('_', '-')
+    celltype_model = "${ref_file_basename}_${ref_genes}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -194,9 +196,9 @@ workflow build_celltype_ref {
       ref_source: it.celltype_ref_source,
       organs: it.organs
     ]}
-  
+
   generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
-  
+
   // join reference file names into a comma separated string
   cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
   catalog_cellassign_refs(cellassign_refs)  
