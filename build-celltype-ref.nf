@@ -187,20 +187,19 @@ workflow build_celltype_ref {
   catalog_singler_models(singler_models)
 
   // cellassign refs
-  //cellassign_refs_ch = celltype_refs_ch.cellassign
-  //  // create a channel with ref_name, source, organs
-  //  .map{[
-  //    ref_name: it.celltype_ref_name,
-  //    ref_source: it.celltype_ref_source,
-  //    organs: it.organs
-  //  ]}
-//
-  //generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
-//
-  //// join reference file names into a comma separated string
-  //cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
-  //catalog_cellassign_refs(cellassign_refs)
-
+  cellassign_refs_ch = celltype_refs_ch.cellassign
+    // create a channel with ref_name, source, organs
+    .map{[
+      ref_name: it.celltype_ref_name,
+      ref_source: it.celltype_ref_source,
+      organs: it.organs
+    ]}
+  
+  generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
+  
+  // join reference file names into a comma separated string
+  cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
+  catalog_cellassign_refs(cellassign_refs)  
 }
 
 workflow {
