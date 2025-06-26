@@ -4,7 +4,7 @@
 # and output a table with the reference name, source, and version
 
 # File names must be of the format:
-#  <reference_name>_<source>_<version><optional_extra.ext>
+#  <reference_name>_<source>_<version>_<gene_ref><optional_extra.ext>
 
 # Usage:
 # Rscript make_celltype_ref_table.R <list,of,file,paths> <output_table.tsv>
@@ -33,9 +33,10 @@ ref_info <- data.frame(filename = ref_files) |>
   ) |>
   tidyr::separate_wider_delim(
     ref_string,
-    names = c("reference_name", "source", "version"),
+    names = c("reference_name", "source", "version", "genes_ref"),
     delim = "_",
-    too_many = "drop"
+    too_many = "drop",
+    too_few = "align_start"
   ) |>
   dplyr::mutate(
     # replace `-` with `.` for non-date versions
