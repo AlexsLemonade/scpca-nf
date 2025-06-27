@@ -29,6 +29,12 @@ option_list <- list(
     help = "path to file containing celltype version used for processing"
   ),
   make_option(
+    opt_str = c("--metrics_file"),
+    type = "character",
+    default = "",
+    help = "path to file containing sequencing metrics"
+  ),
+  make_option(
     opt_str = c("--reference_index"),
     type = "character",
     default = "",
@@ -114,6 +120,35 @@ if (file.exists(opt$versions_file)) {
   cellranger_version <- NA
 }
 
+if (file.exists(opt$metrics_file)) {
+  metrics_df <- readr::read_csv(
+    opt$metrics_file,
+    col_types = readr::cols(
+      `Metric Value` = readr::col_number(),
+      .default = readr::col_character()
+    )
+  ) |>
+    # the numbers shown in the web summary correspond to GEX_1 column
+    dplyr::filter(`Group Name` == "GEX_1") |>
+    dplyr::select(
+      metric = `Metric Name`,
+      value = `Metric Value`
+    )
+
+  # grab total number of reads and reformat
+  total_reads <- metrics_df |>
+    dplyr::filter(metric == "Number of reads in the library") |>
+    dplyr::pull(value)
+
+  # grab percentage of total mapped reads and reformat
+  pct_mapped_reads <- metrics_df |>
+    dplyr::filter(metric == "Confidently mapped reads in cells") |>
+    dplyr::pull(value)
+} else {
+  total_reads <- NA
+  pct_mapped_reads <- NA
+}
+
 # make metadata list with scpca information and add to object
 metadata_list <- list(
   library_id = opt$library_id,
@@ -122,12 +157,10 @@ metadata_list <- list(
   cellranger_version = cellranger_version,
   reference_index = basename(opt$reference_index),
   reference_probeset = basename(opt$reference_probeset),
-  # TODO: Add in total number of reads and mapped reads?
-  # Total reads live in metrics_summary.csv and mapped reads is provided as % of reads in cells
-  total_reads = NA,
-  mapped_reads = NA,
+  total_reads = total_reads,
+  pct_mapped_reads = pct_mapped_reads,
   mapping_tool = "cellranger-multi",
-  cellranger_num_cells = nrow(unfiltered_sce),
+  cellranger_num_cells = ncol(unfiltered_sce),
   tech_version = opt$technology,
   assay_ontology_term_id = opt$assay_ontology_term_id,
   seq_unit = opt$seq_unit,
