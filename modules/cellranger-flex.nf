@@ -178,12 +178,11 @@ workflow flex_quant{
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
       .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions, config]
-      .map{
-        def updated_meta = it[0].clone(); // clone meta before replacing sample ID
-        def out_dir = it[2]; // path to individual output dir, use per_sample_outs
-        def sample_id = out_dir.name; // name of individual output directory is sample id
+      .map{ meta, multi_out, per_sample_out, versions, config ->
+        def updated_meta = meta.clone(); // clone meta before replacing sample ID
+        def sample_id = per_sample_out.name; // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs 
-        def expected_sample_ids = updated_meta.sample_id.split(",")
+        def expected_sample_ids = meta.sample_id.split(",")
         if(!(sample_id in expected_sample_ids)) {
             log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
@@ -193,9 +192,9 @@ workflow flex_quant{
         // [meta, raw output dir, versions file, metrics file]
         return [
           updated_meta, 
-          file("${out_dir}/count/sample_raw_feature_bc_matrix", type: 'dir'), 
-          file(it[3]),
-          file("${out_dir}/metrics_summary.csv")
+          file("${per_sample_out}/count/sample_raw_feature_bc_matrix", type: 'dir'), 
+          versions,
+          file("${per_sample_out}/metrics_summary.csv")
           ]
       }
 
