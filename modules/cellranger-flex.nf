@@ -11,15 +11,10 @@ process cellranger_flex_single {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
   output:
     tuple val(meta), 
+      path("${out_id}/outs/multi", type: 'dir'), 
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
       path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv"),
-      emit: "per_sample"
-    tuple val(meta),
-      path("${out_id}/outs/multi", type: 'dir'), 
-      path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv"),
-      emit: "multi"
+      path("${out_id}/outs/config.csv")
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -51,8 +46,9 @@ process cellranger_flex_single {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
-    mkdir -p ${out_id}/outs/per_sample_outs/${meta.sample_id}
+    mkdir -p ${out_id}/outs/per_sample_outs/${meta.library_id}
     mkdir -p ${out_id}/outs/multi
+    touch ${out_id}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv
     touch ${out_id}/outs/config.csv
     touch ${out_id}/_versions
     echo '${meta_json}' > ${out_id}/scpca-meta.json
@@ -70,15 +66,10 @@ process cellranger_flex_multi {
     path multiplex_pools_file
   output:
     tuple val(meta), 
+      path("${out_id}/outs/multi", type: 'dir'), 
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
       path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv"),
-      emit: "per_sample"
-    tuple val(meta),
-      path("${out_id}/outs/multi", type: 'dir'), 
-      path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv"),
-      emit: "multi"
+      path("${out_id}/outs/config.csv")
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -117,6 +108,7 @@ process cellranger_flex_multi {
     meta_json = Utils.makeJson(meta)
     """
     ${sample_ids.collect { "mkdir -p ${out_id}/outs/per_sample_outs/${it}" }.join("\n")}
+    ${sample_ids.collect { "touch ${out_id}/outs/per_sample_outs/${it}/metrics_summary.csv" }.join("\n")}
     mkdir -p ${out_id}/outs/multi
     touch ${out_id}/outs/config.csv
     touch ${out_id}/_versions
@@ -184,32 +176,37 @@ workflow flex_quant{
 
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
-    cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.per_sample
-      .transpose() // [meta, out_dir, versions, config]
-      .map{
-        def updated_meta = it[0].clone(); // clone meta before replacing sample ID
-        def out_dir = it[1]; // path to individual output dir
-        def sample_id = out_dir.name; // name of individual output directory is sample id
+    cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
+      .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions, config]
+      .map{ meta, multi_out, per_sample_out, versions, config ->
+        def updated_meta = meta.clone(); // clone meta before replacing sample ID
+        def sample_id = per_sample_out.name; // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs 
-        def expected_sample_ids = updated_meta.sample_id.split(",")
+        def expected_sample_ids = meta.sample_id.split(",")
         if(!(sample_id in expected_sample_ids)) {
             log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
         // update sample ID 
         updated_meta.sample_id = sample_id;
-        // [meta, raw output dir, versions file]
-        return [updated_meta, file("${out_dir}/count/sample_raw_feature_bc_matrix", type: 'dir'), file(it[2])]
+        // [meta, raw output dir, versions file, metrics file]
+        return [
+          updated_meta, 
+          file("${per_sample_out}/count/sample_raw_feature_bc_matrix", type: 'dir'), 
+          versions,
+          file("${per_sample_out}/metrics_summary.csv")
+          ]
       }
 
     // combine single and multi outputs
     // for singleplexed data, the raw output is in the multi folder
-    cellranger_flex_ch = cellranger_flex_single.out.multi
+    cellranger_flex_ch = cellranger_flex_single.out
       // get path to raw output directory for singleplexed 
-      .map{ meta, out_dir, versions, config -> tuple(
+      .map{ meta, multi_out, per_sample_out, versions, config -> tuple(
         meta, 
-        file("${out_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir'),
-        file(versions)
+        file("${multi_out}/count/raw_feature_bc_matrix", type: 'dir'),
+        versions,
+        file("${per_sample_out}/${meta.library_id}/metrics_summary.csv")
       )}
     .mix(cellranger_flex_multi_flat_ch)
 
@@ -229,14 +226,17 @@ workflow flex_quant{
         def updated_meta = meta.clone();
         // path depends on whether singleplex or multiplex
         def demux_h5_file
+        def metrics_file
         if(meta.technology.contains("single")){
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
+            metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv")
           } else if(meta.technology.contains("multi")) {
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
+            metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
           }
         def versions_file = file("${meta.cellranger_multi_results_dir}/_versions");
         updated_meta.sample_id = sample_id;
-        return [updated_meta, demux_h5_file, versions_file]
+        return [updated_meta, demux_h5_file, versions_file, metrics_file]
       }
 
 
