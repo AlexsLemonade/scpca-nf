@@ -350,6 +350,7 @@ By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
+_Note:_ Consensus cell types will only be determined if using the `BlueprintEncodeData` reference with `SingleR`. 
 2. [Prepare a project cell type metadata file](#preparing-the-project-cell-type-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
    You will need to provide the path/uri to this file as a workflow parameter (`project_celltype_metafile`), which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
@@ -374,14 +375,16 @@ If you wish to use your own cell type reference rather than one of those we have
 #### `SingleR` references
 
 The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
-In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
+In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model. 
+The chosen gene set should correspond to the original reference genome used for mapping (indicated in the `sample_reference` column of the [run metadata file](#prepare-the-run-metadata-file)).
+For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`). 
 
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
 #### `CellAssign` references
 
 The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
-In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
+In this file, the column `filename` provides the reference file name, the column `reference_name` provides the name of the reference. 
 
 The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
 The specific organs used to compile each reference are listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
@@ -396,7 +399,7 @@ The project cell type metadata file should contain these five columns with the f
 | --------------------- | -------- |
 | `scpca_project_id`    | Project ID matching values in the run metadata file |
 | `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation |
-| `singler_ref_file`    | `SingleR` reference file name, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | `SingleR` reference file name, e.g., `BlueprintEncodeData_celldex_1-14-0_GRCh38-104_2025-0701_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
 | `cellassign_ref_file` | `CellAssign` reference file name, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
 
