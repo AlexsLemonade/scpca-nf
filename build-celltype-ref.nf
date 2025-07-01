@@ -167,9 +167,6 @@ workflow build_celltype_ref {
   t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
 
-  // path to 10x flex probeset file used to generate flex SingleR models
-  flex_probeset_file = file("${params.probes_dir}/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
-
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
@@ -192,7 +189,7 @@ workflow build_celltype_ref {
   train_singler_models_transcriptome(save_singler_refs.out, t2g_3col_path, params.celltype_organism)
 
   // train cell type references with probe sets for 10x flex
-  train_singler_models_flex(save_singler_refs.out, flex_probeset_file, params.celltype_probeset_version)
+  train_singler_models_flex(save_singler_refs.out, file(params.flex_probeset_file), params.celltype_probeset_version)
 
   // combine all output model files and join join file names into a comma separated string
   singler_models = train_singler_models_transcriptome.out.mix(train_singler_models_flex.out)
