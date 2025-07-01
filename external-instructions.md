@@ -374,7 +374,9 @@ If you wish to use your own cell type reference rather than one of those we have
 #### `SingleR` references
 
 The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
-In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
+In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model. 
+The chosen gene set should correspond to the original reference genome used for mapping (indicated in the `sample_reference` column of the [run metadata file](#prepare-the-run-metadata-file)).
+For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`). 
 
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
@@ -396,7 +398,7 @@ The project cell type metadata file should contain these five columns with the f
 | --------------------- | -------- |
 | `scpca_project_id`    | Project ID matching values in the run metadata file |
 | `singler_ref_name`    | Reference name for `SingleR` annotation, e.g., `BlueprintEncodeData`. Use `NA` to skip `SingleR` annotation |
-| `singler_ref_file`    | `SingleR` reference file name, e.g., `BlueprintEncodeData_celldex_1-10-1_model.rds`. Use `NA` to skip `SingleR` annotation |
+| `singler_ref_file`    | `SingleR` reference file name, e.g., `BlueprintEncodeData_celldex_1-14-0_GRCh38-104_2025-0701_model.rds`. Use `NA` to skip `SingleR` annotation |
 | `cellassign_ref_name` | Reference name for `CellAssign` annotation, e.g. `blood-compartment`. Use `NA` to skip `CellAssign` annotation |
 | `cellassign_ref_file` | `CellAssign` reference file name, e.g., `blood-compartment_PanglaoDB_2020-03-27.tsv`. Use `NA` to skip `CellAssign` annotation |
 
