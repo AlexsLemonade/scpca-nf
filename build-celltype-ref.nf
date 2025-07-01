@@ -36,8 +36,10 @@ process train_singler_models_transcriptome {
     path celltype_model
   script:
     ref_file_basename = file("${ref_file}").baseName
-    ref_genes = ref_assembly.replaceAll('_', '-') // replace _ to ensure full name gets saved to metadata file later
-    celltype_model = "${ref_file_basename}_${ref_genes}_model.rds"
+    gene_set_version = ref_assembly.tokenize('.')
+      .takeRight(2) // take the last two elements which have assembly and version 
+      .join('-') // join to get GRCh38-104
+    celltype_model = "${ref_file_basename}_${gene_set_version}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -50,7 +52,7 @@ process train_singler_models_transcriptome {
   stub:
     ref_file_basename = file("${ref_file}").baseName
     ref_genes = ref_assembly.replaceAll('_', '-')
-    celltype_model = "${ref_file_basename}_${ref_genes}_model.rds"
+    celltype_model = "${ref_file_basename}_${gene_set_version}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -64,11 +66,12 @@ process train_singler_models_flex {
   input:
     tuple val(ref_name), path(ref_file)
     path flex_probeset
+    val probeset_version
   output:
     path celltype_model
   script:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_v1.1-flex-probes_model.rds"
+    celltype_model = "${ref_file_basename}_${probeset_version}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -80,7 +83,7 @@ process train_singler_models_flex {
     """
   stub:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_v1.1-flex-probes_model.rds"
+    celltype_model = "${ref_file_basename}_${probeset_version}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -154,10 +157,12 @@ workflow build_celltype_ref {
 
   // read in json file with all reference paths
   ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
-  // get path to tx2gene, gtf, and probeset
+  // get path to tx2gene and gtf
   t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
-  flex_probeset = file("${params.probes_dir}/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
+
+  // path to 10x flex probeset file used to generate flex SingleR models
+  flex_probeset_file = file("${params.probes_dir}/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
 
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
@@ -181,7 +186,7 @@ workflow build_celltype_ref {
   train_singler_models_transcriptome(save_singler_refs.out, t2g_3col_path, params.celltype_organism)
 
   // train cell type references with probe sets for 10x flex
-  train_singler_models_flex(save_singler_refs.out, flex_probeset)
+  train_singler_models_flex(save_singler_refs.out, flex_probeset_file, params.celltype_probeset_version)
 
   // combine all output model files and join join file names into a comma separated string
   singler_models = train_singler_models_transcriptome.out.mix(train_singler_models_flex.out)
