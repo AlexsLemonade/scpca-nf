@@ -350,7 +350,6 @@ By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
 
 1. Select appropriate reference dataset(s) to use with each method of interest.
-_Note:_ Consensus cell types will only be determined if using the `BlueprintEncodeData` reference with `SingleR`. 
 2. [Prepare a project cell type metadata file](#preparing-the-project-cell-type-metadata-file) to provide reference dataset information for each of `SingleR` and `CellAssign` to the workflow.
    You will need to provide the path/uri to this file as a workflow parameter (`project_celltype_metafile`), which you will need to define in your configuration file.
    For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
