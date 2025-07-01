@@ -612,7 +612,12 @@ We have provided an example multiplex pool file for reference that can be found 
 Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`. 
 *Note:* Currently only libraries processed using the v1.1.0 probe set are supported. 
 
-There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`. 
+You will need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Cell Ranger software from 10X Genomics](https://www.10xgenomics.com/support/software/cell-ranger/downloads).
+For licensing reasons, we cannot provide a Docker container with Cell Ranger for you.
+As an example, the Dockerfile that we used to build Cell Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/cellranger).
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.CELLRANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
+
+There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`.
 
 If the libraries are multiplexed, the appropriate `technology` term, `10Xflex_v1.1_multi`, will need to be indicated in the `run_metadata.tsv` file and an additional TSV file, `cellhash_pool_file`, must be provided. 
 When processing multiplexed libraries, demultiplexing will be performed by `cellranger multi`, so the quantified gene expression data for each sample will be output separately.  
