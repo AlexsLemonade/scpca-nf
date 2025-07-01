@@ -32,7 +32,7 @@ option_list <- list(
     opt_str = c("--singler_model_file"),
     type = "character",
     help = "Name of file containing a single model generated for SingleR annotation.
-            File name is expected to be in form: `<ref_name>_<source>_<version>_<gene_ref>_model.rds`.",
+            File name is expected to be in form: `<ref_name>_<source>_<version>_<gene_set_version>_model.rds`.",
     default = ""
   ),
   make_option(
@@ -91,7 +91,7 @@ get_ref_info <- function(ref_filename, extension) {
 
   # account for ref_geneset only being in SingleR refs
   if (length(ref_info) == 4) {
-    names(ref_info) <- c("ref_name", "ref_source", "ref_version", "ref_geneset")
+    names(ref_info) <- c("ref_name", "ref_source", "ref_version", "gene_set_version")
   } else if (length(ref_info) == 4) {
     names(ref_info) <- c("ref_name", "ref_source", "ref_version")
   }
