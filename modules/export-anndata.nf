@@ -11,7 +11,7 @@ process export_anndata {
       tuple val(meta), path("${file_prefix}_${file_type}_*.h5ad"), val(file_type)
     script:
       // set output file names based on having 10x flex multiplexed or not 
-      if (meta.technology == "10Xflex_v1.1_multi"){
+      if (meta.technology in ["10Xflex_v1.1_multi"]){
         file_prefix = "${meta.library_id}-${meta.sample_id}"
       } else {
         file_prefix = "${meta.library_id}"
@@ -42,7 +42,7 @@ process export_anndata {
       """
     stub:
       // set output file names based on having 10x flex multiplexed or not 
-      if (meta.technology == "10Xflex_v1.1_multi"){
+      if (meta.technology in ["10Xflex_v1.1_multi"]){
         file_prefix = "${meta.library_id}-${meta.sample_id}"
       } else {
         file_prefix = "${meta.library_id}"
