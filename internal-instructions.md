@@ -236,7 +236,7 @@ Follow these steps to add support for additional cell type references.
 3. Ensure that the new reference files are public and in the correct location on S3.
 
 `SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`. 
-Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_<gene_set_version>_model.rds`. 
+Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_<gene_set_version>_<date_generated>_model.rds`. 
 
   - `<celltype_ref_name>` is a given `celldex` dataset.
     - Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).

@@ -32,7 +32,7 @@ option_list <- list(
     opt_str = c("--singler_model_file"),
     type = "character",
     help = "Name of file containing a single model generated for SingleR annotation.
-            File name is expected to be in form: `<ref_name>_<source>_<version>_<gene_set_version>_model.rds`.",
+            File name is expected to be in form: `<ref_name>_<source>_<version>_<gene_set_version>_<date>_model.rds`.",
     default = ""
   ),
   make_option(
@@ -80,7 +80,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @extension file extension to consider during parsing
 #'
 #' @return list of reference file components to include in SCE metadata
-get_ref_info <- function(ref_filename, extension) {
+get_ref_info <- function(ref_filename, extension, ref_type) {
   ref_info <- ref_filename |>
     basename() |>
     # select everything before the extension
@@ -90,9 +90,9 @@ get_ref_info <- function(ref_filename, extension) {
     unlist()
 
   # account for ref_geneset only being in SingleR refs
-  if (length(ref_info) == 4) {
-    names(ref_info) <- c("ref_name", "ref_source", "ref_version", "gene_set_version")
-  } else if (length(ref_info) == 4) {
+  if (ref_type == "SingleR") {
+    names(ref_info) <- c("ref_name", "ref_source", "ref_version", "gene_set_version", "date")
+  } else if (ref_type == "CellAssign") {
     names(ref_info) <- c("ref_name", "ref_source", "ref_version")
   }
 
@@ -174,7 +174,8 @@ if (has_singler) {
   # get reference name, source and version
   singler_ref_info <- get_ref_info(
     ref_filename = opt$singler_model_file,
-    extension = "_model\\.rds"
+    extension = "_model\\.rds",
+    ref_type = "SingleR"
   )
 
   # add singler info to metadata
@@ -248,7 +249,8 @@ if (has_cellassign) {
     # get reference name, source and version
     cellassign_ref_info <- get_ref_info(
       ref_filename = opt$cellassign_ref_file,
-      extension = "\\.tsv"
+      extension = "\\.tsv",
+      ref_type = "CellAssign"
     )
 
     # add entire predictions matrix, ref name, and version to metadata

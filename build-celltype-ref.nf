@@ -39,7 +39,8 @@ process train_singler_models_transcriptome {
     gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2) // take the last two elements which have assembly and version 
       .join('-') // join to get GRCh38-104
-    celltype_model = "${ref_file_basename}_${gene_set_version}_model.rds"
+    date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
+    celltype_model = "${ref_file_basename}_${gene_set_version}_${date}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -51,8 +52,11 @@ process train_singler_models_transcriptome {
     """
   stub:
     ref_file_basename = file("${ref_file}").baseName
-    ref_genes = ref_assembly.replaceAll('_', '-')
-    celltype_model = "${ref_file_basename}_${gene_set_version}_model.rds"
+    gene_set_version = ref_assembly.tokenize('.')
+      .takeRight(2)
+      .join('-')
+    date_str = java.time.LocalDate.now().toString()
+    celltype_model = "${ref_file_basename}_${gene_set_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -71,7 +75,8 @@ process train_singler_models_flex {
     path celltype_model
   script:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_${probeset_version}_model.rds"
+    date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
+    celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -83,7 +88,8 @@ process train_singler_models_flex {
     """
   stub:
     ref_file_basename = file("${ref_file}").baseName
-    celltype_model = "${ref_file_basename}_${probeset_version}_model.rds"
+    date_str = java.time.LocalDate.now().toString()
+    celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
     """
