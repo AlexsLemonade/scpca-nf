@@ -40,7 +40,7 @@ process train_singler_models_transcriptome {
       .takeRight(2) // take the last two elements which have assembly and version 
       .join('-') // join to get GRCh38-104
     date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
-    celltype_model = "${ref_file_basename}_${gene_set_version}_${date}_model.rds"
+    celltype_model = "${ref_file_basename}_${gene_set_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
