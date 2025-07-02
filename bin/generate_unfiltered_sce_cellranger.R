@@ -102,6 +102,8 @@ colnames(unfiltered_sce) <- stringr::str_extract(colnames(unfiltered_sce), "^([A
 
 # remove existing colData
 colData(unfiltered_sce) <- NULL
+# add barcodes column
+unfiltered_sce$barcodes <- colnames(unfiltered_sce)
 
 # select just ID column of rowData and rename
 rowdata_df <- rowData(unfiltered_sce) |>
