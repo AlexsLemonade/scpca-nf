@@ -1,8 +1,9 @@
 ---
 params:
-  reference_url: s3://nextflow-ccdl-results/scpca-prod
-  comparison_url: s3://nextflow-ccdl-results/scpca-staging
+  reference_s3: s3://nextflow-ccdl-results/scpca-prod/results
+  comparison_s3: s3://nextflow-ccdl-results/scpca-staging/results
   project_id: "all"
+  use_cache: false
 title: "`scpca-nf` Metrics Comparison"
 subtitle: "Project: `r params$project_id`"
 author: "Childhood Cancer Data Lab"
@@ -15,188 +16,1233 @@ output:
     code_folding: hide
 ---
 
-## Setup steps
+```{r setup}
+#| include: false
+library(ggplot2)
+library(patchwork)
 
-(Not to be included in the report text, but code needed)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.width = 8
+)
 
-Scan through S3 buckets to read in all `_metrics.json` files.
-All should be read into a single data frame, as possible, with a column for `reference` and `comparison`.
+use_cache <- params$use_cache && file.exists("metrics.rds")
 
-```r
+set.seed(1234)
+```
+
+```{r}
+# Functions
 #| include: false
 
-if (toLower(params$project_id[1]) == "all") {
-  metrics_regex <- "_metrics.json$"
+read_metrics_files <- function(urls) {
+  # read a set of metrics files
+  # url: URL of the metrics files, each in json format
+  # returns: data frame (tibble) of combined metrics
+  purrr::map(urls, \(url) {
+    jsonlite::read_json(url, simplifyVector = TRUE) |>
+      # handle bare NAs, which may be quoted
+      purrr::modify_if(\(x){
+        length(x) == 1 && x == "NA"
+      }, ~NA)
+  }) |>
+    purrr::list_transpose(default = NA) |>
+    tibble::as_tibble()
+}
+
+report_table <- function(df, summary = FALSE, options = list(), ...) {
+  # pass standard settings for report to DT::datatable
+  # df: data frame to display
+  # summary: if TRUE, hide the search box
+  # options: list of options to pass to DT::datatable
+  # ...: additional arguments to pass to DT::datatable
+  default_opts <- list(
+    scroller = TRUE,
+    deferRender = TRUE,
+    scrollX = TRUE,
+    scrollY = 400,
+    scrollCollapse = TRUE,
+    searching = !summary,
+    language = list(search = "Filter:"),
+    columnDefs = list(list(
+      # render missing values as "NA" rather than blanks in the table
+      targets = "_all",
+      render = DT::JS(
+        "function(data, type, row, meta) {",
+        "return data === null ? 'NA' : data;",
+        "}"
+      )
+    ))
+  )
+
+  if (length(options) > 0) {
+    # merge default options with user options
+    opts <- modifyList(default_opts, options)
+  } else {
+    opts <- default_opts
+  }
+  DT::datatable(
+    df,
+    rownames = FALSE,
+    extensions = "Scroller",
+    options = opts,
+    ...
+  )
+}
+
+## Functions for calculating correlations among named, ordered vectors
+rank_cor <- function(a, b) {
+  # calculate the rank correlation between two vectors of ids
+  # a and b are vectors of ids that may not have the same sets of values, but must be equal in size
+
+  all_levels <- union(a, b) # keeps these ordered by appearance, with `a` first.
+  a_order <- match(a, all_levels)
+  b_order <- match(b, all_levels)
+
+  cor(a_order, b_order, method = "spearman")
+}
+
+
+## Functions for cluster size comparison
+
+make_clusters <- function(x) {
+  # convert a vector of cluster sizes to a vector of cluster assignments
+  # x is a vector of cluster sizes
+  # returns a vector of cluster assignments
+  rep(seq_along(x), times = x)
+}
+
+rescale_sizes <- function(sizes, target_sum) {
+  # adjust the sizes of an integer vector to ensure the sum matches the target
+  sizes <- round(sizes * target_sum / sum(sizes))
+  diff <- target_sum - sum(sizes)
+  # adjust sizes to match target total
+  if (diff != 0) {
+    # get indices in the order of the absolute difference from the target
+    indices <- abs(sizes - sizes * target_sum / sum(sizes)) |>
+      order(decreasing = TRUE) |>
+      head(abs(diff)) # only keep the top `abs(diff)` indices
+    sizes[indices] <- sizes[indices] + sign(diff) # adjust each by 1
+  }
+  return(sizes)
+}
+
+
+pair_sizes <- function(a_sizes, b_sizes) {
+  # a_sizes and b_sizes are vectors of cluster sizes from two groups of clusters
+  # this function will pair the clusters to minimize the differences between ordered pairs
+  # and rescale the sizes to match the smaller of the two sets
+
+  # equalize the sums of the two sets of clusters
+  # scale the larger set down to the size of the smaller set
+  min_size <- min(sum(a_sizes), sum(b_sizes))
+  a_sizes <- rescale_sizes(a_sizes, min_size)
+  b_sizes <- rescale_sizes(b_sizes, min_size)
+
+  # create a data frame of all pairs of clusters between the two sets
+  # start by generating all pairs of cluster indices
+  match_df <- expand.grid(
+    a_i = seq_along(a_sizes),
+    b_i = seq_along(b_sizes)
+  ) |>
+    dplyr::mutate(
+      # add the sizes of the indexed clusters
+      a = a_sizes[a_i],
+      b = b_sizes[b_i],
+      # calculate the similarity in size between the two clusters (1 if they are the same size)
+      share_frac = pmin(a, b) / pmax(a, b),
+      used = FALSE
+    ) |>
+    # sort by share_frac, so that the most similar pairs are first
+    dplyr::arrange(desc(share_frac))
+
+  # pre-allocate result vectors that will hold the cluster indices
+  # these are only as long as the smaller of the two sets
+  new_a <- integer(min(length(a_sizes), length(b_sizes)))
+  new_b <- integer(min(length(a_sizes), length(b_sizes)))
+  i_pair <- 0 # index for the result vectors
+  # loop until all pairs are used
+  while (!all(match_df$used)) {
+    i_pair <- i_pair + 1
+    # Find the first unused pair
+    idx <- which(!match_df$used)[1]
+    # add indexes to the result vectors
+    new_a[i_pair] <- match_df$a_i[idx]
+    new_b[i_pair] <- match_df$b_i[idx]
+    # Mark used pairs
+    used_a <- match_df$a_i == new_a[i_pair]
+    used_b <- match_df$b_i == new_b[i_pair]
+    match_df$used[used_a | used_b] <- TRUE
+  }
+  # At this point we have the indices of the smaller number of pairs
+  # add any indices that were not used (one of these setdiffs will be empty)
+  new_a <- c(new_a, setdiff(seq_along(a_sizes), new_a))
+  new_b <- c(new_b, setdiff(seq_along(b_sizes), new_b))
+  # return the cluster size values, not the indices
+  return(list(a_sizes[new_a], b_sizes[new_b]))
+}
+
+max_ari <- function(a_sizes, b_sizes) {
+  # calculate an approximate max ARI from vectors of cluster sizes
+  # a_sizes and b_sizes are vectors of cluster sizes
+  # we don't have individual assignments, so we can't calculate ARI directly
+  # but we can calculate the maximum ARI by assuming the best correspondence
+
+  # if the sets are the same, maxARI is 1
+  if (setequal(a_sizes, b_sizes)) {
+    return(1)
+  } else {
+    # if the number of clusters is different, we need to pair them
+    # pair to minimize the differences between clusters
+    # this will also rescale the sizes to match the smaller of the two sets
+    pairing <- pair_sizes(a_sizes, b_sizes)
+    a_sizes <- pairing[[1]]
+    b_sizes <- pairing[[2]]
+  }
+  # calculate ARI
+  max_ari <- mclust::adjustedRandIndex(make_clusters(a_sizes), make_clusters(b_sizes))
+  return(max_ari)
+}
+
+
+## Functions for cell type changes
+
+celltype_changes <- function(ref_celltypes, comp_celltypes) {
+  # Take two vectors of cell type assignments where
+  # each is a _named_ vector with cell type names as names and the number of cells as values.
+  # returns a list of change metrics, with the following elements:
+  #   - types_n_changes: The minimum number of cell type changes to convert one set to the other (Manhattan distance)
+  #   - types_scaled_dist: A scaled distance metric between the two sets of cell types, ranging from 0 (no change) to 1 (all changed)
+  #   - types_added: The cell types that were added, if any
+  #   - types_removed: The cell types that were removed, if any
+
+  if (is.null(ref_celltypes) || is.null(comp_celltypes)) {
+    return(NA)
+  }
+
+  n_ref <- sum(unlist(ref_celltypes))
+  n_comp <- sum(unlist(comp_celltypes))
+  count_diff <- n_comp - n_ref
+
+  # create a matrix with all cell types, filling in zeros for missing types
+  type_matrix <- dplyr::bind_rows(ref_celltypes, comp_celltypes) |> as.matrix()
+  rownames(type_matrix) <- c("ref", "comp")
+  type_matrix[is.na(type_matrix)] <- 0
+
+  # get the added and removed cell types
+  types_added <- names(which(type_matrix["ref", ] == 0 & type_matrix["comp", ] > 0))
+  types_removed <- names(which(type_matrix["comp", ] == 0 & type_matrix["ref", ] > 0))
+
+  # get the total number of cells that have changed type (less added or removed cells)
+  types_n_changes <- dist(type_matrix, method = "manhattan")[1]
+
+  # calculate a scaled Manhattan distance
+  # divide by two to make the max value 1
+  type_prop_matrix <- type_matrix / rowSums(type_matrix)
+  types_scaled_dist <- dist(type_prop_matrix, method = "manhattan")[1] / 2
+
+  return(list(
+    types_n_changes = types_n_changes,
+    types_scaled_dist = types_scaled_dist,
+    types_added = types_added,
+    types_removed = types_removed
+  ))
+}
+```
+
+```{r, eval=!use_cache}
+#| include: false
+# get metrics files by scanning S3
+if (tolower(params$project_id[1]) == "all") {
+  metrics_regex <- "SCPCL[0-9]{6}_metrics.json$"
 } else {
-  metrics_regex <- paste0("(", params$project_id, ".+_metrics.json$)", collapse = "|")
+  metrics_regex <- paste0("(", params$project_id, ".+SCPCL[0-9]{6}_metrics.json$)", collapse = "|")
 }
 
 ref_metrics_files <- s3fs::s3_dir_ls(
-  reference_url,
+  params$reference_s3,
   recurse = TRUE,
   regexp = metrics_regex
 ) |>
   s3fs::s3_file_url() # get signed URLs for reading
 
 comp_metrics_paths <- s3fs::s3_dir_ls(
-  comparison_url,
+  params$comparison_s3,
   recurse = TRUE,
   regexp = metrics_regex
 ) |>
   s3fs::s3_file_url()
+```
 
-ref_data <- purrr::map(ref_metrics_files, \(url){
-  jsonlite::read_json(url, simplifyVector = TRUE)
-})
+```{r, eval=!use_cache}
+#| include: false
+# read metrics files from S3
+ref_data <- read_metrics_files(ref_metrics_files)
+comp_data <- read_metrics_files(comp_metrics_paths)
 
-comp_data <- purrr::map(comp_metrics_paths, \(url){
-  jsonlite::read_json(url, simplifyVector = TRUE)
-})
+# join the two data frames
+metrics_df <- dplyr::full_join(
+  ref_data,
+  comp_data,
+  by = c("project_id", "sample_id", "library_id"),
+  suffix = c(".ref", ".comp")
+)
+# temporary write for testing
+readr::write_rds(metrics_df, "metrics.rds")
+```
+
+```{r, eval=use_cache}
+#| include: false
+# temporary chunk for testing
+metrics_df <- readr::read_rds("metrics.rds")
 ```
 
 
 ## Project and sample changes
 
-Describe which projects and samples were added or removed, if any.
-This should list any changes in the libraries included as well.
+```{r}
+# filter to get added or removed samples
+lib_changes <- metrics_df |>
+  dplyr::filter(if_any(starts_with("mapped_reads"), is.na)) |>
+  dplyr::mutate(
+    added_removed = ifelse(is.na(mapped_reads.ref), "Added", "Removed")
+  ) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    added_removed
+  )
 
-Output table:
+# filter metrics down to libraries in both sets for the remainder of the notebook
+metrics_df <- metrics_df |>
+  tidyr::drop_na(starts_with("mapped_reads"))
+```
 
-| Project | Sample | Library | Added/Removed |
-| ------- | ------ | ------- | ------------ |
-| `SCPCP999999` | `SCPCS999999` | `SCPCL999999` | Added |
-| `SCPCP999998` | `SCPCS999998` | `SCPCL999998` | Removed |
+```{r}
+# Text summary of added/removed libraries
+if (nrow(lib_changes) == 0) {
+  knitr::asis_output(
+    "There are no added or removed libraries."
+  )
+} else {
+  n_added <- sum(lib_changes$added_removed == "Added")
+  n_removed <- sum(lib_changes$added_removed == "Removed")
+  n_projects <- dplyr::n_distinct(lib_changes$project_id)
+
+  glue::glue("
+    Below is a table of added or removed samples and libraries.<br>
+    There {ifelse(n_added == 1, 'is', 'are')} **{n_added}** added {ifelse(n_added == 1, 'library', 'libraries')} and
+    **{n_removed}** removed {ifelse(n_removed == 1, 'library', 'libraries')}.<br>
+    These come from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+
+  ") |>
+    knitr::asis_output()
+}
+```
+
+```{r, eval = nrow(lib_changes) > 0}
+report_table(
+  lib_changes,
+  colnames = c("Project", "Sample", "Library", "Added/Removed")
+)
+```
 
 
 ## Processing changes {.tabset}
 
-Describe any changes to the software versions or parameters used to process the data.
+```{r}
+processing_fields <- c(
+  "droplet_filtering_method",
+  "normalization_method",
+  "cell_filtering_method",
+  "cluster_algorithm",
+  "singler_reference",
+  "cellassign_reference"
+)
 
-Fields to compare:
+processing_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(processing_fields)
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(processing_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(
+    ref != comp
+  )
 
-- `droplet_filtering_method`
-- `normalization_method`
-- `cell_filtering_method`
-- `cluster_algorithm`
-- `singler_reference`
-- `cellassign_reference`
+has_processing_changes <- nrow(processing_changes) > 0
+```
 
-Some fields are not present in the metrics files, but could be read from the `_metadata.json` files if we want to include those as well (and we probably do):
+```{r}
+# Text summary of processing changes
+if (!has_processing_changes) {
+  knitr::asis_output(
+    "All processing fields are the same between the reference and comparison runs."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(processing_changes$project_id)
+  n_libraries <- dplyr::n_distinct(processing_changes$library_id)
 
-- `workflow_version`
-- `date_processed`
-- `salmon_version`
-- `alevinfry_version`
-- `min_gene_cutoff`
-- `prob_compromised_cutoff`
+  glue::glue("
+    The tables below show the processing changes between the reference and comparison workflow runs.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with processing changes
+    from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
 
-### Summary
 
-For these metrics, we can create table of changes, with the counts of the number of samples with each change.
-Something like the below:
+```{r, eval=has_processing_changes}
+knitr::asis_output("\n\n### Summary\n\n")
+```
 
-| Processing field | Reference value | Comparison value | Number of samples changed |
-| ----- | --------- | --------- | ---------------- |
-| `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` | 10 |
+```{r, eval=has_processing_changes}
+processing_summary <- processing_changes |>
+  dplyr::count(
+    field,
+    ref,
+    comp,
+    name = "n_changed"
+  )
 
-### Detail
+report_table(
+  processing_summary,
+  summary = TRUE,
+  colnames = c("Processing field", "Reference value", "Comparison value", "Number of libraries changed")
+)
+```
 
-This would be a detailed table of the samples with changes, similar to the one below:
 
-| Sample | Processing field | Reference value | Comparison value |
-| ------- | ---------------- | --------------- | ---------------- |
-| `SCPCS999999` | `droplet_filtering_method` | `emptyDrops` | `emptyDropsCellRanger` |
+```{r, eval=has_processing_changes}
+knitr::asis_output("\n\n### Detail\n\n")
+```
 
+```{r, eval=has_processing_changes}
+report_table(
+  processing_changes,
+  colnames = c("Project", "Sample", "Library", "Field", "Reference value", "Comparison value")
+)
+```
 
 ## Changes in cell and read counts
 
 ### Cell count changes {.tabset}
 
-For each sample, we will want to first compare:
+```{r}
+# calculate the difference between reference and comparison for selected fields
 
-- `unfiltered_cells`
-- `filtered_cells`
-- `processed_cells`
-- `miqc_pass_count`
-- `scpca_filter_count`
-- `adt_scpca_filter_count`
+cell_fields <- c(
+  "unfiltered_cells",
+  "filtered_cells",
+  "processed_cells",
+  "miqc_pass_count",
+  "scpca_filter_count",
+  "adt_scpca_filter_count"
+)
 
-If there are changes in any of those, we will report those, with prominent warnings for any large changes.
-What defines a large change?
-Perhaps start with a change > 0.5% of the total?
-Alternatively, if we see a large fraction of samples changing, we would want to note that.
-If there are any changes to the number of unfiltered cells, that should be highlighted, as we do not expect this to change between runs.
+cell_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(cell_fields)
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(cell_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  )
 
-#### Summary
-The main display item would be a summary table, in the first tab:
+changed_cell_counts <- cell_changes |>
+  dplyr::filter(is.na(change) | change != 0)
 
-| Metric | Number of samples changed | % of samples changed | Mean % change |
-| ----- | --------- | --------- | ---------------- |
-| `scpca_filter_count` | 100 | 20 | -10 |
+has_cell_changes <- nrow(changed_cell_counts) > 0
+```
 
-We will also include a plot with a histogram of the % changes for each metric where at least one sample changed.
+```{r}
+# summary text for cell count section
+if (!has_cell_changes) {
+  knitr::asis_output(
+    "There are no changes in cell counts between the reference and comparison runs."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(changed_cell_counts$project_id)
+  n_libraries <- dplyr::n_distinct(changed_cell_counts$library_id)
+
+  glue::glue("
+    The tables below show changes in cell counts between the reference and comparison workflow runs at various stages of processing.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')} with cell count changes
+    from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
+
+```{r}
+# warn if any unfiltered cell counts have changed
+unfiltered_cell_changes <- changed_cell_counts |>
+  dplyr::filter(stringr::str_detect(field, "^unfiltered_")) |>
+  nrow()
+
+if (unfiltered_cell_changes > 0) {
+  glue::glue("
+    <div class=\"alert alert-danger\">
+    **Warning**: Unfiltered cell counts have changed between the reference and comparison runs.
+    **{unfiltered_cell_changes}** {ifelse(unfiltered_cell_changes == 1, 'library is', 'libraries are')} affected.
+    </div>
+  ") |>
+    knitr::asis_output()
+}
+```
+
+```{r, eval=has_cell_changes}
+knitr::asis_output("\n\n#### Summary\n\n")
+```
+
+```{r}
+# Summary table of cell count changes
+
+cell_field_n <- cell_changes |>
+  dplyr::count(field)
+
+cell_summary <- changed_cell_counts |>
+  dplyr::summarise(
+    .by = c("field"),
+    n_changed = sum(is.na(change) | change != 0),
+    mean_change_frac = mean(abs(change_frac[which(change != 0)]))
+  ) |>
+  dplyr::left_join(cell_field_n, by = "field") |>
+  dplyr::mutate(
+    library_change_frac = n_changed / n
+  ) |>
+  dplyr::select(
+    field,
+    n,
+    n_changed,
+    library_change_frac,
+    mean_change_frac
+  )
+
+report_table(
+  cell_summary,
+  summary = TRUE,
+  colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
+) |>
+  DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
+```
 
 
-#### Detail
+```{r}
+# summary plot
+cell_plot_df <- changed_cell_counts |>
+  tidyr::drop_na(change_frac) # remove NAs for plotting
 
-A detail table of changed samples/metrics might then look like the following:
+ggplot(cell_plot_df, aes(x = change_frac)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(field), ncol = 3) +
+  labs(
+    title = "Histogram of changes in cell counts",
+    x = "Change proportion",
+    y = "Number of samples"
+  ) +
+  theme_bw()
+```
 
-| Sample | Metric | Reference Value | Comparison Value | Change | % change |
-| ------- | ---------------- | --------------- | ---------------- | ------ | -------- |
-| `SCPCS999999` | `unfiltered_cells` | 1000 | 1005 | 5 | 0.5 |
+```{r, eval=has_cell_changes}
+knitr::asis_output("\n\n#### Detail\n\n")
+```
+
+```{r}
+# Detail table of cell count changes
+
+cell_detail <- changed_cell_counts |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    field,
+    ref,
+    comp,
+    change,
+    change_frac
+  )
+
+report_table(
+  cell_detail,
+  colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
+
 
 
 ### Read count changes {.tabset}
 
-If there are changes in the cell counts, we expect changes in the read counts as well.
-So we may only want to proceed with read count changes for samples where cell counts are unchanged.
-Here again, I think we should warn/highlight any changes > 0.5% of the total.
-Changes to unfiltered counts should also be highlighted, as we do not expect these to change between runs.
 
-- `unfiltered_total_counts`
-- `unfiltered_total_spliced`
-- `unfiltered_expressed_genes`
-- `filtered_total_counts`
-- `filtered_total_spliced`
-- `filtered_expressed_genes`
-- `processed_total_counts`
-- `processed_total_spliced`
-- `processed_total_logcounts`
-- `processed_expressed_genes`
+```{r}
+# calculate the read count differences between reference and comparison for selected fields
+read_fields <- c(
+  "unfiltered_total_counts",
+  "unfiltered_total_spliced",
+  "unfiltered_expressed_genes",
+  "filtered_total_counts",
+  "filtered_total_spliced",
+  "filtered_expressed_genes",
+  "processed_total_counts",
+  "processed_total_spliced",
+  "processed_total_logcounts",
+  "processed_expressed_genes",
+  "unfiltered_altexp_total",
+  "filtered_altexp_total",
+  "processed_altexp_total"
+)
 
-We will also include changes in altExps using the following fields:
+read_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(read_fields)
+  ) |>
+  tidyr::unnest_wider( # create columns for separated altexps
+    contains("altexp"),
+    names_sep = "_"
+  ) |>
+  dplyr::rename_with( # rename altexp columns to keep ref/comp at end
+    \(name) stringr::str_replace(name, "\\.(ref|comp)(_.+)$", "\\2.\\1"),
+    contains("altexp")
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with(read_fields),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  )
 
-- `unfiltered_altexp_total`
-- `filtered_altexp_total`
-- `processed_altexp_total`
+changed_read_counts <- read_changes |>
+  dplyr::filter(is.na(change) | change != 0) |>
+  dplyr::mutate(
+    # make corresponding field names for cell counts
+    cell_count_field = stringr::str_replace(field, "^(.+?)_.+", "\\1_cells")
+  ) |>
+  dplyr::anti_join(
+    # remove rows that have corresponding cell count changes
+    # adt_scpca_filter_count does not filter cells, so we don't want to include those
+    changed_cell_counts,
+    by = c("project_id", "sample_id", "library_id", "cell_count_field" = "field")
+  )
 
-These will require a bit of extra processing, in that we will probably want to extract the altExp names and add those to the field names.
-For example, we would want to use a field like `unfiltered_altexp_total_adt` in the comparison table.
+has_read_changes <- nrow(changed_read_counts) > 0
+```
+
+```{r}
+# summary text for read count section
+if (!has_read_changes && !has_cell_changes) {
+  knitr::asis_output(
+    "There are no changes in read counts between the reference and comparison runs."
+  )
+} else if (!has_read_changes) {
+  knitr::asis_output(
+    "There may be changes in read counts, but only those expected due to changes in cell counts as described above."
+  )
+} else {
+  n_projects <- dplyr::n_distinct(changed_read_counts$project_id)
+  n_libraries <- dplyr::n_distinct(changed_read_counts$library_id)
+  glue::glue("
+    The tables below show changes in read counts between the reference and comparison workflow runs at various stages of processing.
+    These include only changes that are not expected based on changes in cell counts.<br>
+    There {ifelse(n_added == 1, 'is', 'are a total of')} **{n_libraries}** {ifelse(n_libraries == 1, 'library', 'libraries')}
+    with read count changes from **{n_projects}** {ifelse(n_projects == 1, 'project', 'projects')}.
+  ") |>
+    knitr::asis_output()
+}
+```
 
 
-Again, we would report only changed metrics, starting with a summary table:
+```{r}
+# warn if any unfiltered read counts have changed
+unfiltered_read_changes <- changed_read_counts |>
+  dplyr::filter(stringr::str_detect(field, "^unfiltered_")) |>
+  nrow()
 
-| Metric | Number of samples changed | % of samples changed | Mean % change |
-| ----- | --------- | --------- | ---------------- |
-| `scpca_filter_count` | 100 | 20 | -10 |
+if (unfiltered_read_changes > 0) {
+  glue::glue("
+    <div class=\"alert alert-danger\">
+    **Warning**: Total reads for unfiltered cells have changed between the reference and comparison runs.
+    **{unfiltered_read_changes}** {ifelse(unfiltered_read_changes == 1, 'library is', 'libraries are')} affected.
+    </div>
+  ") |>
+    knitr::asis_output()
+}
+```
 
-We could then list individual samples with changes, similar to the cell count table.
+
+```{r, eval=has_read_changes}
+knitr::asis_output("\n\n#### Summary\n\n")
+```
+
+```{r eval=has_read_changes}
+# Summary table of read count changes
+read_field_n <- read_changes |>
+  dplyr::count(field)
+
+read_summary <- changed_read_counts |>
+  dplyr::summarise(
+    .by = c("field"),
+    n_changed = sum(is.na(change) | change != 0),
+    mean_change_frac = mean(abs(change_frac[which(change != 0)]))
+  ) |>
+  dplyr::left_join(read_field_n, by = "field") |>
+  dplyr::mutate(
+    library_change_frac = n_changed / n
+  ) |>
+  dplyr::select(
+    field,
+    n,
+    n_changed,
+    library_change_frac,
+    mean_change_frac
+  )
+
+report_table(
+  read_summary,
+  summary = TRUE,
+  colnames = c("Metric", "Libraries", "Number of libraries changed", "% of libraries changed", "Mean % change")
+) |>
+  DT::formatPercentage(c("library_change_frac", "mean_change_frac"), 2)
+```
+
+```{r eval=has_read_changes}
+# Plot of read count changes
+read_plot_df <- changed_read_counts |>
+  tidyr::drop_na(change_frac) # remove NAs for plotting
+
+ggplot(read_plot_df, aes(x = change_frac)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(vars(field), ncol = 3, scales = "free_x") +
+  labs(
+    title = "Histogram of changes in read counts",
+    x = "Change proportion",
+    y = "Number of samples"
+  ) +
+  theme_bw()
+```
+
+
+
+```{r, eval=has_read_changes}
+knitr::asis_output("\n\n#### Detail\n\n")
+```
+
+```{r eval=has_read_changes}
+# Detail table of read count changes
+read_detail <- changed_read_counts |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    field,
+    ref,
+    comp,
+    change,
+    change_frac
+  )
+report_table(
+  read_detail,
+  colnames = c("Project", "Sample", "Library", "Metric", "Reference", "Comparison", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
 
 ## Analysis changes
 
-### Highly variable genes
+### Highly variable genes {.tabset}
 
-Here we will report changes in the sets of HVGs, both in the set of genes and the order.
+```{r}
+hvg_stats <- metrics_df |>
+  dplyr::mutate(
+    hvg_identical = purrr::map2_lgl(hv_genes.ref, hv_genes.comp, identical), # identical content and order
+    hvg_removed = purrr::map2(hv_genes.ref, hv_genes.comp, setdiff),
+    hvg_added = purrr::map2(hv_genes.comp, hv_genes.ref, setdiff),
+    hvg_n_changed = purrr::map_int(hvg_added, length), # since the number of genes is constant, we can just use one value
+    hvg_change_frac = purrr::map2_dbl(hvg_added, hv_genes.ref, \(added, ref) length(added) / length(ref)),
+    hvg_jaccard = purrr::map2_dbl(
+      hv_genes.ref, hv_genes.comp,
+      \(x, y){
+        length(intersect(x, y)) / length(union(x, y))
+      }
+    ),
+    hvg_rank_cor = purrr::map2_dbl(hv_genes.ref, hv_genes.comp, rank_cor)
+  ) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with(c("hv_genes", "hvg"))
+  )
 
-### Clustering
+hvg_changes <- hvg_stats |>
+  dplyr::filter(!hvg_identical)
 
-Report changes in the number of clusters, as well as changes in the sizes of the assigned clusters.
-We will ignore changes in the ordering of clusters by sorting by cluster size before comparisons.
-As a summary statistic, we might use adjusted Rand index (ARI) or adjusted mutual information (AMI) to compare the two sets of clusters, reporting when we are well below 1.
+has_hvg_changes <- nrow(hvg_changes) > 0
+```
 
-### Cell type assignments
+```{r}
+# HVG change summary
+hvg_summary <- hvg_stats |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    n_changed = n - sum(hvg_identical),
+    mean_change = mean(hvg_n_changed[which(!hvg_identical)]),
+    mean_change_frac = mean(hvg_change_frac[which(!hvg_identical)]),
+    mean_jaccard = mean(hvg_jaccard[which(!hvg_identical)]),
+    mean_cor = mean(hvg_rank_cor[which(!hvg_identical)])
+  )
 
-Report changes to the set of cell types assigned, and to the number of cells for each cell type.
-This will include SingleR, CellAssign and consensus cell types, if present.
+knitr::asis_output(glue::glue_data(
+  hvg_summary,
+  "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed == 1, 'has', 'have')} changes in highly variable genes.
 
-My initial thought is to use the Euclidean distance between the sets of cell type assignments here (since the assignment values do matter), though we could also look at ARI or AMI.
+
+  Among the libraries with changes, the mean number of genes changed is **{mean_change}**, which is a mean percentage change of **{round(mean_change_frac * 100, digits = 2)}%**.
+  The mean Jaccard index (reflecting the proportions shared genes) is **{round(mean_jaccard, digits = 2)}**, and the mean rank correlation (reflecting changes in ordering among the genes) is **{round(mean_cor, digits = 2)}**.
+
+  The plots and tables below show only the libraries that have changes in either the content or ordering of the highly variable genes.
+  "
+))
+```
+
+
+```{r, eval=has_hvg_changes}
+knitr::asis_output("\n\n#### Summary\n\n")
+```
+
+
+```{r, eval=has_hvg_changes}
+# plot hvg metrics
+jaccard_plot <- ggplot(hvg_changes, aes(x = hvg_jaccard)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Jaccard index",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+rankcor_plot <- ggplot(hvg_changes, aes(x = hvg_rank_cor)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Gene rank correlation",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+jaccard_plot + rankcor_plot +
+  patchwork::plot_annotation(
+    title = "Histograms of metrics for changes in highly variable genes",
+    subtitle = "Only libraries with changes in HVG content or ordering are shown."
+  )
+```
+
+
+```{r, eval=has_hvg_changes}
+knitr::asis_output("\n\n#### Detail\n\n")
+```
+
+```{r, eval=has_hvg_changes}
+# detail table of hvg changes
+
+hvg_changes <- hvg_changes |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    hvg_n_changed,
+    hvg_change_frac,
+    hvg_jaccard,
+    hvg_rank_cor
+  ) |>
+  dplyr::mutate(
+    hvg_jaccard = sprintf("%.2f", hvg_jaccard),
+    hvg_rank_cor = sprintf("%.2f", hvg_rank_cor)
+  )
+
+
+report_table(
+  hvg_changes,
+  colnames = c(
+    "Project",
+    "Sample",
+    "Library",
+    "Number of genes changed",
+    "% change",
+    "Jaccard index",
+    "Rank correlation"
+  )
+) |>
+  DT::formatPercentage(c("hvg_change_frac"), 2)
+```
+
+### Clustering {.tabset}
+
+```{r}
+# compare clusters
+cluster_stats <- metrics_df |>
+  dplyr::mutate(
+    cluster_setequal = purrr::map2_lgl(cluster_sizes.ref, cluster_sizes.comp, setequal),
+    # change in the number of clusters
+    cluster_number_change = purrr::map2_int(
+      cluster_sizes.ref, cluster_sizes.comp,
+      \(x, y) {
+        length(y) - length(x)
+      }
+    ),
+    cluster_number_change_frac = cluster_number_change / purrr::map_int(cluster_sizes.ref, length),
+    paired_clusters = purrr::map2(cluster_sizes.ref, cluster_sizes.comp, pair_sizes),
+    cluster_sizes.ref = purrr::map(paired_clusters, \(x) x[[1]]),
+    cluster_sizes.comp = purrr::map(paired_clusters, \(x) x[[2]]),
+    cluster_max_ari = purrr::map2_dbl(cluster_sizes.ref, cluster_sizes.comp, max_ari)
+  ) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("cluster")
+  )
+
+cluster_changes <- cluster_stats |>
+  dplyr::filter(!cluster_setequal)
+
+has_cluster_changes <- nrow(cluster_changes) > 0
+```
+
+```{r}
+# cluster change overall summary
+cluster_summary <- cluster_stats |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    n_changed = n - sum(cluster_setequal),
+    mean_cluster_number_change = mean(abs(cluster_number_change[which(!cluster_setequal)])),
+    mean_cluster_number_change_frac = mean(abs(cluster_number_change_frac[which(!cluster_setequal)])),
+    mean_max_ari = mean(cluster_max_ari[which(!cluster_setequal & cluster_number_change == 0)])
+  )
+
+if (!has_cluster_changes) {
+  knitr::asis_output(
+    "There are no changes in clustering between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue_data(
+    cluster_summary,
+    "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed ==1, 'has', 'have')} changes in clustering.<br>
+    Among the libraries with changes, the mean change in the number of clusters is **{mean_cluster_number_change}**,
+    which corresonds to a mean percentage change of **{round(mean_cluster_number_change_frac * 100, digits = 2)}%**.
+
+    The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**.
+    This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters
+    after scaling the total cell number to the smaller library size.
+    "
+  ))
+}
+```
+
+
+```{r, eval=has_cluster_changes}
+knitr::asis_output("\n\n#### Summary\n\n")
+```
+
+```{r, eval=has_cluster_changes}
+# plot cluster metrics
+cluster_number_plot <- ggplot(cluster_changes, aes(x = cluster_number_change_frac)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Proportional change in the number of clusters",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+cluster_changes_ari <- cluster_changes |>
+  dplyr::filter(is.finite(cluster_max_ari))
+max_ari_plot <- ggplot(cluster_changes_ari, aes(x = cluster_max_ari)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "maxARI",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+cluster_number_plot + max_ari_plot +
+  patchwork::plot_annotation(
+    title = "Histograms of metrics for changes in clustering",
+    subtitle = "Only libraries with changes are shown, and maxARI is only calculated for libraries when the number of cells is unchanged."
+  )
+```
+
+```{r, eval=has_cluster_changes}
+knitr::asis_output(
+  "The stacked bar plots below show the sizes of each cluster for the libraries with the largest changes in clustering (smallest max ARI).
+  Changes in relative cluster sizes should be visible as changes in the banding patterns of the bars."
+)
+```
+
+```{r, eval=has_cluster_changes}
+# Create stacked bar plots to show changes in the clustering patterns.
+# We will plot the top 6 clusters with the smallest max ARI
+
+cluster_plot_df <- cluster_changes |>
+  dplyr::arrange(cluster_max_ari) |>
+  head(6) |>
+  dplyr::mutate( # keep the order
+    library_id = factor(library_id, levels = library_id)
+  ) |>
+  dplyr::select(project_id, sample_id, library_id, cluster_sizes.ref, cluster_sizes.comp) |>
+  tidyr::pivot_longer(
+    cols = starts_with("cluster_sizes"),
+    names_to = "set",
+    names_pattern = ".+\\.(ref|comp)$",
+    values_to = "cluster_sizes"
+  ) |>
+  tidyr::unnest_longer(
+    cluster_sizes,
+    indices_to = "cluster",
+    values_to = "size"
+  ) |>
+  dplyr::mutate(
+    cluster = as.factor(cluster), # factors for plotting
+    set = factor(set, levels = c("ref", "comp"), labels = c("reference", "comparison")) # set order and labels
+  )
+
+# rotating color palette
+cluster_colors <- palette.colors(
+  palette = "Tableau",
+  n = length(levels(cluster_plot_df$cluster)),
+  recycle = TRUE
+)
+
+ggplot(cluster_plot_df, aes(x = set, y = size, fill = cluster)) +
+  geom_col(position = position_fill(reverse = TRUE)) +
+  facet_wrap(vars(library_id)) +
+  labs(
+    title = "Clustering comparison plots",
+    x = "",
+    y = "Cluster fraction",
+  ) +
+  scale_fill_discrete(type = cluster_colors) +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+
+```{r, eval=has_cluster_changes}
+knitr::asis_output("\n\n#### Detail\n\n")
+```
+
+```{r, eval=has_cluster_changes}
+# Detail table of cluster changes
+cluster_changes |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    cluster_number_change,
+    cluster_number_change_frac,
+    cluster_max_ari
+  ) |>
+  dplyr::mutate(
+    cluster_max_ari = sprintf("%.3f", cluster_max_ari),
+  ) |>
+  report_table(
+    colnames = c("Project", "Sample", "Library", "Change in number of clusters", "% change", "Max ARI")
+  ) |>
+  DT::formatPercentage(c("cluster_number_change_frac"), 2)
+```
+
+### Cell type assignments {.tabset}
+
+
+```{r}
+# create cell type change dataframe
+types_stats <- metrics_df |>
+  # create new list columns with celltype_changes function
+  dplyr::mutate(
+    singler = purrr::map2(
+      singler_celltypes.ref, singler_celltypes.comp,
+      celltype_changes
+    ),
+    cellassign = purrr::map2(
+      cellassign_celltypes.ref, cellassign_celltypes.comp,
+      celltype_changes
+    )
+  ) |>
+  # add consensus cell type changes if present (temporary fix until all metrics files have consensus calls)
+  (\(data){
+    if (all(c("consensus_celltypes.ref", "consensus_celltypes.comp") %in% names(data))) {
+      dplyr::mutate(
+        data,
+        consensus = purrr::map2(
+          consensus_celltypes.ref, consensus_celltypes.comp,
+          celltype_changes
+        )
+      )
+    } else {
+      data
+    }
+  })() |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    any_of(c("singler", "cellassign", "consensus"))
+  ) |>
+  # spread out the list columns
+  tidyr::unnest_wider(
+    any_of(c("singler", "cellassign", "consensus")),
+    names_sep = "_"
+  ) |>
+  # pivot by celltype method
+  tidyr::pivot_longer(
+    cols = starts_with(c("singler", "cellassign", "consensus")),
+    names_to = c("celltype_method", ".value"),
+    names_pattern = "(singler|cellassign|consensus)_(.*)"
+  ) |>
+  dplyr::mutate(
+    types_added_count = purrr::map_int(types_added, length),
+    types_removed_count = purrr::map_int(types_removed, length)
+  ) |>
+  dplyr::relocate(types_added_count, types_removed_count, .before = types_added)
+
+changed_types <- types_stats |>
+  dplyr::filter(types_n_changes > 0)
+
+has_changed_types <- nrow(changed_types) > 0
+```
+
+```{r}
+# Summary table for cell type changes
+
+types_summary <- types_stats |>
+  dplyr::summarize(
+    .by = celltype_method,
+    n_libraries = dplyr::n(),
+    n_libraries_changed = sum(types_n_changes > 0),
+    frac_libraries_changed = n_libraries_changed / n_libraries,
+    mean_n_changed = mean(types_n_changes[types_n_changes > 0]),
+    mean_scaled_dist = mean(types_scaled_dist[types_n_changes > 0]) |> round(4),
+    mean_n_added = mean(types_added_count[types_n_changes > 0]),
+    mean_n_removed = mean(types_removed_count[types_n_changes > 0])
+  )
+
+# Overall text summary
+if (!has_changed_types) {
+  knitr::asis_output("No change in cell type assignments.")
+} else {
+  type_n_libraries_changed <- length(unique(changed_types$library_id))
+  type_n_projects_changed <- length(unique(changed_types$project_id))
+
+
+  glue::glue("
+    A total of **{type_n_libraries_changed}** {ifelse(type_n_libraries_changed == 1, 'library', 'libraries')}
+    from **{type_n_projects_changed}** {ifelse(type_n_projects_changed == 1, 'project', 'projects')} had changes in cell type assignments.
+
+    In the table below, we show the mean of the minimum number of cells changed, and a scaled measure of the distance between sets of cell assignments.
+    With this distance measure, a value of `0` means the cell types are identical, and `1` means that every cell has changed cell type.
+    Note that for each of these we calculate the best score for a given set of cell type assignments, as we do not record per-cell assignments in the metrics files used here.
+  ") |>
+    knitr::asis_output()
+}
+```
+
+
+```{r, eval=has_changed_types}
+knitr::asis_output("\n\n#### Summary\n\n")
+```
+
+
+```{r, eval=has_changed_types}
+report_table(
+  types_summary,
+  summary = TRUE,
+  colnames = c(
+    "Cell typing method", "Libraries", "Number of libraries changed", "% of libraries changed",
+    "Mean minimum cells changed", "Mean scaled distance", "Mean number of cell types added", "Mean number of cell types removed"
+  )
+) |>
+  DT::formatPercentage("frac_libraries_changed", 2)
+```
+
+
+```{r, eval=has_changed_types}
+# Summary plot of cell type changes
+count_hist <- ggplot(changed_types, aes(x = types_n_changes)) +
+  geom_histogram(bins = 20) +
+  facet_grid(cols = vars(celltype_method)) +
+  labs(
+    title = "Minimum number of cells changed",
+    x = "Number of cells changed",
+    y = "Number of libraries",
+  ) +
+  theme_bw()
+
+distance_hist <- ggplot(changed_types, aes(x = types_scaled_dist)) +
+  geom_histogram(bins = 20) +
+  facet_grid(cols = vars(celltype_method)) +
+  labs(
+    title = "Scaled distance between cell type assignment sets",
+    x = "Scaled distance",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+
+# plot with patchwork
+count_hist / distance_hist
+```
+
+```{r eval=has_changed_types}
+knitr::asis_output("\n\n#### Detail\n\n")
+```
+
+```{r eval=has_changed_types}
+# Detail table of cell type changes
+changed_types |>
+  dplyr::mutate(
+    types_scaled_dist = sprintf("%.4f", types_scaled_dist),
+    # join added and removed types for display
+    across(
+      c("types_added", "types_removed"),
+      ~ purrr::map_chr(.x, \(types) paste0(types, collapse = ", "))
+    )
+  ) |>
+  report_table(
+    colnames = c(
+      "Project", "Sample", "Library",
+      "Cell type method", "Minimum changed cell types", "Scaled distance",
+      "Added cell type count", "Removed cell type count",
+      "Added cell types", "Removed cell types"
+    )
+  )
+```
+## Session Info
+<details>
+<summary>Click to expand</summary>
+```{r}
+sessionInfo()
+```
+</details>

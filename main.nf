@@ -100,6 +100,9 @@ if (param_error) {
   System.exit(1)
 }
 
+// used when a given file is not defined in the below workflows
+empty_file = "${projectDir}/assets/NO_FILE"
+
 // Main workflow
 workflow {
   // select runs to use
@@ -252,7 +255,7 @@ workflow {
     }
 
   // apply cellhash demultiplexing
-  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
+  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file ?: empty_file))
   combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
@@ -315,7 +318,7 @@ workflow {
       meta,
       unfiltered,
       filtered,
-      "${projectDir}/assets/NO_FILE"
+      empty_file
     )}
 
   // combine back with libraries that skipped filtering and post processing
