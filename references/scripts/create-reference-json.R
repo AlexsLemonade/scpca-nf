@@ -3,7 +3,7 @@
 # Script for creating json file to hold path to reference files for organisms that can be
 # used with scpca-nf. The output of this script will create a json file where each key corresponds
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
-# to the organization used for storing references in `s3://scpca-references`.
+# to the organization used for storing references in `s3://scpca-nf-references`.
 # To create the json file, use a TSV file that contains three columns, `organism`, `assembly`, and `version`
 
 library(optparse)
@@ -69,19 +69,23 @@ create_ref_entry <- function(
       glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")
     ),
     splici_index = file.path(
-      ref_dir, "salmon_index",
+      ref_dir,
+      "salmon_index",
       glue::glue("{reference_name}.spliced_intron.txome")
     ),
     salmon_bulk_index = file.path(
-      ref_dir, "salmon_index",
+      ref_dir,
+      "salmon_index",
       glue::glue("{reference_name}.spliced_cdna.txome")
     ),
     cellranger_index = file.path(
-      ref_dir, "cellranger_index",
+      ref_dir,
+      "cellranger_index",
       glue::glue("{reference_name}_cellranger_full")
     ),
     star_index = file.path(
-      ref_dir, "star_index",
+      ref_dir,
+      "star_index",
       glue::glue("{reference_name}.star_idx")
     )
   )

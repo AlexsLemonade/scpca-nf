@@ -115,7 +115,7 @@ The best way to do this is to store the token in 1Password, set the `TOWER_ACCES
 We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users.
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
-First, please check the metadata files present in `s3://scpca-references/example-data` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
+First, please check the metadata files present in `s3://scpca-nf-references/example-data` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
 Each of these files should be present, with the expected input columns as described in each documentation link.
 
 - `example_run_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-run-metadata-file))
@@ -133,7 +133,7 @@ nextflow pull AlexsLemonade/scpca-nf -r development
 nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
 ```
 
-After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`.
+After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-nf-references/example-data/scpca_out.zip`.
 Make sure to adjust the settings to make the zip file publicly accessible.
 
 ## Maintaining references for `scpca-nf`
@@ -173,7 +173,7 @@ Adding additional organisms is handled, in part, by the `build-index.nf` workflo
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-   Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `S3://scpca-nf-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
@@ -188,7 +188,7 @@ homo_sapiens
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
-5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
+5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-nf-references`).
 
 ### Adding additional cell type references
 
@@ -212,15 +212,15 @@ Follow these steps to add support for additional cell type references.
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3.
 
-`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`.
-Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_model.rds`.
+`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-nf-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`.
+Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-nf-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_model.rds`.
 
   - `<celltype_ref_name>` is a given `celldex` dataset.
     - Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
   - `<celltype_ref_source>` is `celldex`.
   - `<version>` is the `celldex` version used during reference building, where we use dashes in place of periods (e.g., version `x.y.z` would be represented as `x-y-z`).
 
-`CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<date>.tsv`.
+`CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-nf-references/celltype/cellassign_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<date>.tsv`.
 
   - `<celltype_ref_name>` is a given reference name established by the Data Lab.
   - `<celltype_ref_source>` is `PanglaoDB`

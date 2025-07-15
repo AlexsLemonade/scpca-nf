@@ -75,5 +75,5 @@ For more detailed information on setting up the metadata file for your own data,
 
 ## Example output
 
-You can download an example of the expected output files here: [`scpca_out.zip`](https://s3.amazonaws.com/scpca-references/example-data/scpca_out.zip).
+You can download an example of the expected output files here: [`scpca_out.zip`](https://s3.amazonaws.com/scpca-nf-references/example-data/scpca_out.zip).
 For more information on the file structure and what to expect see the description of the [output files](../external-instructions.md#output-files).
