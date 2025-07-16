@@ -115,9 +115,17 @@ aws s3 cp . "${log_path}" \
   --recursive \
   --exclude "*" \
   --include "${datetime}_*" \
-  && rm ${datetime}_* \
+  && rm "${datetime}"_* \
   || echo "Error copying logs to S3" >> run_errors.log
 
+
+# For example runs, compress the output directory and upload it to S3
+if [[ "$RUN_MODE" == "example" ]]; then
+  aws s3 cp --recursive "s3://scpca-nf-references/example-data/scpca_out" scpca_out \
+  && zip -r scpca_out.zip scpca_out \
+  && aws s3 cp scpca_out.zip "s3://scpca-nf-references/example-data/scpca_out.zip" \
+  || echo "Error uploading scpca_out.zip to S3" >> run_errors.log
+fi
 
 # Post any errors to slack
 if [ -s run_errors.log ]; then
