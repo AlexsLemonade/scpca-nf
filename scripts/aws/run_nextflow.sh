@@ -125,6 +125,7 @@ if [[ "$RUN_MODE" == "example" ]]; then
   && zip -r scpca_out.zip scpca_out \
   && aws s3 cp scpca_out.zip "s3://scpca-nf-references/example-data/scpca_out.zip" \
   || echo "Error uploading scpca_out.zip to S3" >> run_errors.log
+  rm -rf scpca_out scpca_out.zip
 fi
 
 # Post any errors to slack
