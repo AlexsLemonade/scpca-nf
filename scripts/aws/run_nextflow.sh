@@ -26,7 +26,7 @@ fi
 export PATH
 
 # Get secrets from AWS Secrets Manager/1Password
-AWS_SECRETS=$(aws secretsmanager get-secret-value --secret-id openscpca_service_account_token | jq -r '.SecretString')
+AWS_SECRETS=$(aws secretsmanager get-secret-value --secret-id scpca_service_account_token | jq -r '.SecretString')
 # AWS secrets are a key-value store: retrieve individual values with jq
 OP_SERVICE_ACCOUNT_TOKEN=$(jq -r '.op_token' <<< $AWS_SECRETS)
 export OP_SERVICE_ACCOUNT_TOKEN
