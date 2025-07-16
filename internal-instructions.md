@@ -173,7 +173,7 @@ Adding additional organisms is handled, in part, by the `build-index.nf` workflo
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-   Add these to the `S3://scpca-nf-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `s3://scpca-nf-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens

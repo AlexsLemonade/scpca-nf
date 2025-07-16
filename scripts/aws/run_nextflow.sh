@@ -5,7 +5,7 @@ set -u
 #
 # Available RUN_MODE values are:
 #   example:   run the example workflow
-#   dev:      run the workflow in the development environment
+#   testing:      run the workflow in the development testing environment
 #   staging:   run the full workflow with full data in the staging environment
 #   prod:      run the full workflow with full data in the production environment
 
