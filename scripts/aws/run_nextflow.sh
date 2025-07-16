@@ -12,6 +12,7 @@ set -u
 GITHUB_TAG=${GITHUB_TAG:-main}
 RUN_MODE=${RUN_MODE:-example}
 RESUME=${RESUME:-false}
+NEXTFLOW_PARAMS=${NEXTFLOW_PARAMS:-""}
 
 date=$(date "+%Y-%m-%d")
 datetime=$(date "+%Y-%m-%dT%H%M")
@@ -100,7 +101,7 @@ nextflow run AlexsLemonade/scpca-nf \
   -with-trace  "${datetime}_scpca_trace.txt" \
   -with-tower \
   $resume_flag \
-  $release_param \
+  $NEXTFLOW_PARAMS \
   || echo "Error with scpca data run" >> run_errors.log
 
 mv .nextflow.log "${datetime}_scpca-nf.log"
