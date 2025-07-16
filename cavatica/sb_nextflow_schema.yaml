@@ -179,7 +179,7 @@ inputs:
     label: References root directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references
+    sbg:toolDefaultValue: s3://scpca-nf-references
     type:
       - "null"
       - Directory
@@ -190,7 +190,7 @@ inputs:
     label: Barcode file directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/barcodes/10X
+    sbg:toolDefaultValue: s3://scpca-nf-references/barcodes/10X
     type:
       - "null"
       - Directory
@@ -213,7 +213,7 @@ inputs:
     label: Cell type reference directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype
     type:
       - "null"
       - Directory
@@ -224,7 +224,7 @@ inputs:
     label: SingleR models directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/singler_models
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype/singler_models
     type:
       - "null"
       - Directory
@@ -235,7 +235,7 @@ inputs:
     label: CellAssign reference directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/cellassign_references
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype/cellassign_references
     type:
       - "null"
       - Directory

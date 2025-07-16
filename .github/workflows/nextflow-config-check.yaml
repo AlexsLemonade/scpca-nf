@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - development
+      - scpca-prod-account
 jobs:
   nf-config-check:
     runs-on: ubuntu-22.04
