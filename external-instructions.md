@@ -372,14 +372,14 @@ If you wish to use your own cell type reference rather than one of those we have
 
 #### `SingleR` references
 
-The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
+The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-nf-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
 In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
 #### `CellAssign` references
 
-The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
+The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-nf-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
 In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
 The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
