@@ -153,7 +153,7 @@
       "properties": {
         "ref_rootdir": {
           "type": "string",
-          "default": "s3://scpca-references",
+          "default": "s3://scpca-nf-references",
           "format": "directory-path",
           "description": "References root directory",
           "help_text": "Root location containing reference files.",
@@ -161,7 +161,7 @@
         },
         "barcode_dir": {
           "type": "string",
-          "default": "s3://scpca-references/barcodes/10X",
+          "default": "s3://scpca-nf-references/barcodes/10X",
           "format": "directory-path",
           "description": "Barcode file directory",
           "help_text": "Directory containing 10x barcode files.",
@@ -178,7 +178,7 @@
         },
         "celltype_ref_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype",
+          "default": "s3://scpca-nf-references/celltype",
           "format": "directory-path",
           "description": "Cell type reference directory",
           "help_text": "Directory containing cell type reference files.",
@@ -186,7 +186,7 @@
         },
         "singler_models_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/singler_models",
+          "default": "s3://scpca-nf-references/celltype/singler_models",
           "format": "directory-path",
           "description": "SingleR models directory",
           "help_text": "Directory containing `SingleR` model files.",
@@ -194,7 +194,7 @@
         },
         "cellassign_ref_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/cellassign_references",
+          "default": "s3://scpca-nf-references/celltype/cellassign_references",
           "format": "directory-path",
           "description": "CellAssign reference directory",
           "help_text": "Directory containing `CellAssign` reference files.",
@@ -219,7 +219,7 @@
         },
         "singler_references_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/singler_references",
+          "default": "s3://scpca-nf-references/celltype/singler_references",
           "format": "directory-path",
           "description": "SingleR references directory",
           "help_text": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
