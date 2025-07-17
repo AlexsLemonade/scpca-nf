@@ -48,5 +48,3 @@ ci:
   autofix_prs: true # set to false if we don't want fixes automatically applied by ci
   autoupdate_branch: development
   autoupdate_schedule: quarterly
-  # skip spell check because it can't be quickly installed on CI
-  skip: [spell-check]
