@@ -26,7 +26,7 @@ fi
 export PATH
 
 # Get secrets from AWS Secrets Manager/1Password
-AWS_SECRETS=$(aws secretsmanager get-secret-value --secret-id openscpca_service_account_token | jq -r '.SecretString')
+AWS_SECRETS=$(aws secretsmanager get-secret-value --secret-id scpca_service_account_token | jq -r '.SecretString')
 # AWS secrets are a key-value store: retrieve individual values with jq
 OP_SERVICE_ACCOUNT_TOKEN=$(jq -r '.op_token' <<< $AWS_SECRETS)
 export OP_SERVICE_ACCOUNT_TOKEN
@@ -125,6 +125,7 @@ if [[ "$RUN_MODE" == "example" ]]; then
   && zip -r scpca_out.zip scpca_out \
   && aws s3 cp scpca_out.zip "s3://scpca-nf-references/example-data/scpca_out.zip" \
   || echo "Error uploading scpca_out.zip to S3" >> run_errors.log
+  rm -rf scpca_out scpca_out.zip
 fi
 
 # Post any errors to slack
