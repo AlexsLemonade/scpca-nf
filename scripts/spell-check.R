@@ -5,7 +5,6 @@
 # given the changed files as arguments. Otherwise, it will check all R Markdown
 # files in the repository.
 
-
 arguments <- commandArgs(trailingOnly = TRUE)
 file_pattern <- "\\.(Rmd|md|rmd)$"
 
@@ -16,7 +15,11 @@ if (length(arguments) > 0) {
 } else {
   precommit <- FALSE
   # The only files we want to check are R Markdown and Markdown files
-  files <- list.files(pattern = file_pattern, recursive = TRUE, full.names = TRUE)
+  files <- list.files(
+    pattern = file_pattern,
+    recursive = TRUE,
+    full.names = TRUE
+  )
 }
 
 # Find .git root directory
@@ -32,11 +35,8 @@ if (file.exists(dict_file)) {
   dictionary <- ""
 }
 
-# Add emoji to dictionary
-dictionary_plus <- c(dictionary, spelling::spell_check_text("<U+26A0><U+FE0F>")$word)
-
 # Run spell check
-spelling_errors <- spelling::spell_check_files(files, ignore = dictionary_plus) |>
+spelling_errors <- spelling::spell_check_files(files, ignore = dictionary) |>
   data.frame() |>
   tidyr::unnest(cols = found) |>
   tidyr::separate(found, into = c("file", "lines"), sep = ":")

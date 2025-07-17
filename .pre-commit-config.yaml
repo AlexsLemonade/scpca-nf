@@ -2,15 +2,6 @@
 repos:
   - repo: local
     hooks:
-      - id: spell-check
-        name: Spell check files
-        language: r
-        entry: Rscript scripts/spell-check.R
-        additional_dependencies:
-          - readr
-          - rprojroot
-          - spelling
-          - tidyr
       - id: forbid-to-commit
         name: Don't commit common R artifacts
         entry: Cannot commit .Rhistory, .RData, or .Rds files.
@@ -32,7 +23,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.12.2
+    rev: v0.12.4
     hooks:
       # Run the linter.
       - id: ruff
