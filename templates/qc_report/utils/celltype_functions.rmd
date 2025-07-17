@@ -79,7 +79,7 @@ prepare_automated_annotation_values <- function(
       {{ annotation_column }} := dplyr::case_when(
         # singler condition
         is.na({{ annotation_column }}) ~ unknown_string,
-        # cellassign conditon
+        # cellassign condition
         {{ annotation_column }} == "other" ~ unknown_string,
         # otherwise, keep it
         .default = {{ annotation_column }}
