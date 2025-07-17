@@ -15,6 +15,10 @@ repos:
             test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
             test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
           )$
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.34.0
+    hooks:
+      - id: typos
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
     rev: v2.2.0
