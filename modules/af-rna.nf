@@ -157,7 +157,7 @@ workflow map_quant_rna {
       )}
 
     // if the rad directory has been created and repeat_mapping is set to false
-    // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
+    // create tuple of metadata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
       .map{meta -> tuple(
         Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),

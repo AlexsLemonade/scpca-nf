@@ -284,7 +284,7 @@ workflow annotate_celltypes {
     )
 
     // mix in libraries without new celltypes
-    // result is [meta, proccessed rds]
+    // result is [meta, processed rds]
     celltyped_ch = assignment_input_ch.no_celltypes
       .map{[it[0], it[1]]}
       .mix(add_celltypes_to_sce.out)

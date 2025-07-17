@@ -953,7 +953,7 @@ if (!has_cluster_changes) {
     cluster_summary,
     "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed ==1, 'has', 'have')} changes in clustering.<br>
     Among the libraries with changes, the mean change in the number of clusters is **{mean_cluster_number_change}**,
-    which corresonds to a mean percentage change of **{round(mean_cluster_number_change_frac * 100, digits = 2)}%**.
+    which corresponds to a mean percentage change of **{round(mean_cluster_number_change_frac * 100, digits = 2)}%**.
 
     The mean `maxARI` for the changed clusterings is **{round(mean_max_ari, digits = 2)}**.
     This is an approximate maximum value calculated based on assuming the best correspondence in sizes among the clusters
