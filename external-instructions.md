@@ -42,9 +42,14 @@
 
 ## Overview
 
-Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
+The instructions on this page describe the general steps required to run the `scpca-nf` workflow on your own  high performance computing (HPC) environment.
+We are also working on providing support for running the workflow on [Cavatica](https://cavatica.sbgenomics.com/), the Seven Bridges platform for sharing and analyzing biomedical data.
+Additional instructions for using `scpca-nf` on Cavatica can be found in the [Cavatica instructions](cavatica-instructions.md).
+
+Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to an HPC environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
 Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
 While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
+
 After identifying the system that you will use to execute the Nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
 
