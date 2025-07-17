@@ -24,7 +24,13 @@ root_dir <- rprojroot::find_root(rprojroot::has_dir(".git"))
 
 # Read in dictionary
 dict_file <- file.path(root_dir, "components", "dictionary.txt")
-dictionary <- readLines(dict_file)
+if (file.exists(dict_file)) {
+  # Reading in the dictionary this way lets us put emojis in the dictionary file
+  dictionary <- spelling::spell_check_files(dict_file)$word
+} else {
+  warning("Dictionary file not found")
+  dictionary <- ""
+}
 
 # Add emoji to dictionary
 dictionary_plus <- c(dictionary, spelling::spell_check_text("<U+26A0><U+FE0F>")$word)
