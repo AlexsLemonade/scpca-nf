@@ -19,10 +19,6 @@ repos:
     rev: v1.34.0
     hooks:
       - id: typos
-        exclude: |
-          (?x)^(
-            references/.*\.tsv
-          )$
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
     rev: v2.2.0
