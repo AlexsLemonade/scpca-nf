@@ -44,6 +44,7 @@ For more detailed information about formatting, you should refer to [the main in
     - Required columns are: `scpca_run_id`, `scpca_library_id`, `scpca_sample_id`, `scpca_project_id`, `technology`, `assay_ontology_term_id`, `seq_unit`, `sample_reference`, and `files_directory`.
     - For a complete listing of the column requirements and contents see [Prepare the sample metadata file](external-instructions.md#prepare-the-run-metadata-file)
     - Note that you will likely want to specify the `files_directory` as the relative path _within the Cavatica project_ to the directory containing the FASTQ files for the run; this will be transformed to a Cavatica `vs:///` url by the [`sbmanifest` tool](#adding-cavatica-paths-to-metadata-files).
+- A sample metadata file (TSV)
   - This file contains information about the biological samples, such as diagnosis, age, sex, cell line, or other relevant information.
   - A `scpca_sample_id` column is required, which should match the `scpca_sample_id` values in the run metadata file.
   - The sample metadata file should be uploaded to your Cavatica project.
@@ -51,13 +52,13 @@ For more detailed information about formatting, you should refer to [the main in
 
 #### Additional files for specific options
 
-- For ADT (CITE-seq) libraries or samples multiplexed via cell hashing, you will also need to provide a feature barcode file
+- For ADT (CITE-seq) libraries or samples multiplexed via cell hashing, you will also need to provide a feature barcode file.
   - The feature barcode file is a tab separated file with one line per barcode and no header, and should be uploaded to your Cavatica project.
   - The path to the feature barcode file must be included in the run metadata file, in the `feature_barcode_file` column.
   - For multiplexed libraries, you will also need a `cellhash_pool_file` that defines the sample-barcode relationship for each library/pool of samples.
 
   - See [Libraries with additional feature data](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#libraries-with-additional-feature-data-adt-or-cellhash) for more details.
-- If you plan to perform cell typing, you will also need to provide a project cell type metadata file
+- If you plan to perform cell typing, you will also need to provide a project cell type metadata file.
   - See [Preparing the project cell type metadata file](external-instructions.md#preparing-the-project-cell-type-metadata-file) for more details.
 - You may also have a file that defines cell types for individual cells in the library.
   - For more information on this see [Providing existing cell type labels in the main instructions](external-instructions.md#providing-existing-cell-type-labels).
@@ -82,7 +83,7 @@ sbmanifest \
 
 If your run metadata file includes other paths within your project, such as for the `feature_barcode_file`, add those column names to the `--columns` argument to transform those paths as well: e.g., `--columns files_directory feature_barcode_file`.
 
-Similarly, if you have a multiplexed library and a corresponding multiplex pools file with a `feature_barcode_file` column, you will need to run the `sbmanifest` command with that file listed as for the `--sample-sheet` argument as well, to transform the paths in the `feature_barcode_file` column.
+Similarly, if you have a multiplexed library and a corresponding multiplex pools file with a `feature_barcode_file` column, you will need to run the `sbmanifest` command with that file listed for the `--sample-sheet` argument as well, to transform the paths in the `feature_barcode_file` column.
 
 **⚠️ Caution:** If you have `NA` values for samples that do not have paths, the `sbmanifest` command will transform those to paths of the form `vs:///Projects/{project_uuid}/NA`, which will cause errors when running the workflow (and fails if you try to use the tool's internal `--validate` option).
 To undo this modification, you can use a command like the following to replace those paths with `NA` in the output file:
@@ -100,7 +101,6 @@ To run the workflow, use the Cavatica web interface to launch the `scpca-nf` app
 
 - Go to the Apps tab in your project, and click the button "Run" next to the `scpca-nf` app.
 - In the "Inputs" section, select the "Run metadata file" and "Sample metadata file" that you prepared earlier.
-  - If you have
 - All other fields are generally optional, but the following are the ones most likely to be useful:
   - "Output directory" can be changed to a name of your choice. The default is `scpca_out`, and Cavatica will create a unique name if the named directory already exists.
   - "Perform cell typing" is False by default, as cell typing is slow, but it can be enabled if desired.
