@@ -16,12 +16,15 @@
 
 ## Prerequisites
 
-To run the project on Cavatica, you will most likely want to create a new project for your analysis.
-Within that project go to the Apps tab, click "Add apps > Projects" and copy the `scpca-nf` app from the `scpca-nf-test` project.
-At the moment, you will need to have been granted access to the `scpca-nf-test` project by an ALSF Data Lab member.
+To run the `scpca-nf` workflow on Cavatica, you must first confirm that you have the ability to run Nextflow workflows on Cavatica.
+Access to this feature is granted by Seven Bridges administrators, and you can request access by contacting the Seven Bridges support team.
 
+Once you have access to Nextflow workflows, you will most likely want to create a new project for your analysis.
 Make sure that your project settings include "Allow network access", so that the workflow can download the required reference files and software dependencies.
 We also highly recommend that you enable spot instances.
+
+Within that project go to the Apps tab, click "Add apps > Projects" and copy the `scpca-nf` app from the `scpca-nf-test` project.
+At the moment, you will need to have been granted access to the `scpca-nf-test` project by an ALSF Data Lab member.
 
 Finally, on your local machine, you will need to [install `sbpack`](https://docs.sevenbridges.com/docs/add-nextflow-apps-through-the-command-line-interface-cli#about-sbpack) in order to be able to use the `sbmanifest` tool.
 You will also need to have set up [credentials for the Seven Bridges CLI](https://docs.sevenbridges.com/docs/store-credentials-to-access-seven-bridges-client-applications-and-libraries).
