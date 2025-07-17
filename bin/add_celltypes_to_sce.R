@@ -108,10 +108,7 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
 # check that input file exists and output file ends in rds
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
-  "output sce file name must end in .rds" = stringr::str_ends(
-    opt$output_sce_file,
-    ".rds"
-  )
+  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds")
 )
 
 # read in input files
@@ -122,9 +119,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 has_singler <- file.exists(opt$singler_results)
 if (has_singler) {
   # check singler model has been provided
-  stopifnot(
-    "Singler model filename must be provided" = opt$singler_model_file != ""
-  )
+  stopifnot("Singler model filename must be provided" = opt$singler_model_file != "")
 
   singler_results <- readr::read_rds(opt$singler_results)
 
