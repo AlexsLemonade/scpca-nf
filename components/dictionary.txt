@@ -1,3 +1,4 @@
+⚠️
 ADT
 ADTs
 al
@@ -25,8 +26,8 @@ EFO
 embeddings
 Ensembl
 et
-fastq
 FASTQ
+fastq
 formatter
 Github
 glioblastoma
@@ -54,8 +55,8 @@ pre
 reproducibility
 reproducibly
 SCE
-scpca
 ScPCA
+scpca
 Seqera
 SingleR
 subdiagnosis
@@ -68,6 +69,5 @@ UMAP
 UMI
 uri
 Visium
-VS
 xenograft
 ZenHub
