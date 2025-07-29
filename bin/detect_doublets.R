@@ -4,7 +4,7 @@
 #
 # This script reads in an RDS file containing an SCE and runs scDblFinder.
 # Classifications and doublet scores are stored in the SCE's colData slot.
-# The SCE is then exported to the same file as was inputted.
+# The SCE is then exported.
 
 # import libraries
 library(optparse)
@@ -13,10 +13,16 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("--sce_file"),
+    opt_str = c("--input_sce_file"),
     type = "character",
     default = "",
     help = "Path to RDS file that contains the SCE object to perform doublet detection on."
+  ),
+  make_option(
+    opt_str = c("--output_sce_file"),
+    type = "character",
+    default = "",
+    help = "Path to output RDS file to save SCE with detected doublets."
   ),
   make_option(
     opt_str = c("-t", "--threads"),
@@ -36,8 +42,11 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
-# check SCE file
-stopifnot("`sce_file` is missing." = file.exists(opt$sce_file))
+# check SCE files
+stopifnot(
+  "`input_sce_file` is missing." = file.exists(opt$input_sce_file),
+  "`output_sce_file` should end in .rds" = stringr::str_ends(opt$output_sce_file, "\\.rds")
+)
 
 # set up multiprocessing params
 if (opt$threads > 1) {
@@ -47,7 +56,7 @@ if (opt$threads > 1) {
 }
 
 # read SCE
-sce <- readr::read_rds(opt$sce_file)
+sce <- readr::read_rds(opt$input_sce_file)
 
 # run scDblFinder -----------
 doublet_result <- scDblFinder::scDblFinder(
@@ -70,4 +79,4 @@ colData(sce) <- colData(sce) |>
   DataFrame(row.names = colnames(sce))
 
 # Export updated SCE with doublet information
-readr::write_rds(sce, opt$sce_file, compress = "bz2")
+readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
