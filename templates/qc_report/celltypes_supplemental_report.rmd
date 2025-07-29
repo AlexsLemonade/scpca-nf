@@ -369,6 +369,15 @@ if (has_cellassign) {
   )
 }
 
+if (has_consensus) {
+  methods_text <- glue::glue(
+    "{methods_text}
+    * Consensus cell types obtained by looking for agreement between `SingleR` and `CellAssign` using an ontology-aware approach.
+If no common label is identified, no consensus cell type is assigned.
+See the [ScPCA Portal documentation](https://scpca.readthedocs.io/en/stable/processing_information.html#cell-type-annotation) for a full description on how these cell type annotations are assigned."
+  )
+}
+
 glue::glue("{methods_text}")
 ```
 

@@ -280,9 +280,9 @@ if (cellassign_not_run) {
 
 if (has_consensus) {
   glue::glue(
-    "\n\nConsensus cell types are obtained based on agreement between `SingleR` and `CellAssign` using an ontology-aware approach.
+    "\n\nConsensus cell types are obtained by looking for agreement between `SingleR` and `CellAssign` using an ontology-aware approach.
 If no common label is identified, no consensus cell type is assigned.
-See the [ScPCA documentation](https://scpca.readthedocs.io/en/stable/processing_information.html#cell-type-annotation) for a full description on how these cell type annotations are assigned.
+See the [ScPCA Portal documentation](https://scpca.readthedocs.io/en/stable/processing_information.html#cell-type-annotation) for a full description on how these cell type annotations are assigned.
 As these annotations are based on the output from `SingleR` and `CellAssign`, only the consensus cell type assignments will be displayed in the below tables and plots."
   )
 }
