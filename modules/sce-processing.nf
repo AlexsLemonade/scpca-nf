@@ -129,6 +129,11 @@ process filter_sce {
       ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
       --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
       ${params.seed ? "--random_seed ${params.seed}" : ""}
+
+    detect_doublets.R \
+      --sce_file ${filtered_rds} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""} \
+      --threads ${task.cpus}
     """
   stub:
     filtered_rds = "${meta.library_id}_filtered.rds"
