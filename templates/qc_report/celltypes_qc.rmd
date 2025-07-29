@@ -379,7 +379,7 @@ create_celltype_n_table(celltype_df, consensus_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
-```{r, eval = has_singler && is_supplemental}
+```{r, eval = has_singler && (!has_consensus || is_supplemental)}
 knitr::asis_output('### `SingleR` cell type annotations\n
 
 In this table, cells labeled "Unknown cell type" are those which `SingleR` pruned due to low-quality assignments.
@@ -389,7 +389,7 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
-```{r, eval = has_cellassign && is_supplemental}
+```{r, eval = has_cellassign && (!has_consensus || is_supplemental)}
 knitr::asis_output('### `CellAssign` cell type annotations\n
 
 In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently assign to a label in the reference list.
