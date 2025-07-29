@@ -25,7 +25,7 @@ option_list <- list(
     help = "Number of multiprocessing threads to use."
   ),
   make_option(
-    opt_str = c("--seed"),
+    opt_str = c("--random_seed"),
     type = "integer",
     default = 2024,
     help = "Random seed for reproducibility"
@@ -34,7 +34,7 @@ option_list <- list(
 
 # Setup ------------------------------
 opt <- parse_args(OptionParser(option_list = option_list))
-set.seed(opt$seed)
+set.seed(opt$random_seed)
 
 # check SCE file
 stopifnot("`sce_file` is missing." = file.exists(opt$sce_file))
