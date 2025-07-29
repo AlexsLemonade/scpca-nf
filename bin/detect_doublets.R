@@ -50,7 +50,7 @@ stopifnot(
 
 # set up multiprocessing params
 if (opt$threads > 1) {
-  bp_param <- BiocParallel::MulticoreParam(opt$threads, RNGSeed = opt$seed)
+  bp_param <- BiocParallel::MulticoreParam(opt$threads)
 } else {
   bp_param <- BiocParallel::SerialParam()
 }
