@@ -162,19 +162,6 @@ workflow annotate_celltypes {
 
     // branch to cell type the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
-      .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce -> 
-        def meta = meta_in.clone(); // clone meta before adding in unique id for tracking cell type results
-        // define a unique ID that will be used to label output folders and join skipped libraries
-        // we can't use library ID for flex multiplexed so will use sample and library ID for those samples only 
-        meta.unique_id = (meta.technology in ["10Xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
-        // return updated meta and sce files 
-        return [
-          meta,
-          unfiltered_sce,
-          filtered_sce,
-          processed_sce
-        ]
-      }
      .branch{
         cell_line: it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.every()
         // only run cell typing on tissue samples
