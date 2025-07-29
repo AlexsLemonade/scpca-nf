@@ -13,13 +13,13 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("--input_sce_file"),
+    opt_str = c("-i", "--input_sce_file"),
     type = "character",
     default = "",
     help = "Path to RDS file that contains the SCE object to perform doublet detection on."
   ),
   make_option(
-    opt_str = c("--output_sce_file"),
+    opt_str = c("-o", "--output_sce_file"),
     type = "character",
     default = "",
     help = "Path to output RDS file to save SCE with detected doublets."
