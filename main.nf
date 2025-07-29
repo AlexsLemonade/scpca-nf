@@ -309,18 +309,18 @@ workflow {
   // combine all SCE outputs
   // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(flex_sce_ch.continue_processing, genetic_demux_sce.out)
-    .map{ meta_in, unfiltered_sce, filtered_sce -> 
-        def meta = meta_in.clone(); // clone meta before adding in unique id
-        // define a unique ID that will be used to label output folders and join skipped libraries throughout workflow
-        // we can't use library ID for flex multiplexed so will use sample and library ID for those samples only 
-        meta.unique_id = (meta.technology in ["10Xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
-        // return updated meta and sce files 
-        return [
-          meta,
-          unfiltered_sce,
-          filtered_sce
-        ]
-      }
+    // add  unique ID  to metadata that will be used to label output folders and join skipped libraries throughout workflow
+    .map{ meta_in, unfiltered_sce, filtered_sce ->
+      def meta = meta_in.clone(); // clone meta before adding in unique id
+      // we can't use library ID for flex multiplexed so will use sample and library ID for those samples only
+      meta.unique_id = (meta.technology in ["10Xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
+      // return updated meta and sce files
+      return [
+        meta,
+        unfiltered_sce,
+        filtered_sce
+       ]
+    }
   post_process_sce(all_sce_ch)
 
 
