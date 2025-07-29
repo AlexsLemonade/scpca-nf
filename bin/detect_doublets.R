@@ -16,11 +16,13 @@ option_list <- list(
   make_option(
     opt_str = c("--input_sce_file"),
     type = "character",
+    default = "",
     help = "Path to RDS file that contains the SCE object to perform doublet detection on."
   ),
   make_option(
     opt_str = c("-o", "--output_sce_file"),
     type = "character",
+    default = "",
     help = "Output path for updated SCE file. Must end in .rds"
   ),
   make_option(
