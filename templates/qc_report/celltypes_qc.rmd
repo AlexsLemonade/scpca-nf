@@ -306,7 +306,7 @@ umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
-```{r, eval = (has_cellassign || has_singler) && is_supplemental, results='asis'}
+```{r, eval = (has_cellassign || has_singler) && (is_supplemental || !has_consensus), results='asis'}
 unclassified_methods <- c()
 
 # check for unclassified SingleR cells
