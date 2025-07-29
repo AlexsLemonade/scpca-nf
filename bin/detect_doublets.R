@@ -13,7 +13,7 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("--input_sce_file"),
+    opt_str = c("-i", "--input_sce_file"),
     type = "character",
     default = "",
     help = "Path to RDS file that contains the SCE object to perform doublet detection on."
@@ -22,7 +22,7 @@ option_list <- list(
     opt_str = c("-o", "--output_sce_file"),
     type = "character",
     default = "",
-    help = "Output path for updated SCE file. Must end in .rds"
+    help = "Path to output RDS file to save SCE with detected doublets."
   ),
   make_option(
     opt_str = c("-t", "--threads"),
@@ -31,7 +31,7 @@ option_list <- list(
     help = "Number of multiprocessing threads to use."
   ),
   make_option(
-    opt_str = c("--seed"),
+    opt_str = c("--random_seed"),
     type = "integer",
     default = 2024,
     help = "Random seed for reproducibility"
@@ -40,12 +40,12 @@ option_list <- list(
 
 # Setup ------------------------------
 opt <- parse_args(OptionParser(option_list = option_list))
-set.seed(opt$seed)
+set.seed(opt$random_seed)
 
-# check files
+# check SCE files
 stopifnot(
-  "Input `input_sce_file` is missing." = file.exists(opt$input_sce_file),
-  "`output_sce_file` must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds")
+  "`input_sce_file` is missing." = file.exists(opt$input_sce_file),
+  "`output_sce_file` should end in .rds" = stringr::str_ends(opt$output_sce_file, "\\.rds")
 )
 
 # set up multiprocessing params
@@ -62,7 +62,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 doublet_result <- scDblFinder::scDblFinder(
   sce,
   BPPARAM = bp_param,
-  resultType = "table" # keep as table in case we eventually want to provide additional output
+  returnType = "table" # keep as table in case we eventually want to provide additional output
 )
 
 # store the `score` and `class` columns in the colData
