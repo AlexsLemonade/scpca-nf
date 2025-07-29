@@ -124,14 +124,16 @@ process filter_sce {
     """
     filter_sce.R \
       --unfiltered_file ${unfiltered_rds} \
-      --filtered_file ${filtered_rds} \
+      --filtered_file "filtered.rds" \
       ${adt_present ? "--adt_name ${meta.feature_type}":""} \
       ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
       --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
-      ${params.seed ? "--random_seed ${params.seed}" : ""}
+      ${params.seed ? "--random_seed ${params.seed}" : ""} \
+      --no_sce_compression
 
     detect_doublets.R \
-      --sce_file ${filtered_rds} \
+      --input_sce_file "filtered.rds" \
+      --output_sce_file ${filtered.rds} \
       ${params.seed ? "--random_seed ${params.seed}" : ""} \
       --threads ${task.cpus}
     """
