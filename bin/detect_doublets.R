@@ -3,8 +3,7 @@
 # Script used to perform doublet detection using scDblFinder on a given SCE object
 #
 # This script reads in an RDS file containing an SCE and runs scDblFinder.
-# The full results are stored in the SCE's metadata, and classifications are
-# stored in the SCE's colData slot.
+# Classifications and doublet scores are stored in the SCE's colData slot.
 # The SCE is then exported.
 
 # import libraries
@@ -63,11 +62,8 @@ sce <- readr::read_rds(opt$input_sce_file)
 doublet_result <- scDblFinder::scDblFinder(
   sce,
   BPPARAM = bp_param,
-  returnType = "table"
+  resultType = "table" # keep as table in case we eventually want to provide additional output
 )
-
-# store the full table result in metadata
-metadata(sce)$scDblFinder_result <- doublet_result
 
 # store the `score` and `class` columns in the colData
 doublet_result_cells <- doublet_result |>
