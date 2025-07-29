@@ -76,7 +76,7 @@ if (is.null(opt$input_sce_file)) {
 
 # set up multiprocessing params
 if (opt$threads > 1) {
-  bp_param <- BiocParallel::MulticoreParam(opt$threads)
+  bp_param <- BiocParallel::MulticoreParam(opt$threads, RNGseed = opt$seed)
 } else {
   bp_param <- BiocParallel::SerialParam()
 }
