@@ -32,7 +32,7 @@ option_list <- list(
     help = "Number of multiprocessing threads to use."
   ),
   make_option(
-    opt_str = c("--random_seed"),
+    opt_str = c("--seed"),
     type = "integer",
     default = 2024,
     help = "Random seed for reproducibility"
@@ -41,24 +41,23 @@ option_list <- list(
 
 # Setup ------------------------------
 opt <- parse_args(OptionParser(option_list = option_list))
-set.seed(opt$random_seed)
+set.seed(opt$seed)
 
-# check and read in SCE file
-if (!file.exists(opt$input_sce_file)) {
-  stop("Input `input_sce_file` is missing.")
-}
-sce <- readr::read_rds(opt$input_sce_file)
-
-if (!stringr::str_ends(opt$output_sce_file, ".rds")) {
-  stop("`output_sce_file` must end in .rds")
-}
+# check files
+stopifnot(
+  "Input `input_sce_file` is missing." = file.exists(opt$input_sce_file),
+  "`output_sce_file` must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds")
+)
 
 # set up multiprocessing params
 if (opt$threads > 1) {
-  bp_param <- BiocParallel::MulticoreParam(opt$threads)
+  bp_param <- BiocParallel::MulticoreParam(opt$threads, RNGSeed = opt$seed)
 } else {
   bp_param <- BiocParallel::SerialParam()
 }
+
+# read SCE
+sce <- readr::read_rds(opt$input_sce_file)
 
 # run scDblFinder -----------
 doublet_result <- scDblFinder::scDblFinder(
