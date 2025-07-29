@@ -212,6 +212,8 @@ possible_columns <- c(
   "prob_compromised",
   "scpca_filter",
   "additional_modalities",
+  "scDblFinder_class",
+  "scDblFinder_score",
   # cell type names
   "submitter_celltype_annotation",
   "singler_celltype_annotation",
