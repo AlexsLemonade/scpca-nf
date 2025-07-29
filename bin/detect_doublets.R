@@ -62,7 +62,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 doublet_result <- scDblFinder::scDblFinder(
   sce,
   BPPARAM = bp_param,
-  resultType = "table" # keep as table in case we eventually want to provide additional output
+  returnType = "table" # keep as table in case we eventually want to provide additional output
 )
 
 # store the `score` and `class` columns in the colData
