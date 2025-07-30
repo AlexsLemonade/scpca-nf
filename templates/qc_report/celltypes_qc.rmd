@@ -448,16 +448,25 @@ if (length(levels(umap_df$cluster)) <= 8) {
 }
 ```
 
+
 ```{r, eval = has_umap && has_celltypes }
-knitr::asis_output(
+# only mention multiple annotations if we're actually showing multiple annotations
+if (has_consensus && !has_submitter && !is_supplemental) {
+  umap_text <- ""
+} else {
+  umap_text <- "For each cell typing method, we show a separate faceted UMAP."
+}
+
+
+knitr::asis_output(glue::glue(
   'Next, we show UMAPs colored by cell types.
-For each cell typing method, we show a separate faceted UMAP.
+  {umap_text}
 In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
 
 For legibility, only the seven most common cell types are shown.
 All other cell types are grouped together and labeled "All remaining cell types" (not to be confused with "Unknown cell type" which represents cells that could not be classified).
   '
-)
+))
 ```
 
 <!-- Now, UMAPs of cell types, where present -->
@@ -485,6 +494,28 @@ faceted_umap(
 
 
 ```{r}
+if (has_consensus & has_umap) {
+  consensus_n_celltypes <- length(levels(umap_df$consensus_celltype_annotation_lumped))
+  consensus_dims <- determine_umap_dimensions(consensus_n_celltypes)
+} else {
+  # set fake dims for evaluating next chunk
+  consensus_dims <- c(1, 1)
+}
+```
+
+
+```{r, eval=has_consensus && has_umap, message=FALSE, warning=FALSE, fig.width = consensus_dims[1], fig.height = consensus_dims[2], fig.align = "center"}
+# umap for cell assign annotations
+faceted_umap(
+  umap_df,
+  consensus_n_celltypes,
+  consensus_celltype_annotation_lumped,
+  point_size = umap_facet_point_size
+) +
+  ggtitle("UMAP colored by Consensus cell type annotations")
+```
+
+```{r}
 if (has_singler & has_umap) {
   singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
   singler_dims <- determine_umap_dimensions(singler_n_celltypes)
@@ -495,7 +526,7 @@ if (has_singler & has_umap) {
 ```
 
 
-```{r, eval=has_singler && has_umap, message=FALSE, warning=FALSE, fig.width = singler_dims[1], fig.height = singler_dims[2], fig.align = "center"}
+```{r, eval=has_singler && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = singler_dims[1], fig.height = singler_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
@@ -517,7 +548,7 @@ if (has_cellassign & has_umap) {
 }
 ```
 
-```{r, eval = has_cellassign && has_umap, message=FALSE, warning=FALSE, fig.width = cellassign_dims[1], fig.height = cellassign_dims[2], fig.align = "center"}
+```{r, eval = has_cellassign && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = cellassign_dims[1], fig.height = cellassign_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,

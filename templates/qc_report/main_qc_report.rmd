@@ -119,6 +119,7 @@ if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
   has_clusters <- "cluster" %in% names(colData(processed_sce))
   has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
+  has_consensus <- FALSE
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
   has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
