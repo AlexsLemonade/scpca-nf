@@ -254,6 +254,7 @@ cellassign_not_run <- check_cellassign_not_run(
 # define bullets glue string
 methods_bullets <- c(
   ifelse(has_submitter, "Submitter-provided", NA),
+  ifelse(has_consensus, "Consensus cell types", NA),
   ifelse(has_singler, "`SingleR`", NA),
   ifelse(has_cellassign, "`CellAssign`", NA)
 ) |>
@@ -277,8 +278,17 @@ if (cellassign_not_run) {
   )
 }
 
+if (has_consensus) {
+  glue::glue(
+    "\n\nConsensus cell types are obtained based on agreement between `SingleR` and `CellAssign` using an ontology-aware approach.
+If no common label is identified, no consensus cell type is assigned.
+See the [ScPCA Portal documentation](https://scpca.readthedocs.io/en/stable/processing_information.html#cell-type-annotation) for a full description on how these cell type annotations are assigned.
+`SingleR` and `CellAssign` annotation results are provided in the [supplementary cell type QC report](`r params$celltype_report`)."
+  )
+}
+
 glue::glue("
-  \n\nFor additional information about cell typing, including methods used for cell typing, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+  \n\nFor additional information about cell typing, including the results from all methods used, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
 ")
 ```
 
@@ -296,7 +306,7 @@ umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
-```{r, eval = (has_cellassign || has_singler), results='asis'}
+```{r, eval = (has_cellassign || has_singler) && (is_supplemental || !has_consensus), results='asis'}
 unclassified_methods <- c()
 
 # check for unclassified SingleR cells
@@ -359,7 +369,17 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
-```{r, eval = has_singler}
+```{r, eval = has_consensus}
+knitr::asis_output('### Consensus cell type annotations\n
+
+In this table, cells labeled "Unknown cell type" are those whose `SingleR` and `CellAssign` annotations did not agree.
+In the processed result files, these cells are labeled `Unknown`.
+')
+create_celltype_n_table(celltype_df, consensus_celltype_annotation) |>
+  format_celltype_n_table()
+```
+
+```{r, eval = has_singler && (!has_consensus || is_supplemental)}
 knitr::asis_output('### `SingleR` cell type annotations\n
 
 In this table, cells labeled "Unknown cell type" are those which `SingleR` pruned due to low-quality assignments.
@@ -369,7 +389,7 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
   format_celltype_n_table()
 ```
 
-```{r, eval = has_cellassign}
+```{r, eval = has_cellassign && (!has_consensus || is_supplemental)}
 knitr::asis_output('### `CellAssign` cell type annotations\n
 
 In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently assign to a label in the reference list.
@@ -428,8 +448,7 @@ if (length(levels(umap_df$cluster)) <= 8) {
 }
 ```
 
-
-```{r, eval = has_umap && has_celltypes}
+```{r, eval = has_umap && has_celltypes }
 knitr::asis_output(
   'Next, we show UMAPs colored by cell types.
 For each cell typing method, we show a separate faceted UMAP.
