@@ -512,7 +512,7 @@ faceted_umap(
   consensus_celltype_annotation_lumped,
   point_size = umap_facet_point_size
 ) +
-  ggtitle("UMAP colored by Consensus cell type annotations")
+  ggtitle("UMAP colored by consensus cell type annotations")
 ```
 
 ```{r}
