@@ -24,6 +24,24 @@ option_list <- list(
     Only used if `celltype_report_file` is not empty"
   ),
   make_option(
+    opt_str = c("--validation_groups_file"),
+    type = "character",
+    default = NULL,
+    help = "path to tsv file mapping consensus cell types to validation groups to use for plotting"
+  ),
+  make_option(
+    opt_str = c("--validation_markers_file"),
+    type = "character",
+    default = NULL,
+    help = "path to tsv file with marker genes for each validation group"
+  ),
+  make_option(
+    opt_str = c("--validation_palette_file"),
+    type = "character",
+    default = NULL,
+    help = "Color palette for validation groups"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     default = "",
     type = "character",
@@ -125,7 +143,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 stopifnot(
   "A `library_id` is required." = opt$library_id != "",
   "Specified `report_template` could not be found." = file.exists(opt$report_template),
-  "Unfiltered .rds file missing or `unfiltered_sce` not specified." = file.exists(opt$unfiltered_sce)
+  "Unfiltered .rds file missing or `unfiltered_sce` not specified." = file.exists(opt$unfiltered_sce),
 )
 
 if (opt$workflow_url == "null") {
@@ -274,7 +292,11 @@ scpcaTools::generate_qc_report(
   extra_params = list(
     seed = opt$seed,
     # this will only be used if cell types exist
-    celltype_report = opt$celltype_report_file
+    celltype_report = opt$celltype_report_file,
+    # only used if consensus cell types exist
+    validation_groups_file = opt$validation_groups_file,
+    validation_markers_file = opt$validation_markers_file,
+    validation_palette_file = opt$validation_palette_file
   )
 )
 
@@ -298,7 +320,11 @@ if (opt$celltype_report_file != "") {
       envir = new.env(),
       params = list(
         library = metadata_list$library_id,
-        processed_sce = processed_sce
+        processed_sce = processed_sce,
+        # only used if consensus cell types exist
+        validation_groups_file = opt$validation_groups_file,
+        validation_markers_file = opt$validation_markers_file,
+        validation_palette_file = opt$validation_palette_file
       )
     )
   }

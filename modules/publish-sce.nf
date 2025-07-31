@@ -9,6 +9,9 @@ process qc_publish_sce {
   input:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
     tuple path(template_dir), val(qc_template_file), val(celltype_template_file)
+    path(validation_groups_file)
+    path(validation_markers_file)
+    path(validation_palette_file)
   output:
     tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
     path qc_report, emit: report
