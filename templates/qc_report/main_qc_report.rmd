@@ -5,6 +5,9 @@ params:
   filtered_sce: NULL
   processed_sce: NULL
   celltype_report: NULL
+  validation_groups_file: NULL
+  validation_markers_file: NULL
+  validation_palette_file: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -30,6 +33,7 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 
 # Set default ggplot theme
 theme_set(
@@ -141,6 +145,15 @@ if (has_processed) {
 # check for celltypes_report if celltypes are present
 if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_report)) {
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
+}
+
+# check for validation groups files if has consensus
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_file does not exist" = file.exists(params$validation_groups_file),
+    "Consensus cell types are present but the validation_markers_file does not exist" = file.exists(params$validation_markers_file),
+    "Consensus cell types are present but the validation_palette_file does not exist" = file.exists(params$validation_palette_file)
+  )
 }
 
 # check if we have multiplex
