@@ -178,6 +178,7 @@ faceted_umap <- function(umap_df,
     guides(
       color = guide_legend(
         title = "Cell types",
+        byrow = TRUE,
         # more visible points in legend
         override.aes = list(
           alpha = 1,
