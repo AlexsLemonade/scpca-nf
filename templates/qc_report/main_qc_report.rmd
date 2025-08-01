@@ -147,7 +147,7 @@ if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_rep
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
 
-# check for validation groups files if has consensus
+# check for validation groups files if consensus cell types are present
 if (has_consensus) {
   stopifnot(
     "Consensus cell types are present but the validation_groups_file does not exist" = file.exists(params$validation_groups_file),
