@@ -49,6 +49,9 @@ process qc_publish_sce {
     # generate report and supplemental cell type report, if applicable
     sce_qc_report.R \
       --report_template "${template_dir / qc_template_file}" \
+      --validation_groups_file ${validation_groups_file} \
+      --validation_markers_file ${validation_markers_file} \
+      --validation_palette_file ${validation_palette_file} \
       --library_id "${meta.library_id}" \
       --sample_id "${meta.sample_id}" \
       --project_id "${meta.project_id}" \
