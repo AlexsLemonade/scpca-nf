@@ -143,7 +143,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 stopifnot(
   "A `library_id` is required." = opt$library_id != "",
   "Specified `report_template` could not be found." = file.exists(opt$report_template),
-  "Unfiltered .rds file missing or `unfiltered_sce` not specified." = file.exists(opt$unfiltered_sce),
+  "Unfiltered .rds file missing or `unfiltered_sce` not specified." = file.exists(opt$unfiltered_sce)
 )
 
 if (opt$workflow_url == "null") {
