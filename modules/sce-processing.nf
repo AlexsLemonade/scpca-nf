@@ -133,7 +133,7 @@ process filter_sce {
 
     detect_doublets.R \
       --input_sce_file "filtered.rds" \
-      --output_sce_file ${filtered.rds} \
+      --output_sce_file ${filtered_rds} \
       ${params.seed ? "--random_seed ${params.seed}" : ""} \
       --threads ${task.cpus}
     """
