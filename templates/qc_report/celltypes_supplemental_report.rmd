@@ -2,6 +2,9 @@
 params:
   library: Example
   processed_sce: NULL
+  validation_groups_file: NULL
+  validation_markers_file: NULL
+  validation_palette_file: NULL
   date: !r Sys.Date()
 title: "`r glue::glue('ScPCA Supplemental cell type report for {params$library}')`"
 author: "Childhood Cancer Data Lab"
@@ -261,11 +264,12 @@ processed_sce <- params$processed_sce
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
   !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
 # If at least 1 is present, we have cell type annotations.
-has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
 
 # check for umap and clusters
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
@@ -275,7 +279,8 @@ has_clusters <- "cluster" %in% names(colData(processed_sce))
 available_celltypes <- c(
   ifelse(has_submitter, "Submitter", NA),
   ifelse(has_singler, "SingleR", NA),
-  ifelse(has_cellassign, "CellAssign", NA)
+  ifelse(has_cellassign, "CellAssign", NA),
+  ifelse(has_consensus, "Consensus", NA)
 ) |>
   na.omit() |>
   as.character()
@@ -285,6 +290,15 @@ cellassign_not_run <- check_cellassign_not_run(
   has_cellassign,
   colData(processed_sce)
 )
+
+# check for validation groups files if consensus cell types are present
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_file does not exist" = file.exists(params$validation_groups_file),
+    "Consensus cell types are present but the validation_markers_file does not exist" = file.exists(params$validation_markers_file),
+    "Consensus cell types are present but the validation_palette_file does not exist" = file.exists(params$validation_palette_file)
+  )
+}
 
 # This variable need to be defined for edge conditions when certain cell types
 #  aren't available:

@@ -560,20 +560,27 @@ faceted_umap(
   ggtitle("UMAP colored by CellAssign annotations")
 ```
 
-<!-- TODO: Make this dependent on if consensus cell types exist --> 
+
+```{r, eval=has_consensus}
+knitr::asis_output("
 ## Expression of marker genes in consensus cell types
 
-This section looks at expression of a set of marker genes for each normal cell type across all cells. 
-The dot plot shows the mean expression and percent of cells expressing the marker gene for cells from each broad cell type group. 
-The y-axis includes marker genes for each cell type. 
-Marker genes are obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html). 
-All marker genes shown were specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells. 
+This section looks at expression of a set of marker genes for each consensus cell type across all cells.
+Consensus cell types are grouped into a broader cell type category for validation, e.g., all types of T cell will be grouped together as T cells.
 
-We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset. 
+The dot plot shows the mean expression and percent of cells expressing the marker gene for cells from each broad cell type group.
+The y-axis includes marker genes for each cell type.
+Marker genes are obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html).
+All marker genes shown were specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells.
 
-Note that dots are only shown if the gene has mean expression > 0 and is expressed in at least 10% of the cells in the given cell type. 
+We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
 
-```{r}
+Note that dots are only shown if the gene has mean expression > 0 and is expressed in at least 10% of the cells in the given cell type.
+  ")
+```
+
+
+```{r, eval=has_consensus, message=FALSE,warning=FALSE}
 # validation groups and marker gene table urls
 validation_groups_df <- readr::read_tsv(params$validation_groups_file) |>
   # rename final assigned group to avoid conflicts when merging in marker gene expression
@@ -592,7 +599,7 @@ celltype_colors <- readr::read_tsv(params$validation_palette_file) |>
 ```
 
 
-```{r}
+```{r, eval = has_consensus}
 # extract gene expression for marker genes from SCE
 # list of all marker genes
 all_markers <- markers_df |>
@@ -639,7 +646,7 @@ consensus_df <- celltype_df |>
   )
 ```
 
-```{r, eval = has_consensus, fig.height=7, fig.width=15}
+```{r, eval = has_consensus}
 # prep for plots
 # get total number of cells per final annotation group
 total_cells_df <- consensus_df |>
@@ -664,8 +671,6 @@ group_stats_df <- consensus_df |>
   # this includes all possible marker genes and all possible validation group assignments
   dplyr::left_join(markers_df, by = c("ensembl_gene_id", "validation_group_annotation"), relationship = "many-to-many") |> # add total cells
   dplyr::left_join(total_cells_df, by = c("broad_celltype_group")) |>
-  # only show cells that have above the minimum total number
-  # dplyr::filter(total_cells > 0) |>
   dplyr::mutate(
     # get total percent expressed
     percent_exp = (detected_count / total_cells) * 100,
@@ -714,8 +719,10 @@ dotplot_df <- group_stats_df |>
     gene_symbol = factor(gene_symbol, levels = marker_gene_order),
     validation_group_annotation = factor(validation_group_annotation, levels = celltype_order)
   )
+```
 
 
+```{r, eval = has_consensus, fig.height=7, fig.width=15}
 # make dotplot with marker gene exp
 dotplot <- ggplot(dotplot_df, aes(y = y_label, x = gene_symbol, color = mean_exp, size = percent_exp)) +
   geom_point() +
