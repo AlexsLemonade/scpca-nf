@@ -5,9 +5,9 @@ params:
   filtered_sce: NULL
   processed_sce: NULL
   celltype_report: NULL
-  validation_groups_file: NULL
-  validation_markers_file: NULL
-  validation_palette_file: NULL
+  validation_groups_df: NULL
+  validation_markers_df: NULL
+  validation_palette_df: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -147,12 +147,12 @@ if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_rep
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
 
-# check for validation groups files if consensus cell types are present
+# check for validation group info if consensus cell types are present
 if (has_consensus) {
   stopifnot(
-    "Consensus cell types are present but the validation_groups_file does not exist" = file.exists(params$validation_groups_file),
-    "Consensus cell types are present but the validation_markers_file does not exist" = file.exists(params$validation_markers_file),
-    "Consensus cell types are present but the validation_palette_file does not exist" = file.exists(params$validation_palette_file)
+    "Consensus cell types are present but the validation_groups_df has not been provided" = !is.null(params$validation_groups_df),
+    "Consensus cell types are present but the validation_markers_df has not been provided" = !is.null(params$validation_markers_df),
+    "Consensus cell types are present but the validation_palette_df has not been provided" = !is.null(params$validation_palette_df)
   )
 }
 

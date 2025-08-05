@@ -281,6 +281,30 @@ jsonlite::write_json(
   pretty = TRUE
 )
 
+# check for consensus input files
+has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
+
+# check for validation groups files if consensus cell types are present
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_file does not exist" = file.exists(opt$validation_groups_file),
+    "Consensus cell types are present but the validation_markers_file does not exist" = file.exists(opt$validation_markers_file),
+    "Consensus cell types are present but the validation_palette_file does not exist" = file.exists(opt$validation_palette_file)
+  )
+
+  # read in info for consensus cell type validation
+  # validation groups and marker gene table urls
+  validation_groups_df <- readr::read_tsv(opt$validation_groups_file)
+  # read in validation markers
+  validation_markers_df <- readr::read_tsv(opt$validation_markers_file)
+  # define color palette
+  celltype_colors_df <- readr::read_tsv(opt$validation_palette_file)
+} else {
+  validation_groups_df <- NULL
+  validation_markers_df <- NULL
+  celltype_colors_df <- NULL
+}
+
 # render main QC report
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
@@ -294,9 +318,9 @@ scpcaTools::generate_qc_report(
     # this will only be used if cell types exist
     celltype_report = opt$celltype_report_file,
     # only used if consensus cell types exist
-    validation_groups_file = opt$validation_groups_file,
-    validation_markers_file = opt$validation_markers_file,
-    validation_palette_file = opt$validation_palette_file
+    validation_groups_df = validation_groups_df,
+    validation_markers_df = validation_markers_df,
+    validation_palette_df = celltype_colors_df
   )
 )
 
@@ -322,9 +346,9 @@ if (opt$celltype_report_file != "") {
         library = metadata_list$library_id,
         processed_sce = processed_sce,
         # only used if consensus cell types exist
-        validation_groups_file = opt$validation_groups_file,
-        validation_markers_file = opt$validation_markers_file,
-        validation_palette_file = opt$validation_palette_file
+        validation_groups_df = validation_groups_df,
+        validation_markers_df = validation_markers_df,
+        validation_palette_df = celltype_colors_df
       )
     )
   }

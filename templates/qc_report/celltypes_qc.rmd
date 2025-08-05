@@ -581,20 +581,20 @@ Note that dots are only shown if the gene has mean expression > 0 and is express
 
 
 ```{r, eval=has_consensus, message=FALSE,warning=FALSE}
-# validation groups and marker gene table urls
-validation_groups_df <- readr::read_tsv(params$validation_groups_file) |>
+# validation groups and marker gene table info
+validation_groups_df <- validation_groups_df |>
   # rename final assigned group to avoid conflicts when merging in marker gene expression
   # we want to separate the marker gene group from the actual cell type annotation
   dplyr::select(consensus_annotation, broad_celltype_group = validation_group_annotation)
 
 # read in validation markers
-markers_df <- readr::read_tsv(params$validation_markers_file) |>
+markers_df <- validation_markers_df |>
   # only keep genes unique to a single cell type except HPC which doesn't have any unique genes
   # for HPC we keep all 6 marker genes
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
-celltype_colors <- readr::read_tsv(params$validation_palette_file) |>
+celltype_colors <- celltype_colors_df |>
   tibble::deframe()
 ```
 
