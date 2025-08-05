@@ -230,32 +230,6 @@ if (!has_multiplex) {
 ```{r, child='celltypes_qc.rmd'}
 ```
 
-```{r}
-# boolean for whether or not to inlude submitter heatmaps 
-submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
-```
-
-
-```{r, eval=(submitter_heatmaps | has_consensus), results='asis'}
-# only show cell type heatmap section if submitter + at least one other celltype or consensus is present
-glue::glue(
-  "
-  # Cell label comparisons
-
-  This section displays heatmaps comparing cell labels from various methods.
-
-  We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between         pairs of labels assigned by different annotation methods.
-
-  The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1.
-
-  * If the labels are assigned to identical sets of cells, the Jaccard index will be 1.
-  * If the labels are assigned to completely non-overlapping sets of cells, the Jaccard index will be 0.
-
-  High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
-
-")
-```
-
 <!-------------------------- Submitter heatmaps ------------------------------->
 ```{r, eval = submitter_heatmaps}
 # don't compare submitter to submitter
