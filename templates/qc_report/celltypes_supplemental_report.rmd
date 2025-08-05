@@ -240,7 +240,7 @@ submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_sin
 # only show cell type heatmap section if submitter + at least one other celltype or consensus is present
 glue::glue(
   "
-  # Cell label comparison plots
+  # Cell label comparisons
 
   This section displays heatmaps comparing cell labels from various methods.
 
