@@ -38,6 +38,12 @@
           "description": "Sample metadata file",
           "help_text": "A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file> for more information."
         },
+        "project_metafile": {
+          "type": "string",
+          "default": "project_metadata.tsv",
+          "description": "Project metadata file",
+          "fa_icon": "fas fa-file-alt"
+        },
         "project_celltype_metafile": {
           "type": "string",
           "description": "Celltype metadata file",
@@ -115,6 +121,9 @@
           "type": "boolean",
           "description": "Repeat cell typing",
           "help_text": "If cell type annotations have already been performed and output files exist, cell typing is skipped by default."
+        },
+        "create_cellbrowser": {
+          "type": "boolean"
         },
         "publish_fry_outs": {
           "type": "boolean",
@@ -361,6 +370,29 @@
         }
       }
     },
+    "template_files": {
+      "title": "Template Files",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "report_template_dir": {
+          "type": "string",
+          "default": "${projectDir}/templates/qc_report",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "report_template_file": {
+          "type": "string",
+          "default": "main_qc_report.rmd",
+          "fa_icon": "fas fa-file-alt"
+        },
+        "celltype_report_template_file": {
+          "type": "string",
+          "default": "celltypes_supplemental_report.rmd",
+          "fa_icon": "fas fa-file-alt"
+        }
+      }
+    },
     "containers": {
       "title": "Containers",
       "type": "object",
@@ -370,37 +402,37 @@
       "properties": {
         "SCPCATOOLS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SLIM_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_ANNDATA_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_REPORTS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SEURAT_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -467,6 +499,11 @@
           "type": "string",
           "hidden": true,
           "fa_icon": "fab fa-docker"
+        },
+        "CELLBROWSER_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/ucsc-cell-browser:1.2.15--pyhdfd78af_0",
+          "fa_icon": "fab fa-docker"
         }
       }
     }
@@ -486,6 +523,9 @@
     },
     {
       "$ref": "#/$defs/resource_maximums"
+    },
+    {
+      "$ref": "#/$defs/template_files"
     },
     {
       "$ref": "#/$defs/containers"

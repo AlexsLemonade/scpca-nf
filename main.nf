@@ -25,10 +25,8 @@ citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
 cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
 // report template paths
-report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
-report_template_file = "main_qc_report.rmd"
-celltype_report_template_file = "celltypes_supplemental_report.rmd"
-report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
+report_template_dir = file(params.report_template_dir, type: 'dir', checkIfExists: true)
+report_template_tuple = tuple(report_template_dir, params.report_template_file, params.celltype_report_template_file)
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
@@ -74,12 +72,12 @@ if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
 }
 
 // QC report files check
-if (!(report_template_dir / report_template_file).exists()) {
-  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
+if (!(report_template_dir / params.report_template_file).exists()) {
+  log.error("The 'report_template_file' file '${params.report_template_file}' can not be found.")
   param_error = true
 }
-if (!(report_template_dir / celltype_report_template_file).exists()) {
-  log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
+if (!(report_template_dir / params.celltype_report_template_file).exists()) {
+  log.error("The 'celltype_report_template_file' file '${params.celltype_report_template_file}' can not be found.")
   param_error = true
 }
 

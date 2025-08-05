@@ -133,7 +133,7 @@ process filter_sce {
 
     detect_doublets.R \
       --input_sce_file "filtered.rds" \
-      --output_sce_file ${filtered.rds} \
+      --output_sce_file ${filtered_rds} \
       ${params.seed ? "--random_seed ${params.seed}" : ""} \
       --threads ${task.cpus}
     """
@@ -229,8 +229,7 @@ process post_process_sce {
 }
 
 
-// used when a given file is not defined in the below workflows
-empty_file = "${projectDir}/assets/NO_FILE"
+
 
 workflow generate_sce {
   // generate rds files for RNA-only samples
@@ -238,6 +237,7 @@ workflow generate_sce {
     quant_channel
     sample_metafile
   main:
+    def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
@@ -265,6 +265,7 @@ workflow generate_sce_with_feature {
     feature_quant_channel
     sample_metafile
   main:
+    def empty_file = "${projectDir}/assets/NO_FILE"
 
     feature_sce_ch = feature_quant_channel
       // RNA meta is in the third slot here
