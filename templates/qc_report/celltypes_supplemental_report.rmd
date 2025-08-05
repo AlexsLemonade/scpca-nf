@@ -236,7 +236,7 @@ if (!has_multiplex) {
 available_celltypes <- available_celltypes[!(available_celltypes == "Submitter")]
 
 knitr::asis_output(
-"## Submitter-provided annotations
+  "## Submitter-provided annotations
 
   This section displays heatmaps comparing submitter-provided cell type annotations to those obtained from automated cell type annotation methods, including consensus cell types, if present."
 )
@@ -287,14 +287,14 @@ jaccard_submitter_matrices |>
 knitr::asis_output("
 ## Automated annotations
 
-This section displays a heatmap directly comparing cell type annotations from individual cell type annotation methods to the assigned consensus cell type label. 
+This section displays a heatmap directly comparing cell type annotations from individual cell type annotation methods to the assigned consensus cell type label.
 Note that due to different annotations references, these methods may use different names for similar cell types.
 ")
 ```
 
 ```{r, eval = has_consensus}
 # having consensus celltypes implies that both SingleR and CellAssign exist
-# TODO: Update to handle adding in SCimilarity 
+# TODO: Update to handle adding in SCimilarity
 automated_celltypes <- c("SingleR", "CellAssign")
 
 # calculate matrices comparing to consensus

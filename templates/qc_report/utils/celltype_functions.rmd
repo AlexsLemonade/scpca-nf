@@ -377,5 +377,3 @@ calculate_plot_height <- function(
   )
 }
 ```
-
-

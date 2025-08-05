@@ -770,13 +770,13 @@ combined_plot
 
 
 ```{r}
-# boolean for whether or not to inlude submitter heatmaps 
+# boolean for whether or not to include submitter heatmaps
 submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
 ```
 
 ```{r, eval=submitter_heatmaps | has_consensus, results = 'asis'}
-# update text depending on if this is the main or supplemental report 
-if(has_submitter & has_consensus & !is_supplemental){
+# update text depending on if this is the main or supplemental report
+if (has_submitter & has_consensus & !is_supplemental) {
   heatmap_text <- "This section displays heatmaps comparing consensus cell type labels to submitter annotations."
 } else {
   heatmap_text <- "This section displays heatmaps comparing cell labels from various methods."
@@ -797,7 +797,8 @@ glue::glue(
 
   High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
 
-")
+"
+)
 ```
 
 ```{r, eval= has_submitter & has_consensus & !is_supplemental }
@@ -833,5 +834,3 @@ create_single_heatmap(
     heatmap_legend_side = "bottom"
   )
 ```
-
-
