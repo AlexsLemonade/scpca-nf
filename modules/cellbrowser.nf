@@ -32,6 +32,7 @@ process cellbrowser_project {
   stub:
     """
     mkdir -p "${site_dir}/${project_id}"
+    touch "${site_dir}/${project_id}/project_file.html"
     """
 
 }
@@ -39,7 +40,7 @@ process cellbrowser_project {
 
 process cellbrowser_library {
   container "${params.CELLBROWSER_CONTAINER}"
-  publishDir "${params.results_dir}", mode: 'copy'
+  publishDir "${params.results_dir}/scpca_cellbrowser", mode: 'copy'
   tag "${meta.library_id}"
 
   input:
@@ -55,6 +56,7 @@ process cellbrowser_library {
   stub:
     """
     mkdir -p "${project_dir}/${meta.library_id}"
+    touch "${project_dir}/${meta.library_id}/library_file.html"
     """
 }
 
@@ -63,15 +65,16 @@ workflow make_cellbrowser {
   take:
     processed_anndata_ch // channel of tuples [meta, processed_h5ad_file(s)]
   main:
+    project_metadata = file(params.project_metafile)
     // export processed anndata files for cellbrowser
-    site_base = cellbrowser_site(params.project_metadata)
+    site_base = cellbrowser_site(project_metadata)
 
     // make a channel of project ids
     project_ch = processed_anndata_ch
       .map{meta, _h5ad -> meta.project_id}
       .unique()
 
-    cellbrowser_project(project_ch, params.project_metadata, site_base)
+    cellbrowser_project(project_ch, project_metadata, site_base)
 
     library_ch = processed_anndata_ch
       .map{meta, h5ad_file -> [meta.project_id, meta, h5ad_file]}

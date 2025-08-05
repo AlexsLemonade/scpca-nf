@@ -39,6 +39,7 @@ include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
+include { make_cellbrowser } from './modules/cellbrowser.nf'
 
 
 // parameter checks
@@ -334,6 +335,11 @@ workflow {
     // skip multiplexed libraries
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
+
+  if (params.create_cellbrowser) {
+    processed_anndata_ch = sce_to_anndata.out.processed
+    make_cellbrowser(processed_anndata_ch)
+  }
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
