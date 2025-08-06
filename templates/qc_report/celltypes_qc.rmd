@@ -570,12 +570,12 @@ Consensus cell types are grouped into a broader cell type category for validatio
 
 The dot plot shows the mean expression and percent of cells expressing the marker gene for cells from each broad cell type group.
 The y-axis includes marker genes for each cell type.
-Marker genes are obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html).
-All marker genes shown were specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells.
+Marker genes were obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html).
+All marker genes shown are specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells.
 
 We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
 
-Note that dots are only shown if the gene has mean expression > 0 and is expressed in at least 10% of the cells in the given cell type.
+Note that dots are only shown if the gene has mean expression greater than 0 and is expressed in at least 10% of the cells in the given cell type.
   ")
 ```
 
