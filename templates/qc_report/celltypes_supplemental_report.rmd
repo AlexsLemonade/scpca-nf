@@ -341,14 +341,14 @@ jaccard_consensus_matrices |>
 knitr::asis_output(glue::glue("
 # Unsupervised clustering
 
-In this section, we look at unsupervised cluster assignments. 
-The first plot shows the cluster assignments on a UMAP and the second plot shows a heatmap comparing cluster assignments to cell type annotations. 
+In this section, we look at unsupervised cluster assignments.
+The first plot shows the cluster assignments on a UMAP and the second plot shows a heatmap comparing cluster assignments to cell type annotations.
 The heatmap is colored by the Jaccard similarity index as described in the `Cell label comparisons` section above.
 
 Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_algorithm} algorithm with  {metadata(processed_sce)$cluster_weighting} weighting.
 
-**Caution**: Clusters are computed without performing any evaluation or optimization of clustering parameters. 
-These results should be interpreted with caution. 
+**Caution**: Clusters are computed without performing any evaluation or optimization of clustering parameters.
+These results should be interpreted with caution.
 "))
 ```
 

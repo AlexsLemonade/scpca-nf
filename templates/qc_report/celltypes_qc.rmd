@@ -417,7 +417,7 @@ if (has_consensus && !has_submitter && !is_supplemental) {
 
 knitr::asis_output(glue::glue(
   '## UMAPs
-  
+
   In this section, we show UMAPs colored by cell types.
   {umap_text}
 In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
