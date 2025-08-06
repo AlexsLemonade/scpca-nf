@@ -401,54 +401,10 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 ```
 
 
-```{r, eval = has_umap && has_clusters}
-knitr::asis_output(glue::glue("
-## UMAPs
-
-In this section, we show UMAPs colored by clusters.
-Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_algorithm} algorithm with  {metadata(processed_sce)$cluster_weighting} weighting.
-"))
-```
-
-
 ```{r, eval = has_umap, warning = FALSE}
 # Create dataset for plotting UMAPs with lumped and label-wrapped cell types
 umap_df <- lump_wrap_celltypes(celltype_df)
 ```
-
-
-<!-- First UMAP: clusters -->
-
-```{r, eval = has_umap && has_multiplex && has_clusters, results='asis'}
-glue::glue("
-  <div class=\"alert alert-info\">
-    This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
-    Please use caution when interpreting these results.
-  </div>
-")
-```
-
-
-```{r eval = has_umap && has_clusters, message=FALSE, warning=FALSE}
-clusters_plot <- plot_umap(
-  umap_df,
-  cluster,
-  "Cluster",
-  point_size = umap_point_size
-) +
-  ggtitle("UMAP colored by cluster identity")
-
-# Determine palette based on number of levels.
-# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
-#  Otherwise, we will use the default palette.
-if (length(levels(umap_df$cluster)) <= 8) {
-  clusters_plot +
-    scale_color_brewer(palette = "Set2")
-} else {
-  clusters_plot
-}
-```
-
 
 ```{r, eval = has_umap && has_celltypes }
 # only mention multiple annotations if we're actually showing multiple annotations
@@ -460,7 +416,9 @@ if (has_consensus && !has_submitter && !is_supplemental) {
 
 
 knitr::asis_output(glue::glue(
-  'Next, we show UMAPs colored by cell types.
+  '## UMAPs
+  
+  In this section, we show UMAPs colored by cell types.
   {umap_text}
 In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
 

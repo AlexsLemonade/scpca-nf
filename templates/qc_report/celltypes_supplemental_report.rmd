@@ -234,7 +234,7 @@ if (!has_multiplex) {
 <!-------------------------- Submitter heatmaps ------------------------------->
 ```{r, eval = submitter_heatmaps}
 # don't compare submitter to submitter
-available_celltypes <- available_celltypes[!(available_celltypes == "Submitter")]
+automated_celltypes_available <- available_celltypes[!(available_celltypes == "Submitter")]
 
 knitr::asis_output(
   "## Submitter-provided annotations
@@ -245,7 +245,7 @@ knitr::asis_output(
 
 ```{r, eval = submitter_heatmaps}
 # calculate matrices comparing to submitter
-jaccard_submitter_matrices <- available_celltypes |>
+jaccard_submitter_matrices <- automated_celltypes_available |>
   stringr::str_to_lower() |>
   purrr::map(\(name) {
     make_jaccard_matrix(
@@ -254,7 +254,7 @@ jaccard_submitter_matrices <- available_celltypes |>
       glue::glue("{name}_celltype_annotation")
     )
   }) |>
-  purrr::set_names(available_celltypes)
+  purrr::set_names(automated_celltypes_available)
 
 # how many cell types?
 all_celltypes <- jaccard_submitter_matrices |>
@@ -336,6 +336,61 @@ jaccard_consensus_matrices |>
 ```
 
 <!--TODO: Fill out clustering section -->
+
+```{r, eval = has_umap && has_clusters}
+knitr::asis_output(glue::glue("
+# Unsupervised clustering
+
+In this section, we look at unsupervised cluster assignments. 
+The first plot shows the cluster assignments on a UMAP and the second plot shows a heatmap comparing cluster assignments to cell type annotations. 
+The heatmap is colored by the Jaccard similarity index as described in the `Cell label comparisons` section above.
+
+Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_algorithm} algorithm with  {metadata(processed_sce)$cluster_weighting} weighting.
+
+**Caution**: Clusters are computed without performing any evaluation or optimization of clustering parameters. 
+These results should be interpreted with caution. 
+"))
+```
+
+
+```{r, eval = has_umap, warning = FALSE}
+# Create dataset for plotting UMAPs with lumped and label-wrapped cell types
+umap_df <- lump_wrap_celltypes(celltype_df)
+```
+
+
+<!-- First UMAP: clusters -->
+
+```{r, eval = has_umap && has_multiplex && has_clusters, results='asis'}
+glue::glue("
+  <div class=\"alert alert-info\">
+    This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
+    Please use caution when interpreting these results.
+  </div>
+")
+```
+
+
+```{r eval = has_umap && has_clusters, message=FALSE, warning=FALSE}
+clusters_plot <- plot_umap(
+  umap_df,
+  cluster,
+  "Cluster",
+  point_size = umap_point_size
+) +
+  ggtitle("UMAP colored by cluster identity")
+
+# Determine palette based on number of levels.
+# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
+#  Otherwise, we will use the default palette.
+if (length(levels(umap_df$cluster)) <= 8) {
+  clusters_plot +
+    scale_color_brewer(palette = "Set2")
+} else {
+  clusters_plot
+}
+```
+
 <!-- If multiplexed, show info alert instead of this heatmap --> 
 ```{r, eval = has_multiplex, results='asis'}
 glue::glue("
@@ -349,13 +404,6 @@ glue::glue("
 
 <!-- If not multiplexed, show the header, text, and heatmap --> 
 ```{r, eval = !has_multiplex && has_clusters, results='asis'}
-glue::glue("
-  ## Unsupervised clustering
-
-  Here we show the labels from unsupervised clustering compared to cell type annotations.
-  Cluster assignment was performed using the `{metadata(processed_sce)$cluster_algorithm}` algorithm.
-")
-
 # Calculate all jaccard matrices of interest for input to heatmap
 jaccard_cluster_matrices <- available_celltypes |>
   stringr::str_to_lower() |>
