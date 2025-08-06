@@ -30,6 +30,7 @@ report_template_file = "main_qc_report.rmd"
 celltype_report_template_file = "celltypes_supplemental_report.rmd"
 report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
 
+
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
 include { map_quant_feature } from './modules/af-features.nf'
@@ -91,6 +92,23 @@ if (params.perform_celltyping) {
   }
   if (!file(params.celltype_ref_metadata).exists()) {
     log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
+    param_error = true
+  }
+  // check that reference files related to consensus cell types exist
+  if (!file(params.consensus_ref_file).exists()) {
+    log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
+    param_error = true
+  } 
+  if (!file(params.validation_groups_file).exists()) {
+    log.error("The 'validation_groups_file' file '${params.validation_groups_file}' can not be found.")
+    param_error = true
+  } 
+  if (!file(params.validation_markers_file).exists()) {
+    log.error("The 'validation_markers_file' file '${params.validation_markers_file}' can not be found.")
+    param_error = true
+  } 
+  if (!file(params.validation_palette_file).exists()) {
+    log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
     param_error = true
   }
 }
@@ -328,7 +346,11 @@ workflow {
   // generate QC reports & metrics, then publish sce
   qc_publish_sce(
     sce_output_ch,
-    report_template_tuple
+    report_template_tuple,
+    // paths to files needed to make consensus cell type validation dot plots
+    file(params.validation_groups_file),
+    file(params.validation_markers_file),
+    file(params.validation_palette_file)
   )
 
   // convert SCE object to anndata
