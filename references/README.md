@@ -23,7 +23,7 @@ These files are used by `build-celltype-ref.nf` to generate cell type annotation
 These files are copies of reference files that were created as part of `OpenScPCA`. 
 See the [`cell-type-consensus` module as part of the `OpenScPCA-analysis` repository](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus) to learn more about how these file were originally created. 
 
-- `panglao-cell-type-ontologies.tsv` contains the [Cell Ontology identifier term](https://www.ebi.ac.uk/ols4/ontologies/cl) for all cell types available in the `PanglaoDB` reference used when running `CellAssign`. 
+- [`panglao-cell-type-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/58f2bf8c6fa912a2c04bd77906c785983cee8790/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv) contains the [Cell Ontology identifier term](https://www.ebi.ac.uk/ols4/ontologies/cl) for all cell types available in the `PanglaoDB` reference used when running `CellAssign`. 
 The table includes the following columns:
 
 |  |   |
@@ -32,7 +32,7 @@ The table includes the following columns:
 | `human_readable_value` | Label associated with the cell type ontology term |
 | `panglao_cell_type` | Original name for the cell type as set by `PanglaoDB` |
 
-- `consensus-cell-type-reference.tsv` contains a table with all cell type combinations between the `PanglaoDB` reference and `BlueprintEncodeData` reference for which a consensus cell type is identified.  
+- [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/58f2bf8c6fa912a2c04bd77906c785983cee8790/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv) contains a table with all cell type combinations between the `PanglaoDB` reference and `BlueprintEncodeData` reference for which a consensus cell type is identified.  
 The table includes the following columns: 
 
 |  |   |
@@ -45,7 +45,7 @@ The table includes the following columns:
 | `consensus_ontology` | Cell type ontology term for consensus cell type |
 | `consensus_annotation` | Name for the `consensus_ontology` term as defined by [Cell Ontology](https://www.ebi.ac.uk/ols4/ontologies/cl) |
 
-- `consensus-validation-groups.tsv` contains a table of all possible consensus cell type labels and assigns a broader group to use for validating consensus cell type assignments using marker genes. 
+- [`consensus-validation-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/58f2bf8c6fa912a2c04bd77906c785983cee8790/analyses/cell-type-consensus/references/consensus-validation-groups.tsv) contains a table of all possible consensus cell type labels and assigns a broader group to use for validating consensus cell type assignments using marker genes. 
 This table includes the following columns: 
 
 
@@ -56,7 +56,7 @@ This table includes the following columns:
 | `validation_group_ontology` | Cell type ontology term for broader cell type group used for validation |
 | `consensus_annotation` | Human readable name for broader cell type group used for validation |
 
-- `validation-markers.tsv` contains a list of marker genes to aid in validating consensus cell types. 
+- [`validation-markers.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/58f2bf8c6fa912a2c04bd77906c785983cee8790/analyses/cell-type-consensus/references/validation-markers.tsv) contains a list of marker genes to aid in validating consensus cell types. 
 These markers were obtained by grabbing the most frequently observed markers for each cell type included in `consensus-validation-groups.tsv` from the [`CellMarker2.0` list of human marker genes](http://117.50.127.228/CellMarker/CellMarker_download.html). 
 The top 10 genes (sometimes more if there is a tie in the frequency) are included for each cell type. 
 
