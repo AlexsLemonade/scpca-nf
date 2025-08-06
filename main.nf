@@ -94,6 +94,23 @@ if (params.perform_celltyping) {
     log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
     param_error = true
   }
+  // check that reference files related to consensus cell types exist
+  if (!file(params.consensus_ref_file).exists()) {
+    log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
+    param_error = true
+  } 
+  if (!file(params.validation_groups_file).exists()) {
+    log.error("The 'validation_groups_file' file '${params.validation_groups_file}' can not be found.")
+    param_error = true
+  } 
+  if (!file(params.validation_markers_file).exists()) {
+    log.error("The 'validation_markers_file' file '${params.validation_markers_file}' can not be found.")
+    param_error = true
+  } 
+  if (!file(params.validation_palette_file).exists()) {
+    log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
+    param_error = true
+  }
 }
 
 
@@ -331,9 +348,9 @@ workflow {
     sce_output_ch,
     report_template_tuple,
     // paths to files needed to make consensus cell type validation dot plots
-    file(params.validation_groups_file, checkIfExists: true),
-    file(params.validation_markers_file, checkIfExists: true),
-    file(params.validation_palette_file, checkIfExists: true)
+    file(params.validation_groups_file),
+    file(params.validation_markers_file),
+    file(params.validation_palette_file)
   )
 
   // convert SCE object to anndata
