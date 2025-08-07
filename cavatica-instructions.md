@@ -68,7 +68,7 @@ For more detailed information about formatting, you should refer to [the main in
 ### Adding Cavatica paths to metadata files
 
 To run the workflow on Cavatica, you will need to transform any relative paths in the run metadata file to Cavatica `vs://` uris.
-This can be done using the `sbmanifest` tool, following the [Seven Bridges instructions](https:/docs.sevenbridges.com/docs/using-sample-sheets-with-nextflow-apps)
+This can be done using the `sbmanifest` tool, following the [Seven Bridges instructions](https://docs.sevenbridges.com/docs/using-sample-sheets-with-nextflow-apps)
 
 Briefly, you will need to run a command like the one below, replacing `{user/project}` with your Cavatica username and project name, and `run_metadata.tsv` with the path to your run metadata file.
 The command below will output a new file `run_metadata-cavatica.tsv` with the transformed paths, which will now have the form `vs:///Projects/{project_uuid}/relative/path/`.
