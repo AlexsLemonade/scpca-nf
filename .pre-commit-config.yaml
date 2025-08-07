@@ -2,15 +2,6 @@
 repos:
   - repo: local
     hooks:
-      - id: spell-check
-        name: Spell check files
-        language: r
-        entry: Rscript scripts/spell-check.R
-        additional_dependencies:
-          - readr
-          - rprojroot
-          - spelling
-          - tidyr
       - id: forbid-to-commit
         name: Don't commit common R artifacts
         entry: Cannot commit .Rhistory, .RData, or .Rds files.
@@ -24,6 +15,10 @@ repos:
             test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
             test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
           )$
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.34.0
+    hooks:
+      - id: typos
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
     rev: v2.2.0
@@ -32,7 +27,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.11.4
+    rev: v0.12.4
     hooks:
       # Run the linter.
       - id: ruff
@@ -40,7 +35,7 @@ repos:
       - id: ruff-format
   - repo: https://github.com/lorenzwalthert/precommit
     # R styling and linting
-    rev: v0.4.3.9008
+    rev: v0.4.3.9012
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
@@ -57,5 +52,3 @@ ci:
   autofix_prs: true # set to false if we don't want fixes automatically applied by ci
   autoupdate_branch: development
   autoupdate_schedule: quarterly
-  # skip spell check because it can't be quickly installed on CI
-  skip: [spell-check]

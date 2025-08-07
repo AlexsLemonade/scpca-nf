@@ -2,6 +2,9 @@
 params:
   library: Example
   processed_sce: NULL
+  validation_groups_df: NULL
+  validation_markers_df: NULL
+  validation_palette_df: NULL
   date: !r Sys.Date()
 title: "`r glue::glue('ScPCA Supplemental cell type report for {params$library}')`"
 author: "Childhood Cancer Data Lab"
@@ -261,11 +264,12 @@ processed_sce <- params$processed_sce
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
   !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
 # If at least 1 is present, we have cell type annotations.
-has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
 
 # check for umap and clusters
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
@@ -275,7 +279,8 @@ has_clusters <- "cluster" %in% names(colData(processed_sce))
 available_celltypes <- c(
   ifelse(has_submitter, "Submitter", NA),
   ifelse(has_singler, "SingleR", NA),
-  ifelse(has_cellassign, "CellAssign", NA)
+  ifelse(has_cellassign, "CellAssign", NA),
+  ifelse(has_consensus, "Consensus", NA)
 ) |>
   na.omit() |>
   as.character()
@@ -285,6 +290,16 @@ cellassign_not_run <- check_cellassign_not_run(
   has_cellassign,
   colData(processed_sce)
 )
+
+
+# check for validation group info if consensus cell types are present
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_df has not been provided" = !is.null(params$validation_groups_df),
+    "Consensus cell types are present but the validation_markers_df has not been provided" = !is.null(params$validation_markers_df),
+    "Consensus cell types are present but the validation_palette_df has not been provided" = !is.null(params$validation_palette_df)
+  )
+}
 
 # This variable need to be defined for edge conditions when certain cell types
 #  aren't available:
@@ -366,6 +381,15 @@ if (has_cellassign) {
     * Annotations from [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)).
     Marker genes for cell types were obtained from [PanglaoDB](https://panglaodb.se/) and compiled into a reference named `{ref_name}`.
     This reference includes the following organs and tissue compartments: {organs_string}.\n"
+  )
+}
+
+if (has_consensus) {
+  methods_text <- glue::glue(
+    "{methods_text}
+    * Consensus cell types based on agreement between `SingleR` and `CellAssign` using an ontology-aware approach.
+    If no common label is identified, no consensus cell type is assigned.
+    See the [ScPCA Portal documentation](https://scpca.readthedocs.io/en/stable/processing_information.html#cell-type-annotation) for a full description on how these cell type annotations are assigned.\n"
   )
 }
 

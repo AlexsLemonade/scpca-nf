@@ -118,7 +118,7 @@ def main():
         # get paths to salmon directories and add individual files
         ref_paths += get_salmon_files(assembly_refs)
 
-        # if cellranger and star indicies are requested, get individual files
+        # if cellranger and star indices are requested, get individual files
         if args.cellranger_index:
             ref_paths += get_cellranger_files(assembly_refs)  # add cellranger files
         if args.star_index:
@@ -382,7 +382,7 @@ def write_paramfile(paramfile: str, refdir: str, param_dict: dict[str, str]) -> 
         )
         shutil.move(paramfile, str(paramfile) + ".bak")
 
-    # alwaus update the rootdir
+    # always update the rootdir
     updated_params = {
         "ref_rootdir": os.path.abspath(refdir),
     }

@@ -182,11 +182,18 @@ process filter_sce {
     """
     filter_sce.R \
       --unfiltered_file ${unfiltered_rds} \
-      --filtered_file ${filtered_rds} \
+      --filtered_file "filtered.rds" \
       ${adt_present ? "--adt_name ${meta.feature_type}":""} \
       ${adt_present ? "--adt_barcode_file ${feature_barcode_file}":""} \
       --prob_compromised_cutoff ${params.prob_compromised_cutoff} \
-      ${params.seed ? "--random_seed ${params.seed}" : ""}
+      ${params.seed ? "--random_seed ${params.seed}" : ""} \
+      --no_sce_compression
+
+    detect_doublets.R \
+      --input_sce_file "filtered.rds" \
+      --output_sce_file ${filtered_rds} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""} \
+      --threads ${task.cpus}
     """
   stub:
     filtered_rds = "${meta.library_id}_filtered.rds"
@@ -280,8 +287,7 @@ process post_process_sce {
 }
 
 
-// used when a given file is not defined in the below workflows
-empty_file = "${projectDir}/assets/NO_FILE"
+
 
 workflow generate_sce {
   // generate rds files for RNA-only samples
@@ -289,6 +295,7 @@ workflow generate_sce {
     quant_channel
     sample_metafile
   main:
+    def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
@@ -316,6 +323,7 @@ workflow generate_sce_with_feature {
     feature_quant_channel
     sample_metafile
   main:
+    def empty_file = "${projectDir}/assets/NO_FILE"
 
     feature_sce_ch = feature_quant_channel
       // RNA meta is in the third slot here

@@ -5,6 +5,9 @@ params:
   filtered_sce: NULL
   processed_sce: NULL
   celltype_report: NULL
+  validation_groups_df: NULL
+  validation_markers_df: NULL
+  validation_palette_df: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -30,6 +33,7 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 
 # Set default ggplot theme
 theme_set(
@@ -118,18 +122,20 @@ if (has_cellhash) {
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
   has_clusters <- "cluster" %in% names(colData(processed_sce))
+  has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
   has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
     !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
-  has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+  has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
 
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
   has_clusters <- FALSE
+  has_consensus <- FALSE
   has_singler <- FALSE
   has_cellassign <- FALSE
   has_submitter <- FALSE
@@ -137,8 +143,17 @@ if (has_processed) {
 }
 
 # check for celltypes_report if celltypes are present
-if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
+if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_report)) {
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
+}
+
+# check for validation group info if consensus cell types are present
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_df has not been provided" = !is.null(params$validation_groups_df),
+    "Consensus cell types are present but the validation_markers_df has not been provided" = !is.null(params$validation_markers_df),
+    "Consensus cell types are present but the validation_palette_df has not been provided" = !is.null(params$validation_palette_df)
+  )
 }
 
 # check if we have multiplex

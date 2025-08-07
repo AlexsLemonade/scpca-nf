@@ -1,3 +1,4 @@
+⚠️
 ADT
 ADTs
 al
@@ -7,6 +8,7 @@ altExp
 AMI
 ARI
 barcode
+bioinformatics
 Cavatica
 cDNA
 CellAssign
@@ -15,6 +17,7 @@ CLI
 conda
 config
 customizable
+customizations
 data's
 demultiplexed
 demultiplexing
@@ -23,8 +26,8 @@ EFO
 embeddings
 Ensembl
 et
-fastq
 FASTQ
+fastq
 formatter
 GEX
 Github
@@ -54,8 +57,8 @@ pre
 reproducibility
 reproducibly
 SCE
-scpca
 ScPCA
+scpca
 Seqera
 singleplexed
 SingleR
@@ -69,6 +72,5 @@ UMAP
 UMI
 uri
 Visium
-VS
 xenograft
 ZenHub

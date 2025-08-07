@@ -1,0 +1,8 @@
+[files]
+extend-exclude = [
+  "references/*.tsv"
+]
+
+[default.extend-identifiers]
+limitBAMsortRAM="limitBAMsortRAM"
+outBAMsortingThreadN="outBAMsortingThreadN"
