@@ -252,7 +252,9 @@ create_single_heatmap <- function(
     labels_font_size,
     keep_legend_name,
     col_fun = heatmap_col_fun,
+    column_names_side = "bottom",
     ...) {
+  
   heat <- ComplexHeatmap::Heatmap(
     t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
     col = col_fun,
@@ -268,9 +270,8 @@ create_single_heatmap <- function(
     cluster_columns = FALSE,
     column_title = column_title,
     column_title_gp = grid::gpar(fontsize = 10),
-    column_names_side = "bottom",
-    column_names_gp = grid::gpar(fontsize = labels_font_size),
-    ### passed in args
+    column_names_side = column_names_side,
+    column_names_gp = grid::gpar(fontsize = labels_font_size),    ### passed in args
     ...,
     ## Legend parameters
     heatmap_legend_param = list(
@@ -305,15 +306,28 @@ create_heatmap_list <- function(
 
   heatmap_list <- matrix_list |>
     purrr::imap(
-      \(mat, name) create_single_heatmap(
-        mat,
-        name,
-        column_title,
-        labels_font_size,
-        keep_legend_name,
-        col_fun,
-        ...
-      )
+      \(mat, name) {
+        
+        # get the index of the list for mat
+        idx <- which(names(matrix_list) == name)
+        
+        # if its the first one set the names to the top, otherwise bottom 
+        if(idx == 1){
+          column_names_side <- "top"
+        } else {
+          column_names_side <- "bottom"
+        }
+        
+        create_single_heatmap(
+          mat,
+          name,
+          column_title,
+          labels_font_size,
+          keep_legend_name,
+          col_fun,
+          column_names_side,
+          ...
+        )}
     ) |>
     # concatenate vertically into HeatmapList object
     purrr::reduce(ComplexHeatmap::`%v%`)
