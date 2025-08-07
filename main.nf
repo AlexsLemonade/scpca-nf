@@ -192,21 +192,21 @@ workflow {
     }
 
   // generate lists of library ids for feature libraries & RNA-only
-  def feature_libs = runs_ch.feature
+  feature_libs = runs_ch.feature
     .collect{it.library_id}
-  def rna_only_libs = runs_ch.rna
+  rna_only_libs = runs_ch.rna
     .filter{!(it.library_id in feature_libs.getVal())}
     .collect{it.library_id}
-  def multiplex_libs = runs_ch.rna
+  multiplex_libs = runs_ch.rna
     .filter{it.sample_id.contains(",")}
     .collect{it.library_id}
 
   // get list of samples with bulk RNA-seq
-  def bulk_samples = runs_ch.bulk
+  bulk_samples = runs_ch.bulk
     .collect{it.sample_id}
 
   // get genetic multiplex libs with all bulk samples present
-  def genetic_multiplex_libs = runs_ch.rna
+  genetic_multiplex_libs = runs_ch.rna
     .filter{!params.skip_genetic_demux} // empty channel if skipping genetic demux
     .filter{it.sample_id.contains(",")}
     .filter{it.sample_id.tokenize(",").every{it in bulk_samples.getVal()}}
