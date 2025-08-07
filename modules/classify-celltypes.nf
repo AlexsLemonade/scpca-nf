@@ -141,12 +141,13 @@ process add_celltypes_to_sce {
     """
 }
 
-empty_file = "${projectDir}/assets/NO_FILE"
+
 
 workflow annotate_celltypes {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
 
+  def empty_file = "${projectDir}/assets/NO_FILE"
   // read in sample metadata and make a list of cell line samples; these won't be cell typed
   cell_line_samples = Channel.fromPath(params.sample_metafile)
     .splitCsv(header: true, sep: '\t')
