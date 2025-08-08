@@ -89,7 +89,7 @@ process cellranger_index {
       --genes=genome.gtf \
       --nthreads=${task.cpus}
 
-    # copy index to output directory and clean up 
+    # copy index to output directory and clean up
     cp -r ${assembly} ${cellranger_index} && rm -rf ${assembly}
     """
 }
@@ -141,22 +141,22 @@ workflow {
       def reference_name = "${it.organism}.${it.assembly}.${it.version}";
       // reference name & reference file paths for each organism
       [
-        reference_name, 
+        reference_name,
         ref_paths[reference_name],
         it.include_salmon.toUpperCase() == "TRUE",
         it.include_cellranger.toUpperCase() == "TRUE",
         it.include_star.toUpperCase() == "TRUE"
-        ]
+      ]
     }
     // filter to only regenerate specified references
-    .filter{ build_all || it[0] in params.build_refs }
+    .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
     // add paths to fasta and gtf files
     .map{it +[
       file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
       file("${params.ref_rootdir}/${it[1]["ref_gtf"]}") // path to gtf
     ]}
     // branch to create salmon, cellranger, and star references
-    .branch{ it -> 
+    .branch{ it ->
       salmon: it[2] == true
       cellranger: it[3] == true
       star: it[4] == true

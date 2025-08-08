@@ -140,6 +140,12 @@
           "description": "Maximum number of libraries to merge",
           "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power. Only used in the merge.nf workflow.",
           "hidden": true
+        },
+        "build_refs": {
+          "default": "All",
+          "description": "Reference indices to build",
+          "help_text": "A comma-separated list of references to build indices for, e.g. 'Homo_sapiens.GRCh38.104', or 'All' to build all reference indices.",
+          "hidden": true
         }
       },
       "fa_icon": "fas fa-laptop-code"

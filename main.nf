@@ -231,7 +231,7 @@ workflow {
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file))
-  flex_sce_ch = generate_sce_cellranger(flex_quant.out, sample_metafile)
+  flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
     .branch{
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true

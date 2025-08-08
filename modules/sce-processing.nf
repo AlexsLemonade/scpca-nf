@@ -137,7 +137,7 @@ process make_unfiltered_sce_cellranger {
           --library_id "${meta.library_id}" \
           --sample_id "${meta.sample_id}" \
           --project_id "${meta.project_id}" \
-          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} 
+          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""}
 
         format_unfiltered_sce.R \
           --sce_file ${unfiltered_rds} \
@@ -351,6 +351,7 @@ workflow generate_sce_cellranger {
     quant_channel
     sample_metafile
   main:
+    def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].ref_gtf, checkIfExists: true),
