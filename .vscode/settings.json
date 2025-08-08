@@ -1,0 +1,10 @@
+{
+  "nextflow.files.exclude": [".git", ".nf-test", "work", ".pixi", ".github"],
+  "[nextflow]": {
+    "editor.tabSize": 2,
+    "editor.formatOnSave": false
+  },
+  "[tsv]": {
+    "editor.insertSpaces": false
+  }
+}
