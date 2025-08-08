@@ -27,6 +27,7 @@ knitr::opts_chunk$set(
 
 library(SingleCellExperiment)
 library(ggplot2)
+library(patchwork)
 
 # Set default ggplot theme
 theme_set(
