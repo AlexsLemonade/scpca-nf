@@ -759,14 +759,19 @@ glue::glue(
 )
 ```
 
-```{r, eval= has_submitter & has_consensus & !is_supplemental }
-# Set plot dimensions based on number of consensus cell types
-all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
-plot_height <- calculate_plot_height(
-  unique(celltype_df$consensus_celltype_annotation),
-  unique(celltype_df$submitter_celltype_annotation),
-  0
-)
+```{r}
+if(has_submitter & has_consensus & !is_supplemental ){
+  # Set plot dimensions based on number of consensus cell types
+  all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
+  plot_height <- calculate_plot_height(
+    unique(celltype_df$consensus_celltype_annotation),
+    unique(celltype_df$submitter_celltype_annotation),
+    0
+  ) 
+} else {
+  # set a default to avoid failure in the next chunk 
+  plot_height = 1
+}
 ```
 
 
