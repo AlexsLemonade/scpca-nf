@@ -767,3 +767,70 @@ combined_plot <- color_bar / dotplot +
 
 combined_plot
 ```
+
+
+```{r}
+# boolean for whether or not to include submitter heatmaps
+submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
+```
+
+```{r, eval=submitter_heatmaps | has_consensus, results = 'asis'}
+# update text depending on if this is the main or supplemental report
+if (has_submitter & has_consensus & !is_supplemental) {
+  heatmap_text <- "This section displays heatmaps comparing consensus cell type labels to submitter annotations."
+} else {
+  heatmap_text <- "This section displays heatmaps comparing cell labels from various methods."
+}
+
+glue::glue(
+  "
+  # Cell label comparisons
+
+  {heatmap_text}
+
+  We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between         pairs of labels assigned by different annotation methods.
+
+  The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1.
+
+  * If the labels are assigned to identical sets of cells, the Jaccard index will be 1.
+  * If the labels are assigned to completely non-overlapping sets of cells, the Jaccard index will be 0.
+
+  High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
+
+"
+)
+```
+
+```{r, eval= has_submitter & has_consensus & !is_supplemental }
+# Set plot dimensions based on number of consensus cell types
+all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
+plot_height <- calculate_plot_height(
+  unique(celltype_df$consensus_celltype_annotation),
+  unique(celltype_df$submitter_celltype_annotation),
+  0
+)
+```
+
+
+```{r, eval = has_submitter & has_consensus & !is_supplemental, fig.height = plot_height, fig.width = 8.5}
+# Calculate jaccard matrix
+consensus_submitter_matrix <- make_jaccard_matrix(
+  celltype_df,
+  "submitter_celltype_annotation",
+  "consensus_celltype_annotation"
+)
+
+create_single_heatmap(
+  consensus_submitter_matrix,
+  row_title = "Consensus cell types",
+  column_title = "Submitter-provided annotations",
+  labels_font_size = find_label_size(all_celltypes),
+  keep_legend_name = "Consensus cell types",
+  col_fun = heatmap_col_fun,
+  # additional arguments
+  column_names_rot = 90
+) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
