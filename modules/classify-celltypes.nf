@@ -148,18 +148,19 @@ workflow annotate_celltypes {
   main:
     def empty_file = "${projectDir}/assets/NO_FILE"
 
-    // read in sample metadata and make a list of cell line samples; these won't be cell typed
-    cell_line_samples = Channel.fromPath(params.sample_metafile)
-      .splitCsv(header: true, sep: '\t')
-      .map{
-        [
-          sample_id: it.scpca_sample_id,
-          is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
-        ]
-      }
-      .filter{it.is_cell_line}
-      .map{it.sample_id}
-      .toList()
+  def empty_file = "${projectDir}/assets/NO_FILE"
+  // read in sample metadata and make a list of cell line samples; these won't be cell typed
+  cell_line_samples = Channel.fromPath(params.sample_metafile)
+    .splitCsv(header: true, sep: '\t')
+    .map{
+      [
+        sample_id: it.scpca_sample_id,
+        is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
+      ]
+    }
+    .filter{it.is_cell_line}
+    .map{it.sample_id}
+    .toList()
 
     // branch to cell type the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
@@ -190,7 +191,7 @@ workflow annotate_celltypes {
       .combine(celltype_ch, by: 0)
       // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file]
       // add values to meta for later use
-      .map{ project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
+      .map{ _project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
         def meta = meta_in.clone(); // local copy for safe modification
         meta.celltype_checkpoints_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
         meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_singler";
@@ -299,7 +300,7 @@ workflow annotate_celltypes {
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange to be [meta, unfiltered, filtered, processed]
-      .map{library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+      .map{_library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce]
       }
       // mix in cell line libraries which were not cell typed

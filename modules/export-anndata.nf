@@ -72,15 +72,15 @@ workflow sce_to_anndata {
     // get processed anndata files for cellbrowser
     processed_ch = export_anndata.out
       .filter{ it[2] == "processed" }
-      .map{ it[0..1] }  // drop file type
+      .map{it.dropRight(1)} // drop the file type
 
 
     // combine all anndata files by library id
     anndata_ch = export_anndata.out
-      .map{ meta, h5ad_files, file_type -> tuple(
+      .map{ meta, h5ad_files, _file_type -> tuple(
         meta.library_id, // pull out library id for grouping
         meta,
-        h5ad_files // either rna.h5ad or [ rna.h5ad, feature.h5ad ]
+        h5ad_files // either *_rna.h5ad or [ *_rna.h5ad, *_feature.h5ad ]
       )}
       // group by library id result is
       // [library id, [meta, meta, meta], [h5ad files]]

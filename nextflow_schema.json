@@ -276,6 +276,39 @@
           "help_text": "Reference file for consensus cell type calling.",
           "hidden": true,
           "fa_icon": "fas fa-file-alt"
+        },
+        "validation_groups_file": {
+          "type": "string",
+          "default": "${projectDir}/references/consensus-validation-groups.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Validation cell type group reference file",
+          "help_text": "Reference file assigning consensus cell types to a validation group.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
+        "validation_markers_file": {
+          "type": "string",
+          "default": "${projectDir}/references/validation-markers.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Validation cell type marker gene reference file",
+          "help_text": "Reference file containing marker genes associated with each validation group.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
+        "validation_palette_file": {
+          "type": "string",
+          "default": "${projectDir}/templates/palettes/validation-group-palette.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Color palette for validation groups in plots used in the report",
+          "help_text": "Path to TSV file containing hex codes to use for coloring each consensus cell type validation group.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         }
       },
       "fa_icon": "fas fa-copy"

@@ -559,3 +559,278 @@ faceted_umap(
 ) +
   ggtitle("UMAP colored by CellAssign annotations")
 ```
+
+
+```{r, eval=has_consensus}
+knitr::asis_output("
+## Expression of marker genes in consensus cell types
+
+This section looks at expression of a set of marker genes for each consensus cell type across all cells.
+Consensus cell types are grouped into a broader cell type category for validation, e.g., all types of T cell will be grouped together as T cells.
+
+The dot plot shows the mean expression and percent of cells expressing the marker gene for cells from each broad cell type group.
+The y-axis includes marker genes for each cell type.
+Marker genes were obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html).
+All marker genes shown are specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells.
+
+We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
+
+Note that dots are only shown if the gene has mean expression greater than 0 and is expressed in at least 10% of the cells in the given cell type.
+  ")
+```
+
+
+```{r, eval=has_consensus, message=FALSE,warning=FALSE}
+# validation groups and marker gene table info
+validation_groups_df <- validation_groups_df |>
+  # rename final assigned group to avoid conflicts when merging in marker gene expression
+  # we want to separate the marker gene group from the actual cell type annotation
+  dplyr::select(consensus_annotation, broad_celltype_group = validation_group_annotation)
+
+# read in validation markers
+markers_df <- validation_markers_df |>
+  # only keep genes unique to a single cell type except HPC which doesn't have any unique genes
+  # for HPC we keep all 6 marker genes
+  dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
+
+# define color palette
+celltype_colors <- celltype_colors_df |>
+  tibble::deframe()
+```
+
+
+```{r, eval = has_consensus}
+# extract gene expression for marker genes from SCE
+# list of all marker genes
+all_markers <- markers_df |>
+  dplyr::pull(ensembl_gene_id) |>
+  unique()
+
+# we only care about if that gene is expressed otherwise we won't waste memory and include it
+expressed_genes <- rowData(processed_sce) |>
+  as.data.frame() |>
+  dplyr::filter(detected > 0) |>
+  dplyr::pull(gene_ids)
+
+# get markers that are expressed
+expressed_markers <- intersect(all_markers, expressed_genes)
+
+# get logcounts from sce for expressed genes
+gene_exp_df <- scuttle::makePerCellDF(
+  processed_sce,
+  features = expressed_markers,
+  assay.type = "logcounts",
+  use.coldata = "barcodes",
+  use.dimred = FALSE
+) |>
+  tidyr::pivot_longer(starts_with("ENSG"), names_to = "ensembl_gene_id", values_to = "logcounts") |>
+  dplyr::mutate(
+    detected = logcounts > 0,
+    unique_id = params$unique_id
+  )
+
+# Join all consensus results and marker gene info
+consensus_df <- celltype_df |>
+  dplyr::select(barcodes, consensus_celltype_annotation) |>
+  dplyr::left_join(validation_groups_df, by = c("consensus_celltype_annotation" = "consensus_annotation")) |>
+  dplyr::left_join(gene_exp_df, by = c("barcodes")) |>
+  # add marker gene information (associated validation group annotation, gene observed count, percent tissues)
+  # account for the same gene being present in multiple cell types
+  dplyr::left_join(markers_df, by = "ensembl_gene_id", relationship = "many-to-many") |>
+  dplyr::mutate(
+    broad_celltype_group = dplyr::if_else(
+      is.na(broad_celltype_group),
+      "unknown",
+      broad_celltype_group
+    )
+  )
+```
+
+```{r, eval = has_consensus}
+# prep for plots
+# get total number of cells per final annotation group
+total_cells_df <- consensus_df |>
+  dplyr::select(barcodes, broad_celltype_group) |>
+  dplyr::distinct() |>
+  dplyr::count(broad_celltype_group, name = "total_cells")
+
+# table with one row per unique broad cell type/ marker gene combination
+# first all cells in with the same broad_celltype_group (determined based on consensus_annotation) are grouped together
+# then get the mean gene expression and total percentage of cells that express each marker gene across all cells in that group
+# do this for every possible marker gene/ validation group assignment
+# second we calculate the mean expression and mean percentage of all marker genes in a given validation group (this value is used only in the second section of the report)
+group_stats_df <- consensus_df |>
+  # for each assigned cell type/marker gene combo get total detected and mean expression
+  # group by both broad group and validation group to account for genes that are expressed in more than one cell type
+  dplyr::summarize(
+    .by = c("broad_celltype_group", "ensembl_gene_id", "validation_group_annotation"),
+    detected_count = sum(detected),
+    mean_exp = mean(logcounts)
+  ) |>
+  # add in validation group for marker genes
+  # this includes all possible marker genes and all possible validation group assignments
+  dplyr::left_join(markers_df, by = c("ensembl_gene_id", "validation_group_annotation"), relationship = "many-to-many") |> # add total cells
+  dplyr::left_join(total_cells_df, by = c("broad_celltype_group")) |>
+  dplyr::mutate(
+    # get total percent expressed
+    percent_exp = (detected_count / total_cells) * 100,
+    # account for NA/unknowns and set axes order
+    broad_celltype_group = factor(broad_celltype_group, levels = c(names(celltype_colors)))
+  )
+
+# get list of celltypes to keep and assign colors
+celltype_groups <- group_stats_df |>
+  dplyr::pull(broad_celltype_group) |>
+  unique() |>
+  as.character()
+
+# filter markers to those that are actually relevant
+# we will only plot the marker genes for cell types that are part of the assigned broad validation group for this group of samples
+# we don't care about plotting marker genes for cell types that aren't present here
+filtered_markers_df <- markers_df |>
+  dplyr::filter(
+    validation_group_annotation %in% celltype_groups,
+    gene_symbol %in% group_stats_df$gene_symbol
+  ) |>
+  # ensure order matches the order of the legend
+  dplyr::mutate(
+    validation_group_annotation = factor(validation_group_annotation, levels = names(celltype_colors))
+  ) |>
+  dplyr::arrange(validation_group_annotation)
+
+# specify x axis order for dotplot
+marker_gene_order <- filtered_markers_df |>
+  dplyr::pull(gene_symbol)
+
+# set order for cell types
+celltype_order <- unique(filtered_markers_df$validation_group_annotation)
+
+# filter out low expressed genes
+dotplot_df <- group_stats_df |>
+  dplyr::filter(mean_exp > 0, percent_exp > 10) |>
+  dplyr::arrange(broad_celltype_group) |>
+  # add a label for the plot
+  dplyr::mutate(y_label = glue::glue("{broad_celltype_group} ({total_cells})")) |>
+  # remove marker genes that aren't present in final annotations and set x axis order
+  dplyr::filter(gene_symbol %in% marker_gene_order) |>
+  dplyr::mutate(
+    # set orders of gene symbol and validation groups
+    y_label = factor(y_label, levels = rev(unique(y_label))),
+    gene_symbol = factor(gene_symbol, levels = marker_gene_order),
+    validation_group_annotation = factor(validation_group_annotation, levels = celltype_order)
+  )
+```
+
+
+```{r, eval = has_consensus, fig.height=7, fig.width=15}
+# make dotplot with marker gene exp
+dotplot <- ggplot(dotplot_df, aes(y = y_label, x = gene_symbol, color = mean_exp, size = percent_exp)) +
+  geom_point() +
+  scale_color_viridis_c(option = "magma") +
+  facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
+  theme_classic() +
+  theme(
+    strip.background = element_rect(fill = "transparent", color = NA),
+    strip.placement = "outside",
+    strip.text.x = element_blank(),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+    axis.ticks.x = element_blank(),
+    text = element_text(size = 14),
+    panel.spacing = unit(0.5, "lines") # adjust spacing and match with annotation bar
+  ) +
+  labs(
+    x = "",
+    y = "Broad cell type annotation",
+    color = "Mean gene expression",
+    size = "Percent cells expressed"
+  )
+
+
+# add annotation bar aligning marker genes with validation group
+color_bar <- ggplot(dotplot_df, aes(x = gene_symbol, y = 1, fill = validation_group_annotation)) +
+  geom_tile() +
+  facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
+  scale_fill_manual(values = celltype_colors, breaks = levels(dotplot_df$validation_group_annotation)) +
+  ggmap::theme_nothing() +
+  theme(
+    strip.background = element_rect(fill = "transparent", color = NA),
+    strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = 12),
+    strip.placement = "outside",
+    legend.position = "none",
+    panel.spacing = unit(0.5, "lines"),
+    strip.clip = "off"
+  ) +
+  labs(fill = "")
+
+combined_plot <- color_bar / dotplot +
+  patchwork::plot_layout(ncol = 1, heights = c(0.1, 4))
+
+combined_plot
+```
+
+
+```{r}
+# boolean for whether or not to include submitter heatmaps
+submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
+```
+
+```{r, eval=submitter_heatmaps | has_consensus, results = 'asis'}
+# update text depending on if this is the main or supplemental report
+if (has_submitter & has_consensus & !is_supplemental) {
+  heatmap_text <- "This section displays heatmaps comparing consensus cell type labels to submitter annotations."
+} else {
+  heatmap_text <- "This section displays heatmaps comparing cell labels from various methods."
+}
+
+glue::glue(
+  "
+  # Cell label comparisons
+
+  {heatmap_text}
+
+  We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between         pairs of labels assigned by different annotation methods.
+
+  The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1.
+
+  * If the labels are assigned to identical sets of cells, the Jaccard index will be 1.
+  * If the labels are assigned to completely non-overlapping sets of cells, the Jaccard index will be 0.
+
+  High agreement between methods qualitatively indicates higher confidence in the cell type annotation.
+
+"
+)
+```
+
+```{r, eval= has_submitter & has_consensus & !is_supplemental }
+# Set plot dimensions based on number of consensus cell types
+all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
+plot_height <- calculate_plot_height(
+  unique(celltype_df$consensus_celltype_annotation),
+  unique(celltype_df$submitter_celltype_annotation),
+  0
+)
+```
+
+
+```{r, eval = has_submitter & has_consensus & !is_supplemental, fig.height = plot_height, fig.width = 8.5}
+# Calculate jaccard matrix
+consensus_submitter_matrix <- make_jaccard_matrix(
+  celltype_df,
+  "submitter_celltype_annotation",
+  "consensus_celltype_annotation"
+)
+
+create_single_heatmap(
+  consensus_submitter_matrix,
+  row_title = "Consensus cell types",
+  column_title = "Submitter-provided annotations",
+  labels_font_size = find_label_size(all_celltypes),
+  keep_legend_name = "Consensus cell types",
+  col_fun = heatmap_col_fun,
+  # additional arguments
+  column_names_rot = 90
+) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
