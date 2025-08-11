@@ -80,7 +80,6 @@
         },
         "cellbrowser_dir": {
           "type": "string",
-          "default": "",
           "fa_icon": "fas fa-folder-open",
           "format": "directory-path",
           "description": "UCSC CellBrowser output directory",
