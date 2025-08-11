@@ -77,6 +77,14 @@
           "format": "directory-path",
           "description": "Checkpoints directory",
           "help_text": "Directory to store checkpoint files, used when optionally skipping steps."
+        },
+        "cellbrowser_dir": {
+          "type": "string",
+          "default": "",
+          "fa_icon": "fas fa-folder-open",
+          "format": "directory-path",
+          "description": "UCSC CellBrowser output directory",
+          "help_text": "Directory for UCSC CellBrowser output files. Skip CellBrowser output if empty."
         }
       }
     },
@@ -121,9 +129,6 @@
           "type": "boolean",
           "description": "Repeat cell typing",
           "help_text": "If cell type annotations have already been performed and output files exist, cell typing is skipped by default."
-        },
-        "create_cellbrowser": {
-          "type": "boolean"
         },
         "publish_fry_outs": {
           "type": "boolean",

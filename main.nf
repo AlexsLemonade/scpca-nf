@@ -14,10 +14,6 @@ include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
 include { build_cellbrowser } from './modules/cellbrowser.nf'
 
-
-// parameter checks
-param_error = false
-
 def check_parameters() {
   // parameter check function
   def param_error = false
@@ -109,16 +105,6 @@ workflow {
 
   // used when a given file is not defined
   def empty_file = "${projectDir}/assets/NO_FILE"
-
-  // report template paths
-  def report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
-  def report_template_file = "main_qc_report.rmd"
-  def celltype_report_template_file = "celltypes_supplemental_report.rmd"
-  def report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
-
-
-
-
 
   // select runs to use
   def run_ids = []
@@ -361,7 +347,7 @@ workflow {
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
-  if (params.create_cellbrowser) {
+  if (params.cellbrowser_dir) {
     processed_anndata_ch = sce_to_anndata.out.processed
     build_cellbrowser(processed_anndata_ch)
   }
