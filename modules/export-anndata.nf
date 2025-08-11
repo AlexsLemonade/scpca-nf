@@ -71,7 +71,7 @@ workflow sce_to_anndata {
 
       // combine all anndata files by library id
       anndata_ch = export_anndata.out
-        .map{ meta, h5ad_files, file_type -> tuple(
+        .map{ meta, h5ad_files, _file_type -> tuple(
           meta.library_id, // pull out library id for grouping
           meta,
           h5ad_files // either rna.h5ad or [ rna.h5ad, feature.h5ad ]
