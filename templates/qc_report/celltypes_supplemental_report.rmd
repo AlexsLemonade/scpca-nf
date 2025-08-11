@@ -373,23 +373,11 @@ glue::glue("
 
 
 ```{r eval = has_umap && has_clusters, message=FALSE, warning=FALSE}
-clusters_plot <- plot_umap(
-  umap_df,
-  cluster,
-  "Cluster",
-  point_size = umap_point_size
-) +
-  ggtitle("UMAP colored by cluster identity")
-
-# Determine palette based on number of levels.
-# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
-#  Otherwise, we will use the default palette.
-if (length(levels(umap_df$cluster)) <= 8) {
-  clusters_plot +
-    scale_color_brewer(palette = "Set2")
-} else {
-  clusters_plot
-}
+# create UMAP colored by clusters
+plot_clusters_umap(
+  processed_sce,
+  umap_point_size
+)
 ```
 
 <!-- If multiplexed, show info alert instead of this heatmap --> 
