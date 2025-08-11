@@ -32,11 +32,10 @@ determine_umap_point_size <- function(n_processed_cells) {
 #' @param point_size Point size. Default is 1
 #'
 #' @return UMAP plot as a ggplot2 object
-#' 
+#'
 plot_clusters_umap <- function(
     sce,
     point_size = 1) {
-  
   # umap colored by clusters
   clusters_plot <- scater::plotUMAP(
     sce,
@@ -63,7 +62,7 @@ plot_clusters_umap <- function(
       legend.position = "bottom",
       aspect.ratio = 1
     )
-  
+
   # Determine palette based on number of levels.
   # If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
   #  Otherwise, we will use the default palette.
@@ -73,7 +72,7 @@ plot_clusters_umap <- function(
   } else {
     clusters_plot
   }
-  
+
   return(clusters_plot)
 }
 ```
