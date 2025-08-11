@@ -1,8 +1,9 @@
 process cellbrowser_site {
   container "${params.CELLBROWSER_CONTAINER}"
-  publishDir "${params.results_dir}", mode: 'copy'
+  publishDir "${params.cellbrowser_dir}", mode: 'copy'
   input:
-    path(project_metadata)
+    val project_ids // list of project ids to create sites for
+    path project_metadata
   output:
     path "scpca_cellbrowser"
   script:
@@ -10,13 +11,7 @@ process cellbrowser_site {
     # create the site directory
     mkdir -p scpca_cellbrowser
 
-    # get the list of projects from the metadata file
-    projects=\$(awk '
-      NR==1 { for (i=1; i<=NF; i++) { f[\$i] = i}}
-      NR > 1 { print \$(f["scpca_project_id"])}
-      ' ${project_metadata} )
-
-    for project in \${projects}; do
+    for project in \${project_ids}; do
       mkdir -p scpca_cellbrowser/\${project}
       touch scpca_cellbrowser/\${project}/project_file.html
     done
@@ -24,17 +19,11 @@ process cellbrowser_site {
     """
   stub:
     """
-    mkdir -p scpca_cellbrowser
-
-    # get the list of projects from the metadata file
-    projects=\$(awk '
-      NR==1 { for (i=1; i<=NF; i++) { f[\$i] = i}}
-      NR > 1 { print \$(f["scpca_project_id"])}
-      ' ${project_metadata} )
+    project_dir=\$(basename ${params.cellbrowser_dir})
 
     for project in \${projects}; do
-      mkdir -p scpca_cellbrowser/\${project}
-      touch scpca_cellbrowser/\${project}/project_file.html
+      mkdir -p \${project_dir}/\${project}
+      touch \${project_dir}/\${project}/project_file.html
     done
 
     """
@@ -70,8 +59,14 @@ workflow build_cellbrowser {
     processed_anndata_ch // channel of tuples [meta, processed_h5ad_file(s)]
   main:
     project_metadata = file(params.project_metafile)
+    // get list of projects
+    project_ids = processed_anndata_ch
+      .map{it[0].scpca_project_id}
+      .unique()
+      .toList()
+
     // export processed anndata files for cellbrowser
-    site_base = cellbrowser_site(project_metadata)
+    site_base = cellbrowser_site(project_ids, project_metadata)
 
     cellbrowser_library(processed_anndata_ch, site_base)
 
