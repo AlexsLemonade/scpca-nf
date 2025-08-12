@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: "21"
+          distribution: "corretto"
 
       - name: Setup Nextflow
         #   uses: nf-core/setup-nextflow@v2
