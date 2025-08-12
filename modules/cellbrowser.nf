@@ -73,8 +73,6 @@ workflow build_cellbrowser {
       .unique()
       .toList()
 
-    project_ids.view()
-
     // export processed anndata files for cellbrowser
     cellbrowser_site(project_ids, project_metadata)
 

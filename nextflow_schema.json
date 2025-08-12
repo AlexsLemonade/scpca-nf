@@ -40,9 +40,11 @@
         },
         "project_metafile": {
           "type": "string",
-          "default": "project_metadata.tsv",
           "description": "Project metadata file",
-          "fa_icon": "fas fa-file-alt"
+          "fa_icon": "fas fa-file-alt",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "help_text": "A file containing project-level metadata. Only required if generating the CellBrowser output."
         },
         "project_celltype_metafile": {
           "type": "string",

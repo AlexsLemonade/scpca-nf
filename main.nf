@@ -67,6 +67,17 @@ def check_parameters() {
     }
   }
 
+  // cell browser config checks
+  if (params.cellbrowser_dir){
+    if (!params.project_metafile) {
+      log.error("The 'project_metafile' file '${params.project_metafile}' is required for generating the CellBrowser output.")
+      param_error = true
+    } else if (!file(params.project_metafile).exists()) {
+      log.error("The 'project_metafile' file '${params.project_metafile}' can not be found.")
+      param_error = true
+    }
+  }
+
   if (param_error) {
     System.exit(1)
   }
