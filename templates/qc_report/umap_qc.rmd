@@ -20,7 +20,7 @@ These results should be interpreted with caution.
 ```{r, eval = has_multiplex && has_clusters, results='asis'}
 glue::glue("
   <div class=\"alert alert-info\">
-    This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
+    This library contains multiple samples that have not been demultiplexed, which may confound clustering assignments.
     Please use caution when interpreting these results.
   </div>
 ")
