@@ -141,12 +141,13 @@ process add_celltypes_to_sce {
     """
 }
 
-empty_file = "${projectDir}/assets/NO_FILE"
+
 
 workflow annotate_celltypes {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
 
+  def empty_file = "${projectDir}/assets/NO_FILE"
   // read in sample metadata and make a list of cell line samples; these won't be cell typed
   cell_line_samples = Channel.fromPath(params.sample_metafile)
     .splitCsv(header: true, sep: '\t')
@@ -193,7 +194,7 @@ workflow annotate_celltypes {
       .combine(celltype_ch, by: 0)
       // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file]
       // add values to meta for later use
-      .map{ project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
+      .map{ _project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
         def meta = meta_in.clone(); // local copy for safe modification
         meta.celltype_checkpoints_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
         meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_singler";
@@ -298,7 +299,7 @@ workflow annotate_celltypes {
     )
 
     // mix in libraries without new celltypes
-    // result is [meta, proccessed rds]
+    // result is [meta, processed rds]
     celltyped_ch = assignment_input_ch.no_celltypes
       .map{[it[0], it[1]]}
       .mix(add_celltypes_to_sce.out)
@@ -316,7 +317,7 @@ workflow annotate_celltypes {
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange to be [meta, unfiltered, filtered, processed]
-      .map{unique_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+      .map{_unique_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce]
       }
       // mix in cell line libraries which were not cell typed

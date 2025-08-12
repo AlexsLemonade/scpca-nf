@@ -43,7 +43,7 @@ When the changes in `development` merit a new release, a pull request will be fi
 
 Any changes that affect the Nextflow configuration files should be reflected in the [`nextflow_schema.json` file](https://nf-co.re/tools#pipeline-schema).
 This file can most easily be updated using the [`nf-core/tools` package](https://nf-co.re/tools), which is included in the [`pixi` environment](#environment-management-with-pixi) (or it can be installed separately).
-Run `nf-core schema build` in the `scpca-nf` directory to update the schema file to match the current config file.
+Run `nf-core pipeline schema build` in the `scpca-nf` directory to update the schema file to match the current config file.
 You can also use the web editor that it launches to further customize the schema file.
 Note that you may get warnings about any config parameters that include `${projectDir}`, as the build tool wants those to be replaced with absolute paths.
 This is not necessary for the schema to be valid, so please keep those paths with the `${projectDir}` variable (enter `n` at the prompt).
@@ -141,7 +141,7 @@ Either method will automatically update the environment to match the package ver
 
 For convenience, we have included a set of [pre-commit hooks](https://pre-commit.com/) that can be used to automatically format code according to the above specifications, as well as to spellcheck and check for other common errors.
 
-Once you have [installed `pixi`](#environment-management-with-pixi), you can run `pixi run pre-commit install` from the `scpca-nf` directory to use these hooks. 
+Once you have [installed `pixi`](#environment-management-with-pixi), you can run `pixi run pre-commit install` from the `scpca-nf` directory to use these hooks.
 Alternatively, install the `pre-commit` package according to your favorite method (`pip`, `conda`, etc.) and then run `pre-commit install` in the `scpca-nf` directory.
 This will install the hooks in the `.git/hooks` directory, and they will be run automatically when you commit changes.
 If any of the hooks fail, the commit will be aborted, and you will need to fix the errors and re-commit.

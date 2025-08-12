@@ -89,8 +89,14 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
     stringr::str_split(pattern = "_") |>
     unlist()
 
-  # account for ref_geneset only being in SingleR refs
+  # account for gene_set_version only being in SingleR refs
   if (ref_type == "SingleR") {
+    # if the length is 3, we are using an older version of the
+    # SingleR reference file that does not have the gene set version or date
+    if (length(ref_info) == 3) {
+      # add NA for gene set version and date
+      ref_info <- c(ref_info, NA, NA)
+    }
     names(ref_info) <- c("ref_name", "ref_source", "ref_version", "gene_set_version", "date")
   } else if (ref_type == "CellAssign") {
     names(ref_info) <- c("ref_name", "ref_source", "ref_version")
@@ -184,6 +190,8 @@ if (has_singler) {
   metadata(sce)$singler_reference_label <- label_type
   metadata(sce)$singler_reference_source <- singler_ref_info[["ref_source"]]
   metadata(sce)$singler_reference_version <- singler_ref_info[["ref_version"]]
+  metadata(sce)$singler_gene_set_version <- singler_ref_info[["gene_set_version"]]
+  metadata(sce)$singler_date <- singler_ref_info[["date"]]
 
   # add note about cell type method to metadata
   metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")

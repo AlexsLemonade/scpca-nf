@@ -1,42 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// 10X barcode files
-cell_barcodes = [
-  '10Xv2': '737K-august-2016.txt',
-  '10Xv2_5prime': '737K-august-2016.txt',
-  '10Xv3': '3M-february-2018.txt',
-  '10Xv3.1': '3M-february-2018.txt',
-  'CITEseq_10Xv2': '737K-august-2016.txt',
-  'CITEseq_10Xv3': '3M-february-2018.txt',
-  'CITEseq_10Xv3.1': '3M-february-2018.txt',
-  'cellhash_10Xv2': '737K-august-2016.txt',
-  'cellhash_10Xv3': '3M-february-2018.txt',
-  'cellhash_10Xv3.1': '3M-february-2018.txt'
-]
-
-// 10X flex probe set files
-flex_probesets = [
-  '10Xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
-  '10Xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
-]
-
-// supported technologies
-single_cell_techs = cell_barcodes.keySet()
-bulk_techs = ['single_end', 'paired_end']
-spatial_techs = ['visium']
-flex_techs = flex_probesets.keySet()
-all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
-rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
-citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
-cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
-
-// report template paths
-report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
-report_template_file = "main_qc_report.rmd"
-celltype_report_template_file = "celltypes_supplemental_report.rmd"
-report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
-
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
 include { map_quant_feature } from './modules/af-features.nf'
@@ -51,81 +15,133 @@ include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
 
 
-// parameter checks
-param_error = false
+// parameter check function
+def check_parameters() {
+  def param_error = false
 
-if (!file(params.run_metafile).exists()) {
-  log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
-  param_error = true
-}
-
-sample_metafile = file(params.sample_metafile) // we make this for passing into later processes
-if (!sample_metafile.exists()) {
-  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
-  param_error = true
-}
-
-if (!sample_metafile.exists()) {
-  log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
-  param_error = true
-}
-
-resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
-if (!resolution_strategies.contains(params.af_resolution)) {
-  log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
-  param_error = true
-}
-
-if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
-  log.error("The 'cellhash_pool_file' file ${params.cellhash_pool_file} can not be found.")
-  param_error = true
-}
-
-// QC report files check
-if (!(report_template_dir / report_template_file).exists()) {
-  log.error("The 'report_template_file' file '${report_template_file}' can not be found.")
-  param_error = true
-}
-if (!(report_template_dir / celltype_report_template_file).exists()) {
-  log.error("The 'celltype_report_template_file' file '${celltype_report_template_file}' can not be found.")
-  param_error = true
-}
-
-// cell type annotation file checks
-if (params.perform_celltyping) {
-  if (!file(params.project_celltype_metafile).exists()) {
-    log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
+  if (!file(params.run_metafile).exists()) {
+    log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
     param_error = true
   }
-  if (!file(params.celltype_ref_metadata).exists()) {
-    log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
+
+  if (!file(params.sample_metafile).exists()) {
+    log.error("The 'sample_metafile' file '${params.sample_metafile}' can not be found.")
     param_error = true
+  }
+
+  def resolution_strategies = ['cr-like', 'full', 'cr-like-em', 'parsimony', 'trivial']
+  if (!resolution_strategies.contains(params.af_resolution)) {
+    log.error("'af_resolution' must be one of the following: ${resolution_strategies}")
+    param_error = true
+  }
+
+  if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
+    log.error("The 'cellhash_pool_file' file ${params.cellhash_pool_file} can not be found.")
+    param_error = true
+  }
+
+  // cell type annotation file checks
+  if (params.perform_celltyping) {
+    if (!file(params.project_celltype_metafile).exists()) {
+      log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
+      param_error = true
+    }
+    if (!file(params.celltype_ref_metadata).exists()) {
+      log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
+      param_error = true
+    }
+    // check that reference files related to consensus cell types exist
+    if (!file(params.consensus_ref_file).exists()) {
+      log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
+      param_error = true
+    }
+    if (!file(params.validation_groups_file).exists()) {
+      log.error("The 'validation_groups_file' file '${params.validation_groups_file}' can not be found.")
+      param_error = true
+    }
+    if (!file(params.validation_markers_file).exists()) {
+      log.error("The 'validation_markers_file' file '${params.validation_markers_file}' can not be found.")
+      param_error = true
+    }
+    if (!file(params.validation_palette_file).exists()) {
+      log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
+      param_error = true
+    }
+  }
+
+  if (param_error) {
+    System.exit(1)
   }
 }
 
 
-if (param_error) {
-  System.exit(1)
-}
 
 // Main workflow
 workflow {
+
+  // check parameters before starting workflow
+  check_parameters()
+
+  /// Define setup variables
+  // 10X barcode files
+  def cell_barcodes = [
+    '10Xv2': '737K-august-2016.txt',
+    '10Xv2_5prime': '737K-august-2016.txt',
+    '10Xv3': '3M-february-2018.txt',
+    '10Xv3.1': '3M-february-2018.txt',
+    'CITEseq_10Xv2': '737K-august-2016.txt',
+    'CITEseq_10Xv3': '3M-february-2018.txt',
+    'CITEseq_10Xv3.1': '3M-february-2018.txt',
+    'cellhash_10Xv2': '737K-august-2016.txt',
+    'cellhash_10Xv3': '3M-february-2018.txt',
+    'cellhash_10Xv3.1': '3M-february-2018.txt'
+  ]
+
+  // 10X flex probe set files
+  def flex_probesets = [
+    '10Xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
+    '10Xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
+  ]
+
+  // supported technologies
+  def single_cell_techs = cell_barcodes.keySet()
+  def flex_techs = flex_probesets.keySet()
+  def bulk_techs = ['single_end', 'paired_end']
+  def spatial_techs = ['visium']
+  def all_techs = single_cell_techs + bulk_techs + spatial_techs
+  def rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
+  def citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
+  def cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
+
+  // used when a given file is not defined
+  def empty_file = "${projectDir}/assets/NO_FILE"
+
+  // report template paths
+  def report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
+  def report_template_file = "main_qc_report.rmd"
+  def celltype_report_template_file = "celltypes_supplemental_report.rmd"
+  def report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
+
+
+
+
+
   // select runs to use
+  def run_ids = []
+  def project_ids = []
   if (params.project) {
     // projects will use all runs in the project & supersede run_ids
-    run_ids = []
     // allow for processing of multiple projects at once
     project_ids = params.project?.tokenize(',') ?: []
   } else {
     run_ids = params.run_ids?.tokenize(',') ?: []
-    project_ids = []
   }
-  run_all = run_ids[0] == "All"
+  def run_all = run_ids[0] == "All"
   if (run_all) {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  ref_paths = Utils.readMeta(file(params.ref_json))
+  def ref_paths = Utils.readMeta(file(params.ref_json))
 
   unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
@@ -153,7 +169,7 @@ workflow {
         ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
         ref_gtf: "${params.ref_rootdir}/${sample_refs.ref_gtf}",
         mito_file: "${params.ref_rootdir}/${sample_refs.mito_file}",
-        // account for the refs sometimes being null 
+        // account for the refs sometimes being null
         salmon_splici_index: sample_refs.splici_index ? "${params.ref_rootdir}/${sample_refs.splici_index}" : '',
         t2g_3col_path: sample_refs.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : '',
         salmon_bulk_index: sample_refs.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : '',
@@ -215,7 +231,7 @@ workflow {
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file))
-  flex_sce_ch = generate_sce_cellranger(flex_quant.out, sample_metafile)
+  flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
     .branch{
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true
@@ -234,7 +250,7 @@ workflow {
   rna_quant_ch = map_quant_rna.out
     .filter{it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
-  rna_sce_ch = generate_sce(rna_quant_ch, sample_metafile)
+  rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
     .branch{
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
@@ -259,7 +275,7 @@ workflow {
     .map{it.drop(1)} // remove library_id index
 
   // make rds for RNA with feature quants
-  all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, sample_metafile)
+  all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, file(params.sample_metafile))
     .branch{
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
       skip_processing: true
@@ -279,7 +295,7 @@ workflow {
     }
 
   // apply cellhash demultiplexing
-  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file))
+  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file ?: empty_file))
   combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
@@ -354,7 +370,7 @@ workflow {
       meta,
       unfiltered,
       filtered,
-      "${projectDir}/assets/NO_FILE"
+      empty_file
     )}
 
   // combine back with libraries that skipped filtering and post processing
@@ -364,7 +380,11 @@ workflow {
   // generate QC reports & metrics, then publish sce
   qc_publish_sce(
     sce_output_ch,
-    report_template_tuple
+    report_template_tuple,
+    // paths to files needed to make consensus cell type validation dot plots
+    file(params.validation_groups_file),
+    file(params.validation_markers_file),
+    file(params.validation_palette_file)
   )
 
   // convert SCE object to anndata

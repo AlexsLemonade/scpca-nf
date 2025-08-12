@@ -33,6 +33,12 @@ option_list <- list(
     help = "flag to set the miQC's enforce_left_cutoff option to TRUE"
   ),
   make_option(
+    opt_str = c("--no_sce_compression"),
+    action = "store_false",
+    default = TRUE,
+    help = "flag to turn off compression of the output SCE object"
+  ),
+  make_option(
     opt_str = c("--adt_barcode_file"),
     type = "character",
     default = NULL,
@@ -192,5 +198,10 @@ if (!is.null(ambient_profile)) {
   # Add `target_type` to rowData
   rowData(altExp(filtered_sce, adt_exp))$target_type <- adt_barcode_df$target_type
 }
+
 # write filtered sce to output
-readr::write_rds(filtered_sce, opt$filtered_file, compress = "bz2")
+compress_str <- "bz2"
+if (opt$no_sce_compression) {
+  compress_str <- "none"
+}
+readr::write_rds(filtered_sce, opt$filtered_file, compress = compress_str)

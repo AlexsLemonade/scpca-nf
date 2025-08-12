@@ -21,12 +21,12 @@ This section provides instructions for running the main workflow, found in [`mai
 Note that there are three other workflows:
 
 - [`build-index.nf`](build-index.nf) for building reference indices (see #adding-additional-organisms)
-- [`build-celltype-ref.nf`](build-cellltype-ref.nf) for creating cell type annotation references (see #adding-additional-cell-type-references)
+- [`build-celltype-ref.nf`](build-celltype-ref.nf) for creating cell type annotation references (see #adding-additional-cell-type-references)
 - [`merge.nf`](merge.nf) for merging processed objects produced by the main workflow (see #running-the-merge-workflow)
 
 The instructions below assume that you are a member of the Data Lab with access to AWS.
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure.
-To process samples that are not part of the ScPCA project, please see the [instructions on using `scpca-nf` with external data](external-data-instructions.md).
+To process samples that are not part of the ScPCA project, please see the [instructions on using `scpca-nf` with external data](external-instructions.md).
 
 To process single-cell and single-nuclei samples using `scpca-nf` you will need access to at least 24 GB of RAM and 12 CPUs, so we recommend using AWS batch.
 The first step in running the workflow is ensuring that your AWS credentials are configured.
@@ -54,7 +54,7 @@ There are several flags and/or parameters which you may additionally wish to spe
 - Workflow parameters:
   - `--run_ids list,of,ids`: A custom comma-separated list of ids (run, library, or sample) for this run.
   - `--project list,of,project_ids`: A custom comma-separated list of project ids for this run
-    [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
+    [The default](config/ccdl_profiles.config) run ids are `"SCPCR000001,SCPCS000101"`.
   - `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
     - By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
       Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
@@ -97,14 +97,14 @@ Be sure to use the `-r` flag to specify the latest release tag for the workflow,
 For example:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.8.7 -profile ccdl_staging,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.8.8 -profile ccdl_staging,batch --project SCPCP000000
 ```
 
 When that run has completed successfully, check that the outputs are as expected.
 You can then run the workflow using the `ccdl_prod` profile:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.8.7 -profile ccdl_prod,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.8.8 -profile ccdl_prod,batch --project SCPCP000000
 ```
 
 Both of these profiles have `-with-tower` set by default, and will use the [ScPCA workspace](https://cloud.seqera.io/orgs/CCDL/workspaces/ScPCA/watch) for monitoring (allowing all team members to see progress).

@@ -43,9 +43,14 @@
 
 ## Overview
 
-Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to a high performance computing (HPC) environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
+The instructions on this page describe the general steps required to run the `scpca-nf` workflow on your own  high performance computing (HPC) environment.
+We are also working on providing support for running the workflow on [Cavatica](https://cavatica.sbgenomics.com/), the Seven Bridges platform for sharing and analyzing biomedical data.
+Additional instructions for using `scpca-nf` on Cavatica can be found in the [Cavatica instructions](cavatica-instructions.md).
+
+Using `scpca-nf` to process your own single-cell and single-nuclei RNA-seq data requires access to an HPC environment that can accommodate up to 24 GB of RAM and 12 CPU cores.
 Some datasets and processes (genetic demultiplexing and spatial transcriptomics) may require additional resources, and our default configuration allows up to 96 GB of RAM and 24 CPU cores.
 While the workflow does support scaling down requirements in lower-resource environments, we have not tested extensively in those conditions, and some components may fail.
+
 After identifying the system that you will use to execute the Nextflow workflow, you will need to follow the steps outlined in this document to complete the set up process.
 Here we provide an overview of the steps you will need to complete:
 
@@ -87,12 +92,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.8.7` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.8.8` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.8.7 \
+  -r v0.8.8 \
   -config <path to config file>  \
   -profile <name of profile>
 ```
@@ -321,7 +326,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.8.7`, then you will want to set `-r v0.8.7` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.8.8`, then you will want to set `-r v0.8.8` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -343,8 +348,8 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 ## Cell type annotation
 
 `scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
-Additionally, annotations from `SingleR` and `CellAssign` are used to assign a consensus cell type annotation. 
-For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus). 
+Additionally, annotations from `SingleR` and `CellAssign` are used to assign a consensus cell type annotation.
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus).
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
