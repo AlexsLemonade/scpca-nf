@@ -8,10 +8,15 @@ on:
 
 jobs:
   nf-stub-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
 
       - name: Setup Nextflow
         #   uses: nf-core/setup-nextflow@v2
