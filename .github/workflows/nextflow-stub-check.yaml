@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - development
+      - cellbrowser
 
 jobs:
   nf-stub-check:
