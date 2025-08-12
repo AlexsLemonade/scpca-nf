@@ -12,12 +12,11 @@ include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
+include { build_cellbrowser } from './modules/cellbrowser.nf'
 
-
-// parameter check function
 def check_parameters() {
+  // parameter check function
   def param_error = false
-
   if (!file(params.run_metafile).exists()) {
     log.error("The 'run_metafile' file '${params.run_metafile}' can not be found.")
     param_error = true
@@ -68,6 +67,17 @@ def check_parameters() {
     }
   }
 
+  // cell browser config checks
+  if (params.cellbrowser_dir){
+    if (!params.project_metafile) {
+      log.error("The 'project_metafile' file '${params.project_metafile}' is required for generating the CellBrowser output.")
+      param_error = true
+    } else if (!file(params.project_metafile).exists()) {
+      log.error("The 'project_metafile' file '${params.project_metafile}' can not be found.")
+      param_error = true
+    }
+  }
+
   if (param_error) {
     System.exit(1)
   }
@@ -106,16 +116,6 @@ workflow {
 
   // used when a given file is not defined
   def empty_file = "${projectDir}/assets/NO_FILE"
-
-  // report template paths
-  def report_template_dir = file("${projectDir}/templates/qc_report", type: 'dir', checkIfExists: true)
-  def report_template_file = "main_qc_report.rmd"
-  def celltype_report_template_file = "celltypes_supplemental_report.rmd"
-  def report_template_tuple = tuple(report_template_dir, report_template_file, celltype_report_template_file)
-
-
-
-
 
   // select runs to use
   def run_ids = []
@@ -337,6 +337,11 @@ workflow {
   sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
     .mix(no_filtered_ch)
 
+  def report_template_tuple = tuple(
+    file(params.report_template_dir, type: 'dir', checkIfExists: true),
+    params.report_template_file,
+    params.celltype_report_template_file
+  )
   // generate QC reports & metrics, then publish sce
   qc_publish_sce(
     sce_output_ch,
@@ -352,6 +357,11 @@ workflow {
     // skip multiplexed libraries
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
+
+  if (params.cellbrowser_dir) {
+    processed_anndata_ch = sce_to_anndata.out.processed
+    build_cellbrowser(processed_anndata_ch)
+  }
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)

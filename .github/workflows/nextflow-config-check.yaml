@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - development
+      - cellbrowser
 jobs:
   nf-config-check:
     runs-on: ubuntu-22.04
