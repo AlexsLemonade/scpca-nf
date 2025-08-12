@@ -12,7 +12,7 @@ umap_facet_point_size <- umap_points_sizes[2]
 ### Unsupervised clustering
 
 The cells in the blow UMAP are colored by cluster assignment. 
-Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with  `r metadata(processed_sce)$cluster_weighting` weighting.
+Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with  `r metadata(processed_sce)$cluster_weighting` weighting and `r metadata(processed_sce)$cluster_nn` nearest neighbors.
 
 **Caution**: Clusters are computed without performing any evaluation or optimization of clustering parameters.
 These results should be interpreted with caution.
