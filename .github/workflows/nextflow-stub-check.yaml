@@ -16,8 +16,6 @@ jobs:
 
       - name: Setup Nextflow
         uses: nf-core/setup-nextflow@v2
-        with:
-          version: latest
 
       - name: Check Nextflow workflow
         run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
