@@ -15,9 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Nextflow
-        uses: nf-core/setup-nextflow@v2
-        with:
-          version: 25.04.6
+        #   uses: nf-core/setup-nextflow@v2
+        # manual install as the action is currently broken
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
 
       - name: Check Nextflow workflow
         run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
