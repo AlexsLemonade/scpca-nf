@@ -53,8 +53,9 @@ antibody_tags <- as.data.frame(rowData(adt_exp)) |>
     "ADT target type" = target_type
   )
 
-DT::datatable(antibody_tags, 
-              rownames = FALSE) |> 
+DT::datatable(antibody_tags,
+  rownames = FALSE
+) |>
   DT::formatRound(c("Mean UMI count per cell", "Percent of cells detected"), 2)
 ```
 

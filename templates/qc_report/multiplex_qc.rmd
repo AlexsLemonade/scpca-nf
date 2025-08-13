@@ -49,8 +49,9 @@ hto_tags <- as.data.frame(rowData(multiplex_exp)) |>
   )
 
 
-DT::datatable(hto_tags, 
-              rownames = FALSE) |>
+DT::datatable(hto_tags,
+  rownames = FALSE
+) |>
   DT::formatRound(c("Mean UMI count per cell", "Percent of cells detected"), 2)
 ```
 

@@ -245,10 +245,10 @@ glue::glue("
 ```
 
 ```{r}
-if(has_consensus & !has_submitter & !is_supplemental){
-  knitr::asis_output('## Statistics')
+if (has_consensus & !has_submitter & !is_supplemental) {
+  knitr::asis_output("## Statistics")
 } else {
-  knitr::asis_output('## Statistics {.tabset}')
+  knitr::asis_output("## Statistics {.tabset}")
 }
 ```
 
@@ -370,14 +370,14 @@ if (has_consensus && !has_submitter && !is_supplemental) {
   header_text <- "## UMAPs"
   umap_text <- ""
 } else {
-  header_text <- '## UMAPs {.tabset}'
+  header_text <- "## UMAPs {.tabset}"
   umap_text <- "For each cell typing method, we show a separate faceted UMAP."
 }
 
 
 knitr::asis_output(glue::glue(
   '{header_text}
-  
+
   In this section, we show UMAPs colored by cell types.
   {umap_text}
 In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
@@ -394,7 +394,7 @@ All other cell types are grouped together and labeled "All remaining cell types"
 if (has_submitter & has_umap) {
   submitter_n_celltypes <- length(levels(umap_df$submitter_celltype_annotation_lumped))
   submitter_dims <- determine_umap_dimensions(submitter_n_celltypes)
-  knitr::asis_output('### Submitter-provided annotations')
+  knitr::asis_output("### Submitter-provided annotations")
 } else {
   # set fake dims for evaluating next chunk
   submitter_dims <- c(1, 1)
@@ -416,7 +416,7 @@ faceted_umap(
 if (has_consensus & has_umap) {
   consensus_n_celltypes <- length(levels(umap_df$consensus_celltype_annotation_lumped))
   consensus_dims <- determine_umap_dimensions(consensus_n_celltypes)
-  knitr::asis_output('### Consensus cell type annotations')
+  knitr::asis_output("### Consensus cell type annotations")
 } else {
   # set fake dims for evaluating next chunk
   consensus_dims <- c(1, 1)
@@ -431,14 +431,14 @@ faceted_umap(
   consensus_n_celltypes,
   consensus_celltype_annotation_lumped,
   point_size = umap_facet_point_size
-) 
+)
 ```
 
 ```{r}
 if (has_singler & has_umap && (is_supplemental || !has_consensus)) {
   singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
   singler_dims <- determine_umap_dimensions(singler_n_celltypes)
-  knitr::asis_output('### SingleR annotations')
+  knitr::asis_output("### SingleR annotations")
 } else {
   # set fake dims for evaluating next chunk
   singler_dims <- c(1, 1)
@@ -461,7 +461,7 @@ faceted_umap(
 if (has_cellassign & has_umap && (is_supplemental || !has_consensus)) {
   cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
   cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
-  knitr::asis_output('### CellAssign annotations')
+  knitr::asis_output("### CellAssign annotations")
 } else {
   # set fake dims for evaluating next chunk
   cellassign_dims <- c(1, 1)
