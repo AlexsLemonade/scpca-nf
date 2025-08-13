@@ -223,7 +223,7 @@ if ("cell line" %in% sample_types) {
 }
 ```
 
-# Metadata and processing information for `r library_id` {.tabset}
+# Metadata and Processing Information for `r library_id` {.tabset}
 
 ```{r, eval = has_multiplex, results='asis'}
 # convert sample id to bullet separated list
@@ -364,7 +364,7 @@ knitr::kable(processing_info, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-# RNA-seq experiment summary
+# RNA-seq Experiment Summary
 
 ## Cell statistics
 

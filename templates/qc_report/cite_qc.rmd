@@ -1,8 +1,8 @@
-# CITE-seq experiment summary
+# CITE-seq Experiment Summary
 
 This section details quality control statistics from the ADT (antibody-derived tag) component of CITE-seq experiments.
 
-## CITE-seq summary tables {.tabset}
+## Summary tables {.tabset}
 
 ### Experiment statistics
 
@@ -53,12 +53,9 @@ antibody_tags <- as.data.frame(rowData(adt_exp)) |>
     "ADT target type" = target_type
   )
 
-knitr::kable(antibody_tags, digits = 2) |>
-  kableExtra::kable_styling(
-    bootstrap_options = c("striped", "condensed"),
-    full_width = FALSE,
-    position = "left",
-  )
+DT::datatable(antibody_tags, 
+              rownames = FALSE) |> 
+  DT::formatRound(c("Mean UMI count per cell", "Percent of cells detected"), 2)
 ```
 
 ### ADT post-processing statistics

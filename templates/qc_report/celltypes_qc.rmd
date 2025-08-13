@@ -1,4 +1,4 @@
-# Cell type annotation summary
+# Cell type Annotation Summary
 
 <!--
 This file is meant to be run as a child report within either `main_qc_report.rmd` or `celltypes_supplemental_report.rmd`. 
@@ -324,7 +324,7 @@ knitr::asis_output('
 In this table, cells labeled "Submitter-excluded" are those for which submitters did not provide an annotation.
 ')
 create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
-  format_celltype_n_table()
+  DT::datatable(rownames = FALSE)
 ```
 
 ```{r, eval = has_consensus}
@@ -334,7 +334,7 @@ In this table, cells labeled "Unknown cell type" are those whose `SingleR` and `
 In the processed result files, these cells are labeled `Unknown`.
 ')
 create_celltype_n_table(celltype_df, consensus_celltype_annotation) |>
-  format_celltype_n_table()
+  DT::datatable(rownames = FALSE)
 ```
 
 ```{r, eval = has_singler && (!has_consensus || is_supplemental)}
@@ -344,7 +344,7 @@ In this table, cells labeled "Unknown cell type" are those which `SingleR` prune
 In the processed result files, these cells are labeled `NA`.
 ')
 create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
-  format_celltype_n_table()
+  DT::datatable(rownames = FALSE)
 ```
 
 ```{r, eval = has_cellassign && (!has_consensus || is_supplemental)}
@@ -354,7 +354,7 @@ In this table, cells labeled "Unknown cell type" are those which `CellAssign` co
 In the processed result files, these cells are labeled `"other"`.
 ')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
-  format_celltype_n_table()
+  DT::datatable(rownames = FALSE)
 ```
 
 
