@@ -40,10 +40,8 @@ def write_library_configs(
         defColorField='{label_field}'
         labelField='{label_field}'
         enumFields=['{label_field}']
-        coords=[
-            {"file": "umap_coords.tsv", "shortLabel": "UMAP"}
-        ]
-        markers = [{"file": "markers.tsv", "shortLabel":"Cluster Markers"}]
+        coords=[{{"file": "umap_coords.tsv", "shortLabel": "UMAP" }}]
+        markers = [{{"file": "markers.tsv", "shortLabel":"Cluster Markers" }}]
         quickGenesFile="quickGenes.tsv"
     """
     library_cb_file.write_text(textwrap.dedent(library_cb_contents))
@@ -61,7 +59,11 @@ def main():
         description="Create UCSC Cell Browser config files"
     )
     parser.add_argument(
-        "--outdir", "-o", help="Path to the output directory.", type=pathlib.Path
+        "--outdir",
+        "-o",
+        help="Path to the output directory.",
+        type=pathlib.Path,
+        default=pathlib.Path("."),
     )
     parser.add_argument(
         "--conf_type",
@@ -72,7 +74,7 @@ def main():
     parser.add_argument(
         "--ids", required=True, help="Comma separated list of project or library ids."
     )
-    parser.add_argument("--sample_ids", help="Comma separated list of sample ids.")
+    parser.add_argument("--sample-ids", help="Comma separated list of sample ids.")
     parser.add_argument("--project-metadata", help="Path to the project metadata file.")
     parser.add_argument(
         "--label-field",
