@@ -84,8 +84,10 @@
           "type": "string",
           "fa_icon": "fas fa-folder-open",
           "format": "directory-path",
-          "description": "UCSC CellBrowser output directory",
-          "help_text": "Directory for UCSC CellBrowser output files. Skip CellBrowser output if empty."
+          "description": "UCSC Cell Browser output directory",
+          "help_text": "Directory for UCSC Cell Browser output files. Only used by the build-cellbrowser workflow.",
+          "default": "scpca_out/cellbrowser",
+          "hidden": true
         }
       }
     },
@@ -388,6 +390,12 @@
           "hidden": true,
           "description": "SingleR label name",
           "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
+        },
+        "cellbrowser_label_field": {
+          "type": "string",
+          "default": "cluster",
+          "description": "Field used to label cells in UCSC Cell Browser.",
+          "help_text": "Label field for cells in the UCSC Cell Browser, used in `build-cellbrowser.nf`."
         }
       },
       "fa_icon": "fas fa-tasks"
@@ -417,6 +425,7 @@
       "properties": {
         "report_template_dir": {
           "type": "string",
+          "format": "directory-path",
           "default": "${projectDir}/templates/qc_report",
           "fa_icon": "fas fa-folder-open"
         },
@@ -429,6 +438,14 @@
           "type": "string",
           "default": "celltypes_supplemental_report.rmd",
           "fa_icon": "fas fa-file-alt"
+        },
+        "cellbrowser_template_dir": {
+          "type": "string",
+          "format": "directory-path",
+          "default": "${projectDir}/templates/cellbrowser",
+          "fa_icon": "fas fa-folder-open",
+          "description": "Template directory with Cell Browser site config files",
+          "help_text": "Template directory with Cell Browser site config files. Should contain a `cellbrowser.conf` file and a `desc.conf` file, as well as any additional files such as `abstract.html`."
         }
       }
     },
