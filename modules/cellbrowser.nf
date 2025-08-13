@@ -11,11 +11,14 @@ process cellbrowser_library {
 
   script:
     """
-    mkdir -p "${meta.library_id}"
-    # selection of expected files
-    touch "${meta.library_id}/cellbrowser.conf"
-    touch "${meta.library_id}/desc.conf"
-    touch "${meta.library_id}/matrix.mtx.gz"
+    infile="${meta.library_id}_processed_rna.h5ad" # Name the file in case there are multiple modalities
+    cellbrowser_config.py \
+      --conf_type library\
+      --ids "${meta.library_id}"
+    cbImportScanpy -i "\${infile}" -o "${meta.library_id}" --clusterField="cluster"
+
+    # remove the h5ad as we won't use it
+    rm "${meta.library_id}"/*_processed_rna.h5ad
     """
   stub:
     """
@@ -33,18 +36,47 @@ process cellbrowser_site {
   input:
     tuple val(project_ids), path(library_dirs)
     path project_metadata
-    path site_conf_dir
+    path site_conf_dir, name: 'site_conf_dir'
   output:
-    path "cb_site"
+    path "cellbrowser"
   script:
     """
-    mkdir cb_site
-    touch cb_site/index.html
+    mkdir -p cellbrowser
+    cp -f site_conf_dir/* cellbrowser/
+
+    # create the project config files
+    cellbrowser_config.py \
+      --outdir cellbrowser \
+      --conf_type project \
+      --ids ${project_ids.unique(false).join(",")} \
+      --project-metadata ${project_metadata}
+
+    # move library directories into place
+
+    for i in \${!libraries[@]}; do
+      mkdir -p "cellbrowser/\${projects[\$i]}"
+      mv \${libraries[\$i]} "cellbrowser/\${projects[\$i]}/\${libraries[\$i]}"
+    done
+
+
     """
   stub:
     """
-    mkdir cb_site
-    touch cb_site/index.html
+    mkdir -p cellbrowser
+    cp -f site_conf_dir/* cellbrowser/
+
+    for project in ${project_ids.unique(false).join(" ")} ; do
+      mkdir -p "cellbrowser/\${project}"
+      touch "cellbrowser/\${project}/cellbrowser.conf"
+      touch "cellbrowser/\${project}/desc.conf"
+    done
+
+    libraries=(${library_dirs.join(" ")})
+    projects=(${project_ids.join(" ")})
+    for i in \${!libraries[@]}; do
+      mkdir -p "cellbrowser/\${projects[\$i]}"
+      mv \${libraries[\$i]} "cellbrowser/\${projects[\$i]}/\${libraries[\$i]}"
+    done
     """
 }
 
