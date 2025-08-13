@@ -48,6 +48,7 @@ Nextflow
 Nextflow's
 nf
 Oligos
+oligos
 PanglaoDB
 parallelizing
 pixi
