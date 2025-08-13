@@ -12,9 +12,15 @@ process cellbrowser_library {
   script:
     """
     infile="${meta.library_id}_processed_rna.h5ad" # Name the file in case there are multiple modalities
+
+    # create the library config files
     cellbrowser_config.py \
-      --conf_type library\
-      --ids "${meta.library_id}"
+      --conf_type library \
+      --ids "${meta.library_id}" \
+      --label-field cluster \
+      --sample-ids "${meta.sample_id}"
+
+    # import data to library directory
     cbImportScanpy -i "\${infile}" -o "${meta.library_id}" --clusterField="cluster"
 
     # remove the h5ad as we won't use it
@@ -36,47 +42,36 @@ process cellbrowser_site {
   input:
     tuple val(project_ids), path(library_dirs)
     path project_metadata
-    path site_conf_dir, name: 'site_conf_dir'
+    path site_conf_dir
   output:
-    path "cellbrowser"
+    path "cb_site"
   script:
     """
-    mkdir -p cellbrowser
-    cp -f site_conf_dir/* cellbrowser/
+    mkdir -p cb_data
+    cp ${site_conf_dir}/* cb_data/
 
     # create the project config files
     cellbrowser_config.py \
-      --outdir cellbrowser \
+      --outdir cb_data \
       --conf_type project \
       --ids ${project_ids.unique(false).join(",")} \
       --project-metadata ${project_metadata}
 
     # move library directories into place
-
-    for i in \${!libraries[@]}; do
-      mkdir -p "cellbrowser/\${projects[\$i]}"
-      mv \${libraries[\$i]} "cellbrowser/\${projects[\$i]}/\${libraries[\$i]}"
+    library_dirs=(${library_dirs.join(" ")})
+    project_ids=(${project_ids.join(" ")})
+    for i in \${!library_dirs[@]}; do
+      library_id=\$(basename \${library_dirs[\$i]})
+      mv \${library_dirs[\$i]} "cb_data/\${project_ids[\$i]}/\${library_id}"
     done
 
-
+    # build the site
+    CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf -o cb_site
     """
   stub:
     """
-    mkdir -p cellbrowser
-    cp -f site_conf_dir/* cellbrowser/
-
-    for project in ${project_ids.unique(false).join(" ")} ; do
-      mkdir -p "cellbrowser/\${project}"
-      touch "cellbrowser/\${project}/cellbrowser.conf"
-      touch "cellbrowser/\${project}/desc.conf"
-    done
-
-    libraries=(${library_dirs.join(" ")})
-    projects=(${project_ids.join(" ")})
-    for i in \${!libraries[@]}; do
-      mkdir -p "cellbrowser/\${projects[\$i]}"
-      mv \${libraries[\$i]} "cellbrowser/\${projects[\$i]}/\${libraries[\$i]}"
-    done
+    mkdir cb_site
+    touch cb_site/index.html
     """
 }
 
