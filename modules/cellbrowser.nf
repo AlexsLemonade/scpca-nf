@@ -49,9 +49,9 @@ process cellbrowser_site {
 }
 
 
-workflow build_cellbrowser {
+workflow cellbrowser_build {
   take:
-    processed_anndata_ch // channel of tuples [meta, processed_h5ad_file(s)]
+    processed_anndata_ch // channel of tuples [meta, processed_h5ad_file]
   main:
     cellbrowser_library(processed_anndata_ch)
 

@@ -12,7 +12,6 @@ include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
-include { build_cellbrowser } from './modules/cellbrowser.nf'
 
 def check_parameters() {
   // parameter check function
