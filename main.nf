@@ -67,17 +67,6 @@ def check_parameters() {
     }
   }
 
-  // cell browser config checks
-  if (params.cellbrowser_dir){
-    if (!params.project_metafile) {
-      log.error("The 'project_metafile' file '${params.project_metafile}' is required for generating the CellBrowser output.")
-      param_error = true
-    } else if (!file(params.project_metafile).exists()) {
-      log.error("The 'project_metafile' file '${params.project_metafile}' can not be found.")
-      param_error = true
-    }
-  }
-
   if (param_error) {
     System.exit(1)
   }
@@ -357,11 +346,6 @@ workflow {
     // skip multiplexed libraries
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
-
-  if (params.cellbrowser_dir) {
-    processed_anndata_ch = sce_to_anndata.out.processed
-    build_cellbrowser(processed_anndata_ch)
-  }
 
    // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(runs_ch.spatial)
