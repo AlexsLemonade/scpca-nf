@@ -42,14 +42,11 @@ process cellbrowser_site {
   input:
     tuple val(project_ids), path(library_dirs)
     path project_metadata
-    path site_conf_dir
+    path "cb_data"
   output:
     path "cb_site"
   script:
     """
-    mkdir -p cb_data
-    cp ${site_conf_dir}/* cb_data/
-
     # create the project config files
     cellbrowser_config.py \
       --outdir cb_data \
