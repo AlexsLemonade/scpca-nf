@@ -10,7 +10,8 @@
     "splici_index": "homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_intron.txome",
     "salmon_bulk_index": "homo_sapiens/ensembl-104/salmon_index/Homo_sapiens.GRCh38.104.spliced_cdna.txome",
     "cellranger_index": "homo_sapiens/ensembl-104/cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full",
-    "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx"
+    "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx",
+    "infercnv_gene_order_path": "homo_sapiens/ensembl-104/infercnv/Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz"
   },
   "Mus_musculus.GRCm39.104": {
     "ref_dir": "mus_musculus/ensembl-104",
@@ -23,6 +24,7 @@
     "splici_index": "mus_musculus/ensembl-104/salmon_index/Mus_musculus.GRCm39.104.spliced_intron.txome",
     "salmon_bulk_index": "mus_musculus/ensembl-104/salmon_index/Mus_musculus.GRCm39.104.spliced_cdna.txome",
     "cellranger_index": "mus_musculus/ensembl-104/cellranger_index/Mus_musculus.GRCm39.104_cellranger_full",
-    "star_index": "mus_musculus/ensembl-104/star_index/Mus_musculus.GRCm39.104.star_idx"
+    "star_index": "mus_musculus/ensembl-104/star_index/Mus_musculus.GRCm39.104.star_idx",
+    "infercnv_gene_order_path": "mus_musculus/ensembl-104/infercnv/Mus_musculus.GRCm39.104_gene_order_arms.txt.gz"
   }
 }

@@ -83,6 +83,10 @@ create_ref_entry <- function(
     star_index = file.path(
       ref_dir, "star_index",
       glue::glue("{reference_name}.star_idx")
+    ),
+    infercnv_gene_order_path = file.path(
+      ref_dir, "infercnv",
+      glue::glue("{reference_name}_gene_order_arms.txt.gz")
     )
   )
 
