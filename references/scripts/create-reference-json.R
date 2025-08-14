@@ -87,6 +87,10 @@ create_ref_entry <- function(
     infercnv_gene_order_path = file.path(
       ref_dir, "infercnv",
       glue::glue("{reference_name}_gene_order_arms.txt.gz")
+    ),
+    cytoband_path = file.path(
+      ref_dir, "annotation",
+      glue::glue("{reference_name}_cytoband.txt.gz")
     )
   )
 
