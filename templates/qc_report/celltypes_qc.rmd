@@ -494,6 +494,8 @@ All marker genes shown are specific to a single cell type, with the exception of
 We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
 
 Note that dots are only shown if the gene has mean expression greater than 0 and is expressed in at least 10% of the cells in the given cell type.
+
+If all consensus cell types are labeled as `Unknown cell type`, then no dot plot will be shown. 
   ")
 ```
 
@@ -641,49 +643,53 @@ dotplot_df <- group_stats_df |>
 
 
 ```{r, eval = has_consensus, fig.height=7, fig.width=15}
-# make dotplot with marker gene exp
-dotplot <- ggplot(dotplot_df, aes(y = y_label, x = gene_symbol, color = mean_exp, size = percent_exp)) +
-  geom_point() +
-  scale_color_viridis_c(option = "magma") +
-  facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
-  theme_classic() +
-  theme(
-    strip.background = element_rect(fill = "transparent", color = NA),
-    strip.placement = "outside",
-    strip.text.x = element_blank(),
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-    axis.ticks.x = element_blank(),
-    text = element_text(size = 14),
-    panel.spacing = unit(0.5, "lines") # adjust spacing and match with annotation bar
-  ) +
-  labs(
-    x = "",
-    y = "Broad cell type annotation",
-    color = "Mean gene expression",
-    size = "Percent cells expressed"
-  )
-
-
-# add annotation bar aligning marker genes with validation group
-color_bar <- ggplot(dotplot_df, aes(x = gene_symbol, y = 1, fill = validation_group_annotation)) +
-  geom_tile() +
-  facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
-  scale_fill_manual(values = celltype_colors, breaks = levels(dotplot_df$validation_group_annotation)) +
-  ggmap::theme_nothing() +
-  theme(
-    strip.background = element_rect(fill = "transparent", color = NA),
-    strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = 12),
-    strip.placement = "outside",
-    legend.position = "none",
-    panel.spacing = unit(0.5, "lines"),
-    strip.clip = "off"
-  ) +
-  labs(fill = "")
-
-combined_plot <- color_bar / dotplot +
-  patchwork::plot_layout(ncol = 1, heights = c(0.1, 4))
-
-combined_plot
+# only make a dot plot if we have at least one validation group annotation present 
+if(length(unique(dotplot_df$validation_group_annotation)) > 0) {
+  
+  # make dotplot with marker gene exp
+  dotplot <- ggplot(dotplot_df, aes(y = y_label, x = gene_symbol, color = mean_exp, size = percent_exp)) +
+    geom_point() +
+    scale_color_viridis_c(option = "magma") +
+    facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
+    theme_classic() +
+    theme(
+      strip.background = element_rect(fill = "transparent", color = NA),
+      strip.placement = "outside",
+      strip.text.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+      axis.ticks.x = element_blank(),
+      text = element_text(size = 14),
+      panel.spacing = unit(0.5, "lines") # adjust spacing and match with annotation bar
+    ) +
+    labs(
+      x = "",
+      y = "Broad cell type annotation",
+      color = "Mean gene expression",
+      size = "Percent cells expressed"
+    )
+  
+  
+  # add annotation bar aligning marker genes with validation group
+  color_bar <- ggplot(dotplot_df, aes(x = gene_symbol, y = 1, fill = validation_group_annotation)) +
+    geom_tile() +
+    facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
+    scale_fill_manual(values = celltype_colors, breaks = levels(dotplot_df$validation_group_annotation)) +
+    ggmap::theme_nothing() +
+    theme(
+      strip.background = element_rect(fill = "transparent", color = NA),
+      strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = 12),
+      strip.placement = "outside",
+      legend.position = "none",
+      panel.spacing = unit(0.5, "lines"),
+      strip.clip = "off"
+    ) +
+    labs(fill = "")
+  
+  combined_plot <- color_bar / dotplot +
+    patchwork::plot_layout(ncol = 1, heights = c(0.1, 4))
+  
+  combined_plot
+}
 ```
 
 
