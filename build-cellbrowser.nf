@@ -17,8 +17,8 @@ def check_parameters() {
   }
 
   // cell browser config checks
-  if (!params.cellbrowser_dir) {
-    log.error("The 'cellbrowser_dir' directory is required for generating cellbrowser output")
+  if (!params.cellbrowser_dirname) {
+    log.error("The 'cellbrowser_dirname' directory is required for generating cellbrowser output")
     param_error = true
   }
   if (!file(params.project_metafile).exists()) {
