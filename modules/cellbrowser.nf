@@ -38,13 +38,13 @@ process cellbrowser_library {
 
 process cellbrowser_site {
   container "${params.CELLBROWSER_CONTAINER}"
-  publishDir "${params.cellbrowser_dir}"
+  publishDir "${params.outdir}"
   input:
     tuple val(project_ids), path(library_dirs)
     path project_metadata
     path "cb_data"
   output:
-    path "cb_site"
+    path "${params.cellbrowser_dirname}"
   script:
     """
     # create the project config files
@@ -63,12 +63,12 @@ process cellbrowser_site {
     done
 
     # build the site
-    CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf -o cb_site
+    CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf -o ${params.cellbrowser_dirname}
     """
   stub:
     """
-    mkdir cb_site
-    touch cb_site/index.html
+    mkdir ${params.cellbrowser_dirname}
+    touch ${params.cellbrowser_dirname}/index.html
     """
 }
 
