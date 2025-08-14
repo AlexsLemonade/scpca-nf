@@ -82,55 +82,6 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
 }
 
 
-
-
-
-#' Make UMAP  colored by given variable
-#'
-#' @param umap_df Data frame with UMAP1 and UMAP2 columns
-#' @param color_variable Column in data frame to color by, not a string.
-#' @param legend_title Title for legend.
-#' @param legend_nrow Number of rows in legend. Default is 2.
-#' @param point_size Point size. Default is 1
-#'
-#' @return UMAP plot as a ggplot2 object
-plot_umap <- function(
-    umap_df,
-    color_variable,
-    legend_title,
-    point_size = 1,
-    legend_nrow = 2) {
-  ggplot(umap_df) +
-    aes(
-      x = UMAP1,
-      y = UMAP2,
-      color = {{ color_variable }}
-    ) +
-    geom_point(
-      size = point_size,
-      alpha = 0.5
-    ) +
-    # remove axis numbers and background grid
-    scale_x_continuous(labels = NULL, breaks = NULL) +
-    scale_y_continuous(labels = NULL, breaks = NULL) +
-    guides(
-      color = guide_legend(
-        title = legend_title,
-        nrow = legend_nrow,
-        # more visible points in legend
-        override.aes = list(
-          alpha = 1,
-          size = 1.5
-        )
-      )
-    ) +
-    theme(
-      legend.position = "bottom",
-      aspect.ratio = 1
-    )
-}
-
-
 #' Create a faceted UMAP panel where each panel has only one cell type colored
 #'
 #' @param umap_df Data frame with UMAP1 and UMAP2 columns
@@ -401,54 +352,10 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 ```
 
 
-```{r, eval = has_umap && has_clusters}
-knitr::asis_output(glue::glue("
-## UMAPs
-
-In this section, we show UMAPs colored by clusters.
-Clusters were calculated using the graph-based {metadata(processed_sce)$cluster_algorithm} algorithm with  {metadata(processed_sce)$cluster_weighting} weighting.
-"))
-```
-
-
 ```{r, eval = has_umap, warning = FALSE}
 # Create dataset for plotting UMAPs with lumped and label-wrapped cell types
 umap_df <- lump_wrap_celltypes(celltype_df)
 ```
-
-
-<!-- First UMAP: clusters -->
-
-```{r, eval = has_umap && has_multiplex && has_clusters, results='asis'}
-glue::glue("
-  <div class=\"alert alert-info\">
-    This library contains multiple samples that have not been batch-corrected, which may confound clustering assignments.
-    Please use caution when interpreting these results.
-  </div>
-")
-```
-
-
-```{r eval = has_umap && has_clusters, message=FALSE, warning=FALSE}
-clusters_plot <- plot_umap(
-  umap_df,
-  cluster,
-  "Cluster",
-  point_size = umap_point_size
-) +
-  ggtitle("UMAP colored by cluster identity")
-
-# Determine palette based on number of levels.
-# If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
-#  Otherwise, we will use the default palette.
-if (length(levels(umap_df$cluster)) <= 8) {
-  clusters_plot +
-    scale_color_brewer(palette = "Set2")
-} else {
-  clusters_plot
-}
-```
-
 
 ```{r, eval = has_umap && has_celltypes }
 # only mention multiple annotations if we're actually showing multiple annotations
@@ -460,7 +367,9 @@ if (has_consensus && !has_submitter && !is_supplemental) {
 
 
 knitr::asis_output(glue::glue(
-  'Next, we show UMAPs colored by cell types.
+  '## UMAPs
+
+  In this section, we show UMAPs colored by cell types.
   {umap_text}
 In each panel, cells that were assigned the given cell type label are colored, while all other cells are in grey.
 
@@ -801,14 +710,19 @@ glue::glue(
 )
 ```
 
-```{r, eval= has_submitter & has_consensus & !is_supplemental }
-# Set plot dimensions based on number of consensus cell types
-all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
-plot_height <- calculate_plot_height(
-  unique(celltype_df$consensus_celltype_annotation),
-  unique(celltype_df$submitter_celltype_annotation),
-  0
-)
+```{r}
+if (has_submitter & has_consensus & !is_supplemental) {
+  # Set plot dimensions based on number of consensus cell types
+  all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
+  plot_height <- calculate_plot_height(
+    unique(celltype_df$consensus_celltype_annotation),
+    unique(celltype_df$submitter_celltype_annotation),
+    0
+  )
+} else {
+  # set a default to avoid failure in the next chunk
+  plot_height <- 1
+}
 ```
 
 

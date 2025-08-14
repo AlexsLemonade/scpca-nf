@@ -1,6 +1,6 @@
 ## Dimensionality Reduction
 
-The below plot shows the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell, coloring each cell by the total number of genes detected per cell.
+The below plot shows the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell. 
 
 ```{r}
 # determine UMAP point sizing
@@ -8,6 +8,35 @@ umap_points_sizes <- determine_umap_point_size(ncol(processed_sce))
 umap_point_size <- umap_points_sizes[1]
 umap_facet_point_size <- umap_points_sizes[2]
 ```
+
+### Unsupervised clustering
+
+The cells in the blow UMAP are colored by cluster assignment. 
+Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with  `r metadata(processed_sce)$cluster_weighting` weighting and `r metadata(processed_sce)$cluster_nn` nearest neighbors.
+
+**Caution**: Clusters are computed without performing any evaluation or optimization of clustering parameters.
+These results should be interpreted with caution.
+
+```{r, eval = has_multiplex && has_clusters, results='asis'}
+glue::glue("
+  <div class=\"alert alert-info\">
+    This library contains multiple samples that have not been demultiplexed, which may confound clustering assignments.
+    Please use caution when interpreting these results.
+  </div>
+")
+```
+
+```{r eval = has_clusters, message=FALSE, warning=FALSE}
+# create UMAP colored by clusters
+plot_clusters_umap(
+  processed_sce,
+  umap_point_size
+)
+```
+
+### Total number of genes
+
+The cells in the below UMAP are colored by the total number of genes detected per cell. 
 
 
 ```{r message=FALSE}
@@ -25,8 +54,10 @@ scater::plotUMAP(
   guides(
     color = guide_colorbar(title = "Number of \ngenes detected")
   ) +
+  theme_bw() +
   theme(aspect.ratio = 1)
 ```
+
 
 ### Expression of highly variable genes
 
