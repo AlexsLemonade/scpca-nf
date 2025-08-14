@@ -28,7 +28,7 @@ determine_umap_point_size <- function(n_processed_cells) {
 
 #' Make UMAP colored by clusters
 #'
-#' @param sce SingleÇellExperiment object with UMAP embeddings
+#' @param sce Single<U+00C7>ellExperiment object with UMAP embeddings
 #' @param point_size Point size. Default is 1
 #'
 #' @return UMAP plot as a ggplot2 object
@@ -155,5 +155,36 @@ print_sample_metadata <- function(meta_list) {
   ")
     )
   }
+}
+```
+
+```{r}
+#' Format DT datatables
+#'
+#' @param df Data frame to format
+#'
+#' @return DT datatable
+format_datatable <- function(df) {
+  df |>
+    DT::datatable(
+      rownames = FALSE,
+      extensions = "Scroller",
+      options = list(
+        scroller = TRUE,
+        deferRender = TRUE,
+        scrollX = TRUE,
+        scrollY = 400,
+        scrollCollapse = TRUE,
+        columnDefs = list(list(
+          # render missing values as "NA" rather than blanks in the table
+          targets = "_all",
+          render = DT::JS(
+            "function(data, type, row, meta) {",
+            "return data === null ? 'NA' : data;",
+            "}"
+          )
+        ))
+      )
+    )
 }
 ```
