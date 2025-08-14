@@ -63,7 +63,11 @@ workflow cellbrowser_build {
      .map{it -> it.drop(1)}
 
     // export processed anndata files for cellbrowser
-    cellbrowser_site(project_libs_ch, file(params.project_metafile), file("${projectDir}/templates/cellbrowser", type: 'dir', checkIfExists: true))
+    cellbrowser_site(
+      project_libs_ch,
+      file(params.project_metafile),
+      file(params.cellbrowser_template_dir, type: 'dir', checkIfExists: true)
+    )
 
   emit:
     cellbrowser_site.out
