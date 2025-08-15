@@ -23,6 +23,21 @@ output:
     number_sections: false
     code_download: true
 ---
+ <!--Make sure tabs always fit on one line--> 
+<style>
+.nav-tabs {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+}
+.nav-tabs > li {
+  flex: 1 1 auto !important;
+  text-align: center;
+}
+.nav-tabs > li > a {
+  white-space: normal !important;
+}
+</style>
+
 
 ```{r setup, message = FALSE, echo = FALSE}
 # knitr options
