@@ -223,7 +223,7 @@ if ("cell line" %in% sample_types) {
 }
 ```
 
-# Metadata and Processing Information for `r library_id`
+# Metadata and Processing Information for `r library_id` {.tabset}
 
 ```{r, eval = has_multiplex, results='asis'}
 # convert sample id to bullet separated list
@@ -240,7 +240,7 @@ glue::glue("
 ")
 ```
 
-## Sample Metadata
+## Sample metadata
 
 The below table summarizes clinical metadata for the sample associated with this library. 
 Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
@@ -267,7 +267,7 @@ if (!has_multiplex) {
 }
 ```
 
-## Raw Library Metrics
+## Raw library metrics
 
 ```{r }
 # extract sce metadata containing processing information as table
@@ -332,7 +332,7 @@ knitr::kable(library_information, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## Pre-Processing Information
+## Pre-processing information
 
 ```{r }
 # define transcript type
@@ -366,7 +366,7 @@ knitr::kable(processing_info, align = "r") |>
 
 # RNA-seq Experiment Summary
 
-## Cell Statistics
+## Cell statistics
 
 ```{r}
 basic_statistics <- tibble::tibble(
@@ -459,7 +459,14 @@ if (has_processed) {
 }
 ```
 
-## Knee Plot
+## Quality control plots {.tabset}
+
+### Knee plot
+
+The total UMI count of each droplet (barcode) plotted against the rank of that droplet allows visualization of the distribution of sequencing depth across droplets.
+The droplets that are expected to contain cells were identified with [`DropletUtils::emptyDropsCellRanger()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html), unless otherwise specified in the `Cell Statistics` table, which uses both the total UMI counts and expressed gene content (adapted from [Lun  _et al._ 2019](https://doi.org/10.1186/s13059-019-1662-y)).
+As the boundary between droplets passing and failing this filter is not solely dependent on total UMI count, some regions contain droplets in both categories.
+The color in this plot indicates the percentage of droplets in a region passing the filter.
 
 ```{r, fig.alt="Smoothed knee plot of filtered and unfiltered droplets"}
 unfiltered_celldata <- data.frame(colData(unfiltered_sce)) |>
@@ -512,12 +519,12 @@ ggplot(grouped_celldata, aes(x = med_rank, y = med_sum, color = pct_passed)) +
   )
 ```
 
-The total UMI count of each droplet (barcode) plotted against the rank of that droplet allows visualization of the distribution of sequencing depth across droplets.
-The droplets that are expected to contain cells were identified with [`DropletUtils::emptyDropsCellRanger()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html), unless otherwise specified in the `Cell Statistics` table, which uses both the total UMI counts and expressed gene content (adapted from [Lun  _et al._ 2019](https://doi.org/10.1186/s13059-019-1662-y)).
-As the boundary between droplets passing and failing this filter is not solely dependent on total UMI count, some regions contain droplets in both categories.
-The color in this plot indicates the percentage of droplets in a region passing the filter.
 
-## Cell Read Metrics
+### Cell read metrics
+
+The below plot of cell metrics includes only droplets which have passed the `emptyDropsCellRanger()` filter.
+The plot will usually display a strong (but curved) relationship between the total UMI count and the number of genes detected.
+Cells with low UMI counts and high mitochondrial percentages may require further filtering.
 
 ```{r, fig.alt="Total UMI x genes expressed"}
 filtered_celldata <- data.frame(colData(filtered_sce))
@@ -547,11 +554,18 @@ ggplot(
   )
 ```
 
-The above plot of cell metrics includes only droplets which have passed the `emptyDropsCellRanger()` filter.
-The plot will usually display a strong (but curved) relationship between the total UMI count and the number of genes detected.
-Cells with low UMI counts and high mitochondrial percentages may require further filtering.
 
-## miQC Model Diagnostics
+### miQC model diagnostics
+
+We calculate the probability that a cell is compromised due to degradation or rupture using [`miQC`](https://bioconductor.org/packages/release/bioc/html/miQC.html) ([Hippen _et al._ 2021](https://doi.org/10.1371/journal.pcbi.1009290)).
+This relies on fitting a mixture model using the number of genes expressed by a cell and the percentage of mitochondrial reads.
+The expected plot will show a characteristic triangular shape and two model fit lines.
+Cells with low numbers of genes expressed may have both low and high mitochondrial percentage, but cells with many genes tend to have a low mitochondrial percentage.
+Compromised cells are likely to have a fewer genes detected and higher percentage of mitochondrial reads.
+
+If the model has failed to fit properly, the pattern of cells may differ, and there may not be model fit lines.
+This can be the result of a low-quality library or may occur if there is no mitochondrial content, as in the case of a high-quality single-nucleus sample.
+In such situations, the calculated probability of compromise may not be valid (see [miQC vignette](https://bioconductor.org/packages/3.13/bioc/vignettes/miQC/inst/doc/miQC.html#when-not-to-use-miqc) for more details).
 
 ```{r, fig.alt="miQC model diagnostics plot", results='asis', warning=FALSE}
 if (skip_miQC) {
@@ -588,17 +602,8 @@ if (skip_miQC) {
 }
 ```
 
-We calculate the probability that a cell is compromised due to degradation or rupture using [`miQC`](https://bioconductor.org/packages/release/bioc/html/miQC.html) ([Hippen _et al._ 2021](https://doi.org/10.1371/journal.pcbi.1009290)).
-This relies on fitting a mixture model using the number of genes expressed by a cell and the percentage of mitochondrial reads.
-The expected plot will show a characteristic triangular shape and two model fit lines.
-Cells with low numbers of genes expressed may have both low and high mitochondrial percentage, but cells with many genes tend to have a low mitochondrial percentage.
-Compromised cells are likely to have a fewer genes detected and higher percentage of mitochondrial reads.
 
-If the model has failed to fit properly, the pattern of cells may differ, and there may not be model fit lines.
-This can be the result of a low-quality library or may occur if there is no mitochondrial content, as in the case of a high-quality single-nucleus sample.
-In such situations, the calculated probability of compromise may not be valid (see [miQC vignette](https://bioconductor.org/packages/3.13/bioc/vignettes/miQC/inst/doc/miQC.html#when-not-to-use-miqc) for more details).
-
-## Removing low quality cells
+### Removing low quality cells
 
 The below plot highlights cells that were removed prior to normalization and dimensionality reduction.
 Cells that should be removed based on RNA counts are those that are identified to be low quality cells, such as cells with high probability of being compromised.
