@@ -11,7 +11,7 @@ process generate_reference {
   label 'mem_32'
   maxRetries 1
   input:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     tuple val(ref_name), val(meta), emit: ref_info
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
@@ -39,7 +39,7 @@ process salmon_index {
   label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     path splici_index_dir
     path spliced_cdna_index_dir
@@ -73,7 +73,7 @@ process cellranger_index {
   label 'cpus_12'
   label 'mem_24'
   input:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     path cellranger_index
   script:
@@ -96,7 +96,7 @@ process star_index {
   label 'cpus_12'
   memory '64.GB'
   input:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     path output_dir
   script:
@@ -122,6 +122,25 @@ process star_index {
     """
 }
 
+process infercnv_gene_order {
+  container params.SCPCATOOLS_SLIM_CONTAINER
+  label 'mem_8'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/infercnv", mode: 'copy'
+  input:
+    tuple val(ref_name), val(meta), path(gtf), path(cytoband)
+  output:
+    path gene_order_file
+  script:
+    gene_order_file = file("${meta.infercnv_gene_order}").name
+    """
+    prepare_infercnv_gene_order_file.R \
+      --gtf_file ${gtf} \
+      --cytoband_file ${cytoband} \
+      --gene_order_file ${gene_order_file}
+    """
+}
+
+
 workflow {
 
   // read in json file with all reference paths
@@ -136,8 +155,8 @@ workflow {
       [reference_name, ref_paths[reference_name]]
     }
     .map{it +[
-      file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
-      file("${params.ref_rootdir}/${it[1]["ref_gtf"]}") // path to gtf
+      file("${params.ref_rootdir}/${it[1]["ref_gtf"]}"), // path to gtf
+      file("${params.ref_rootdir}/${it[1]["ref_fasta"]}") // path to fasta
     ]}
 
 
@@ -150,4 +169,12 @@ workflow {
   // create star index
   star_index(ref_ch)
 
+  // create input channel for inferCNV gene order file as:
+  // name, meta, gtf, cytoband
+  infercnv_ch = ref_ch
+    .map{it.dropRight(1)} // remove path to fasta
+    .map{it + [file("${params.ref_rootdir}/${it[1]["cytoband"]}")]} // add path to cytoband
+
+  // create inferCNV gene order file
+  infercnv_gene_order(infercnv_ch)
 }
