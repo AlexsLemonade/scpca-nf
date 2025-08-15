@@ -175,7 +175,7 @@ format_datatable <- function(df) {
         scrollX = TRUE,
         scrollY = 400,
         scrollCollapse = TRUE,
-        language = list(search = "Filter:"), 
+        language = list(search = "Filter:"),
         columnDefs = list(list(
           # render missing values as "NA" rather than blanks in the table
           targets = "_all",
