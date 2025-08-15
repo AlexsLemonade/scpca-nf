@@ -24,6 +24,18 @@ output:
     code_download: true
 ---
 
+<!--Make sure tabs always fit on one line--> 
+<style>
+  .nav-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex: 1 1 auto !important;
+    text-align: center;
+    white-space: normal !important;
+  }
+</style>
+
+
 ```{r setup, message = FALSE, echo = FALSE}
 # knitr options
 knitr::opts_chunk$set(

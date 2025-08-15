@@ -302,8 +302,7 @@ if (length(unclassified_methods) > 0) {
 
 
 ```{r, eval = has_submitter}
-knitr::asis_output('
-### Submitter-provided cell type annotations\n
+knitr::asis_output('### Submitter-provided annotations
 
 In this table, cells labeled "Submitter-excluded" are those for which submitters did not provide an annotation.
 ')
@@ -312,17 +311,18 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
 ```
 
 ```{r, eval = has_consensus}
-knitr::asis_output('### Consensus cell type annotations\n
+knitr::asis_output('### Consensus cell type annotations
 
 In this table, cells labeled "Unknown cell type" are those whose `SingleR` and `CellAssign` annotations did not agree.
 In the processed result files, these cells are labeled `Unknown`.
 ')
+
 create_celltype_n_table(celltype_df, consensus_celltype_annotation) |>
   format_datatable()
 ```
 
 ```{r, eval = has_singler && (!has_consensus || is_supplemental)}
-knitr::asis_output('### `SingleR` cell type annotations\n
+knitr::asis_output('### `SingleR` annotations
 
 In this table, cells labeled "Unknown cell type" are those which `SingleR` pruned due to low-quality assignments.
 In the processed result files, these cells are labeled `NA`.
@@ -332,7 +332,7 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
 ```
 
 ```{r, eval = has_cellassign && (!has_consensus || is_supplemental)}
-knitr::asis_output('### `CellAssign` cell type annotations\n
+knitr::asis_output('### `CellAssign` annotations
 
 In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently assign to a label in the reference list.
 In the processed result files, these cells are labeled `"other"`.
@@ -422,7 +422,7 @@ faceted_umap(
 if (has_singler & has_umap && (is_supplemental || !has_consensus)) {
   singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
   singler_dims <- determine_umap_dimensions(singler_n_celltypes)
-  knitr::asis_output("### SingleR annotations")
+  knitr::asis_output("### `SingleR` annotations")
 } else {
   # set fake dims for evaluating next chunk
   singler_dims <- c(1, 1)
@@ -445,7 +445,7 @@ faceted_umap(
 if (has_cellassign & has_umap && (is_supplemental || !has_consensus)) {
   cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
   cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
-  knitr::asis_output("### CellAssign annotations")
+  knitr::asis_output("### `CellAssign` annotations")
 } else {
   # set fake dims for evaluating next chunk
   cellassign_dims <- c(1, 1)
@@ -464,7 +464,7 @@ faceted_umap(
 
 
 ```{r, eval=has_consensus}
-knitr::asis_output("
+knitr::asis_output('
 ## Expression of marker genes in consensus cell types
 
 This section looks at expression of a set of marker genes for each consensus cell type across all cells.
@@ -479,8 +479,8 @@ We expect that each cell type group should show high expression of marker genes 
 
 Note that dots are only shown if the gene has mean expression greater than 0 and is expressed in at least 10% of the cells in the given cell type.
 
-If all consensus cell types are labeled as `Unknown cell type`, then no dot plot will be shown.
-  ")
+If all consensus cell types are labeled as "Unknown cell type", then no dot plot will be shown.
+  ')
 ```
 
 
