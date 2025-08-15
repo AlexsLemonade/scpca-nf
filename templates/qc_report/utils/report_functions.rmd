@@ -28,7 +28,7 @@ determine_umap_point_size <- function(n_processed_cells) {
 
 #' Make UMAP colored by clusters
 #'
-#' @param sce Single<U+00C7>ellExperiment object with UMAP embeddings
+#' @param sce SingleCellExperiment object with UMAP embeddings
 #' @param point_size Point size. Default is 1
 #'
 #' @return UMAP plot as a ggplot2 object
@@ -175,6 +175,7 @@ format_datatable <- function(df) {
         scrollX = TRUE,
         scrollY = 400,
         scrollCollapse = TRUE,
+        language = list(search = "Filter:"), 
         columnDefs = list(list(
           # render missing values as "NA" rather than blanks in the table
           targets = "_all",
