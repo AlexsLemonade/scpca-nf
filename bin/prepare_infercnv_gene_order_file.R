@@ -11,19 +11,19 @@ option_list <- list(
   make_option(
     opt_str = c("--gtf_file"),
     type = "character",
-    default = "~/Desktop/Homo_sapiens.GRCh38.104.gtf.gz",
+    default = "",
     help = "Path to input GTF file"
   ),
   make_option(
     opt_str = c("--cytoband_file"),
     type = "character",
-    default = "~/Desktop/Homo_sapiens.GRCh38.104_cytoband.txt.gz",
+    default = "",
     help = "Path to input cytoband file"
   ),
   make_option(
     opt_str = c("--gene_order_file"),
     type = "character",
-    default = "homo.txt.gz",
+    default = "",
     help = "Output file name for gene order file, which should end in `.txt.gz`."
   )
 )
