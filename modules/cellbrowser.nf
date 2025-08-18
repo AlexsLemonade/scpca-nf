@@ -4,15 +4,13 @@ process cellbrowser_library {
   tag "${meta.library_id}"
 
   input:
-    tuple val(meta), path(h5ad_file)
+    tuple val(meta), path(h5ad_file, arity: '1')
 
   output:
     tuple val(meta), path("${meta.library_id}")
 
   script:
     """
-    infile="${meta.library_id}_processed_rna.h5ad" # Name the file in case there are multiple modalities
-
     # create the library config files
     cellbrowser_config.py \
       --conf_type library \
@@ -21,9 +19,9 @@ process cellbrowser_library {
       --sample-ids "${meta.sample_id}"
 
     # import data to library directory
-    cbImportScanpy -i "\${infile}" -o "${meta.library_id}" --clusterField="cluster"
+    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="cluster"
 
-    # remove the h5ad as we won't use it
+    # remove the h5ad from the imported files as we won't use it
     rm "${meta.library_id}"/*_processed_rna.h5ad
     """
   stub:
