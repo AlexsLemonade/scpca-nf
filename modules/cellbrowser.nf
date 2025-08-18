@@ -41,6 +41,7 @@ process cellbrowser_site {
     tuple val(project_ids), path(library_dirs)
     path project_metadata
     path "cb_data"
+    path "${params.cellbrowser_dirname}"
   output:
     path "${params.cellbrowser_dirname}"
   script:
@@ -65,7 +66,7 @@ process cellbrowser_site {
     """
   stub:
     """
-    mkdir ${params.cellbrowser_dirname}
+    mkdir -p ${params.cellbrowser_dirname}
     touch ${params.cellbrowser_dirname}/index.html
     """
 }
@@ -76,6 +77,12 @@ workflow cellbrowser_build {
     processed_anndata_ch // channel of tuples [meta, processed_h5ad_file]
   main:
     cellbrowser_library(processed_anndata_ch)
+
+    // use existing output directory if it exists
+    def cb_outdir = file("${params.outdir}/${params.cellbrowser_dirname}", type: 'dir')
+    if (!cb_outdir.exists()) {
+      cb_outdir.mkdirs()
+    }
 
     // create single channel of [[project_ids], [library_dirs]]
     project_libs_ch = cellbrowser_library.out
@@ -88,7 +95,8 @@ workflow cellbrowser_build {
     cellbrowser_site(
       project_libs_ch,
       file(params.project_metafile),
-      file(params.cellbrowser_template_dir, type: 'dir', checkIfExists: true)
+      file(params.cellbrowser_template_dir, type: 'dir', checkIfExists: true),
+      cb_outdir
     )
 
   emit:
