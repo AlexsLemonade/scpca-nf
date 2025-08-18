@@ -151,14 +151,14 @@ workflow {
     .splitCsv(header: true, sep: '\t')
     .map{
       def reference_name = "${it.organism}.${it.assembly}.${it.version}";
+      def ref_name_paths = ref_paths[reference_name];
       // reference name & reference file paths for each organism
-      [reference_name, ref_paths[reference_name]]
-    }
-    .map{it +[
-      file("${params.ref_rootdir}/${it[1]["ref_gtf"]}"), // path to gtf
-      file("${params.ref_rootdir}/${it[1]["ref_fasta"]}") // path to fasta
-    ]}
-
+      [
+        reference_name,
+        ref_name_paths,
+        file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"), // path to gtf
+        file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}") // path to fasta
+      ]}
 
   // generate splici and spliced cDNA reference fasta
   generate_reference(ref_ch)
@@ -172,8 +172,8 @@ workflow {
   // create input channel for inferCNV gene order file as:
   // name, meta, gtf, cytoband
   infercnv_ch = ref_ch
-    .map{it.dropRight(1)} // remove path to fasta
-    .map{it + [file("${params.ref_rootdir}/${it[1]["cytoband"]}")]} // add path to cytoband
+    // remove fasta path and add path to cytoband
+    .map{it.dropRight(1) + [file("${params.ref_rootdir}/${it[1]["cytoband"]}")]}
 
   // create inferCNV gene order file
   infercnv_gene_order(infercnv_ch)
