@@ -62,7 +62,9 @@ process cellbrowser_site {
     done
 
     # build the site
-    CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf -o ${params.cellbrowser_dirname}
+    CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf \
+      --redo ${params.cellbrowser_rebuild ? "matrix" : "meta"} \
+      --outDir ${params.cellbrowser_dirname}
     """
   stub:
     """
