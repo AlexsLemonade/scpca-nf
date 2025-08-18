@@ -107,7 +107,7 @@ gene_order_df <- cytoband_df |>
   ) |>
   # create chrom_arm column as identifier to use instead of chrom
   dplyr::mutate(chrom_arm = factor(glue::glue("{chrom}{arm}"), levels = chrom_arm_levels)) |>
-   # arrange and keep only relevant columns for infercnv
+  # arrange and keep only relevant columns for infercnv
   dplyr::arrange(chrom_arm, gene_start) |>
   dplyr::select(gene_id, chrom_arm, gene_start, gene_end)
 
