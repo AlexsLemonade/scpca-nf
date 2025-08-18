@@ -88,11 +88,10 @@ chrom_arm_levels <- glue::glue(
 
 gene_order_df <- cytoband_df |>
   # calculate arm boundaries
-  dplyr::group_by(chrom, arm) |>
   dplyr::summarize(
     chrom_arm_start = min(chrom_arm_start),
     chrom_arm_end = max(chrom_arm_end),
-    .groups = "drop"
+    .by = c(chrom, arm)
   ) |>
   # combine gene coordinates with chromosome arm boundaries
   # use left_join to keep only cytoband_df chromosomes
@@ -107,9 +106,8 @@ gene_order_df <- cytoband_df |>
     gene_end <= chrom_arm_end
   ) |>
   # create chrom_arm column as identifier to use instead of chrom
-  dplyr::mutate(chrom_arm = glue::glue("{chrom}{arm}")) |>
-  # arrange and keep only relevant columns for infercnv
-  dplyr::mutate(chrom_arm = factor(chrom_arm, levels = chrom_arm_levels)) |>
+  dplyr::mutate(chrom_arm = factor(glue::glue("{chrom}{arm}"), levels = chrom_arm_levels)) |>
+   # arrange and keep only relevant columns for infercnv
   dplyr::arrange(chrom_arm, gene_start) |>
   dplyr::select(gene_id, chrom_arm, gene_start, gene_end)
 
