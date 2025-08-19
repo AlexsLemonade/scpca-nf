@@ -72,11 +72,17 @@ process fry_quant_rna {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
+    if [ $barcode_file == *.gz ]; then
+      gunzip -c ${barcode_file} > permitted_barcodes.txt
+    else
+      mv ${barcode_file} permitted_barcodes.txt
+    fi
+
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
       --expected-ori ${meta.technology in ['10Xv2_5prime', '10Xv3_5prime'] ? 'rc' : 'fw'} \
       -o ${quant_dir} \
-      --unfiltered-pl ${barcode_file}
+      --unfiltered-pl permitted_barcodes.txt
 
     alevin-fry collate \
       --input-dir ${quant_dir} \
