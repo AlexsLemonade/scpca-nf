@@ -20,7 +20,8 @@ process alevin_rad {
       '10Xv2': '--chromium',
       '10Xv2_5prime': '--chromium',
       '10Xv3': '--chromiumV3',
-      '10Xv3.1': '--chromiumV3'
+      '10Xv3.1': '--chromiumV3',
+      '10Xv3_5prime': '--chromiumV3'
     ]
     // get meta to write as file
     meta += Utils.getVersions(workflow, nextflow)
@@ -73,7 +74,7 @@ process fry_quant_rna {
     """
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
-      --expected-ori ${meta.technology == '10Xv2_5prime' ? 'rc' : 'fw'} \
+      --expected-ori ${meta.technology in ['10Xv2_5prime', '10Xv3_5prime'] ? 'rc' : 'fw'} \
       -o ${quant_dir} \
       --unfiltered-pl ${barcode_file}
 

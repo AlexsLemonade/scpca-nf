@@ -88,6 +88,7 @@ workflow {
     '10Xv2_5prime': '737K-august-2016.txt',
     '10Xv3': '3M-february-2018.txt',
     '10Xv3.1': '3M-february-2018.txt',
+    '10Xv3_5prime': '3M-5pgex-jan-2023.txt.gz',
     'CITEseq_10Xv2': '737K-august-2016.txt',
     'CITEseq_10Xv3': '3M-february-2018.txt',
     'CITEseq_10Xv3.1': '3M-february-2018.txt',
