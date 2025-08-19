@@ -21,7 +21,8 @@ process alevin_rad {
       '10Xv2_5prime': '--chromium',
       '10Xv3': '--chromiumV3',
       '10Xv3.1': '--chromiumV3',
-      '10Xv3_5prime': '--chromiumV3'
+      '10Xv3_5prime': '--chromiumV3',
+      '10Xv4': '--chromiumV3'
     ]
     // get meta to write as file
     meta += Utils.getVersions(workflow, nextflow)
