@@ -135,10 +135,20 @@ workflow {
 
   def ref_paths = Utils.readMeta(file(params.ref_json))
 
-  unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
+  all_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    .filter{it.sample_reference in ref_paths}
-    // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
+    .branch{ it ->
+      known_ref: it.sample_reference in ref_paths
+      unknown_ref: true
+    }
+
+  // warn about unknown references
+  all_runs_ch.unknown_ref.subscribe{ it ->
+    log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
+  }
+
+  // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
+  unfiltered_runs_ch = all_runs_ch.known_ref
     .map{
       def sample_refs = ref_paths[it.sample_reference];
       [
