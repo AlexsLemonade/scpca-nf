@@ -17,8 +17,8 @@ def check_parameters() {
   }
 
   // cell browser config checks
-  if (!params.cellbrowser_dir) {
-    log.error("The 'cellbrowser_dir' directory is required for generating cellbrowser output")
+  if (!params.cellbrowser_dirname) {
+    log.error("The 'cellbrowser_dirname' directory is required for generating cellbrowser output")
     param_error = true
   }
   if (!file(params.project_metafile).exists()) {
@@ -46,7 +46,7 @@ workflow {
   }
   def run_all = run_ids[0] == "All"
   if (!run_all) {
-    log.warning("Some runs are not being included in the Cell Browser output; is this correct?")
+    log.warn("Some runs are not being included in the Cell Browser output; is this correct?")
   }
   //
   libraries_ch = Channel.fromPath(params.run_metafile)

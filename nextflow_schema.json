@@ -80,13 +80,18 @@
           "description": "Checkpoints directory",
           "help_text": "Directory to store checkpoint files, used when optionally skipping steps."
         },
-        "cellbrowser_dir": {
+        "cellbrowser_dirname": {
           "type": "string",
           "fa_icon": "fas fa-folder-open",
-          "format": "directory-path",
-          "description": "UCSC Cell Browser output directory",
-          "help_text": "Directory for UCSC Cell Browser output files. Only used by the build-cellbrowser workflow.",
-          "default": "scpca_out/cellbrowser",
+          "description": "UCSC Cell Browser output directory name",
+          "help_text": "Directory name for UCSC Cell Browser output files (nested under `outdir`). Only used by the build-cellbrowser workflow.",
+          "default": "cellbrowser",
+          "hidden": true
+        },
+        "cellbrowser_rebuild": {
+          "type": "boolean",
+          "description": "Fully rebuild the Cell Browser site",
+          "help_text": "If true, the CellBrowser site will be fully rebuilt. If false, only metadata will be updated.",
           "hidden": true
         }
       }
