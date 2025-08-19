@@ -81,7 +81,7 @@ process fry_quant_rna {
 
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
-      --expected-ori ${meta.technology in ['10Xv2_5prime', '10Xv3_5prime'] ? 'rc' : 'fw'} \
+      --expected-ori ${meta.technology =~ '_5prime$' ? 'rc' : 'fw'} \
       -o ${quant_dir} \
       --unfiltered-pl permitted_barcodes.txt
 
