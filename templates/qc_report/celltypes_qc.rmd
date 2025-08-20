@@ -29,22 +29,6 @@ create_celltype_n_table <- function(df, celltype_column) {
     )
 }
 
-#' Format tables of cell type counts as kable
-#'
-#' @param df Data frame to format
-#'
-#' @return kable table of cell type counts
-format_celltype_n_table <- function(df) {
-  df |>
-    knitr::kable(align = "r") |>
-    kableExtra::kable_styling(
-      bootstrap_options = "striped",
-      full_width = FALSE,
-      position = "left"
-    ) |>
-    kableExtra::column_spec(2, monospace = TRUE)
-}
-
 #' Function to lump celltype columns in an existing data frame for all of the
 #'  following columns, if they exist: `<singler/cellassign/submitter>_celltype_annotation`.
 #' The cell types will also be renamed via wrapping at the given `wrap` level.
@@ -244,8 +228,14 @@ glue::glue("
 ")
 ```
 
+```{r}
+if (has_consensus & !has_submitter & !is_supplemental) {
+  knitr::asis_output("## Statistics")
+} else {
+  knitr::asis_output("## Statistics {.tabset}")
+}
+```
 
-## Statistics
 
 ```{r, warning = FALSE}
 # Create data frame of cell types
@@ -312,43 +302,43 @@ if (length(unclassified_methods) > 0) {
 
 
 ```{r, eval = has_submitter}
-knitr::asis_output('
-### Submitter-provided cell type annotations\n
+knitr::asis_output('### Submitter-provided annotations
 
 In this table, cells labeled "Submitter-excluded" are those for which submitters did not provide an annotation.
 ')
 create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
-  format_celltype_n_table()
+  format_datatable()
 ```
 
 ```{r, eval = has_consensus}
-knitr::asis_output('### Consensus cell type annotations\n
+knitr::asis_output('### Consensus cell type annotations
 
 In this table, cells labeled "Unknown cell type" are those whose `SingleR` and `CellAssign` annotations did not agree.
 In the processed result files, these cells are labeled `Unknown`.
 ')
+
 create_celltype_n_table(celltype_df, consensus_celltype_annotation) |>
-  format_celltype_n_table()
+  format_datatable()
 ```
 
 ```{r, eval = has_singler && (!has_consensus || is_supplemental)}
-knitr::asis_output('### `SingleR` cell type annotations\n
+knitr::asis_output('### `SingleR` annotations
 
 In this table, cells labeled "Unknown cell type" are those which `SingleR` pruned due to low-quality assignments.
 In the processed result files, these cells are labeled `NA`.
 ')
 create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
-  format_celltype_n_table()
+  format_datatable()
 ```
 
 ```{r, eval = has_cellassign && (!has_consensus || is_supplemental)}
-knitr::asis_output('### `CellAssign` cell type annotations\n
+knitr::asis_output('### `CellAssign` annotations
 
 In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently assign to a label in the reference list.
 In the processed result files, these cells are labeled `"other"`.
 ')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
-  format_celltype_n_table()
+  format_datatable()
 ```
 
 
@@ -357,17 +347,20 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
 umap_df <- lump_wrap_celltypes(celltype_df)
 ```
 
+
 ```{r, eval = has_umap && has_celltypes }
 # only mention multiple annotations if we're actually showing multiple annotations
 if (has_consensus && !has_submitter && !is_supplemental) {
+  header_text <- "## UMAPs"
   umap_text <- ""
 } else {
+  header_text <- "## UMAPs {.tabset}"
   umap_text <- "For each cell typing method, we show a separate faceted UMAP."
 }
 
 
 knitr::asis_output(glue::glue(
-  '## UMAPs
+  '{header_text}
 
   In this section, we show UMAPs colored by cell types.
   {umap_text}
@@ -385,6 +378,7 @@ All other cell types are grouped together and labeled "All remaining cell types"
 if (has_submitter & has_umap) {
   submitter_n_celltypes <- length(levels(umap_df$submitter_celltype_annotation_lumped))
   submitter_dims <- determine_umap_dimensions(submitter_n_celltypes)
+  knitr::asis_output("### Submitter-provided annotations")
 } else {
   # set fake dims for evaluating next chunk
   submitter_dims <- c(1, 1)
@@ -398,8 +392,7 @@ faceted_umap(
   submitter_n_celltypes,
   submitter_celltype_annotation_lumped,
   point_size = umap_facet_point_size
-) +
-  ggtitle("UMAP colored by submitter-provided annotations")
+)
 ```
 
 
@@ -407,6 +400,7 @@ faceted_umap(
 if (has_consensus & has_umap) {
   consensus_n_celltypes <- length(levels(umap_df$consensus_celltype_annotation_lumped))
   consensus_dims <- determine_umap_dimensions(consensus_n_celltypes)
+  knitr::asis_output("### Consensus cell type annotations")
 } else {
   # set fake dims for evaluating next chunk
   consensus_dims <- c(1, 1)
@@ -421,14 +415,14 @@ faceted_umap(
   consensus_n_celltypes,
   consensus_celltype_annotation_lumped,
   point_size = umap_facet_point_size
-) +
-  ggtitle("UMAP colored by consensus cell type annotations")
+)
 ```
 
 ```{r}
-if (has_singler & has_umap) {
+if (has_singler & has_umap && (is_supplemental || !has_consensus)) {
   singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
   singler_dims <- determine_umap_dimensions(singler_n_celltypes)
+  knitr::asis_output("### `SingleR` annotations")
 } else {
   # set fake dims for evaluating next chunk
   singler_dims <- c(1, 1)
@@ -443,15 +437,15 @@ faceted_umap(
   singler_n_celltypes,
   singler_celltype_annotation_lumped,
   point_size = umap_facet_point_size
-) +
-  ggtitle("UMAP colored by SingleR annotations")
+)
 ```
 
 
 ```{r}
-if (has_cellassign & has_umap) {
+if (has_cellassign & has_umap && (is_supplemental || !has_consensus)) {
   cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
   cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
+  knitr::asis_output("### `CellAssign` annotations")
 } else {
   # set fake dims for evaluating next chunk
   cellassign_dims <- c(1, 1)
@@ -465,13 +459,12 @@ faceted_umap(
   cellassign_n_celltypes,
   cellassign_celltype_annotation_lumped,
   point_size = umap_facet_point_size
-) +
-  ggtitle("UMAP colored by CellAssign annotations")
+)
 ```
 
 
 ```{r, eval=has_consensus}
-knitr::asis_output("
+knitr::asis_output('
 ## Expression of marker genes in consensus cell types
 
 This section looks at expression of a set of marker genes for each consensus cell type across all cells.
@@ -485,7 +478,9 @@ All marker genes shown are specific to a single cell type, with the exception of
 We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
 
 Note that dots are only shown if the gene has mean expression greater than 0 and is expressed in at least 10% of the cells in the given cell type.
-  ")
+
+If all consensus cell types are labeled as "Unknown cell type", then no dot plot will be shown.
+  ')
 ```
 
 
@@ -632,49 +627,52 @@ dotplot_df <- group_stats_df |>
 
 
 ```{r, eval = has_consensus, fig.height=7, fig.width=15}
-# make dotplot with marker gene exp
-dotplot <- ggplot(dotplot_df, aes(y = y_label, x = gene_symbol, color = mean_exp, size = percent_exp)) +
-  geom_point() +
-  scale_color_viridis_c(option = "magma") +
-  facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
-  theme_classic() +
-  theme(
-    strip.background = element_rect(fill = "transparent", color = NA),
-    strip.placement = "outside",
-    strip.text.x = element_blank(),
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-    axis.ticks.x = element_blank(),
-    text = element_text(size = 14),
-    panel.spacing = unit(0.5, "lines") # adjust spacing and match with annotation bar
-  ) +
-  labs(
-    x = "",
-    y = "Broad cell type annotation",
-    color = "Mean gene expression",
-    size = "Percent cells expressed"
-  )
+# only make a dot plot if we have at least one validation group annotation present
+if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
+  # make dotplot with marker gene exp
+  dotplot <- ggplot(dotplot_df, aes(y = y_label, x = gene_symbol, color = mean_exp, size = percent_exp)) +
+    geom_point() +
+    scale_color_viridis_c(option = "magma") +
+    facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
+    theme_classic() +
+    theme(
+      strip.background = element_rect(fill = "transparent", color = NA),
+      strip.placement = "outside",
+      strip.text.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+      axis.ticks.x = element_blank(),
+      text = element_text(size = 14),
+      panel.spacing = unit(0.5, "lines") # adjust spacing and match with annotation bar
+    ) +
+    labs(
+      x = "",
+      y = "Broad cell type annotation",
+      color = "Mean gene expression",
+      size = "Percent cells expressed"
+    )
 
 
-# add annotation bar aligning marker genes with validation group
-color_bar <- ggplot(dotplot_df, aes(x = gene_symbol, y = 1, fill = validation_group_annotation)) +
-  geom_tile() +
-  facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
-  scale_fill_manual(values = celltype_colors, breaks = levels(dotplot_df$validation_group_annotation)) +
-  ggmap::theme_nothing() +
-  theme(
-    strip.background = element_rect(fill = "transparent", color = NA),
-    strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = 12),
-    strip.placement = "outside",
-    legend.position = "none",
-    panel.spacing = unit(0.5, "lines"),
-    strip.clip = "off"
-  ) +
-  labs(fill = "")
+  # add annotation bar aligning marker genes with validation group
+  color_bar <- ggplot(dotplot_df, aes(x = gene_symbol, y = 1, fill = validation_group_annotation)) +
+    geom_tile() +
+    facet_grid(cols = vars(validation_group_annotation), scales = "free", space = "free") +
+    scale_fill_manual(values = celltype_colors, breaks = levels(dotplot_df$validation_group_annotation)) +
+    ggmap::theme_nothing() +
+    theme(
+      strip.background = element_rect(fill = "transparent", color = NA),
+      strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = 12),
+      strip.placement = "outside",
+      legend.position = "none",
+      panel.spacing = unit(0.5, "lines"),
+      strip.clip = "off"
+    ) +
+    labs(fill = "")
 
-combined_plot <- color_bar / dotplot +
-  patchwork::plot_layout(ncol = 1, heights = c(0.1, 4))
+  combined_plot <- color_bar / dotplot +
+    patchwork::plot_layout(ncol = 1, heights = c(0.1, 4))
 
-combined_plot
+  combined_plot
+}
 ```
 
 
@@ -683,7 +681,7 @@ combined_plot
 submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
 ```
 
-```{r, eval=submitter_heatmaps | has_consensus, results = 'asis'}
+```{r, eval=submitter_heatmaps | (has_consensus & is_supplemental), results = 'asis'}
 # update text depending on if this is the main or supplemental report
 if (has_submitter & has_consensus & !is_supplemental) {
   heatmap_text <- "This section displays heatmaps comparing consensus cell type labels to submitter annotations."
