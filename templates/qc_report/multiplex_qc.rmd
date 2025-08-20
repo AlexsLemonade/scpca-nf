@@ -1,6 +1,8 @@
 # Multiplexing Experiment Summary
 
-## Multiplexing Statistics
+## Summary tables {.tabset}
+
+### Multiplexing statistics
 
 ```{r}
 # add rowData if missing
@@ -35,7 +37,7 @@ knitr::kable(hto_information, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## Hashtag Oligos (HTOs) Statistics
+### Hashtag oligos (HTOs) statistics
 
 ```{r}
 hto_tags <- as.data.frame(rowData(multiplex_exp)) |>
@@ -46,16 +48,12 @@ hto_tags <- as.data.frame(rowData(multiplex_exp)) |>
     "Percent of cells detected" = detected
   )
 
-knitr::kable(hto_tags, digits = 2) |>
-  kableExtra::kable_styling(
-    bootstrap_options = c("striped", "condensed"),
-    full_width = FALSE,
-    position = "left",
-  ) |>
-  kableExtra::column_spec(2:3, monospace = TRUE)
+
+format_datatable(hto_tags) |>
+  DT::formatRound(c("Mean UMI count per cell", "Percent of cells detected"), 2)
 ```
 
-## Demultiplexing Sample Calls
+## Demultiplexing sample calls
 
 Demultiplexing was performed using both [`DropletUtils::hashedDrops()`](https://rdrr.io/github/MarioniLab/DropletUtils/man/hashedDrops.html) and [`Seurat::HTOdemux()`](https://rdrr.io/github/satijalab/seurat/man/HTODemux.html) only on the _filtered_ cells, using default parameters for each.
 
@@ -86,7 +84,6 @@ if (any(demux_columns)) {
       names_from = demux_method,
       values_from = n
     )
-
 
   knitr::kable(demux_calls, digits = 2) |>
     kableExtra::kable_styling(

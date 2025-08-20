@@ -10,5 +10,9 @@
   },
   "[tsv]": {
     "editor.insertSpaces": false
+  },
+  "github.copilot.enable": {
+    "markdown": false,
+    "tsv": false
   }
 }
