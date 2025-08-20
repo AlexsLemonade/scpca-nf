@@ -15,11 +15,12 @@ process cellbrowser_library {
     cellbrowser_config.py \
       --conf_type library \
       --ids "${meta.library_id}" \
-      --label-field cluster \
-      --sample-ids "${meta.sample_id}"
+      --label-field ${params.cellbrowser_default_label} \
+      --sample-ids "${meta.sample_id}" \
+      --h5ad-file "${h5ad_file}"
 
     # import data to library directory
-    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="cluster"
+    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}"
 
     # remove the h5ad from the imported files as we won't use it
     rm "${meta.library_id}"/*_processed_rna.h5ad
