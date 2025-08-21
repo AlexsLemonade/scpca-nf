@@ -396,11 +396,11 @@
           "description": "SingleR label name",
           "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
         },
-        "cellbrowser_label_field": {
+        "cellbrowser_default_label": {
           "type": "string",
           "default": "cluster",
-          "description": "Field used to label cells in UCSC Cell Browser.",
-          "help_text": "Label field for cells in the UCSC Cell Browser, used in `build-cellbrowser.nf`."
+          "description": "Default label field for cells in UCSC Cell Browser.",
+          "help_text": "Default label field for cells in the UCSC Cell Browser, used in `build-cellbrowser.nf`."
         }
       },
       "fa_icon": "fas fa-tasks"
