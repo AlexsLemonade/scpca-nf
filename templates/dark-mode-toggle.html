@@ -1,0 +1,224 @@
+<!-- Dark Mode Toggle Component -->
+<style>
+/* Dark mode toggle button styles */
+.dark-mode-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: none;
+  border: 2px solid #007bff;
+  border-radius: 25px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: #007bff;
+  background-color: transparent;
+}
+
+.dark-mode-toggle:hover {
+  background-color: #007bff;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Light mode styles (default) */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #333333;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --table-stripe: #f8f9fa;
+  --navbar-bg: #ffffff;
+  --navbar-text: #333333;
+  --code-bg: #f8f9fa;
+  --code-text: #333333;
+}
+
+/* Dark mode styles */
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #404040;
+  --table-stripe: #2d2d2d;
+  --navbar-bg: #2d2d2d;
+  --navbar-text: #ffffff;
+  --code-bg: #2d2d2d;
+  --code-text: #ffffff;
+}
+
+/* Apply CSS variables to elements */
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.container-fluid {
+  background-color: var(--bg-primary) !important;
+}
+
+/* Navigation and TOC */
+.navbar,
+.navbar-default,
+.navbar-inverse {
+  background-color: var(--navbar-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.navbar-nav > li > a,
+.navbar-brand {
+  color: var(--navbar-text) !important;
+}
+
+#TOC {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+#TOC ul li a {
+  color: var(--text-primary) !important;
+}
+
+/* Tables */
+.table {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-primary) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--table-stripe) !important;
+}
+
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Alert boxes */
+.alert {
+  border-color: var(--border-color) !important;
+}
+
+.alert-info {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Code blocks */
+pre,
+code {
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Navigation tabs */
+.nav-tabs {
+  border-color: var(--border-color) !important;
+}
+
+.nav-tabs > li > a {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Panel styles */
+.panel {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.panel-heading {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.panel-body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Details/summary elements */
+details {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+summary {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark mode toggle button in dark mode */
+[data-theme="dark"] .dark-mode-toggle {
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+[data-theme="dark"] .dark-mode-toggle:hover {
+  background-color: #ffc107;
+  color: #000000;
+}
+</style>
+
+<!-- Dark Mode Toggle Button -->
+<button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeToggle">
+  🌙 Dark Mode
+</button>
+
+<script>
+// Dark mode toggle functionality
+function toggleDarkMode() {
+  const body = document.documentElement;
+  const button = document.getElementById('darkModeToggle');
+  
+  if (body.getAttribute('data-theme') === 'dark') {
+    body.removeAttribute('data-theme');
+    button.innerHTML = '🌙 Dark Mode';
+    localStorage.setItem('darkMode', 'false');
+  } else {
+    body.setAttribute('data-theme', 'dark');
+    button.innerHTML = '☀️ Light Mode';
+    localStorage.setItem('darkMode', 'true');
+  }
+}
+
+// Initialize dark mode based on user preference
+function initializeDarkMode() {
+  const darkMode = localStorage.getItem('darkMode');
+  const button = document.getElementById('darkModeToggle');
+  
+  if (darkMode === 'true') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    button.innerHTML = '☀️ Light Mode';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    button.innerHTML = '🌙 Dark Mode';
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeDarkMode);
+</script>

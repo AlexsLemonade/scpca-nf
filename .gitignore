@@ -14,6 +14,8 @@ main_qc_report.html
 celltypes_supplemental_report.html
 merged-report.html
 *_qc.html
+# But keep component files
+!templates/dark-mode-toggle.html
 
 # ignore hidden `DS_Store`
 .DS_Store
@@ -31,4 +33,6 @@ cavatica/sb_nextflow_schema.yaml.bak
 # test files and artifacts
 /tmp/
 *.png
+# Exclude all HTML files except the dark mode component
 *.html
+!templates/dark-mode-toggle.html
