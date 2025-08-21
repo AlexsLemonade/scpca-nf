@@ -16,6 +16,22 @@ output:
     code_download: true
 ---
 
+```{r, echo=FALSE, results='asis'}
+# Include dark mode toggle component
+dark_mode_path <- file.path(dirname(getwd()), "templates", "dark-mode-toggle.html")
+if (!file.exists(dark_mode_path)) {
+  # Try alternative path if running from different directory
+  dark_mode_path <- file.path("templates", "dark-mode-toggle.html")
+}
+if (!file.exists(dark_mode_path)) {
+  # Try current directory path
+  dark_mode_path <- "dark-mode-toggle.html"
+}
+if (file.exists(dark_mode_path)) {
+  cat(readLines(dark_mode_path), sep = "\n")
+}
+```
+
 ```{r setup, warning = FALSE, message = FALSE, echo = FALSE}
 # knitr options
 knitr::opts_chunk$set(
