@@ -98,7 +98,7 @@ workflow cellbrowser_build {
     // create single channel of [[project_ids], [library_dirs]]
     project_libs_ch = cellbrowser_library.out
     // only include libraries with umap
-     .filter{it.has_umap == "true" }
+     .filter{it[2] == "true" }
      // use dummy value to group everything together into tuples
      .map{meta, library_dir, _has_umap -> [1, meta.project_id, library_dir] }
      .groupTuple()
