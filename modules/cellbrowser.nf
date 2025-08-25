@@ -7,7 +7,7 @@ process cellbrowser_library {
     tuple val(meta), path(h5ad_file, arity: '1')
 
   output:
-    tuple val(meta), path("${meta.library_id}")
+    tuple val(meta), path("${meta.library_id}"), env('has_umap')
 
   script:
     """
@@ -24,6 +24,13 @@ process cellbrowser_library {
 
     # remove the h5ad from the imported files as we won't use it
     rm "${meta.library_id}"/*_processed_rna.h5ad
+
+    # Check that the umap coordinates were output
+    if [ -f "${meta.library_id}/umap_coords.tsv" ]; then
+      has_umap="true"
+    else
+      has_umap="false"
+    fi
     """
   stub:
     """
@@ -32,6 +39,7 @@ process cellbrowser_library {
     touch "${meta.library_id}/cellbrowser.conf"
     touch "${meta.library_id}/desc.conf"
     touch "${meta.library_id}/matrix.mtx.gz"
+    has_umap="true"
     """
 }
 
@@ -89,8 +97,10 @@ workflow cellbrowser_build {
 
     // create single channel of [[project_ids], [library_dirs]]
     project_libs_ch = cellbrowser_library.out
-     // use dummy value to grouping everything together into tuples
-     .map{meta, library_dir -> [1, meta.project_id, library_dir] }
+    // only include libraries with umap
+     .filter{it[2] == "true" }
+     // use dummy value to group everything together into tuples
+     .map{meta, library_dir, _has_umap -> [1, meta.project_id, library_dir] }
      .groupTuple()
      .map{it -> it.drop(1)}
 
