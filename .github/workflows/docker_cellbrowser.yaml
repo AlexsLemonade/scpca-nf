@@ -22,6 +22,8 @@ on:
       - "docker/cellbrowser/Dockerfile"
       - "docker/cellbrowser/.dockerignore"
       - "docker/cellbrowser/pixi.lock"
+    tags:
+      - "v*.*.*"
 
 env:
   REGISTRY: ghcr.io
