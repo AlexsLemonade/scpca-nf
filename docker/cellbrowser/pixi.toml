@@ -1,7 +1,7 @@
 [workspace]
 authors = ["Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation <scpca@ccdatalab.org>"]
 channels = ["conda-forge", "bioconda"]
-name = "cellbrowser-scpca"
+name = "cellbrowser"
 platforms = ["linux-64", "linux-aarch64"]
 version = "0.1.0"
 
