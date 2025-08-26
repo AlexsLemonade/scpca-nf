@@ -1,5 +1,5 @@
 [workspace]
-authors = ["Joshua Shapiro <josh.shapiro@ccdatalab.org>"]
+authors = ["Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation <scpca@ccdatalab.org>"]
 channels = ["conda-forge", "bioconda"]
 name = "cellbrowser-scpca"
 platforms = ["linux-64", "linux-aarch64"]

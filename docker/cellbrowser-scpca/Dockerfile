@@ -14,7 +14,7 @@ FROM ubuntu:24.04 AS production
 # For more information, see https://specs.opencontainers.org/image-spec/annotations/?v=v1.0.1
 LABEL org.opencontainers.image.title="cellbrowser-scpca"
 LABEL org.opencontainers.image.description="Docker image to run the UCSC Cell Browser in scpca-nf"
-LABEL org.opencontainers.image.authors="OpenScPCA scpca@ccdatalab.org"
+LABEL org.opencontainers.image.authors="Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation <scpca@ccdatalab.org>"
 LABEL org.opencontainers.image.source="https://github.com/AlexsLemonade/scpca-nf/tree/main/docker/cellbrowser-scpca"
 
 WORKDIR /app
