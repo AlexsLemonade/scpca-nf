@@ -1,10 +1,4 @@
-# This is a workflow to build the UCSC Cell Browser docker image
-#
-# Docker modules are run on pull requests when code for files that affect the Docker image have changed.
-# If other files are used during the Docker build, they should be added to `paths`
-#
-
-name: Build docker image for cellbrowser-scpca
+name: Build Docker image scpca-nf/cellbrowser
 
 concurrency:
   # only one run per branch at a time
