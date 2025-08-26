@@ -1,0 +1,13 @@
+[workspace]
+authors = ["Joshua Shapiro <josh.shapiro@ccdatalab.org>"]
+channels = ["conda-forge", "bioconda"]
+name = "cellbrowser-scpca"
+platforms = ["linux-64", "linux-aarch64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+procps-ng = ">=4.0.4,<5" # required for Nextflow
+ucsc-cell-browser = ">=1.2.15,<2"
+scanpy = ">=1.11.4,<2"
