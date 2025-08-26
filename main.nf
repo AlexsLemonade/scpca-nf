@@ -166,6 +166,7 @@ workflow {
         t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
         cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
         star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
+        gene_order_file: params.ref_rootdir + "/" + sample_refs["gene_order_file"],
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
