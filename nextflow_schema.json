@@ -128,6 +128,14 @@
           "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile. Only used in the merge.nf workflow",
           "hidden": true
         },
+        "perform_infercnv": {
+          "type": "boolean",
+          "description": "Perform inferCNV inference"
+        },
+        "repeat_infercnv": {
+          "type": "boolean",
+          "description": "Repeat inferCNV inference"
+        },
         "reuse_merge": {
           "type": "boolean",
           "description": "Reuse merge results",
@@ -300,6 +308,18 @@
           "help_text": "Path to TSV file containing hex codes to use for coloring each consensus cell type validation group.",
           "hidden": true,
           "fa_icon": "fas fa-file-alt"
+        },
+        "diagnosis_groups_file": {
+          "type": "string",
+          "default": "https://raw.githubusercontent.com/AlexsLemonade/OpenScPCA-analysis/refs/heads/main/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv",
+          "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells",
+          "hidden": true
+        },
+        "diagnosis_celltypes_file": {
+          "type": "string",
+          "default": "https://raw.githubusercontent.com/AlexsLemonade/OpenScPCA-analysis/refs/heads/main/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv",
+          "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells",
+          "hidden": true
         }
       },
       "fa_icon": "fas fa-copy"
@@ -373,6 +393,11 @@
           "hidden": true,
           "description": "SingleR label name",
           "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
+        },
+        "infercnv_min_normal_cells": {
+          "type": "integer",
+          "default": 100,
+          "description": "Minimum number of normal reference cells needed to run inferCNV"
         }
       },
       "fa_icon": "fas fa-tasks"
