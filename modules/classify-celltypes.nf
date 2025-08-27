@@ -112,6 +112,9 @@ process add_celltypes_to_sce {
     path(celltype_ref_metadata) // TSV file of references metadata needed for CellAssign only
     path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
+    path(validation_ref_file) // maps consensus cell types to cell type groups, for counting normal reference cells
+    path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_map_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
     tuple val(meta), path(annotated_rds)
   script:
@@ -120,6 +123,8 @@ process add_celltypes_to_sce {
     singler_results = "${singler_dir}/singler_results.rds"
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
+    // we only check for normal cells if we have both diagnosis mapping files
+    check_normal_cells = "${diagnosis_groups_file.name}" != "NO_FILE" &&  "${diagnosis_celltypes_file.name}" != "NO_FILE"
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
@@ -130,17 +135,24 @@ process add_celltypes_to_sce {
       ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
       ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''} \
       ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
-      --consensus_celltype_ref ${consensus_ref_file}
-
-
+      --consensus_celltype_ref ${consensus_ref_file} \
+      ${check_normal_cells ? "--consensus_validation_ref ${validation_ref_file}" : ''} \
+      ${check_normal_cells ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
+      ${check_normal_cells ? "--diagnosis_map_ref ${diagnosis_map_file}" : ''} \
+      --normal_cells_file "normal_cell_count.txt"
     """
+    // this sets normal_cell_count to the number (if calculated in the script) or false (not calculated in the script, empty file spit out instead).
+    // i don't love this difference in types? so..should we just set up a logical here for whether to run infercnv and branch on that later, since we're getting false out of this anyways?
+    // or, what could we put in this field besides false if the info is NOT calculated? just not have a field?
+    normal_cell_count = file("normal_cell_count.txt").text
+    meta['normal_cell_count'] = normal_cell_count ? x.toInteger() >= params.infercnv_min_normal_cells : false
   stub:
+    meta['normal_cell_count'] = 200 // number large enough to trigger inferCNV module
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     """
     touch ${annotated_rds}
     """
 }
-
 
 
 workflow annotate_celltypes {
@@ -281,7 +293,10 @@ workflow annotate_celltypes {
       assignment_input_ch.add_celltypes,
       file(params.celltype_ref_metadata), // file with CellAssign reference organs
       file(params.panglao_ref_file), // used for assigning ontology IDs for CellAssign results
-      file(params.consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
+      file(params.consensus_ref_file), // used for assigning consensus cell types if both SingleR and CellAssign are used
+      file(params.validation_groups_file),  // maps consensus cell types to cell type groups, for counting normal reference cells
+      file(params.diagnosis_celltypes_file ?: empty_file, checkIfExists: true), // maps broad diagnoses to cell type groups, for counting normal reference cells
+      file(params.diagnosis_groups_file ?: empty_file, checkIfExists: true) // maps sample diagnoses to broad diagnoses, for counting normal reference cells
     )
 
     // mix in libraries without new celltypes
