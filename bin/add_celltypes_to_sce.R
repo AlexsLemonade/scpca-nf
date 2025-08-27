@@ -1,7 +1,10 @@
 #!/usr/bin/env Rscript
 
-# This script is used to read in the predictions from CellAssign
-# and assign cell types in the annotated RDS file
+# This script is used to read in and assign these cell types in the annotated RDS file:
+# - CellAssign
+# - SingleR
+# - consensus cell types
+# This script additionally counts the number of normal reference cells in the library
 
 # import libraries
 suppressPackageStartupMessages({
@@ -67,6 +70,32 @@ option_list <- list(
     type = "character",
     help = "Path to file containing the reference for assigning consensus cell type labels",
     default = ""
+  ),
+  make_option(
+    opt_str = c("--consensus_validation_ref"),
+    type = "character",
+    help = "Path to file mapping consensus validation groups to consensus labels for counting normal reference cells intended as input to inferCNV",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--diagnosis_celltype_ref"),
+    type = "character",
+    help = "Path to file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--diagnosis_map_ref"),
+    type = "character",
+    help = "Path to file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--normal_cells_file"),
+    type = "character",
+    help = "Path to write number of calculated normal cells to.
+      This calculation is only performed if `diagnosis_celltype_ref` and `diagnosis_map_ref` are provided.
+      If not calculated, this file will be written as an empty file",
+    default = ""
   )
 )
 
@@ -108,7 +137,8 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
 # check that input file exists and output file ends in rds
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
-  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds")
+  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
+  "output file to store counted normal cells does not exist" = file.exists(opt$normal_cells_file)
 )
 
 # read in input files
@@ -320,7 +350,53 @@ if (has_singler && has_cellassign) {
   # add consensus cell type and ontology to sce
   sce$consensus_celltype_annotation <- celltype_df$consensus_annotation
   sce$consensus_celltype_ontology <- celltype_df$consensus_ontology
+
+
+  # Count the number of normal reference cells -------------------------
+
+  # Set to an empty string by default
+  normal_cells <- ""
+
+  # Recalculate if these optional reference files were provided
+  check_input_files <- c(
+    opt$consensus_validation_ref,
+    opt$diagnosis_celltype_ref,
+    opt$diagnosis_map_ref
+  )
+  if (!(is.null(all(check_input_files)))) {
+    stopifnot(
+      "Validation cell type reference file does not exist" = file.exists(opt$consensus_validation_ref),
+      "Diagnosis/cell type map reference file does not exist" = file.exists(opt$diagnosis_celltype_ref),
+      "Diagnosis map reference file does not exist" = file.exists(opt$diagnosis_map_ref)
+    )
+
+    consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
+    diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
+    diagnosis_map_df <- readr::read_tsv(opt$diagnosis_map_ref)
+
+    sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
+
+    reference_celltypes <- diagnosis_map_df |>
+      # get the broad diagnosis
+      dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
+      # get the cell type groups to consider for this diagnosis
+      dplyr::left_join(diagnosis_celltype_df, by = "diagnosis_group") |>
+      dplyr::select(celltype_groups) |>
+      tidyr::separate_rows(celltype_groups, sep = ", ") |>
+      # get the consensus cell types
+      dplyr::left_join(consensus_validation_df, by = c("celltype_groups" = "validation_group_annotation")) |>
+      dplyr::pull(consensus_annotation) |>
+      unique()
+
+    normal_cells <- sum(celltype_df$consensus_annotation %in% reference_celltypes)
+  }
+} else {
+  # set normal cells to ""; we don't run inferCNV if there are no consensus cell types
+  normal_cells <- ""
 }
 
-# export annotated object with cellassign assignments
+# export annotated object with cell type assignments
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
+
+# export normal cell count
+readr::write_lines(normal_cells, opt$normal_cells_file)
