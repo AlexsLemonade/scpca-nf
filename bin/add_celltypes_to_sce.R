@@ -94,8 +94,7 @@ option_list <- list(
     type = "character",
     help = "Path to write number of calculated normal cells to.
       This calculation is only performed if `diagnosis_celltype_ref` and `diagnosis_groups_ref` are provided.
-      If not calculated, this file will be written as an empty file",
-    default = ""
+      If not calculated, this file will be created as an empty file",
   )
 )
 
@@ -138,7 +137,7 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
   "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
-  "output file to store counted normal cells does not exist" = file.exists(opt$normal_cells_file)
+  "output file to store counted normal cells was not provided" = !is.null(opt$normal_cells_file)
 )
 
 # read in input files
