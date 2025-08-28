@@ -84,7 +84,7 @@ option_list <- list(
     default = ""
   ),
   make_option(
-    opt_str = c("--diagnosis_map_ref"),
+    opt_str = c("--diagnosis_groups_ref"),
     type = "character",
     help = "Path to file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV",
     default = ""
@@ -93,7 +93,7 @@ option_list <- list(
     opt_str = c("--normal_cells_file"),
     type = "character",
     help = "Path to write number of calculated normal cells to.
-      This calculation is only performed if `diagnosis_celltype_ref` and `diagnosis_map_ref` are provided.
+      This calculation is only performed if `diagnosis_celltype_ref` and `diagnosis_groups_ref` are provided.
       If not calculated, this file will be written as an empty file",
     default = ""
   )
@@ -361,18 +361,18 @@ if (has_singler && has_cellassign) {
   check_input_files <- c(
     opt$consensus_validation_ref,
     opt$diagnosis_celltype_ref,
-    opt$diagnosis_map_ref
+    opt$diagnosis_groups_ref
   )
   if (!(is.null(all(check_input_files)))) {
     stopifnot(
       "Validation cell type reference file does not exist" = file.exists(opt$consensus_validation_ref),
       "Diagnosis/cell type map reference file does not exist" = file.exists(opt$diagnosis_celltype_ref),
-      "Diagnosis map reference file does not exist" = file.exists(opt$diagnosis_map_ref)
+      "Diagnosis map reference file does not exist" = file.exists(opt$diagnosis_groups_ref)
     )
 
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
-    diagnosis_map_df <- readr::read_tsv(opt$diagnosis_map_ref)
+    diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
 
     sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
 

@@ -114,7 +114,7 @@ process add_celltypes_to_sce {
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
     path(validation_ref_file) // maps consensus cell types to cell type groups, for counting normal reference cells
     path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
-    path(diagnosis_map_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_groups_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
     tuple val(meta), path(annotated_rds)
   script:
@@ -138,7 +138,7 @@ process add_celltypes_to_sce {
       --consensus_celltype_ref ${consensus_ref_file} \
       ${check_normal_cells ? "--consensus_validation_ref ${validation_ref_file}" : ''} \
       ${check_normal_cells ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
-      ${check_normal_cells ? "--diagnosis_map_ref ${diagnosis_map_file}" : ''} \
+      ${check_normal_cells ? "--diagnosis_groups_ref ${diagnosis_groups_file}" : ''} \
       --normal_cells_file "normal_cell_count.txt"
     """
     // this sets normal_cell_count to the number (if calculated in the script) or false (not calculated in the script, empty file spit out instead).
