@@ -116,7 +116,7 @@ process add_celltypes_to_sce {
     path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
     path(diagnosis_groups_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
-    tuple val(meta), path(annotated_rds)
+    tuple val(meta), path(annotated_rds), env("NORMAL_CELL_COUNT")
   script:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     singler_present = "${singler_dir.name}" != "NO_FILE"
@@ -139,18 +139,18 @@ process add_celltypes_to_sce {
       ${check_normal_cells ? "--consensus_validation_ref ${validation_ref_file}" : ''} \
       ${check_normal_cells ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
       ${check_normal_cells ? "--diagnosis_groups_ref ${diagnosis_groups_file}" : ''} \
-      --normal_cells_file "normal_cell_count.txt"
+      --normal_cells_file "normal_cells.txt"
+
+      # save so we can export as environment variable
+      NORMAL_CELL_COUNT=\$(cat "normal_cells.txt")
     """
-    // this sets normal_cell_count to the number (if calculated in the script) or false (not calculated in the script, empty file spit out instead).
-    // i don't love this difference in types? so..should we just set up a logical here for whether to run infercnv and branch on that later, since we're getting false out of this anyways?
-    // or, what could we put in this field besides false if the info is NOT calculated? just not have a field?
-    normal_cell_count = file("normal_cell_count.txt").text
-    meta['normal_cell_count'] = normal_cell_count ? x.toInteger() >= params.infercnv_min_normal_cells : false
   stub:
-    meta['normal_cell_count'] = 200 // number large enough to trigger inferCNV module
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     """
     touch ${annotated_rds}
+
+    # Set to a value guaranteed to pass the threshold
+    NORMAL_CELL_COUNT=params.infercnv_min_normal_cells + 1
     """
 }
 
@@ -289,6 +289,7 @@ workflow annotate_celltypes {
 
 
     // incorporate annotations into SCE object
+    // outputs [meta, annotated processed rds, NORMAL_CELL_COUNT]
     add_celltypes_to_sce(
       assignment_input_ch.add_celltypes,
       file(params.celltype_ref_metadata), // file with CellAssign reference organs
@@ -299,11 +300,21 @@ workflow annotate_celltypes {
       file(params.diagnosis_groups_file ?: empty_file, checkIfExists: true) // maps sample diagnoses to broad diagnoses, for counting normal reference cells
     )
 
+    // add inferCNV logic to meta
+    added_celltypes_ch = add_celltypes_to_sce.out
+      .map{ meta_in, annotated_sce, normal_cell_count ->
+        def meta = meta_in.clone(); // local copy for safe modification
+        meta.sufficient_infercnv_reference = normal_cell_count ? normal_cell_count.toInteger() >= params.infercnv_min_normal_cells : false;
+        // return only meta and annotated_sce
+        [meta, annotated_sce]
+      }
+
+
     // mix in libraries without new celltypes
     // result is [meta, processed rds]
     celltyped_ch = assignment_input_ch.no_celltypes
       .map{[it[0], it[1]]}
-      .mix(add_celltypes_to_sce.out)
+      .mix(added_celltypes_ch)
 
     // add back in the unchanged sce files to the results
     export_channel = celltyped_ch
