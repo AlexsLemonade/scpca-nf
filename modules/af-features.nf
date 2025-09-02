@@ -48,7 +48,9 @@ process alevin_feature {
     umi_geom_map = [
       '10Xv2': '1[17-26]',
       '10Xv3': '1[17-28]',
-      '10Xv3.1': '1[17-28]'
+      '10Xv3.1': '1[17-28]',
+      '10Xv3_5prime': '1[17-28]',
+      '10Xv4': '1[17-28]'
     ]
     tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
