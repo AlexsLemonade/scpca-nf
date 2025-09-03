@@ -36,8 +36,15 @@ option_list <- list(
   make_option(
     opt_str = c("--fry_tx2gene"),
     type = "character",
+    default = "",
     help = "path to tsv file containing three columns with transcript id, gene id, and
       type of transcript (either spliced or unspliced)."
+  ),
+  make_option(
+    opt_str = c("--flex_probeset"),
+    type = "character",
+    default = "",
+    help = "path to csv file with gene ids for probes used with 10x flex platform"
   ),
   make_option(
     opt_str = c("-r", "--random_seed"),
@@ -60,13 +67,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 set.seed(opt$random_seed)
 
 # check that input files exist
-if (!file.exists(opt$ref_file)) {
-  stop("Missing input file with cell type reference (`ref_file`).")
-}
-
-if (!file.exists(opt$fry_tx2gene)) {
-  stop("Missing `fry_tx2gene` file.")
-}
+stopifnot(
+  "Missing input file with cell type reference (`ref_file`)." = file.exists(opt$ref_file),
+  "Either fry_tx2gene or flex_probeset must be provided" = file.exists(opt$fry_tx2gene) | file.exists(opt$flex_probeset)
+)
 
 # set up multiprocessing params
 if (opt$threads > 1) {
@@ -86,14 +90,24 @@ if (!label_col %in% colnames(colData(ref_data))) {
   )
 }
 
-# read in tx2gene
-tx2gene <- readr::read_tsv(
-  opt$fry_tx2gene,
-  col_names = c("transcript", "gene", "transcript_type")
-)
+if (file.exists(opt$fry_tx2gene)) {
+  # read in tx2gene
+  tx2gene <- readr::read_tsv(
+    opt$fry_tx2gene,
+    col_names = c("transcript", "gene", "transcript_type")
+  )
 
-# select genes to use for model restriction
-gene_ids <- unique(tx2gene$gene)
+  # select genes to use for model restriction
+  gene_ids <- unique(tx2gene$gene)
+} else if (file.exists(opt$flex_probeset)) {
+  # read in probeset from 10x
+  probes_df <- readr::read_csv(
+    opt$flex_probeset,
+    skip = 5
+  )
+  gene_ids <- unique(probes_df$gene_id)
+}
+
 
 # check that genes aren't empty
 if (length(gene_ids) == 0) {

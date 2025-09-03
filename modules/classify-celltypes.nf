@@ -12,7 +12,7 @@ process classify_singler {
   input:
     tuple val(meta), path(processed_rds), path(singler_model_file)
   output:
-    tuple val(meta.library_id), path(singler_dir)
+    tuple val(meta.unique_id), path(singler_dir)
   script:
     singler_dir = file(meta.singler_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -57,7 +57,7 @@ process classify_cellassign {
   input:
     tuple val(meta), path(processed_rds), path(cellassign_reference_file)
   output:
-    tuple val(meta.library_id), path(cellassign_dir)
+    tuple val(meta.unique_id), path(cellassign_dir)
   script:
     cellassign_dir = file(meta.cellassign_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -186,15 +186,19 @@ workflow annotate_celltypes {
 
     // create input for typing: [augmented meta, processed_sce]
     celltype_input_ch = processed_sce_channel
-      .map{[it[0]["project_id"]] + it}
+      .map{ meta, processed_sce -> tuple(
+        meta.project_id,
+        meta,
+        processed_sce
+        )}
       .combine(celltype_ch, by: 0)
       // current contents: [project_id, meta, processed_sce, singler_model_file, cellassign_reference_file]
       // add values to meta for later use
       .map{ _project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
         def meta = meta_in.clone(); // local copy for safe modification
         meta.celltype_checkpoints_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
-        meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_singler";
-        meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.library_id}_cellassign";
+        meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_singler";
+        meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_cellassign";
         meta.singler_model_file = singler_model_file;
         meta.cellassign_reference_file = cellassign_reference_file;
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
@@ -223,12 +227,15 @@ workflow annotate_celltypes {
     // perform singleR celltyping and export results
     classify_singler(singler_input_ch.do_singler)
 
-    // singleR output channel: [library_id, singler_results]
+    // singleR output channel: [unique id, singler_results]
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
-      .map{[it[0]["library_id"], file(it[0].singler_dir, type: 'dir', checkIfExists: true)]}
+      .map{ meta, processed_sce, singler_model -> tuple(
+        meta.unique_id, 
+        file(meta.singler_dir, type: 'dir', checkIfExists: true)
+      )}
       // add empty file for missing ref samples
-      .mix(singler_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file, checkIfExists: true)]} )
+      .mix(singler_input_ch.missing_ref.map{[it[0]["unique_id"], file(empty_file, checkIfExists: true)]} )
       // add in channel outputs
       .mix(classify_singler.out)
 
@@ -251,24 +258,31 @@ workflow annotate_celltypes {
     // perform CellAssign celltyping and export results
     classify_cellassign(cellassign_input_ch.do_cellassign)
 
-    // cellassign output channel: [library_id, cellassign_dir]
+    // cellassign output channel: [unique id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
       // provide existing cellassign predictions dir for those we skipped
-      .map{[it[0]["library_id"], file(it[0].cellassign_dir, type: 'dir', checkIfExists: true)]}
+      .map{ meta, processed_sce, cellassign_ref -> tuple(
+        meta.unique_id,
+        file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
+      )}
       // add empty file for missing ref samples
-      .mix(cellassign_input_ch.missing_ref.map{[it[0]["library_id"], file(empty_file, checkIfExists: true)]} )
+      .mix(cellassign_input_ch.missing_ref.map{[it[0]["unique_id"], file(empty_file, checkIfExists: true)]} )
       // add in channel outputs
       .mix(classify_cellassign.out)
 
     // prepare input for process to add celltypes to the processed SCE
     // result is [meta, processed rds, singler dir, cellassign dir]
     assignment_input_ch = celltype_input_ch
-      .map{[it[0]["library_id"]] + it}
+      .map{ meta, processed_sce -> tuple(
+        meta.unique_id,
+        meta,
+        processed_sce
+      )}
       // add in singler results
       .join(singler_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
       // add in cell assign results
       .join(cellassign_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
-      .map{it.drop(1)} // remove library_id
+      .map{it.drop(1)} // remove unique id
       .branch{
         // pull out libraries that actually have at least 1 type of annotation
         add_celltypes: (it[2].baseName != "NO_FILE") || (it[3].baseName != "NO_FILE")
@@ -292,14 +306,18 @@ workflow annotate_celltypes {
 
     // add back in the unchanged sce files to the results
     export_channel = celltyped_ch
-      .map{[it[0]["library_id"]] + it}
+      .map{meta, processed_sce -> tuple(
+        meta.unique_id,
+        meta, 
+        processed_sce
+        )}
       // add in unfiltered and filtered sce files, for tissue samples only
       .join(
-        sce_files_channel_branched.tissue.map{[it[0]["library_id"], it[1], it[2]]},
+        sce_files_channel_branched.tissue.map{[it[0]["unique_id"], it[1], it[2]]},
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange to be [meta, unfiltered, filtered, processed]
-      .map{_library_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
+      .map{_unique_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce]
       }
       // mix in cell line libraries which were not cell typed

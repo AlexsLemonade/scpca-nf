@@ -47,7 +47,7 @@ Therefore, you will need to install the `SingleR` package to prepare a reference
 # install.packages("BiocManager")
 
 # install SingleR
-BiocManager::install("SinglerR")
+BiocManager::install("SingleR")
 ```
 
 Trained model files should be saved as RDS files and named `<singler_reference_name>_model.rds`, where `<singler_reference_name>` is a string of your choosing.

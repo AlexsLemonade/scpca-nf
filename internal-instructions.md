@@ -7,6 +7,7 @@
   - [Testing the workflow with stub processes](#testing-the-workflow-with-stub-processes)
   - [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release)
   - [Processing example data](#processing-example-data)
+    - [Processing example 10x Flex data](#processing-example-10x-flex-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding additional organisms](#adding-additional-organisms)
   - [Adding additional cell type references](#adding-additional-cell-type-references)
@@ -136,6 +137,26 @@ nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
 After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`.
 Make sure to adjust the settings to make the zip file publicly accessible.
 
+#### Processing example 10x Flex data 
+
+Any samples that are processed using the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) are quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `alevin-fry`. 
+
+There are two example datasets available on S3 that can be used for testing changes to the `cellranger-flex.nf` module.
+FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-references/example-data/example_fastqs`. 
+The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`. 
+The datasets used are listed below: 
+
+1. [library06 - Human Kidney Nuclei - Singleplexed](https://10x.vercel.app/datasets/Human_Kidney_4k_GEM-X_Flex)
+2. [library07 - Human PBMCs - Multiplexed](https://10x.vercel.app/datasets/80k_Human_PBMCs_PTG_MultiproPanel_IC_4plex)
+
+For the second dataset (Human PBMCs), only the GEX FASTQ files were saved to S3. 
+
+To process these datasets, use the `example` profile and specify the appropriate run, library, or sample IDs: 
+
+```sh
+nextflow run AlexsLemonade/scpca-nf -r <branch or revision> -profile example,batch --run_ids library06,library07
+```
+
 ## Maintaining references for `scpca-nf`
 
 Inside the `references` folder are files and scripts related to maintaining the reference files available for use with `scpca-nf`.
@@ -173,7 +194,7 @@ Adding additional organisms is handled, in part, by the `build-index.nf` workflo
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-   Add these to the `S3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `s3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
@@ -186,9 +207,11 @@ homo_sapiens
 ```
 
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
+Specify which indexes should be built for this reference version, using the `include_salmon`, `include_cellranger`, and `include_star` columns. 
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
-5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
+To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`. 
+5. Ensure that the new reference files are public and in the correct location on S3 (`s://scpca-references`).
 
 ### Adding additional cell type references
 
@@ -212,13 +235,15 @@ Follow these steps to add support for additional cell type references.
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3.
 
-`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`.
-Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_model.rds`.
+`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`. 
+Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_<gene_set_version>_<date_generated>_model.rds`. 
 
   - `<celltype_ref_name>` is a given `celldex` dataset.
     - Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
   - `<celltype_ref_source>` is `celldex`.
   - `<version>` is the `celldex` version used during reference building, where we use dashes in place of periods (e.g., version `x.y.z` would be represented as `x-y-z`).
+  - `<gene_set_version>` refers to the reference transcriptome or probe set used for mapping. 
+Currently, one model for the transcriptome references and one model for the flex probe sets are saved. 
 
 `CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<date>.tsv`.
 
