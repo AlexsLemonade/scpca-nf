@@ -383,7 +383,7 @@ if (has_singler && has_cellassign) {
     reference_celltypes <- diagnosis_celltype_df |>
       # get the cell type groups to consider for this diagnosis
       dplyr::filter(diagnosis_group %in% diagnosis_groups)
-      dplyr::select(celltype_groups) |>
+    dplyr::select(celltype_groups) |>
       tidyr::separate_rows(celltype_groups, sep = ", ") |>
       # get the consensus cell types
       dplyr::left_join(consensus_validation_df, by = c("celltype_groups" = "validation_group_annotation")) |>
