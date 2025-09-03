@@ -11,7 +11,7 @@ process generate_reference {
   label 'mem_32'
   maxRetries 1
   input:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     tuple val(ref_name), val(meta), emit: ref_info
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
@@ -39,7 +39,7 @@ process salmon_index {
   label 'mem_16'
   input:
     tuple path(splici_fasta), path(spliced_cdna_fasta)
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     path splici_index_dir
     path spliced_cdna_index_dir
@@ -73,7 +73,7 @@ process cellranger_index {
   label 'cpus_12'
   label 'mem_24'
   input:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     path cellranger_index
   script:
@@ -100,7 +100,7 @@ process star_index {
   label 'cpus_12'
   memory '64.GB'
   input:
-    tuple val(ref_name), val(meta), path(fasta), path(gtf)
+    tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     path output_dir
   script:
@@ -126,6 +126,25 @@ process star_index {
     """
 }
 
+process infercnv_gene_order {
+  container params.SCPCATOOLS_SLIM_CONTAINER
+  label 'mem_8'
+  publishDir "${params.ref_rootdir}/${meta.ref_dir}/infercnv", mode: 'copy'
+  input:
+    tuple val(ref_name), val(meta), path(gtf), path(cytoband)
+  output:
+    path gene_order_file
+  script:
+    gene_order_file = file("${meta.infercnv_gene_order}").name
+    """
+    prepare_infercnv_gene_order_file.R \
+      --gtf_file ${gtf} \
+      --cytoband_file ${cytoband} \
+      --gene_order_file ${gene_order_file}
+    """
+}
+
+
 workflow {
 
   // check which refs to build
@@ -139,22 +158,20 @@ workflow {
     .splitCsv(header: true, sep: '\t')
     .map{
       def reference_name = "${it.organism}.${it.assembly}.${it.version}";
+      def ref_name_paths = ref_paths[reference_name];
       // reference name & reference file paths for each organism
       [
         reference_name,
-        ref_paths[reference_name],
+        ref_name_paths,
         it.include_salmon.toUpperCase() == "TRUE",
         it.include_cellranger.toUpperCase() == "TRUE",
-        it.include_star.toUpperCase() == "TRUE"
+        it.include_star.toUpperCase() == "TRUE",
+        file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"), // path to gtf
+        file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}") // path to fasta
       ]
     }
     // filter to only regenerate specified references
     .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
-    // add paths to fasta and gtf files
-    .map{it +[
-      file("${params.ref_rootdir}/${it[1]["ref_fasta"]}"), // path to fasta
-      file("${params.ref_rootdir}/${it[1]["ref_gtf"]}") // path to gtf
-    ]}
     // branch to create salmon, cellranger, and star references
     .branch{ it ->
       salmon: it[2] == true
@@ -164,21 +181,19 @@ workflow {
 
   // drop the boolean flags after branching
   salmon_ref_ch = ref_ch.salmon
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, fasta, gtf -> tuple(
-      ref_name, meta, fasta, gtf
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+      ref_name, meta, gtf, fasta
     )}
 
   cellranger_ref_ch = ref_ch.cellranger
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, fasta, gtf -> tuple(
-      ref_name, meta, fasta, gtf
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+      ref_name, meta, gtf, fasta
     )}
 
   star_ref_ch = ref_ch.star
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, fasta, gtf -> tuple(
-      ref_name, meta, fasta, gtf
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+      ref_name, meta, gtf, fasta
     )}
-
-  // now build all the indexes
 
   // generate splici and spliced cDNA reference fasta
   generate_reference(salmon_ref_ch)
@@ -191,4 +206,12 @@ workflow {
   // create star index
   star_index(star_ref_ch)
 
+  // create input channel for inferCNV gene order file as:
+  // name, meta, gtf, cytoband
+  infercnv_ch = ref_ch
+    // remove fasta path and add path to cytoband
+    .map{it.dropRight(1) + [file("${params.ref_rootdir}/${it[1]["cytoband"]}")]}
+
+  // create inferCNV gene order file
+  infercnv_gene_order(infercnv_ch)
 }

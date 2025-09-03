@@ -107,6 +107,14 @@ create_ref_entry <- function(
       ref_dir, "star_index",
       glue::glue("{reference_name}.star_idx")
     )
+    json_entry$infercnv_gene_order <- file.path(
+      ref_dir, "infercnv",
+      glue::glue("{reference_name}_gene_order_arms.txt.gz")
+    )
+    json_entry$cytoband <- file.path(
+      ref_dir, "annotation",
+      glue::glue("{reference_name}_cytoband.txt.gz")
+    )
   }
 
   return(json_entry)
