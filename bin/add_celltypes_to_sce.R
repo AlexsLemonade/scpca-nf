@@ -375,11 +375,14 @@ if (has_singler && has_cellassign) {
 
     sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
 
-    reference_celltypes <- diagnosis_map_df |>
+    diagnosis_groups <- diagnosis_map_df |>
       # get the broad diagnosis
       dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
+      dplyr::pull("diagnosis_group")
+
+    reference_celltypes <- diagnosis_celltype_df |>
       # get the cell type groups to consider for this diagnosis
-      dplyr::left_join(diagnosis_celltype_df, by = "diagnosis_group") |>
+      dplyr::filter(diagnosis_group %in% diagnosis_groups)
       dplyr::select(celltype_groups) |>
       tidyr::separate_rows(celltype_groups, sep = ", ") |>
       # get the consensus cell types

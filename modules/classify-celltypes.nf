@@ -124,7 +124,7 @@ process add_celltypes_to_sce {
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
     // we only check for normal cells if we have both diagnosis mapping files
-    check_normal_cells = "${diagnosis_groups_file.name}" != "NO_FILE" &&  "${diagnosis_celltypes_file.name}" != "NO_FILE"
+   count_normal_cells = diagnosis_groups_file  &&  diagnosis_celltypes_file
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
@@ -150,7 +150,7 @@ process add_celltypes_to_sce {
     touch ${annotated_rds}
 
     # Set to a value guaranteed to pass the threshold
-    NORMAL_CELL_COUNT=params.infercnv_min_normal_cells + 1
+    NORMAL_CELL_COUNT=${params.infercnv_min_normal_cells + 1}
     """
 }
 
@@ -289,7 +289,7 @@ workflow annotate_celltypes {
 
 
     // incorporate annotations into SCE object
-    // outputs [meta, annotated processed rds, NORMAL_CELL_COUNT]
+    // outputs [meta, annotated processed rds, normal cell count]
     add_celltypes_to_sce(
       assignment_input_ch.add_celltypes,
       file(params.celltype_ref_metadata), // file with CellAssign reference organs
@@ -304,7 +304,7 @@ workflow annotate_celltypes {
     added_celltypes_ch = add_celltypes_to_sce.out
       .map{ meta_in, annotated_sce, normal_cell_count ->
         def meta = meta_in.clone(); // local copy for safe modification
-        meta.sufficient_infercnv_reference = normal_cell_count ? normal_cell_count.toInteger() >= params.infercnv_min_normal_cells : false;
+        meta.normal_cell_count = normal_cell_count;
         // return only meta and annotated_sce
         [meta, annotated_sce]
       }
