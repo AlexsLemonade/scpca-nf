@@ -74,17 +74,20 @@ option_list <- list(
   make_option(
     opt_str = c("--consensus_validation_ref"),
     type = "character",
-    help = "Path to file mapping consensus validation groups to consensus labels for counting normal reference cells intended as input to inferCNV"
+    help = "Path to file mapping consensus validation groups to consensus labels for counting normal reference cells intended as input to inferCNV",
+    default = ""
   ),
   make_option(
     opt_str = c("--diagnosis_celltype_ref"),
     type = "character",
-    help = "Path to file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV"
+    help = "Path to file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV",
+    default = ""
   ),
   make_option(
     opt_str = c("--diagnosis_groups_ref"),
     type = "character",
-    help = "Path to file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV"
+    help = "Path to file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV",
+    default = ""
   ),
   make_option(
     opt_str = c("--normal_cells_file"),
@@ -362,8 +365,8 @@ if (has_singler && has_cellassign) {
     opt$diagnosis_groups_ref
   )
 
-  # Only proceed if _none_ are NULL
-  if (!(all(is.null(check_input_files)))) {
+  # Only proceed if _none_ are empty strings
+  if (all(check_input_files != "")) {
     stopifnot(
       "Validation cell type reference file does not exist" = file.exists(opt$consensus_validation_ref),
       "Diagnosis/cell type map reference file does not exist" = file.exists(opt$diagnosis_celltype_ref),
