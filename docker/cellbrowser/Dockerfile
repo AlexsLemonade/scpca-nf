@@ -1,6 +1,6 @@
 FROM ghcr.io/prefix-dev/pixi:0.53.0 AS build
 
-COPY . /app
+COPY pixi.* /app/
 WORKDIR /app
 RUN pixi install --locked
 # build shell hook for activation without pixi installed
