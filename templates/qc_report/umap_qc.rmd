@@ -1,6 +1,6 @@
-## Dimensionality Reduction
+## Dimensionality reduction {.tabset}
 
-The below plot shows the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell. 
+The plots in this section show the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell. 
 
 ```{r}
 # determine UMAP point sizing
@@ -11,7 +11,7 @@ umap_facet_point_size <- umap_points_sizes[2]
 
 ### Unsupervised clustering
 
-The cells in the blow UMAP are colored by cluster assignment. 
+The cells in the below UMAP are colored by cluster assignment. 
 Clusters were calculated using the graph-based `r metadata(processed_sce)$cluster_algorithm` algorithm with  `r metadata(processed_sce)$cluster_weighting` weighting and `r metadata(processed_sce)$cluster_nn` nearest neighbors.
 
 **Caution**: Clusters are computed without performing any evaluation or optimization of clustering parameters.
@@ -61,7 +61,7 @@ scater::plotUMAP(
 
 ### Expression of highly variable genes
 
-The plots below show the same UMAP embeddings, coloring each cell by the expression level of the labeled gene.
+The cells in the below UMAP are colored by the expression level of the labeled gene.
 The genes chosen for plotting are the 12 most variable genes identified in the library.
 Gene symbols are used when available to label the UMAP plots.
 If gene symbols are not available, the Ensembl id will be shown.

@@ -2,7 +2,9 @@
 
 This section details quality control statistics from the ADT (antibody-derived tag) component of CITE-seq experiments.
 
-## CITE-seq Experiment Statistics
+## Summary tables {.tabset}
+
+### Experiment statistics
 
 ```{r}
 # add rowData if missing
@@ -37,7 +39,7 @@ knitr::kable(adt_information, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## ADT Statistics
+### ADT statistics
 ```{r}
 antibody_tags <- as.data.frame(rowData(adt_exp)) |>
   tibble::rownames_to_column("Antibody") |>
@@ -51,15 +53,11 @@ antibody_tags <- as.data.frame(rowData(adt_exp)) |>
     "ADT target type" = target_type
   )
 
-knitr::kable(antibody_tags, digits = 2) |>
-  kableExtra::kable_styling(
-    bootstrap_options = c("striped", "condensed"),
-    full_width = FALSE,
-    position = "left",
-  )
+format_datatable(antibody_tags) |>
+  DT::formatRound(c("Mean UMI count per cell", "Percent of cells detected"), 2)
 ```
 
-## ADT Post-processing Statistics
+### ADT post-processing statistics
 
 ```{r}
 if (has_processed) {
@@ -174,7 +172,7 @@ if (has_processed && !(processed_meta$adt_scpca_filter_method == "No filter")) {
 
 
 
-## Expression of highly variable ADTs
+## Expression of highly variable ADTs {.tabset}
 
 The plots in this section visualize the top four most variable ADTs in the library.
 
@@ -205,6 +203,7 @@ if (has_processed) {
 ```
 
 
+### Density plots
 
 
 ```{r fig.alt="Density plot showing normalized expression of highly variable ADTs", warning = FALSE, results='asis'}
@@ -237,7 +236,7 @@ if (has_processed) {
 }
 ```
 
-
+### UMAPs
 
 ```{r fig.alt="UMAP calculated from RNA expression but colored by normalized expression of highly variable ADTs", fig.height = 6, results='asis'}
 if (has_processed) {
