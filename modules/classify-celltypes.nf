@@ -113,8 +113,8 @@ process add_celltypes_to_sce {
     path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
     path(validation_ref_file) // maps consensus cell types to cell type groups, for counting normal reference cells
-    path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
-    path(diagnosis_groups_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_celltypes_file), stageAs: 'diagnosis_celltypes.txt' // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_groups_file), stageAs: 'diagnosis_groups.txt' // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
     tuple val(meta), path(annotated_rds), env("NORMAL_CELL_COUNT")
   script:
@@ -124,7 +124,7 @@ process add_celltypes_to_sce {
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
     // we only check for normal cells if we have both diagnosis mapping files
-   count_normal_cells = diagnosis_groups_file  &&  diagnosis_celltypes_file
+    count_normal_cells = diagnosis_groups_file.size() > 0  &&  diagnosis_celltypes_file.size() > 0
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
@@ -136,9 +136,9 @@ process add_celltypes_to_sce {
       ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''} \
       ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
       --consensus_celltype_ref ${consensus_ref_file} \
-      ${check_normal_cells ? "--consensus_validation_ref ${validation_ref_file}" : ''} \
-      ${check_normal_cells ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
-      ${check_normal_cells ? "--diagnosis_groups_ref ${diagnosis_groups_file}" : ''} \
+      ${count_normal_cells ? "--consensus_validation_ref ${validation_ref_file}" : ''} \
+      ${count_normal_cells ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
+      ${count_normal_cells ? "--diagnosis_groups_ref ${diagnosis_groups_file}" : ''} \
       --normal_cells_file "normal_cells.txt"
 
       # save so we can export as environment variable
