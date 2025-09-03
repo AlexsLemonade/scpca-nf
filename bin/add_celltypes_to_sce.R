@@ -143,6 +143,10 @@ stopifnot(
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
 
+# We'll count normal cells when assigning consensus cell types
+# Set to an empty string by default, to write out if we don't have consensus
+normal_cells <- ""
+
 # SingleR results --------------------------------------------------------------
 
 has_singler <- file.exists(opt$singler_results)
@@ -353,9 +357,6 @@ if (has_singler && has_cellassign) {
 
   # Count the number of normal reference cells -------------------------
 
-  # Set to an empty string by default
-  normal_cells <- ""
-
   # Recalculate if these optional reference files were provided
   check_input_files <- c(
     opt$consensus_validation_ref,
@@ -392,9 +393,6 @@ if (has_singler && has_cellassign) {
 
     normal_cells <- sum(celltype_df$consensus_annotation %in% reference_celltypes)
   }
-} else {
-  # set normal cells to ""; we don't run inferCNV if there are no consensus cell types
-  normal_cells <- ""
 }
 
 # export annotated object with cell type assignments
