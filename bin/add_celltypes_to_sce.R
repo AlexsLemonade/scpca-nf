@@ -145,7 +145,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 
 # We'll count normal cells when assigning consensus cell types
 # Set to an empty string by default, to write out if we don't have consensus
-normal_cells <- ""
+normal_cells <- "Not calculated"
 
 # SingleR results --------------------------------------------------------------
 
@@ -379,22 +379,24 @@ if (has_singler && has_cellassign) {
 
     sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
 
-    diagnosis_groups <- diagnosis_map_df |>
-      # get the broad diagnosis
+    # get the broad diagnosis
+    broad_diagnosis <- diagnosis_map_df |>
       dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
       dplyr::pull("diagnosis_group")
 
-    reference_celltypes <- diagnosis_celltype_df |>
-      # get the cell type groups to consider for this diagnosis
-      dplyr::filter(diagnosis_group %in% diagnosis_groups)
-    dplyr::select(celltype_groups) |>
+    # get the cell type groups to consider for this diagnosis
+    reference_validation_groups <- diagnosis_celltype_df |>
+      dplyr::filter(diagnosis_group == broad_diagnosis) |>
       tidyr::separate_rows(celltype_groups, sep = ", ") |>
-      # get the consensus cell types
-      dplyr::left_join(consensus_validation_df, by = c("celltype_groups" = "validation_group_annotation")) |>
-      dplyr::pull(consensus_annotation) |>
+      dplyr::pull(celltype_groups)
+
+    # get the consensus cell type ontologies
+    reference_celltype_ids <- consensus_validation_df |>
+      dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
+      dplyr::pull(consensus_ontology) |>
       unique()
 
-    normal_cells <- sum(celltype_df$consensus_annotation %in% reference_celltypes)
+    normal_cells <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
   }
 }
 
