@@ -1,7 +1,10 @@
 #!/usr/bin/env Rscript
 
-# This script is used to read in the predictions from CellAssign
-# and assign cell types in the annotated RDS file
+# This script is used to read in and assign these cell types in the annotated RDS file:
+# - CellAssign
+# - SingleR
+# - consensus cell types
+# This script additionally counts the number of normal reference cells in the library
 
 # import libraries
 suppressPackageStartupMessages({
@@ -67,6 +70,34 @@ option_list <- list(
     type = "character",
     help = "Path to file containing the reference for assigning consensus cell type labels",
     default = ""
+  ),
+  make_option(
+    opt_str = c("--consensus_validation_ref"),
+    type = "character",
+    help = "Path to TSV file mapping consensus validation groups to consensus labels for counting normal reference cells intended as input to inferCNV",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--diagnosis_celltype_ref"),
+    type = "character",
+    help = "Path to TSV file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV.
+    This file should have columns `diagnosis_group` and `celltype_groups` where the latter is a comma-separated list of consensus validation groups",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--diagnosis_groups_ref"),
+    type = "character",
+    help = "Path to TSV file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV.
+    This file should have columns `diagnosis_group` for the broad diagnosis and `submitted_diagnosis` with individual diagnoses in ScPCA",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--reference_cell_count_file"),
+    type = "character",
+    default = "reference_cell_count.txt",
+    help = "Path to write number of calculated inferCNV reference cells to.
+      This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
+      If not calculated, this file will be created with the value NA instead of a count",
   )
 )
 
@@ -108,11 +139,15 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
 # check that input file exists and output file ends in rds
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
-  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds")
+  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
+  "output file to store counted normal cells was not provided" = !is.null(opt$reference_cell_count_file)
 )
 
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
+
+# We'll count inferCNV reference cells when assigning consensus cell types
+reference_cell_count <- NA_integer_
 
 # SingleR results --------------------------------------------------------------
 
@@ -320,7 +355,51 @@ if (has_singler && has_cellassign) {
   # add consensus cell type and ontology to sce
   sce$consensus_celltype_annotation <- celltype_df$consensus_annotation
   sce$consensus_celltype_ontology <- celltype_df$consensus_ontology
+
+
+  # Count the number of normal reference cells -------------------------
+
+  # Calculate if these optional reference files were provided and are not 0 bytes
+  check_input_files <- c(
+    opt$consensus_validation_ref,
+    opt$diagnosis_celltype_ref,
+    opt$diagnosis_groups_ref
+  )
+
+  # Only calculate reference cell count if file sizes are not NA or 0
+  # the only way this "check" passes is if files exist and have contents
+  input_file_sizes <- file.size(check_input_files) |> tidyr::replace_na(0)
+  if (all(input_file_sizes > 0)) {
+    consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
+    diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
+    diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
+
+    sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
+
+    # get the broad diagnosis
+    broad_diagnosis <- diagnosis_map_df |>
+      dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
+      dplyr::pull("diagnosis_group")
+
+    # get the cell type groups to consider for this diagnosis
+    reference_validation_groups <- diagnosis_celltype_df |>
+      dplyr::filter(diagnosis_group == broad_diagnosis) |>
+      tidyr::separate_delim_longer(celltype_groups, sep = ",") |>
+      dplyr::pull(celltype_groups) |>
+      stringr::str_trim() # remove any leading or trailing spaces
+
+    # get the consensus cell type ontologies
+    reference_celltype_ids <- consensus_validation_df |>
+      dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
+      dplyr::pull(consensus_ontology) |>
+      unique()
+
+    reference_cell_count <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
+  }
 }
 
-# export annotated object with cellassign assignments
+# export annotated object with cell type assignments
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
+
+# export normal cell count
+readr::write_lines(reference_cell_count, opt$reference_cell_count_file)

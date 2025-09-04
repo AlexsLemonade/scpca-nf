@@ -112,8 +112,11 @@ process add_celltypes_to_sce {
     path(celltype_ref_metadata) // TSV file of references metadata needed for CellAssign only
     path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
+    path(validation_ref_file) // maps consensus cell types to cell type groups, for counting normal reference cells
+    path(diagnosis_celltypes_file, name: 'diagnosis_celltypes.txt') // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_groups_file, name: 'diagnosis_groups.txt') // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
-    tuple val(meta), path(annotated_rds)
+    tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT")
   script:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     singler_present = "${singler_dir.name}" != "NO_FILE"
@@ -130,17 +133,24 @@ process add_celltypes_to_sce {
       ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
       ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''} \
       ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
-      --consensus_celltype_ref ${consensus_ref_file}
+      --consensus_celltype_ref ${consensus_ref_file} \
+      --consensus_validation_ref ${validation_ref_file} \
+      --diagnosis_celltype_ref "diagnosis_celltypes.txt" \
+      --diagnosis_groups_ref "diagnosis_groups.txt" \
+      --reference_cell_count_file "reference_cell_count.txt"
 
-
+      # save so we can export as environment variable
+      REFERENCE_CELL_COUNT=\$(cat "reference_cell_count.txt")
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     """
     touch ${annotated_rds}
+
+    # Set to a value guaranteed to pass the threshold
+    REFERENCE_CELL_COUNT=${params.infercnv_min_reference_cells + 1}
     """
 }
-
 
 
 workflow annotate_celltypes {
@@ -230,7 +240,7 @@ workflow annotate_celltypes {
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
       .map{ meta, processed_sce, singler_model -> tuple(
-        meta.unique_id, 
+        meta.unique_id,
         file(meta.singler_dir, type: 'dir', checkIfExists: true)
       )}
       // add empty file for missing ref samples
@@ -290,24 +300,38 @@ workflow annotate_celltypes {
 
 
     // incorporate annotations into SCE object
+    // outputs [meta, annotated processed rds, reference cell count]
     add_celltypes_to_sce(
       assignment_input_ch.add_celltypes,
       file(params.celltype_ref_metadata), // file with CellAssign reference organs
       file(params.panglao_ref_file), // used for assigning ontology IDs for CellAssign results
-      file(params.consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
+      file(params.consensus_ref_file), // used for assigning consensus cell types if both SingleR and CellAssign are used
+      file(params.validation_groups_file),  // maps consensus cell types to cell type groups, for counting normal reference cells
+      file(params.diagnosis_celltypes_file ?: empty_file, checkIfExists: true), // maps broad diagnoses to cell type groups, for counting normal reference cells
+      file(params.diagnosis_groups_file ?: empty_file, checkIfExists: true) // maps sample diagnoses to broad diagnoses, for counting normal reference cells
     )
+
+    // add inferCNV logic to meta
+    added_celltypes_ch = add_celltypes_to_sce.out
+      .map{ meta_in, annotated_sce, reference_cell_count ->
+        def meta = meta_in.clone(); // local copy for safe modification
+        meta.infercnv_reference_cell_count = reference_cell_count;
+        // return only meta and annotated_sce
+        [meta, annotated_sce]
+      }
+
 
     // mix in libraries without new celltypes
     // result is [meta, processed rds]
     celltyped_ch = assignment_input_ch.no_celltypes
       .map{[it[0], it[1]]}
-      .mix(add_celltypes_to_sce.out)
+      .mix(added_celltypes_ch)
 
     // add back in the unchanged sce files to the results
     export_channel = celltyped_ch
       .map{meta, processed_sce -> tuple(
         meta.unique_id,
-        meta, 
+        meta,
         processed_sce
         )}
       // add in unfiltered and filtered sce files, for tissue samples only
