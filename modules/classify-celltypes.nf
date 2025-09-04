@@ -146,20 +146,19 @@ process add_celltypes_to_sce {
 workflow annotate_celltypes {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
-
-  def empty_file = "${projectDir}/assets/NO_FILE"
-  // read in sample metadata and make a list of cell line samples; these won't be cell typed
-  cell_line_samples = Channel.fromPath(params.sample_metafile)
-    .splitCsv(header: true, sep: '\t')
-    .map{
-      [
-        sample_id: it.scpca_sample_id,
-        is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
-      ]
-    }
-    .filter{it.is_cell_line}
-    .map{it.sample_id}
-    .toList()
+    def empty_file = "${projectDir}/assets/NO_FILE"
+    // read in sample metadata and make a list of cell line samples; these won't be cell typed
+    cell_line_samples = Channel.fromPath(params.sample_metafile)
+      .splitCsv(header: true, sep: '\t')
+      .map{
+        [
+          sample_id: it.scpca_sample_id,
+          is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
+        ]
+      }
+      .filter{it.is_cell_line}
+      .map{it.sample_id}
+      .toList()
 
     // branch to cell type the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
