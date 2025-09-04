@@ -1,0 +1,16 @@
+<h1>ScPCA Portal</h1>
+<section>
+  The Single-cell Pediatric Cancer Atlas (ScPCA) Portal (<a href="https://scpca.alexslemonade.org/">https://scpca.alexslemonade.org/</a>) is a data resource for uniformly processed single-cell and single-nuclei RNA sequencing (RNA-seq) data and de-identified metadata from pediatric tumor samples.
+  Originally comprised of data from 10 projects funded by Alex’s Lemonade Stand Foundation, the Portal currently contains summarized gene expression data for over 500 samples from over 50 types of cancers from ALSF-funded and community-contributed datasets. In addition to gene expression data from single-cell and single-nuclei RNA-seq, the Portal holds data obtained from bulk RNA-seq, spatial transcriptomics, and feature barcoding methods, such as CITE-seq and cell hashing.
+</section>
+<section>
+  ScPCA data are available for download as <code>SingleCellExperiment</code> or <code>AnnData</code> objects and are ready for downstream analyses.
+  Objects include raw counts and normalized gene expression data, PCA and UMAP coordinates, and automated cell type annotations.
+  Additionally, all downloads include two summary reports for each library: a quality control report summarizing sample statistics and displaying visualizations of cell metrics and a cell type annotation report with comparisons among cell type annotation methods and diagnostic plots to assess annotation quality.
+  Merged <code>SingleCellExperiment</code> and <code>AnnData</code> objects containing all gene expression data and metadata for all samples in an ScPCA project are also available for download.
+  These objects are useful when performing analysis on multiple samples simultaneously. Comprehensive documentation about data processing and the contents of files on the Portal, including a guide to getting started working with an ScPCA dataset, can be found at <a href="https://scpca.readthedocs.io">https://scpca.readthedocs.io</a>.
+</section>
+<section>
+  All data on the Portal were uniformly processed using <code>scpca-nf</code>, an open-source and efficient Nextflow workflow that uses <code>alevin-fry</code> to quantify all single-cell and single-nuclei RNA-seq data, any associated CITE-seq or cell hash data, spatial transcriptomics data, and bulk RNA-seq.
+  Any pediatric cancer-relevant data sets processed with <code>scpca-nf</code> are eligible for inclusion on the ScPCA Portal, enabling continuous growth of the ScPCA Portal to help pediatric cancer researchers spend less time finding and processing data and more time answering their pressing research questions.
+</section>

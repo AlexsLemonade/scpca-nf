@@ -4,6 +4,10 @@
     "editor.tabSize": 2,
     "editor.formatOnSave": false
   },
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
+  },
   "[tsv]": {
     "editor.insertSpaces": false
   },
