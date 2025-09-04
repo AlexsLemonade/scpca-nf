@@ -132,12 +132,6 @@ option_list <- list(
     help = "workflow commit hash"
   ),
   make_option(
-    opt_str = "--normal_cell_count",
-    type = "character",
-    default = NA,
-    help = "normal cell count"
-  ),
-  make_option(
     opt_str = "--seed",
     type = "integer",
     default = NULL,
@@ -231,8 +225,7 @@ metadata_list <- list(
   alevin_fry_version = sce_meta$alevinfry_version,
   workflow = opt$workflow_url,
   workflow_version = opt$workflow_version,
-  workflow_commit = opt$workflow_commit,
-  normal_cell_count = opt$normal_cell_count
+  workflow_commit = opt$workflow_commit
 ) |>
   purrr::map(\(x) {
     if (is.null(x)) NA else x

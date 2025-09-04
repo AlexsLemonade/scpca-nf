@@ -75,7 +75,6 @@ process qc_publish_sce {
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}" \
-      --normal_cell_count "${meta.normal_cell_count}" \
       --seed "${params.seed}"
 
     sce_metrics.R \
