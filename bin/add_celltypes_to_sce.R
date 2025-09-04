@@ -94,6 +94,7 @@ option_list <- list(
   make_option(
     opt_str = c("--reference_cells_file"),
     type = "character",
+    default = "reference_cell_count.txt"
     help = "Path to write number of calculated inferCNV reference cells to.
       This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
       If not calculated, this file will be created with the value NA instead of a count",
@@ -358,19 +359,17 @@ if (has_singler && has_cellassign) {
 
   # Count the number of normal reference cells -------------------------
 
-  # Recalculate if these optional reference files were provided
-  # they have no defaults, so they will be NULL if not provided
+  # Calculate if these optional reference files were provided and are not 0 bytes
   check_input_files <- c(
     opt$consensus_validation_ref,
     opt$diagnosis_celltype_ref,
     opt$diagnosis_groups_ref
   )
 
-  # Only run calculation if file sizes are not NA or 0
+  # Only calculate reference cell count if file sizes are not NA or 0
   # the only way this "check" passes is if files exist and have contents
-  input_file_sizes <- file.size(check_input_files)
-  run_calculation <- !any(is.na(input_file_sizes)) & !any(input_file_sizes == 0)
-  if (run_calculation) {
+  input_file_sizes <- file.size(check_input_files) |> tidyr::replace_na(0)
+  if (all(input_file_sizes > 0)) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
     diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
@@ -385,8 +384,9 @@ if (has_singler && has_cellassign) {
     # get the cell type groups to consider for this diagnosis
     reference_validation_groups <- diagnosis_celltype_df |>
       dplyr::filter(diagnosis_group == broad_diagnosis) |>
-      tidyr::separate_rows(celltype_groups, sep = ", ") |>
-      dplyr::pull(celltype_groups)
+      tidyr::separate_delim_longer(celltype_groups, sep = ",") |>
+      dplyr::pull(celltype_groups) |>
+      stringr::str_trim() # remove any leading or trailing spaces
 
     # get the consensus cell type ontologies
     reference_celltype_ids <- consensus_validation_df |>
