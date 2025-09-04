@@ -1,27 +1,34 @@
 
 // process for converting rds files containing an SCE to h5 containing anndata containing the RNA data
 process export_anndata {
-  container params.SCPCATOOLS_ANNDATA_CONTAINER
-  label 'mem_16'
-  tag "${meta.library_id}"
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
-  input:
-    tuple val(meta), path(sce_file), val(file_type)
-  output:
-    tuple val(meta), path("${meta.library_id}_${file_type}_*.h5ad"), val(file_type)
-  script:
-    rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
-    feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
-    pca_meta_file = "${meta.library_id}_${file_type}_pca.tsv"
-    feature_present = meta.feature_type in ["adt"]
-    """
-    sce_to_anndata.R \
-      --input_sce_file ${sce_file} \
-      --output_rna_h5 ${rna_h5ad_file} \
-      --output_feature_h5 ${feature_h5ad_file} \
-      --output_pca_tsv ${pca_meta_file} \
-      ${feature_present ? "--feature_name ${meta.feature_type}" : ''} \
-      ${file_type != "processed" ? "--compress_output" : ''}
+    container params.SCPCATOOLS_ANNDATA_CONTAINER
+    label 'mem_16'
+    tag "${meta.library_id}"
+    publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
+    input:
+      tuple val(meta), path(sce_file), val(file_type)
+    output:
+      tuple val(meta), path("${file_prefix}_${file_type}_*.h5ad"), val(file_type)
+    script:
+      // set output file names based on having 10x flex multiplexed or not 
+      if (meta.technology in ["10Xflex_v1.1_multi"]){
+        file_prefix = "${meta.library_id}-${meta.sample_id}"
+      } else {
+        file_prefix = "${meta.library_id}"
+      }
+
+      rna_h5ad_file = "${file_prefix}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${file_prefix}_${file_type}_${meta.feature_type}.h5ad"
+      pca_meta_file = "${file_prefix}_${file_type}_pca.tsv"
+      feature_present = meta.feature_type in ["adt"]
+      """
+      sce_to_anndata.R \
+        --input_sce_file ${sce_file} \
+        --output_rna_h5 ${rna_h5ad_file} \
+        --output_feature_h5 ${feature_h5ad_file} \
+        --output_pca_tsv ${pca_meta_file} \
+        ${feature_present ? "--feature_name ${meta.feature_type}" : ''} \
+        ${file_type != "processed" ? "--compress_output" : ''}
 
     # move any normalized counts to X in AnnData, convert matrices, and add PCA metadata
     if [ "${file_type}" = "processed" ]; then
@@ -32,15 +39,22 @@ process export_anndata {
       fi
     fi
 
-    """
-  stub:
-    rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
-    feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
-    feature_present = meta.feature_type in ["adt"]
-    """
-    touch ${rna_h5ad_file}
-    ${feature_present ? "touch ${feature_h5ad_file}" : ''}
-    """
+      """
+    stub:
+      // set output file names based on having 10x flex multiplexed or not 
+      if (meta.technology in ["10Xflex_v1.1_multi"]){
+        file_prefix = "${meta.library_id}-${meta.sample_id}"
+      } else {
+        file_prefix = "${meta.library_id}"
+      }
+
+      rna_h5ad_file = "${file_prefix}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${file_prefix}_${file_type}_${meta.feature_type}.h5ad"
+      feature_present = meta.feature_type in ["adt"]
+      """
+      touch ${rna_h5ad_file}
+      ${feature_present ? "touch ${feature_h5ad_file}" : ''}
+      """
 }
 
 

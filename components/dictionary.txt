@@ -29,6 +29,7 @@ et
 FASTQ
 fastq
 formatter
+GEX
 Github
 glioblastoma
 GRCh
@@ -50,6 +51,7 @@ nf
 oligos
 PanglaoDB
 parallelizing
+PBMCs
 pixi
 pre
 reproducibility
@@ -58,6 +60,7 @@ SCE
 ScPCA
 scpca
 Seqera
+singleplexed
 SingleR
 subdiagnosis
 tabset

@@ -20,7 +20,9 @@ process alevin_rad {
       '10Xv2': '--chromium',
       '10Xv2_5prime': '--chromium',
       '10Xv3': '--chromiumV3',
-      '10Xv3.1': '--chromiumV3'
+      '10Xv3.1': '--chromiumV3',
+      '10Xv3_5prime': '--chromiumV3',
+      '10Xv4': '--chromiumV3'
     ]
     // get meta to write as file
     meta += Utils.getVersions(workflow, nextflow)
@@ -71,11 +73,17 @@ process fry_quant_rna {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
+    if [ $barcode_file == *.gz ]; then
+      gunzip -c ${barcode_file} > permitted_barcodes.txt
+    else
+      mv ${barcode_file} permitted_barcodes.txt
+    fi
+
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
-      --expected-ori ${meta.technology == '10Xv2_5prime' ? 'rc' : 'fw'} \
+      --expected-ori ${meta.technology =~ '_5prime$' ? 'rc' : 'fw'} \
       -o ${quant_dir} \
-      --unfiltered-pl ${barcode_file}
+      --unfiltered-pl permitted_barcodes.txt
 
     alevin-fry collate \
       --input-dir ${quant_dir} \

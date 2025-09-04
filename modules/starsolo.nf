@@ -17,7 +17,9 @@ process starsolo {
       '10Xv2': '',
       '10Xv2_5prime': '',
       '10Xv3': '--soloUMIlen 12',
-      '10Xv3.1': '--soloUMIlen 12'
+      '10Xv3.1': '--soloUMIlen 12',
+      '10Xv3_5prime': '--soloUMIlen 12',
+      '10Xv4': '--soloUMIlen 12'
     ]
     features_flag = meta.seq_unit == "nucleus" ? "--soloFeatures Gene GeneFull" : "--soloFeatures Gene"
     output_dir = "${meta.run_id}_star"

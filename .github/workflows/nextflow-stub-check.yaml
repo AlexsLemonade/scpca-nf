@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - development
-      - cellbrowser
+      - 10x-flex-support
 
 jobs:
   nf-stub-check:

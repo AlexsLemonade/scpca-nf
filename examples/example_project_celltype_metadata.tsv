@@ -1,4 +1,4 @@
 scpca_project_id	singler_ref_name	singler_ref_file	cellassign_ref_name	cellassign_ref_file
-project01	BlueprintEncodeData	BlueprintEncodeData_celldex_1-10-1_model.rds	blood-compartment	blood-compartment_PanglaoDB_2020-03-27.tsv
-project02	HumanPrimaryCellAtlasData	HumanPrimaryCellAtlasData_celldex_1-10-1_model.rds	NA	NA
+project01	BlueprintEncodeData	BlueprintEncodeData_celldex_1-14-0_GRCh38-104_2025-07-01_model.rds	blood-compartment	blood-compartment_PanglaoDB_2020-03-27.tsv
+project02	BlueprintEncodeData	BlueprintEncodeData_celldex_1-14-0_10Xflex-v1-1_2025-07-01_model.rds	blood-compartment	blood-compartment_PanglaoDB_2020-03-27.tsv
 project03	NA	NA	blood-compartment	blood-compartment_PanglaoDB_2020-03-27.tsv

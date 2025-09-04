@@ -7,7 +7,8 @@ include { map_quant_feature } from './modules/af-features.nf'
 include { bulk_quant_rna } from './modules/bulk-salmon.nf'
 include { genetic_demux_vireo } from './modules/genetic-demux.nf'
 include { spaceranger_quant } from './modules/spaceranger.nf'
-include { generate_sce; generate_sce_with_feature; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
+include { flex_quant } from './modules/cellranger-flex.nf'
+include { generate_sce; generate_sce_with_feature; generate_sce_cellranger; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
@@ -86,6 +87,8 @@ workflow {
     '10Xv2_5prime': '737K-august-2016.txt',
     '10Xv3': '3M-february-2018.txt',
     '10Xv3.1': '3M-february-2018.txt',
+    '10Xv3_5prime': '3M-5pgex-jan-2023.txt.gz',
+    '10Xv4': '3M-3pgex-may-2023_TRU.txt.gz',
     'CITEseq_10Xv2': '737K-august-2016.txt',
     'CITEseq_10Xv3': '3M-february-2018.txt',
     'CITEseq_10Xv3.1': '3M-february-2018.txt',
@@ -93,8 +96,16 @@ workflow {
     'cellhash_10Xv3': '3M-february-2018.txt',
     'cellhash_10Xv3.1': '3M-february-2018.txt'
   ]
+
+  // 10X flex probe set files
+  def flex_probesets = [
+    '10Xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
+    '10Xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
+  ]
+
   // supported technologies
   def single_cell_techs = cell_barcodes.keySet()
+  def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
   def spatial_techs = ['visium']
   def all_techs = single_cell_techs + bulk_techs + spatial_techs
@@ -122,10 +133,20 @@ workflow {
 
   def ref_paths = Utils.readMeta(file(params.ref_json))
 
-  unfiltered_runs_ch = Channel.fromPath(params.run_metafile)
+  all_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    .filter{it.sample_reference in ref_paths}
-    // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
+    .branch{ it ->
+      known_ref: it.sample_reference in ref_paths
+      unknown_ref: true
+    }
+
+  // warn about unknown references
+  all_runs_ch.unknown_ref.subscribe{ it ->
+    log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
+  }
+
+  // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
+  unfiltered_runs_ch = all_runs_ch.known_ref
     .map{
       def sample_refs = ref_paths[it.sample_reference];
       [
@@ -144,16 +165,17 @@ workflow {
         slide_serial_number: Utils.parseNA(it.slide_serial_number),
         slide_section: Utils.parseNA(it.slide_section),
         ref_assembly: it.sample_reference,
-        ref_fasta: params.ref_rootdir + "/" + sample_refs["ref_fasta"],
-        ref_fasta_index: params.ref_rootdir + "/" + sample_refs["ref_fasta_index"],
-        ref_gtf: params.ref_rootdir + "/" + sample_refs["ref_gtf"],
-        salmon_splici_index: params.ref_rootdir + "/" + sample_refs["splici_index"],
-        t2g_3col_path: params.ref_rootdir + "/" + sample_refs["t2g_3col_path"],
-        mito_file: params.ref_rootdir + "/" + sample_refs["mito_file"],
-        salmon_bulk_index: params.ref_rootdir + "/" + sample_refs["salmon_bulk_index"],
-        t2g_bulk_path: params.ref_rootdir + "/" + sample_refs["t2g_bulk_path"],
-        cellranger_index: params.ref_rootdir + "/" + sample_refs["cellranger_index"],
-        star_index: params.ref_rootdir + "/" + sample_refs["star_index"],
+        ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
+        ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
+        ref_gtf: "${params.ref_rootdir}/${sample_refs.ref_gtf}",
+        mito_file: "${params.ref_rootdir}/${sample_refs.mito_file}",
+        // account for the refs sometimes being null
+        salmon_splici_index: sample_refs.splici_index ? "${params.ref_rootdir}/${sample_refs.splici_index}" : '',
+        t2g_3col_path: sample_refs.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : '',
+        salmon_bulk_index: sample_refs.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : '',
+        t2g_bulk_path: sample_refs.t2g_bulk_path ? "${params.ref_rootdir}/${sample_refs.t2g_bulk_path}" : '',
+        cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
+        star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
@@ -177,6 +199,7 @@ workflow {
       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
       rna: it.technology in rna_techs
       spatial: it.technology in spatial_techs
+      flex: it.technology in flex_techs
     }
 
   // generate lists of library ids for feature libraries & RNA-only
@@ -203,7 +226,24 @@ workflow {
   // **** Process Bulk RNA-seq data ***
   bulk_quant_rna(runs_ch.bulk)
 
-  // **** Process RNA-seq data ****
+  // **** Process Spatial Transcriptomics data ****
+  spaceranger_quant(runs_ch.spatial)
+
+  // **** Process 10x flex RNA-seq data ***
+  flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file))
+  flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
+    .branch{
+      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
+      skip_processing: true
+      }
+
+  // send library ids in flex_sce_ch.skip_processing to log
+  flex_sce_ch.skip_processing
+    .subscribe{
+      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+    }
+
+  // **** Process 10x tag-based RNA-seq data ****
   map_quant_rna(runs_ch.rna, cell_barcodes)
 
   // get RNA-only libraries
@@ -284,7 +324,19 @@ workflow {
   // **** Post processing and generate QC reports ****
   // combine all SCE outputs
   // Make channel for all library sce files
-  all_sce_ch = sce_ch.no_genetic.mix(genetic_demux_sce.out)
+  all_sce_ch = sce_ch.no_genetic.mix(flex_sce_ch.continue_processing, genetic_demux_sce.out)
+    // add  unique ID  to metadata that will be used to label output folders and join skipped libraries throughout workflow
+    .map{ meta_in, unfiltered_sce, filtered_sce ->
+      def meta = meta_in.clone(); // clone meta before adding in unique id
+      // we can't use library ID for flex multiplexed so will use sample and library ID for those samples only
+      meta.unique_id = (meta.technology in ["10Xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
+      // return updated meta and sce files
+      return [
+        meta,
+        unfiltered_sce,
+        filtered_sce
+       ]
+    }
   post_process_sce(all_sce_ch)
 
 
@@ -312,7 +364,7 @@ workflow {
   }
 
   // first mix any skipped libraries from both rna and feature libs
-  no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing)
+  no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing, flex_sce_ch.skip_processing)
     // add a fake processed file
     .map{meta, unfiltered, filtered -> tuple(
       meta,
@@ -346,6 +398,4 @@ workflow {
     .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
-   // **** Process Spatial Transcriptomics data ****
-  spaceranger_quant(runs_ch.spatial)
 }
