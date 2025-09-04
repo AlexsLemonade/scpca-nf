@@ -92,9 +92,9 @@ option_list <- list(
     default = ""
   ),
   make_option(
-    opt_str = c("--reference_cells_file"),
+    opt_str = c("--reference_cell_count_file"),
     type = "character",
-    default = "reference_cell_count.txt"
+    default = "reference_cell_count.txt",
     help = "Path to write number of calculated inferCNV reference cells to.
       This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
       If not calculated, this file will be created with the value NA instead of a count",
@@ -140,14 +140,14 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
   "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
-  "output file to store counted normal cells was not provided" = !is.null(opt$reference_cells_file)
+  "output file to store counted normal cells was not provided" = !is.null(opt$reference_cell_count_file)
 )
 
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
 
 # We'll count inferCNV reference cells when assigning consensus cell types
-reference_cells <- NA_integer_
+reference_cell_count <- NA_integer_
 
 # SingleR results --------------------------------------------------------------
 
@@ -394,7 +394,7 @@ if (has_singler && has_cellassign) {
       dplyr::pull(consensus_ontology) |>
       unique()
 
-    reference_cells <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
+    reference_cell_count <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
   }
 }
 
@@ -402,4 +402,4 @@ if (has_singler && has_cellassign) {
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
 # export normal cell count
-readr::write_lines(reference_cells, opt$reference_cells_file)
+readr::write_lines(reference_cell_count, opt$reference_cell_count_file)

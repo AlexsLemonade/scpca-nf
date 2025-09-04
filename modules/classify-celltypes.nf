@@ -137,7 +137,7 @@ process add_celltypes_to_sce {
       --consensus_validation_ref ${validation_ref_file} \
       --diagnosis_celltype_ref "diagnosis_celltypes.txt" \
       --diagnosis_groups_ref "diagnosis_groups.txt" \
-      --reference_cells_file "reference_cell_count.txt"
+      --reference_cell_count_file "reference_cell_count.txt"
 
       # save so we can export as environment variable
       REFERENCE_CELL_COUNT=\$(cat "reference_cell_count.txt")
