@@ -148,7 +148,7 @@ process add_celltypes_to_sce {
     touch ${annotated_rds}
 
     # Set to a value guaranteed to pass the threshold
-    REFERENCE_CELL_COUNT=${params.infercnv_min_normal_cells + 1}
+    REFERENCE_CELL_COUNT=${params.infercnv_min_reference_cells + 1}
     """
 }
 

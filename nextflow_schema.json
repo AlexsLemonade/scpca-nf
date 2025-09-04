@@ -438,7 +438,7 @@
           "description": "SingleR label name",
           "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
         },
-        "infercnv_min_normal_cells": {
+        "infercnv_min_reference_cells": {
           "type": "integer",
           "default": 100,
           "description": "Minimum number of normal reference cells needed to run inferCNV",
