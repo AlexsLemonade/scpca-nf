@@ -74,27 +74,29 @@ option_list <- list(
   make_option(
     opt_str = c("--consensus_validation_ref"),
     type = "character",
-    help = "Path to file mapping consensus validation groups to consensus labels for counting normal reference cells intended as input to inferCNV",
+    help = "Path to TSV file mapping consensus validation groups to consensus labels for counting normal reference cells intended as input to inferCNV",
     default = ""
   ),
   make_option(
     opt_str = c("--diagnosis_celltype_ref"),
     type = "character",
-    help = "Path to file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV",
+    help = "Path to TSV file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV.
+    This file should have columns `diagnosis_group` and `celltype_groups` where the latter is a comma-separated list of consensus validation groups",
     default = ""
   ),
   make_option(
     opt_str = c("--diagnosis_groups_ref"),
     type = "character",
-    help = "Path to file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV",
+    help = "Path to TSV file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV.
+    This file should have columns `diagnosis_group` for the broad diagnosis and `submitted_diagnosis` with individual diagnoses in ScPCA",
     default = ""
   ),
   make_option(
-    opt_str = c("--normal_cells_file"),
+    opt_str = c("--reference_cells_file"),
     type = "character",
-    help = "Path to write number of calculated normal cells to.
-      This calculation is only performed if `diagnosis_celltype_ref` and `diagnosis_groups_ref` are provided.
-      If not calculated, this file will be created as an empty file",
+    help = "Path to write number of calculated inferCNV reference cells to.
+      This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
+      If not calculated, this file will be created with the value NA instead of a count",
   )
 )
 
@@ -137,15 +139,14 @@ get_ref_info <- function(ref_filename, extension, ref_type) {
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
   "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
-  "output file to store counted normal cells was not provided" = !is.null(opt$normal_cells_file)
+  "output file to store counted normal cells was not provided" = !is.null(opt$reference_cells_file)
 )
 
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
 
-# We'll count normal cells when assigning consensus cell types
-# Set to an empty string by default, to write out if we don't have consensus
-normal_cells <- "Not calculated"
+# We'll count inferCNV reference cells when assigning consensus cell types
+reference_cells <- NA_integer_
 
 # SingleR results --------------------------------------------------------------
 
@@ -365,14 +366,11 @@ if (has_singler && has_cellassign) {
     opt$diagnosis_groups_ref
   )
 
-  # Only proceed if _none_ are empty strings
-  if (all(check_input_files != "")) {
-    stopifnot(
-      "Validation cell type reference file does not exist" = file.exists(opt$consensus_validation_ref),
-      "Diagnosis/cell type map reference file does not exist" = file.exists(opt$diagnosis_celltype_ref),
-      "Diagnosis map reference file does not exist" = file.exists(opt$diagnosis_groups_ref)
-    )
-
+  # Only run calculation if file sizes are not NA or 0
+  # the only way this "check" passes is if files exist and have contents
+  input_file_sizes <- file.size(check_input_files)
+  run_calculation <- !any(is.na(input_file_sizes)) & !any(input_file_sizes == 0)
+  if (run_calculation) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
     diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
@@ -396,7 +394,7 @@ if (has_singler && has_cellassign) {
       dplyr::pull(consensus_ontology) |>
       unique()
 
-    normal_cells <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
+    reference_cells <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
   }
 }
 
@@ -404,4 +402,4 @@ if (has_singler && has_cellassign) {
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
 # export normal cell count
-readr::write_lines(normal_cells, opt$normal_cells_file)
+readr::write_lines(reference_cells, opt$reference_cells_file)
