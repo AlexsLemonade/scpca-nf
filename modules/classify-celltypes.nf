@@ -113,8 +113,8 @@ process add_celltypes_to_sce {
     path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
     path(validation_ref_file) // maps consensus cell types to cell type groups, for counting normal reference cells
-    path(diagnosis_celltypes_file), stageAs: 'diagnosis_celltypes.txt' // maps broad diagnoses to cell type groups, for counting normal reference cells
-    path(diagnosis_groups_file), stageAs: 'diagnosis_groups.txt' // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_celltypes_file, stageAs: 'diagnosis_celltypes.txt') // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_groups_file, stageAs: 'diagnosis_groups.txt') // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
     tuple val(meta), path(annotated_rds), env("NORMAL_CELL_COUNT")
   script:
