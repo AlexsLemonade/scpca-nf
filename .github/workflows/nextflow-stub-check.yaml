@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - development
+      - 10x-flex-support
 
 jobs:
   nf-stub-check:

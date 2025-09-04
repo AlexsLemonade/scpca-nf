@@ -14,6 +14,19 @@
     "infercnv_gene_order": "homo_sapiens/ensembl-104/infercnv/Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz",
     "cytoband": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104_cytoband.txt.gz"
   },
+  "Homo_sapiens.GRCh38.110": {
+    "ref_dir": "homo_sapiens/ensembl-110",
+    "ref_fasta": "homo_sapiens/ensembl-110/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "homo_sapiens/ensembl-110/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
+    "ref_gtf": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110.gtf.gz",
+    "mito_file": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110.mitogenes.txt",
+    "t2g_3col_path": "",
+    "t2g_bulk_path": "",
+    "splici_index": "",
+    "salmon_bulk_index": "",
+    "cellranger_index": "homo_sapiens/ensembl-110/cellranger_index/Homo_sapiens.GRCh38.110_cellranger_full",
+    "star_index": ""
+  },
   "Mus_musculus.GRCm39.104": {
     "ref_dir": "mus_musculus/ensembl-104",
     "ref_fasta": "mus_musculus/ensembl-104/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz",

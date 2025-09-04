@@ -19,7 +19,7 @@ option_list <- list(
     opt_str = c("--singler_model_file"),
     type = "character",
     help = "path to file containing a single model generated for SingleR annotation.
-            File name is expected to be in form: <ref_name>_<source>_<version>_model.rds."
+            File name is expected to be in form: <ref_name>_<source>_<version>_<gene_set_version>_<date>_model.rds."
   ),
   make_option(
     opt_str = c("--output_singler_results_file"),

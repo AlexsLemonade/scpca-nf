@@ -78,15 +78,19 @@ process cellranger_index {
     path cellranger_index
   script:
     cellranger_index = file("${meta.cellranger_index}").name
+    assembly = ref_name.split("\\.")[1] // extract assembly from ref_name
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
 
     cellranger mkref \
-      --genome=${cellranger_index} \
+      --genome=${assembly} \
       --fasta=genome.fasta \
       --genes=genome.gtf \
       --nthreads=${task.cpus}
+
+    # copy index to output directory and clean up
+    cp -r ${assembly} ${cellranger_index} && rm -rf ${assembly}
     """
 }
 
@@ -143,6 +147,9 @@ process infercnv_gene_order {
 
 workflow {
 
+  // check which refs to build
+  build_all = params.build_refs == "All"
+
   // read in json file with all reference paths
   ref_paths = Utils.readMeta(file(params.ref_json))
 
@@ -156,18 +163,48 @@ workflow {
       [
         reference_name,
         ref_name_paths,
+        it.include_salmon.toUpperCase() == "TRUE",
+        it.include_cellranger.toUpperCase() == "TRUE",
+        it.include_star.toUpperCase() == "TRUE",
         file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"), // path to gtf
         file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}") // path to fasta
-      ]}
+      ]
+    }
+    // filter to only regenerate specified references
+    .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
+    // branch to create salmon, cellranger, and star references
+    .branch{ it ->
+      salmon: it[2] == true
+      cellranger: it[3] == true
+      star: it[4] == true
+    }
+
+  // drop the boolean flags after branching
+  salmon_ref_ch = ref_ch.salmon
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+      ref_name, meta, gtf, fasta
+    )}
+
+  cellranger_ref_ch = ref_ch.cellranger
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+      ref_name, meta, gtf, fasta
+    )}
+
+  star_ref_ch = ref_ch.star
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+      ref_name, meta, gtf, fasta
+    )}
 
   // generate splici and spliced cDNA reference fasta
-  generate_reference(ref_ch)
+  generate_reference(salmon_ref_ch)
   // create index using reference fastas
-  salmon_index(generate_reference.out.fasta_files, ref_ch)
+  salmon_index(generate_reference.out.fasta_files, salmon_ref_ch)
+
   // create cellranger index
-  cellranger_index(ref_ch)
+  cellranger_index(cellranger_ref_ch)
+
   // create star index
-  star_index(ref_ch)
+  star_index(star_ref_ch)
 
   // create input channel for inferCNV gene order file as:
   // name, meta, gtf, cytoband

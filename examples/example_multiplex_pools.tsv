@@ -1,3 +1,7 @@
 scpca_library_id	scpca_sample_id	barcode_id
 library03	sample03	TAG01
 library03	sample04	TAG02
+library07	sample08	BC001
+library07	sample09	BC002
+library07	sample10	BC003
+library07	sample11	BC004

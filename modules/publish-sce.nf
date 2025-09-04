@@ -21,18 +21,25 @@ process qc_publish_sce {
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     workflow_version = workflow.revision ?: workflow.manifest.version
 
+    // set output file names based on having 10x flex multiplexed or not 
+    if (meta.technology in ["10Xflex_v1.1_multi"]){
+      file_prefix = "${meta.library_id}-${meta.sample_id}"
+    } else {
+      file_prefix = "${meta.library_id}"
+    }
+
     // names for final output files
-    unfiltered_out = "${meta.library_id}_unfiltered.rds"
-    filtered_out = "${meta.library_id}_filtered.rds"
-    processed_out = "${meta.library_id}_processed.rds"
-    qc_report = "${meta.library_id}_qc.html"
-    metadata_json = "${meta.library_id}_metadata.json"
-    metrics_json = "${meta.library_id}_metrics.json"
+    unfiltered_out = "${file_prefix}_unfiltered.rds"
+    filtered_out = "${file_prefix}_filtered.rds"
+    processed_out = "${file_prefix}_processed.rds"
+    qc_report = "${file_prefix}_qc.html"
+    metadata_json = "${file_prefix}_metadata.json"
+    metrics_json = "${file_prefix}_metrics.json"
 
     // check for cell types
     // only provide report template if cell typing was performed and either singler or cellassign was used
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+    celltype_report = "${file_prefix}_celltype-report.html" // rendered HTML
 
     """
     # move files for output
@@ -79,15 +86,21 @@ process qc_publish_sce {
       --metrics_json "${metrics_json}"
     """
   stub:
-    unfiltered_out = "${meta.library_id}_unfiltered.rds"
-    filtered_out = "${meta.library_id}_filtered.rds"
-    processed_out = "${meta.library_id}_processed.rds"
-    qc_report = "${meta.library_id}_qc.html"
-    metadata_json = "${meta.library_id}_metadata.json"
-    metrics_json = "${meta.library_id}_metrics.json"
+    if (meta.technology in ["10Xflex_v1.1_multi"]){
+      file_prefix = "${meta.library_id}-${meta.sample_id}"
+    } else {
+      file_prefix = "${meta.library_id}"
+    }
+
+    unfiltered_out = "${file_prefix}_unfiltered.rds"
+    filtered_out = "${file_prefix}_filtered.rds"
+    processed_out = "${file_prefix}_processed.rds"
+    qc_report = "${file_prefix}_qc.html"
+    metadata_json = "${file_prefix}_metadata.json"
+    metrics_json = "${file_prefix}_metrics.json"
 
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+    celltype_report = "${file_prefix}_celltype-report.html" // rendered HTML
 
     """
     touch ${unfiltered_out}

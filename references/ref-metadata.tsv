@@ -1,3 +1,4 @@
-organism	assembly	version
-Homo_sapiens	GRCh38	104
-Mus_musculus	GRCm39	104
+organism	assembly	version	include_salmon	include_cellranger	include_star
+Homo_sapiens	GRCh38	104	TRUE	TRUE	TRUE
+Homo_sapiens	GRCh38	110	FALSE	TRUE	FALSE
+Mus_musculus	GRCm39	104	TRUE	TRUE	TRUE

@@ -8,11 +8,18 @@ process export_anndata {
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path("${meta.library_id}_${file_type}_*.h5ad"), val(file_type)
+      tuple val(meta), path("${file_prefix}_${file_type}_*.h5ad"), val(file_type)
     script:
-      rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
-      feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
-      pca_meta_file = "${meta.library_id}_${file_type}_pca.tsv"
+      // set output file names based on having 10x flex multiplexed or not 
+      if (meta.technology in ["10Xflex_v1.1_multi"]){
+        file_prefix = "${meta.library_id}-${meta.sample_id}"
+      } else {
+        file_prefix = "${meta.library_id}"
+      }
+
+      rna_h5ad_file = "${file_prefix}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${file_prefix}_${file_type}_${meta.feature_type}.h5ad"
+      pca_meta_file = "${file_prefix}_${file_type}_pca.tsv"
       feature_present = meta.feature_type in ["adt"]
       """
       sce_to_anndata.R \
@@ -34,8 +41,15 @@ process export_anndata {
 
       """
     stub:
-      rna_h5ad_file = "${meta.library_id}_${file_type}_rna.h5ad"
-      feature_h5ad_file = "${meta.library_id}_${file_type}_${meta.feature_type}.h5ad"
+      // set output file names based on having 10x flex multiplexed or not 
+      if (meta.technology in ["10Xflex_v1.1_multi"]){
+        file_prefix = "${meta.library_id}-${meta.sample_id}"
+      } else {
+        file_prefix = "${meta.library_id}"
+      }
+
+      rna_h5ad_file = "${file_prefix}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${file_prefix}_${file_type}_${meta.feature_type}.h5ad"
       feature_present = meta.feature_type in ["adt"]
       """
       touch ${rna_h5ad_file}
