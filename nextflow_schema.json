@@ -441,7 +441,7 @@
         "infercnv_min_normal_cells": {
           "type": "integer",
           "default": 100,
-          "description": "Minimum number of normal reference cells needed to run inferCNV"
+          "description": "Minimum number of normal reference cells needed to run inferCNV",
           "help_text": "Minimum number of normal reference cells needed to run inferCNV for a given library."
        },
         "cellbrowser_default_label": {
