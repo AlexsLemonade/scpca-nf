@@ -4,7 +4,8 @@
 # - CellAssign
 # - SingleR
 # - consensus cell types
-# This script additionally counts the number of normal reference cells in the library
+# This script additionally counts the number of normal reference cells in the library and
+# adds information to the SCE about reference cells
 
 # import libraries
 suppressPackageStartupMessages({
@@ -388,13 +389,21 @@ if (has_singler && has_cellassign) {
       dplyr::pull(celltype_groups) |>
       stringr::str_trim() # remove any leading or trailing spaces
 
-    # get the consensus cell type ontologies
-    reference_celltype_ids <- consensus_validation_df |>
+    # get the consensus cell types
+    ref_df <- consensus_validation_df |>
       dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
-      dplyr::pull(consensus_ontology) |>
-      unique()
+      dplyr::select(consensus_ontology, consensus_annotation) |>
+      dplyr::distinct()
 
-    reference_cell_count <- sum(celltype_df$consensus_ontology %in% reference_celltype_ids)
+    # count the number of reference cells in the SCE for export
+    reference_cell_count <- sum(celltype_df$consensus_ontology %in% ref_df$consensus_ontology)
+
+    # Add reference cell information to SCE
+    metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
+    colData(sce) <- colData(sce) |>
+      as.data.frame() |>
+      dplyr::mutate(is_infercnv_reference = consensus_celltype_ontology %in% ref_df$consensus_ontology) |>
+      DataFrame(row.names = colData(sce)$barcodes)
   }
 }
 
