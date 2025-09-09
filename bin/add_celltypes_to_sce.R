@@ -395,15 +395,13 @@ if (has_singler && has_cellassign) {
       dplyr::select(consensus_ontology, consensus_annotation) |>
       dplyr::distinct()
 
-    # count the number of reference cells in the SCE for export
-    reference_cell_count <- sum(celltype_df$consensus_ontology %in% ref_df$consensus_ontology)
-
     # Add reference cell information to SCE
     metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
-    sce$is_infercnv_reference <-  sce$consensus_celltype_ontology %in% ref_df$consensus_ontology
-    
+    sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
+
     # get the full count
     reference_cell_count <- sum(sce$is_infercnv_reference)
+  }
 }
 
 # export annotated object with cell type assignments
