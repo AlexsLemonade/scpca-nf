@@ -49,7 +49,6 @@ infercnv_results <- readRDS(opts$infercnv_results_file)
 metadata(sce)$infercnv_options <- infercnv_results$infercnv_options
 metadata(sce)$infercnv_table <- infercnv_results$infercnv_table
 
-
 # add a total_cnv column to colData
 total_cnv_df <- infercnv_results$infercnv_table |>
   tidyr::pivot_longer(
@@ -65,8 +64,4 @@ colData(sce) <- colData(sce) |>
   DataFrame(row.names = colnames(sce))
 
 # export updated SCE file
-readr::write_rds(
-  sce,
-  opts$output_sce_file,
-  compress = "bz2"
-)
+readr::write_rds(sce, opts$output_sce_file, compress = "bz2")
