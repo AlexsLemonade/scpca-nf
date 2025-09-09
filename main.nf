@@ -68,7 +68,7 @@ def check_parameters() {
     }
   }
   // infercnv checks
-  if (params.perform_infercnv) {
+  if (params.run_infercnv) {
     if (!params.perform_celltyping) {
       log.error("To run inferCNV, you must also run cell type annotation using the '--perform_celltyping' flag.")
       param_error = true
@@ -375,7 +375,7 @@ workflow {
 
  // Perform celltyping and run inferCNV, if specified
   if (params.perform_celltyping) {
-    if (params.perform_infercnv) {
+    if (params.run_infercnv) {
       annotate_celltypes(cluster_sce.out)
       annotated_celltype_ch = run_infercnv(annotate_celltypes.out)
    } else {
