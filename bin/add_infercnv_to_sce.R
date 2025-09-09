@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script runs adds inferCNV results to an SCE object, including:
+# This script adds inferCNV results to an SCE object, including:
 # metadata field `infercnv_table`: (data frame) The full table output from the inferCNV HMM
 # metadata field `infercnv_options`: (list) The options used when calling inferCNV, obtained
 #  from the @options slot of the inferCNV output object
