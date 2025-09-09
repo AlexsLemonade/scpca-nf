@@ -400,11 +400,10 @@ if (has_singler && has_cellassign) {
 
     # Add reference cell information to SCE
     metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
-    colData(sce) <- colData(sce) |>
-      as.data.frame() |>
-      dplyr::mutate(is_infercnv_reference = consensus_celltype_ontology %in% ref_df$consensus_ontology) |>
-      DataFrame(row.names = colData(sce)$barcodes)
-  }
+    sce$is_infercnv_reference <-  sce$consensus_celltype_ontology %in% ref_df$consensus_ontology
+    
+    # get the full count
+    reference_cell_count <- sum(sce$is_infercnv_reference)
 }
 
 # export annotated object with cell type assignments
