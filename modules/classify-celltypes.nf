@@ -313,9 +313,10 @@ workflow annotate_celltypes {
 
     // add inferCNV logic to meta
     added_celltypes_ch = add_celltypes_to_sce.out
-      .map{ meta_in, annotated_sce, reference_cell_count ->
+      .map{ meta_in, annotated_sce, cell_count ->
         def meta = meta_in.clone(); // local copy for safe modification
-        meta.infercnv_reference_cell_count = reference_cell_count;
+        // ensure it's saved as an integer: either the integer value, or 0 if it was NA
+        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? 0 : cell_count.toInteger()
         // return only meta and annotated_sce
         [meta, annotated_sce]
       }
