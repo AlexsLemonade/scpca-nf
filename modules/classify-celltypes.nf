@@ -316,7 +316,7 @@ workflow annotate_celltypes {
       .map{ meta_in, annotated_sce, cell_count ->
         def meta = meta_in.clone(); // local copy for safe modification
         // ensure it's saved as an integer: either the integer value, or 0 if it was NA
-        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? 0 : cell_count.toInteger()
+        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? 0 : cell_count.toInteger();
         // return only meta and annotated_sce
         [meta, annotated_sce]
       }
