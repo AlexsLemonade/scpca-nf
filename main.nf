@@ -11,6 +11,7 @@ include { flex_quant } from './modules/cellranger-flex.nf'
 include { generate_sce; generate_sce_with_feature; generate_sce_cellranger; cellhash_demux_sce; genetic_demux_sce; post_process_sce} from './modules/sce-processing.nf'
 include { cluster_sce } from './modules/cluster-sce.nf'
 include { annotate_celltypes } from './modules/classify-celltypes.nf'
+include { run_infercnv } from './modules/run-infercnv.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
 
@@ -63,6 +64,21 @@ def check_parameters() {
     }
     if (!file(params.validation_palette_file).exists()) {
       log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
+      param_error = true
+    }
+  }
+  // infercnv checks
+  if (params.perform_infercnv) {
+    if (!params.perform_celltyping) {
+      log.error("To run inferCNV, you must also run cell type annotation using the '--perform_celltyping' flag.")
+      param_error = true
+    }
+    if (!file(params.diagnosis_groups_file).exists()) {
+      log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
+      param_error = true
+    }
+    if (!file(params.diagnosis_celltypes_file).exists()) {
+      log.error("The 'diagnosis_celltypes_file' file '${params.diagnosis_celltypes_file}' can not be found.")
       param_error = true
     }
   }
@@ -357,9 +373,14 @@ workflow {
   // Cluster SCE
   cluster_sce(post_process_ch.continue_processing)
 
+ // Perform celltyping and run inferCNV, if specified
   if (params.perform_celltyping) {
-    // Perform celltyping, if specified
-    annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
+    if (params.perform_infercnv) {
+      annotate_celltypes(cluster_sce.out)
+      annotated_celltype_ch = run_infercnv(annotate_celltypes.out)
+   } else {
+      annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
+   }
   } else {
     annotated_celltype_ch = cluster_sce.out
   }
