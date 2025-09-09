@@ -1,9 +1,10 @@
 #!/usr/bin/env Rscript
 
-# This script runs inferCNV on a SingleCellExperiment object and saves results to the SCE object:
-# metadata field `infercnv_table`: (data frame) The full table output from the inferCNV HMM
-# metadata field `infercnv_options`: (list) The options used when calling inferCNV, from the @options slot of the output object
-# colData column `total_cnv`: The sum of CNV per cell, calculated from the HMM output
+# This script runs inferCNV on a SingleCellExperiment object and export result files:
+# - inferCNV heatmap png
+# - an RDS file with a list of information to save to the SCE file later:
+#  - wide metadata table with CNVs
+#  - list of inferCNV options
 
 suppressPackageStartupMessages({
   library(SingleCellExperiment)
@@ -20,13 +21,12 @@ option_list <- list(
   make_option(
     opt_str = "--output_rds",
     type = "character",
-    help = "Path to the output SCE file inferCNV output"
+    help = "Path to the output RDS file to hold inferCNV results of interest"
   ),
   make_option(
-    opt_str = c("--output_dir"),
+    opt_str = "--output_heatmap",
     type = "character",
-    default = "",
-    help = "Folder to save final infercnv results"
+    help = "Path to the output heatmap PNG file"
   ),
   make_option(
     opt_str = c("--gene_order_file"),
@@ -34,6 +34,11 @@ option_list <- list(
     default = "",
     help = "Path to gene order file as tab delimited .txt file with no column headers.
       Columns are: Ensembl gene id, chr, start, stop."
+  ),
+  make_option(
+    opt_str = c("--temp_dir"),
+    type = "character",
+    help = "Temporary directory to save inferCNV output to"
   ),
   make_option(
     opt_str = c("-t", "--threads"),
@@ -54,9 +59,10 @@ opts <- parse_args(OptionParser(option_list = option_list))
 
 stopifnot(
   "input_sce_file does not exist" = file.exists(opts$input_sce_file),
-  "gene_order_file does not exist" = file.exists(opts$gene_order_file),
-  "output_dir does not exist" = dir.exists(opts$output_dir),
-  "output_rds was not provided" = !is.null(opts$output_rds)
+  "output_rds was not provided" = !is.null(opts$output_rds),
+  "output_heatmap was not provided" = !is.null(opts$output_heatmap),
+  "temp_dir was not provided" = !is.null(opts$temp_dir),
+  "gene_order_file does not exist" = file.exists(opts$gene_order_file)
 )
 
 # set up files and paths -----------------
@@ -71,9 +77,9 @@ stopifnot(
 
 # define relevant infercnv output files for later use/checks
 # infercnv will automatically create these files at these hardcoded paths
-png_file <- file.path(opts$output_dir, "infercnv.png")
-infercnv_final_file <- file.path(opts$output_dir, "run.final.infercnv_obj")
-metadata_file <- file.path(opts$output_dir, "map_metadata_from_infercnv.txt")
+scratch_png_file <- file.path(opts$temp_dir, "infercnv.png")
+scratch_infercnv_final_file <- file.path(opts$temp_dir, "run.final.infercnv_obj")
+scratch_metadata_file <- file.path(opts$temp_dir, "map_metadata_from_infercnv.txt")
 
 # run infercnv ------------------------
 
@@ -85,7 +91,6 @@ annotations_df <- data.frame(
   annotation = ifelse(sce$is_infercnv_reference, "reference", "query"),
   row.names = sce$barcodes
 )
-
 
 # run infercnv in a tryCatch in case of errors
 # this will automatically create the heatmap file in the output directory
@@ -103,7 +108,7 @@ infercnv_result <- tryCatch(
     ) |>
       infercnv::run(
         cutoff = 0.1, # use 1 for smart-seq, 0.1 for 10x-genomics
-        out_dir = opts$output_dir, # save all intermediate files here
+        out_dir = opts$temp_dir, # save all intermediate files here
         denoise = TRUE, # this option is generally used in inferCNV HMM examples
         HMM = TRUE, # use the i6 HMM
         HMM_type = "i6",
@@ -112,63 +117,48 @@ infercnv_result <- tryCatch(
       )
   },
   error = function(e) {
-    # If inferCNV failed, create an empty heatmap file
-    system(glue::glue("touch {png_file}"))
+    message("inferCNV failed; creating an empty heatmap")
+
+    # If inferCNV failed, create an empty heatmap file at the _final destination_
+    system(glue::glue("touch {opts$output_heatmap}"))
 
     # return NULL
     NULL
   }
 )
-# confirm png file exists
-stopifnot("PNG file not created" = file.exists(png_file))
 
-# save results SCE if inferCNV ran successfully ------------------------------
+# save relevant results to RDS if inferCNV ran successfully -------------------
 if (!is.null(infercnv_result)) {
   # confirm final infercnv object exists; the metadata table is created from this file
   stopifnot(
-    "inferCNV did not write output to disc" = file.exists(infercnv_final_file)
+    "inferCNV did not write output to disc" = file.exists(scratch_infercnv_final_file)
   )
 
   # create wide table with barcodes and inferred CNV events
-  # this will automatically create `metadata_file`
+  # this will automatically create `scratch_metadata_file`
   infercnv::add_to_seurat(
     seurat_obj = NULL,
-    infercnv_output_path = opts$output_dir
+    infercnv_output_path = opts$temp_dir
   )
 
-  # save table to SCE metadata
+  # create list of results to export
+
   # note we have to read in with base R, since there are row names
-  infercnv_table <- read.table(metadata_file, header = TRUE, sep = "\t") |>
+  infercnv_table <- read.table(scratch_metadata_file, header = TRUE, sep = "\t") |>
     tibble::rownames_to_column(var = "barcodes")
-  metadata(sce)$infercnv_table <- infercnv_table
 
-  # save inferCNV runtime options used to SCE metadata
-  metadata(sce)$infercnv_options <- infercnv_result@options
+  output_results <- list(
+    infercnv_table = infercnv_table,
+    infercnv_options = infercnv_result@options
+  )
 
-  # add a total_cnv column to colData
-  total_cnv_df <- infercnv_table |>
-    tidyr::pivot_longer(
-      starts_with("has_cnv_"),
-      names_to = "chr",
-      values_to = "cnv"
-    ) |>
-    dplyr::group_by(barcodes) |>
-    dplyr::summarize(total_cnv = sum(cnv))
-  colData(sce) <- colData(sce) |>
-    as.data.frame() |>
-    dplyr::left_join(total_cnv_df, by = "barcodes") |>
-    DataFrame(row.names = colnames(sce))
+  # export results
+  readr::write_rds(output_results, opts$output_rds, compress = "bz2")
+
+  # copy heatmap to final destination
+  fs::file_copy(scratch_png_file, opts$output_heatmap, overwrite = TRUE)
 }
 
-# export SCE -------------------
-readr::write_rds(
-  sce,
-  opts$output_rds,
-  compress = "bz2"
-)
 
-
-# clean up: remove all non-heatmap files from the output directory ------
-remove_files <- list.files(opts$output_dir, full.names = TRUE)
-remove_files <- remove_files[remove_files != png_file]
-fs::file_delete(remove_files)
+# confirm final png file exists
+stopifnot("PNG file not created" = file.exists(opts$output_heatmap))
