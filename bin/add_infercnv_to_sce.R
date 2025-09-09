@@ -22,7 +22,8 @@ option_list <- list(
     opt_str = "--infercnv_results_file",
     type = "character",
     default = "",
-    help = "Path to the inferCNV results file"
+    help = "Path to the inferCNV results file.
+    This file should contain a named list with fields `infercnv_table` and `infercnv_options`."
   ),
   make_option(
     opt_str = "--output_sce_file",
