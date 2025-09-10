@@ -2,34 +2,39 @@
 
 process call_infercnv {
   container params.SCPCATOOLS_INFERCNV_CONTAINER
-  label 'mem_16'
+  publishDir (
+    path: "${meta.infercnv_dir}",
+    mode: 'copy',
+    pattern: "${meta.unique_id}_infercnv-*"
+  )
+  label 'mem_32'
   label 'cpus_8'
   tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_rds), path(infercnv_gene_order)
   output:
-    tuple val(meta.unique_id), path(infercnv_dir)
+    tuple val(meta), path(processed_rds), path(results_file), path(heatmap_file)
   script:
-    infercnv_dir = file(meta.infercnv_dir).name
+    results_file="${meta.unique_id}_infercnv-results.rds"
+    heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
-    # create output directory for inferCNV files
-    mkdir -p ${infercnv_dir}
-
-    run_infercnv.R \
-      --input_sce_file ${processed_rds} \
-      --output_rds "${infercnv_dir}/infercnv-heatmap.png" \
-      --output_heatmap "${infercnv_dir}/infercnv-results.rds" \
-      --temp_dir \$PWD \
-      --gene_order_file ${infercnv_gene_order} \
-      --threads ${task.cpus} \
-      ${params.seed ? "--random_seed ${params.seed}" : ""}
+    touch ${heatmap_file}
+    touch ${results_file}
+    #run_infercnv.R \
+    #  --input_sce_file ${processed_rds} \
+    #  --output_rds ${results_file} \
+    #  --output_heatmap ${heatmap_file} \
+    #  --temp_dir \$PWD \
+    #  --gene_order_file ${infercnv_gene_order} \
+    #  --threads ${task.cpus} \
+    #  ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
-    infercnv_dir = file(meta.infercnv_dir).name
+    results_file="${meta.unique_id}_infercnv-results.rds"
+    heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
-    mkdir "${infercnv_dir}"
-    touch "${infercnv_dir}/infercnv-heatmap.png"
-    touch "${infercnv_dir}/infercnv-results.rds"
+    touch "${results_file}"
+    touch "${heatmap_file}"
     """
 }
 
@@ -38,22 +43,24 @@ process call_infercnv {
 process add_infercnv_to_sce {
   container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_8'
-  tag "${meta.unique_id}"
+  tag "${meta.library_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_dir)
+    tuple val(meta), path(processed_rds), path(infercnv_results_file)
   output:
     tuple val(meta), path(infercnv_sce)
   script:
     // call this sce to avoid confusing with the infercnv results rds file
-    infercnv_sce = "${meta.unique_id}_processed_infercnv.rds"
+    infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
     """
-    add_infercnv_to_sce.R \
-      --input_sce_file ${processed_rds} \
-      --infercnv_results_file "${infercnv_dir}/infercnv-results.rds" \
-      --output_sce_file ${infercnv_sce}
+    cp ${processed_rds} ${infercnv_sce}
+
+    #add_infercnv_to_sce.R \
+    #  --input_sce_file ${processed_rds} \
+    #  --infercnv_results_file "${infercnv_results_file}" \
+    #  --output_sce_file ${infercnv_sce}
     """
   stub:
-    infercnv_sce = "${meta.unique_id}_processed_infercnv.rds"
+    infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
     """
     touch "${infercnv_sce}"
     """
@@ -91,8 +98,8 @@ workflow run_infercnv {
       .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce ->
         def meta = meta_in.clone(); // local copy for safe modification
         meta.infercnv_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
-        meta.infercnv_png_file = "${meta.infercnv_dir}/infercnv-heatmap.png";
-        meta.infercnv_results_file = "${meta.infercnv_dir}/infercnv-results.rds";
+        meta.infercnv_heatmap_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-heatmap.png";
+        meta.infercnv_results_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-results.rds";
         // return simplified input with gene order file
         [meta, processed_sce, file("${meta.infercnv_gene_order}", checkIfExists: true)]
       }
@@ -102,36 +109,26 @@ workflow run_infercnv {
       .branch{
         skip_infercnv: (
           !params.repeat_infercnv
-          && file(it[0].infercnv_png_file).exists()
+          && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
         )
         run_infercnv: true
       }
 
     // run inferCNV
+    // outputs: [meta, processed sce, results file, heatmap]
     call_infercnv(infercnv_input_ch.run_infercnv)
 
-
-    infercnv_output_ch = infercnv_input_ch.skip_infercnv
-      // get the existing infercnv results dir for samples we skipped
+    // prepare to add results for all eligible libraries: [meta, processed sce, results file]
+    add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
       .map{ meta, processed_sce, gene_order_file -> tuple(
-        meta.unique_id,
-        file(meta.infercnv_dir, type: 'dir', checkIfExists: true)
-      )}
-      // bring in outputs from the infercnv we ran
-      .mix(call_infercnv.out)
-
-    // creates [meta, processed_sce, infercnv_dir]
-    add_infercnv_results_ch = infercnv_prepared_ch
-      // drop gene order file and bring in the unique_id for joining
-      .map{ meta, processed_sce, gene_order_file -> tuple(
-        meta.unique_id,
         meta,
-        processed_sce
+        processed_sce,
+        file("${meta.infercnv_results_file}", checkIfExists: true),
+        file("${meta.infercnv_heatmap_file}", checkIfExists: true)
       )}
-      // add in the infercnv results by the unique_id
-      .join(infercnv_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
-      .map{it.drop(1)} // drop the unique_id after joining
+      .mix(call_infercnv.out)
+      .map{[it[0], it[1], it[2]]} // remove heatmap
 
     add_infercnv_to_sce(add_infercnv_results_ch)
 
