@@ -10,7 +10,7 @@ process call_infercnv {
   output:
     tuple val(meta.unique_id), path(infercnv_dir)
   script:
-    infercnv_dir = file(meta.infercnv_checkpoints_dir).name
+    infercnv_dir = file(meta.infercnv_dir).name
     """
     # create output directory for inferCNV files
     mkdir -p ${infercnv_dir}
@@ -21,7 +21,7 @@ process call_infercnv {
       --output_heatmap "${infercnv_dir}/infercnv-results.rds" \
       --temp_dir \$PWD \
       --gene_order_file ${infercnv_gene_order} \
-      --num_threads ${task.cpus} \
+      --threads ${task.cpus} \
       ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
@@ -94,22 +94,22 @@ workflow run_infercnv {
         meta.infercnv_png_file = "${meta.infercnv_dir}/infercnv-heatmap.png";
         meta.infercnv_results_file = "${meta.infercnv_dir}/infercnv-results.rds";
         // return simplified input with gene order file
-        [meta, processed_sce, file(meta.infercnv_gene_order, checkIfExists: true)]
+        [meta, processed_sce, file("${meta.infercnv_gene_order}", checkIfExists: true)]
       }
 
-      // branch for run conditions
-      infercnv_input_ch = infercnv_prepared_ch
-        .branch{
-          skip_infercnv: (
-            !params.repeat_infercnv
-            && file(it[0].infercnv_png_file).exists()
-            && file(it[0].infercnv_results_file).exists()
-          )
-          run_infercnv: true
-        }
+    // branch for run conditions
+    infercnv_input_ch = infercnv_prepared_ch
+      .branch{
+        skip_infercnv: (
+          !params.repeat_infercnv
+          && file(it[0].infercnv_png_file).exists()
+          && file(it[0].infercnv_results_file).exists()
+        )
+        run_infercnv: true
+      }
 
-      // run inferCNV
-      call_infercnv(infercnv_input_ch.run_infercnv)
+    // run inferCNV
+    call_infercnv(infercnv_input_ch.run_infercnv)
 
 
     infercnv_output_ch = infercnv_input_ch.skip_infercnv
@@ -118,7 +118,7 @@ workflow run_infercnv {
         meta.unique_id,
         file(meta.infercnv_dir, type: 'dir', checkIfExists: true)
       )}
-      // add in outputs from the infercnv we ran
+      // bring in outputs from the infercnv we ran
       .mix(call_infercnv.out)
 
     // creates [meta, processed_sce, infercnv_dir]
@@ -134,9 +134,6 @@ workflow run_infercnv {
       .map{it.drop(1)} // drop the unique_id after joining
 
     add_infercnv_to_sce(add_infercnv_results_ch)
-
-    // mix back up with libraries we didn't run inferCNV on
-
 
     // add back in the unchanged sce files to the results
     export_channel = add_infercnv_to_sce.out
