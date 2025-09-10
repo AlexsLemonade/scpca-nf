@@ -18,16 +18,14 @@ process call_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
-    touch ${heatmap_file}
-    touch ${results_file}
-    #run_infercnv.R \
-    #  --input_sce_file ${processed_rds} \
-    #  --output_rds ${results_file} \
-    #  --output_heatmap ${heatmap_file} \
-    #  --temp_dir \$PWD \
-    #  --gene_order_file ${infercnv_gene_order} \
-    #  --threads ${task.cpus} \
-    #  ${params.seed ? "--random_seed ${params.seed}" : ""}
+    run_infercnv.R \
+      --input_sce_file ${processed_rds} \
+      --output_rds ${results_file} \
+      --output_heatmap ${heatmap_file} \
+      --temp_dir \$PWD \
+      --gene_order_file ${infercnv_gene_order} \
+      --threads ${task.cpus} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
@@ -49,15 +47,13 @@ process add_infercnv_to_sce {
   output:
     tuple val(meta), path(infercnv_sce)
   script:
-    // call this sce to avoid confusing with the infercnv results rds file
+    // call this sce to avoid confusing it with the infercnv_results_file rds
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
     """
-    cp ${processed_rds} ${infercnv_sce}
-
-    #add_infercnv_to_sce.R \
-    #  --input_sce_file ${processed_rds} \
-    #  --infercnv_results_file "${infercnv_results_file}" \
-    #  --output_sce_file ${infercnv_sce}
+    add_infercnv_to_sce.R \
+      --input_sce_file ${processed_rds} \
+      --infercnv_results_file "${infercnv_results_file}" \
+      --output_sce_file ${infercnv_sce}
     """
   stub:
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
@@ -128,11 +124,12 @@ workflow run_infercnv {
         file("${meta.infercnv_heatmap_file}", checkIfExists: true)
       )}
       .mix(call_infercnv.out)
-      .map{[it[0], it[1], it[2]]} // remove heatmap
+      .map{[it[0], it[1], it[2]]} // remove heatmap after mixing
 
+    // add inferCNV results to the SCE object
     add_infercnv_to_sce(add_infercnv_results_ch)
 
-    // add back in the unchanged sce files to the results
+    // add the unchanged sce files back to the results
     export_channel = add_infercnv_to_sce.out
       .map{meta, processed_sce -> tuple(
         meta.unique_id,
