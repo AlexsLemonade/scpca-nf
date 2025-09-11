@@ -171,5 +171,5 @@ if (!is.null(infercnv_result)) {
 # confirm final files exists
 stopifnot(
   "PNG file not created" = file.exists(opts$output_heatmap),
-  "PNG file not created" = file.exists(opts$output_rds)
+  "inferCNV results file not created" = file.exists(opts$output_rds)
 )
