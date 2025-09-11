@@ -14,6 +14,7 @@ cDNA
 CellAssign
 cellhash
 CLI
+CNV
 conda
 config
 customizable
@@ -38,6 +39,7 @@ HPC
 HTO
 HTOs
 HVGs
+inferCNV
 intronic
 Jaccard
 JSON
