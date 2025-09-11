@@ -42,7 +42,7 @@ process call_infercnv {
 process add_infercnv_to_sce {
   container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_8'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_rds), path(infercnv_results_file), path(heatmap_file)
   output:
