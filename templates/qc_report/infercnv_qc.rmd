@@ -1,0 +1,64 @@
+# inferCNV results summary
+
+<!--
+This file is meant to be run as a child report from `main_qc_report.rmd` or 
+-->
+
+This section provides information about the results from running `inferCNV`.
+
+
+## inferCNV processing information
+
+The following table shows the consensus cell types used in the normal reference, as well as the number of cells in the processed object.
+
+```{r}
+ref_celltypes <- metadata(processed_sce)$infercnv_reference_celltypes
+colData(processed_sce) |>
+  as.data.frame() |>
+  dplyr::filter(consensus_celltype_annotation %in% ref_celltypes) |>
+  dplyr::count(consensus_celltype_annotation) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Consensus cell type" = consensus_celltype_annotation, 
+    "Number of cells" = n
+  ) |>
+  format_datatable()
+```
+
+`inferCNV` was run with the following options:
+
+```{r}
+# remove options that don't make sense to share here
+metadata(processed_sce)$infercnv_options |>
+  purrr::discard_at(c("out_dir", "counts_md5")) |>
+  purrr::map(
+    \(x) {
+      if(is.null(x)) {
+        "NULL" 
+      } else {
+        # chr_exclude and min_max_counts_per_cell are vectors, so string them up?
+        paste(x, collapse = " ")
+      }
+    }) |>
+  as.data.frame() |>
+  tidyr::pivot_longer(
+    dplyr::everything(),
+    names_to = "inferCNV option", 
+    values_to = "value used"
+  ) |>
+  format_datatable()
+```
+
+
+## inferCNV heatmap
+
+In this section, we display the CNV heatmap exported by `inferCNV`. 
+The top heatmap displays expression values for all reference cells, and the bottom heatmap displays expression values for all other query cells.
+Note that CNV events were detected separately for each chromosome arm, as shown along the x-axis.
+
+
+For more information on interpreting this heatmap, please refer to the [`inferCNV` documentation](https://github.com/broadinstitute/inferCNV/wiki/Interpreting-the-figure).
+
+```{r}
+knitr::include_graphics(params$infercnv_heatmap_file)
+```
