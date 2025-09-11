@@ -1,11 +1,12 @@
 # inferCNV results summary
 
 <!--
-This file is meant to be run as a child report from `main_qc_report.rmd` or 
+This file is meant to be run as a child report from `main_qc_report.rmd`
 -->
 
 This section provides information about the results from running `inferCNV`.
-
+`inferCNV` was run with the [`i6` HMM](https://github.com/broadinstitute/infercnv/wiki/infercnv-i6-HMM-type) to quantify CNV events for each chromosome arm.
+Presumed normal cells, as identified from the consensus cell types, were specified `inferCNV`'s normal reference baseline.
 
 ## inferCNV processing information
 
@@ -19,7 +20,7 @@ colData(processed_sce) |>
   dplyr::count(consensus_celltype_annotation) |>
   dplyr::arrange(desc(n)) |>
   dplyr::rename(
-    "Consensus cell type" = consensus_celltype_annotation, 
+    "Consensus cell type" = consensus_celltype_annotation,
     "Number of cells" = n
   ) |>
   format_datatable()
@@ -28,22 +29,22 @@ colData(processed_sce) |>
 `inferCNV` was run with the following options:
 
 ```{r}
-# remove options that don't make sense to share here
+# remove options that don't make sense to share in a report
 metadata(processed_sce)$infercnv_options |>
   purrr::discard_at(c("out_dir", "counts_md5")) |>
   purrr::map(
     \(x) {
       if(is.null(x)) {
-        "NULL" 
+        "NULL"
       } else {
-        # chr_exclude and min_max_counts_per_cell are vectors, so string them up?
+        # chr_exclude and min_max_counts_per_cell are vectors, so stringify for display
         paste(x, collapse = " ")
       }
     }) |>
   as.data.frame() |>
   tidyr::pivot_longer(
     dplyr::everything(),
-    names_to = "inferCNV option", 
+    names_to = "inferCNV option",
     values_to = "value used"
   ) |>
   format_datatable()
@@ -52,10 +53,10 @@ metadata(processed_sce)$infercnv_options |>
 
 ## inferCNV heatmap
 
-In this section, we display the CNV heatmap exported by `inferCNV`. 
+In this section, we display the CNV heatmap exported by `inferCNV`.
 The top heatmap displays expression values for all reference cells, and the bottom heatmap displays expression values for all other query cells.
+Each row in the heatmap corresponds to a cell, and each column corresponds to a gene, shown ordered along chromosomes.
 Note that CNV events were detected separately for each chromosome arm, as shown along the x-axis.
-
 
 For more information on interpreting this heatmap, please refer to the [`inferCNV` documentation](https://github.com/broadinstitute/inferCNV/wiki/Interpreting-the-figure).
 
