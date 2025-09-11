@@ -104,14 +104,14 @@ process make_unfiltered_sce_with_feature {
           --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
-        if [[ -n "${submitter_cell_types_file.name}" ]]; then
+        if [[ -n "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
-        if [[ -n "${openscpca_cell_types_file.name}" ]]; then
+        if [[ -n "${openscpca_cell_types_file}" ]]; then
           add_openscpca_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -165,14 +165,14 @@ process make_unfiltered_sce_cellranger {
           --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
-        if [[ -n "${submitter_cell_types_file.name}" ]]; then
+        if [[ -n "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
-        if [[ -n "${openscpca_cell_types_file.name}" ]]; then
+        if [[ -n "${openscpca_cell_types_file}" ]]; then
           add_openscpca_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -334,7 +334,7 @@ workflow generate_sce {
 
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + file(empty_file, checkIfExists: true)}
+      .map{it.toList() + [file(empty_file, checkIfExists: true)]}
 
     filter_sce(unfiltered_sce_ch)
 
