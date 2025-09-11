@@ -8,6 +8,9 @@ params:
   validation_groups_df: NULL
   validation_markers_df: NULL
   validation_palette_df: NULL
+  infercnv_requested: NULL
+  infercnv_min_reference_cells: NULL
+  infercnv_heatmap_file: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -24,7 +27,7 @@ output:
     code_download: true
 ---
 
-<!--Make sure tabs always fit on one line--> 
+<!--Make sure tabs always fit on one line-->
 <style>
   .nav-tabs {
     display: flex !important;
@@ -70,17 +73,18 @@ set.seed(params$seed)
 ```
 
 
-<!-- source functions --> 
+<!-- source functions -->
 ```{r, child='utils/report_functions.rmd'}
 ```
 
 
 ```{r sce_setup}
 # save some typing later
-library_id <- params$library
-unfiltered_sce <- params$unfiltered_sce
-filtered_sce <- params$filtered_sce
-processed_sce <- params$processed_sce
+library_id <- "SCPCL000001" #params$library
+unfiltered_sce <-readRDS("~/ALSF/open-scpca/OpenScPCA-analysis/data/2025-06-30/SCPCP000001/SCPCS000001/SCPCL000001_unfiltered.rds") #params$unfiltered_sce
+filtered_sce <-readRDS("~/ALSF/open-scpca/OpenScPCA-analysis/data/2025-06-30/SCPCP000001/SCPCS000001/SCPCL000001_filtered.rds") #params$filtered_sce
+processed_sce <-readRDS("~/Desktop/SCPCL000001_processed.rds") #params$processed_sce
+
 
 has_filtered <- !is.null(filtered_sce)
 has_processed <- !is.null(processed_sce)
@@ -130,7 +134,7 @@ if (has_cellhash) {
   modalities <- c(modalities, "Multiplex")
 }
 
-# check for umap and celltypes, but need to be sure that processed_sce exists first
+# if processed, check for umap, celltypes, and infercnv
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
   has_clusters <- "cluster" %in% names(colData(processed_sce))
@@ -142,6 +146,7 @@ if (has_processed) {
 
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
+  has_infercnv <- "infercnv_table" %in% names(metadata(processed_sce))
 
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
@@ -152,6 +157,7 @@ if (has_processed) {
   has_cellassign <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
+  has_infercnv <- FALSE
 }
 
 # check for celltypes_report if celltypes are present
@@ -167,6 +173,20 @@ if (has_consensus) {
     "Consensus cell types are present but the validation_palette_df has not been provided" = !is.null(params$validation_palette_df)
   )
 }
+
+# check for heatmap if inferCNV is present
+if (has_infercnv) {
+  stopifnot(
+    "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file)
+  )
+}
+
+has_infercnv <- FALSE
+processed_sce$is_infercnv_reference <- FALSE
+# check if inferCNV is not present but was requested for printing messages
+# if requested and we made it this far in the pipeline, there have to be cell types too
+infercnv_failed <- has_processed && !has_infercnv && params$infercnv_requested
+
 
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
@@ -254,9 +274,9 @@ glue::glue("
 
 ## Sample metadata
 
-The below table summarizes clinical metadata for the sample associated with this library. 
-Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
-These links will direct you to a web page with information about that ontology term identifier.  
+The below table summarizes clinical metadata for the sample associated with this library.
+Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value.
+These links will direct you to a web page with information about that ontology term identifier.
 
 ```{r}
 # extract sce metadata containing processing information as table
@@ -715,6 +735,32 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```
 
 ```{r, child='celltypes_qc.rmd', eval = has_celltypes}
+```
+
+<!-- Next section only included if inferCNV is present -->
+```{r, child='infercnv_qc.rmd', eval = has_infercnv}
+```
+
+<!-- Chunk only included if inferCNV was requested but is not present -->
+```{r, eval = infercnv_failed, results='asis'}
+knitr::asis_output('# inferCNV results summary')
+
+# Print message based on cause of "failure": insufficient reference cells, or inferCNV actually failed
+if (sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+
+    inferCNV was not run because there were not enough normal reference cells present in the processed object.
+    {sum(processed_sce$is_infercnv_reference)} reference cells were present, but at least {params$infercnv_min_reference_cells} are required.
+    </div>
+  ")
+} else {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV failed to run; no results will be included.
+    </div>
+  ")
+}
 ```
 
 
