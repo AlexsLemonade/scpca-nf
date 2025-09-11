@@ -11,6 +11,13 @@ suppressPackageStartupMessages({
   library(optparse)
 })
 
+# set option per inferCNV:
+# """Please use "options(scipen = 100)" before running infercnv if you are using
+# the analysis_mode="subclusters" option or you may encounter an error while the
+# hclust is being generated."""
+# analysis_mode="subclusters" is the default, which we do use
+options(scipen = 100)
+
 option_list <- list(
   make_option(
     opt_str = "--input_sce_file",
