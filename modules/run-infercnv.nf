@@ -7,7 +7,7 @@ process call_infercnv {
     mode: 'copy',
     pattern: "${meta.unique_id}_infercnv-*"
   )
-  label 'mem_32'
+  label 'mem_96'
   label 'cpus_8'
   tag "${meta.unique_id}"
   input:
@@ -18,6 +18,7 @@ process call_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
+    # If inferCNV fails, the script will output empty results/heatmap files
     run_infercnv.R \
       --input_sce_file ${processed_rds} \
       --output_rds ${results_file} \
@@ -43,9 +44,9 @@ process add_infercnv_to_sce {
   label 'mem_8'
   tag "${meta.library_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_results_file)
+    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(heatmap_file)
   output:
-    tuple val(meta), path(infercnv_sce)
+    tuple val(meta.unique_id), val(meta), path(infercnv_sce)
   script:
     // call this sce to avoid confusing it with the infercnv_results_file rds
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
@@ -124,18 +125,24 @@ workflow run_infercnv {
         file("${meta.infercnv_heatmap_file}", checkIfExists: true)
       )}
       .mix(call_infercnv.out)
-      .map{[it[0], it[1], it[2]]} // remove heatmap after mixing
+      // only add to SCE if both files are not size 0 (aka where inferCNV failed)
+      .branch{
+        skip_add_to_sce: it[2].size() == 0 || it[3].size() == 0
+        add_to_sce: true
+      }
 
     // add inferCNV results to the SCE object
-    add_infercnv_to_sce(add_infercnv_results_ch)
+    // returns [ unique id, meta, processed sce ]
+    add_infercnv_to_sce(add_infercnv_results_ch.add_to_sce)
 
-    // add the unchanged sce files back to the results
-    export_channel = add_infercnv_to_sce.out
-      .map{meta, processed_sce -> tuple(
+    export_channel = add_infercnv_results_ch.skip_add_to_sce
+      // add the unchanged sce files back to the results
+      .map{ meta, processed_sce, result_file, heatmap_file -> tuple(
         meta.unique_id,
         meta,
         processed_sce
-        )}
+      )}
+      .mix(add_infercnv_to_sce.out)
       // add in unfiltered and filtered sce files, for eligible samples only
       .join(
         sce_files_channel_branched.eligible.map{[it[0]["unique_id"], it[1], it[2]]},

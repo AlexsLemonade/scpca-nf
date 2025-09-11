@@ -119,7 +119,8 @@ infercnv_result <- tryCatch(
   error = function(e) {
     message("inferCNV failed; creating an empty heatmap")
 
-    # If inferCNV failed, create an empty heatmap file at the _final destination_
+    # If inferCNV failed, create empty result files at the _final destination_
+    system(glue::glue("touch {opts$output_rds}"))
     system(glue::glue("touch {opts$output_heatmap}"))
 
     # return NULL
@@ -160,5 +161,8 @@ if (!is.null(infercnv_result)) {
 }
 
 
-# confirm final png file exists
-stopifnot("PNG file not created" = file.exists(opts$output_heatmap))
+# confirm final files exists
+stopifnot(
+  "PNG file not created" = file.exists(opts$output_heatmap),
+  "PNG file not created" = file.exists(opts$output_rds)
+)
