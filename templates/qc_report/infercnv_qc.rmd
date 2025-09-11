@@ -4,13 +4,17 @@
 This file is meant to be run as a child report from `main_qc_report.rmd`
 -->
 
-This section provides information about the results from running `inferCNV`.
+This section provides information about the results from running `inferCNV` to quantify copy-number variation (CNV) events.
 `inferCNV` was run with the [`i6` HMM](https://github.com/broadinstitute/infercnv/wiki/infercnv-i6-HMM-type) to quantify CNV events for each chromosome arm.
-Presumed normal cells, as identified from the consensus cell types, were specified `inferCNV`'s normal reference baseline.
+Presumed normal cells, as identified from the consensus cell types, were specified as `inferCNV`'s baseline normal reference.
 
-## inferCNV processing information
+## inferCNV processing information  {.tabset}
+
+### Normal reference cells 
 
 The following table shows the consensus cell types used in the normal reference, as well as the number of cells in the processed object.
+These cells were all specified as a single reference group for `inferCNV` to consider jointly, rather than considering each cell type separately.
+Similarly, all other cells were treated as a single group of query cells.
 
 ```{r}
 ref_celltypes <- metadata(processed_sce)$infercnv_reference_celltypes
@@ -26,6 +30,8 @@ colData(processed_sce) |>
   format_datatable()
 ```
 
+### inferCNV options
+
 `inferCNV` was run with the following options:
 
 ```{r}
@@ -34,18 +40,19 @@ metadata(processed_sce)$infercnv_options |>
   purrr::discard_at(c("out_dir", "counts_md5")) |>
   purrr::map(
     \(x) {
-      if(is.null(x)) {
+      if (is.null(x)) {
         "NULL"
       } else {
         # chr_exclude and min_max_counts_per_cell are vectors, so stringify for display
         paste(x, collapse = " ")
       }
-    }) |>
+    }
+  ) |>
   as.data.frame() |>
   tidyr::pivot_longer(
     dplyr::everything(),
     names_to = "inferCNV option",
-    values_to = "value used"
+    values_to = "value"
   ) |>
   format_datatable()
 ```
