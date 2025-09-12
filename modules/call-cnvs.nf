@@ -99,7 +99,7 @@ workflow call_cnvs {
     infercnv_input_ch = infercnv_prepared_ch
       .branch{
         skip_infercnv: (
-          !params.repeat_infercnv
+          !params.repeat_cnv_inference
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
         )
