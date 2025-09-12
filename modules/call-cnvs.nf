@@ -70,20 +70,15 @@ workflow call_cnvs {
     // read in sample metadata and make a list of cell line samples; we won't run inferCNV on these
     cell_line_samples = Channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
-      .map{
-        [
-          sample_id: it.scpca_sample_id,
-          is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean()
-        ]
-      }
-      .filter{it.is_cell_line}
-      .map{it.sample_id}
+      .filter{it.is_cell_line.toBoolean()}
+      .map{it.scpca_sample_id}
       .toList()
 
     sce_files_channel_branched = sce_files_channel
       .branch{
           not_eligible: (
-            it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.every()
+            it[0]["sample_id"].split(",").every{it in cell_line_samples.getVal()}
+            // must use < to accommodate a possible null value; null < X is always true
             || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells
           )
           eligible: true
@@ -108,12 +103,12 @@ workflow call_cnvs {
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
         )
-        run_infercnv: true
+        call_infercnv: true
       }
 
     // run inferCNV
     // outputs: [meta, processed sce, results file, heatmap]
-    run_infercnv(infercnv_input_ch.run_infercnv)
+    run_infercnv(infercnv_input_ch.call_infercnv)
 
     // prepare to add results for all eligible libraries: [meta, processed sce, results file]
     add_infercnv_results_ch = infercnv_input_ch.skip_infercnv

@@ -160,20 +160,14 @@ workflow annotate_celltypes {
     // read in sample metadata and make a list of cell line samples; these won't be cell typed
     cell_line_samples = Channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
-      .map{
-        [
-          sample_id: it.scpca_sample_id,
-          is_cell_line: Utils.parseNA(it.is_cell_line).toBoolean() // FALSE -> false, NA -> false, TRUE -> true
-        ]
-      }
-      .filter{it.is_cell_line}
-      .map{it.sample_id}
+      .filter{it.is_cell_line.toBoolean()}
+      .map{it.scpca_sample_id}
       .toList()
 
     // branch to cell type the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
      .branch{
-        cell_line: it[0]["sample_id"].split(",").collect{it in cell_line_samples.getVal()}.every()
+        cell_line: it[0]["sample_id"].split(",").every{it in cell_line_samples.getVal()}
         // only run cell typing on tissue samples
         tissue: true
       }
@@ -315,8 +309,8 @@ workflow annotate_celltypes {
     added_celltypes_ch = add_celltypes_to_sce.out
       .map{ meta_in, annotated_sce, cell_count ->
         def meta = meta_in.clone(); // local copy for safe modification
-        // ensure it's saved as an integer: either the integer value, or 0 if it was NA
-        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? 0 : cell_count.toInteger();
+        // ensure it's saved as an integer: either the integer value, or null if it was NA
+        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? null : cell_count.toInteger();
         // return only meta and annotated_sce
         [meta, annotated_sce]
       }
