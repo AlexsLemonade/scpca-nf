@@ -39,11 +39,12 @@ def check_parameters() {
     param_error = true
   }
 
+  perform_celltyping = params.perform_celltyping // create separate variable to use instead
   // CNV inference checks
   if (params.perform_cnv_inference) {
-    if (!params.perform_celltyping) {
+    if (!perform_celltyping) {
       log.warn("To call CNVs, cell typing must be performed as well. Setting `--perform_celltyping` to true")
-      params.perform_celltyping = true
+      perform_celltyping = true
     }
     if (!file(params.diagnosis_groups_file).exists()) {
       log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
@@ -56,7 +57,7 @@ def check_parameters() {
   }
 
   // cell type annotation file checks
-  if (params.perform_celltyping) {
+  if (perform_celltyping) {
     if (!file(params.project_celltype_metafile).exists()) {
       log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
       param_error = true
@@ -375,7 +376,7 @@ workflow {
   cluster_sce(post_process_ch.continue_processing)
 
  // Perform celltyping and call CNVs, if specified
-  if (params.perform_celltyping) {
+  if (perform_celltyping) { // use perform_celltyping, not params.perform_celltyping
     annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
     if (params.perform_cnv_inference) {
       annotated_celltype_ch = call_cnvs(annotated_celltype_ch)
