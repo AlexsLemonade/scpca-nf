@@ -126,7 +126,7 @@ infercnv_result <- tryCatch(
   error = function(e) {
     message("inferCNV failed; creating an empty heatmap")
 
-    # If inferCNV failed, create empty result files at the _final destination_
+    # If inferCNV failed, create empty result files
     file.create(opts$output_rds, opts$output_heatmap)
 
     # return NULL
