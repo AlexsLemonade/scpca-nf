@@ -127,8 +127,7 @@ infercnv_result <- tryCatch(
     message("inferCNV failed; creating an empty heatmap")
 
     # If inferCNV failed, create empty result files at the _final destination_
-    system(glue::glue("touch {opts$output_rds}"))
-    system(glue::glue("touch {opts$output_heatmap}"))
+    file.create(opts$output_rds, opts$output_heatmap)
 
     # return NULL
     NULL

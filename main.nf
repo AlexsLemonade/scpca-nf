@@ -375,12 +375,10 @@ workflow {
 
  // Perform celltyping and run inferCNV, if specified
   if (params.perform_celltyping) {
+    annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
     if (params.run_infercnv) {
-      annotate_celltypes(cluster_sce.out)
-      annotated_celltype_ch = run_infercnv(annotate_celltypes.out)
-   } else {
-      annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
-   }
+      annotated_celltype_ch = run_infercnv(annotated_celltype_ch)
+    }  
   } else {
     annotated_celltype_ch = cluster_sce.out
   }
