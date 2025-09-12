@@ -160,11 +160,14 @@ workflow bulk_quant_rna {
       )}
 
     // If we need to run salmon, create tuple of (metadata map, [Read 1 files], [Read 2 files])
+    // regex to ensure correct file names if R1 or R2 are in sample identifier
     bulk_reads_ch = bulk_channel.make_quants
       .map{meta -> tuple(
         meta,
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
+        files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
+          .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
+        files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
+          .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/}
       )}
 
     // run fastp and salmon for libraries that are not skipping salmon

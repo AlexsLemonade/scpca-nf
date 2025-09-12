@@ -159,8 +159,11 @@ workflow map_quant_rna {
       .map{meta -> tuple(
         meta,
         // fail if the fastq files do not exist
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true),
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
+          .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
+        files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
+          .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/},
         file(meta.salmon_splici_index, type: 'dir')
       )}
 
