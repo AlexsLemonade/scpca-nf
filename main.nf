@@ -70,8 +70,8 @@ def check_parameters() {
   // infercnv checks
   if (params.run_infercnv) {
     if (!params.perform_celltyping) {
-      log.error("To run inferCNV, you must also run cell type annotation using the '--perform_celltyping' flag.")
-      param_error = true
+      log.warn("To run inferCNV, cell typing must be performed as well. Setting `--perform_celltyping` to true")
+      params.perform_celltyping = true
     }
     if (!file(params.diagnosis_groups_file).exists()) {
       log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
