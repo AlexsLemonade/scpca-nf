@@ -150,13 +150,14 @@
           "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile. Only used in the merge.nf workflow",
           "hidden": true
         },
-        "perform_infercnv": {
+        "perform_cnv_inference": {
           "type": "boolean",
-          "description": "Perform inferCNV inference"
+          "description": "Perform CNV inference"
         },
         "repeat_infercnv": {
           "type": "boolean",
-          "description": "Repeat inferCNV inference"
+          "description": "Repeat inferCNV inference if results are already present",
+          "help_text": "If inferCNV has already been run and output files exist, inferCNV inference is skipped by default."
         },
         "reuse_merge": {
           "type": "boolean",

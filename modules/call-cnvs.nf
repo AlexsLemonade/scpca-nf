@@ -1,6 +1,6 @@
 // run inferCNV on an SCE object that has consensus cell types
 
-process call_infercnv {
+process run_infercnv {
   container params.SCPCATOOLS_INFERCNV_CONTAINER
   publishDir (
     path: "${meta.infercnv_dir}",
@@ -64,7 +64,7 @@ process add_infercnv_to_sce {
 }
 
 
-workflow run_infercnv {
+workflow call_cnvs {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
     // read in sample metadata and make a list of cell line samples; we won't run inferCNV on these
@@ -113,7 +113,7 @@ workflow run_infercnv {
 
     // run inferCNV
     // outputs: [meta, processed sce, results file, heatmap]
-    call_infercnv(infercnv_input_ch.run_infercnv)
+    run_infercnv(infercnv_input_ch.run_infercnv)
 
     // prepare to add results for all eligible libraries: [meta, processed sce, results file]
     add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
@@ -123,7 +123,7 @@ workflow run_infercnv {
         file("${meta.infercnv_results_file}", checkIfExists: true),
         file("${meta.infercnv_heatmap_file}", checkIfExists: true)
       )}
-      .mix(call_infercnv.out)
+      .mix(run_infercnv.out)
       // only add to SCE if both files are not size 0 (aka where inferCNV failed)
       .branch{
         skip_add_to_sce: it[2].size() == 0 || it[3].size() == 0
