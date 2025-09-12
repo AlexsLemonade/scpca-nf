@@ -39,6 +39,22 @@ def check_parameters() {
     param_error = true
   }
 
+  // infercnv checks
+  if (params.perform_infercnv) {
+    if (!params.perform_celltyping) {
+      log.warn("To run inferCNV, cell typing must be performed as well. Setting `--perform_celltyping` to true")
+      params.perform_celltyping = true
+    }
+    if (!file(params.diagnosis_groups_file).exists()) {
+      log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
+      param_error = true
+    }
+    if (!file(params.diagnosis_celltypes_file).exists()) {
+      log.error("The 'diagnosis_celltypes_file' file '${params.diagnosis_celltypes_file}' can not be found.")
+      param_error = true
+    }
+  }
+
   // cell type annotation file checks
   if (params.perform_celltyping) {
     if (!file(params.project_celltype_metafile).exists()) {
@@ -64,21 +80,6 @@ def check_parameters() {
     }
     if (!file(params.validation_palette_file).exists()) {
       log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
-      param_error = true
-    }
-  }
-  // infercnv checks
-  if (params.perform_infercnv) {
-    if (!params.perform_celltyping) {
-      log.warn("To run inferCNV, cell typing must be performed as well. Setting `--perform_celltyping` to true")
-      params.perform_celltyping = true
-    }
-    if (!file(params.diagnosis_groups_file).exists()) {
-      log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
-      param_error = true
-    }
-    if (!file(params.diagnosis_celltypes_file).exists()) {
-      log.error("The 'diagnosis_celltypes_file' file '${params.diagnosis_celltypes_file}' can not be found.")
       param_error = true
     }
   }
@@ -376,7 +377,7 @@ workflow {
  // Perform celltyping and run inferCNV, if specified
   if (params.perform_celltyping) {
     annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
-    if (params.run_infercnv) {
+    if (params.perform_infercnv) {
       annotated_celltype_ch = run_infercnv(annotated_celltype_ch)
     }
   } else {
