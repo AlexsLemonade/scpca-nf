@@ -150,10 +150,9 @@
           "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile. Only used in the merge.nf workflow",
           "hidden": true
         },
-        "run_infercnv": {
+        "perform_infercnv": {
           "type": "boolean",
-          "description": "Run inferCNV.",
-          "help_text": "To run inferCNV, cell type annotation must also be performed."
+          "description": "Perform inferCNV inference"
         },
         "repeat_infercnv": {
           "type": "boolean",
