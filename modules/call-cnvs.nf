@@ -18,15 +18,22 @@ process run_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
-    # If inferCNV fails, the script will output empty results/heatmap files
-    run_infercnv.R \
-      --input_sce_file ${processed_rds} \
-      --output_rds ${results_file} \
-      --output_heatmap ${heatmap_file} \
-      --temp_dir \$PWD \
-      --gene_order_file ${infercnv_gene_order} \
-      --threads ${task.cpus} \
-      ${params.seed ? "--random_seed ${params.seed}" : ""}
+    # If we don't have sufficient cells to run inferCNV, just touch the files
+    # must use < to accommodate a possible null value; null < X is always true
+    if [[ ${meta.infercnv_reference_cell_count} -lt ${params.infercnv_min_reference_cells} ]]; then
+      touch "${results_file}"
+      touch "${heatmap_file}"
+    else
+      # note that inferCNV fails, the script will output empty results/heatmap files
+      run_infercnv.R \
+        --input_sce_file ${processed_rds} \
+        --output_rds ${results_file} \
+        --output_heatmap ${heatmap_file} \
+        --temp_dir \$PWD \
+        --gene_order_file ${infercnv_gene_order} \
+        --threads ${task.cpus} \
+        ${params.seed ? "--random_seed ${params.seed}" : ""}
+    fi
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
@@ -44,7 +51,7 @@ process add_infercnv_to_sce {
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(heatmap_file)
+    tuple val(meta), path(processed_rds), path(infercnv_results_file)
   output:
     tuple val(meta.unique_id), val(meta), path(infercnv_sce)
   script:
@@ -54,6 +61,7 @@ process add_infercnv_to_sce {
     add_infercnv_to_sce.R \
       --input_sce_file ${processed_rds} \
       --infercnv_results_file "${infercnv_results_file}" \
+      --infercnv_threshold ${params.infercnv_min_reference_cells} \
       --output_sce_file ${infercnv_sce}
     """
   stub:
@@ -76,16 +84,12 @@ workflow call_cnvs {
 
     sce_files_channel_branched = sce_files_channel
       .branch{
-          not_eligible: (
-            it[0]["sample_id"].split(",").every{it in cell_line_samples.getVal()}
-            // must use < to accommodate a possible null value; null < X is always true
-            || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells
-          )
-          eligible: true
+          cell_line: it[0]["sample_id"].split(",").every{it in cell_line_samples.getVal()}
+          tissue: true
       }
 
     // create input for infercnv: [augmented meta, processed_sce, gene order file]
-    infercnv_prepared_ch = sce_files_channel_branched.eligible
+    infercnv_prepared_ch = sce_files_channel_branched.tissue
       .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce ->
         def meta = meta_in.clone(); // local copy for safe modification
         meta.infercnv_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
@@ -95,7 +99,7 @@ workflow call_cnvs {
         [meta, processed_sce, file("${meta.infercnv_gene_order}", checkIfExists: true)]
       }
 
-    // branch for run conditions
+    // branch to skip libraries with existing results if repeat is off
     infercnv_input_ch = infercnv_prepared_ch
       .branch{
         skip_infercnv: (
@@ -105,6 +109,8 @@ workflow call_cnvs {
         )
         call_infercnv: true
       }
+
+    infercnv_input_ch.call_infercnv.view()
 
     // run inferCNV
     // outputs: [meta, processed sce, results file, heatmap]
@@ -119,27 +125,17 @@ workflow call_cnvs {
         file("${meta.infercnv_heatmap_file}", checkIfExists: true)
       )}
       .mix(run_infercnv.out)
-      // only add to SCE if both files are not size 0 (aka where inferCNV failed)
-      .branch{
-        skip_add_to_sce: it[2].size() == 0 || it[3].size() == 0
-        add_to_sce: true
-      }
+      // drop the heatmap file
+      .map{it.dropRight(1)}
 
     // add inferCNV results to the SCE object
     // returns [ unique id, meta, processed sce ]
-    add_infercnv_to_sce(add_infercnv_results_ch.add_to_sce)
+    add_infercnv_to_sce(add_infercnv_results_ch)
 
-    export_channel = add_infercnv_results_ch.skip_add_to_sce
-      // add the unchanged sce files back to the results
-      .map{ meta, processed_sce, result_file, heatmap_file -> tuple(
-        meta.unique_id,
-        meta,
-        processed_sce
-      )}
-      .mix(add_infercnv_to_sce.out)
+    export_channel = add_infercnv_to_sce.out
       // add in unfiltered and filtered sce files, for eligible samples only
       .join(
-        sce_files_channel_branched.eligible.map{[it[0]["unique_id"], it[1], it[2]]},
+        sce_files_channel_branched.tissue.map{[it[0]["unique_id"], it[1], it[2]]},
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange back to [meta, unfiltered, filtered, processed]
@@ -147,7 +143,7 @@ workflow call_cnvs {
         [meta, unfiltered_sce, filtered_sce, processed_sce]
       }
       // mix in libraries which we did not run inferCNV on
-      .mix(sce_files_channel_branched.not_eligible)
+      .mix(sce_files_channel_branched.cell_line)
 
     emit: export_channel
 
