@@ -77,7 +77,7 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
   # no results; add info message to metadata
   if (sum(sce$is_infercnv_reference) < opts$infercnv_threshold) {
     metadata(sce)$infercnv_options <- glue::glue(
-      "inferCNV was not run; insufficient cells for a normal reference"
+      "inferCNV not run; insufficient cells for a normal reference"
     )
   } else {
     metadata(sce)$infercnv_options <- "inferCNV failed to run"
