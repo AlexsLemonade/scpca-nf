@@ -110,8 +110,6 @@ workflow call_cnvs {
         call_infercnv: true
       }
 
-    infercnv_input_ch.call_infercnv.view()
-
     // run inferCNV
     // outputs: [meta, processed sce, results file, heatmap]
     run_infercnv(infercnv_input_ch.call_infercnv)
