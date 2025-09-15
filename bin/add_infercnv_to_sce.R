@@ -63,7 +63,7 @@ sce <- readRDS(opts$input_sce_file)
 if (file.info(opts$infercnv_results_file)$size > 0) {
   # read inferCNV results
   infercnv_results <- readRDS(opts$infercnv_results_file)
-  infercnv_table <- read.table(opts$infercnv_results_table, header = TRUE, sep = "\t") |>
+  infercnv_table <- read.table(opts$infercnv_table_file, header = TRUE, sep = "\t") |>
     tibble::rownames_to_column(var = "barcodes")
 
   # add inferCNV results to metadata
