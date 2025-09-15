@@ -187,12 +187,15 @@ workflow map_quant_feature {
     // pull out files that need to be repeated
     feature_reads_ch = feature_ch.make_rad
       // create tuple of [metadata, [Read1 files], [Read2 files]]
+      // regex to ensure correct file names if R1 or R2 are in sample identifier
       // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
       .map{meta -> tuple(
         meta.feature_barcode_file,
         meta,
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
+        files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
+          .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
+        files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
+          .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/}
       )}
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
       .map{it.drop(1)} // remove the first element (feature_barcode_file)
