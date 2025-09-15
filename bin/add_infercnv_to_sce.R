@@ -1,13 +1,15 @@
 #!/usr/bin/env Rscript
 
-# This script adds inferCNV results to an SCE object, including:
+# This script adds inferCNV results (if present) to an SCE object, including:
 # metadata field `infercnv_table`: (data frame) The full table output from the inferCNV HMM
 # metadata field `infercnv_options`: (list) The options used when calling inferCNV, obtained
 #  from the @options slot of the inferCNV output object
 # colData column `total_cnv`: The sum of CNV per cell, calculated from the HMM output
 #
-# If the inputted inferCNV results file is empty, instead only an info message
-# for why there are no results is added to the SCE metadata field `infercnv_options`
+# For all SCEs, we add a metadata field `infercnv_success` with one of the values:
+# `TRUE``, if inferCNV successfully ran and produced results
+# `FALSE``, if inferCNV attempted but failed to run
+# `NA``, if inferCNV was not run; this case corresponds to insufficient reference cells
 
 suppressPackageStartupMessages({
   library(SingleCellExperiment)
@@ -65,6 +67,7 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
     tibble::rownames_to_column(var = "barcodes")
 
   # add inferCNV results to metadata
+  metadata(sce)$infercnv_success <- TRUE
   metadata(sce)$infercnv_options <- infercnv_results@options
   metadata(sce)$infercnv_table <- infercnv_table
 
@@ -82,14 +85,10 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
     dplyr::left_join(total_cnv_df, by = "barcodes") |>
     DataFrame(row.names = colnames(sce))
 } else {
-  # no results; add info messages to metadata
-  # TODO: IS THIS SUFFICIENT FOR DETERMINING QC REPORT LOGIC TO PRINT BLUE BOX WITH MESSAGE FOR WHY NO RESULTS?
   if (sum(sce$is_infercnv_reference) < opts$infercnv_threshold) {
-    metadata(sce)$infercnv_options <- glue::glue(
-      "inferCNV not run; insufficient cells for a normal reference"
-    )
+    metadata(sce)$infercnv_success <- NA # infercnv wasn't run; it neither succeeded nor failed
   } else {
-    metadata(sce)$infercnv_options <- "inferCNV failed to run"
+    metadata(sce)$infercnv_success <- FALSE # actually failed
   }
 }
 
