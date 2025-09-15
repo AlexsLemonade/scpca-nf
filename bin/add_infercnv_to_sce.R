@@ -50,6 +50,7 @@ opts <- parse_args(OptionParser(option_list = option_list))
 stopifnot(
   "input_sce_file does not exist" = file.exists(opts$input_sce_file),
   "infercnv_results_file does not exist" = file.exists(opts$infercnv_results_file),
+  "infercnv_table_file does not exist" = file.exists(opts$infercnv_table_file),
   "output_sce_file was not provided" = !is.null(opts$output_sce_file)
 )
 
@@ -60,13 +61,15 @@ sce <- readRDS(opts$input_sce_file)
 if (file.info(opts$infercnv_results_file)$size > 0) {
   # read inferCNV results
   infercnv_results <- readRDS(opts$infercnv_results_file)
+  infercnv_table <- read.table(opts$infercnv_results_table, header = TRUE, sep = "\t") |>
+    tibble::rownames_to_column(var = "barcodes")
 
-  # add information to metadata
-  metadata(sce)$infercnv_options <- infercnv_results$infercnv_options
-  metadata(sce)$infercnv_table <- infercnv_results$infercnv_table
+  # add inferCNV results to metadata
+  metadata(sce)$infercnv_options <- infercnv_results@options
+  metadata(sce)$infercnv_table <- infercnv_table
 
   # add a total_cnv column to colData
-  total_cnv_df <- infercnv_results$infercnv_table |>
+  total_cnv_df <- infercnv_table |>
     tidyr::pivot_longer(
       starts_with("has_cnv_"),
       names_to = "chr",
@@ -79,7 +82,8 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
     dplyr::left_join(total_cnv_df, by = "barcodes") |>
     DataFrame(row.names = colnames(sce))
 } else {
-  # no results; add info message to metadata
+  # no results; add info messages to metadata
+  # TODO: IS THIS SUFFICIENT FOR DETERMINING QC REPORT LOGIC TO PRINT BLUE BOX WITH MESSAGE FOR WHY NO RESULTS?
   if (sum(sce$is_infercnv_reference) < opts$infercnv_threshold) {
     metadata(sce)$infercnv_options <- glue::glue(
       "inferCNV not run; insufficient cells for a normal reference"
