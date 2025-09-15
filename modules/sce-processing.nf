@@ -42,7 +42,7 @@ process make_unfiltered_sce {
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
-        if [[ -n "${openscpca_cell_types_file}" ]]; then
+        if [[ -f "${openscpca_cell_types_file}" ]]; then
           add_openscpca_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -104,14 +104,14 @@ process make_unfiltered_sce_with_feature {
           --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
-        if [[ -n "${submitter_cell_types_file}" ]]; then
+        if [[ -f "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
-        if [[ -n "${openscpca_cell_types_file}" ]]; then
+        if [[ -f "${openscpca_cell_types_file}" ]]; then
           add_openscpca_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -165,14 +165,14 @@ process make_unfiltered_sce_cellranger {
           --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
-        if [[ -n "${submitter_cell_types_file}" ]]; then
+        if [[ -f "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
         fi
 
-        if [[ -n "${openscpca_cell_types_file}" ]]; then
+        if [[ -f "${openscpca_cell_types_file}" ]]; then
           add_openscpca_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
