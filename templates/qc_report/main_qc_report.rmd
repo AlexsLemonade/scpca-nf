@@ -8,9 +8,8 @@ params:
   validation_groups_df: NULL
   validation_markers_df: NULL
   validation_palette_df: NULL
-  infercnv_requested: NULL
   infercnv_min_reference_cells: NULL
-  infercnv_heatmap_file: NULL 
+  infercnv_heatmap_file: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -145,8 +144,21 @@ if (has_processed) {
 
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
-  has_infercnv <- "infercnv_table" %in% names(metadata(processed_sce))
-
+  
+  # Determine inferCNV condition and include one check while we're in this if
+  has_infercnv_attempt <- !is.null(metadata(processed_sce)$infercnv_success)
+  has_infercnv_results <- FALSE
+  if (has_infercnv_attempt) {
+    has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE) # TRUE or FALSE only
+    
+    if (is.na(metadata(processed_sce)$infercnv_success)) {
+      # this is the only condition we'll need this information
+      stopifnot(
+        "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
+      )
+    } 
+  }
+  
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
@@ -156,8 +168,10 @@ if (has_processed) {
   has_cellassign <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
-  has_infercnv <- FALSE
+  has_infercnv_attempt <- FALSE
+  has_infercnv_results <- FALSE
 }
+
 
 # check for celltypes_report if celltypes are present
 if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_report)) {
@@ -174,23 +188,12 @@ if (has_consensus) {
 }
 
 # check for heatmap if inferCNV is present
-has_infercnv <- FALSE
-if (has_infercnv) {
+if (has_infercnv_results) {
   stopifnot(
     "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
     "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
   )
-}
-
-# check if inferCNV is not present but was requested for printing messages
-# if requested and we made it this far in the pipeline, there have to be cell types too
-# this is the case for which we will need `infercnv_min_reference_cells`
-infercnv_failed <- has_processed && !has_infercnv && params$infercnv_requested
-if (infercnv_failed) {
-  stopifnot(
-    "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
-  )
-}
+} 
 
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
@@ -734,39 +737,37 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
 ```
 
-<!-- Next two sections only included if celltype annotations are present -->
-```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
-```
-
-```{r, child='celltypes_qc.rmd', eval = has_celltypes}
-```
 
 <!-- Next section only included if inferCNV is present -->
-```{r, child='infercnv_qc.rmd', eval = has_infercnv}
+```{r, child='infercnv_qc.rmd', eval = has_infercnv_results}
 ```
 
-<!-- Chunks only included if inferCNV was requested but is not present -->
-```{r eval = infercnv_failed}
+<!-- Chunks only included if inferCNV was requested but there are no results -->
+```{r eval = has_infercnv_attempt && !has_infercnv_results}
 knitr::asis_output("# inferCNV results summary") # this cannot be in a results='asis' chunk
 ```
 
-```{r results = 'asis', eval = infercnv_failed}
+```{r results = 'asis', eval = has_infercnv_attempt && !has_infercnv_results}
 # this must be in a results='asis' chunk
-# Print message based on cause of "failure": insufficient reference cells, or inferCNV actually failed
-if (sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
+
+# metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run
+# metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
+if (is.na(metadata(processed_sce)$infercnv_success) && 
+    sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
   glue::glue("
     <div class=\"alert alert-info\">
-
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
     At least {params$infercnv_min_reference_cells} are required, but only {sum(processed_sce$is_infercnv_reference)} reference cells were present.
     </div>
   ")
-} else {
+} else if (!metadata(processed_sce)$infercnv_success) {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV failed to run; no results are included in this section.
     </div>
   ")
+} else {
+  stop("Encountered unknown inferCNV condition")
 }
 ```
 
