@@ -42,7 +42,7 @@ json_content <- jsonlite::read_json(
   simplifyVector = TRUE
 )
 
-celltype_cols = c("barcodes", "openscpca_celltype_annotation", "openscpca_celltype_ontology")
+celltype_cols <- c("barcodes", "openscpca_celltype_annotation", "openscpca_celltype_ontology")
 stopifnot(
   "openscpca cell types annotation file does not contain expected variables" = all(celltype_cols %in% names(json_content))
 )
