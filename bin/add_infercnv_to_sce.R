@@ -25,8 +25,13 @@ option_list <- list(
     opt_str = "--infercnv_results_file",
     type = "character",
     default = "",
-    help = "Path to the inferCNV results file.
-    If not empty, this file should contain a named list with fields `infercnv_table` and `infercnv_options`."
+    help = "Path to the inferCNV results file."
+  ),
+  make_option(
+    opt_str = "--infercnv_table_file",
+    type = "character",
+    default = "",
+    help = "Path to the inferCNV metadata table."
   ),
   make_option(
     opt_str = "--infercnv_threshold",

@@ -13,21 +13,24 @@ process run_infercnv {
   input:
     tuple val(meta), path(processed_rds), path(infercnv_gene_order)
   output:
-    tuple val(meta), path(processed_rds), path(results_file), path(heatmap_file)
+    tuple val(meta), path(processed_rds), path(results_file), path(table_file), path(heatmap_file)
   script:
     results_file="${meta.unique_id}_infercnv-results.rds"
+    table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
     # If we don't have sufficient cells to run inferCNV, just touch the files
     # must use < to accommodate a possible null value; null < X is always true
     if [[ ${meta.infercnv_reference_cell_count} -lt ${params.infercnv_min_reference_cells} ]]; then
       touch "${results_file}"
+      touch "${table_file}"
       touch "${heatmap_file}"
     else
       # note that inferCNV fails, the script will output empty results/heatmap files
       run_infercnv.R \
         --input_sce_file ${processed_rds} \
         --output_rds ${results_file} \
+        --output_table ${table_file} \
         --output_heatmap ${heatmap_file} \
         --temp_dir \$PWD \
         --gene_order_file ${infercnv_gene_order} \
@@ -37,13 +40,14 @@ process run_infercnv {
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
+    table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
     touch "${results_file}"
+    touch "${table_file}"
     touch "${heatmap_file}"
     """
 }
-
 
 
 process add_infercnv_to_sce {
@@ -51,16 +55,17 @@ process add_infercnv_to_sce {
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_results_file)
+    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file)
   output:
     tuple val(meta.unique_id), val(meta), path(infercnv_sce)
   script:
-    // call this sce to avoid confusing it with the infercnv_results_file rds
+    // call this sce to avoid confusing it with the infercnv rds results file
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
     """
     add_infercnv_to_sce.R \
       --input_sce_file ${processed_rds} \
       --infercnv_results_file "${infercnv_results_file}" \
+      --infercnv_table_file "${infercnv_table_file}" \
       --infercnv_threshold ${params.infercnv_min_reference_cells} \
       --output_sce_file ${infercnv_sce}
     """
@@ -92,36 +97,60 @@ workflow call_cnvs {
     infercnv_prepared_ch = sce_files_channel_branched.tissue
       .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce ->
         def meta = meta_in.clone(); // local copy for safe modification
+        // define infercnv checkpoint files
         meta.infercnv_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
         meta.infercnv_heatmap_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-heatmap.png";
         meta.infercnv_results_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-results.rds";
+        meta.infercnv_table_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-table.txt";
+        // if meta.infercnv_reference_cell_count doesn't exist, set it to null
+        // this happens when perform_celltyping is on but a library has no cell type references
+        meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null;
         // return simplified input with gene order file
         [meta, processed_sce, file("${meta.infercnv_gene_order}", checkIfExists: true)]
       }
 
-    // branch to skip libraries with existing results if repeat is off
+
+    // branch to skip libraries when either:
+    // - repeat is off and there are existing results
+    // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
       .branch{
         skip_infercnv: (
+        (
           !params.repeat_cnv_inference
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
+          && file(it[0].infercnv_table_file).exists()
         )
-        call_infercnv: true
+        || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells)
+        run_infercnv: true
       }
 
+
     // run inferCNV
-    // outputs: [meta, processed sce, results file, heatmap]
-    run_infercnv(infercnv_input_ch.call_infercnv)
+    // outputs: [meta, processed sce, results file, table file, heatmap file]
+    run_infercnv(infercnv_input_ch.run_infercnv)
 
     // prepare to add results for all eligible libraries: [meta, processed sce, results file]
     add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
-      .map{ meta, processed_sce, gene_order_file -> tuple(
-        meta,
-        processed_sce,
-        file("${meta.infercnv_results_file}", checkIfExists: true),
-        file("${meta.infercnv_heatmap_file}", checkIfExists: true)
-      )}
+      .map{ meta, processed_sce, gene_order_file ->
+         def infercnv_results = file("${meta.infercnv_results_file}", checkIfExists: false)
+         def infercnv_table   = file("${meta.infercnv_table_file}")
+         def infercnv_heatmap = file("${meta.infercnv_heatmap_file}")
+        // create empty files if they don't exist
+        // https://www.nextflow.io/docs/latest/working-with-files.html#reading-and-writing-an-entire-file
+        if (!infercnv_results.exists()) infercnv_results.text = ''
+        if (!infercnv_table.exists())   infercnv_table.text = ''
+        if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
+        // return tuple
+        tuple(
+          meta,
+          processed_sce,
+          file("${meta.infercnv_results_file}", checkIfExists: true),
+          file("${meta.infercnv_table_file}", checkIfExists: true),
+          file("${meta.infercnv_heatmap_file}", checkIfExists: true)
+        )
+      }
       .mix(run_infercnv.out)
       // drop the heatmap file
       .map{it.dropRight(1)}
