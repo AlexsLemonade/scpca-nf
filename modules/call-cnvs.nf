@@ -134,9 +134,11 @@ workflow call_cnvs {
     // prepare to add results for all eligible libraries: [meta, processed sce, results file]
     add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
       .map{ meta, processed_sce, gene_order_file ->
-         def infercnv_results = file("${meta.infercnv_results_file}", checkIfExists: false)
-         def infercnv_table   = file("${meta.infercnv_table_file}")
-         def infercnv_heatmap = file("${meta.infercnv_heatmap_file}")
+        def infercnv_results = file("${meta.infercnv_results_file}", checkIfExists: false)
+        def infercnv_table   = file("${meta.infercnv_table_file}")
+        def infercnv_heatmap = file("${meta.infercnv_heatmap_file}")
+        // ensure the infercnv_dir exists before proceeding; all these files are in the same dir
+        infercnv_results.parent.mkdirs()
         // create empty files if they don't exist
         // https://www.nextflow.io/docs/latest/working-with-files.html#reading-and-writing-an-entire-file
         if (!infercnv_results.exists()) infercnv_results.text = ''
