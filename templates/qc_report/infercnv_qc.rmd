@@ -70,3 +70,28 @@ For more information on interpreting this heatmap, please refer to the [`inferCN
 ```{r}
 knitr::include_graphics(params$infercnv_heatmap_file)
 ```
+
+## UMAP colored by total CNV
+
+This section displays the library UMAP colored by the total per-cell CNV as estimated by `inferCNV`.
+This total CNV value was calculated by summing across all CNV events inferred within each cell.
+
+```{r message=FALSE, warning=FALSE}
+# create UMAP colored by total_cnv
+scater::plotUMAP(
+  processed_sce,
+  point_size = umap_point_size, # defined in UMAP child report
+  point_alpha = 0.5,
+  color_by = "total_cnv"
+) +
+  scale_color_viridis_c(name = "cividis") +
+  # remove axis numbers and background grid
+  scale_x_continuous(labels = NULL, breaks = NULL) +
+  scale_y_continuous(labels = NULL, breaks = NULL) +
+  guides(
+    color = guide_colorbar(title = "Total CNV events")
+  ) +
+  theme_bw() +
+  theme(aspect.ratio = 1)
+```
+
