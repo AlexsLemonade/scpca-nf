@@ -19,24 +19,16 @@ process run_infercnv {
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
-    # If we don't have sufficient cells to run inferCNV, just touch the files
-    # must use < to accommodate a possible null value; null < X is always true
-    if [[ ${meta.infercnv_reference_cell_count} -lt ${params.infercnv_min_reference_cells} ]]; then
-      touch "${results_file}"
-      touch "${table_file}"
-      touch "${heatmap_file}"
-    else
-      # note that inferCNV fails, the script will output empty results/heatmap files
-      run_infercnv.R \
-        --input_sce_file ${processed_rds} \
-        --output_rds ${results_file} \
-        --output_table ${table_file} \
-        --output_heatmap ${heatmap_file} \
-        --temp_dir \$PWD \
-        --gene_order_file ${infercnv_gene_order} \
-        --threads ${task.cpus} \
-        ${params.seed ? "--random_seed ${params.seed}" : ""}
-    fi
+    # note that inferCNV fails, the script will output empty results/heatmap files
+    run_infercnv.R \
+      --input_sce_file ${processed_rds} \
+      --output_rds ${results_file} \
+      --output_table ${table_file} \
+      --output_heatmap ${heatmap_file} \
+      --temp_dir \$PWD \
+      --gene_order_file ${infercnv_gene_order} \
+      --threads ${task.cpus} \
+      ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
@@ -121,8 +113,8 @@ workflow call_cnvs {
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
           && file(it[0].infercnv_table_file).exists()
+        ) || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells
         )
-        || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells)
         run_infercnv: true
       }
 
