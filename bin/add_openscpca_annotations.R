@@ -42,13 +42,18 @@ json_content <- jsonlite::read_json(
   simplifyVector = TRUE
 )
 
+celltype_cols = c("barcodes", "openscpca_celltype_annotation", "openscpca_celltype_ontology")
+stopifnot(
+  "openscpca cell types annotation file does not contain expected variables" = all(celltype_cols %in% names(json_content))
+)
+
 # read in the SCE
 sce <- readr::read_rds(opt$sce_file)
 
 # Grab celltypes from json as a data frame to join in with the column data
 celltypes_df <- json_content |>
-  as.data.frame() |>
-  dplyr::select(barcodes, openscpca_celltype_annotation, openscpca_celltype_ontology)
+  keep_at(celltype_cols) |>
+  as.data.frame()
 
 
 # join with colData.

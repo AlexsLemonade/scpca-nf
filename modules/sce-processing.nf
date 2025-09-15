@@ -35,7 +35,7 @@ process make_unfiltered_sce {
           --sample_metadata_file ${sample_metafile}
 
         # Only run scripts if annotations are available:
-        if [[ -n "${submitter_cell_types_file}" ]]; then
+        if [[ -f "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
@@ -325,7 +325,7 @@ workflow generate_sce {
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
                           file(it[0].ref_gtf, checkIfExists: true),
-                          // either submitter/openscpca cell type files, or empty string if not available
+                          // either submitter/openscpca cell type files, or empty array if not available
                           it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
                           it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
                          ]}
@@ -355,7 +355,7 @@ workflow generate_sce_with_feature {
       // RNA meta is in the third slot here
       .map{it.toList() + [file(it[2].mito_file, checkIfExists: true),
                           file(it[2].ref_gtf, checkIfExists: true),
-                          // either submitter/openscpca cell type files, or empty file if not available
+                          // either submitter/openscpca cell type files, or empty array if not available
                           it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
                           it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
                          ]}
@@ -382,7 +382,7 @@ workflow generate_sce_cellranger {
 
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].ref_gtf, checkIfExists: true),
-                          // either submitter/openscpca cell type files, or empty file if not available
+                          // either submitter/openscpca cell type files, or empty array if not available
                           it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
                           it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
                          ]}
