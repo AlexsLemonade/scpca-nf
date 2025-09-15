@@ -144,21 +144,21 @@ if (has_processed) {
 
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
-  
+
   # Determine inferCNV condition and include one check while we're in this if
   has_infercnv_attempt <- !is.null(metadata(processed_sce)$infercnv_success)
   has_infercnv_results <- FALSE
   if (has_infercnv_attempt) {
     has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE) # TRUE or FALSE only
-    
+
     if (is.na(metadata(processed_sce)$infercnv_success)) {
       # this is the only condition we'll need this information
       stopifnot(
         "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
       )
-    } 
+    }
   }
-  
+
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
@@ -193,7 +193,7 @@ if (has_infercnv_results) {
     "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
     "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
   )
-} 
+}
 
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
@@ -752,8 +752,8 @@ knitr::asis_output("# inferCNV results summary") # this cannot be in a results='
 
 # metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run
 # metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
-if (is.na(metadata(processed_sce)$infercnv_success) && 
-    sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
+if (is.na(metadata(processed_sce)$infercnv_success) &&
+  sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
