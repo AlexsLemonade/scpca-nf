@@ -95,3 +95,63 @@ scater::plotUMAP(
   theme(aspect.ratio = 1)
 ```
 
+## Total CNV distributions
+
+This section displays the distributions of total CNVs across cell types.
+The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
+The second ridge plot shows the CNV distributions across consensus cell types, considering only cell types with at least 3 cells.
+
+
+```{r}
+# Prepare data frames for plotting
+total_cnv_df <- scuttle::makePerCellDF(
+  processed_sce, 
+  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "total_cnv"), 
+  use.dimred = FALSE
+) |>
+  tibble::rownames_to_column("barcodes") |>
+  dplyr::add_count(is_infercnv_reference) |>
+  dplyr::mutate(
+    is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"), 
+    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n}")
+  )
+  
+total_cnv_filtered_df <- total_cnv_df |> 
+  lump_wrap_celltypes(unknown_string = "Unknown") |>
+  # rename for convenience
+  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped) 
+  
+new_labels_df <- forcats::fct_count(total_cnv_filtered_df$celltype_lumped)
+new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})") 
+total_cnv_filtered_df$celltype_lumped <- factor(total_cnv_filtered_df$celltype_lumped, labels = new_labels)
+total_cnv_filtered_df$celltype_lumped <- forcats::fct_rev(total_cnv_filtered_df$celltype_lumped) # reverse for display in ridge plot
+```
+
+
+```{r, fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
+cell_group_plot <- ggplot(total_cnv_df) +
+  aes(x = total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
+  ggridges::geom_density_ridges2(scale = 0.9) +
+  labs(
+    x = "Total CNV events per cell",
+    y = "Cell type group", 
+    title = "CNV between reference and query cell groups"
+  ) +
+    theme(legend.position = "none") 
+
+cell_type_plot <- ggplot(total_cnv_filtered_df) +
+  aes(x = total_cnv, y = celltype_lumped, fill = celltype_lumped) +
+  ggridges::geom_density_ridges2(scale = 0.9) +
+  scale_fill_brewer(palette = "Dark2", direction = -1) +
+  labs(
+    x = "Total CNV events per cell",
+    y = "Consensus cell type",
+    title = "CNV across consensus cell types"
+  ) +
+    theme(legend.position = "none") 
+ 
+ 
+cell_group_plot / cell_type_plot + plot_layout(heights = c(1, 3))
+```
+
+
