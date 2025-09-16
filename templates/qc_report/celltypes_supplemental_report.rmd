@@ -176,7 +176,7 @@ if (has_openscpca) {
   glue::glue(
     "{methods_text}
     * OpenScPCA annotations are assigned as part of the [`OpenScPCA` project](https://openscpca.readthedocs.io/en/latest/).
-    The annotations shown here were validated as part of the [`{openscpca_annotation_info$module_name}` analysis module in `OpenScPCA-analysis`]({module_link}) and output from the corresponding module in [`OpenScPCA-nf`]({openscpca_link}).
+    The annotations shown here were validated as part of the [`{openscpca_annotation_info$module_name}` analysis module in `OpenScPCA-analysis`]({module_link}) and output from the corresponding Nextflow module in [`OpenScPCA-nf`]({openscpca_link}).
     "
   )
 }
