@@ -190,6 +190,7 @@ cellassign_not_run <- check_cellassign_not_run(
 # define bullets glue string
 methods_bullets <- c(
   ifelse(has_submitter, "Submitter-provided", NA),
+  ifelse(has_openscpca, "OpenScPCA", NA),
   ifelse(has_consensus, "Consensus cell types", NA),
   ifelse(has_singler, "`SingleR`", NA),
   ifelse(has_cellassign, "`CellAssign`", NA)
@@ -198,8 +199,6 @@ methods_bullets <- c(
   # make it bullets
   stringr::str_replace_all("^", "* ") |>
   stringr::str_flatten(collapse = "\n")
-
-
 
 # print the bullets and other info messages
 glue::glue("
@@ -223,13 +222,26 @@ See the [ScPCA Portal documentation](https://scpca.readthedocs.io/en/stable/proc
   )
 }
 
+if (has_openscpca) {
+  openscpca_annotation_info <- metadata(processed_sce)$openscpca_annotations_info
+  module_name <- openscpca_annotation_info$module_name
+  module_link <- glue::glue("https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/main/analyses/{module_name}")
+  openscpca_link <- glue::glue("https://github.com/AlexsLemonade/OpenScPCA-nf/tree/{openscpca_annotation_info$openscpca_nf_version}")
+
+  glue::glue(
+    "\n\nOpenScPCA annotations are assigned as part of the [`OpenScPCA` project](https://openscpca.readthedocs.io/en/latest/).
+    The annotations shown here were validated as part of the [`{openscpca_annotation_info$module_name}` analysis module in `OpenScPCA-analysis`]({module_link}) and output from the corresponding Nextflow module in [`OpenScPCA-nf`]({openscpca_link}).
+    "
+  )
+}
+
 glue::glue("
   \n\nFor additional information about cell typing, including the results from all methods used, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
 ")
 ```
 
 ```{r}
-if (has_consensus & !has_submitter & !is_supplemental) {
+if (has_consensus & !(has_submitter | has_openscpca) & !is_supplemental) {
   knitr::asis_output("## Statistics")
 } else {
   knitr::asis_output("## Statistics {.tabset}")
@@ -300,6 +312,15 @@ if (length(unclassified_methods) > 0) {
 }
 ```
 
+```{r, eval = has_openscpca}
+knitr::asis_output('### OpenScPCA annotations
+
+In this table, cells labeled "Unknown cell type" are those for which the `OpenScPCA` module was unable to confidently assign an annotation.
+Any cells labeled "openscpca-excluded" are those for which the `OpenScPCA` module did not attempt to provide an annotation.
+')
+create_celltype_n_table(celltype_df, openscpca_celltype_annotation) |>
+  format_datatable()
+```
 
 ```{r, eval = has_submitter}
 knitr::asis_output('### Submitter-provided annotations
@@ -350,7 +371,7 @@ umap_df <- lump_wrap_celltypes(celltype_df)
 
 ```{r, eval = has_umap && has_celltypes }
 # only mention multiple annotations if we're actually showing multiple annotations
-if (has_consensus && !has_submitter && !is_supplemental) {
+if (has_consensus && !(has_submitter | has_openscpca) && !is_supplemental) {
   header_text <- "## UMAPs"
   umap_text <- ""
 } else {
@@ -373,6 +394,27 @@ All other cell types are grouped together and labeled "All remaining cell types"
 ```
 
 <!-- Now, UMAPs of cell types, where present -->
+
+```{r}
+if (has_openscpca & has_umap) {
+  openscpca_n_celltypes <- length(levels(umap_df$openscpca_celltype_annotation_lumped))
+  openscpca_dims <- determine_umap_dimensions(openscpca_n_celltypes)
+  knitr::asis_output("### OpenScPCA provided annotations")
+} else {
+  # set fake dims for evaluating next chunk
+  openscpca_dims <- c(1, 1)
+}
+```
+
+```{r, eval = has_openscpca && has_umap, message=FALSE, warning=FALSE, fig.width = openscpca_dims[1], fig.height = openscpca_dims[2], fig.align = "center"}
+# umap for cell assign annotations
+faceted_umap(
+  umap_df,
+  openscpca_n_celltypes,
+  openscpca_celltype_annotation_lumped,
+  point_size = umap_facet_point_size
+)
+```
 
 ```{r}
 if (has_submitter & has_umap) {
@@ -677,23 +719,17 @@ if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
 
 
 ```{r}
-# boolean for whether or not to include submitter heatmaps
+# boolean for whether or not to include heatmaps comparing submitter or openscpca
 submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
+openscpca_heatmaps <- (has_openscpca & (has_consensus | has_cellassign | has_singler))
 ```
 
-```{r, eval=submitter_heatmaps | (has_consensus & is_supplemental), results = 'asis'}
-# update text depending on if this is the main or supplemental report
-if (has_submitter & has_consensus & !is_supplemental) {
-  heatmap_text <- "This section displays heatmaps comparing consensus cell type labels to submitter annotations."
-} else {
-  heatmap_text <- "This section displays heatmaps comparing cell labels from various methods."
-}
-
+```{r, eval= (submitter_heatmaps | openscpca_heatmaps) | (has_consensus & is_supplemental), results = 'asis'}
 glue::glue(
   "
   # Cell label comparisons
 
-  {heatmap_text}
+  This section displays heatmaps comparing cell labels from various methods.
 
   We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between         pairs of labels assigned by different annotation methods.
 
@@ -708,8 +744,51 @@ glue::glue(
 )
 ```
 
+<!--OpenScPCA vs. consensus-->
+
 ```{r}
-if (has_submitter & has_consensus & !is_supplemental) {
+if (openscpca_heatmaps & has_consensus & !is_supplemental) {
+  # Set plot dimensions based on number of consensus cell types
+  all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
+  plot_height <- calculate_plot_height(
+    unique(celltype_df$consensus_celltype_annotation),
+    unique(celltype_df$openscpca_celltype_annotation),
+    0
+  )
+} else {
+  # set a default to avoid failure in the next chunk
+  plot_height <- 1
+}
+```
+
+
+```{r, eval = openscpca_heatmaps & has_consensus & !is_supplemental, fig.height = plot_height, fig.width = 8.5}
+# Calculate jaccard matrix
+consensus_openscpca_matrix <- make_jaccard_matrix(
+  celltype_df,
+  "openscpca_celltype_annotation",
+  "consensus_celltype_annotation"
+)
+
+create_single_heatmap(
+  consensus_openscpca_matrix,
+  row_title = "Consensus cell types",
+  column_title = "OpenScPCA annotations",
+  labels_font_size = find_label_size(all_celltypes),
+  keep_legend_name = "Consensus cell types",
+  col_fun = heatmap_col_fun,
+  # additional arguments
+  column_names_rot = 90
+) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
+
+<!--Submitter vs. consensus-->
+
+```{r}
+if (submitter_heatmaps & has_consensus & !is_supplemental) {
   # Set plot dimensions based on number of consensus cell types
   all_celltypes <- levels(celltype_df$consensus_celltype_annotation)
   plot_height <- calculate_plot_height(
@@ -724,7 +803,7 @@ if (has_submitter & has_consensus & !is_supplemental) {
 ```
 
 
-```{r, eval = has_submitter & has_consensus & !is_supplemental, fig.height = plot_height, fig.width = 8.5}
+```{r, eval = submitter_heatmaps & has_consensus & !is_supplemental, fig.height = plot_height, fig.width = 8.5}
 # Calculate jaccard matrix
 consensus_submitter_matrix <- make_jaccard_matrix(
   celltype_df,
