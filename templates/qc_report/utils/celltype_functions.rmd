@@ -64,7 +64,7 @@ create_celltype_df <- function(processed_sce) {
   }
 
   # if openscpca annotations exist we just need to sort by frequency and recode unknown
-  # we already label openscpca-exluded for any missing cells when we add to the object
+  # we already label openscpca-excluded for any missing cells when we add to the object
   if ("openscpca_celltype_annotation" %in% names(celltype_df)) {
     celltype_df <- prepare_automated_annotation_values(
       celltype_df,
