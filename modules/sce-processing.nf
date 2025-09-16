@@ -6,7 +6,9 @@ process make_unfiltered_sce {
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(alevin_dir), path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
+        tuple val(meta), path(alevin_dir), 
+              path(mito_file), path(ref_gtf), 
+              path(submitter_cell_types_file), path(openscpca_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -32,12 +34,19 @@ process make_unfiltered_sce {
           --sample_id "${meta.sample_id}" \
           --sample_metadata_file ${sample_metafile}
 
-        # Only run script if annotations are available:
-        if [ "${submitter_cell_types_file.name}" != "NO_FILE" ]; then
+        # Only run scripts if annotations are available:
+        if [[ -f "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
+        fi
+
+        if [[ -f "${openscpca_cell_types_file}" ]]; then
+          add_openscpca_annotations.R \
+            --sce_file "${unfiltered_rds}" \
+            --library_id "${meta.library_id}" \
+            --openscpca_cell_types_file "${openscpca_cell_types_file}"
         fi
 
         """
@@ -56,7 +65,7 @@ process make_unfiltered_sce_with_feature {
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
               val(rna_meta), path(alevin_dir),
-              path(mito_file), path(ref_gtf), path(submitter_cell_types_file)
+              path(mito_file), path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -95,11 +104,18 @@ process make_unfiltered_sce_with_feature {
           --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
-        if [ ${submitter_cell_types_file.name} != "NO_FILE" ]; then
+        if [[ -f "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
+        fi
+
+        if [[ -f "${openscpca_cell_types_file}" ]]; then
+          add_openscpca_annotations.R \
+            --sce_file "${unfiltered_rds}" \
+            --library_id "${meta.library_id}" \
+            --openscpca_cell_types_file "${openscpca_cell_types_file}"
         fi
         """
     stub:
@@ -118,7 +134,9 @@ process make_unfiltered_sce_cellranger {
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(cellranger_dir), path(versions_file), path(metrics_file), path(ref_gtf), path(submitter_cell_types_file)
+        tuple val(meta), path(cellranger_dir), 
+              path(versions_file), path(metrics_file), 
+              path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
         path sample_metafile
     output:
         tuple val(meta), path(unfiltered_rds)
@@ -147,11 +165,18 @@ process make_unfiltered_sce_cellranger {
           --sample_metadata_file ${sample_metafile}
 
         # Only run script if annotations are available:
-        if [ "${submitter_cell_types_file.name}" != "NO_FILE" ]; then
+        if [[ -f "${submitter_cell_types_file}" ]]; then
           add_submitter_annotations.R \
             --sce_file "${unfiltered_rds}" \
             --library_id "${meta.library_id}" \
             --submitter_cell_types_file "${submitter_cell_types_file}"
+        fi
+
+        if [[ -f "${openscpca_cell_types_file}" ]]; then
+          add_openscpca_annotations.R \
+            --sce_file "${unfiltered_rds}" \
+            --library_id "${meta.library_id}" \
+            --openscpca_cell_types_file "${openscpca_cell_types_file}"
         fi
 
         """
@@ -296,12 +321,13 @@ workflow generate_sce {
     sample_metafile
   main:
     def empty_file = "${projectDir}/assets/NO_FILE"
-
+    
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
                           file(it[0].ref_gtf, checkIfExists: true),
-                          // either submitter cell type files, or empty file if not available
-                          file(it[0].submitter_cell_types_file ?: empty_file, checkIfExists: true)
+                          // either submitter/openscpca cell type files, or empty array if not available
+                          it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
+                          it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
                          ]}
 
     make_unfiltered_sce(sce_ch, sample_metafile)
@@ -329,8 +355,9 @@ workflow generate_sce_with_feature {
       // RNA meta is in the third slot here
       .map{it.toList() + [file(it[2].mito_file, checkIfExists: true),
                           file(it[2].ref_gtf, checkIfExists: true),
-                          // either submitter cell type files, or empty file if not available
-                          file(it[2].submitter_cell_types_file ?: empty_file, checkIfExists: true)
+                          // either submitter/openscpca cell type files, or empty array if not available
+                          it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
+                          it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
                          ]}
 
     make_unfiltered_sce_with_feature(feature_sce_ch, sample_metafile)
@@ -355,8 +382,9 @@ workflow generate_sce_cellranger {
 
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].ref_gtf, checkIfExists: true),
-                          // either submitter cell type files, or empty file if not available
-                          file(it[0].submitter_cell_types_file ?: empty_file, checkIfExists: true)
+                          // either submitter/openscpca cell type files, or empty array if not available
+                          it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
+                          it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
                          ]}
 
     make_unfiltered_sce_cellranger(sce_ch, sample_metafile)
