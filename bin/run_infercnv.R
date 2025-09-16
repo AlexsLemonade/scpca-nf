@@ -49,6 +49,7 @@ option_list <- list(
   make_option(
     opt_str = c("--temp_dir"),
     type = "character",
+    default = "infercnv_tmp",
     help = "Temporary directory to save inferCNV output to"
   ),
   make_option(
@@ -73,7 +74,6 @@ stopifnot(
   "output_rds was not provided" = !is.null(opts$output_rds),
   "output_table was not provided" = !is.null(opts$output_table),
   "output_heatmap was not provided" = !is.null(opts$output_heatmap),
-  "temp_dir was not provided" = !is.null(opts$temp_dir),
   "gene_order_file does not exist" = file.exists(opts$gene_order_file)
 )
 
@@ -89,6 +89,7 @@ stopifnot(
 
 # define relevant infercnv output files for later use/checks
 # infercnv will automatically create these files at these hardcoded paths
+fs::dir_create(opts$temp_dir) # ensure output directory exists, to be safe
 scratch_infercnv_rds <- file.path(opts$temp_dir, "run.final.infercnv_obj")
 scratch_metadata_file <- file.path(opts$temp_dir, "map_metadata_from_infercnv.txt")
 scratch_png_file <- file.path(opts$temp_dir, "infercnv.png")
