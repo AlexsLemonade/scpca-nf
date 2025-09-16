@@ -4,7 +4,7 @@
 # metadata field `infercnv_table`: (data frame) The full table output from the inferCNV HMM
 # metadata field `infercnv_options`: (list) The options used when calling inferCNV, obtained
 #  from the @options slot of the inferCNV output object
-# colData column `total_cnv`: The sum of CNV per cell, calculated from the HMM output
+# colData column `infercnv_total_cnv`: The sum of CNV per cell, calculated from the HMM output
 #
 # For all SCEs, we add a metadata field `infercnv_success` with one of the values:
 # `TRUE``, if inferCNV successfully ran and produced results
@@ -71,7 +71,7 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
   metadata(sce)$infercnv_options <- infercnv_results@options
   metadata(sce)$infercnv_table <- infercnv_table
 
-  # add a total_cnv column to colData
+  # add the infercnv_total_cnv column to colData
   total_cnv_df <- infercnv_table |>
     tidyr::pivot_longer(
       starts_with("has_cnv_"),
@@ -79,7 +79,7 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
       values_to = "cnv"
     ) |>
     dplyr::group_by(barcodes) |>
-    dplyr::summarize(total_cnv = sum(cnv))
+    dplyr::summarize(infercnv_total_cnv = sum(cnv))
   colData(sce) <- colData(sce) |>
     as.data.frame() |>
     dplyr::left_join(total_cnv_df, by = "barcodes") |>
