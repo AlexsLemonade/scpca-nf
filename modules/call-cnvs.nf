@@ -25,7 +25,7 @@ process run_infercnv {
       --output_rds ${results_file} \
       --output_table ${table_file} \
       --output_heatmap ${heatmap_file} \
-      --temp_dir \$PWD \
+      --temp_dir "infercnv_tmp" \
       --gene_order_file ${infercnv_gene_order} \
       --threads ${task.cpus} \
       ${params.seed ? "--random_seed ${params.seed}" : ""}
@@ -140,9 +140,9 @@ workflow call_cnvs {
         tuple(
           meta,
           processed_sce,
-          file(meta.infercnv_results_file, checkIfExists: true),
-          file(meta.infercnv_table_file, checkIfExists: true),
-          file(meta.infercnv_heatmap_file, checkIfExists: true)
+          infercnv_results,
+          infercnv_table,
+          infercnv_heatmap
         )
       }
       .mix(run_infercnv.out)
