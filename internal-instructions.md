@@ -11,6 +11,7 @@
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding additional organisms](#adding-additional-organisms)
   - [Adding additional cell type references](#adding-additional-cell-type-references)
+  - [Adding additional gene order files](#adding-additional-gene-order-files)
 - [Running the merge workflow](#running-the-merge-workflow)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -266,6 +267,39 @@ Currently, one model for the transcriptome references and one model for the flex
   - `<celltype_ref_name>` is a given reference name established by the Data Lab.
   - `<celltype_ref_source>` is `PanglaoDB`
   - `<date>` is the `PanglaoDB` date, which serves as their version, in ISO8601 format.
+
+### Adding additional gene order files
+
+Adding additional [gene order files](https://github.com/broadinstitute/inferCNV/wiki/File-Definitions#gene-ordering-file) to use with `inferCNV` is handled by the `build-ref.nf` workflow.
+A new gene order file will be needed if new a GTF file (e.g. a new Ensembl version or species) is added to references.
+The gene order files consider chromosome arms as well, so an appropriate `cytoband` file with chromosome arm boundaries is also needed.
+
+Follow these steps to add support for additional cell type references.
+
+1. Ensure input files needed for creating the new gene order file have been added to `s3://scpca-references`.
+This includes both a `gtf` file which can be downloaded from `Ensembl`, and a `cytoband` file delimiting chromosome arms which can be downloaded from the appropriate reference subdirectory in `ftp://hgdownload.cse.ucsc.edu/goldenPath/`.
+When adding these files to the `s3://scpca-references` bucket, the directory structure should be as follows for example, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+
+```
+homo_sapiens
+└── ensembl-104
+    └── annotation
+        ├── Homo_sapiens.GRCh38.104.gtf.gz
+        └── Homo_sapiens.GRCh38.104_cytoband.txt.gz
+```
+
+If the `gtf` file is also new, be sure to also follow [these previous instructions](#adding-additional-organisms) for adding additional organisms.
+
+2. Generate the gene order file using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
+To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
+3. Ensure that the gene order file is public and in the correct location on S3 (`s3://scpca-references`), for example:
+```
+homo_sapiens
+└── ensembl-104
+    └── infercnv
+        └── Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz
+```
+
 
 ## Running the merge workflow
 
