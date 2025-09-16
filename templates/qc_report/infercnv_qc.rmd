@@ -5,6 +5,8 @@ This file is meant to be run as a child report from `main_qc_report.rmd`
 -->
 
 This section provides information about the results from running `inferCNV` to quantify copy-number variation (CNV) events.
+For full information about `inferCNV`, please refer to [their documentation Wiki](https://github.com/broadinstitute/infercnv/wiki).
+
 `inferCNV` was run with the [`i6` HMM](https://github.com/broadinstitute/infercnv/wiki/infercnv-i6-HMM-type) to quantify CNV events for each chromosome arm.
 Presumed normal cells, as identified from the consensus cell types, were specified as `inferCNV`'s baseline normal reference.
 
