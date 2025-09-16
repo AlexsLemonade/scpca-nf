@@ -196,12 +196,12 @@ Inside the `references` folder are files and scripts related to maintaining the 
 
 5. `broad-diagnosis-map.tsv`: This file is used to map broad diagnosis groups to individual sample diagnoses found in ScPCA samples.
    This file is used for `inferCNV` inference to determine which cell types to include in the normal reference.
-   It was initially obtained from the `OpenScPCA-analysis` repo at this tag:
+   It was initially obtained from the `OpenScPCA-analysis` repository at this tag: **TODO!!**
    Additional rows will need to be added to this file if additional diagnoses are added to ScPCA.
 
 6. `diagnosis-celltype-groups.tsv`: This file is used to map broad diagnosis groups included in `broad-diagnosis-map.tsv` to consensus cell type validation groups.
    This file is used for `inferCNV` inference to determine which cell types to include in the normal reference.
-   It was initially obtained from the `OpenScPCA-analysis` repo at this tag:
+   It was initially obtained from the `OpenScPCA-analysis` repository at this tag: **TODO!!**
    Additional rows will need to be added to this file if additional diagnoses and/or cell type validation groups are added to ScPCA.
 
 ### Adding additional organisms
@@ -271,7 +271,7 @@ Currently, one model for the transcriptome references and one model for the flex
 ### Adding additional gene order files
 
 Adding additional [gene order files](https://github.com/broadinstitute/inferCNV/wiki/File-Definitions#gene-ordering-file) to use with `inferCNV` is handled by the `build-ref.nf` workflow.
-A new gene order file will be needed if new a GTF file (e.g. a new Ensembl version or species) is added to references.
+A new gene order file will be needed if new a `gtf` file (e.g. a new `Ensembl` version or species) is added to references.
 The gene order files consider chromosome arms as well, so an appropriate `cytoband` file with chromosome arm boundaries is also needed.
 
 Follow these steps to add support for additional cell type references.
