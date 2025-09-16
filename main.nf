@@ -153,12 +153,24 @@ workflow {
 
   all_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
+    // only technologies we know how to process
+    .filter{it.technology in all_techs}
+    // use only the rows in the run_id list (run, library, or sample can match)
+    // or run by project or submitter if the project parameter is set
+    .filter{
+      run_all
+      || (it.scpca_run_id in run_ids)
+      || (it.scpca_library_id in run_ids)
+      || (it.scpca_sample_id in run_ids)
+      || (it.submitter in project_ids)
+      || (it.scpca_project_id in project_ids)
+    }
     .branch{ it ->
       known_ref: it.sample_reference in ref_paths
       unknown_ref: true
     }
 
-  // warn about unknown references
+  // warn about unknown references for any samples
   all_runs_ch.unknown_ref.subscribe{ it ->
     log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
   }
@@ -177,6 +189,7 @@ workflow {
         assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
         submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
+        openscpca_cell_types_file: Utils.parseNA(it.openscpca_cell_types_file),
         feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
         feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
         files_directory: Utils.parseNA(it.files_directory),
@@ -200,19 +213,8 @@ workflow {
       ]
     }
 
+  // branch runs by technology
   runs_ch = unfiltered_runs_ch
-    // only technologies we know how to process
-    .filter{it.technology in all_techs}
-    // use only the rows in the run_id list (run, library, or sample can match)
-    // or run by project or submitter if the project parameter is set
-    .filter{
-      run_all
-      || (it.run_id in run_ids)
-      || (it.library_id in run_ids)
-      || (it.sample_id in run_ids)
-      || (it.submitter in project_ids)
-      || (it.project_id in project_ids)
-    }
     .branch{
       bulk: it.technology in bulk_techs
       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
