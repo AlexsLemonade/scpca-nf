@@ -145,9 +145,9 @@ infercnv_result <- tryCatch(
 
 # save relevant results to RDS if inferCNV ran successfully -------------------
 if (!is.null(infercnv_result)) {
-  # confirm final infercnv object exists; this makes the `scratch_metadata_file`
+  # confirm final infercnv object exists
   stopifnot(
-    "inferCNV did not write output to disc" = file.exists(scratch_infercnv_rds)
+    "inferCNV did not write expected output" = file.exists(scratch_infercnv_rds)
   )
 
   # create wide table with barcodes and inferred CNV events

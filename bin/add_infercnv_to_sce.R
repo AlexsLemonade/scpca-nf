@@ -6,10 +6,10 @@
 #  from the @options slot of the inferCNV output object
 # colData column `infercnv_total_cnv`: The sum of CNV per cell, calculated from the HMM output
 #
-# For all SCEs, we add a metadata field `infercnv_success` with one of the values:
-# `TRUE``, if inferCNV successfully ran and produced results
-# `FALSE``, if inferCNV attempted but failed to run
-# `NA``, if inferCNV was not run; this case corresponds to insufficient reference cells
+# For all SCEs, we add a metadata field `infercnv_success` with a logical value, where we assign:
+# `TRUE`, if inferCNV successfully ran and produced results
+# `FALSE`, if inferCNV attempted but failed to run
+# `NA`, if inferCNV was not run; this case corresponds to insufficient reference cells
 
 suppressPackageStartupMessages({
   library(SingleCellExperiment)
@@ -60,7 +60,13 @@ stopifnot(
 sce <- readRDS(opts$input_sce_file)
 
 # check if we have inferCNV results based on file size
-if (file.info(opts$infercnv_results_file)$size > 0) {
+if (file.info(opts$infercnv_results_file)$size == 0) {
+  if (sum(sce$is_infercnv_reference) < opts$infercnv_threshold) {
+    metadata(sce)$infercnv_success <- NA # infercnv wasn't run; it neither succeeded nor failed
+  } else {
+    metadata(sce)$infercnv_success <- FALSE # actually failed
+  }
+} else {
   # read inferCNV results
   infercnv_results <- readRDS(opts$infercnv_results_file)
   infercnv_table <- read.table(opts$infercnv_table_file, header = TRUE, sep = "\t") |>
@@ -84,12 +90,6 @@ if (file.info(opts$infercnv_results_file)$size > 0) {
     as.data.frame() |>
     dplyr::left_join(total_cnv_df, by = "barcodes") |>
     DataFrame(row.names = colnames(sce))
-} else {
-  if (sum(sce$is_infercnv_reference) < opts$infercnv_threshold) {
-    metadata(sce)$infercnv_success <- NA # infercnv wasn't run; it neither succeeded nor failed
-  } else {
-    metadata(sce)$infercnv_success <- FALSE # actually failed
-  }
 }
 
 # export updated SCE file
