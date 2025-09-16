@@ -52,7 +52,7 @@ sce <- readr::read_rds(opt$sce_file)
 
 # Grab celltypes from json as a data frame to join in with the column data
 celltypes_df <- json_content |>
-  keep_at(celltype_cols) |>
+  purrr::keep_at(celltype_cols) |>
   as.data.frame()
 
 
