@@ -49,7 +49,7 @@ process add_infercnv_to_sce {
   input:
     tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file)
   output:
-    tuple val(meta.unique_id), val(meta), path(infercnv_sce)
+    tuple val(meta), path(infercnv_sce)
   script:
     // call this sce to avoid confusing it with the infercnv rds results file
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
@@ -154,9 +154,12 @@ workflow call_cnvs {
     add_infercnv_to_sce(add_infercnv_results_ch)
 
     export_channel = add_infercnv_to_sce.out
+      .map{ meta, processed_sce -> [ meta["unique_id"], meta, processed_sce ] }
       // add in unfiltered and filtered sce files, for eligible samples only
       .join(
-        sce_files_channel_branched.tissue.map{[it[0]["unique_id"], it[1], it[2]]},
+        sce_files_channel_branched.tissue.map{ meta, unfiltered, filtered, _processed ->
+          [ meta["unique_id"], unfiltered, filtered ]
+        },
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange back to [meta, unfiltered, filtered, processed]
