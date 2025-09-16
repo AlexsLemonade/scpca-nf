@@ -98,7 +98,7 @@ workflow call_cnvs {
         // this happens when perform_celltyping is on but a library has no cell type references
         meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null;
         // return simplified input with gene order file
-        [meta, processed_sce, file("${meta.infercnv_gene_order}", checkIfExists: true)]
+        [meta, processed_sce, file(meta.infercnv_gene_order, checkIfExists: true)]
       }
 
 
@@ -126,9 +126,9 @@ workflow call_cnvs {
     // prepare to add results for all eligible libraries: [meta, processed sce, results file]
     add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
       .map{ meta, processed_sce, gene_order_file ->
-        def infercnv_results = file("${meta.infercnv_results_file}", checkIfExists: false)
-        def infercnv_table   = file("${meta.infercnv_table_file}")
-        def infercnv_heatmap = file("${meta.infercnv_heatmap_file}")
+        def infercnv_results = file(meta.infercnv_results_file)
+        def infercnv_table   = file(meta.infercnv_table_file)
+        def infercnv_heatmap = file(meta.infercnv_heatmap_file)
         // ensure the infercnv_dir exists before proceeding; all these files are in the same dir
         infercnv_results.parent.mkdirs()
         // create empty files if they don't exist
@@ -140,9 +140,9 @@ workflow call_cnvs {
         tuple(
           meta,
           processed_sce,
-          file("${meta.infercnv_results_file}", checkIfExists: true),
-          file("${meta.infercnv_table_file}", checkIfExists: true),
-          file("${meta.infercnv_heatmap_file}", checkIfExists: true)
+          file(meta.infercnv_results_file, checkIfExists: true),
+          file(meta.infercnv_table_file, checkIfExists: true),
+          file(meta.infercnv_heatmap_file, checkIfExists: true)
         )
       }
       .mix(run_infercnv.out)
