@@ -157,10 +157,10 @@ if (!is.null(infercnv_result)) {
     infercnv_output_path = opts$temp_dir
   )
 
-  # copy result files to final destination
-  fs::file_copy(scratch_infercnv_rds, opts$output_rds, overwrite = TRUE)
-  fs::file_copy(scratch_metadata_file, opts$output_table, overwrite = TRUE)
-  fs::file_copy(scratch_png_file, opts$output_heatmap, overwrite = TRUE)
+  # rename result files to final names
+  fs::file_move(scratch_infercnv_rds, opts$output_rds)
+  fs::file_move(scratch_metadata_file, opts$output_table)
+  fs::file_move(scratch_png_file, opts$output_heatmap)
 }
 
 
