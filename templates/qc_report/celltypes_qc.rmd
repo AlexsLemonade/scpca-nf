@@ -315,7 +315,8 @@ if (length(unclassified_methods) > 0) {
 ```{r, eval = has_openscpca}
 knitr::asis_output('### OpenScPCA annotations
 
-In this table, cells labeled "openscpca-excluded" are those for which the `OpenScPCA` module did not provide an annotation.
+In this table, cells labeled "Unknown cell type" are those for which the `OpenScPCA` module was unable to confidently assign an annotation.
+Any cells labeled "openscpca-excluded" are those for which the `OpenScPCA` module did not attempt to provide an annotation.
 ')
 create_celltype_n_table(celltype_df, openscpca_celltype_annotation) |>
   format_datatable()
