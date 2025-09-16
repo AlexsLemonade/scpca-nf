@@ -139,11 +139,12 @@ if (has_processed) {
   has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+  has_openscpca <- "openscpca" %in% metadata(processed_sce)$celltype_methods
   has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
     !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
-  has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
+  has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
 
   # Determine inferCNV condition and include one check while we're in this if
   has_infercnv_attempt <- !is.null(metadata(processed_sce)$infercnv_success)
@@ -166,6 +167,7 @@ if (has_processed) {
   has_consensus <- FALSE
   has_singler <- FALSE
   has_cellassign <- FALSE
+  has_openscpca <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
   has_infercnv_attempt <- FALSE
