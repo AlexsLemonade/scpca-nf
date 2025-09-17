@@ -28,10 +28,10 @@ jobs:
           sudo mv nextflow /usr/local/bin/
 
       - name: Check Nextflow workflow
-        run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false --perform_cnv_inference
+        run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
 
       - name: Check Nextflow with checkpoints from previous run
-        run: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log false --perform_cnv_inference
+        run: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log false
 
       - name: Check Nextflow workflow for building cell type references
         run: nextflow -log celltype-ref-run.log run build-celltype-ref.nf -stub -profile stub -ansi-log false
