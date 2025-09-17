@@ -39,6 +39,7 @@ HPC
 HTO
 HTOs
 HVGs
+inferCNV
 intronic
 Jaccard
 JSON
