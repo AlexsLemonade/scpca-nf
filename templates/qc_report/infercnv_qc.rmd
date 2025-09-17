@@ -9,7 +9,6 @@ This file is meant to be run as a child report from `main_qc_report.rmd`
 # metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
 if (is.na(metadata(processed_sce)$infercnv_success) &&
   sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
-  glue::glue("NA")
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
@@ -17,7 +16,6 @@ if (is.na(metadata(processed_sce)$infercnv_success) &&
     </div>
   ")
 } else if (!metadata(processed_sce)$infercnv_success) {
-  glue::glue("we should be here")
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV failed to run; no results are included in this section.
