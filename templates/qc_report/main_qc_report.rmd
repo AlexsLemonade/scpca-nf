@@ -8,6 +8,8 @@ params:
   validation_groups_df: NULL
   validation_markers_df: NULL
   validation_palette_df: NULL
+  infercnv_min_reference_cells: NULL
+  infercnv_heatmap_file: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -24,7 +26,7 @@ output:
     code_download: true
 ---
 
-<!--Make sure tabs always fit on one line--> 
+<!--Make sure tabs always fit on one line-->
 <style>
   .nav-tabs {
     display: flex !important;
@@ -70,7 +72,7 @@ set.seed(params$seed)
 ```
 
 
-<!-- source functions --> 
+<!-- source functions -->
 ```{r, child='utils/report_functions.rmd'}
 ```
 
@@ -130,7 +132,7 @@ if (has_cellhash) {
   modalities <- c(modalities, "Multiplex")
 }
 
-# check for umap and celltypes, but need to be sure that processed_sce exists first
+# if processed, check for umap, celltypes, and infercnv
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
   has_clusters <- "cluster" %in% names(colData(processed_sce))
@@ -144,6 +146,25 @@ if (has_processed) {
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
 
+  # Determine inferCNV condition and include one check while we're in this if
+  # define these with FALSE baseline, to be overridden if present
+  has_infercnv_results <- FALSE
+  has_infercnv_attempt <- FALSE
+  if (!is.null(metadata(processed_sce)$infercnv_success)) {
+    # TRUE or FALSE only
+    has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE)
+
+    # has_infercnv_attempt used when there are no results but a success status
+    has_infercnv_attempt <- !has_infercnv_results
+
+    # this is the only condition we'll need this information
+    if (is.na(metadata(processed_sce)$infercnv_success)) {
+      stopifnot(
+        "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
+      )
+    }
+  }
+
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
@@ -154,7 +175,10 @@ if (has_processed) {
   has_openscpca <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
+  has_infercnv_attempt <- FALSE
+  has_infercnv_results <- FALSE
 }
+
 
 # check for celltypes_report if celltypes are present
 if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_report)) {
@@ -167,6 +191,14 @@ if (has_consensus) {
     "Consensus cell types are present but the validation_groups_df has not been provided" = !is.null(params$validation_groups_df),
     "Consensus cell types are present but the validation_markers_df has not been provided" = !is.null(params$validation_markers_df),
     "Consensus cell types are present but the validation_palette_df has not been provided" = !is.null(params$validation_palette_df)
+  )
+}
+
+# check for heatmap if inferCNV is present
+if (has_infercnv_results) {
+  stopifnot(
+    "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
+    "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
   )
 }
 
@@ -256,9 +288,9 @@ glue::glue("
 
 ## Sample metadata
 
-The below table summarizes clinical metadata for the sample associated with this library. 
-Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
-These links will direct you to a web page with information about that ontology term identifier.  
+The below table summarizes clinical metadata for the sample associated with this library.
+Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value.
+These links will direct you to a web page with information about that ontology term identifier.
 
 ```{r}
 # extract sce metadata containing processing information as table
@@ -699,7 +731,6 @@ if (has_filtered && has_processed) {
 The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
 
 
-
 <!-- Next section include only if UMAP is present -->
 ```{r, child='umap_qc.rmd', eval = has_umap}
 ```
@@ -712,13 +743,16 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
 ```
 
-<!-- Next sections only included if celltype annotations are present -->
+<!-- Next two sections only included if celltype annotations are present -->
 ```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
 ```
 
 ```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 ```
 
+<!-- Next section only included if inferCNV is present or was attempted -->
+```{r, child='infercnv_qc.rmd', eval = has_infercnv_results || has_infercnv_attempt}
+```
 
 # Session Info
 <details>
