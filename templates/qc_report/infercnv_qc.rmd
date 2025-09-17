@@ -96,14 +96,12 @@ For more information on interpreting this heatmap, please refer to the [`inferCN
 knitr::include_graphics(params$infercnv_heatmap_file)
 ```
 
-
-```{r eval = has_infercnv_results, message=FALSE, warning=FALSE}
-knitr::asis_output("## UMAP colored by total CNV
+## UMAP colored by total CNV
 
 This section displays the library UMAP colored by the total per-cell CNV as estimated by `inferCNV`.
 This total CNV value was calculated by summing across all CNV events inferred within each cell.
-")
 
+```{r message=FALSE, warning=FALSE}
 # create UMAP colored by infercnv_total_cnv
 scater::plotUMAP(
   processed_sce,
@@ -122,17 +120,13 @@ scater::plotUMAP(
   theme(aspect.ratio = 1)
 ```
 
-```{r eval = has_infercnv_results, message=FALSE, warning=FALSE}
-knitr::asis_output("## Total CNV distributions
+## Total CNV distributions
 
 This section displays the distributions of total CNVs across cell types.
 The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
 The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
-")
-```
 
-
-```{r eval = has_infercnv_results, fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
+```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # Prepare data frames for plotting
 total_cnv_df <- scuttle::makePerCellDF(
   processed_sce,
@@ -143,7 +137,7 @@ total_cnv_df <- scuttle::makePerCellDF(
   dplyr::add_count(is_infercnv_reference) |>
   dplyr::mutate(
     is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
-    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n}")
+    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n})")
   )
 
 total_cnv_filtered_df <- total_cnv_df |>
@@ -156,6 +150,7 @@ new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
 total_cnv_filtered_df$celltype_lumped <- factor(total_cnv_filtered_df$celltype_lumped, labels = new_labels)
 total_cnv_filtered_df$celltype_lumped <- forcats::fct_rev(total_cnv_filtered_df$celltype_lumped) # reverse for display in ridge plot
 
+# first plot: across cell type groups
 cell_group_plot <- ggplot(total_cnv_df) +
   aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
   ggridges::geom_density_ridges2(scale = 0.9) +
@@ -166,6 +161,7 @@ cell_group_plot <- ggplot(total_cnv_df) +
   ) +
   theme(legend.position = "none")
 
+# second plot: across cell types
 cell_type_plot <- ggplot(total_cnv_filtered_df) +
   aes(x = infercnv_total_cnv, y = celltype_lumped, fill = celltype_lumped) +
   ggridges::geom_density_ridges2(scale = 0.9) +
