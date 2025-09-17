@@ -114,12 +114,12 @@ This section displays the library UMAP colored by the total per-cell CNV as esti
 This total CNV value was calculated by summing across all CNV events inferred within each cell.
 ")
 
-# create UMAP colored by total_cnv
+# create UMAP colored by infercnv_total_cnv
 scater::plotUMAP(
   processed_sce,
   point_size = umap_point_size, # defined in UMAP child report
   point_alpha = 0.5,
-  color_by = "total_cnv"
+  color_by = "infercnv_total_cnv"
 ) +
   scale_color_viridis_c(name = "cividis") +
   # remove axis numbers and background grid
@@ -146,7 +146,7 @@ The second ridge plot shows the CNV distributions across consensus cell types, s
 # Prepare data frames for plotting
 total_cnv_df <- scuttle::makePerCellDF(
   processed_sce,
-  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "total_cnv"),
+  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv"),
   use.dimred = FALSE
 ) |>
   tibble::rownames_to_column("barcodes") |>
@@ -167,7 +167,7 @@ total_cnv_filtered_df$celltype_lumped <- factor(total_cnv_filtered_df$celltype_l
 total_cnv_filtered_df$celltype_lumped <- forcats::fct_rev(total_cnv_filtered_df$celltype_lumped) # reverse for display in ridge plot
 
 cell_group_plot <- ggplot(total_cnv_df) +
-  aes(x = total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
+  aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
   ggridges::geom_density_ridges2(scale = 0.9) +
   labs(
     x = "Total CNV events per cell",
@@ -177,7 +177,7 @@ cell_group_plot <- ggplot(total_cnv_df) +
   theme(legend.position = "none")
 
 cell_type_plot <- ggplot(total_cnv_filtered_df) +
-  aes(x = total_cnv, y = celltype_lumped, fill = celltype_lumped) +
+  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = celltype_lumped) +
   ggridges::geom_density_ridges2(scale = 0.9) +
   scale_fill_brewer(palette = "Dark2", direction = -1) +
   labs(
