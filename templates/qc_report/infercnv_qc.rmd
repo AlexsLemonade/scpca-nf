@@ -9,7 +9,6 @@ This file is meant to be run as a child report from `main_qc_report.rmd`
 # metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
 if (is.na(metadata(processed_sce)$infercnv_success) &&
   sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
-  glue::glue("NA")
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
@@ -17,39 +16,33 @@ if (is.na(metadata(processed_sce)$infercnv_success) &&
     </div>
   ")
 } else if (!metadata(processed_sce)$infercnv_success) {
-  glue::glue("we should be here")
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV failed to run; no results are included in this section.
     </div>
   ")
 }
+knitr::knit_exit(fully = FALSE) # use fully = FALSE to ensure the main report continues knitting
 ```
 
-```{r eval = has_infercnv_results}
-knitr::asis_output("
+
 This section provides information about the results from running `inferCNV` to quantify copy-number variation (CNV) events.
 For full information about the `inferCNV` algorithm, please refer to [their official documentation](https://github.com/broadinstitute/infercnv/wiki).
 
 `inferCNV` was run with the [`i6` HMM](https://github.com/broadinstitute/infercnv/wiki/infercnv-i6-HMM-type) to quantify CNV events for each chromosome arm.
 Presumed normal cells, as identified from the consensus cell types, were specified as `inferCNV`'s baseline normal reference.
-")
-```
 
-```{r eval = has_infercnv_results}
-knitr::asis_output("## inferCNV processing information  {.tabset}")
-```
+## inferCNV processing information  {.tabset}
 
-```{r eval = has_infercnv_results}
-knitr::asis_output("### Normal reference cells
+### Normal reference cells
 
 The following table shows the consensus cell types used in the normal reference, as well as the number of cells in the processed object.
 The cell types to include were chosen as those most likely to be normal cells based on this sample's diagnosis.
 
 These cells were all specified as a single reference group for `inferCNV` to consider jointly, rather than considering each cell type separately.
 Similarly, all other cells were treated as a single group of query cells.
-")
 
+```{r}
 ref_celltypes <- metadata(processed_sce)$infercnv_reference_celltypes
 colData(processed_sce) |>
   as.data.frame() |>
@@ -63,12 +56,11 @@ colData(processed_sce) |>
   format_datatable()
 ```
 
-```{r eval = has_infercnv_results}
-knitr::asis_output("### inferCNV options
+### inferCNV options
 
 `inferCNV` was run with the following options:
-")
 
+```{r}
 # remove options that don't make sense to share in a report
 metadata(processed_sce)$infercnv_options |>
   purrr::discard_at(c("out_dir", "counts_md5")) |>
@@ -91,9 +83,7 @@ metadata(processed_sce)$infercnv_options |>
   format_datatable()
 ```
 
-
-```{r eval = has_infercnv_results}
-knitr::asis_output("## inferCNV heatmap
+## inferCNV heatmap
 
 In this section, we display the CNV heatmap exported by `inferCNV`.
 The top heatmap displays expression values for all reference cells, and the bottom heatmap displays expression values for all other query cells.
@@ -101,8 +91,8 @@ Each row in the heatmap corresponds to a cell, and each column corresponds to a 
 Note that CNV events were detected separately for each chromosome arm, as shown along the x-axis.
 
 For more information on interpreting this heatmap, please refer to the [`inferCNV` documentation](https://github.com/broadinstitute/inferCNV/wiki/Interpreting-the-figure).
-")
 
+```{r}
 knitr::include_graphics(params$infercnv_heatmap_file)
 ```
 
