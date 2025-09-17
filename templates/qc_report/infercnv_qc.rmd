@@ -22,9 +22,10 @@ if (is.na(metadata(processed_sce)$infercnv_success) &&
     </div>
   ")
 }
+knitr::knit_exit(fully = FALSE) # use fully = FALSE to ensure the main report continues knitting
 ```
 
-```{r eval = has_infercnv_results}
+```{r}
 knitr::asis_output("
 This section provides information about the results from running `inferCNV` to quantify copy-number variation (CNV) events.
 For full information about the `inferCNV` algorithm, please refer to [their official documentation](https://github.com/broadinstitute/infercnv/wiki).
@@ -34,11 +35,11 @@ Presumed normal cells, as identified from the consensus cell types, were specifi
 ")
 ```
 
-```{r eval = has_infercnv_results}
+```{r}
 knitr::asis_output("## inferCNV processing information  {.tabset}")
 ```
 
-```{r eval = has_infercnv_results}
+```{r}
 knitr::asis_output("### Normal reference cells
 
 The following table shows the consensus cell types used in the normal reference, as well as the number of cells in the processed object.
@@ -61,7 +62,7 @@ colData(processed_sce) |>
   format_datatable()
 ```
 
-```{r eval = has_infercnv_results}
+```{r}
 knitr::asis_output("### inferCNV options
 
 `inferCNV` was run with the following options:
@@ -90,7 +91,7 @@ metadata(processed_sce)$infercnv_options |>
 ```
 
 
-```{r eval = has_infercnv_results}
+```{r}
 knitr::asis_output("## inferCNV heatmap
 
 In this section, we display the CNV heatmap exported by `inferCNV`.
