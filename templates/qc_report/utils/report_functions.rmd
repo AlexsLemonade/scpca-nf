@@ -202,10 +202,9 @@ format_datatable <- function(df) {
 #' @param df Data frame to manipulate
 #' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
 #' @param wrap Characters to wrap the cell type label
-#' @param unknown_string String used to represent unknown cell types
 #'
 #' @return Updated df with new column of lumped celltypes for each present method
-lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35, unknown_string = "Unknown cell type") {
+lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
   df <- df |>
     # First, wrap labels
     dplyr::mutate(
@@ -222,7 +221,7 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35, unknown_string =
           x |>
             forcats::fct_lump_n(n_celltypes, other_level = "All remaining cell types", ties.method = "first") |>
             forcats::fct_infreq() |>
-            forcats::fct_relevel(unknown_string, "All remaining cell types", after = Inf)
+            forcats::fct_relevel("Unknown cell type", "All remaining cell types", after = Inf)
         },
         .names = "{.col}_lumped"
       )

@@ -141,7 +141,15 @@ total_cnv_df <- scuttle::makePerCellDF(
   )
 
 total_cnv_filtered_df <- total_cnv_df |>
-  lump_wrap_celltypes(unknown_string = "Unknown") |>
+  # rename for consistency with cell type report section
+  dplyr::mutate(
+    consensus_celltype_annotation = ifelse(
+      consensus_celltype_annotation == "Unknown", 
+      "Unknown cell type", 
+      consensus_celltype_annotation
+    )
+  ) |>
+  lump_wrap_celltypes() |>
   # rename for convenience
   dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
 
