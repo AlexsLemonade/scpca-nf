@@ -1,5 +1,6 @@
 
-// generate QC report from unfiltered and filtered SCE.rds files using scpcaTools
+// generate QC report from SCE files
+
 
 process qc_publish_sce {
   container params.SCPCATOOLS_REPORTS_CONTAINER
@@ -7,8 +8,9 @@ process qc_publish_sce {
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file)
     tuple path(template_dir), val(qc_template_file), val(celltype_template_file)
+    val(perform_celltyping)
     path(validation_groups_file)
     path(validation_markers_file)
     path(validation_palette_file)
@@ -21,7 +23,7 @@ process qc_publish_sce {
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     workflow_version = workflow.revision ?: workflow.manifest.version
 
-    // set output file names based on having 10x flex multiplexed or not 
+    // set output file names based on having 10x flex multiplexed or not
     if (meta.technology in ["10Xflex_v1.1_multi"]){
       file_prefix = "${meta.library_id}-${meta.sample_id}"
     } else {
@@ -38,8 +40,12 @@ process qc_publish_sce {
 
     // check for cell types
     // only provide report template if cell typing was performed and either singler or cellassign was used
-    has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
+    // note that we use the value perform_celltyping, not the param here
+    has_celltypes = perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
     celltype_report = "${file_prefix}_celltype-report.html" // rendered HTML
+
+    // check for inferCNV
+    has_infercnv = params.perform_cnv_inference
 
     """
     # move files for output
@@ -59,6 +65,7 @@ process qc_publish_sce {
       --validation_groups_file ${validation_groups_file} \
       --validation_markers_file ${validation_markers_file} \
       --validation_palette_file ${validation_palette_file} \
+      --infercnv_heatmap_file ${infercnv_heatmap_file} \
       --library_id "${meta.library_id}" \
       --sample_id "${meta.sample_id}" \
       --project_id "${meta.project_id}" \
@@ -72,6 +79,7 @@ process qc_publish_sce {
       --technology "${meta.technology}" \
       --seq_unit "${meta.seq_unit}" \
       --genome_assembly "${meta.ref_assembly}" \
+      --infercnv_min_reference_cells ${params.infercnv_min_reference_cells} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}" \
