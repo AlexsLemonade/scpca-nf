@@ -147,13 +147,15 @@ if (has_processed) {
   has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
 
   # Determine inferCNV condition and include one check while we're in this if
-  has_infercnv_attempt <- !is.null(metadata(processed_sce)$infercnv_success)
-  has_infercnv_results <- FALSE
-  if (has_infercnv_attempt) {
-    has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE) # TRUE or FALSE only
+  if (!is.null(metadata(processed_sce)$infercnv_success)) {
+    # TRUE or FALSE only
+    has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE)
 
+    # has_infercnv_attempt used when there are no results but a success status
+    has_infercnv_attempt <- !has_infercnv_results
+
+    # this is the only condition we'll need this information
     if (is.na(metadata(processed_sce)$infercnv_success)) {
-      # this is the only condition we'll need this information
       stopifnot(
         "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
       )
@@ -726,7 +728,6 @@ if (has_filtered && has_processed) {
 The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
 
 
-
 <!-- Next section include only if UMAP is present -->
 ```{r, child='umap_qc.rmd', eval = has_umap}
 ```
@@ -739,40 +740,16 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
 ```
 
-
-<!-- Next section only included if inferCNV is present -->
-```{r, child='infercnv_qc.rmd', eval = has_infercnv_results}
+<!-- Next two sections only included if celltype annotations are present -->
+```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
 ```
 
-<!-- Chunks only included if inferCNV was requested but there are no results -->
-```{r eval = has_infercnv_attempt && !has_infercnv_results}
-knitr::asis_output("# inferCNV results summary") # this cannot be in a results='asis' chunk
+```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 ```
 
-```{r results = 'asis', eval = has_infercnv_attempt && !has_infercnv_results}
-# this must be in a results='asis' chunk
-
-# metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run
-# metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
-if (is.na(metadata(processed_sce)$infercnv_success) &&
-  sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
-  glue::glue("
-    <div class=\"alert alert-info\">
-    inferCNV was not run because there were not enough normal reference cells present in the processed object.
-    At least {params$infercnv_min_reference_cells} are required, but only {sum(processed_sce$is_infercnv_reference)} reference cells were present.
-    </div>
-  ")
-} else if (!metadata(processed_sce)$infercnv_success) {
-  glue::glue("
-    <div class=\"alert alert-info\">
-    inferCNV failed to run; no results are included in this section.
-    </div>
-  ")
-} else {
-  stop("Encountered unknown inferCNV condition")
-}
+<!-- Next section only included if inferCNV is present or was attempted -->
+```{r, child='infercnv_qc.rmd', eval = has_infercnv_results || has_infercnv_attempt}
 ```
-
 
 # Session Info
 <details>
