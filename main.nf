@@ -400,16 +400,29 @@ workflow {
   // combine back with libraries that skipped filtering and post processing
   sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
     .mix(no_filtered_ch)
+    // pull out the inferCNV heatmap file for staging for report, if present
+    .map{meta, unfiltered, filtered, processed -> tuple(
+      meta,
+      unfiltered,
+      filtered,
+      processed,
+      file(meta.infercnv_heatmap_file, checkIfExists: true)
+      //file(meta.infercnv_heatmap_file ?: empty_file)
+    )}
+
 
   def report_template_tuple = tuple(
     file(params.report_template_dir, type: 'dir', checkIfExists: true),
     params.report_template_file,
     params.celltype_report_template_file
   )
+
   // generate QC reports & metrics, then publish sce
   qc_publish_sce(
     sce_output_ch,
     report_template_tuple,
+    // need to pass this in as a value since the param may have been overridden
+    perform_celltyping,
     // paths to files needed to make consensus cell type validation dot plots
     file(params.validation_groups_file),
     file(params.validation_markers_file),
