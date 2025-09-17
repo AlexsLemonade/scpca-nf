@@ -147,6 +147,9 @@ if (has_processed) {
   has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
 
   # Determine inferCNV condition and include one check while we're in this if
+  # define these with FALSE baseline, to be overridden if present
+  has_infercnv_results <- FALSE
+  has_infercnv_attempt <- FALSE
   if (!is.null(metadata(processed_sce)$infercnv_success)) {
     # TRUE or FALSE only
     has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE)
