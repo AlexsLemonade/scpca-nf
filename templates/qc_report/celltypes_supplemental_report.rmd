@@ -71,11 +71,12 @@ processed_sce <- params$processed_sce
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
 has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
+has_openscpca <- "openscpca" %in% metadata(processed_sce)$celltype_methods
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
   !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
 # If at least 1 is present, we have cell type annotations.
-has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter)
+has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
 
 # check for umap and clusters
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
@@ -84,6 +85,7 @@ has_clusters <- "cluster" %in% names(colData(processed_sce))
 # what celltypes are available?
 available_celltypes <- c(
   ifelse(has_submitter, "Submitter", NA),
+  ifelse(has_openscpca, "OpenScPCA", NA),
   ifelse(has_singler, "SingleR", NA),
   ifelse(has_cellassign, "CellAssign", NA),
   ifelse(has_consensus, "Consensus", NA)
@@ -165,6 +167,20 @@ if (has_submitter) {
   )
 }
 
+if (has_openscpca) {
+  openscpca_annotation_info <- metadata(processed_sce)$openscpca_annotations_info
+  module_name <- openscpca_annotation_info$module_name
+  module_link <- glue::glue("https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/main/analyses/{module_name}")
+  openscpca_link <- glue::glue("https://github.com/AlexsLemonade/OpenScPCA-nf/tree/{openscpca_annotation_info$openscpca_nf_version}")
+
+  glue::glue(
+    "{methods_text}
+    * OpenScPCA annotations are assigned as part of the [`OpenScPCA` project](https://openscpca.readthedocs.io/en/latest/).
+    The annotations shown here were validated as part of the [`{openscpca_annotation_info$module_name}` analysis module in `OpenScPCA-analysis`]({module_link}) and output from the corresponding Nextflow module in [`OpenScPCA-nf`]({openscpca_link}).
+    "
+  )
+}
+
 if (has_singler) {
   methods_text <- glue::glue(
     "{methods_text}
@@ -243,10 +259,60 @@ if (!has_multiplex) {
 ```{r, child='celltypes_qc.rmd'}
 ```
 
+<!-------------------------- OpenScPCA heatmaps ------------------------------->
+```{r, eval = openscpca_heatmaps}
+# don't compare to openscpca or submitter
+automated_celltypes_available <- available_celltypes[!(available_celltypes %in% c("Submitter", "OpenScPCA"))]
+
+knitr::asis_output(
+  "## OpenScPCA annotations
+
+  This section displays heatmaps comparing OpenScPCA cell type annotations to those obtained from automated cell type annotation methods, including consensus cell types, if present."
+)
+```
+
+```{r, eval = openscpca_heatmaps}
+# calculate matrices comparing to submitter
+jaccard_openscpca_matrices <- automated_celltypes_available |>
+  stringr::str_to_lower() |>
+  purrr::map(\(name) {
+    make_jaccard_matrix(
+      celltype_df,
+      "openscpca_celltype_annotation",
+      glue::glue("{name}_celltype_annotation")
+    )
+  }) |>
+  purrr::set_names(automated_celltypes_available)
+
+# how many cell types?
+all_celltypes <- jaccard_openscpca_matrices |>
+  purrr::map(colnames) |>
+  unlist()
+
+plot_height <- calculate_plot_height(
+  all_celltypes,
+  unique(celltype_df$openscpca_celltype_annotation),
+  length(jaccard_openscpca_matrices) - 1
+)
+```
+
+```{r, eval = openscpca_heatmaps, fig.height = plot_height, fig.width = 8.5, warning = FALSE}
+jaccard_openscpca_matrices |>
+  create_heatmap_list(
+    column_title = "OpenScPCA annotations",
+    labels_font_size = find_label_size(all_celltypes),
+    # additional arguments
+    column_names_rot = 90
+  ) |>
+  ComplexHeatmap::draw(
+    heatmap_legend_side = "bottom"
+  )
+```
+
 <!-------------------------- Submitter heatmaps ------------------------------->
 ```{r, eval = submitter_heatmaps}
 # don't compare submitter to submitter
-automated_celltypes_available <- available_celltypes[!(available_celltypes == "Submitter")]
+automated_celltypes_available <- available_celltypes[!(available_celltypes %in% c("Submitter", "OpenScPCA"))]
 
 knitr::asis_output(
   "## Submitter-provided annotations
@@ -347,7 +413,6 @@ jaccard_consensus_matrices |>
   )
 ```
 
-<!--TODO: Fill out clustering section -->
 
 ```{r, eval = has_umap && has_clusters}
 knitr::asis_output(glue::glue("

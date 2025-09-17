@@ -1,19 +1,19 @@
-scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	seq_unit	sample_reference	files_directory	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	submitter_cell_types_file
-STUBR01	STUBL01	STUBS01	STUBP01	10Xv2	cell	stub	test/runs/STUBR01	NA	NA	NA	NA	NA
-STUBR02	STUBL02	STUBS02	STUBP02	10Xv3.1	cell	stub	test/runs/STUBR02	NA	NA	NA	NA	NA
-STUBR03	STUBL02	STUBS02	STUBP02	CITEseq_10Xv3	cell	stub	test/runs/STUBR03	test/references/barcodes/adt.stub.tsv	2[1-15]	NA	NA	NA
-STUBR04	STUBL04	STUBS04	STUBP02	paired_end	bulk	stub	test/runs/STUBR04	NA	NA	NA	NA	NA
-STUBR05	STUBL05	STUBS05	STUBP03	10Xv3	nucleus	stub	test/runs/STUBR05	NA	NA	NA	NA	NA
-STUBR06	STUBL06	STUBS06	STUBP04	10Xv2_5prime	cell	stub	test/runs/STUBR06	NA	NA	NA	NA	NA
-STUBR07	STUBL07	STUBS07	STUBP05	visium	spot	stub	tests/runs/STUBR07	NA	NA	A1	V10L14-093	NA
-STUBR08	STUBL08	STUBS10	STUBP06	single_end	bulk	stub	test/runs/STUBR08	NA	NA	NA	NA	NA
-STUBR09	STUBL09	STUBS11	STUBP06	single_end	bulk	stub	test/runs/STUBR09	NA	NA	NA	NA	NA
-STUBR10	STUBL10	STUBS10,STUBS11	STUBP06	10Xv3.1	cell	stub	test/runs/STUBR10	NA	NA	NA	NA	NA
-STUBR11	STUBL10	STUBS10,STUBS11	STUBP06	cellhash_10Xv3	cell	stub	test/runs/STUBR11	test/references/barcodes/cellhash.stub.tsv	2[1-15]	NA	NA	NA
-STUBR12	STUBL11	STUBS12,STUBS13	STUBP06	10Xv3.1	cell	stub	test/runs/STUBR12	NA	NA	NA	NA	NA
-STUBR13	STUBL11	STUBS12,STUBS13	STUBP06	cellhash_10Xv3	cell	stub	test/runs/STUBR13	test/references/barcodes/cellhash.stub.tsv	2[1-15]	NA	NA	NA
-STUBR14	STUBL12	STUBS14	STUBP07	10Xv3.1	cell	stub	test/runs/STUBR14	NA	NA	NA	NA	test/celltypes/STUBL12-submitter-celltypes.tsv
-STUBR15	STUBL13	STUBS15	STUBP08	10Xv3.1	cell	stub	test/runs/STUBR15	NA	NA	NA	NA	NA
-STUBR16	STUBL16	STUBS16	STUBP01	10Xv2	cell	stub	test/runs/STUBR16	NA	NA	NA	NA	NA
-STUBR17	STUBL17	STUBS17	STUBP09	10Xflex_v1.1_single	cell	stub	test/runs/STUBR17	NA	NA	NA	NA	NA
-STUBR18	STUBL18	STUBS18,STUBS19	STUBP09	10Xflex_v1.1_multi	cell	stub	test/runs/STUBR18	NA	NA	NA	NA	NA
+scpca_run_id	scpca_library_id	scpca_sample_id	scpca_project_id	technology	seq_unit	sample_reference	files_directory	feature_barcode_file	feature_barcode_geom	slide_section	slide_serial_number	submitter_cell_types_file	openscpca_cell_types_file
+STUBR01	STUBL01	STUBS01	STUBP01	10Xv2	cell	stub	test/runs/STUBR01	NA	NA	NA	NA	NA	test/celltypes/STUBL01-openscpca-celltypes.json
+STUBR02	STUBL02	STUBS02	STUBP02	10Xv3.1	cell	stub	test/runs/STUBR02	NA	NA	NA	NA	NA	NA
+STUBR03	STUBL02	STUBS02	STUBP02	CITEseq_10Xv3	cell	stub	test/runs/STUBR03	test/references/barcodes/adt.stub.tsv	2[1-15]	NA	NA	NA	NA
+STUBR04	STUBL04	STUBS04	STUBP02	paired_end	bulk	stub	test/runs/STUBR04	NA	NA	NA	NA	NA	NA
+STUBR05	STUBL05	STUBS05	STUBP03	10Xv3	nucleus	stub	test/runs/STUBR05	NA	NA	NA	NA	NA	NA
+STUBR06	STUBL06	STUBS06	STUBP04	10Xv2_5prime	cell	stub	test/runs/STUBR06	NA	NA	NA	NA	NA	NA
+STUBR07	STUBL07	STUBS07	STUBP05	visium	spot	stub	tests/runs/STUBR07	NA	NA	A1	V10L14-093	NA	NA
+STUBR08	STUBL08	STUBS10	STUBP06	single_end	bulk	stub	test/runs/STUBR08	NA	NA	NA	NA	NA	NA
+STUBR09	STUBL09	STUBS11	STUBP06	single_end	bulk	stub	test/runs/STUBR09	NA	NA	NA	NA	NA	NA
+STUBR10	STUBL10	STUBS10,STUBS11	STUBP06	10Xv3.1	cell	stub	test/runs/STUBR10	NA	NA	NA	NA	NA	NA
+STUBR11	STUBL10	STUBS10,STUBS11	STUBP06	cellhash_10Xv3	cell	stub	test/runs/STUBR11	test/references/barcodes/cellhash.stub.tsv	2[1-15]	NA	NA	NA	NA
+STUBR12	STUBL11	STUBS12,STUBS13	STUBP06	10Xv3.1	cell	stub	test/runs/STUBR12	NA	NA	NA	NA	NA	NA
+STUBR13	STUBL11	STUBS12,STUBS13	STUBP06	cellhash_10Xv3	cell	stub	test/runs/STUBR13	test/references/barcodes/cellhash.stub.tsv	2[1-15]	NA	NA	NA	NA
+STUBR14	STUBL12	STUBS14	STUBP07	10Xv3.1	cell	stub	test/runs/STUBR14	NA	NA	NA	NA	test/celltypes/STUBL12-submitter-celltypes.tsv	NA
+STUBR15	STUBL13	STUBS15	STUBP08	10Xv3.1	cell	stub	test/runs/STUBR15	NA	NA	NA	NA	NA	NA
+STUBR16	STUBL16	STUBS16	STUBP01	10Xv2	cell	stub	test/runs/STUBR16	NA	NA	NA	NA	NA	NA
+STUBR17	STUBL17	STUBS17	STUBP09	10Xflex_v1.1_single	cell	stub	test/runs/STUBR17	NA	NA	NA	NA	NA	NA
+STUBR18	STUBL18	STUBS18,STUBS19	STUBP09	10Xflex_v1.1_multi	cell	stub	test/runs/STUBR18	NA	NA	NA	NA	NA	NA

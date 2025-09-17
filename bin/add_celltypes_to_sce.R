@@ -385,7 +385,7 @@ if (has_singler && has_cellassign) {
     # get the cell type groups to consider for this diagnosis
     reference_validation_groups <- diagnosis_celltype_df |>
       dplyr::filter(diagnosis_group == broad_diagnosis) |>
-      tidyr::separate_delim_longer(celltype_groups, sep = ",") |>
+      tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
       dplyr::pull(celltype_groups) |>
       stringr::str_trim() # remove any leading or trailing spaces
 
