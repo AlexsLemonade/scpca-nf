@@ -75,9 +75,9 @@ The table includes the following columns:
 
 ### Diagnosis mapping files
 
-These files are used by the main workflow to determine cells to include in an normal reference for `inferCNV`.
+These files are used by the main workflow to determine which cells to include in a normal reference for `inferCNV`.
 
-- `broad-diagnosis-map.tsv` maps broad diagnosis groups to individual sample (e.g., submitted) diagnoses in ScPCA
+- `broad-diagnosis-map.tsv` maps broad diagnosis groups to individual sample (e.g., submitted) diagnoses in ScPCA.
 
 The table includes the following columns:
 
@@ -89,7 +89,7 @@ The table includes the following columns:
 | `diagnosis_group` | Broad diagnosis group |
 
 
-- `diagnosis-celltype-groups.tsv` maps broad diagnosis groups included in `broad-diagnosis-map.tsv` to consensus cell type validation groups
+- `diagnosis-celltype-groups.tsv` maps broad diagnosis groups included in `broad-diagnosis-map.tsv` to consensus cell type validation groups included in `consensus-validation-groups.tsv`.
 
 The table includes the following columns:
 

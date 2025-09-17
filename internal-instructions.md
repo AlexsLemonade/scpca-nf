@@ -194,19 +194,14 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-The following files were generated in the `OpenScPCA-analysis` repository and copied to this repo for use in the workflow: 
+5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repo for use in the workflow:
 
-* [`consensus-cell-type-reference.tsv`](TODO: Tagged link)
-* [`broad-diagnosis-map.tsv`](TODO: tagged link) 
-... 
-   This file is used for `inferCNV` inference to determine which cell types to include in the normal reference.
-   It was initially obtained from the `OpenScPCA-analysis` repository at this tag: **TODO!!**
+   - [`broad-diagnosis-map.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv)
+   - [`diagnosis-celltype-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv)
+
+   These files are used for `inferCNV` inference to determine which cell types to include in the normal reference.
+   They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
    Additional rows will need to be added to this file if additional diagnoses are added to ScPCA.
-
-6. `diagnosis-celltype-groups.tsv`: This file is used to map broad diagnosis groups included in `broad-diagnosis-map.tsv` to consensus cell type validation groups.
-   This file is used for `inferCNV` inference to determine which cell types to include in the normal reference.
-   It was initially obtained from the `OpenScPCA-analysis` repository at this tag: **TODO!!**
-   Additional rows will need to be added to this file if additional diagnoses and/or cell type validation groups are added to ScPCA.
 
 ### Adding additional organisms
 
