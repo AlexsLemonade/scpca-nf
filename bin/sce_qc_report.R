@@ -42,6 +42,12 @@ option_list <- list(
     help = "Color palette for validation groups"
   ),
   make_option(
+    opt_str = c("--infercnv_heatmap_file"),
+    type = "character",
+    default = NULL,
+    help = "Path to inferCNV heatmap file"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     default = "",
     type = "character",
@@ -112,6 +118,12 @@ option_list <- list(
     type = "character",
     default = NA,
     help = "genome assembly used for mapping"
+  ),
+  make_option(
+    opt_str = c("--infercnv_min_reference_cells"),
+    type = "integer",
+    default = NULL,
+    help = "Minimum number of normal reference cells required to have run inferCNV"
   ),
   make_option(
     opt_str = "--workflow_url",
@@ -305,6 +317,15 @@ if (has_consensus) {
   celltype_colors_df <- NULL
 }
 
+# check for inferCNV input
+has_infercnv <- !is.null(metadata(processed_sce)$infercnv_success)
+if (has_infercnv) {
+  stopifnot(
+    "inferCNV was specified to run but the heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
+    "inferCNV was specified to run but infercnv_min_reference_cells parameter value was not provided" = !is.null(opt$infercnv_min_reference_cells)
+  )
+}
+
 # render main QC report
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
@@ -320,7 +341,10 @@ scpcaTools::generate_qc_report(
     # only used if consensus cell types exist
     validation_groups_df = validation_groups_df,
     validation_markers_df = validation_markers_df,
-    validation_palette_df = celltype_colors_df
+    validation_palette_df = celltype_colors_df,
+    # only used if inferCNV was requested
+    infercnv_min_reference_cells = opt$infercnv_min_reference_cells,
+    infercnv_heatmap_file = opt$infercnv_heatmap_file
   )
 )
 
