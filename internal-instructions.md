@@ -194,7 +194,7 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repo for use in the workflow:
+5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow:
 
    - [`broad-diagnosis-map.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv)
    - [`diagnosis-celltype-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv)
