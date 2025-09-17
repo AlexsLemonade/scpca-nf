@@ -194,7 +194,11 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-5. `broad-diagnosis-map.tsv`: This file is used to map broad diagnosis groups to individual sample diagnoses found in ScPCA samples.
+The following files were generated in the `OpenScPCA-analysis` repository and copied to this repo for use in the workflow: 
+
+* [`consensus-cell-type-reference.tsv`](TODO: Tagged link)
+* [`broad-diagnosis-map.tsv`](TODO: tagged link) 
+... 
    This file is used for `inferCNV` inference to determine which cell types to include in the normal reference.
    It was initially obtained from the `OpenScPCA-analysis` repository at this tag: **TODO!!**
    Additional rows will need to be added to this file if additional diagnoses are added to ScPCA.
@@ -274,11 +278,11 @@ Adding additional [gene order files](https://github.com/broadinstitute/inferCNV/
 A new gene order file will be needed if new a `gtf` file (e.g. a new `Ensembl` version or species) is added to references.
 The gene order files consider chromosome arms as well, so an appropriate `cytoband` file with chromosome arm boundaries is also needed.
 
-Follow these steps to add support for additional cell type references.
+Follow these steps to add additional gene order files.
 
 1. Ensure input files needed for creating the new gene order file have been added to `s3://scpca-references`.
 This includes both a `gtf` file which can be downloaded from `Ensembl`, and a `cytoband` file delimiting chromosome arms which can be downloaded from the appropriate reference subdirectory in `ftp://hgdownload.cse.ucsc.edu/goldenPath/`.
-When adding these files to the `s3://scpca-references` bucket, the directory structure should be as follows for example, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+When adding these files to the `s3://scpca-references` bucket, the directory structure should be as follows, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
