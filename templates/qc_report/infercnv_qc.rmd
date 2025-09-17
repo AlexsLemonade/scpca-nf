@@ -144,8 +144,8 @@ total_cnv_filtered_df <- total_cnv_df |>
   # rename for consistency with cell type report section
   dplyr::mutate(
     consensus_celltype_annotation = ifelse(
-      consensus_celltype_annotation == "Unknown", 
-      "Unknown cell type", 
+      consensus_celltype_annotation == "Unknown",
+      "Unknown cell type",
       consensus_celltype_annotation
     )
   ) |>
