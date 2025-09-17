@@ -20,6 +20,7 @@ process run_infercnv {
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
     """
     # note that inferCNV fails, the script will output empty results/heatmap files
+    mkdir infercnv_tmp
     run_infercnv.R \
       --input_sce_file ${processed_rds} \
       --output_rds ${results_file} \
