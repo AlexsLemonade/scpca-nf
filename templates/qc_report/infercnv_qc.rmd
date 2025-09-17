@@ -106,12 +106,14 @@ For more information on interpreting this heatmap, please refer to the [`inferCN
 knitr::include_graphics(params$infercnv_heatmap_file)
 ```
 
-## UMAP colored by total CNV
+
+```{r eval = has_infercnv_results, message=FALSE, warning=FALSE}
+knitr::asis_output("## UMAP colored by total CNV
 
 This section displays the library UMAP colored by the total per-cell CNV as estimated by `inferCNV`.
 This total CNV value was calculated by summing across all CNV events inferred within each cell.
+")
 
-```{r message=FALSE, warning=FALSE}
 # create UMAP colored by total_cnv
 scater::plotUMAP(
   processed_sce,
@@ -130,14 +132,17 @@ scater::plotUMAP(
   theme(aspect.ratio = 1)
 ```
 
-## Total CNV distributions
+```{r eval = has_infercnv_results, message=FALSE, warning=FALSE}
+knitr::asis_output("## Total CNV distributions
 
 This section displays the distributions of total CNVs across cell types.
 The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
-The second ridge plot shows the CNV distributions across consensus cell types, considering only cell types with at least 3 cells.
+The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
+")
+```
 
 
-```{r}
+```{r eval = has_infercnv_results, fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # Prepare data frames for plotting
 total_cnv_df <- scuttle::makePerCellDF(
   processed_sce,
@@ -160,10 +165,7 @@ new_labels_df <- forcats::fct_count(total_cnv_filtered_df$celltype_lumped)
 new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
 total_cnv_filtered_df$celltype_lumped <- factor(total_cnv_filtered_df$celltype_lumped, labels = new_labels)
 total_cnv_filtered_df$celltype_lumped <- forcats::fct_rev(total_cnv_filtered_df$celltype_lumped) # reverse for display in ridge plot
-```
 
-
-```{r, fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 cell_group_plot <- ggplot(total_cnv_df) +
   aes(x = total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
   ggridges::geom_density_ridges2(scale = 0.9) +
