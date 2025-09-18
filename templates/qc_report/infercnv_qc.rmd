@@ -158,11 +158,11 @@ new_labels_df <- forcats::fct_count(total_cnv_df$celltype_lumped)
 new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
 
 # set ordering for labels in total cnv dataframe for plotting
-total_cnv_df <- total_cnv_df |> 
+total_cnv_df <- total_cnv_df |>
   dplyr::mutate(
     celltype_lumped = factor(total_cnv_df$celltype_lumped, labels = new_labels) |>
-    forcats::fct_rev() # reverse for display in ridge plot
-)
+      forcats::fct_rev() # reverse for display in ridge plot
+  )
 
 # first plot: across cell type groups
 cell_group_plot <- ggplot(total_cnv_df) +
