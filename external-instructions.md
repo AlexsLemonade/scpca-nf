@@ -26,6 +26,7 @@
   - [Prepare the diagnosis metadata files](#prepare-the-diagnosis-metadata-files)
     - [Creating the diagnosis groups metadata file](#creating-the-diagnosis-groups-metadata-file)
     - [Creating the diagnosis cell types metadata file](#creating-the-diagnosis-cell-types-metadata-file)
+  - [Repeating CNV inference](#repeating-cnv-inference)
 - [Output files](#output-files)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
@@ -563,12 +564,29 @@ We have provided an example diagnosis cell type metadata file for reference.
 | --------------------------------------------------------------------------------------------------- |
 
 
+### Repeating CNV inference
+
+When CNV inference is turned on with `--perform_cnv_inference`, `scpca-nf` will skip this process for any libraries whose results already exist in the `checkpoints` folder, as long as **TODO: https://github.com/AlexsLemonade/scpca-nf/issues/1025**.
+The CNV inferences in the `checkpoints` folder will have the following structure:
+
+```
+checkpoints
+└── infercnv
+    ├── library01
+    └── library02
+```
 
 
+This saves substantial processing time if **TODO**.
+However, you may wish to repeat the CNV inference if there have been other changes to the data or analysis.
 
+To force repeating CNV inference, use the `--repeat_cnv_inference` flag along with the `--perform_cnv_inference` flag at the command line:
 
-
-
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_cnv_inference \
+  --repeat_cnv_inference
+```
 
 
 ## Output files
