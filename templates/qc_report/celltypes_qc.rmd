@@ -36,13 +36,15 @@ create_celltype_n_table <- function(df, celltype_column) {
 #' @param n_celltypes The number of cell types (facets) displayed in the plot
 #' @param annotation_column Column containing cell type annotations
 #' @param point_size Point size. Default is 1
+#' @param palette Optionally, a named vector to use as a palette. If not provided, "Dark2" will be used
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
 faceted_umap <- function(umap_df,
                          n_celltypes,
                          annotation_column,
-                         point_size = 1) {
+                         point_size = 1, 
+                         palette = NULL) {
   # Determine legend y-coordinate based on n_celltypes
   if (n_celltypes %in% 7:8) {
     legend_y <- 0.33
@@ -70,7 +72,6 @@ faceted_umap <- function(umap_df,
       vars({{ annotation_column }}),
       ncol = 3
     ) +
-    scale_color_brewer(palette = "Dark2") +
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) +
     scale_y_continuous(labels = NULL, breaks = NULL) +
@@ -85,7 +86,16 @@ faceted_umap <- function(umap_df,
         )
       )
     )
-
+  
+  # Add colors from palette if provided
+  if (!is.null(palette)) {
+   faceted_umap <- faceted_umap +
+     scale_color_manual(values = palette)
+  } else {
+   faceted_umap <- faceted_umap +
+     scale_color_brewer(palette = "Dark2")
+  }
+  
   # Determine legend placement based on total_celltypes
   if (n_celltypes == 1) {
     # If n=1, we do not need to a show a legend, and title should be smaller
@@ -119,8 +129,6 @@ faceted_umap <- function(umap_df,
         aspect.ratio = 1
       )
   }
-
-
 
   return(faceted_umap)
 }
@@ -416,11 +424,16 @@ if (has_consensus & has_umap) {
 
 ```{r, eval=has_consensus && has_umap, message=FALSE, warning=FALSE, fig.width = consensus_dims[1], fig.height = consensus_dims[2], fig.align = "center"}
 # umap for cell assign annotations
+# we define a palette so we can use it (if applicable) in the inferCNV report
+consensus_hex <- RColorBrewer::brewer.pal(name = "Dark2", n = consensus_n_celltypes)
+names(consensus_hex) <- levels(umap_df$consensus_celltype_annotation_lumped)
+
 faceted_umap(
   umap_df,
   consensus_n_celltypes,
   consensus_celltype_annotation_lumped,
-  point_size = umap_facet_point_size
+  point_size = umap_facet_point_size, 
+  palette = consensus_hex
 )
 ```
 
@@ -504,7 +517,7 @@ markers_df <- validation_markers_df |>
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
-celltype_colors <- celltype_colors_df |>
+celltype_colors <- validation_palette_df |>
   tibble::deframe()
 ```
 
