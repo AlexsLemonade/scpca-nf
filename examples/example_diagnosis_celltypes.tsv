@@ -1,0 +1,4 @@
+diagnosis_group	celltype_groups
+Brain and CNS	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Neuroblastoma	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast
+Sarcoma	B cell,dendritic cell,innate lymphoid cell,macrophage,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
