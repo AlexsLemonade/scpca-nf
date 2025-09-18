@@ -153,10 +153,16 @@ total_cnv_filtered_df <- total_cnv_df |>
   # rename for convenience
   dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
 
-new_labels_df <- forcats::fct_count(total_cnv_filtered_df$celltype_lumped)
+# get a vector of labels with cell counts in order of total cells
+new_labels_df <- forcats::fct_count(total_cnv_df$celltype_lumped)
 new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
-total_cnv_filtered_df$celltype_lumped <- factor(total_cnv_filtered_df$celltype_lumped, labels = new_labels)
-total_cnv_filtered_df$celltype_lumped <- forcats::fct_rev(total_cnv_filtered_df$celltype_lumped) # reverse for display in ridge plot
+
+# set ordering for labels in total cnv dataframe for plotting
+total_cnv_df <- total_cnv_df |> 
+  dplyr::mutate(
+    celltype_lumped = factor(total_cnv_df$celltype_lumped, labels = new_labels) |>
+    forcats::fct_rev() # reverse for display in ridge plot
+)
 
 # first plot: across cell type groups
 cell_group_plot <- ggplot(total_cnv_df) +
