@@ -48,9 +48,9 @@ process add_infercnv_to_sce {
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file)
+    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file), path(infercnv_heatmap_file)
   output:
-    tuple val(meta), path(infercnv_sce)
+    tuple val(meta), path(infercnv_sce), path(infercnv_heatmap_file)
   script:
     // call this sce to avoid confusing it with the infercnv rds results file
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
@@ -73,6 +73,8 @@ process add_infercnv_to_sce {
 workflow call_cnvs {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
+    def empty_file = "${projectDir}/assets/NO_FILE"
+
     // read in sample metadata and make a list of cell line samples; we won't run inferCNV on these
     cell_line_samples = Channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
@@ -147,28 +149,39 @@ workflow call_cnvs {
         )
       }
       .mix(run_infercnv.out)
-      // drop the heatmap file
-      .map{it.dropRight(1)}
+
 
     // add inferCNV results to the SCE object
-    // returns [ unique id, meta, processed sce ]
+    // returns [ meta, processed sce, infercnv_heatmap_file ]
+    // note we keep the heatmap file to eventually stage for QC report
     add_infercnv_to_sce(add_infercnv_results_ch)
 
+
     export_channel = add_infercnv_to_sce.out
-      .map{ meta, processed_sce -> [ meta["unique_id"], meta, processed_sce ] }
-      // add in unfiltered and filtered sce files, for eligible samples only
+      .map{ meta, processed_sce, infercnv_heatmap_file -> [ meta["unique_id"], meta, processed_sce, infercnv_heatmap_file ] }
+      // add in unfiltered and filtered sce files, for tissue samples only
       .join(
         sce_files_channel_branched.tissue.map{ meta, unfiltered, filtered, _processed ->
           [ meta["unique_id"], unfiltered, filtered ]
         },
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
-      // rearrange back to [meta, unfiltered, filtered, processed]
-      .map{_unique_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
-        [meta, unfiltered_sce, filtered_sce, processed_sce]
+      // rearrange back to [meta, unfiltered, filtered, processed, infercnv_heatmap_file]
+      .map{_unique_id, meta, processed_sce, infercnv_heatmap_file, unfiltered_sce, filtered_sce ->
+        [meta, unfiltered_sce, filtered_sce, processed_sce, infercnv_heatmap_file]
       }
-      // mix in libraries which we did not run inferCNV on
-      .mix(sce_files_channel_branched.cell_line)
+      // mix in cell line libraries which we did not run inferCNV on
+      .mix(
+        // add in an empty file for heatmap placeholder first
+        sce_files_channel_branched.cell_line
+          .map{ meta, unfiltered_sce, filtered_sce, processed_sce -> tuple(
+            meta,
+            unfiltered_sce,
+            filtered_sce,
+            processed_sce,
+            empty_file)
+          }
+      )
 
     emit: export_channel
 
