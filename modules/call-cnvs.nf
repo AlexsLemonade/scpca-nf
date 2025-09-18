@@ -90,7 +90,7 @@ workflow call_cnvs {
 
     // create input for infercnv: [augmented meta, processed_sce, gene order file]
     infercnv_prepared_ch = sce_files_channel_branched.tissue
-      .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce ->
+      .map{ meta_in, _unfiltered_sce, _filtered_sce, processed_sce ->
         def meta = meta_in.clone(); // local copy for safe modification
         // define infercnv checkpoint files
         meta.infercnv_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
@@ -128,7 +128,7 @@ workflow call_cnvs {
 
     // prepare to add results for all eligible libraries: [meta, processed sce, results file]
     add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
-      .map{ meta, processed_sce, gene_order_file ->
+      .map{ meta, processed_sce, _gene_order_file ->
         def infercnv_results = file(meta.infercnv_results_file)
         def infercnv_table   = file(meta.infercnv_table_file)
         def infercnv_heatmap = file(meta.infercnv_heatmap_file)
