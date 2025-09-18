@@ -123,8 +123,11 @@ scater::plotUMAP(
 ## Total CNV distributions
 
 This section displays the distributions of total CNVs across cell types.
+
 The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
+
 The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
+Note that any cell types with fewer than 3 cells are not shown in this plot; if one of the most common cell types had fewer than 3 cells, the colors in this plot may differ from those shown in the cell type annotation QC report section.
 
 ```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # Prepare data frames for plotting
@@ -138,9 +141,8 @@ total_cnv_df <- scuttle::makePerCellDF(
   dplyr::mutate(
     is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
     is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n})")
-  )
-
-total_cnv_filtered_df <- total_cnv_df |>
+  ) |>
+  dplyr::select(-n) |>
   # rename for consistency with cell type report section
   dplyr::mutate(
     consensus_celltype_annotation = ifelse(
@@ -148,19 +150,34 @@ total_cnv_filtered_df <- total_cnv_df |>
       "Unknown cell type",
       consensus_celltype_annotation
     )
-  ) |>
+  ) 
+
+# this data frame version is used for the plot across celltypes
+total_cnv_lumped_df <- total_cnv_df |>
+  # keep only cell types with at least 3 cells
+  dplyr::add_count(consensus_celltype_annotation) |>
+  dplyr::filter(n >= 3) |>
+  dplyr::select(-n) |>
   lump_wrap_celltypes() |>
   # rename for convenience
   dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
 
-# get a vector of labels with cell counts in order of total cells
-new_labels_df <- forcats::fct_count(total_cnv_df$celltype_lumped)
-new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
+# join in consensus colors which were defined in the celltypes_qc.rmd child report, 
+# but do separately to preserve factor order out of lump_wrap_celltypes()
+hex_df <- data.frame(consensus_hex) |>
+  tibble::rownames_to_column("celltype_lumped") |>
+  dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
+hex_df$celltype_lumped <- factor(hex_df$celltype_lumped, levels = levels(total_cnv_lumped_df$celltype_lumped))
 
-# set ordering for labels in total cnv dataframe for plotting
-total_cnv_df <- total_cnv_df |>
+total_cnv_lumped_df <- total_cnv_lumped_df |>
+  dplyr::inner_join(hex_df, by = "celltype_lumped")
+
+# set total_cnv_lumped_df$celltype_lumped levels for plotting
+new_labels_df <- forcats::fct_count(total_cnv_lumped_df$celltype_lumped)
+new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
+total_cnv_lumped_df <- total_cnv_lumped_df |>
   dplyr::mutate(
-    celltype_lumped = factor(total_cnv_df$celltype_lumped, labels = new_labels) |>
+    celltype_lumped = factor(celltype_lumped, labels = new_labels) |>
       forcats::fct_rev() # reverse for display in ridge plot
   )
 
@@ -175,11 +192,13 @@ cell_group_plot <- ggplot(total_cnv_df) +
   ) +
   theme(legend.position = "none")
 
+
+
 # second plot: across cell types
-cell_type_plot <- ggplot(total_cnv_filtered_df) +
-  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = celltype_lumped) +
+cell_type_plot <- ggplot(total_cnv_lumped_df) +
+  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = consensus_hex) +
   ggridges::geom_density_ridges2(scale = 0.9) +
-  scale_fill_brewer(palette = "Dark2", direction = -1) +
+  scale_fill_identity() +
   labs(
     x = "Total CNV events per cell",
     y = "Consensus cell type",
