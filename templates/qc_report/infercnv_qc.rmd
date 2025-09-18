@@ -101,7 +101,7 @@ knitr::include_graphics(params$infercnv_heatmap_file)
 This section displays the library UMAP colored by the total per-cell CNV as estimated by `inferCNV`.
 This total CNV value was calculated by summing across all CNV events inferred within each cell.
 
-```{r message=FALSE, warning=FALSE}
+```{r eval = has_umap, message=FALSE, warning=FALSE}
 # create UMAP colored by infercnv_total_cnv
 scater::plotUMAP(
   processed_sce,
