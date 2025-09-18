@@ -406,8 +406,7 @@ workflow {
       unfiltered,
       filtered,
       processed,
-      file(meta.infercnv_heatmap_file, checkIfExists: true)
-      //file(meta.infercnv_heatmap_file ?: empty_file)
+      file(meta.infercnv_heatmap_file ?: empty_file)
     )}
 
 
