@@ -23,6 +23,7 @@
   - [Repeating cell type annotation](#repeating-cell-type-annotation)
   - [Providing existing cell type labels](#providing-existing-cell-type-labels)
 - [CNV inference](#cnv-inference)
+  - [Prepare the diagnosis metadata files](#prepare-the-diagnosis-metadata-files)
 - [Output files](#output-files)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
@@ -484,6 +485,38 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 
+### Prepare the diagnosis metadata files
+
+`scpca-nf` uses the consensus cell type labels derived from `SingleR` and `CellAssign` annotations to create the set of normal reference cells.
+The specific consensus cell types to use are determined by the sample's diagnosis.
+
+To manage many diagnoses and consensus cell types, the Data Lab has organized [individual sample diagnoses into broad diagnosis groups](references/broad-diagnosis-map.tsv), and similarly [consensus cell types into validation groups](references/consensus-validation-groups.tsv).
+
+`scpca-nf` uses these grouping to specify the normal reference cell types as follows:
+
+1. Given a sample's diagnosis, identify the corresponding broad diagnosis
+    * This step utilizes the provided `params.diagnosis_groups_file` TSV
+2. Identify the consensus cell type validation groups that are expected to be normal cells in samples of that diagnosis
+    * This step utilizes the provided `params.diagnosis_celltypes_file` TSV
+3. Identify the individual consensus cell types that comprise those validation groups
+
+To support the first two steps of this procedure, you will need to provide two metadata TSV files:
+
+* [The diagnosis groups metadata file](#diagnosis-groups-metadata-file), which maps individual sample diagnoses to broad diagnosis groups
+* [The diagnosis cell types metadata file](#diagnosis-cell-types-metadata-file), maps broad diagnosis groups to consensus cell type validation groups
+
+The Data Lab has prepared these metadata files for all sample diagnoses present in the ScPCA Portal, which `scpca-nf` uses by default:
+
+* The diagnosis groups metadata file is provided in [`references/broad-diagnosis-map.tsv`](references/broad-diagnosis-map.tsv)
+  * Broad diagnoses are listed in the `diagnosis_group` column, and sample-level diagnoses are listed in the `submitted_diagnosis` column
+* The diagnosis cell types metadata file is provided in [`references/diagnosis-celltype-groups.tsv`](references/diagnosis-celltype-groups.tsv)
+  * Broad diagnoses are listed in the `diagnosis_group` column, and consensus cell type validation groups are listed in the listed in the `celltype_groups` column
+
+You can inspect these files to determine if your sample's diagnosis is already present in the `submitted_diagnosis` column of the diagnosis groups metadata file.
+If your sample's diagnosis is present, you do not have to prepare your own metadata files; you can let `scpca-nf` make use of these existing metadata files.
+
+If your sample's diagnosis is not present, or if you wish to specify different consensus cell type validation groups to use in the normal reference, you can instead create your own metadata files.
+Instructions for creating these files are below.
 
 
 
