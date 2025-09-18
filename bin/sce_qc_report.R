@@ -324,6 +324,12 @@ if (has_infercnv) {
     "inferCNV was specified to run but the heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
     "inferCNV was specified to run but infercnv_min_reference_cells parameter value was not provided" = !is.null(opt$infercnv_min_reference_cells)
   )
+
+  # move the heatmap file into the report directory so the report can find it
+  fs::file_move(
+    opt$infercnv_heatmap_file,
+    dirname(opt$report_template)
+  )
 }
 
 # render main QC report
