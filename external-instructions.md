@@ -22,6 +22,7 @@
   - [Preparing the project cell type metadata file](#preparing-the-project-cell-type-metadata-file)
   - [Repeating cell type annotation](#repeating-cell-type-annotation)
   - [Providing existing cell type labels](#providing-existing-cell-type-labels)
+- [CNV inference](#cnv-inference)
 - [Output files](#output-files)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
@@ -379,9 +380,9 @@ If you wish to use your own cell type reference rather than one of those we have
 #### `SingleR` references
 
 The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
-In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model. 
+In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model.
 The chosen gene set should correspond to the original reference genome used for mapping (indicated in the `sample_reference` column of the [run metadata file](#prepare-the-run-metadata-file)).
-For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`). 
+For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`).
 
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
@@ -453,6 +454,47 @@ The cell type label file is a TSV file with the following required columns:
 | `cell_type_assignment` | The annotation label for that cell                  |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
+
+
+## CNV inference
+
+`scpca-nf` currently performs copy-number variation (CNV) inference using [`inferCNV`](https://github.com/broadinstitute/infercnv).
+
+By default, CNV inference is not performed.
+As part of its algorithm, `inferCNV` uses a set of normal reference cells to quantify CNV events across all provided cells.
+`scpca-nf` uses results from its cell type annotation module to create this normal reference.
+As such, to perform CNV inference, you must also [perform cell type annotation, as described above](#cell-type-annotation).
+Note that if CNV inference is turned on, cell type annotation will automatically be turned on as well.
+
+You can turn on CNV inference by taking the following steps:
+
+1. Ensure your [prepared sample metadata file](#prepare-the-sample-metadata-file) contains a `diagnosis` column.
+   This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference.
+2. [Determine which cell types](#determining-normal-reference-cell-types) should be used for the `inferCNV` normal reference.
+3. [Prepare the diagnosis metadata files](#preparing-diagnosis-metadata-files) which the workflow will use to create the normal cell type reference.Using the information from the previous steps,
+   You will need to provide the path/uri to this files as a workflow parameters, which you will need to define in your configuration file.
+   For more information on adding parameters to your configuration file, see [Configuring scpca-nf for your environment](#configuring-scpca-nf-for-your-environment).
+4. Run the workflow with the `--perform_cnv_inference` flag.
+
+Once you have followed both the above steps and the [steps to prepare for cell type annotation](#cell-type-annotation) and you have added the path/uri to the diagnosis metadata files to your configuration file, you can use the following command to run the workflow with CNV inference:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_cnv_inference
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Output files
 
@@ -614,10 +656,10 @@ Other columns may be included for reference (such as the `feature_barcode_file` 
 
 We have provided an example multiplex pool file for reference that can be found in [`examples/example_multiplex_pools.tsv`](examples/example_multiplex_pools.tsv).
 
-### 10x Flex gene expression libraries 
+### 10x Flex gene expression libraries
 
-Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`. 
-*Note:* Currently only libraries processed using the v1.1.0 probe set are supported. 
+Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`.
+*Note:* Currently only libraries processed using the v1.1.0 probe set are supported.
 
 You will need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Cell Ranger software from 10X Genomics](https://www.10xgenomics.com/support/software/cell-ranger/downloads).
 For licensing reasons, we cannot provide a Docker container with Cell Ranger for you.
@@ -626,8 +668,8 @@ After building the docker image, you will need to push it to a [private docker r
 
 There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`.
 
-If the libraries are multiplexed, the appropriate `technology` term, `10Xflex_v1.1_multi`, will need to be indicated in the `run_metadata.tsv` file and an additional TSV file, `cellhash_pool_file`, must be provided. 
-When processing multiplexed libraries, demultiplexing will be performed by `cellranger multi`, so the quantified gene expression data for each sample will be output separately.  
+If the libraries are multiplexed, the appropriate `technology` term, `10Xflex_v1.1_multi`, will need to be indicated in the `run_metadata.tsv` file and an additional TSV file, `cellhash_pool_file`, must be provided.
+When processing multiplexed libraries, demultiplexing will be performed by `cellranger multi`, so the quantified gene expression data for each sample will be output separately.
 
 The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed that contain multiplexing.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
