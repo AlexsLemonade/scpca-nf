@@ -10,9 +10,9 @@ process cellranger_flex_single {
   input:
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
   output:
-    tuple val(meta), 
-      path("${out_id}/outs/multi", type: 'dir'), 
-      path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
+    tuple val(meta),
+      path("${out_id}/outs/multi", type: 'dir'),
+      path("${out_id}/outs/per_sample_outs/*", type: 'dir'),
       path("${out_id}/_versions"),
       path("${out_id}/outs/config.csv")
   script:
@@ -20,7 +20,7 @@ process cellranger_flex_single {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
-  
+
     # create config file
     create_cellranger_config.py \
       --config flex_config.csv \
@@ -35,7 +35,7 @@ process cellranger_flex_single {
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()}
 
-    # write metadata and add cellranger version 
+    # write metadata and add cellranger version
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
     # remove Cell Ranger intermediates directory
@@ -65,9 +65,9 @@ process cellranger_flex_multi {
     tuple val(meta), path(fastq_dir), path(cellranger_index), path(flex_probeset)
     path multiplex_pools_file
   output:
-    tuple val(meta), 
-      path("${out_id}/outs/multi", type: 'dir'), 
-      path("${out_id}/outs/per_sample_outs/*", type: 'dir'), 
+    tuple val(meta),
+      path("${out_id}/outs/multi", type: 'dir'),
+      path("${out_id}/outs/per_sample_outs/*", type: 'dir'),
       path("${out_id}/_versions"),
       path("${out_id}/outs/config.csv")
   script:
@@ -75,7 +75,7 @@ process cellranger_flex_multi {
     meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
-  
+
     # create config file
     create_cellranger_config.py \
       --config flex_config.csv \
@@ -119,7 +119,7 @@ process cellranger_flex_multi {
 
 
 workflow flex_quant{
-  take: 
+  take:
     flex_channel // a channel with a map of metadata for each flex library to process
     flex_probesets // map of probe set files for each technology
     pool_file // path to file with barcode IDs for each sample when using multiplexed 10x flex
@@ -135,7 +135,7 @@ workflow flex_quant{
         meta // return modified meta object
       }
       .branch{
-        // branch based on if cellranger results exist or repeat mapping is used 
+        // branch based on if cellranger results exist or repeat mapping is used
         make_cellranger_flex: (
           // input files exist
           it.files_directory && file(it.files_directory, type: 'dir').exists() && (
@@ -158,16 +158,16 @@ workflow flex_quant{
     // this channel only has libraries that need to be processed through cellranger
     flex_reads = flex_channel.make_cellranger_flex
       .map{ meta -> tuple(
-        meta, 
+        meta,
         file(meta.files_directory, type: 'dir', checkIfExists: true),
         file(meta.cellranger_index, type: 'dir', checkIfExists: true),
         file(meta.flex_probeset, type: 'file', checkIfExists: true)
       )}
-      .branch{ it -> 
+      .branch{ it ->
         single: it[0]["technology"].contains("single")
         multi: it[0]["technology"].contains("multi")
       }
-    
+
     // run cellranger flex single
     cellranger_flex_single(flex_reads.single)
 
@@ -178,21 +178,21 @@ workflow flex_quant{
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
       .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions, config]
-      .map{ meta, multi_out, per_sample_out, versions, config ->
+      .map{ meta, _multi_out, per_sample_out, versions, _config ->
         def updated_meta = meta.clone(); // clone meta before replacing sample ID
         def sample_id = per_sample_out.name; // name of individual output directory is sample id
-        // check that name of out directory is in expected sample IDs 
+        // check that name of out directory is in expected sample IDs
         def expected_sample_ids = meta.sample_id.split(",")
         if(!(sample_id in expected_sample_ids)) {
             log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
-        // update sample ID 
+        // update sample ID
         updated_meta.sample_id = sample_id;
         // [meta, raw output dir, versions file, metrics file]
         return [
-          updated_meta, 
-          file("${per_sample_out}/count/sample_raw_feature_bc_matrix", type: 'dir'), 
+          updated_meta,
+          file("${per_sample_out}/count/sample_raw_feature_bc_matrix", type: 'dir'),
           versions,
           file("${per_sample_out}/metrics_summary.csv")
           ]
@@ -201,19 +201,19 @@ workflow flex_quant{
     // combine single and multi outputs
     // for singleplexed data, the raw output is in the multi folder
     cellranger_flex_ch = cellranger_flex_single.out
-      // get path to raw output directory for singleplexed 
-      .map{ meta, multi_out, per_sample_out, versions, config -> tuple(
-        meta, 
+      // get path to raw output directory for singleplexed
+      .map{ meta, multi_out, per_sample_out, versions, _config -> tuple(
+        meta,
         file("${multi_out}/count/raw_feature_bc_matrix", type: 'dir'),
         versions,
         file("${per_sample_out}/${meta.library_id}/metrics_summary.csv")
       )}
     .mix(cellranger_flex_multi_flat_ch)
 
-    // make sure the libraries that we are skipping processing on have the correct channel format 
+    // make sure the libraries that we are skipping processing on have the correct channel format
     // path to the raw output is dependent on single or multiplexed so split up skipped libraries based on technology
     // transpose to have one sample ID for each row
-    // use existing meta to define the output directory for each sample in the library 
+    // use existing meta to define the output directory for each sample in the library
     has_flex_ch = flex_channel.has_cellranger_flex
       // [tuple(sample_ids), meta]
       .map{ meta -> tuple(
