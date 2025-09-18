@@ -555,7 +555,7 @@ In this file, there should be only one row per `diagnosis_group`.
 The `celltype_groups` column should be provided as a comma-separated list without spaces.
 You can find the possible values to include in this column from the reference file [`references/consensus-validation-groups.tsv`](references/consensus-validation-groups.tsv).
 This file maps individual consensus cell types (column `consensus_annotation`) to validation groups (column `validation_group_annotation`).
-Values from the `validation_group_annotation` column should be used to populate the `celltype_groups` column in your diagnosis celltypes metadata file.
+Values from the `validation_group_annotation` column should be used to populate the `celltype_groups` column in your diagnosis cell types metadata file.
 
 
 We have provided an example diagnosis cell type metadata file for reference.
