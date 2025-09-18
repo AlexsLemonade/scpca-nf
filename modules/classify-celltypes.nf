@@ -233,7 +233,7 @@ workflow annotate_celltypes {
     // singleR output channel: [unique id, singler_results]
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
-      .map{ meta, processed_sce, singler_model -> tuple(
+      .map{ meta, _processed_sce, _singler_model -> tuple(
         meta.unique_id,
         file(meta.singler_dir, type: 'dir', checkIfExists: true)
       )}
@@ -264,7 +264,7 @@ workflow annotate_celltypes {
     // cellassign output channel: [unique id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
       // provide existing cellassign predictions dir for those we skipped
-      .map{ meta, processed_sce, cellassign_ref -> tuple(
+      .map{ meta, _processed_sce, _cellassign_ref -> tuple(
         meta.unique_id,
         file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
       )}

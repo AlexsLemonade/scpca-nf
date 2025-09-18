@@ -39,13 +39,8 @@ def check_parameters() {
     param_error = true
   }
 
-  perform_celltyping = params.perform_celltyping // create separate variable to use instead
   // CNV inference checks
   if (params.perform_cnv_inference) {
-    if (!perform_celltyping) {
-      log.warn("To call CNVs, cell typing must be performed as well. Setting `--perform_celltyping` to true")
-      perform_celltyping = true
-    }
     if (!file(params.diagnosis_groups_file).exists()) {
       log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
       param_error = true
@@ -57,7 +52,7 @@ def check_parameters() {
   }
 
   // cell type annotation file checks
-  if (perform_celltyping) {
+  if (params.perform_celltyping || params.perform_cnv_inference) {
     if (!file(params.project_celltype_metafile).exists()) {
       log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
       param_error = true
@@ -97,6 +92,11 @@ workflow {
 
   // check parameters before starting workflow
   check_parameters()
+  def perform_celltyping = params.perform_celltyping // create separate variable to use instead
+  if (params.perform_cnv_inference && !perform_celltyping) {
+    log.info("To call CNVs, cell typing must be performed as well. Setting `--perform_celltyping` to true")
+    perform_celltyping = true
+  }
 
   /// Define setup variables
   // 10X barcode files
