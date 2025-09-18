@@ -43,7 +43,7 @@ create_celltype_n_table <- function(df, celltype_column) {
 faceted_umap <- function(umap_df,
                          n_celltypes,
                          annotation_column,
-                         point_size = 1, 
+                         point_size = 1,
                          palette = NULL) {
   # Determine legend y-coordinate based on n_celltypes
   if (n_celltypes %in% 7:8) {
@@ -86,16 +86,16 @@ faceted_umap <- function(umap_df,
         )
       )
     )
-  
+
   # Add colors from palette if provided
   if (!is.null(palette)) {
-   faceted_umap <- faceted_umap +
-     scale_color_manual(values = palette)
+    faceted_umap <- faceted_umap +
+      scale_color_manual(values = palette)
   } else {
-   faceted_umap <- faceted_umap +
-     scale_color_brewer(palette = "Dark2")
+    faceted_umap <- faceted_umap +
+      scale_color_brewer(palette = "Dark2")
   }
-  
+
   # Determine legend placement based on total_celltypes
   if (n_celltypes == 1) {
     # If n=1, we do not need to a show a legend, and title should be smaller
@@ -432,7 +432,7 @@ faceted_umap(
   umap_df,
   consensus_n_celltypes,
   consensus_celltype_annotation_lumped,
-  point_size = umap_facet_point_size, 
+  point_size = umap_facet_point_size,
   palette = consensus_hex
 )
 ```
