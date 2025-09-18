@@ -24,6 +24,8 @@
   - [Providing existing cell type labels](#providing-existing-cell-type-labels)
 - [CNV inference](#cnv-inference)
   - [Prepare the diagnosis metadata files](#prepare-the-diagnosis-metadata-files)
+    - [Creating the diagnosis groups metadata file](#creating-the-diagnosis-groups-metadata-file)
+    - [Creating the diagnosis cell types metadata file](#creating-the-diagnosis-cell-types-metadata-file)
 - [Output files](#output-files)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
@@ -518,7 +520,47 @@ If your sample's diagnosis is present, you do not have to prepare your own metad
 If your sample's diagnosis is not present, or if you wish to specify different consensus cell type validation groups to use in the normal reference, you can instead create your own metadata files.
 Instructions for creating these files are below.
 
+#### Creating the diagnosis groups metadata file
 
+This path/uri to this file should be specified using the workflow parameter `diagnosis_groups_file`.
+This file should contain these two columns with the following information:
+
+| column_id             | contents |
+| --------------------- | -------- |
+| `diagnosis_group`    | Broad diagnosis group |
+| `submitted_diagnosis` | A sample-level diagnosis provided in the [sample metadata file](#prepare-the-sample-metadata-file) |
+
+Please ensure there is only one submitted diagnosis per row; you can add additional rows if/when multiple `submitted_diagnosis` values correspond to the same `diagnosis_group`
+
+We have provided an example diagnosis group metadata file for reference.
+
+| [View example `diagnosis_groups.tsv` file](examples/example_diagnosis_groups.tsv) |
+| --------------------------------------------------------------------------------------------------- |
+
+
+#### Creating the diagnosis cell types metadata file
+
+This path/uri to this file should be specified using the workflow parameter `diagnosis_celltypes_file`.
+This file should contain these two columns with the following information:
+
+|  |   |
+| --- | --- |
+| `diagnosis_group` | Broad diagnosis group. This should have a corresponding value in the diagnosis group metadata file |
+| `celltype_groups` | Consensus cell type validation groups to include in an `inferCNV` normal reference for samples of the given broad diagnosis group  |
+
+
+In this file, there should be only one row per `diagnosis_group`.
+
+The `celltype_groups` column should be provided as a comma-separated list without spaces.
+You can find the possible values to include in this column from the reference file [`references/consensus-validation-groups.tsv`](references/consensus-validation-groups.tsv).
+This file maps individual consensus cell types (column `consensus_annotation`) to validation groups (column `validation_group_annotation`).
+Values from the `validation_group_annotation` column should be used to populate the `celltype_groups` column in your diagnosis celltypes metadata file.
+
+
+We have provided an example diagnosis cell type metadata file for reference.
+
+| [View example `diagnosis_celltypes.tsv` file](examples/example_diagnosis_celltypes.tsv) |
+| --------------------------------------------------------------------------------------------------- |
 
 
 
