@@ -44,9 +44,6 @@ process qc_publish_sce {
     has_celltypes = perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
     celltype_report = "${file_prefix}_celltype-report.html" // rendered HTML
 
-    // check for inferCNV
-    has_infercnv = params.perform_cnv_inference
-
     """
     # move files for output
     if [ "${unfiltered_rds}" != "${unfiltered_out}" ]; then
