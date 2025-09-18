@@ -150,7 +150,7 @@ total_cnv_df <- scuttle::makePerCellDF(
       "Unknown cell type",
       consensus_celltype_annotation
     )
-  ) 
+  )
 
 # this data frame version is used for the plot across celltypes
 total_cnv_lumped_df <- total_cnv_df |>
@@ -162,7 +162,7 @@ total_cnv_lumped_df <- total_cnv_df |>
   # rename for convenience
   dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
 
-# join in consensus colors which were defined in the celltypes_qc.rmd child report, 
+# join in consensus colors which were defined in the celltypes_qc.rmd child report,
 # but do separately to preserve factor order out of lump_wrap_celltypes()
 hex_df <- data.frame(consensus_hex) |>
   tibble::rownames_to_column("celltype_lumped") |>
