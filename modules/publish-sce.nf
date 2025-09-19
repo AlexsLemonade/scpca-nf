@@ -1,5 +1,5 @@
 
-// generate QC report from SCE files
+// generate QC report from SCE files and publish SCE files and JSONs
 
 
 process qc_publish_sce {
@@ -8,7 +8,7 @@ process qc_publish_sce {
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file)
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file) // path(infercnv_heatmap_file, stageAs: "infercnv_heatmap.png")
     tuple path(template_dir), val(qc_template_file), val(celltype_template_file)
     val(perform_celltyping)
     path(validation_groups_file)
@@ -28,6 +28,13 @@ process qc_publish_sce {
       file_prefix = "${meta.library_id}-${meta.sample_id}"
     } else {
       file_prefix = "${meta.library_id}"
+    }
+
+    // determine if we have a usable heatmap file
+    if (infercnv_heatmap_file.isDirectory() || infercnv_heatmap_file.size() == 0) {
+      has_infercnv = false
+    } else {
+      has_infercnv = true
     }
 
     // names for final output files
@@ -56,13 +63,14 @@ process qc_publish_sce {
         mv "${processed_rds}" "${processed_out}"
     fi
 
+
     # generate report and supplemental cell type report, if applicable
     sce_qc_report.R \
       --report_template "${template_dir / qc_template_file}" \
       --validation_groups_file ${validation_groups_file} \
       --validation_markers_file ${validation_markers_file} \
       --validation_palette_file ${validation_palette_file} \
-      --infercnv_heatmap_file ${infercnv_heatmap_file} \
+      ${has_infercnv ? "--infercnv_heatmap_file ${infercnv_heatmap_file}" : ""} \
       --library_id "${meta.library_id}" \
       --sample_id "${meta.sample_id}" \
       --project_id "${meta.project_id}" \
