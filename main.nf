@@ -377,30 +377,23 @@ workflow {
   // Cluster SCE
   cluster_sce(post_process_ch.continue_processing)
 
- // Perform celltyping and call CNVs, if specified
-  if (perform_celltyping) { // use perform_celltyping, not params.perform_celltyping
+
+  // Perform celltyping if specified
+  if (perform_celltyping) {
     annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
-    if (params.perform_cnv_inference) {
-     cnv_celltype_ch = call_cnvs(annotated_celltype_ch)
-    }
   } else {
     annotated_celltype_ch = cluster_sce.out
   }
 
-
-  // If CNV inference not requested, make sure there's an empty heatmap placeholder
-  if (!params.perform_cnv_inference) {
-    cnv_celltype_ch = annotated_celltype_ch
-      .map{ meta, unfiltered, filtered, processed -> tuple(
-        meta,
-        unfiltered,
-        filtered,
-        processed,
-        empty_file)
-    }
+  // Perform CNV inference if specified
+  if (params.perform_cnv_inference) {
+    cnv_celltype_ch = call_cnvs(annotated_celltype_ch)
+  } else {
+    cnv_celltype_ch = annotated_celltype_ch.map{
+        meta, unfiltered, filtered, processed ->
+          tuple(meta, unfiltered, filtered, processed, []) // heatmap placeholder
+       }
   }
-
-  cnv_celltype_ch.view()
 
   // first mix any skipped libraries from both rna and feature libs
   no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing, flex_sce_ch.skip_processing)
@@ -410,18 +403,18 @@ workflow {
       unfiltered,
       filtered,
       empty_file,
-      [] // infercnv heatmap empty file placeholder, but don't repeat empty_file
+      []
     )}
 
   // combine back with libraries that skipped filtering and post processing
   sce_output_ch = post_process_ch.skip_processing
     .map{ meta, unfiltered, filtered, processed -> tuple(
-        meta,
-        unfiltered_sce,
-        filtered_sce,
-        processed_sce,
-        empty_file)
-    }
+      meta,
+      unfiltered_sce,
+      filtered_sce,
+      processed_sce,
+      []
+    )}
     .mix(cnv_celltype_ch, no_filtered_ch)
 
   def report_template_tuple = tuple(
