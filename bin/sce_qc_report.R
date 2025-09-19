@@ -325,21 +325,16 @@ if (has_infercnv) {
     "infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells)
   )
 
-  # TODO: THIS IS STILL NOT WORKING BECAUSE IT NEEDS TO BE IN THE SAME
-  # tempdir() AS THE REPORT RENDERS IN
-  # copy heatmap to a location that pandoc can still discover
-  heatmap_path <- file.path(
-    dirname(opt$report_template),
-    basename(opt$infercnv_heatmap_file)
-  )
-  fs::file_copy(opt$infercnv_heatmap_file, heatmap_path)
+  # copy heatmap to a tempdir() which is where the report is rendered from
+  # so that pandoc can discover it
+  fs::file_copy(opt$infercnv_heatmap_file, tempdir())
 } else {
   heatmap_path <- NULL
 }
 
 
 # render main QC report
-generate_qc_report(
+scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
@@ -356,7 +351,7 @@ generate_qc_report(
     validation_palette_df = validation_palette_df,
     # only used if inferCNV was requested
     infercnv_min_reference_cells = opt$infercnv_min_reference_cells,
-    infercnv_heatmap_file = heatmap_path
+    infercnv_heatmap_file = normalizePath(opt$infercnv_heatmap_file) # using absolute path
   )
 )
 
