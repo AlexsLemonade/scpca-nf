@@ -93,5 +93,5 @@ Note that CNV events were detected separately for each chromosome arm, as shown 
 For more information on interpreting this heatmap, please refer to the [`inferCNV` documentation](https://github.com/broadinstitute/inferCNV/wiki/Interpreting-the-figure).
 
 ```{r}
-knitr::include_graphics(params$infercnv_heatmap_file)
+knitr::include_graphics(params$infercnv_heatmap_file, rel_path = FALSE)
 ```

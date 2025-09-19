@@ -324,11 +324,8 @@ if (has_infercnv) {
     "inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
     "infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells)
   )
-
-  # copy heatmap to a tempdir() which is where the report is rendered from
-  # so that pandoc can discover it
-  fs::file_copy(opt$infercnv_heatmap_file, tempdir())
-  heatmap_path <- basename(opt$infercnv_heatmap_file) # MUST use basename
+  # MUST use an absolute path
+  heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
 } else {
   heatmap_path <- NULL
 }
