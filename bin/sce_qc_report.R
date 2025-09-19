@@ -44,8 +44,8 @@ option_list <- list(
   make_option(
     opt_str = c("--infercnv_heatmap_file"),
     type = "character",
-    default = NULL,
-    help = "Path to inferCNV heatmap file"
+    default = "",
+    help = "Path to inferCNV heatmap file, if inferCNV results exist"
   ),
   make_option(
     opt_str = c("-u", "--unfiltered_sce"),
@@ -122,7 +122,7 @@ option_list <- list(
   make_option(
     opt_str = c("--infercnv_min_reference_cells"),
     type = "integer",
-    default = NULL,
+    default = NA_real_,
     help = "Minimum number of normal reference cells required to have run inferCNV"
   ),
   make_option(
@@ -310,30 +310,36 @@ if (has_consensus) {
   # read in validation markers
   validation_markers_df <- readr::read_tsv(opt$validation_markers_file)
   # define color palette
-  celltype_colors_df <- readr::read_tsv(opt$validation_palette_file)
+  validation_palette_df <- readr::read_tsv(opt$validation_palette_file)
 } else {
   validation_groups_df <- NULL
   validation_markers_df <- NULL
-  celltype_colors_df <- NULL
+  validation_palette_df <- NULL
 }
 
 # check for inferCNV input
 has_infercnv <- !is.null(metadata(processed_sce)$infercnv_success)
 if (has_infercnv) {
   stopifnot(
-    "inferCNV was specified to run but the heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
-    "inferCNV was specified to run but infercnv_min_reference_cells parameter value was not provided" = !is.null(opt$infercnv_min_reference_cells)
+    "inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
+    "infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells)
   )
 
-  # move the heatmap file into the report directory so the report can find it
-  fs::file_move(
-    opt$infercnv_heatmap_file,
-    dirname(opt$report_template)
+  # TODO: THIS IS STILL NOT WORKING BECAUSE IT NEEDS TO BE IN THE SAME
+  # tempdir() AS THE REPORT RENDERS IN
+  # copy heatmap to a location that pandoc can still discover
+  heatmap_path <- file.path(
+    dirname(opt$report_template),
+    basename(opt$infercnv_heatmap_file)
   )
+  fs::file_copy(opt$infercnv_heatmap_file, heatmap_path)
+} else {
+  heatmap_path <- NULL
 }
 
+
 # render main QC report
-scpcaTools::generate_qc_report(
+generate_qc_report(
   library_id = metadata_list$library_id,
   unfiltered_sce = unfiltered_sce,
   filtered_sce = filtered_sce,
@@ -347,10 +353,10 @@ scpcaTools::generate_qc_report(
     # only used if consensus cell types exist
     validation_groups_df = validation_groups_df,
     validation_markers_df = validation_markers_df,
-    validation_palette_df = celltype_colors_df,
+    validation_palette_df = validation_palette_df,
     # only used if inferCNV was requested
     infercnv_min_reference_cells = opt$infercnv_min_reference_cells,
-    infercnv_heatmap_file = opt$infercnv_heatmap_file
+    infercnv_heatmap_file = heatmap_path
   )
 )
 
@@ -378,7 +384,7 @@ if (opt$celltype_report_file != "") {
         # only used if consensus cell types exist
         validation_groups_df = validation_groups_df,
         validation_markers_df = validation_markers_df,
-        validation_palette_df = celltype_colors_df
+        validation_palette_df = validation_palette_df
       )
     )
   }

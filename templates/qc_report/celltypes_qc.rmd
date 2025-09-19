@@ -1,7 +1,7 @@
 # Cell type Annotation Summary
 
 <!--
-This file is meant to be run as a child report within either `main_qc_report.rmd` or `celltypes_supplemental_report.rmd`. 
+This file is meant to be run as a child report within either `main_qc_report.rmd` or `celltypes_supplemental_report.rmd`.
 -->
 
 
@@ -540,7 +540,7 @@ markers_df <- validation_markers_df |>
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
-celltype_colors <- celltype_colors_df |>
+celltype_colors <- validation_palette_df |>
   tibble::deframe()
 ```
 
