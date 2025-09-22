@@ -198,7 +198,7 @@ for (annotation in names(annotation_list)) {
 
 # Determine SCE columns to retain  ---------------------------------------------
 
-# Define columns we do not want to include in the merged object
+# Define colData columns we do not want to include in the merged object
 # these apply to both the main and altExps
 exclude_columns <- c(
   "sizeFactor",
@@ -206,7 +206,7 @@ exclude_columns <- c(
 )
 
 # Define colData columns to retain by removing columns to exclude
-retain_coldata_columns <- setdiff(possible_columns, exclude_columns)
+retain_coldata_columns <- setdiff(present_columns, exclude_columns)
 
 # Define altExp columns to retain/preserve, currently only for "adt"
 adt_present_columns <- sce_list |>
