@@ -1,7 +1,7 @@
 # Cell type Annotation Summary
 
 <!--
-This file is meant to be run as a child report within either `main_qc_report.rmd` or `celltypes_supplemental_report.rmd`. 
+This file is meant to be run as a child report within either `main_qc_report.rmd` or `celltypes_supplemental_report.rmd`.
 -->
 
 

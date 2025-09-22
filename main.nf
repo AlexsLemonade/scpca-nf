@@ -377,14 +377,22 @@ workflow {
   // Cluster SCE
   cluster_sce(post_process_ch.continue_processing)
 
- // Perform celltyping and call CNVs, if specified
-  if (perform_celltyping) { // use perform_celltyping, not params.perform_celltyping
+
+  // Perform celltyping if specified
+  if (perform_celltyping) {
     annotated_celltype_ch = annotate_celltypes(cluster_sce.out)
-    if (params.perform_cnv_inference) {
-      annotated_celltype_ch = call_cnvs(annotated_celltype_ch)
-    }
   } else {
     annotated_celltype_ch = cluster_sce.out
+  }
+
+  // Perform CNV inference if specified
+  if (params.perform_cnv_inference) {
+    cnv_celltype_ch = call_cnvs(annotated_celltype_ch)
+  } else {
+    cnv_celltype_ch = annotated_celltype_ch.map{
+        meta, unfiltered, filtered, processed ->
+          tuple(meta, unfiltered, filtered, processed, []) // heatmap placeholder
+       }
   }
 
   // first mix any skipped libraries from both rna and feature libs
@@ -394,22 +402,33 @@ workflow {
       meta,
       unfiltered,
       filtered,
-      empty_file
+      empty_file,
+      []
     )}
 
   // combine back with libraries that skipped filtering and post processing
-  sce_output_ch = annotated_celltype_ch.mix(post_process_ch.skip_processing)
-    .mix(no_filtered_ch)
+  sce_output_ch = post_process_ch.skip_processing
+    .map{ meta, unfiltered, filtered, processed -> tuple(
+      meta,
+      unfiltered,
+      filtered,
+      processed,
+      []
+    )}
+    .mix(cnv_celltype_ch, no_filtered_ch)
 
   def report_template_tuple = tuple(
     file(params.report_template_dir, type: 'dir', checkIfExists: true),
     params.report_template_file,
     params.celltype_report_template_file
   )
+
   // generate QC reports & metrics, then publish sce
   qc_publish_sce(
     sce_output_ch,
     report_template_tuple,
+    // need to pass this in as a value since the param may have been overridden
+    perform_celltyping,
     // paths to files needed to make consensus cell type validation dot plots
     file(params.validation_groups_file),
     file(params.validation_markers_file),

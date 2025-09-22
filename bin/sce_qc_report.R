@@ -42,6 +42,12 @@ option_list <- list(
     help = "Color palette for validation groups"
   ),
   make_option(
+    opt_str = c("--infercnv_heatmap_file"),
+    type = "character",
+    default = "",
+    help = "Path to inferCNV heatmap file, if inferCNV results exist"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     default = "",
     type = "character",
@@ -112,6 +118,12 @@ option_list <- list(
     type = "character",
     default = NA,
     help = "genome assembly used for mapping"
+  ),
+  make_option(
+    opt_str = c("--infercnv_min_reference_cells"),
+    type = "integer",
+    default = NA_integer_,
+    help = "Minimum number of normal reference cells required to have run inferCNV"
   ),
   make_option(
     opt_str = "--workflow_url",
@@ -298,11 +310,24 @@ if (has_consensus) {
   # read in validation markers
   validation_markers_df <- readr::read_tsv(opt$validation_markers_file)
   # define color palette
-  celltype_colors_df <- readr::read_tsv(opt$validation_palette_file)
+  validation_palette_df <- readr::read_tsv(opt$validation_palette_file)
 } else {
   validation_groups_df <- NULL
   validation_markers_df <- NULL
-  celltype_colors_df <- NULL
+  validation_palette_df <- NULL
+}
+
+# check for inferCNV input
+has_infercnv <- !is.null(metadata(processed_sce)$infercnv_success)
+if (has_infercnv) {
+  stopifnot(
+    "inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
+    "infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells)
+  )
+  # MUST use an absolute path for pandoc to find the file in the report
+  heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
+} else {
+  heatmap_path <- NULL
 }
 
 # render main QC report
@@ -320,7 +345,10 @@ scpcaTools::generate_qc_report(
     # only used if consensus cell types exist
     validation_groups_df = validation_groups_df,
     validation_markers_df = validation_markers_df,
-    validation_palette_df = celltype_colors_df
+    validation_palette_df = validation_palette_df,
+    # only used if inferCNV was requested
+    infercnv_min_reference_cells = opt$infercnv_min_reference_cells,
+    infercnv_heatmap_file = heatmap_path
   )
 )
 
@@ -348,7 +376,7 @@ if (opt$celltype_report_file != "") {
         # only used if consensus cell types exist
         validation_groups_df = validation_groups_df,
         validation_markers_df = validation_markers_df,
-        validation_palette_df = celltype_colors_df
+        validation_palette_df = validation_palette_df
       )
     )
   }
