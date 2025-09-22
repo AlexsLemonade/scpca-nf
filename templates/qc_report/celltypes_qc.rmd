@@ -29,42 +29,6 @@ create_celltype_n_table <- function(df, celltype_column) {
     )
 }
 
-#' Function to lump celltype columns in an existing data frame for all of the
-#'  following columns, if they exist: `<singler/cellassign/submitter>_celltype_annotation`.
-#' The cell types will also be renamed via wrapping at the given `wrap` level.
-#'  The resulting lumped column will be named:
-#'  `<singler/cellassign/submitter>_celltype_annotation_lumped`.
-#'
-#'
-#' @param df Data frame to manipulate
-#' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
-#'
-#' @return Updated df with new column of lumped celltypes for each present method
-lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
-  df <- df |>
-    # First, wrap labels
-    dplyr::mutate(
-      across(
-        ends_with("_celltype_annotation"),
-        \(x) stringr::str_wrap(x, wrap)
-      )
-    ) |>
-    # Next, apply factor lumping, but ensure final order is via frequency with the "others" at the end
-    dplyr::mutate(
-      across(
-        ends_with("_celltype_annotation"),
-        \(x) {
-          x |>
-            forcats::fct_lump_n(n_celltypes, other_level = "All remaining cell types", ties.method = "first") |>
-            forcats::fct_infreq() |>
-            forcats::fct_relevel("Unknown cell type", "All remaining cell types", after = Inf)
-        },
-        .names = "{.col}_lumped"
-      )
-    )
-  return(df)
-}
-
 
 #' Create a faceted UMAP panel where each panel has only one cell type colored
 #'
@@ -72,13 +36,15 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
 #' @param n_celltypes The number of cell types (facets) displayed in the plot
 #' @param annotation_column Column containing cell type annotations
 #' @param point_size Point size. Default is 1
+#' @param palette Optionally, a named vector to use as a palette. If not provided, "Dark2" will be used
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
 faceted_umap <- function(umap_df,
                          n_celltypes,
                          annotation_column,
-                         point_size = 1) {
+                         point_size = 1,
+                         palette = NULL) {
   # Determine legend y-coordinate based on n_celltypes
   if (n_celltypes %in% 7:8) {
     legend_y <- 0.33
@@ -106,7 +72,6 @@ faceted_umap <- function(umap_df,
       vars({{ annotation_column }}),
       ncol = 3
     ) +
-    scale_color_brewer(palette = "Dark2") +
     # remove axis numbers and background grid
     scale_x_continuous(labels = NULL, breaks = NULL) +
     scale_y_continuous(labels = NULL, breaks = NULL) +
@@ -121,6 +86,15 @@ faceted_umap <- function(umap_df,
         )
       )
     )
+
+  # Add colors from palette if provided
+  if (!is.null(palette)) {
+    faceted_umap <- faceted_umap +
+      scale_color_manual(values = palette)
+  } else {
+    faceted_umap <- faceted_umap +
+      scale_color_brewer(palette = "Dark2")
+  }
 
   # Determine legend placement based on total_celltypes
   if (n_celltypes == 1) {
@@ -155,8 +129,6 @@ faceted_umap <- function(umap_df,
         aspect.ratio = 1
       )
   }
-
-
 
   return(faceted_umap)
 }
@@ -452,11 +424,16 @@ if (has_consensus & has_umap) {
 
 ```{r, eval=has_consensus && has_umap, message=FALSE, warning=FALSE, fig.width = consensus_dims[1], fig.height = consensus_dims[2], fig.align = "center"}
 # umap for cell assign annotations
+# we define a palette so we can use it (if applicable) in the inferCNV report
+consensus_hex <- RColorBrewer::brewer.pal(name = "Dark2", n = consensus_n_celltypes)
+names(consensus_hex) <- levels(umap_df$consensus_celltype_annotation_lumped)
+
 faceted_umap(
   umap_df,
   consensus_n_celltypes,
   consensus_celltype_annotation_lumped,
-  point_size = umap_facet_point_size
+  point_size = umap_facet_point_size,
+  palette = consensus_hex
 )
 ```
 
@@ -540,7 +517,7 @@ markers_df <- validation_markers_df |>
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
-celltype_colors <- celltype_colors_df |>
+celltype_colors <- validation_palette_df |>
   tibble::deframe()
 ```
 
