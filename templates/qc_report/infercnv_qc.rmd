@@ -127,7 +127,7 @@ This section displays the distributions of total CNVs across cell types.
 The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
 
 The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
-Note that any cell types with fewer than 3 cells are not shown in this plot; if one of the most common cell types had fewer than 3 cells, the colors in this plot may differ from those shown in the cell type annotation QC report section.
+Note that any cell types with fewer than 3 cells are not shown in this plot.
 
 ```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # Prepare data frames for plotting
