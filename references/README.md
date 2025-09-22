@@ -102,7 +102,7 @@ The table includes the following columns:
 
 |  |   |
 | --- | --- |
-| `ontology_id` | Ontology term for submitted diagnosis  |
+| `ontology_id` | [`MONDO`](http://obofoundry.org/ontology/mondo.html) term for submitted diagnosis  |
 | `human_readable_value` | Human readable name for submitted diagnosis ontology term |
 | `submitted_diagnosis` | Submitted diagnosis as recorded in ScPCA objects |
 | `diagnosis_group` | Broad diagnosis group |
