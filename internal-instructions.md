@@ -194,14 +194,23 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow:
+5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow. 
+   They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
+
+   These files are used for cell typing, including assigning consensus cell types. 
+   If new cell typing methods are added or there are changes to references used for cell typing, these files will need to be updated. 
+ 
+   - [`panglao-cell-type-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv)
+   - [`scimilarity-mapped-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-scimilarity/references/scimilarity-mapped-ontologies.tsv)
+   - [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv)
+   - [`consensus-validation-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-validation-groups.tsv)
+   - [`validation-markers.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/validation-markers.tsv)
+ 
+   These files are used for `inferCNV` inference to determine which cell types to include in the normal reference.
+   Additional rows will need to be added to these files if additional diagnoses are added to ScPCA.
 
    - [`broad-diagnosis-map.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv)
    - [`diagnosis-celltype-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv)
-
-   These files are used for `inferCNV` inference to determine which cell types to include in the normal reference.
-   They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
-   Additional rows will need to be added to this file if additional diagnoses are added to ScPCA.
 
 ### Adding additional organisms
 
