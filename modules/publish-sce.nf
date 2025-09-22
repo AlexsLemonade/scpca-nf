@@ -8,7 +8,7 @@ process qc_publish_sce {
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file) // path(infercnv_heatmap_file, stageAs: "infercnv_heatmap.png")
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file)
     tuple path(template_dir), val(qc_template_file), val(celltype_template_file)
     val(perform_celltyping)
     path(validation_groups_file)
@@ -31,11 +31,7 @@ process qc_publish_sce {
     }
 
     // determine if we have a usable heatmap file
-    if (infercnv_heatmap_file.isDirectory() || infercnv_heatmap_file.size() == 0) {
-      has_infercnv = false
-    } else {
-      has_infercnv = true
-    }
+    has_infercnv = infercnv_heatmap_file && infercnv_heatmap_file.isFile() && infercnv_heatmap_file.size() > 0
 
     // names for final output files
     unfiltered_out = "${file_prefix}_unfiltered.rds"
@@ -62,7 +58,6 @@ process qc_publish_sce {
     if [ "${processed_rds}" != "${processed_out}" ]; then
         mv "${processed_rds}" "${processed_out}"
     fi
-
 
     # generate report and supplemental cell type report, if applicable
     sce_qc_report.R \

@@ -122,7 +122,7 @@ option_list <- list(
   make_option(
     opt_str = c("--infercnv_min_reference_cells"),
     type = "integer",
-    default = NA_real_,
+    default = NA_integer_,
     help = "Minimum number of normal reference cells required to have run inferCNV"
   ),
   make_option(

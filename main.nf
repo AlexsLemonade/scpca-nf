@@ -410,9 +410,9 @@ workflow {
   sce_output_ch = post_process_ch.skip_processing
     .map{ meta, unfiltered, filtered, processed -> tuple(
       meta,
-      unfiltered_sce,
-      filtered_sce,
-      processed_sce,
+      unfiltered,
+      filtered,
+      processed,
       []
     )}
     .mix(cnv_celltype_ch, no_filtered_ch)
