@@ -137,14 +137,8 @@ workflow call_cnvs {
         if (!infercnv_results.exists()) infercnv_results.text = ''
         if (!infercnv_table.exists())   infercnv_table.text = ''
         if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
-        // return tuple
-        tuple(
-          meta,
-          processed_sce,
-          infercnv_results,
-          infercnv_table,
-          infercnv_heatmap
-        )
+        // return simplified input with gene order file
+        [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
       }
       .mix(run_infercnv.out)
 
@@ -156,11 +150,13 @@ workflow call_cnvs {
 
 
     export_channel = add_infercnv_to_sce.out
-      .map{ meta, processed_sce, infercnv_heatmap_file -> [ meta["unique_id"], meta, processed_sce, infercnv_heatmap_file ] }
+      .map{ meta, processed_sce, infercnv_heatmap_file ->
+        [meta["unique_id"], meta, processed_sce, infercnv_heatmap_file]
+      }
       // add in unfiltered and filtered sce files, for tissue samples only
       .join(
         sce_files_channel_branched.tissue.map{ meta, unfiltered, filtered, _processed ->
-          [ meta["unique_id"], unfiltered, filtered ]
+          [meta["unique_id"], unfiltered, filtered]
         },
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
@@ -172,12 +168,8 @@ workflow call_cnvs {
       .mix(
         // add in an empty file for heatmap placeholder first
         sce_files_channel_branched.cell_line
-          .map{ meta, unfiltered_sce, filtered_sce, processed_sce -> tuple(
-            meta,
-            unfiltered_sce,
-            filtered_sce,
-            processed_sce,
-            [])
+          .map{ meta, unfiltered_sce, filtered_sce, processed_sce ->
+            [meta, unfiltered_sce, filtered_sce, processed_sce, []]
           }
       )
 
