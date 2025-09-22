@@ -95,3 +95,117 @@ For more information on interpreting this heatmap, please refer to the [`inferCN
 ```{r}
 knitr::include_graphics(params$infercnv_heatmap_file, rel_path = FALSE)
 ```
+
+## UMAP colored by total CNV
+
+This section displays the library UMAP colored by the total per-cell CNV as estimated by `inferCNV`.
+This total CNV value was calculated by summing across all CNV events inferred within each cell.
+
+```{r eval = has_umap, message=FALSE, warning=FALSE}
+# create UMAP colored by infercnv_total_cnv
+scater::plotUMAP(
+  processed_sce,
+  point_size = umap_point_size, # defined in UMAP child report
+  point_alpha = 0.5,
+  color_by = "infercnv_total_cnv"
+) +
+  scale_color_viridis_c(name = "cividis") +
+  # remove axis numbers and background grid
+  scale_x_continuous(labels = NULL, breaks = NULL) +
+  scale_y_continuous(labels = NULL, breaks = NULL) +
+  guides(
+    color = guide_colorbar(title = "Total CNV events")
+  ) +
+  theme_bw() +
+  theme(aspect.ratio = 1)
+```
+
+## Total CNV distributions
+
+This section displays the distributions of total CNVs across cell types.
+
+The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
+
+The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
+Note that any cell types with fewer than 3 cells are not shown in this plot.
+
+```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
+# Prepare data frames for plotting
+total_cnv_df <- scuttle::makePerCellDF(
+  processed_sce,
+  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv"),
+  use.dimred = FALSE
+) |>
+  tibble::rownames_to_column("barcodes") |>
+  dplyr::add_count(is_infercnv_reference) |>
+  dplyr::mutate(
+    is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
+    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n})")
+  ) |>
+  dplyr::select(-n) |>
+  # rename for consistency with cell type report section
+  dplyr::mutate(
+    consensus_celltype_annotation = ifelse(
+      consensus_celltype_annotation == "Unknown",
+      "Unknown cell type",
+      consensus_celltype_annotation
+    )
+  )
+
+# this data frame version is used for the plot across celltypes
+total_cnv_lumped_df <- total_cnv_df |>
+  # keep only cell types with at least 3 cells
+  dplyr::add_count(consensus_celltype_annotation) |>
+  dplyr::filter(n >= 3) |>
+  dplyr::select(-n) |>
+  lump_wrap_celltypes() |>
+  # rename for convenience
+  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
+
+# join in consensus colors which were defined in the celltypes_qc.rmd child report,
+# but do separately to preserve factor order out of lump_wrap_celltypes()
+hex_df <- data.frame(consensus_hex) |>
+  tibble::rownames_to_column("celltype_lumped") |>
+  dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
+hex_df$celltype_lumped <- factor(hex_df$celltype_lumped, levels = levels(total_cnv_lumped_df$celltype_lumped))
+
+total_cnv_lumped_df <- total_cnv_lumped_df |>
+  dplyr::inner_join(hex_df, by = "celltype_lumped")
+
+# set total_cnv_lumped_df$celltype_lumped levels for plotting
+new_labels_df <- forcats::fct_count(total_cnv_lumped_df$celltype_lumped)
+new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
+total_cnv_lumped_df <- total_cnv_lumped_df |>
+  dplyr::mutate(
+    celltype_lumped = factor(celltype_lumped, labels = new_labels) |>
+      forcats::fct_rev() # reverse for display in ridge plot
+  )
+
+# first plot: across cell type groups
+cell_group_plot <- ggplot(total_cnv_df) +
+  aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
+  ggridges::geom_density_ridges2(scale = 0.9) +
+  labs(
+    x = "Total CNV events per cell",
+    y = "Cell type group",
+    title = "CNV between reference and query cell groups"
+  ) +
+  theme(legend.position = "none")
+
+
+
+# second plot: across cell types
+cell_type_plot <- ggplot(total_cnv_lumped_df) +
+  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = consensus_hex) +
+  ggridges::geom_density_ridges2(scale = 0.9) +
+  scale_fill_identity() +
+  labs(
+    x = "Total CNV events per cell",
+    y = "Consensus cell type",
+    title = "CNV across consensus cell types"
+  ) +
+  theme(legend.position = "none")
+
+
+cell_group_plot / cell_type_plot + plot_layout(heights = c(1, 3))
+```
