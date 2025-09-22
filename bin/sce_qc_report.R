@@ -324,7 +324,7 @@ if (has_infercnv) {
     "inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
     "infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells)
   )
-  # MUST use an absolute path
+  # MUST use an absolute path for pandoc to find the file in the report
   heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
 } else {
   heatmap_path <- NULL
