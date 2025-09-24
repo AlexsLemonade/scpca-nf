@@ -383,9 +383,9 @@ if (has_singler && has_cellassign) {
       # Only use the map file if the sample diagnosis exists
       # It might _not_ exist if external users don't provide a opt$diagnosis_groups_ref
       # file but don't override the default file in config to be empty/NA
-      if (diagnosis %in% diagnosis_map_df$submitted_diagnosis) {
+      if (diagnosis %in% diagnosis_map_df$sample_diagnosis) {
         broad_diagnosis <- diagnosis_map_df |>
-          dplyr::filter(submitted_diagnosis == diagnosis) |>
+          dplyr::filter(sample_diagnosis == diagnosis) |>
           dplyr::pull("diagnosis_group")
       }
     }
