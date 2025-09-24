@@ -41,10 +41,6 @@ def check_parameters() {
 
   // CNV inference checks
   if (params.perform_cnv_inference) {
-    if (!file(params.diagnosis_groups_file).exists()) {
-      log.error("The 'diagnosis_groups_file' file '${params.diagnosis_groups_file}' can not be found.")
-      param_error = true
-    }
     if (!file(params.diagnosis_celltypes_file).exists()) {
       log.error("The 'diagnosis_celltypes_file' file '${params.diagnosis_celltypes_file}' can not be found.")
       param_error = true
