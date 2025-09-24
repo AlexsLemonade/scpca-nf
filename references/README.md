@@ -77,19 +77,17 @@ The table includes the following columns:
 
 These files are used by the main workflow to determine which cells to include in a normal reference for `inferCNV`.
 
-- `broad-diagnosis-map.tsv` maps broad diagnosis groups to individual sample (e.g., submitted) diagnoses in ScPCA.
+- `diagnosis-groups.tsv` maps broad diagnosis groups to individual sample diagnoses in ScPCA.
 
 The table includes the following columns:
 
 |  |   |
 | --- | --- |
-| `ontology_id` | Ontology term for submitted diagnosis  |
-| `human_readable_value` | Human readable name for submitted diagnosis ontology term |
-| `submitted_diagnosis` | Submitted diagnosis as recorded in ScPCA objects |
+| `sample_diagnosis` | Submitted diagnosis as recorded in the sample metadata file provided to `scpca-nf` |
 | `diagnosis_group` | Broad diagnosis group |
 
 
-- `diagnosis-celltype-groups.tsv` maps broad diagnosis groups included in `broad-diagnosis-map.tsv` to consensus cell type validation groups included in `consensus-validation-groups.tsv`.
+- `diagnosis-celltype-groups.tsv` maps broad diagnosis groups included in `diagnosis-groups.tsv` to consensus cell type validation groups included in `consensus-validation-groups.tsv`.
 
 The table includes the following columns:
 
