@@ -363,8 +363,7 @@ if (has_singler && has_cellassign) {
   # Calculate if these optional reference files were provided and are not 0 bytes
   check_input_files <- c(
     opt$consensus_validation_ref,
-    opt$diagnosis_celltype_ref,
-    opt$diagnosis_groups_ref
+    opt$diagnosis_celltype_ref
   )
 
   # Only calculate reference cell count if file sizes are not NA or 0
@@ -373,21 +372,37 @@ if (has_singler && has_cellassign) {
   if (all(input_file_sizes > 0)) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
-    diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
 
     sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
 
-    # get the broad diagnosis
-    broad_diagnosis <- diagnosis_map_df |>
-      dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
-      dplyr::pull("diagnosis_group")
+    # Get the broad_diagnosis, from the map file if possible or assign the sample diagnosis otherwise
+    if (tidyr::replace_na(file.size(opt$diagnosis_groups_ref), 0) > 0) {
+      broad_diagnosis <- readr::read_tsv(opt$diagnosis_groups_ref) |>
+        dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
+        dplyr::pull("diagnosis_group")
+
+      # If we didn't find a broad diagnosis, use the sample diagnosis directly
+      # This scenario could occur if external users don't provide their own diagnosis group file,
+      # but don't override the default file to be empty/NA
+      if (length(broad_diagnosis) == 0) {
+        broad_diagnosis <- sample_diagnosis
+      }
+    } else {
+      broad_diagnosis <- sample_diagnosis
+    }
+
+    stopifnot(
+      "Could not determine known diagnosis group based on sample diagnosis." =
+        broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
+    )
 
     # get the cell type groups to consider for this diagnosis
     reference_validation_groups <- diagnosis_celltype_df |>
       dplyr::filter(diagnosis_group == broad_diagnosis) |>
       tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
       dplyr::pull(celltype_groups) |>
-      stringr::str_trim() # remove any leading or trailing spaces
+      # remove any leading or trailing spaces
+      stringr::str_trim()
 
     # get the consensus cell types
     ref_df <- consensus_validation_df |>
