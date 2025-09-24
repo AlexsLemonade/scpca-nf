@@ -150,11 +150,8 @@ workflow {
   }
 
   def ref_paths = Utils.readMeta(file(params.ref_json))
-
   all_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    // only technologies we know how to process
-    .filter{it.technology.toLowerCase() in all_techs}
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
     .filter{
@@ -165,18 +162,23 @@ workflow {
       || (it.submitter in project_ids)
       || (it.scpca_project_id in project_ids)
     }
+    // make sure technology and references are known
     .branch{ it ->
-      known_ref: it.sample_reference in ref_paths
-      unknown_ref: true
+      unknown_tech: !(it.technology.toLowerCase() in all_techs)
+      unknown_ref: !(it.sample_reference in ref_paths)
+      valid: true
     }
-
+  // warn about unknown technologies
+  all_runs_ch.unknown_tech.subscribe{ it ->
+    log.warn("The technology '${it.technology}' for run '${it.scpca_run_id}' is not recognized and this run will not be processed.")
+  }
   // warn about unknown references for any samples
   all_runs_ch.unknown_ref.subscribe{ it ->
     log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
   }
 
   // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-  unfiltered_runs_ch = all_runs_ch.known_ref
+  unfiltered_runs_ch = all_runs_ch.valid
     .map{
       def sample_refs = ref_paths[it.sample_reference];
       [
