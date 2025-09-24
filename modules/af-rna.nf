@@ -17,12 +17,12 @@ process alevin_rad {
     rad_dir = file(meta.rad_dir).name
     // choose flag by technology
     tech_flag = [
-      '10Xv2': '--chromium',
-      '10Xv2_5prime': '--chromium',
-      '10Xv3': '--chromiumV3',
-      '10Xv3.1': '--chromiumV3',
-      '10Xv3_5prime': '--chromiumV3',
-      '10Xv4': '--chromiumV3'
+      '10xv2': '--chromium',
+      '10xv2_5prime': '--chromium',
+      '10xv3': '--chromiumV3',
+      '10xv3.1': '--chromiumV3',
+      '10xv3_5prime': '--chromiumV3',
+      '10xv4': '--chromiumV3'
     ]
     // get meta to write as file
     meta += Utils.getVersions(workflow, nextflow)
