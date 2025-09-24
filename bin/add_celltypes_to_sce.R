@@ -373,26 +373,25 @@ if (has_singler && has_cellassign) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
 
-    sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
+    diagnosis <- metadata(sce)$sample_metadata$diagnosis
 
-    # Get the broad_diagnosis, from the map file if possible or assign the sample diagnosis otherwise
+    # Get the broad_diagnosis from the map file if possible, or use the sample diagnosis otherwise
+    broad_diagnosis <- diagnosis
     if (tidyr::replace_na(file.size(opt$diagnosis_groups_ref), 0) > 0) {
-      broad_diagnosis <- readr::read_tsv(opt$diagnosis_groups_ref) |>
-        dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
-        dplyr::pull("diagnosis_group")
+      diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
 
-      # If we didn't find a broad diagnosis, use the sample diagnosis directly
-      # This scenario could occur if external users don't provide their own diagnosis group file,
-      # but don't override the default file to be empty/NA
-      if (length(broad_diagnosis) == 0) {
-        broad_diagnosis <- sample_diagnosis
+      # Only use the map file if the sample diagnosis exists
+      # It might _not_ exist if external users don't provide a opt$diagnosis_groups_ref
+      # file but don't override the default file in config to be empty/NA
+      if (diagnosis %in% diagnosis_map_df$submitted_diagnosis) {
+        broad_diagnosis <- diagnosis_map_df |>
+          dplyr::filter(submitted_diagnosis == diagnosis) |>
+          dplyr::pull("diagnosis_group")
       }
-    } else {
-      broad_diagnosis <- sample_diagnosis
     }
 
     stopifnot(
-      "Could not determine known diagnosis group based on sample diagnosis." =
+      "Could not determine known diagnosis group from sample diagnosis." =
         broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
     )
 
