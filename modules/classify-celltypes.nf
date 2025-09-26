@@ -113,8 +113,8 @@ process add_celltypes_to_sce {
     path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
     path(validation_ref_file) // maps consensus cell types to cell type groups, for counting normal reference cells
-    path(diagnosis_celltypes_file, name: 'diagnosis_celltypes.txt') // maps broad diagnoses to cell type groups, for counting normal reference cells
-    path(diagnosis_groups_file, name: 'diagnosis_groups.txt') // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
+    path(diagnosis_groups_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
     tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT")
   script:
@@ -123,6 +123,9 @@ process add_celltypes_to_sce {
     singler_results = "${singler_dir}/singler_results.rds"
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
+
+    has_diagnosis_celltypes = diagnosis_celltypes_file && diagnosis_celltypes_file.isFile()
+    has_diagnosis_groups = diagnosis_groups_file && diagnosis_groups_file.isFile()
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
@@ -135,8 +138,8 @@ process add_celltypes_to_sce {
       ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
       --consensus_celltype_ref ${consensus_ref_file} \
       --consensus_validation_ref ${validation_ref_file} \
-      --diagnosis_celltype_ref "diagnosis_celltypes.txt" \
-      --diagnosis_groups_ref "diagnosis_groups.txt" \
+      ${has_diagnosis_celltypes ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
+      ${has_diagnosis_groups ? "--diagnosis_groups_ref ${diagnosis_groups_file}" : ''} \
       --reference_cell_count_file "reference_cell_count.txt"
 
       # save so we can export as environment variable
@@ -301,8 +304,8 @@ workflow annotate_celltypes {
       file(params.panglao_ref_file), // used for assigning ontology IDs for CellAssign results
       file(params.consensus_ref_file), // used for assigning consensus cell types if both SingleR and CellAssign are used
       file(params.validation_groups_file),  // maps consensus cell types to cell type groups, for counting normal reference cells
-      file(params.diagnosis_celltypes_file ?: empty_file, checkIfExists: true), // maps broad diagnoses to cell type groups, for counting normal reference cells
-      file(params.diagnosis_groups_file ?: empty_file, checkIfExists: true) // maps sample diagnoses to broad diagnoses, for counting normal reference cells
+      params.diagnosis_celltypes_file ? file(params.diagnosis_celltypes_file, checkIfExists: true) : [], // maps broad diagnoses to cell type groups, for counting normal reference cells
+      params.diagnosis_groups_file ? file(params.diagnosis_groups_file, checkIfExists: true) : [] // maps sample diagnoses to broad diagnoses, for counting normal reference cells
     )
 
     // add inferCNV logic to meta
