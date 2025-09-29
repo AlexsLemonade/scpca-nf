@@ -6,8 +6,8 @@ process make_unfiltered_sce {
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(alevin_dir), 
-              path(mito_file), path(ref_gtf), 
+        tuple val(meta), path(alevin_dir),
+              path(mito_file), path(ref_gtf),
               path(submitter_cell_types_file), path(openscpca_cell_types_file)
         path sample_metafile
     output:
@@ -76,7 +76,7 @@ process make_unfiltered_sce_with_feature {
         meta['feature_meta'] = feature_meta
 
         // If feature_type is "CITEseq", make it "adt"
-        if (meta['feature_type'] == "CITEseq") {
+        if (meta['feature_type'] == "citeseq") {
           meta['feature_type'] = "adt"
         }
 
@@ -134,8 +134,8 @@ process make_unfiltered_sce_cellranger {
     label 'mem_8'
     tag "${meta.library_id}"
     input:
-        tuple val(meta), path(cellranger_dir), 
-              path(versions_file), path(metrics_file), 
+        tuple val(meta), path(cellranger_dir),
+              path(versions_file), path(metrics_file),
               path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
         path sample_metafile
     output:
@@ -321,7 +321,7 @@ workflow generate_sce {
     sample_metafile
   main:
     def empty_file = "${projectDir}/assets/NO_FILE"
-    
+
     sce_ch = quant_channel
       .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
                           file(it[0].ref_gtf, checkIfExists: true),
