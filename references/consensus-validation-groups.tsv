@@ -1,53 +1,181 @@
 consensus_ontology	consensus_annotation	validation_group_ontology	validation_group_annotation
-CL:0000136	adipocyte	CL:0000136	adipocyte
 CL:0000236	B cell	CL:0000236	B cell
 CL:0000945	lymphocyte of B lineage	CL:0000236	B cell
 CL:0000785	mature B cell	CL:0000236	B cell
 CL:0000788	naive B cell	CL:0000236	B cell
 CL:0000787	memory B cell	CL:0000236	B cell
-CL:0000138	chondrocyte	CL:0000138	chondrocyte
-CL:0000451	dendritic cell	CL:0000451	dendritic cell
-CL:0000115	endothelial cell	CL:0000115	endothelial cell
-CL:0000071	blood vessel endothelial cell	CL:0000115	endothelial cell
-CL:2000008	microvascular endothelial cell	CL:0000115	endothelial cell
-CL:0000066	epithelial cell	CL:0000066	epithelial cell
-CL:0002077	ecto-epithelial cell	CL:0000066	epithelial cell
-CL:0000312	keratinocyte	CL:0000066	epithelial cell
-CL:0000076	squamous epithelial cell	CL:0000066	epithelial cell
-CL:0000362	epidermal cell	CL:0000066	epithelial cell
-CL:0000057	fibroblast	CL:0000057	fibroblast
-CL:0008001	hematopoietic precursor cell	CL:0008001	hematopoietic precursor cell
-CL:0000037	hematopoietic stem cell	CL:0008001	hematopoietic precursor cell
-CL:0001065	innate lymphoid cell	CL:0001065	innate lymphoid cell
-CL:0000235	macrophage	CL:0000235	macrophage
-CL:0000148	melanocyte	CL:0000148	melanocyte
-CL:0000650	mesangial cell	CL:0000650	mesangial cell
-CL:0000576	monocyte	CL:0000576	monocyte
-CL:0000192	smooth muscle cell	CL:0000187	muscle cell
-CL:0000187	muscle cell	CL:0000187	muscle cell
-CL:0000188	cell of skeletal muscle	CL:0000187	muscle cell
-CL:0000766	myeloid leukocyte	CL:0000763	myeloid
-CL:0000094	granulocyte	CL:0000763	myeloid
-CL:0000775	neutrophil	CL:0000763	myeloid
-CL:0000113	mononuclear phagocyte	CL:0000763	myeloid
-CL:0000764	erythroid lineage cell	CL:0000763	myeloid
-CL:0000556	megakaryocyte	CL:0000763	myeloid
-CL:0000771	eosinophil	CL:0000763	myeloid
-CL:0000623	natural killer cell	CL:0000623	natural killer cell
-CL:0000540	neuron	CL:0000540	neuron
-CL:0000127	astrocyte	CL:0000127	astrocyte
-CL:0000125	glial cell	CL:0000125	glial cell
-CL:0000126	macroglial cell	CL:0000125	glial cell
-CL:0000095	neuron associated cell	CL:0000125	glial cell
-CL:0000669	pericyte	CL:0000669	pericyte
-CL:0000786	plasma cell	CL:0000786	plasma cell
-CL:0000723	somatic stem cell	CL:0000034	stem cell
-CL:0000034	stem cell	CL:0000034	stem cell
-CL:0000499	stromal cell	CL:0000499	stromal cell
-CL:0000327	extracellular matrix secreting cell	CL:0000499	stromal cell
+CL:0000972	class switched memory B cell	CL:0000236	B cell
+CL:0001201	B cell, CD19-positive	CL:0000236	B cell
+CL:0000946	antibody secreting cell	CL:0000236	B cell
 CL:0000084	T cell	CL:0000084	T cell
 CL:0000624	CD4-positive, alpha-beta T cell	CL:0000084	T cell
 CL:0000791	mature alpha-beta T cell	CL:0000084	T cell
 CL:0002419	mature T cell	CL:0000084	T cell
 CL:0000815	regulatory T cell	CL:0000084	T cell
 CL:0000813	memory T cell	CL:0000084	T cell
+CL:0000904	central memory CD4-positive, alpha-beta T cell	CL:0000084	T cell
+CL:0001204	CD4-positive, alpha-beta memory T cell, CD45RO-positive	CL:0000084	T cell
+CL:0000898	naive T cell	CL:0000084	T cell
+CL:0000625	CD8-positive, alpha-beta T cell	CL:0000084	T cell
+CL:0001203	CD8-positive, alpha-beta memory T cell, CD45RO-positive	CL:0000084	T cell
+CL:0000913	effector memory CD8-positive, alpha-beta T cell	CL:0000084	T cell
+CL:0000798	gamma-delta T cell	CL:0000084	T cell
+CL:0000907	central memory CD8-positive, alpha-beta T cell	CL:0000084	T cell
+CL:0000893	thymocyte	CL:0000084	T cell
+CL:0000905	effector memory CD4-positive, alpha-beta T cell	CL:0000084	T cell
+CL:0000909	CD8-positive, alpha-beta memory T cell	CL:0000084	T cell
+CL:0000814	mature NK T cell	CL:0000084	T cell
+CL:0000897	CD4-positive, alpha-beta memory T cell	CL:0000084	T cell
+CL:0002038	T follicular helper cell	CL:0000084	T cell
+CL:0000492	CD4-positive helper T cell	CL:0000084	T cell
+CL:0000911	effector T cell	CL:0000084	T cell
+CL:0000789	alpha-beta T cell	CL:0000084	T cell
+CL:0000136	adipocyte	CL:0000136	adipocyte
+CL:0000127	astrocyte	CL:0000127	astrocyte
+CL:0002494	cardiocyte	CL:0002494	cardiocyte
+CL:0000206	chemoreceptor cell	CL:0000206	chemoreceptor cell
+CL:0000138	chondrocyte	CL:0000138	chondrocyte
+CL:0000064	ciliated cell	CL:0000064	ciliated cell
+CL:0000451	dendritic cell	CL:0000451	dendritic cell
+CL:0000784	plasmacytoid dendritic cell	CL:0000451	dendritic cell
+CL:0000990	conventional dendritic cell	CL:0000451	dendritic cell
+CL:0000453	Langerhans cell	CL:0000451	dendritic cell
+CL:0002321	embryonic cell (metazoa)	CL:0002321	embryonic cell (metazoa)
+CL:0000222	mesodermal cell	CL:0002321	embryonic cell (metazoa)
+CL:0000163	endocrine cell	CL:0000163	endocrine cell
+CL:0000115	endothelial cell	CL:0000115	endothelial cell
+CL:0000071	blood vessel endothelial cell	CL:0000115	endothelial cell
+CL:2000008	microvascular endothelial cell	CL:0000115	endothelial cell
+CL:0002139	endothelial cell of vascular tree	CL:0000115	endothelial cell
+CL:1000413	endothelial cell of artery	CL:0000115	endothelial cell
+CL:4033054	perivascular cell	CL:0000115	endothelial cell
+CL:0000066	epithelial cell	CL:0000066	epithelial cell
+CL:0002077	ecto-epithelial cell	CL:0000066	epithelial cell
+CL:0000312	keratinocyte	CL:0000066	epithelial cell
+CL:0000076	squamous epithelial cell	CL:0000066	epithelial cell
+CL:0000362	epidermal cell	CL:0000066	epithelial cell
+CL:0000150	glandular epithelial cell	CL:0000066	epithelial cell
+CL:0002076	endo-epithelial cell	CL:0000066	epithelial cell
+CL:0000164	enteroendocrine cell	CL:0000066	epithelial cell
+CL:0000171	pancreatic A cell	CL:0000066	epithelial cell
+CL:0008024	pancreatic endocrine cell	CL:0000066	epithelial cell
+CL:0000083	epithelial cell of pancreas	CL:0000066	epithelial cell
+CL:0000169	type B pancreatic cell	CL:0000066	epithelial cell
+CL:0000173	pancreatic D cell	CL:0000066	epithelial cell
+CL:0000069	branched duct epithelial cell	CL:0000066	epithelial cell
+CL:0000068	duct epithelial cell	CL:0000066	epithelial cell
+CL:0002079	pancreatic ductal cell	CL:0000066	epithelial cell
+CL:0000622	acinar cell	CL:0000066	epithelial cell
+CL:1001433	epithelial cell of exocrine pancreas	CL:0000066	epithelial cell
+CL:0000160	goblet cell	CL:0000066	epithelial cell
+CL:0002368	respiratory epithelial cell	CL:0000066	epithelial cell
+CL:0002370	respiratory goblet cell	CL:0000066	epithelial cell
+CL:0002202	epithelial cell of tracheobronchial tree	CL:0000066	epithelial cell
+CL:0002632	epithelial cell of lower respiratory tract	CL:0000066	epithelial cell
+CL:0000158	club cell	CL:0000066	epithelial cell
+CL:0005006	ionocyte	CL:0000066	epithelial cell
+CL:0000082	epithelial cell of lung	CL:0000066	epithelial cell
+CL:0000075	columnar/cuboidal epithelial cell	CL:0000066	epithelial cell
+CL:0000710	neurecto-epithelial cell	CL:0000066	epithelial cell
+CL:0000322	pulmonary alveolar epithelial cell	CL:0000066	epithelial cell
+CL:0002063	pulmonary alveolar type 2 cell	CL:0000066	epithelial cell
+CL:0000067	ciliated epithelial cell	CL:0000066	epithelial cell
+CL:0002062	pulmonary alveolar type 1 cell	CL:0000066	epithelial cell
+CL:0002078	meso-epithelial cell	CL:0000066	epithelial cell
+CL:0000077	mesothelial cell	CL:0000066	epithelial cell
+CL:0002326	luminal epithelial cell of mammary gland	CL:0000066	epithelial cell
+CL:0002327	mammary gland epithelial cell	CL:0000066	epithelial cell
+CL:0000584	enterocyte	CL:0000066	epithelial cell
+CL:0002563	intestinal epithelial cell	CL:0000066	epithelial cell
+CL:0002251	epithelial cell of alimentary canal	CL:0000066	epithelial cell
+CL:0000239	brush border epithelial cell	CL:0000066	epithelial cell
+CL:0000510	paneth cell	CL:0000066	epithelial cell
+CL:0002584	renal cortical epithelial cell	CL:0000066	epithelial cell
+CL:1000615	kidney cortex tubule cell	CL:0000066	epithelial cell
+CL:1000449	epithelial cell of nephron	CL:0000066	epithelial cell
+CL:1000494	nephron tubule epithelial cell	CL:0000066	epithelial cell
+CL:0002518	kidney epithelial cell	CL:0000066	epithelial cell
+CL:0002306	epithelial cell of proximal tubule	CL:0000066	epithelial cell
+CL:1000450	epithelial cell of glomerular capsule	CL:0000066	epithelial cell
+CL:0005010	renal intercalated cell	CL:0000066	epithelial cell
+CL:0005009	renal principal cell	CL:0000066	epithelial cell
+CL:0002204	brush cell	CL:0000066	epithelial cell
+CL:0000182	hepatocyte	CL:0000066	epithelial cell
+CL:1000488	cholangiocyte	CL:0000066	epithelial cell
+CL:0002305	epithelial cell of distal tubule	CL:0000066	epithelial cell
+CL:1000909	kidney loop of Henle epithelial cell	CL:0000066	epithelial cell
+CL:0000057	fibroblast	CL:0000057	fibroblast
+CL:0002410	pancreatic stellate cell	CL:0000057	fibroblast
+CL:0000125	glial cell	CL:0000125	glial cell
+CL:0000126	macroglial cell	CL:0000125	glial cell
+CL:0000095	neuron associated cell	CL:0000125	glial cell
+CL:0000681	radial glial cell	CL:0000125	glial cell
+CL:0000128	oligodendrocyte	CL:0000125	glial cell
+CL:0000636	Mueller cell	CL:0000125	glial cell
+CL:0000123	neuron associated cell (sensu Vertebrata)	CL:0000125	glial cell
+CL:0002453	oligodendrocyte precursor cell	CL:0000125	glial cell
+CL:0008001	hematopoietic precursor cell	CL:0008001	hematopoietic precursor cell
+CL:0000037	hematopoietic stem cell	CL:0008001	hematopoietic precursor cell
+CL:0002032	hematopoietic oligopotent progenitor cell	CL:0008001	hematopoietic precursor cell
+CL:0000051	common lymphoid progenitor	CL:0008001	hematopoietic precursor cell
+CL:0002031	hematopoietic lineage restricted progenitor cell	CL:0008001	hematopoietic precursor cell
+CL:0000038	erythroid progenitor cell	CL:0008001	hematopoietic precursor cell
+CL:0002274	histamine secreting cell	CL:0002274	histamine secreting cell
+CL:0001065	innate lymphoid cell	CL:0001065	innate lymphoid cell
+CL:0002681	kidney cortical cell	CL:1000497	kidney cell
+CL:1000497	kidney cell	CL:1000497	kidney cell
+CL:1000272	lung secretory cell	CL:1000272	lung secretory cell
+CL:0000235	macrophage	CL:0000235	macrophage
+CL:0000864	tissue-resident macrophage	CL:0000235	macrophage
+CL:1001603	lung macrophage	CL:0000235	macrophage
+CL:0000583	alveolar macrophage	CL:0000235	macrophage
+CL:0000091	Kupffer cell	CL:0000235	macrophage
+CL:0000863	inflammatory macrophage	CL:0000235	macrophage
+CL:0000861	elicited macrophage	CL:0000235	macrophage
+CL:0000129	microglial cell	CL:0000235	macrophage
+CL:0000650	mesangial cell	CL:0000650	mesangial cell
+CL:0000576	monocyte	CL:0000576	monocyte
+CL:0000192	smooth muscle cell	CL:0000187	muscle cell
+CL:0000187	muscle cell	CL:0000187	muscle cell
+CL:0000188	cell of skeletal muscle	CL:0000187	muscle cell
+CL:0000737	striated muscle cell	CL:0000187	muscle cell
+CL:0000746	cardiac muscle cell	CL:0000187	muscle cell
+CL:0000359	vascular associated smooth muscle cell	CL:0000187	muscle cell
+CL:0019019	tracheobronchial smooth muscle cell	CL:0000187	muscle cell
+CL:0000766	myeloid leukocyte	CL:0000763	myeloid cell
+CL:0000094	granulocyte	CL:0000763	myeloid cell
+CL:0000775	neutrophil	CL:0000763	myeloid cell
+CL:0000113	mononuclear phagocyte	CL:0000763	myeloid cell
+CL:0000764	erythroid lineage cell	CL:0000763	myeloid cell
+CL:0000556	megakaryocyte	CL:0000763	myeloid cell
+CL:0000771	eosinophil	CL:0000763	myeloid cell
+CL:0000233	platelet	CL:0000763	myeloid cell
+CL:0000232	erythrocyte	CL:0000763	myeloid cell
+CL:0000097	mast cell	CL:0000763	myeloid cell
+CL:0000186	myofibroblast cell	CL:0000186	myofibroblast cell
+CL:0000623	natural killer cell	CL:0000623	natural killer cell
+CL:0000540	neuron	CL:0000540	neuron
+CL:0000679	glutamatergic neuron	CL:0000540	neuron
+CL:0000527	efferent neuron	CL:0000540	neuron
+CL:0000210	photoreceptor cell	CL:0000540	neuron
+CL:0000099	interneuron	CL:0000540	neuron
+CL:0008028	visual system neuron	CL:0000540	neuron
+CL:0000740	retinal ganglion cell	CL:0000540	neuron
+CL:0000117	CNS neuron (sensu Vertebrata)	CL:0000540	neuron
+CL:0000101	sensory neuron	CL:0000540	neuron
+CL:0000165	neuroendocrine cell	CL:0000540	neuron
+CL:0000669	pericyte	CL:0000669	pericyte
+CL:0000148	melanocyte	CL:0000147	pigment cell
+CL:0000147	pigment cell	CL:0000147	pigment cell
+CL:0000786	plasma cell	CL:0000786	plasma cell
+CL:0009004	retinal cell	CL:0009004	retinal cell
+CL:0000723	somatic stem cell	CL:0000034	stem cell
+CL:0000034	stem cell	CL:0000034	stem cell
+CL:0000048	multi fate stem cell	CL:0000034	stem cell
+CL:0000646	basal cell	CL:0000034	stem cell
+CL:0000134	mesenchymal stem cell	CL:0000034	stem cell
+CL:0002250	intestinal crypt stem cell	CL:0000034	stem cell
+CL:0000499	stromal cell	CL:0000499	stromal cell
+CL:0002132	stromal cell of ovary	CL:0000499	stromal cell
+CL:0000632	hepatic stellate cell	CL:0000499	stromal cell
+CL:0000157	surfactant secreting cell	CL:0000157	surfactant secreting cell
