@@ -248,6 +248,24 @@
           "help_text": "Directory containing `CellAssign` reference files.",
           "fa_icon": "fas fa-folder-open"
         },
+        "scimilarity_model_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/scimilarity_references/model_v1.1",
+          "format": "directory-path",
+          "description": "SCimilarity reference model directory",
+          "help_text": "Directory containing SCimilarity foundational model",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "scimilarity_ontology_map_file": {
+          "type": "string",
+          "default": "${projectDir}/references/scimilarity-mapped-ontologies.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "SCimilarity annotations ontology map",
+          "help_text": "Map of SCimilarity annotations to Cell Ontology terms",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
         "ref_metadata": {
           "type": "string",
           "default": "${projectDir}/references/ref-metadata.tsv",
@@ -543,6 +561,12 @@
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.3",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
+        },
+        "SCPCATOOLS_SCIMILARITY_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:edge",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },

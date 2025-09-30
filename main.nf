@@ -61,6 +61,18 @@ def check_parameters() {
       log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
       param_error = true
     }
+
+    // check that scimilarity reference model and files exist 
+    if(!file(params.scimilarity_model_dir, type: 'dir', checkIfExists: true)) {
+      log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
+      param_error = true
+    }
+
+    if(!file(params.scimilarity_ontology_map_file).exists()) {
+      log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
+      param_error = true
+    }
+    
     // check that reference files related to consensus cell types exist
     if (!file(params.consensus_ref_file).exists()) {
       log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
