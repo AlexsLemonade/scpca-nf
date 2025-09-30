@@ -368,10 +368,10 @@ workflow annotate_celltypes {
       }
 
 
-    //// run SCimilarity and export results
+    // run SCimilarity and export results
     classify_scimilarity(scimilarity_input_ch.do_scimilarity)
-//
-    //// scimilarity output channel: [unique id, scimilarity_dir]
+
+    // scimilarity output channel: [unique id, scimilarity_dir]
     scimilarity_output_ch = scimilarity_input_ch.skip_scimilarity
       // provide existing scimilarity predictions dir for those we skipped
       .map{ meta, _processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file -> tuple(
