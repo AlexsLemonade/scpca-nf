@@ -42,9 +42,8 @@ def format_scimilarity(adata: anndata.AnnData) -> anndata.AnnData:
             "The input AnnData object must have a 'gene_symbol' column in `adata.var`."
         )
 
-    # set gene symbols as var_names and make sure X has the raw counts
+    # set gene symbols as var_names
     adata.var_names = adata.var["gene_symbol"].astype(str)
-    adata.X = adata.raw.X
 
     # create a DataFrame with raw counts, dropping anything that doesn't have a gene symbol
     counts_df = adata.to_df().drop(columns=["nan"])
