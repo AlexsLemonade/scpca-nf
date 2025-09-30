@@ -329,7 +329,7 @@ if (has_singler && has_cellassign) {
   )
 
   # read in consensus table
-  consensus_ref_df <- readr::read_tsv(consensus_celltype_ref) |>
+  consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref) |>
     # select unique combinations of consensus refs based on ontology columns
     # TODO: Update when incorporating scimilarity
     dplyr::select(blueprint_ontology, panglao_ontology, consensus_ontology = cellassign_singler_pair_ontology, consensus_annotation = cellassign_singler_pair_annotation) |>
