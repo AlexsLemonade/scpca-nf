@@ -158,7 +158,7 @@ workflow {
 
   // get all projects that contain at least one library with CITEseq
   adt_projects = libraries_ch
-    .filter{it.technology.startsWith('CITEseq')}
+    .filter{it.technology.startsWith('citeseq')}
     .collect{it.project_id}
     .map{it.unique()}
 
@@ -168,7 +168,7 @@ workflow {
     .map{it.unique()}
 
   oversized_projects = libraries_ch
-    .filter{it.technology.startsWith("10X")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
+    .filter{it.technology.startsWith("10x")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
     .map{[
       it.project_id, // pull out project id for grouping
       it

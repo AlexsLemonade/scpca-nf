@@ -111,26 +111,26 @@ workflow {
   }
 
   /// Define setup variables
-  // 10X barcode files
+  // 10x barcode files
   def cell_barcodes = [
-    '10Xv2': '737K-august-2016.txt',
-    '10Xv2_5prime': '737K-august-2016.txt',
-    '10Xv3': '3M-february-2018.txt',
-    '10Xv3.1': '3M-february-2018.txt',
-    '10Xv3_5prime': '3M-5pgex-jan-2023.txt.gz',
-    '10Xv4': '3M-3pgex-may-2023_TRU.txt.gz',
-    'CITEseq_10Xv2': '737K-august-2016.txt',
-    'CITEseq_10Xv3': '3M-february-2018.txt',
-    'CITEseq_10Xv3.1': '3M-february-2018.txt',
-    'cellhash_10Xv2': '737K-august-2016.txt',
-    'cellhash_10Xv3': '3M-february-2018.txt',
-    'cellhash_10Xv3.1': '3M-february-2018.txt'
+    '10xv2': '737K-august-2016.txt',
+    '10xv2_5prime': '737K-august-2016.txt',
+    '10xv3': '3M-february-2018.txt',
+    '10xv3.1': '3M-february-2018.txt',
+    '10xv3_5prime': '3M-5pgex-jan-2023.txt.gz',
+    '10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
+    'citeseq_10xv2': '737K-august-2016.txt',
+    'citeseq_10xv3': '3M-february-2018.txt',
+    'citeseq_10xv3.1': '3M-february-2018.txt',
+    'cellhash_10xv2': '737K-august-2016.txt',
+    'cellhash_10xv3': '3M-february-2018.txt',
+    'cellhash_10xv3.1': '3M-february-2018.txt'
   ]
 
-  // 10X flex probe set files
+  // 10x flex probe set files
   def flex_probesets = [
-    '10Xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
-    '10Xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
+    '10xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
+    '10xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
   ]
 
   // supported technologies
@@ -139,7 +139,7 @@ workflow {
   def bulk_techs = ['single_end', 'paired_end']
   def spatial_techs = ['visium']
   def all_techs = single_cell_techs + bulk_techs + spatial_techs
-  def rna_techs = single_cell_techs.findAll{it.startsWith('10Xv')}
+  def rna_techs = single_cell_techs.findAll{it.startsWith('10xv')}
   def citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
   def cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
@@ -162,11 +162,8 @@ workflow {
   }
 
   def ref_paths = Utils.readMeta(file(params.ref_json))
-
   all_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    // only technologies we know how to process
-    .filter{it.technology in all_techs}
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
     .filter{
@@ -177,18 +174,23 @@ workflow {
       || (it.submitter in project_ids)
       || (it.scpca_project_id in project_ids)
     }
+    // make sure technology and references are known
     .branch{ it ->
-      known_ref: it.sample_reference in ref_paths
-      unknown_ref: true
+      unknown_tech: !(it.technology.toLowerCase() in all_techs)
+      unknown_ref: !(it.sample_reference in ref_paths)
+      valid: true
     }
-
+  // warn about unknown technologies
+  all_runs_ch.unknown_tech.subscribe{ it ->
+    log.warn("The technology '${it.technology}' for run '${it.scpca_run_id}' is not recognized and this run will not be processed.")
+  }
   // warn about unknown references for any samples
   all_runs_ch.unknown_ref.subscribe{ it ->
     log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
   }
 
   // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
-  unfiltered_runs_ch = all_runs_ch.known_ref
+  unfiltered_runs_ch = all_runs_ch.valid
     .map{
       def sample_refs = ref_paths[it.sample_reference];
       [
@@ -197,7 +199,7 @@ workflow {
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
         project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
         submitter: Utils.parseNA(it.submitter),
-        technology: it.technology,
+        technology: it.technology.toLowerCase(),
         assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
         submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
@@ -362,7 +364,7 @@ workflow {
     .map{ meta_in, unfiltered_sce, filtered_sce ->
       def meta = meta_in.clone(); // clone meta before adding in unique id
       // we can't use library ID for flex multiplexed so will use sample and library ID for those samples only
-      meta.unique_id = (meta.technology in ["10Xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
+      meta.unique_id = (meta.technology in ["10xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
       // return updated meta and sce files
       return [
         meta,

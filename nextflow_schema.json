@@ -285,7 +285,7 @@
         },
         "celltype_probeset_version": {
           "type": "string",
-          "default": "10Xflex-v1-1",
+          "default": "10xflex-v1-1",
           "hidden": true
         },
         "singler_references_dir": {
