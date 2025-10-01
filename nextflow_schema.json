@@ -374,13 +374,13 @@
         },
         "diagnosis_groups_file": {
           "type": "string",
-          "default": "https://raw.githubusercontent.com/AlexsLemonade/OpenScPCA-analysis/refs/heads/main/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv",
+          "default": "${projectDir}/references/diagnosis-groups.tsv",
           "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells",
           "hidden": true
         },
         "diagnosis_celltypes_file": {
           "type": "string",
-          "default": "https://raw.githubusercontent.com/AlexsLemonade/OpenScPCA-analysis/refs/heads/main/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv",
+          "default": "${projectDir}/references/diagnosis-celltype-groups.tsv",
           "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells",
           "hidden": true
         }
@@ -462,13 +462,13 @@
           "default": 100,
           "description": "Minimum number of normal reference cells needed to run inferCNV",
           "help_text": "Minimum number of normal reference cells needed to run inferCNV for a given library."
-       },
+        },
         "cellbrowser_default_label": {
           "type": "string",
-          "default": "cluster",
+          "default": "consensus_celltype_annotation",
           "description": "Default label field for cells in UCSC Cell Browser.",
           "help_text": "Default label field for cells in the UCSC Cell Browser, used in `build-cellbrowser.nf`."
-       }
+        }
       },
       "fa_icon": "fas fa-tasks"
     },
@@ -561,6 +561,12 @@
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.3",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
+        },
+        "SCPCATOOLS_INFERCNV_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },

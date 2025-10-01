@@ -22,7 +22,7 @@ These files are used by `build-celltype-ref.nf` to generate cell type annotation
 
 These files are copies of reference files that were created as part of `OpenScPCA`.
 See the [`cell-type-consensus` module as part of the `OpenScPCA-analysis` repository](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus) to learn more about how these file were originally created.
-These files were copied from the `v0.2.3` release. 
+These files were copied from the `v0.2.3` release.
 
 - [`panglao-cell-type-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv) contains the [Cell Ontology identifier term](https://www.ebi.ac.uk/ols4/ontologies/cl) for all cell types available in the `PanglaoDB` reference used when running `CellAssign`.
 The table includes the following columns:
@@ -36,15 +36,15 @@ The table includes the following columns:
 - [`scimilarity-mapped-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-scimilarity/references/scimilarity-mapped-ontologies.tsv) contains the [Cell Ontology identifier term](https://www.ebi.ac.uk/ols4/ontologies/cl) for all cell types available in the `SCimilarity` foundational model, [`model_v1.1`](https://zenodo.org/records/10685499).
 The table includes the following columns:
 
-| | | 
-| -| - | 
-| `scimilarity_celltype_annotation` | The cell type annotation present in the `SCimilarity` model | 
-| `cl_annotation` | The human readable name of the cell type found in the Cell Ontology | 
-| `scimilarity_celltype_ontology` | The ontology identifier associated with the name of the cell type in the Cell Ontology | 
+| | |
+| -| - |
+| `scimilarity_celltype_annotation` | The cell type annotation present in the `SCimilarity` model |
+| `cl_annotation` | The human readable name of the cell type found in the Cell Ontology |
+| `scimilarity_celltype_ontology` | The ontology identifier associated with the name of the cell type in the Cell Ontology |
 
-- [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv) contains a table with all cell type combinations between the `PanglaoDB` reference (used with `CellAssign`), the `BlueprintEncodeData` reference (used with `SingleR`), and the `SCimilarity` reference (used with `SCimilarity`) for which a consensus cell type is identified. 
+- [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv) contains a table with all cell type combinations between the `PanglaoDB` reference (used with `CellAssign`), the `BlueprintEncodeData` reference (used with `SingleR`), and the `SCimilarity` reference (used with `SCimilarity`) for which a consensus cell type is identified.
 
-The table includes the following columns: 
+The table includes the following columns:
 
 |  |   |
 | --- | --- |
@@ -96,19 +96,17 @@ The table includes the following columns:
 
 These files are used by the main workflow to determine which cells to include in a normal reference for `inferCNV`.
 
-- `broad-diagnosis-map.tsv` maps broad diagnosis groups to individual sample (e.g., submitted) diagnoses in ScPCA.
+- `diagnosis-groups.tsv` maps broad diagnosis groups to individual sample diagnoses in ScPCA.
 
 The table includes the following columns:
 
 |  |   |
 | --- | --- |
-| `ontology_id` | [`MONDO`](http://obofoundry.org/ontology/mondo.html) term for submitted diagnosis  |
-| `human_readable_value` | Human readable name for submitted diagnosis ontology term |
-| `submitted_diagnosis` | Submitted diagnosis as recorded in ScPCA objects |
+| `sample_diagnosis` | Submitted diagnosis as recorded in the sample metadata file provided to `scpca-nf` |
 | `diagnosis_group` | Broad diagnosis group |
 
 
-- `diagnosis-celltype-groups.tsv` maps broad diagnosis groups included in `broad-diagnosis-map.tsv` to consensus cell type validation groups included in `consensus-validation-groups.tsv`.
+- `diagnosis-celltype-groups.tsv` maps broad diagnosis groups included in `diagnosis-groups.tsv` to consensus cell type validation groups included in `consensus-validation-groups.tsv`.
 
 The table includes the following columns:
 
