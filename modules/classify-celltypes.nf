@@ -296,10 +296,12 @@ workflow annotate_celltypes {
     // singleR output channel: [unique id, singler_results]
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
-      .map{ meta, _processed_sce, _singler_model -> tuple(
-        meta.unique_id,
-        file(meta.singler_dir, type: 'dir', checkIfExists: true)
-      )}
+      .map{ meta, _processed_sce, _singler_model -> 
+        tuple(
+          meta.unique_id,
+          file(meta.singler_dir, type: 'dir', checkIfExists: true)
+        )
+      }
       // add in missing ref samples
       .mix(singler_input_ch.missing_ref.map{[it[0]["unique_id"], [] ]})
       // add in channel outputs
@@ -335,10 +337,12 @@ workflow annotate_celltypes {
     // cellassign output channel: [unique id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
       // provide existing cellassign predictions dir for those we skipped
-      .map{ meta, _processed_sce, _cellassign_ref -> tuple(
-        meta.unique_id,
-        file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
-      )}
+      .map{ meta, _processed_sce, _cellassign_ref -> 
+        tuple(
+          meta.unique_id,
+          file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
+        )
+      }
       // add missing ref samples
       .mix(cellassign_input_ch.missing_ref.map{[it[0]["unique_id"], [] ]} )
       // add in channel outputs
@@ -352,12 +356,14 @@ workflow annotate_celltypes {
     // create scimilarity input channel: [meta, processed sce, scimilarity dir, ontology map]
     scimilarity_input_ch = celltype_input_ch
       // add in cellassign references
-      .map{meta, processed_sce -> [
-        meta, 
-        processed_sce,
-        file(meta.scimilarity_model_dir, type: 'dir', checkIfExists: true),
-        file(meta.scimilarity_ontology_map_file, checkIfExists: true)
-      ]}
+      .map{meta, processed_sce -> 
+        [ 
+          meta, 
+          processed_sce,
+          file(meta.scimilarity_model_dir, type: 'dir', checkIfExists: true),
+          file(meta.scimilarity_ontology_map_file, checkIfExists: true)
+        ]
+      }
       // skip if scimilarity results exist and path to the model has not changed 
       .branch{
         skip_scimilarity: (
@@ -375,10 +381,12 @@ workflow annotate_celltypes {
     // scimilarity output channel: [unique id, scimilarity_dir]
     scimilarity_output_ch = scimilarity_input_ch.skip_scimilarity
       // provide existing scimilarity predictions dir for those we skipped
-      .map{ meta, _processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file -> tuple(
-        meta.unique_id,
-        file(meta.scimilarity_dir, type: 'dir', checkIfExists: true)
-      )}
+      .map{ meta, _processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file -> 
+        tuple(
+          meta.unique_id,
+          file(meta.scimilarity_dir, type: 'dir', checkIfExists: true)
+        )
+      }
       // add in channel outputs
       .mix(classify_scimilarity.out)
 
