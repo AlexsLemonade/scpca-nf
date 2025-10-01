@@ -114,7 +114,7 @@ process classify_scimilarity {
   output:
     tuple val(meta.unique_id), path(scimilarity_dir)
 script:
-    def scimilarity_dir = file(meta.scimilarity_dir).name
+    scimilarity_dir = file(meta.scimilarity_dir).name
     def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
     """
     # create output directory
@@ -146,7 +146,7 @@ script:
 
     """
   stub:
-    def scimilarity_dir = file(meta.scimilarity_dir).name
+    scimilarity_dir = file(meta.scimilarity_dir).name
     def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
     """
     mkdir "${scimilarity_dir}"
