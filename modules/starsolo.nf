@@ -14,12 +14,12 @@ process starsolo {
     tuple val(meta), path(output_bam), emit: star_bam
   script:
     tech_flag = [
-      '10Xv2': '',
-      '10Xv2_5prime': '',
-      '10Xv3': '--soloUMIlen 12',
-      '10Xv3.1': '--soloUMIlen 12',
-      '10Xv3_5prime': '--soloUMIlen 12',
-      '10Xv4': '--soloUMIlen 12'
+      '10xv2': '',
+      '10xv2_5prime': '',
+      '10xv3': '--soloUMIlen 12',
+      '10xv3.1': '--soloUMIlen 12',
+      '10xv3_5prime': '--soloUMIlen 12',
+      '10xv4': '--soloUMIlen 12'
     ]
     features_flag = meta.seq_unit == "nucleus" ? "--soloFeatures Gene GeneFull" : "--soloFeatures Gene"
     output_dir = "${meta.run_id}_star"

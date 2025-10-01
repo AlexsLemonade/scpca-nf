@@ -24,7 +24,7 @@ process qc_publish_sce {
     workflow_version = workflow.revision ?: workflow.manifest.version
 
     // set output file names based on having 10x flex multiplexed or not
-    if (meta.technology in ["10Xflex_v1.1_multi"]){
+    if (meta.technology in ["10xflex_v1.1_multi"]){
       file_prefix = "${meta.library_id}-${meta.sample_id}"
     } else {
       file_prefix = "${meta.library_id}"
@@ -93,7 +93,7 @@ process qc_publish_sce {
       --metrics_json "${metrics_json}"
     """
   stub:
-    if (meta.technology in ["10Xflex_v1.1_multi"]){
+    if (meta.technology in ["10xflex_v1.1_multi"]){
       file_prefix = "${meta.library_id}-${meta.sample_id}"
     } else {
       file_prefix = "${meta.library_id}"
