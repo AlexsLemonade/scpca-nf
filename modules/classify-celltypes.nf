@@ -3,8 +3,7 @@ process classify_singler {
   container params.SCPCATOOLS_CONTAINER
   publishDir (
     path: "${meta.celltype_checkpoints_dir}",
-    mode: 'copy',
-    pattern: "${singler_dir}"
+    mode: 'copy'
   )
   label 'mem_8'
   label 'cpus_4'
@@ -47,8 +46,7 @@ process classify_cellassign {
   container params.SCPCATOOLS_SCVI_CONTAINER
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
-      mode: 'copy',
-      pattern: "${cellassign_dir}"
+      mode: 'copy'
     )
   label 'mem_max'
   label 'cpus_12'
@@ -88,7 +86,7 @@ process classify_cellassign {
     fi
 
     # write out meta file
-      echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
 
     """
   stub:
@@ -99,6 +97,61 @@ process classify_cellassign {
     mkdir "${cellassign_dir}"
     echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
     touch "${cellassign_dir}/cellassign_predictions.tsv"
+    """
+}
+
+process classify_scimilarity {
+  container params.SCPCATOOLS_SCIMILARITY_CONTAINER
+    publishDir (
+      path: "${meta.celltype_checkpoints_dir}",
+      mode: 'copy'
+    )
+  label 'mem_96'
+  label 'cpus_4'
+  tag "${meta.library_id}"
+  input:
+    tuple val(meta), path(processed_rds), path(scimilarity_model_dir), path(scimilarity_ontology_map_file)
+  output:
+    tuple val(meta.unique_id), path(scimilarity_dir)
+  script:
+    scimilarity_dir = file(meta.scimilarity_dir).name
+    def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
+    """
+    # create output directory
+    mkdir "${scimilarity_dir}"
+
+    # Convert SCE to AnnData
+    sce_to_anndata.R \
+        --input_sce_file "${processed_rds}" \
+        --output_rna_h5 "processed.h5ad"
+
+    # only run cell assign if a h5ad file was able to be created
+    # otherwise create an empty predictions file
+    if [[ -e "processed.h5ad" ]]; then
+
+      # Run SCimilarity
+      run_scimilarity.py \
+        --model_dir "${scimilarity_model_dir}" \
+        --processed_h5ad_file "processed.h5ad" \
+        --ontology_map_file ${scimilarity_ontology_map_file} \
+        --predictions_tsv "${scimilarity_dir}/scimilarity_predictions.tsv" \
+        --seed ${params.seed}
+
+    else
+      touch "${scimilarity_dir}/scimilarity_predictions.tsv"
+    fi
+
+    # write out meta file
+    echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
+
+    """
+  stub:
+    scimilarity_dir = file(meta.scimilarity_dir).name
+    def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
+    """
+    mkdir "${scimilarity_dir}"
+    echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
+    touch "${scimilarity_dir}/scimilarity_predictions.tsv"
     """
 }
 
@@ -200,13 +253,20 @@ workflow annotate_celltypes {
       // add values to meta for later use
       .map{ _project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
         def meta = meta_in.clone(); // local copy for safe modification
+        // results directories 
         meta.celltype_checkpoints_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
         meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_singler";
         meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_cellassign";
+        meta.scimilarity_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_scimilarity";
+        // reference files
         meta.singler_model_file = singler_model_file;
         meta.cellassign_reference_file = cellassign_reference_file;
+        meta.scimilarity_model_dir = params.scimilarity_model_dir;
+        meta.scimilarity_ontology_map_file = params.scimilarity_ontology_map_file;
+        // output files 
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
         meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv";
+        meta.scimilarity_predictions_file = "${meta.scimilarity_dir}/scimilarity_predictions.tsv";
         // return simplified input:
         [meta, processed_sce]
       }
@@ -214,8 +274,11 @@ workflow annotate_celltypes {
 
     // creates [meta, processed sce, singler model file]
     singler_input_ch = celltype_input_ch
-      // add in singler model or empty file
-      .map{it.toList() + [file(it[0].singler_model_file ?: empty_file, checkIfExists: true)]}
+      // add in singler model file
+      .map{meta, processed_sce ->
+        def singler_model = meta.singler_model_file ? file(meta.singler_model_file, checkIfExists: true) : []
+        [meta, processed_sce, singler_model]
+      }
       // skip if no singleR model file or if singleR results are already present
       .branch{
         skip_singler: (
@@ -223,7 +286,7 @@ workflow annotate_celltypes {
           && file(it[0].singler_results_file).exists()
           && Utils.getMetaVal(file("${it[0].singler_dir}/scpca-meta.json"), "singler_model_file") == "${it[0].singler_model_file}"
         )
-        missing_ref: it[2].name == "NO_FILE"
+        missing_ref: it[2] == []
         do_singler: true
       }
 
@@ -234,19 +297,29 @@ workflow annotate_celltypes {
     // singleR output channel: [unique id, singler_results]
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
-      .map{ meta, _processed_sce, _singler_model -> tuple(
-        meta.unique_id,
-        file(meta.singler_dir, type: 'dir', checkIfExists: true)
-      )}
-      // add empty file for missing ref samples
-      .mix(singler_input_ch.missing_ref.map{[it[0]["unique_id"], file(empty_file, checkIfExists: true)]} )
+      .map{ meta, _processed_sce, _singler_model -> 
+        tuple(
+          meta.unique_id,
+          file(meta.singler_dir, type: 'dir', checkIfExists: true)
+        )
+      }
+      // add in missing ref samples
+      .mix(singler_input_ch.missing_ref.map{[it[0]["unique_id"], [] ]})
       // add in channel outputs
       .mix(classify_singler.out)
+
+
+    /////////////////////////////////////////////////////
+    //                  CellAssign                     //
+    /////////////////////////////////////////////////////
 
     // create cellassign input channel: [meta, processed sce, cellassign reference file]
     cellassign_input_ch = celltype_input_ch
       // add in cellassign reference
-      .map{it.toList() + [file(it[0].cellassign_reference_file ?: empty_file, checkIfExists: true)]}
+      .map{meta, processed_sce ->
+        def cellassign_ref = meta.cellassign_reference_file ? file(meta.cellassign_reference_file, checkIfExists: true) : []
+        [meta, processed_sce, cellassign_ref]
+      }
       // skip if no cellassign reference file or reference name is not defined
       .branch{
         skip_cellassign: (
@@ -254,7 +327,7 @@ workflow annotate_celltypes {
           && file(it[0].cellassign_predictions_file).exists()
           && Utils.getMetaVal(file("${it[0].cellassign_dir}/scpca-meta.json"), "cellassign_reference_file") == "${it[0].cellassign_reference_file}"
         )
-        missing_ref: it[2].name == "NO_FILE"
+        missing_ref: it[2] == []
         do_cellassign: true
       }
 
@@ -265,14 +338,62 @@ workflow annotate_celltypes {
     // cellassign output channel: [unique id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
       // provide existing cellassign predictions dir for those we skipped
-      .map{ meta, _processed_sce, _cellassign_ref -> tuple(
-        meta.unique_id,
-        file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
-      )}
-      // add empty file for missing ref samples
-      .mix(cellassign_input_ch.missing_ref.map{[it[0]["unique_id"], file(empty_file, checkIfExists: true)]} )
+      .map{ meta, _processed_sce, _cellassign_ref -> 
+        tuple(
+          meta.unique_id,
+          file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
+        )
+      }
+      // add missing ref samples
+      .mix(cellassign_input_ch.missing_ref.map{[it[0]["unique_id"], [] ]} )
       // add in channel outputs
       .mix(classify_cellassign.out)
+
+
+    /////////////////////////////////////////////////////
+    //                  SCimilarity                    //
+    /////////////////////////////////////////////////////
+
+    // create scimilarity input channel: [meta, processed sce, scimilarity dir, ontology map]
+    scimilarity_input_ch = celltype_input_ch
+      // add in cellassign references
+      .map{meta, processed_sce -> 
+        [ 
+          meta, 
+          processed_sce,
+          file(meta.scimilarity_model_dir, type: 'dir', checkIfExists: true),
+          file(meta.scimilarity_ontology_map_file, checkIfExists: true)
+        ]
+      }
+      // skip if scimilarity results exist and path to the model has not changed 
+      .branch{
+        skip_scimilarity: (
+          !params.repeat_celltyping
+          && file(it[0].scimilarity_predictions_file).exists()
+          && Utils.getMetaVal(file("${it[0].scimilarity_dir}/scpca-meta.json"), "scimilarity_model_dir") == "${it[0].scimilarity_model_dir}"
+        )
+        do_scimilarity: true
+      }
+
+
+    // run SCimilarity and export results
+    classify_scimilarity(scimilarity_input_ch.do_scimilarity)
+
+    // scimilarity output channel: [unique id, scimilarity_dir]
+    scimilarity_output_ch = scimilarity_input_ch.skip_scimilarity
+      // provide existing scimilarity predictions dir for those we skipped
+      .map{ meta, _processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file -> 
+        tuple(
+          meta.unique_id,
+          file(meta.scimilarity_dir, type: 'dir', checkIfExists: true)
+        )
+      }
+      // add in channel outputs
+      .mix(classify_scimilarity.out)
+
+    /////////////////////////////////////////////////////
+    //               Add celltypes to object           //
+    /////////////////////////////////////////////////////
 
     // prepare input for process to add celltypes to the processed SCE
     // result is [meta, processed rds, singler dir, cellassign dir]

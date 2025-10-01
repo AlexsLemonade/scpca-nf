@@ -57,6 +57,25 @@ def check_parameters() {
       log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
       param_error = true
     }
+
+    // check that scimilarity reference model and files exist 
+    if(!file(params.scimilarity_model_dir, type: 'dir').exists()) {
+      log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
+      param_error = true
+    } else {
+      // make sure the directory contains the knn.bin file
+      knn_file = "${params.scimilarity_model_dir}/annotation/labelled_kNN.bin"
+      if(!file(knn_file).exists()){
+        log.error("The 'scimilarity_model_dir' is missing the annotation/labelled_kNN.bin file needed for annotation.")
+        param_error = true
+      }
+    }
+
+    if(!file(params.scimilarity_ontology_map_file).exists()) {
+      log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
+      param_error = true
+    }
+    
     // check that reference files related to consensus cell types exist
     if (!file(params.consensus_ref_file).exists()) {
       log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
@@ -122,7 +141,7 @@ workflow {
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
   def spatial_techs = ['visium']
-  def all_techs = single_cell_techs + bulk_techs + spatial_techs
+  def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{it.startsWith('10xv')}
   def citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
   def cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
