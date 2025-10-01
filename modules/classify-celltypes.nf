@@ -113,7 +113,7 @@ process classify_scimilarity {
     tuple val(meta), path(processed_rds), path(scimilarity_model_dir), path(scimilarity_ontology_map_file)
   output:
     tuple val(meta.unique_id), path(scimilarity_dir)
-script:
+  script:
     scimilarity_dir = file(meta.scimilarity_dir).name
     def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
     """
