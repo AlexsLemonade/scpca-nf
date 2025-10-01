@@ -105,7 +105,7 @@ process classify_cellassign {
 process classify_scimilarity {
   container params.SCPCATOOLS_SCIMILARITY_CONTAINER
     publishDir (
-      path: "${meta.celltype_checkpoints_dir}",
+      path: meta.celltype_checkpoints_dir,
       mode: 'copy',
       pattern: "${scimilarity_dir}"
     )
@@ -116,10 +116,9 @@ process classify_scimilarity {
     tuple val(meta), path(processed_rds), path(scimilarity_model_dir), path(scimilarity_ontology_map_file)
   output:
     tuple val(meta.unique_id), path(scimilarity_dir)
-  script:
-    scimilarity_dir = file(meta.scimilarity_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+script:
+    def scimilarity_dir = file(meta.scimilarity_dir).name
+    def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
     """
     # create output directory
     mkdir "${scimilarity_dir}"
@@ -146,7 +145,7 @@ process classify_scimilarity {
     fi
 
     # write out meta file
-      echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
 
     """
   stub:
@@ -279,7 +278,10 @@ workflow annotate_celltypes {
     // creates [meta, processed sce, singler model file]
     singler_input_ch = celltype_input_ch
       // add in singler model file
-      .map{it.toList() + [it[0].singler_model_file ? file(it[0].singler_model_file, checkIfExists: true) : [] ]}
+      .map{meta, processed_sce ->
+        def singler_model = meta.singler_model_file ? file(meta.singler_model_file, checkIfExists: true) : []
+        [meta, processed_sce, singler_model]
+      }
       // skip if no singleR model file or if singleR results are already present
       .branch{
         skip_singler: (
@@ -315,7 +317,9 @@ workflow annotate_celltypes {
     // create cellassign input channel: [meta, processed sce, cellassign reference file]
     cellassign_input_ch = celltype_input_ch
       // add in cellassign reference
-      .map{it.toList() + [it[0].cellassign_reference_file ? file(it[0].cellassign_reference_file, checkIfExists: true) : [] ]}
+      .map{meta, processed_sce ->
+        def cellassign_ref = meta.cellassign_reference_file ? file(meta.cellassign_reference_file, checkIfExists: true) : []
+        [meta, processed_sce, cellassign_ref]
       // skip if no cellassign reference file or reference name is not defined
       .branch{
         skip_cellassign: (

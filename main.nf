@@ -63,7 +63,7 @@ def check_parameters() {
     }
 
     // check that scimilarity reference model and files exist 
-    if(!file(params.scimilarity_model_dir, type: 'dir', checkIfExists: true)) {
+    if(!file(params.scimilarity_model_dir, type: 'dir').exists()) {
       log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
       param_error = true
     }
