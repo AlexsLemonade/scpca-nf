@@ -124,8 +124,6 @@ process add_celltypes_to_sce {
     cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
     cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
 
-    has_diagnosis_celltypes = diagnosis_celltypes_file && diagnosis_celltypes_file.isFile()
-    has_diagnosis_groups = diagnosis_groups_file && diagnosis_groups_file.isFile()
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
@@ -136,10 +134,10 @@ process add_celltypes_to_sce {
       ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
       ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''} \
       ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
-      --consensus_celltype_ref ${consensus_ref_file} \
-      --consensus_validation_ref ${validation_ref_file} \
-      ${has_diagnosis_celltypes ? "--diagnosis_celltype_ref ${diagnosis_celltypes_file}" : ''} \
-      ${has_diagnosis_groups ? "--diagnosis_groups_ref ${diagnosis_groups_file}" : ''} \
+      --consensus_celltype_ref "${consensus_ref_file}" \
+      --consensus_validation_ref "${validation_ref_file}" \
+      --diagnosis_celltype_ref "${diagnosis_celltypes_file}" \
+      --diagnosis_groups_ref "${diagnosis_groups_file}" \
       --reference_cell_count_file "reference_cell_count.txt"
 
       # save so we can export as environment variable
