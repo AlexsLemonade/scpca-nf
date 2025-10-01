@@ -89,16 +89,16 @@ option_list <- list(
     opt_str = c("--diagnosis_groups_ref"),
     type = "character",
     help = "Path to TSV file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV.
-    This file should have columns `diagnosis_group` for the broad diagnosis and `submitted_diagnosis` with individual diagnoses in ScPCA",
+    This file should have columns `diagnosis_group` for the broad diagnosis and `sample_diagnosis` with individual diagnoses in ScPCA",
     default = ""
   ),
   make_option(
     opt_str = c("--reference_cell_count_file"),
     type = "character",
-    default = "reference_cell_count.txt",
     help = "Path to write number of calculated inferCNV reference cells to.
       This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
       If not calculated, this file will be created with the value NA instead of a count",
+    default = "reference_cell_count.txt"
   )
 )
 
@@ -363,31 +363,44 @@ if (has_singler && has_cellassign) {
   # Calculate if these optional reference files were provided and are not 0 bytes
   check_input_files <- c(
     opt$consensus_validation_ref,
-    opt$diagnosis_celltype_ref,
-    opt$diagnosis_groups_ref
+    opt$diagnosis_celltype_ref
   )
 
   # Only calculate reference cell count if file sizes are not NA or 0
   # the only way this "check" passes is if files exist and have contents
-  input_file_sizes <- file.size(check_input_files) |> tidyr::replace_na(0)
-  if (all(input_file_sizes > 0)) {
+  if (all(file.exists(check_input_files))) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
-    diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
 
-    sample_diagnosis <- metadata(sce)$sample_metadata$diagnosis
+    diagnosis <- metadata(sce)$sample_metadata$diagnosis
 
-    # get the broad diagnosis
-    broad_diagnosis <- diagnosis_map_df |>
-      dplyr::filter(submitted_diagnosis == sample_diagnosis) |>
-      dplyr::pull("diagnosis_group")
+    # Get the broad_diagnosis from the map file if possible, or use the sample diagnosis otherwise
+    broad_diagnosis <- diagnosis
+    if (file.exists(opt$diagnosis_groups_ref)) {
+      diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
+
+      # Only use the map file if the sample diagnosis exists
+      # It might _not_ exist if external users don't provide their own opt$diagnosis_groups_ref file
+      # but also don't override the default file in config to be empty/NA
+      if (diagnosis %in% diagnosis_map_df$sample_diagnosis) {
+        broad_diagnosis <- diagnosis_map_df |>
+          dplyr::filter(sample_diagnosis == diagnosis) |>
+          dplyr::pull("diagnosis_group")
+      }
+    }
+
+    stopifnot(
+      "Could not determine known diagnosis group from sample diagnosis." =
+        broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
+    )
 
     # get the cell type groups to consider for this diagnosis
     reference_validation_groups <- diagnosis_celltype_df |>
       dplyr::filter(diagnosis_group == broad_diagnosis) |>
       tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
       dplyr::pull(celltype_groups) |>
-      stringr::str_trim() # remove any leading or trailing spaces
+      # remove any leading or trailing spaces
+      stringr::str_trim()
 
     # get the consensus cell types
     ref_df <- consensus_validation_df |>

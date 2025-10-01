@@ -209,7 +209,8 @@ Inside the `references` folder are files and scripts related to maintaining the 
    The following are used for `inferCNV` inference to determine which cell types to include in the normal reference.
    Additional rows will need to be added to these files if additional diagnoses are added to ScPCA.
 
-   - [`broad-diagnosis-map.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv)
+   - [`diagnosis-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv)
+     - Before including in this repository, this file was modified from its `OpenScPCA-analysis` version to contain only two columns, `diagnosis_group` and `sample_diagnosis` (renamed from the original column name `submitted_diagnosis`), which are the column names that `scpca-nf` expects in this file.
    - [`diagnosis-celltype-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv)
 
 ### Adding additional organisms
