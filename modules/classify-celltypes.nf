@@ -3,8 +3,7 @@ process classify_singler {
   container params.SCPCATOOLS_CONTAINER
   publishDir (
     path: "${meta.celltype_checkpoints_dir}",
-    mode: 'copy',
-    pattern: "${singler_dir}"
+    mode: 'copy'
   )
   label 'mem_8'
   label 'cpus_4'
@@ -47,8 +46,7 @@ process classify_cellassign {
   container params.SCPCATOOLS_SCVI_CONTAINER
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
-      mode: 'copy',
-      pattern: "${cellassign_dir}"
+      mode: 'copy'
     )
   label 'mem_max'
   label 'cpus_12'
@@ -88,7 +86,7 @@ process classify_cellassign {
     fi
 
     # write out meta file
-      echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
 
     """
   stub:
@@ -105,9 +103,8 @@ process classify_cellassign {
 process classify_scimilarity {
   container params.SCPCATOOLS_SCIMILARITY_CONTAINER
     publishDir (
-      path: meta.celltype_checkpoints_dir,
-      mode: 'copy',
-      pattern: "${scimilarity_dir}"
+      path: "${meta.celltype_checkpoints_dir}",
+      mode: 'copy'
     )
   label 'mem_96'
   label 'cpus_4'
@@ -149,9 +146,8 @@ script:
 
     """
   stub:
-    scimilarity_dir = file(meta.scimilarity_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    def scimilarity_dir = file(meta.scimilarity_dir).name
+    def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
     """
     mkdir "${scimilarity_dir}"
     echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
@@ -320,6 +316,7 @@ workflow annotate_celltypes {
       .map{meta, processed_sce ->
         def cellassign_ref = meta.cellassign_reference_file ? file(meta.cellassign_reference_file, checkIfExists: true) : []
         [meta, processed_sce, cellassign_ref]
+      }
       // skip if no cellassign reference file or reference name is not defined
       .branch{
         skip_cellassign: (
