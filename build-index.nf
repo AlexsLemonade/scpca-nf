@@ -166,6 +166,7 @@ workflow {
         it.include_salmon.toUpperCase() == "TRUE",
         it.include_cellranger.toUpperCase() == "TRUE",
         it.include_star.toUpperCase() == "TRUE",
+        it.include_infercnv.toUpperCase() == "TRUE",
         file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"), // path to gtf
         file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}") // path to fasta
       ]
@@ -177,41 +178,45 @@ workflow {
       salmon: it[2] == true
       cellranger: it[3] == true
       star: it[4] == true
+      infercnv: it[5] == true
     }
 
   // drop the boolean flags after branching
   salmon_ref_ch = ref_ch.salmon
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, fasta
     )}
 
   cellranger_ref_ch = ref_ch.cellranger
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, fasta
     )}
 
   star_ref_ch = ref_ch.star
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, gtf, fasta -> tuple(
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, fasta
     )}
 
+  // for this one, also remove fasta path and add path to cytoband
+  infercnv_ref_ch = ref_ch.star
+    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
+      ref_name, meta, gtf, file("${params.ref_rootdir}/${it[1]["cytoband"]}")
+    )}
+
   // generate splici and spliced cDNA reference fasta
-  generate_reference(salmon_ref_ch)
+ // generate_reference(salmon_ref_ch)
   // create index using reference fastas
-  salmon_index(generate_reference.out.fasta_files, salmon_ref_ch)
+ // salmon_index(generate_reference.out.fasta_files, salmon_ref_ch)
 
   // create cellranger index
-  cellranger_index(cellranger_ref_ch)
+ // cellranger_index(cellranger_ref_ch)
 
   // create star index
-  star_index(star_ref_ch)
+//  star_index(star_ref_ch)
 
-  // create input channel for inferCNV gene order file as:
-  // name, meta, gtf, cytoband
-  infercnv_ch = ref_ch
-    // remove fasta path and add path to cytoband
-    .map{it.dropRight(1) + [file("${params.ref_rootdir}/${it[1]["cytoband"]}")]}
+
+  infercnv_ref_ch.view()
 
   // create inferCNV gene order file
-  infercnv_gene_order(infercnv_ch)
+  infercnv_gene_order(infercnv_ref_ch)
 }

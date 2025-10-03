@@ -194,18 +194,18 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow. 
+5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow.
    They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
 
-   The following files are used for cell typing, including assigning consensus cell types. 
-   If new cell typing methods are added or there are changes to references used for cell typing, these files will need to be updated. 
- 
+   The following files are used for cell typing, including assigning consensus cell types.
+   If new cell typing methods are added or there are changes to references used for cell typing, these files will need to be updated.
+
    - [`panglao-cell-type-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv)
    - [`scimilarity-mapped-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-scimilarity/references/scimilarity-mapped-ontologies.tsv)
    - [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv)
    - [`consensus-validation-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-validation-groups.tsv)
    - [`validation-markers.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/validation-markers.tsv)
- 
+
    The following are used for `inferCNV` inference to determine which cell types to include in the normal reference.
    Additional rows will need to be added to these files if additional diagnoses are added to ScPCA.
 
@@ -291,13 +291,14 @@ When adding these files to the `s3://scpca-references` bucket, the directory str
 
 ```
 homo_sapiens
-└── ensembl-104
+├── Homo_sapiens.GRCh38_cytoband.txt.gz
+└──  ensembl-104
     └── annotation
-        ├── Homo_sapiens.GRCh38.104.gtf.gz
-        └── Homo_sapiens.GRCh38.104_cytoband.txt.gz
+        └── Homo_sapiens.GRCh38.104.gtf.gz
 ```
 
 If the `gtf` file is also new, be sure to also follow [these previous instructions](#adding-additional-organisms) for adding additional organisms.
+The cytoband file should also be added to the relevant references in `scpca-refs.json` with the key `"cytoband"`.
 
 2. Generate the gene order file using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
@@ -309,6 +310,7 @@ homo_sapiens
         └── Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz
 ```
 
+4. Add the gene order file to the relevant reference in `scpca-refs.json` with the key `"infercnv_gene_order"`.
 
 ## Running the merge workflow
 
