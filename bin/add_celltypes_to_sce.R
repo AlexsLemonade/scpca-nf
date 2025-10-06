@@ -67,6 +67,18 @@ option_list <- list(
     default = ""
   ),
   make_option(
+    opt_str = c("--scimilarity_results"),
+    type = "character",
+    help = "path to tsv file containing SCimilarity results",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--scimilarity_model_dir"),
+    type = "character",
+    help = "Name of directory with the model used for SCimilarity",
+    default = ""
+  ),
+  make_option(
     opt_str = c("--consensus_celltype_ref"),
     type = "character",
     help = "Path to file containing the reference for assigning consensus cell type labels",
