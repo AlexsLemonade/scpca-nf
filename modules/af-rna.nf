@@ -19,6 +19,7 @@ process alevin_rad {
     tech_flag = [
       '10xv2': '--chromium',
       '10xv2_5prime': '--chromium',
+      '10xv2.1': '--chromiumV3',  // 10x v2.1 seems to use v3 geometry
       '10xv3': '--chromiumV3',
       '10xv3.1': '--chromiumV3',
       '10xv3_5prime': '--chromiumV3',

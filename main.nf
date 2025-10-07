@@ -58,7 +58,7 @@ def check_parameters() {
       param_error = true
     }
 
-    // check that scimilarity reference model and files exist 
+    // check that scimilarity reference model and files exist
     if(!file(params.scimilarity_model_dir, type: 'dir').exists()) {
       log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
       param_error = true
@@ -75,7 +75,7 @@ def check_parameters() {
       log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
       param_error = true
     }
-    
+
     // check that reference files related to consensus cell types exist
     if (!file(params.consensus_ref_file).exists()) {
       log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
@@ -118,16 +118,21 @@ workflow {
   def cell_barcodes = [
     '10xv2': '737K-august-2016.txt',
     '10xv2_5prime': '737K-august-2016.txt',
+    '10xv2.1': '737K-august-2016.txt',
     '10xv3': '3M-february-2018.txt',
     '10xv3.1': '3M-february-2018.txt',
     '10xv3_5prime': '3M-5pgex-jan-2023.txt.gz',
     '10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
     'citeseq_10xv2': '737K-august-2016.txt',
+    'citeseq_10xv2.1': '737K-august-2016.txt',
     'citeseq_10xv3': '3M-february-2018.txt',
     'citeseq_10xv3.1': '3M-february-2018.txt',
+    'citeseq_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
     'cellhash_10xv2': '737K-august-2016.txt',
+    'cellhash_10xv2.1': '737K-august-2016.txt',
     'cellhash_10xv3': '3M-february-2018.txt',
-    'cellhash_10xv3.1': '3M-february-2018.txt'
+    'cellhash_10xv3.1': '3M-february-2018.txt',
+    'cellhash_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
   ]
 
   // 10x flex probe set files
