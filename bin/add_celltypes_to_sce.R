@@ -351,16 +351,19 @@ if (has_cellassign) {
       barcodes = barcode,
       scimilarity_celltype_annotation,
       scimilarity_celltype_ontology,
-      scimilarity_max_distance = max_dist
+      scimilarity_min_distance = min_dist
     )
 
-  # add celltype assignments to colData
-  colData(sce) <- colData(sce) |>
-    as.data.frame() |>
+  # join by barcode to make sure assignments are in the right order
+  celltype_df <- data.frame(barcodes = sce$barcodes) |>
     dplyr::left_join(celltype_assignments, by = "barcodes") |>
-    # any cells that are NA were not classified by cellassign
-    dplyr::mutate(scimilarity_celltype_annotation = ifelse(is.na(celltype), "Unclassified cell", scimilarity_celltype_annotation)) |>
-    DataFrame(rownames = colnames(sce))
+    # any cells that are NA were not classified by scimilarity
+    dplyr::mutate(scimilarity_celltype_annotation = ifelse(is.na(scimilarity_celltype_annotation), "Unclassified cell", scimilarity_celltype_annotation))
+
+  # add cell types to colData
+  sce$scimilarity_celltype_annotation <- celltype_df$scimilarity_celltype_annotation
+  sce$scimilarity_celltype_ontology <- celltype_df$scimilarity_celltype_ontology
+  sce$scimilarity_min_distance <- celltype_df$scimilarity_min_distance
 
   # add model name to metadata
   metadata(sce)$scimilarity_model <- opt$scimilarity_model_dir
@@ -411,7 +414,7 @@ if (assign_consensus) {
     "Consensus cell type reference file does not exist" = file.exists(opt$consensus_celltype_ref)
   )
 
-  consensus_ref_df <- readr::read_tsv(opt$consensus_ref_file) |>
+  consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref) |>
     # select columns to use for joining and consensus assignments
     # first make sure the names match what we expect
     dplyr::rename(
