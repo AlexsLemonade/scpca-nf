@@ -449,6 +449,8 @@ if (assign_consensus) {
   sce$consensus_celltype_annotation <- celltype_df$consensus_annotation
   sce$consensus_celltype_ontology <- celltype_df$consensus_ontology
 
+  # add a note to metadata indicating which methods were used to assign consensus
+  metadata(sce)$consensus_celltype_methods <- stringr::word(join_columns, 1, sep = "_")
 
   # Count the number of normal reference cells -------------------------
 
