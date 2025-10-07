@@ -373,27 +373,36 @@ if (has_cellassign) {
 
 # Consensus assignment ---------------------------------------------------------
 
-# set columns to use for joining and column with consensus from reference file based on available cell type methods
-assign_consensus <- FALSE
+# set columns to use for joining based on methods that are present
+# define the prefix of the column in the consensus reference that contains the appropriate consensus term given the provided methods
+# e.g., all three methods use the main consensus_annotation column
+# if the library only has scimilarity and singler, use singler_scimilarity_pair_annotation column, etc.
+
+# first set join and ref column prefix to null
+# presence of these values determines if consensus should be added
+join_columns <- NULL
+ref_column_prefix <- NULL
+
 if (has_singler && has_cellassign && has_scimilarity) {
   # all three methods means use the main consensus columns
   join_columns <- c("singler_celltype_ontology", "cellassign_celltype_ontology", "scimilarity_celltype_ontology")
   ref_column_prefix <- "consensus"
-  assign_consensus <- TRUE
 } else if (has_singler && has_cellassign && !has_scimilarity) {
   # only singler and cellassign, use columns for combination between singler/cellassign
   join_columns <- c("singler_celltype_ontology", "cellassign_celltype_ontology")
   ref_column_prefix <- "cellassign_singler_pair"
-  assign_consensus <- TRUE
 } else if (has_singler && !has_cellassign && has_scimilarity) {
+  # only singler and scimilarity
   join_columns <- c("singler_celltype_ontology", "scimilarity_celltype_ontology")
   ref_column_prefix <- "singler_scimilarity_pair"
-  assign_consensus <- TRUE
 } else if (!has_singler && has_cellassign && has_scimilarity) {
+  # only scimilarity and cellassign
   join_columns <- c("cellassign_celltype_ontology", "scimilarity_celltype_ontology")
   ref_column_prefix <- "cellassign_scimilarity_pair"
-  assign_consensus <- TRUE
 }
+
+# set value for if consensus should be added based on definition of columns and prefix
+assign_consensus <- !is.null(join_columns) && !is.null(ref_column_prefix)
 
 # assign consensus cell type labels
 if (assign_consensus) {
@@ -403,7 +412,7 @@ if (assign_consensus) {
   )
 
   consensus_ref_df <- readr::read_tsv(opt$consensus_ref_file) |>
-    # select columns to use for joining and consensus assigmments
+    # select columns to use for joining and consensus assignments
     # first make sure the names match what we expect
     dplyr::rename(
       cellassign_celltype_ontology = panglao_ontology,
@@ -422,7 +431,7 @@ if (assign_consensus) {
     as.data.frame() |>
     dplyr::select(
       barcodes,
-      contains("celltype") # get both singler and cellassign with ontology
+      contains("celltype") # get any available cell type columns with ontology
     ) |>
     # then add consensus labels
     dplyr::left_join(
