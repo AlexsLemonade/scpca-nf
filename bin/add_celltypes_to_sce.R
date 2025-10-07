@@ -333,25 +333,89 @@ if (has_cellassign) {
   }
 }
 
+# SCimilarity ------------------------------------------------------------------
+
+has_scimilarity <- file.exists(opt$scimilarity_results)
+if (has_cellassign) {
+  # check that scimilarity model info is provided
+  stopifnot(
+    "SCimilarity model directory name must be provided" = opt$scimilarity_model_dir != ""
+  )
+
+  # read in cell types
+  celltype_assignments <- readr::read_tsv(opt$scimilarity_results) |>
+    # account for the fact that we could have lost some cells we had previously when re-processing through filtering steps
+    dplyr::filter(barcode %in% colnames(sce)) |>
+    # select the columns to include in the processed object and make sure they are named correctly
+    dplyr::select(
+      barcodes = barcode,
+      scimilarity_celltype_annotation,
+      scimilarity_celltype_ontology,
+      scimilarity_max_distance = max_dist
+    )
+
+  # add celltype assignments to colData
+  colData(sce) <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::left_join(celltype_assignments, by = "barcodes") |>
+    # any cells that are NA were not classified by cellassign
+    dplyr::mutate(scimilarity_celltype_annotation = ifelse(is.na(celltype), "Unclassified cell", scimilarity_celltype_annotation)) |>
+    DataFrame(rownames = colnames(sce))
+
+  # add model name to metadata
+  metadata(sce)$scimilarity_model <- opt$scimilarity_model_dir
+
+  # add scimilarity as celltype method
+  # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+  #  come out to just the string "scimilarity"
+  metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "scimilarity")
+}
+
+# Consensus assignment ---------------------------------------------------------
+
+# set columns to use for joining and column with consensus from reference file based on available cell type methods
+assign_consensus <- FALSE
+if (has_singler && has_cellassign && has_scimilarity) {
+  # all three methods means use the main consensus columns
+  join_columns <- c("singler_celltype_ontology", "cellassign_celltype_ontology", "scimilarity_celltype_ontology")
+  ref_column_prefix <- "consensus"
+  assign_consensus <- TRUE
+} else if (has_singler && has_cellassign && !has_scimilarity) {
+  # only singler and cellassign, use columns for combination between singler/cellassign
+  join_columns <- c("singler_celltype_ontology", "cellassign_celltype_ontology")
+  ref_column_prefix <- "cellassign_singler_pair"
+  assign_consensus <- TRUE
+} else if (has_singler && !has_cellassign && has_scimilarity) {
+  join_columns <- c("singler_celltype_ontology", "scimilarity_celltype_ontology")
+  ref_column_prefix <- "singler_scimilarity_pair"
+  assign_consensus <- TRUE
+} else if (!has_singler && has_cellassign && has_scimilarity) {
+  join_columns <- c("cellassign_celltype_ontology", "scimilarity_celltype_ontology")
+  ref_column_prefix <- "cellassign_scimilarity_pair"
+  assign_consensus <- TRUE
+}
+
 # assign consensus cell type labels
-if (has_singler && has_cellassign) {
+if (assign_consensus) {
   # now make sure that reference file exists
   stopifnot(
     "Consensus cell type reference file does not exist" = file.exists(opt$consensus_celltype_ref)
   )
 
-  # read in consensus table
-  consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref) |>
-    # select unique combinations of consensus refs based on ontology columns
-    # TODO: Update when incorporating scimilarity
-    dplyr::select(
-      blueprint_ontology,
-      panglao_ontology,
-      consensus_ontology = cellassign_singler_pair_ontology,
-      consensus_annotation = cellassign_singler_pair_annotation
+  consensus_ref_df <- readr::read_tsv(opt$consensus_ref_file) |>
+    # select columns to use for joining and consensus assigmments
+    # first make sure the names match what we expect
+    dplyr::rename(
+      cellassign_celltype_ontology = panglao_ontology,
+      singler_celltype_ontology = blueprint_ontology,
+      scimilarity_celltype_ontology = scimilarity_ontology
     ) |>
-    tidyr::drop_na() |>
-    dplyr::distinct()
+    # now just filter to join columns and ref column with consensus cell types
+    dplyr::select(all_of(join_columns), starts_with(ref_column_prefix)) |>
+    # only keep unique combos
+    dplyr::distinct() |>
+    # make sure the columns used to get the consensus cell type actually have the consensus_ prefix rather than singler_cellassign_pair_, etc.
+    dplyr::rename_with(~ stringr::str_replace(.x, ref_column_prefix, "consensus"), starts_with(ref_column_prefix))
 
   # create df with consensus assignments
   celltype_df <- colData(sce) |>
@@ -363,10 +427,7 @@ if (has_singler && has_cellassign) {
     # then add consensus labels
     dplyr::left_join(
       consensus_ref_df,
-      by = c(
-        "singler_celltype_ontology" = "blueprint_ontology",
-        "cellassign_celltype_ontology" = "panglao_ontology"
-      ),
+      by = join_columns,
       relationship = "many-to-many" # account for multiple of the same cell type
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
