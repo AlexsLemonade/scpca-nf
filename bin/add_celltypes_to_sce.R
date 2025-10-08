@@ -162,6 +162,10 @@ sce <- readr::read_rds(opt$input_sce_file)
 # We'll count inferCNV reference cells when assigning consensus cell types
 reference_cell_count <- NA_integer_
 
+# set automated methods list
+# we'll use this to assign consensus and add cell type methods to the metadata
+automated_methods <- c()
+
 # SingleR results --------------------------------------------------------------
 
 has_singler <- file.exists(opt$singler_results)
@@ -241,8 +245,8 @@ if (has_singler) {
   metadata(sce)$singler_gene_set_version <- singler_ref_info[["gene_set_version"]]
   metadata(sce)$singler_date <- singler_ref_info[["date"]]
 
-  # add note about cell type method to metadata
-  metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
+  # note that singler is included in methods
+  automated_methods <- c(automated_methods, "singler")
 }
 
 # CellAssign results -----------------------------------------------------------
@@ -316,9 +320,7 @@ if (has_cellassign) {
     metadata(sce)$cellassign_reference_version <- cellassign_ref_info[["ref_version"]]
 
     # add cellassign as celltype method
-    # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
-    #  come out to just the string "cellassign"
-    metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
+    automated_methods <- c(automated_methods, "cellassign")
 
     # add cellassign reference organs to metadata
     cellassign_organs <- opt$celltype_ref_metafile |>
@@ -369,10 +371,13 @@ if (has_scimilarity) {
   metadata(sce)$scimilarity_model <- opt$scimilarity_model_dir
 
   # add scimilarity as celltype method
-  # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
-  #  come out to just the string "scimilarity"
-  metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "scimilarity")
+  automated_methods <- c(automated_methods, "scimilarity")
 }
+
+# add automated methods to the metadata of the object
+# note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+#  come out to just the automated methods
+metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, automated_methods)
 
 # Consensus assignment ---------------------------------------------------------
 
@@ -383,29 +388,30 @@ if (has_scimilarity) {
 
 # first set join and ref column prefix to null
 # presence of these values determines if consensus should be added
-join_columns <- NULL
-ref_column_prefix <- NULL
 
-if (has_singler && has_cellassign && has_scimilarity) {
-  # all three methods means use the main consensus columns
-  join_columns <- c("singler_celltype_ontology", "cellassign_celltype_ontology", "scimilarity_celltype_ontology")
-  ref_column_prefix <- "consensus"
-} else if (has_singler && has_cellassign && !has_scimilarity) {
-  # only singler and cellassign, use columns for combination between singler/cellassign
-  join_columns <- c("singler_celltype_ontology", "cellassign_celltype_ontology")
-  ref_column_prefix <- "cellassign_singler_pair"
-} else if (has_singler && !has_cellassign && has_scimilarity) {
-  # only singler and scimilarity
-  join_columns <- c("singler_celltype_ontology", "scimilarity_celltype_ontology")
-  ref_column_prefix <- "singler_scimilarity_pair"
-} else if (!has_singler && has_cellassign && has_scimilarity) {
-  # only scimilarity and cellassign
-  join_columns <- c("cellassign_celltype_ontology", "scimilarity_celltype_ontology")
-  ref_column_prefix <- "cellassign_scimilarity_pair"
+# by default don't assign consensus
+assign_consensus <- FALSE
+
+# if there's at least two methods then assign consensus using the available methods
+if (length(automated_methods) > 1) {
+  assign_consensus <- TRUE
+
+  # define the columns to use in joining based on the existing methods
+  join_columns <- glue::glue("{automated_methods}_celltype_ontology")
+
+  # column map indicating which consensus column should be used with which combination of methods
+  ref_column_map <- list(
+    "consensus" = c("singler", "cellassign", "scimilarity"),
+    "cellassign_singler_pair" = c("singler", "cellassign"),
+    "singler_scimilarity_pair" = c("singler", "scimilarity"),
+    "cellassign_scimilarity_pair" = c("cellassign", "scimilarity")
+  )
+
+  # find the appropriate column to use
+  ref_column_prefix <- names(
+    purrr::keep(ref_column_map, \(x) setequal(x, automated_methods))
+  )
 }
-
-# set value for if consensus should be added based on definition of columns and prefix
-assign_consensus <- !is.null(join_columns) && !is.null(ref_column_prefix)
 
 # assign consensus cell type labels
 if (assign_consensus) {
@@ -450,7 +456,7 @@ if (assign_consensus) {
   sce$consensus_celltype_ontology <- celltype_df$consensus_ontology
 
   # add a note to metadata indicating which methods were used to assign consensus
-  metadata(sce)$consensus_celltype_methods <- stringr::word(join_columns, 1, sep = "_")
+  metadata(sce)$consensus_celltype_methods <- automated_methods
 
   # Count the number of normal reference cells -------------------------
 
