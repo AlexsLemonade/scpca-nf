@@ -72,7 +72,13 @@ if (file.exists(opt$mito_file)) {
 sample_ids <- unlist(stringr::str_split(opt$sample_id, ",|;")) |> sort()
 
 # read in sample metadata
-sample_metadata_df <- readr::read_tsv(opt$sample_metadata_file, col_types = "c") |>
+sample_metadata_df <- readr::read_tsv(
+  opt$sample_metadata_file,
+  # read all columns as character except:
+  # - is_cell_line and is_xenograft should be logical
+  # - age should be double
+  col_types = readr::cols(is_cell_line = "l", is_xenograft = "l", age = "d", .default = "c")
+) |>
   # rename sample id column
   dplyr::rename("sample_id" = "scpca_sample_id") |>
   # add library ID as column in sample metadata
