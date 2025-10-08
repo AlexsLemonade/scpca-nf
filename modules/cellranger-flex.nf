@@ -143,7 +143,7 @@ workflow flex_quant{
             || !file(it.cellranger_multi_results_dir).exists()
             || Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.readMeta(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || Utils.readMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()

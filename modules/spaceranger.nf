@@ -136,7 +136,7 @@ workflow spaceranger_quant{
             || !file(it.spaceranger_results_dir).exists()
             || Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.readMeta(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || Utils.readMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_spatial: file(it.spaceranger_results_dir).exists()

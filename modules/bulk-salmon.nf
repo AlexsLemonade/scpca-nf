@@ -140,7 +140,7 @@ workflow bulk_quant_rna {
             || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
             || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") != it.t2g_bulk_path
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.readMeta(file("${it.salmon_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || Utils.readMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_quants: file(it.salmon_results_dir).exists()
