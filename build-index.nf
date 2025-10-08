@@ -204,19 +204,17 @@ workflow {
     )}
 
   // generate splici and spliced cDNA reference fasta
- // generate_reference(salmon_ref_ch)
+  generate_reference(salmon_ref_ch)
   // create index using reference fastas
- // salmon_index(generate_reference.out.fasta_files, salmon_ref_ch)
+  salmon_index(generate_reference.out.fasta_files, salmon_ref_ch)
 
   // create cellranger index
- // cellranger_index(cellranger_ref_ch)
+  cellranger_index(cellranger_ref_ch)
 
   // create star index
-//  star_index(star_ref_ch)
-
-
-  infercnv_ref_ch.view()
+  star_index(star_ref_ch)
 
   // create inferCNV gene order file
   infercnv_gene_order(infercnv_ref_ch)
+
 }
