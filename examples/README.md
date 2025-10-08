@@ -11,8 +11,7 @@ This directory contains the following example files:
 | `example_sample_metadata.tsv`| An example [sample metadata file](../external-instructions.md#prepare-the-sample-metadata-file) for the `scpca-nf` workflow. |
 | `example_multiplex_pools.tsv` | An example [multiplex pool file](../external-instructions.md#multiplexed-cellhash-libraries) for the `scpca-nf` workflow.|
 | `example_project_celltype_metadata.tsv` | An example [project cell type metadata file](../external-instructions.md#preparing-the-cell-type-project-metadata-file) for performing optional cell type annotation in the `scpca-nf` workflow. |
-| `example_diagnosis_groups.tsv` | An example [diagnosis groups metadata file](../external-instructions.md#creating-the-diagnosis-groups-metadata-file) for performing optional CNV inference in the `scpca-nf` workflow. |
-| `example_diagnosis_celltypes.tsv` | An example [diagnosis groups metadata file](../external-instructions.md#creating-the-diagnosis-cell-types-metadata-file) for performing optional CNV inference in the `scpca-nf` workflow. |
+| `example_diagnosis_celltypes.tsv` | An example [diagnosis cell types metadata file](../external-instructions.md#preparing-the-custom-cnv-inference-metadata-file) for performing optional CNV inference in the `scpca-nf` workflow |
 
 These files provide examples of expected formatting and content, but note that the specific values in these files may not be applicable or sufficient for running `scpca-nf` directly on your system.
 
@@ -56,7 +55,7 @@ Below is an example of a sample metadata file:
 
 | scpca_sample_id |is_cell_line | is_xenograft | diagnosis    | age |
 | --------------- |-------------| -------------|------------ | --- |
-| sample01        | FALSE       | FALSE        | glioblastoma | 71  |
+| sample01        | FALSE       | FALSE        | Glioblastoma | 71  |
 
 **Note that the `diagnosis` and `age` columns are shown as example sample metadata one might include in the sample metadata file.
 The metadata file that you create does not need to match this exactly, but it must contain the required `scpca_sample_id` column.**

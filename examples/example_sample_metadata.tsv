@@ -4,9 +4,9 @@ sample02	FALSE	FALSE	diagnosis1	age2
 sample03	TRUE	FALSE	diagnosis1	age3
 sample04	FALSE	TRUE	diagnosis1	age4
 sample05	FALSE	FALSE	diagnosis2	age5
-sample06	FALSE	FALSE	diagnosis3	age6
-sample07	FALSE	FALSE	diagnosis3	age7
+sample06	FALSE	FALSE	diagnosis2	age6
+sample07	FALSE	FALSE	diagnosis2	age7
 sample08	FALSE	FALSE	diagnosis3	age8
-sample09	FALSE	FALSE	diagnosis4	age9
-sample10	FALSE	FALSE	diagnosis5	age10
-sample11	FALSE	FALSE	diagnosis6	age11
+sample09	FALSE	FALSE	diagnosis3	age9
+sample10	FALSE	FALSE	diagnosis3	age10
+sample11	FALSE	FALSE	diagnosis3	age11
