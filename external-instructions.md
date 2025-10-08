@@ -471,7 +471,7 @@ Note that if CNV inference is turned on, cell type annotation will automatically
 This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference.
 2. Confirm that your samples' diagnoses are present in the `sample_diagnosis` column of the reference file [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv).
 This file contains a list of all diagnoses currently present in the ScPCA Portal.
-If any of your samples' diagnoses are not present, you will need to provide a custom metadata file mapping your diagnoses to the desired normal reference cell types, [as described below](#preparing-a-custom-diagnosis-cell-types-metadata-file).
+If your samples' diagnoses are not all present, you will need to provide a custom metadata file mapping your diagnoses to the desired normal reference cell types, [as described below](#preparing-a-custom-diagnosis-cell-types-metadata-file).
 
 Once you have followed both the above steps and the [steps to prepare for cell type annotation](#cell-type-annotation), you can use the following command to run the workflow with CNV inference:
 
@@ -482,7 +482,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Preparing a custom diagnosis cell types metadata file
 
-If your sample's diagnosis is not present in the [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv) reference file, you will need to provide a custom metadata file that specifies the consensus cell type labels to use in the `inferCNV` normal reference.
+If your samples' diagnoses are not all not present in the [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv) reference file, you will need to provide a custom metadata file that specifies the consensus cell type labels to use in the `inferCNV` normal reference.
 
 The path/uri to this metadata file should be specified in your configuration file using the workflow parameter `diagnosis_celltypes_file`.
 It should contain two columns with the following information:
