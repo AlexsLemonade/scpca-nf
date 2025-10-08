@@ -144,7 +144,7 @@ workflow map_quant_rna {
             // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
             || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.readMetaVal(file("${it.rad_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_rad: file(it.rad_dir).exists()
