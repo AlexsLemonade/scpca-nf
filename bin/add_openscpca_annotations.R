@@ -81,12 +81,10 @@ colData(sce) <- colData(sce) |>
 #  saving in same spot as for actual celltyping
 metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "openscpca")
 
-# add openscpca annotation info as a list to metadata
-metadata(sce)$openscpca_annotations_info <- list(
-  module_name = json_content$module_name,
-  openscpca_nf_version = json_content$openscpca_nf_version,
-  release_date = json_content$release_date
-)
+# add openscpca annotation info to metadata
+metadata(sce)$openscpca_module_name <- json_content$module_name
+metadata(sce)$openscpca_nf_version <- json_content$openscpca_nf_version
+metadata(sce)$openscpca_release_date <- json_content$release_date
 
 # Write SCE back to file
 readr::write_rds(sce, opt$sce_file, compress = "bz2")
