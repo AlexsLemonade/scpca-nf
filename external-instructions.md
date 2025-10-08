@@ -470,8 +470,9 @@ Note that if CNV inference is turned on, cell type annotation will automatically
 You can perform CNV inference by taking the following steps:
 
 1. Ensure your [prepared sample metadata file](#prepare-the-sample-metadata-file) contains a `diagnosis` column.
-This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference:
-2. The Data Lab has compiled a list of all diagnoses currently present in the ScPCA Portal in the reference file [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv).
+This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference.
+2. Confirm that your samples' diagnoses are present in the reference file [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv).
+This file contains a list of all diagnoses currently present in the ScPCA Portal.
 You should confirm that your samples' diagnoses are present in the `sample_diagnosis` column of this metadata file.
 If any of your samples' diagnoses are not present, you will need to provide a custom metadata file mapping your diagnoses to the desired normal reference cell types, [as described below](#preparing-a-custom-diagnosis-cell-types-metadata-file).
 
