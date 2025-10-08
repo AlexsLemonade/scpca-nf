@@ -397,7 +397,7 @@ workflow annotate_celltypes {
     /////////////////////////////////////////////////////
 
     // prepare input for process to add celltypes to the processed SCE
-    // result is [meta, processed rds, singler dir, cellassign dir]
+    // result is [meta, processed rds, singler dir, cellassign dir, scimilarity dir]
     assignment_input_ch = celltype_input_ch
       .map{ meta, processed_sce -> tuple(
         meta.unique_id,
@@ -413,7 +413,7 @@ workflow annotate_celltypes {
       .map{it.drop(1)} // remove unique id
       .branch{
         // pull out libraries that actually have at least 1 type of annotation
-        add_celltypes: (it[2] != []) || (it[3] != [])
+        add_celltypes: it[2..4].any()
         no_celltypes: true
       }
 
