@@ -11,7 +11,7 @@ This directory contains the following example files:
 | `example_sample_metadata.tsv`| An example [sample metadata file](../external-instructions.md#prepare-the-sample-metadata-file) for the `scpca-nf` workflow. |
 | `example_multiplex_pools.tsv` | An example [multiplex pool file](../external-instructions.md#multiplexed-cellhash-libraries) for the `scpca-nf` workflow.|
 | `example_project_celltype_metadata.tsv` | An example [project cell type metadata file](../external-instructions.md#preparing-the-cell-type-project-metadata-file) for performing optional cell type annotation in the `scpca-nf` workflow. |
-| `example_diagnosis_celltypes.tsv` | An example [diagnosis cell types metadata file](../external-instructions.md#preparing-the-custom-cnv-inference-metadata-file) for performing optional CNV inference in the `scpca-nf` workflow |
+| `example_diagnosis_celltypes.tsv` | An example [diagnosis cell types metadata file](../external-instructions.md#preparing-a-custom-diagnosis-cell-types-metadata-file) for performing optional CNV inference in the `scpca-nf` workflow |
 
 These files provide examples of expected formatting and content, but note that the specific values in these files may not be applicable or sufficient for running `scpca-nf` directly on your system.
 
