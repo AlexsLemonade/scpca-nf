@@ -464,12 +464,12 @@ As part of its algorithm, `inferCNV` uses a set of normal reference cells to qua
 `scpca-nf` uses the [consensus cell type labels](#cell-type-annotation) to create the set of normal reference cells based on each given sample's diagnosis.
 As such, to perform CNV inference, you must also [perform cell type annotation, as described above](#cell-type-annotation).
 
-By default, CNV inference is not performed, but can be invoked by following the below steps. 
+By default, CNV inference is not performed, but can be invoked by following the below steps.
 Note that if CNV inference is turned on, cell type annotation will automatically be turned on as well.
 
 1. Ensure your [prepared sample metadata file](#prepare-the-sample-metadata-file) contains a `diagnosis` column.
 This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference.
-2. Confirm that your samples' diagnoses are present in the `sample_diagnosis` column of the reference file [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv).
+2. Confirm that your samples' diagnoses are present in the `sample_diagnosis` column of the reference file [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv).
 This file contains a list of all diagnoses currently present in the ScPCA Portal.
 If any of your samples' diagnoses are not present, you will need to provide a custom metadata file mapping your diagnoses to the desired normal reference cell types, [as described below](#preparing-a-custom-diagnosis-cell-types-metadata-file).
 
@@ -482,7 +482,7 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Preparing a custom diagnosis cell types metadata file
 
-If your sample's diagnosis is not present in the [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv) reference file, you will need to provide a custom metadata file that specifies the consensus cell type labels to use in the `inferCNV` normal reference.
+If your sample's diagnosis is not present in the [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv) reference file, you will need to provide a custom metadata file that specifies the consensus cell type labels to use in the `inferCNV` normal reference.
 
 The path/uri to this metadata file should be specified in your configuration file using the workflow parameter `diagnosis_celltypes_file`.
 It should contain two columns with the following information:
