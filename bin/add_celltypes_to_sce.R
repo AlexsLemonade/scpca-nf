@@ -336,7 +336,7 @@ if (has_cellassign) {
 # SCimilarity ------------------------------------------------------------------
 
 has_scimilarity <- file.exists(opt$scimilarity_results)
-if (has_cellassign) {
+if (has_scimilarity) {
   # check that scimilarity model info is provided
   stopifnot(
     "SCimilarity model directory name must be provided" = opt$scimilarity_model_dir != ""
@@ -440,7 +440,7 @@ if (assign_consensus) {
     dplyr::left_join(
       consensus_ref_df,
       by = join_columns,
-      relationship = "many-to-many" # account for multiple of the same cell type
+      relationship = "many-to-one" # account for multiple of the same cell type
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
     tidyr::replace_na(list(consensus_annotation = "Unknown"))
