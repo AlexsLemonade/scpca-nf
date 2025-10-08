@@ -173,6 +173,8 @@ workflow map_quant_feature {
             params.repeat_mapping
             // or the feature rad file directory does not exist
             || !file(it.feature_rad_dir).exists()
+            // or the technology has changed (to ensure re-mapping if tech was updated)
+            || Utils.readMeta(file("${it.feature_rad_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_rad: file(it.feature_rad_dir).exists()

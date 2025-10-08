@@ -141,7 +141,9 @@ workflow flex_quant{
           it.files_directory && file(it.files_directory, type: 'dir').exists() && (
             params.repeat_mapping
             || !file(it.cellranger_multi_results_dir).exists()
-            || Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
+            // or the technology has changed (to ensure re-mapping if tech was updated)
+            || Utils.readMeta(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()

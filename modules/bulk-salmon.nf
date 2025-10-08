@@ -137,8 +137,10 @@ workflow bulk_quant_rna {
             // the results directory does not exist
             || !file(it.salmon_results_dir).exists()
             // the assembly has changed; if salmon_results_dir doesn't exist, these lines won't get hit
-            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
-            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") != "${it.t2g_bulk_path}"
+            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
+            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path") != it.t2g_bulk_path
+            // or the technology has changed (to ensure re-mapping if tech was updated)
+            || Utils.readMeta(file("${it.salmon_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
         )
         has_quants: file(it.salmon_results_dir).exists()
