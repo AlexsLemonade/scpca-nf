@@ -459,21 +459,18 @@ Optionally, you can also include a column `cell_type_ontology` with ontology lab
 
 ## CNV inference
 
-`scpca-nf` currently performs copy-number variation (CNV) inference using [`inferCNV`](https://github.com/broadinstitute/infercnv).
-
-By default, CNV inference is not performed.
+`scpca-nf` optionally performs copy-number variation (CNV) inference using [`inferCNV`](https://github.com/broadinstitute/infercnv).
 As part of its algorithm, `inferCNV` uses a set of normal reference cells to quantify CNV events across all provided cells.
 `scpca-nf` uses the [consensus cell type labels](#cell-type-annotation) to create the set of normal reference cells based on each given sample's diagnosis.
 As such, to perform CNV inference, you must also [perform cell type annotation, as described above](#cell-type-annotation).
-Note that if CNV inference is turned on, cell type annotation will automatically be turned on as well.
 
-You can perform CNV inference by taking the following steps:
+By default, CNV inference is not performed, but can be invoked by following the below steps. 
+Note that if CNV inference is turned on, cell type annotation will automatically be turned on as well.
 
 1. Ensure your [prepared sample metadata file](#prepare-the-sample-metadata-file) contains a `diagnosis` column.
 This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference.
-2. Confirm that your samples' diagnoses are present in the reference file [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv).
+2. Confirm that your samples' diagnoses are present in the `sample_diagnosis` column of the reference file [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv).
 This file contains a list of all diagnoses currently present in the ScPCA Portal.
-You should confirm that your samples' diagnoses are present in the `sample_diagnosis` column of this metadata file.
 If any of your samples' diagnoses are not present, you will need to provide a custom metadata file mapping your diagnoses to the desired normal reference cell types, [as described below](#preparing-a-custom-diagnosis-cell-types-metadata-file).
 
 Once you have followed both the above steps and the [steps to prepare for cell type annotation](#cell-type-annotation), you can use the following command to run the workflow with CNV inference:
@@ -487,12 +484,12 @@ nextflow run AlexsLemonade/scpca-nf \
 
 If your sample's diagnosis is not present in the [references/diagnosis-groups.tsv](references/diagnosis-groups.tsv) reference file, you will need to provide a custom metadata file that specifies the consensus cell type labels to use in the `inferCNV` normal reference.
 
-This path/uri to this metadata file should be specified in your configuration file using the workflow parameter `diagnosis_celltypes_file`.
+The path/uri to this metadata file should be specified in your configuration file using the workflow parameter `diagnosis_celltypes_file`.
 It should contain two columns with the following information:
 
 |  |   |
 | --- | --- |
-| `diagnosis_group` | Sample diagnosis as recorded the [sample metadata file](#prepare-the-sample-metadata-file) `diagnosis` column  |
+| `diagnosis_group` | Sample diagnosis as recorded in the `diagnosis` column of the [sample metadata file](#prepare-the-sample-metadata-file)  |
 | `celltype_groups` | Consensus cell type _validation groups_ to include in an `inferCNV` normal reference for samples of the given broad diagnosis group  |
 
 In this file, there should be only one row per diagnosis (`diagnosis_group`).
