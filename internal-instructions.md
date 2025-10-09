@@ -291,10 +291,10 @@ When adding these files to the `s3://scpca-references` bucket, the directory str
 
 ```
 homo_sapiens
-├── Homo_sapiens.GRCh38_cytoband.txt.gz
-└──  ensembl-104
+└── ensembl-104
     └── annotation
-        └── Homo_sapiens.GRCh38.104.gtf.gz
+        ├── Homo_sapiens.GRCh38.104.gtf.gz
+        └── Homo_sapiens.GRCh38.104_cytoband.txt.gz
 ```
 
 If the `gtf` file is also new, be sure to also follow [these previous instructions](#adding-additional-organisms) for adding additional organisms.
@@ -306,9 +306,8 @@ To generate the index files for only the new organism, use the `--build_refs` ar
 ```
 homo_sapiens
 └── ensembl-104
-    └── annotation
-        ├── Homo_sapiens.GRCh38.104.gtf.gz
-        └── Homo_sapiens.GRCh38.104_cytoband.txt.gz
+    └── infercnv
+        └── Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz
 ```
 
 4. Add the gene order file to the relevant reference in `scpca-refs.json` with the key `"infercnv_gene_order"`.
