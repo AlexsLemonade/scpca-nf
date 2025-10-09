@@ -173,33 +173,30 @@ workflow {
     }
     // filter to only regenerate specified references
     .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
-    // branch to create salmon, cellranger, infercnv, and star references
-    .branch{ it ->
-      salmon: it[2] == true
-      cellranger: it[3] == true
-      star: it[4] == true
-      infercnv: it[5] == true
-    }
 
-  // drop the boolean flags after branching
-  salmon_ref_ch = ref_ch.salmon
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
+  // filter to relevant references and drop the boolean flags
+  salmon_ref_ch = ref_ch
+    .filter{ it[2] }
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, fasta
     )}
 
-  cellranger_ref_ch = ref_ch.cellranger
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
+  cellranger_ref_ch = ref_ch
+    .filter{ it[3] }
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, fasta
     )}
 
-  star_ref_ch = ref_ch.star
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
+  star_ref_ch = ref_ch
+    .filter{ it[4] }
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, fasta
     )}
 
   // also remove fasta path and add path to cytoband
-  infercnv_ref_ch = ref_ch.infercnv
-    .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
+  infercnv_ref_ch = ref_ch
+    .filter{ it[5] }
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
       ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")
     )}
 
