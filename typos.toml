@@ -6,3 +6,4 @@ extend-exclude = [
 [default.extend-identifiers]
 limitBAMsortRAM="limitBAMsortRAM"
 outBAMsortingThreadN="outBAMsortingThreadN"
+2023_TRU="2023_TRU"
