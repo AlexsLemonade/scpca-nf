@@ -173,7 +173,7 @@ workflow {
     }
     // filter to only regenerate specified references
     .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
-    // branch to create salmon, cellranger, and star references
+    // branch to create salmon, cellranger, infercnv, and star references
     .branch{ it ->
       salmon: it[2] == true
       cellranger: it[3] == true
@@ -197,10 +197,10 @@ workflow {
       ref_name, meta, gtf, fasta
     )}
 
-  // for this one, also remove fasta path and add path to cytoband
-  infercnv_ref_ch = ref_ch.star
+  // also remove fasta path and add path to cytoband
+  infercnv_ref_ch = ref_ch.infercnv
     .map{ ref_name, meta, include_salmon, include_cellranger, include_star, include_infercnv, gtf, fasta -> tuple(
-      ref_name, meta, gtf, file("${params.ref_rootdir}/${it[1]["cytoband"]}")
+      ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")
     )}
 
   // generate splici and spliced cDNA reference fasta
