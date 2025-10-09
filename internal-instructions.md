@@ -298,7 +298,7 @@ homo_sapiens
 ```
 
 If the `gtf` file is also new, be sure to also follow [these previous instructions](#adding-additional-organisms) for adding additional organisms.
-The cytoband file should also be added to the relevant references in `scpca-refs.json` with the key `"cytoband"`.
+The `cytoband` file should also be added to the relevant references in `scpca-refs.json` with the key `"cytoband"`.
 
 2. Generate the gene order file using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
