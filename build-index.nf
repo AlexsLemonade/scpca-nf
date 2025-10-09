@@ -177,28 +177,28 @@ workflow {
   // filter to relevant references and drop the boolean flags
   salmon_ref_ch = ref_ch
     .filter{ it[2] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
-      ref_name, meta, gtf, fasta
-    )}
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
+      [ref_name, meta, gtf, fasta]
+    }
 
   cellranger_ref_ch = ref_ch
     .filter{ it[3] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
-      ref_name, meta, gtf, fasta
-    )}
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> 
+      [ref_name, meta, gtf, fasta]
+    }
 
   star_ref_ch = ref_ch
     .filter{ it[4] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
-      ref_name, meta, gtf, fasta
-    )}
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
+      [ref_name, meta, gtf, fasta]
+    }
 
   // also remove fasta path and add path to cytoband
   infercnv_ref_ch = ref_ch
     .filter{ it[5] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> tuple(
-      ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")
-    )}
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, _fasta ->
+      [ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")]
+    }
 
   // generate splici and spliced cDNA reference fasta
   generate_reference(salmon_ref_ch)
