@@ -12,7 +12,7 @@
     "cellranger_index": "homo_sapiens/ensembl-104/cellranger_index/Homo_sapiens.GRCh38.104_cellranger_full",
     "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx",
     "infercnv_gene_order": "homo_sapiens/ensembl-104/infercnv/Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz",
-    "cytoband": "homo_sapiens/Homo_sapiens.GRCh38_cytoband.txt.gz"
+    "cytoband": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104_cytoband.txt.gz"
   },
   "Homo_sapiens.GRCh38.110": {
     "ref_dir": "homo_sapiens/ensembl-110",
@@ -27,7 +27,7 @@
     "cellranger_index": "homo_sapiens/ensembl-110/cellranger_index/Homo_sapiens.GRCh38.110_cellranger_full",
     "star_index": "",
     "infercnv_gene_order": "homo_sapiens/ensembl-110/infercnv/Homo_sapiens.GRCh38.110_gene_order_arms.txt.gz",
-    "cytoband": "homo_sapiens/Homo_sapiens.GRCh38_cytoband.txt.gz"
+    "cytoband": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110_cytoband.txt.gz"
   },
   "Mus_musculus.GRCm39.104": {
     "ref_dir": "mus_musculus/ensembl-104",
@@ -42,6 +42,6 @@
     "cellranger_index": "mus_musculus/ensembl-104/cellranger_index/Mus_musculus.GRCm39.104_cellranger_full",
     "star_index": "mus_musculus/ensembl-104/star_index/Mus_musculus.GRCm39.104.star_idx",
     "infercnv_gene_order": "mus_musculus/ensembl-104/infercnv/Mus_musculus.GRCm39.104_gene_order_arms.txt.gz",
-    "cytoband": "mus_musculus/Mus_musculus.GRCm39_cytoband.txt.gz"
+    "cytoband": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104_cytoband.txt.gz"
   }
 }
