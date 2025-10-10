@@ -170,7 +170,7 @@ Inside the `references` folder are files and scripts related to maintaining the 
 
 1. `ref-metadata.tsv`: Each row of this TSV file corresponds to a reference that is available for mapping with `scpca-nf`.
    The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
-   This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta` and `gtf` files are stored in the proper location on S3.
+   This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta`, `gtf`, and `cytoband` (used to build `inferCNV` gene order files) files are stored in the proper location on S3.
    See [instructions for adding additional organisms](#adding-additional-organisms) for more details.
 
 2. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
@@ -194,18 +194,18 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow. 
+5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow.
    They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
 
-   The following files are used for cell typing, including assigning consensus cell types. 
-   If new cell typing methods are added or there are changes to references used for cell typing, these files will need to be updated. 
- 
+   The following files are used for cell typing, including assigning consensus cell types.
+   If new cell typing methods are added or there are changes to references used for cell typing, these files will need to be updated.
+
    - [`panglao-cell-type-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv)
    - [`scimilarity-mapped-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-scimilarity/references/scimilarity-mapped-ontologies.tsv)
    - [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv)
    - [`consensus-validation-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-validation-groups.tsv)
    - [`validation-markers.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/validation-markers.tsv)
- 
+
    The following are used for `inferCNV` inference to determine which cell types to include in the normal reference.
    Additional rows will need to be added to these files if additional diagnoses are added to ScPCA.
 
@@ -234,6 +234,7 @@ homo_sapiens
 
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
 Specify which indexes should be built for this reference version, using the `include_salmon`, `include_cellranger`, and `include_star` columns.
+If the `inferCNV` gene order file is also needed, also set the `include_infercnv` column to `TRUE` and follow instructions in the [Adding additional gene order files section](#adding-additional-gene-order-files) below.
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
@@ -299,16 +300,17 @@ homo_sapiens
 
 If the `gtf` file is also new, be sure to also follow [these previous instructions](#adding-additional-organisms) for adding additional organisms.
 
-2. Generate the gene order file using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
+2. Update the `include_infercnv` field in the `ref-metadata.tsv` file to `TRUE` for the new version being generated.
+3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
+4. Generate the gene order file using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
 To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
-3. Ensure that the gene order file is public and in the correct location on S3 (`s3://scpca-references`), for example:
+5. Ensure that the gene order file is public and in the correct location on S3 (`s3://scpca-references`), for example:
 ```
 homo_sapiens
 └── ensembl-104
     └── infercnv
         └── Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz
 ```
-
 
 ## Running the merge workflow
 
