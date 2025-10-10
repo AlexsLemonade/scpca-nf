@@ -9,6 +9,7 @@ AMI
 ARI
 barcode
 bioinformatics
+bioRxiv
 Cavatica
 cDNA
 CellAssign
@@ -23,6 +24,9 @@ data's
 demultiplexed
 demultiplexing
 Dockerfile
+doi
+DS
+DV
 EFO
 embeddings
 Ensembl
@@ -39,8 +43,10 @@ HPC
 HTO
 HTOs
 HVGs
+Ichihara
 inferCNV
 intronic
+JA
 Jaccard
 JSON
 lockfile
@@ -55,7 +61,9 @@ PanglaoDB
 parallelizing
 PBMCs
 pixi
+Prasad
 pre
+preprint
 reproducibility
 reproducibly
 SCE
@@ -64,6 +72,7 @@ scpca
 Seqera
 singleplexed
 SingleR
+Spielman
 subdiagnosis
 tabset
 TPM

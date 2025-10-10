@@ -602,7 +602,10 @@ delta_median_confident_df <- delta_median_df |>
   dplyr::filter(confident == "High-quality")
 
 # Determine height for plot area based on number of cells
-plot_height <- length(unique(delta_median_df$celltype)) / 2.5
+plot_height <- pmax(
+  length(unique(delta_median_df$celltype)) / 2.5,
+  3
+)
 ```
 
 ```{r, eval = has_singler, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 8}
@@ -671,7 +674,10 @@ Line segments are also taller for any cell type label with 5 or fewer cells.
 ")
 
 # Determine height in inches for plot area
-plot_height <- ceiling(length(unique(celltype_df$cellassign_celltype_annotation)) / 2.5)
+plot_height <- pmax(
+  ceiling(length(unique(celltype_df$cellassign_celltype_annotation)) / 2.5),
+  2.5
+)
 ```
 
 
