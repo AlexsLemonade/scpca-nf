@@ -411,7 +411,7 @@ if (length(automated_methods) > 1) {
   ref_column_prefix <- ref_column_map |>
     purrr::keep(\(x) setequal(x, automated_methods)) |>
     names()
-    
+
   stopifnot("Error getting reference column prefix" = length(ref_column_prefix) == 1)
 }
 
@@ -436,7 +436,7 @@ if (assign_consensus) {
     dplyr::distinct() |>
     # make sure the columns used to get the consensus cell type actually have the consensus_ prefix rather than singler_cellassign_pair_, etc.
     dplyr::rename_with(
-      \(x) stringr::str_replace(x, ref_column_prefix, "consensus"), 
+      \(x) stringr::str_replace(x, ref_column_prefix, "consensus"),
       .cols = starts_with(ref_column_prefix)
     )
 
