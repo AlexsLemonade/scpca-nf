@@ -408,9 +408,11 @@ if (length(automated_methods) > 1) {
   )
 
   # find the appropriate column to use
-  ref_column_prefix <- names(
-    purrr::keep(ref_column_map, \(x) setequal(x, automated_methods))
-  )
+  ref_column_prefix <- ref_column_map |>
+    purrr::keep(\(x) setequal(x, automated_methods)) |>
+    names()
+    
+  stopifnot("Error getting reference column prefix" = length(ref_column_prefix) == 1)
 }
 
 # assign consensus cell type labels
@@ -433,7 +435,10 @@ if (assign_consensus) {
     # only keep unique combos
     dplyr::distinct() |>
     # make sure the columns used to get the consensus cell type actually have the consensus_ prefix rather than singler_cellassign_pair_, etc.
-    dplyr::rename_with(~ stringr::str_replace(.x, ref_column_prefix, "consensus"), starts_with(ref_column_prefix))
+    dplyr::rename_with(
+      \(x) stringr::str_replace(x, ref_column_prefix, "consensus"), 
+      .cols = starts_with(ref_column_prefix)
+    )
 
   # create df with consensus assignments
   celltype_df <- colData(sce) |>
