@@ -175,13 +175,16 @@ methods_bullets <- c(
 
 # define map of automated methods to their proper names for use when printing text and plot labels
 automated_celltype_names <- c(
-  singler = "SingleR",
-  cellassign = "CellAssign",
-  scimilarity = "SCimilarity"
+  "SingleR" = "singler",
+  "CellAssign" = "cellassign",
+  "SCimilarity" = "scimilarity"
 )
 
 # get a vector of the automated methods that are present and were used to generate consensus
-automated_celltypes_available <- unname(automated_celltype_names[metadata(processed_sce)$consensus_celltype_methods])
+# keep the proper names to use for labels of plots
+automated_celltypes_available <- automated_celltype_names |>
+  purrr::keep(\(x) x %in% metadata(processed_sce)$consensus_celltype_methods) |>
+  names()
 # make a pretty string for use in text
 automated_celltypes_string <- stringr::str_flatten_comma(automated_celltypes_available, last = ", and ")
 
