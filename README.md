@@ -1,9 +1,5 @@
 # scpca-nf
 
-<!-- badges: start -->
-[![Preprint](https://img.shields.io/badge/preprint-bioRxiv-orange)](https://doi.org/10.1101/2024.04.19.590243)
- <!-- badges: end -->
-
 This repository holds a [Nextflow](https://www.nextflow.io) workflow (`scpca-nf`) that is used to process 10x single-cell data as part of the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 All dependencies for the workflow outside of the Nextflow workflow engine itself are handled automatically; setup generally requires only organizing the input files and configuring Nextflow for your computing environment.
 Nextflow will also handle parallelizing sample processing as allowed by your environment, minimizing total run time.
@@ -45,11 +41,3 @@ We have experimental support for running the `scpca-nf` workflow on [Cavatica](h
 
 
 For ALSF Data Lab users, please refer to the [internal instructions](internal-instructions.md) for how to run the workflow on our systems.
-
-## Citing scpca-nf
-
-If you use `scpca-nf` in your research, please cite our preprint:
-
-> Hawkins, A. G., Shapiro, J. A., Spielman, S. J., *et al.* (2024).
-> *The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors* [Preprint]. *bioRxiv.*
-> https://doi.org/10.1101/2024.04.19.590243
