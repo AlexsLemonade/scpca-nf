@@ -161,7 +161,7 @@ process add_celltypes_to_sce {
   label 'cpus_2'
   tag "${meta.library_id}"
   input:
-    tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir)
+    tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir), path(scimilarity_dir)
     path(celltype_ref_metadata) // TSV file of references metadata needed for CellAssign only
     path(panglao_ref_file) // used for assigning ontology IDs for CellAssign results
     path(consensus_ref_file) // used for assigning consensus cell types if both SingleR and CellAssign are used
@@ -172,21 +172,22 @@ process add_celltypes_to_sce {
     tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT")
   script:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
-    singler_present = "${singler_dir.name}" != "NO_FILE"
-    singler_results = "${singler_dir}/singler_results.rds"
-    cellassign_present = "${cellassign_dir.name}" != "NO_FILE"
-    cellassign_predictions = "${cellassign_dir}/cellassign_predictions.tsv"
+    def singler_results = singler_dir ? "${singler_dir}/singler_results.rds": ""
+    def cellassign_predictions = cellassign_dir ? "${cellassign_dir}/cellassign_predictions.tsv" : ""
+    def scimilarity_results = scimilarity_dir ? "${scimilarity_dir}/scimilarity_predictions.tsv" : ""
 
     """
     add_celltypes_to_sce.R \
       --input_sce_file ${processed_rds} \
       --output_sce_file ${annotated_rds} \
-      ${singler_present ? "--singler_results  ${singler_results}" : ''} \
-      ${singler_present ? "--singler_model_file ${meta.singler_model_file}" : ''} \
-      ${cellassign_present ? "--cellassign_predictions  ${cellassign_predictions}" : ''} \
-      ${cellassign_present ? "--cellassign_ref_file ${meta.cellassign_reference_file}" : ''} \
-      ${cellassign_present ? "--celltype_ref_metafile ${celltype_ref_metadata}" : ''} \
-      ${cellassign_present ? "--panglao_ontology_ref ${panglao_ref_file}" : ''} \
+      --singler_results  "${singler_results}" \
+      --singler_model_file "${meta.singler_model_file}" \
+      --cellassign_predictions  "${cellassign_predictions}" \
+      --cellassign_ref_file "${meta.cellassign_reference_file}" \
+      --celltype_ref_metafile "${celltype_ref_metadata}" \
+      --panglao_ontology_ref "${panglao_ref_file}" \
+      --scimilarity_results "${scimilarity_results}" \
+      --scimilarity_model_dir "${meta.scimilarity_model_dir}" \
       --consensus_celltype_ref "${consensus_ref_file}" \
       --consensus_validation_ref "${validation_ref_file}" \
       --diagnosis_celltype_ref "${diagnosis_celltypes_file}" \
@@ -210,7 +211,7 @@ process add_celltypes_to_sce {
 workflow annotate_celltypes {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
-    def empty_file = "${projectDir}/assets/NO_FILE"
+
     // read in sample metadata and make a list of cell line samples; these won't be cell typed
     cell_line_samples = Channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
@@ -396,7 +397,7 @@ workflow annotate_celltypes {
     /////////////////////////////////////////////////////
 
     // prepare input for process to add celltypes to the processed SCE
-    // result is [meta, processed rds, singler dir, cellassign dir]
+    // result is [meta, processed rds, singler dir, cellassign dir, scimilarity dir]
     assignment_input_ch = celltype_input_ch
       .map{ meta, processed_sce -> tuple(
         meta.unique_id,
@@ -407,10 +408,12 @@ workflow annotate_celltypes {
       .join(singler_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
       // add in cell assign results
       .join(cellassign_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
+      // add in scimilarity results
+      .join(scimilarity_output_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
       .map{it.drop(1)} // remove unique id
       .branch{
         // pull out libraries that actually have at least 1 type of annotation
-        add_celltypes: (it[2].baseName != "NO_FILE") || (it[3].baseName != "NO_FILE")
+        add_celltypes: it[2..4].any()
         no_celltypes: true
       }
 
