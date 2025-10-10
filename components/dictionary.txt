@@ -9,6 +9,7 @@ AMI
 ARI
 barcode
 bioinformatics
+bioRxiv
 Cavatica
 cDNA
 CellAssign
@@ -56,6 +57,7 @@ parallelizing
 PBMCs
 pixi
 pre
+preprint
 reproducibility
 reproducibly
 SCE
@@ -64,6 +66,7 @@ scpca
 Seqera
 singleplexed
 SingleR
+Spielman
 subdiagnosis
 tabset
 TPM
