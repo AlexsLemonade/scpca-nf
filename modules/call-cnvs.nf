@@ -18,6 +18,9 @@ process run_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
+
+    meta += Utils.getVersions(workflow, nextflow) // why?
+    meta_json = Utils.makeJson(meta)
     """
     # note that inferCNV fails, the script will output empty results/heatmap files
     mkdir infercnv_tmp
@@ -30,15 +33,20 @@ process run_infercnv {
       --gene_order_file ${infercnv_gene_order} \
       --threads ${task.cpus} \
       ${params.seed ? "--random_seed ${params.seed}" : ""}
+
+    # write out meta file
+    echo '${meta_json}' > "${meta.infercnv_dir}/scpca-meta.json"
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
+    meta_json = Utils.makeJson(meta)
     """
     touch "${results_file}"
     touch "${table_file}"
     touch "${heatmap_file}"
+    echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
     """
 }
 
@@ -114,6 +122,7 @@ workflow call_cnvs {
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
           && file(it[0].infercnv_table_file).exists()
+          && Utils.getMetaVal(file("${it[0].infercnv_dir}/scpca-meta.json"), "infercnv_reference_cell_hash") == "${it[0].infercnv_reference_cell_hash}"
         ) || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells
         )
         run_infercnv: true
