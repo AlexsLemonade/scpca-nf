@@ -43,8 +43,10 @@ HPC
 HTO
 HTOs
 HVGs
+Ichihara
 inferCNV
 intronic
+JA
 Jaccard
 JSON
 lockfile
