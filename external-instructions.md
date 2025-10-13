@@ -41,6 +41,7 @@
   - [Special considerations for specific data types when running `merge.nf`](#special-considerations-for-specific-data-types-when-running-mergenf)
     - [Merging libraries with CITE-seq data](#merging-libraries-with-cite-seq-data)
     - [Merging libraries with cellhash data](#merging-libraries-with-cellhash-data)
+- [The `build-cellbrowser.nf` workflow](#the-build-cellbrowsernf-workflow)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -83,11 +84,11 @@ Once you have set up your environment and created the metadata and configuration
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config <path to config file>  \
-  -profile <name of profile>
+  -config {path to config file}  \
+  -profile {name of profile}
 ```
 
-Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
+Where `{path to config file}` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `{name of profile}` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
 This command will pull the `scpca-nf` workflow directly from Github, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
@@ -101,8 +102,8 @@ Released versions can be found on the [`scpca-nf` repository releases page](http
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
   -r v0.8.8 \
-  -config <path to config file>  \
-  -profile <name of profile>
+  -config {path to config file}  \
+  -profile {name of profile}
 ```
 
 For each library that is successfully processed, the workflow will return quantified gene expression data as a `SingleCellExperiment` object stored in an RDS file along with a summary HTML report and any relevant intermediate files.
@@ -202,7 +203,7 @@ Three workflow parameters are required for running `scpca-nf` on your own data:
 - `outdir`: the output directory where results will be stored.
   - The default output is `scpca_out`, but again, you will likely want to customize this.
 
-These parameters can be set at the command line using `--run_metafile <path to run metadata file>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
+These parameters can be set at the command line using `--run_metafile {path to run metadata file}` or `--outdir {path to output}`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
 
 Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
@@ -222,9 +223,9 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 
 ```groovy
 // my_config.config
-params.run_metafile = '<path to run metadata file>'
-params.sample_metafile = '<path to sample metadata file>'
-params.outdir = '<path to output>'
+params.run_metafile = '{path to run metadata file}'
+params.sample_metafile = '{path to sample metadata file}'
+params.outdir = '{path to output}'
 
 This file is then used with the `-config` (or `-c`) argument at the command line:
 
@@ -777,9 +778,9 @@ The workflow can be run as shown:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf/merge.nf \
-  -config <path to config file>  \
-  -profile <name of profile> \
-  --project <project ID whose libraries should be merged>
+  -config {path to config file}  \
+  -profile {name of profile} \
+  --project {project ID whose libraries should be merged}
 ```
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
@@ -789,9 +790,9 @@ Released versions can be found on the [`scpca-nf` repository releases page](http
 ```sh
 nextflow run AlexsLemonade/scpca-nf/merge.nf \
   -r v0.7.2 \
-  -config <path to config file>  \
-  -profile <name of profile> \
-  --project <project ID whose libraries should be merged>
+  -config {path to config file}  \
+  -profile {name of profile} \
+  --project {project ID whose libraries should be merged}
 ```
 
 ### Output files
@@ -802,10 +803,10 @@ These output files will follow this structure:
 
 ```
 merged
-└── <project_id>
-    ├── <project_id>_merged.rds
-    ├── <project_id>_merged_rna.h5ad
-    └── <project_id>_merged-summary-report.html
+└── {project_id}
+    ├── {project_id}_merged.rds
+    ├── {project_id}_merged_rna.h5ad
+    └── {project_id}_merged-summary-report.html
 ```
 
 
@@ -822,14 +823,49 @@ The output files will follow this structure if CITE-seq data is present:
 
 ```
 merged
-└── <project_id>
-    ├── <project_id>_merged.rds
-    ├── <project_id>_merged_rna.h5ad
-    ├── <project_id>_merged_adt.h5ad
-    └── <project_id>_merged-summary-report.html
+└── {project_id}
+    ├── {project_id}_merged.rds
+    ├── {project_id}_merged_rna.h5ad
+    ├── {project_id}_merged_adt.h5ad
+    └── {project_id}_merged-summary-report.html
 ```
 
 #### Merging libraries with cellhash data
 
 The `merge.nf` workflow currently does not support merging HTO counts from multiplexed libraries.
 If any libraries contain HTO counts, the RNA counts will still be merged and exported, but the HTO counts will not be included.
+
+## The `build-cellbrowser.nf` workflow
+
+The `build-cellbrowser.nf` workflow will create an instance of the [UCSC Cell Browser](https://cellbrowser.readthedocs.io/en/master/index.html)with the libraries in the run metadata file, organized by project.
+This uses as its primary input the `.h5ad` files produced by the main `scpca-nf` workflow, which must be run first.
+This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files. 
+
+In addition to the [run](#prepare-the-run-metadata-file) and [sample](#prepare-the-sample-metadata-file) metadata files required by the main workflow, the `build-cellbrowser.nf` workflow also requires a project metadata file.
+This is a tab separate file file that contains, at a minimum, a column labeled `scpca_project_id` that contains all of the projects to be included in the Cell Browser.
+
+Other fields may include:
+
+- `project_title`: A brief title for the project.
+- `abstract`: A plain-text abstract for the project.
+
+You can then run the workflow with the following command:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/build-cellbrowser.nf \
+  -config {path to config file}  \
+  -profile {name of profile}
+```
+
+If desired, you can create a site with only a subset of the projects in the project metadata file by including the `--projects` argument, which takes a comma-separated list of projects to include.
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/build-cellbrowser.nf \
+  -config {path to config file}  \
+  -profile {name of profile} \
+  --projects {project1,project2}
+```
+
+
+When the workflow is completed, all files for the Cell Browser site will be placed in the `{params.outdir}/cellbrowser` directory.
+This can be used with any web server to serve the Cell Browser site.
