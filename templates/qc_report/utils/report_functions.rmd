@@ -1,5 +1,7 @@
-<!-- This document contains function definitions that are used by both
-`main_qc_report.rmd` and `celltypes_supplemental_report.rmd` but are not specific to cell typing -->
+<!-- This document contains function definitions that are used by the
+`main_qc_report.rmd` and child reports, but are not specific to cell typing. 
+This includes the `lump_wrap_celltypes()` function as it is needed for inferCNV and cell typing plots
+-->
 
 
 ```{r}

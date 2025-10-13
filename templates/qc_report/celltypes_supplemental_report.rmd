@@ -70,13 +70,14 @@ processed_sce <- params$processed_sce
 # check for annotation methods
 has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
 has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+has_scimilarity <- "scimilarity" %in% metadata(processed_sce)$celltype_methods
 has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
 has_openscpca <- "openscpca" %in% metadata(processed_sce)$celltype_methods
 has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
   !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
 # If at least 1 is present, we have cell type annotations.
-has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
+has_celltypes <- any(has_singler, has_cellassign, has_scimilarity, has_consensus, has_submitter, has_openscpca)
 
 # check for umap and clusters
 has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
@@ -88,6 +89,7 @@ available_celltypes <- c(
   ifelse(has_openscpca, "OpenScPCA", NA),
   ifelse(has_singler, "SingleR", NA),
   ifelse(has_cellassign, "CellAssign", NA),
+  ifelse(has_scimilarity, "SCimilarity", NA),
   ifelse(has_consensus, "Consensus", NA)
 ) |>
   na.omit() |>
@@ -99,6 +101,8 @@ cellassign_not_run <- check_cellassign_not_run(
   colData(processed_sce)
 )
 
+# vector of automated celltypes to include in comparison, including consensus
+automated_celltypes_available <- available_celltypes[!(available_celltypes %in% c("Submitter", "OpenScPCA"))]
 
 # check for validation group info if consensus cell types are present
 if (has_consensus) {
@@ -206,6 +210,13 @@ if (has_cellassign) {
   )
 }
 
+if (has_scimilarity) {
+  methods_text <- glue::glue(
+    "{methods_text}
+    * Annotations from [`SCimilarity`](https://genentech.github.io/scimilarity/index.html), which uses a foundational model to assign cell types ([Heimberg _et al._ 2024](https://doi.org/10.1038/s41586-024-08411-y)).\n"
+  )
+}
+
 if (has_consensus) {
   methods_text <- glue::glue(
     "{methods_text}
@@ -261,9 +272,6 @@ if (!has_multiplex) {
 
 <!-------------------------- OpenScPCA heatmaps ------------------------------->
 ```{r, eval = openscpca_heatmaps}
-# don't compare to openscpca or submitter
-automated_celltypes_available <- available_celltypes[!(available_celltypes %in% c("Submitter", "OpenScPCA"))]
-
 knitr::asis_output(
   "## OpenScPCA annotations
 
@@ -311,9 +319,6 @@ jaccard_openscpca_matrices |>
 
 <!-------------------------- Submitter heatmaps ------------------------------->
 ```{r, eval = submitter_heatmaps}
-# don't compare submitter to submitter
-automated_celltypes_available <- available_celltypes[!(available_celltypes %in% c("Submitter", "OpenScPCA"))]
-
 knitr::asis_output(
   "## Submitter-provided annotations
 
@@ -361,7 +366,6 @@ jaccard_submitter_matrices |>
 
 
 <!---------------------- consensus cell type heatmap  -------------------------->
-<!--TODO: Update with SCimilarity as additional panel --> 
 ```{r, eval = has_consensus, fig.height=7, fig.width=8}
 knitr::asis_output("
 ## Automated annotations
@@ -372,12 +376,11 @@ Note that due to different annotations references, these methods may use differe
 ```
 
 ```{r, eval = has_consensus}
-# having consensus celltypes implies that both SingleR and CellAssign exist
-# TODO: Update to handle adding in SCimilarity
-automated_celltypes <- c("SingleR", "CellAssign")
+# celltypes used to generate consensus, all automated - consensus
+consensus_input_celltypes <- automated_celltypes_available[!(automated_celltypes_available == "Consensus")]
 
 # calculate matrices comparing to consensus
-jaccard_consensus_matrices <- automated_celltypes |>
+jaccard_consensus_matrices <- consensus_input_celltypes |>
   stringr::str_to_lower() |>
   purrr::map(\(name) {
     make_jaccard_matrix(
@@ -386,7 +389,7 @@ jaccard_consensus_matrices <- automated_celltypes |>
       glue::glue("{name}_celltype_annotation")
     )
   }) |>
-  purrr::set_names(automated_celltypes)
+  purrr::set_names(consensus_input_celltypes)
 
 # how many cell types?
 all_celltypes <- jaccard_consensus_matrices |>

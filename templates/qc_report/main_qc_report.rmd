@@ -139,12 +139,13 @@ if (has_processed) {
   has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+  has_scimilarity <- "scimilarity" %in% metadata(processed_sce)$celltype_methods
   has_openscpca <- "openscpca" %in% metadata(processed_sce)$celltype_methods
   has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
     !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
-  has_celltypes <- any(has_singler, has_cellassign, has_consensus, has_submitter, has_openscpca)
+  has_celltypes <- any(has_singler, has_cellassign, has_scimilarity, has_consensus, has_submitter, has_openscpca)
 
   # Determine inferCNV condition and include one check while we're in this if
   # define these with FALSE baseline, to be overridden if present
@@ -172,6 +173,7 @@ if (has_processed) {
   has_consensus <- FALSE
   has_singler <- FALSE
   has_cellassign <- FALSE
+  has_scimilarity <- FALSE
   has_openscpca <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
@@ -181,7 +183,7 @@ if (has_processed) {
 
 
 # check for celltypes_report if celltypes are present
-if ((has_consensus | has_singler | has_cellassign) & is.null(params$celltype_report)) {
+if ((has_consensus | has_singler | has_cellassign | has_scimilarity) & is.null(params$celltype_report)) {
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
 }
 

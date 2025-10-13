@@ -1,6 +1,8 @@
 <!-- This document contains function definitions that are used by both
 `main_qc_report.rmd` and `celltypes_supplemental_report.rmd` to prepare
-cell typing results for analysis/visualization -->
+cell typing results for analysis/visualization 
+These functions are only loaded in `main_qc_report.rmd` if cell types are present
+-->
 
 
 ```{r}
@@ -37,6 +39,7 @@ create_celltype_df <- function(processed_sce) {
       contains("consensus"),
       contains("singler"),
       contains("cellassign"),
+      contains("scimilarity"),
       contains("openscpca", ),
       contains("submitter")
     )
@@ -60,6 +63,12 @@ create_celltype_df <- function(processed_sce) {
     celltype_df <- prepare_automated_annotation_values(
       celltype_df,
       cellassign_celltype_annotation
+    )
+  }
+  if ("scimilarity_celltype_annotation" %in% names(celltype_df)) {
+    celltype_df <- prepare_automated_annotation_values(
+      celltype_df,
+      scimilarity_celltype_annotation
     )
   }
 
