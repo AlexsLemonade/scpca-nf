@@ -839,7 +839,7 @@ If any libraries contain HTO counts, the RNA counts will still be merged and exp
 
 The `build-cellbrowser.nf` workflow will create an instance of the [UCSC Cell Browser](https://cellbrowser.readthedocs.io/en/master/index.html)with the libraries in the run metadata file, organized by project.
 This uses as its primary input the `.h5ad` files produced by the main `scpca-nf` workflow, which must be run first.
-Use the same `params.outdir` directory to run this workflow as was used for the `scpca-nf` workflow.
+This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files. 
 
 In addition to the [run](#prepare-the-run-metadata-file) and [sample](#prepare-the-sample-metadata-file) metadata files required by the main workflow, the `build-cellbrowser.nf` workflow also requires a project metadata file.
 This is a tab separate file file that contains, at a minimum, a column labeled `scpca_project_id` that contains all of the projects to be included in the Cell Browser.
@@ -867,5 +867,5 @@ nextflow run AlexsLemonade/scpca-nf/build-cellbrowser.nf \
 ```
 
 
-When the workflow is completed, the all files for the Cell Browser site  will be placed in the `{params.outdir}/cellbrowser` directory.
+When the workflow is completed, all files for the Cell Browser site will be placed in the `{params.outdir}/cellbrowser` directory.
 This can be used with any web server to serve the Cell Browser site.
