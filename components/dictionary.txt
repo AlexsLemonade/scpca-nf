@@ -79,6 +79,7 @@ TPM
 transcriptome
 transcriptomic
 TSV
+UCSC
 UMAP
 UMI
 uri
