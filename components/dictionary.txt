@@ -38,7 +38,7 @@ GEX
 Github
 glioblastoma
 GRCh
-Heimburg
+Heimberg
 Hippen
 HPC
 HTO
