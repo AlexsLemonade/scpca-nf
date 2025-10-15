@@ -85,12 +85,13 @@ has_clusters <- "cluster" %in% names(colData(processed_sce))
 
 # what celltypes are available?
 available_celltypes <- c(
+  # keep consensus as the first method so it shows up first in comparison plots
+  ifelse(has_consensus, "Consensus", NA),
   ifelse(has_submitter, "Submitter", NA),
   ifelse(has_openscpca, "OpenScPCA", NA),
   ifelse(has_singler, "SingleR", NA),
   ifelse(has_cellassign, "CellAssign", NA),
-  ifelse(has_scimilarity, "SCimilarity", NA),
-  ifelse(has_consensus, "Consensus", NA)
+  ifelse(has_scimilarity, "SCimilarity", NA)
 ) |>
   na.omit() |>
   as.character()
