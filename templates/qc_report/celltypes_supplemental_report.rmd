@@ -86,15 +86,18 @@ has_clusters <- "cluster" %in% names(colData(processed_sce))
 # what celltypes are available?
 available_celltypes <- c(
   # keep consensus as the first method so it shows up first in comparison plots
-  ifelse(has_consensus, "Consensus", NA),
-  ifelse(has_submitter, "Submitter", NA),
-  ifelse(has_openscpca, "OpenScPCA", NA),
-  ifelse(has_singler, "SingleR", NA),
-  ifelse(has_cellassign, "CellAssign", NA),
-  ifelse(has_scimilarity, "SCimilarity", NA)
-) |>
-  na.omit() |>
-  as.character()
+  if (has_submitter) "Submitter",
+  if (has_openscpca) "OpenScPCA",
+  if (has_consensus) "Consensus",
+  if (has_singler) "SingleR",
+  if (has_cellassign) "CellAssign",
+  if (has_scimilarity) "SCimilarity"
+)
+
+# use an empty character vector if no celltypes present
+if (is.null(available_celltypes)) {
+  available_celltypes <- character()
+}
 
 # was cellassign run?
 cellassign_not_run <- check_cellassign_not_run(
@@ -540,7 +543,7 @@ You can interpret this plot as follows:
   In other sections of this report, these cells are labeled as `Unknown cell types`.
   - For more information on how `SingleR` calculates annotation quality, please refer to [this `SingleR` documentation](https://rdrr.io/bioc/SingleR/man/pruneScores.html).
 - Diamonds represent the median of the delta median statistic specifically among high-quality annotations for the given cell type annotation.
-- Cell types with less than 3 labeled cells are not shown in the plot.
+- Cell types with fewer than 3 labeled cells are labeled as 'Other' in the plot.
 ")
 ```
 
@@ -600,10 +603,9 @@ delta_median_df <- delta_median_df |>
       labels = rev(stringr::str_wrap(levels(celltype), 30))
     ) |>
       # group any celltypes with < 3 cells into "Other"
-      forcats::fct_lump_min(3)
-  ) |>
-  # don't plot celltypes with < 3 cells
-  dplyr::filter(annotation_wrapped != "Other")
+      forcats::fct_lump_min(3) |>
+      forcats::fct_relevel("Other", after = 0)
+  )
 
 # Subset the data to just confident points for median+/-IQR
 delta_median_confident_df <- delta_median_df |>
@@ -678,7 +680,7 @@ The plot below shows the distribution of `CellAssign`-calculated probabilities f
 Line segments represent individual values that comprise each distribution.
 
 Line segments are taller for any cell type label with 5 or fewer cells.
-Cell types with less than 3 labeled cells are not shown in the plot.
+Cell types with fewer than 3 labeled cells are labeled as 'Other' in the plot.
 ")
 
 # Determine height in inches for plot area
@@ -708,8 +710,10 @@ y_max <- celltype_df$cellassign_max_prediction |>
 # add count to celltype_df for setting alpha and yend values
 celltype_df <- celltype_df |>
   dplyr::add_count(cellassign_celltype_annotation) |>
-  # remove celltypes with < 3 cells
-  dplyr::filter(n >= 3)
+  dplyr::mutate(
+    cellassign_celltype_annotation = forcats::fct_lump_min(cellassign_celltype_annotation, 3) |>
+      forcats::fct_relevel(c("Other", "Unknown cell type"), after = Inf)
+  )
 
 # make the plot!
 ggplot(celltype_df) +
@@ -775,9 +779,9 @@ For more information on the foundational model used and how cell types are assig
 
 The plot below shows the distribution of the minimum distance metric reported by `SCimilarity` for each cell with the assigned cell type annotation indicated on the y-axis.
 Diamonds represent the median of the minimum distance metric among all cells assigned a given cell type annotation.
-Cells to the right of the dashed line are those for which the model is less confident in the prediction.
+Cells to the right of the dashed line are those for which the model is lesonfident in the prediction.
 
-Cell types with less than 3 labeled cells are not shown in the plot.
+Cell types with fewer than 3 labeled cells are labeled as 'Other' in the plot.
 ")
 ```
 
@@ -794,9 +798,9 @@ scimilarity_df <- celltype_df |>
       labels = stringr::str_wrap(rev(levels(scimilarity_celltype_annotation)), 30)
     ) |>
       # lump celltypes with fewer than 3 cells
-      forcats::fct_lump_min(3)
-  ) |>
-  dplyr::filter(annotation_wrapped != "Other")
+      forcats::fct_lump_min(3) |>
+      forcats::fct_relevel("Other", after = 0)
+  )
 
 # Determine height for plot area based on number of cell types
 plot_height <- pmax(
