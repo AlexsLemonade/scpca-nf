@@ -85,15 +85,19 @@ has_clusters <- "cluster" %in% names(colData(processed_sce))
 
 # what celltypes are available?
 available_celltypes <- c(
-  ifelse(has_submitter, "Submitter", NA),
-  ifelse(has_openscpca, "OpenScPCA", NA),
-  ifelse(has_singler, "SingleR", NA),
-  ifelse(has_cellassign, "CellAssign", NA),
-  ifelse(has_scimilarity, "SCimilarity", NA),
-  ifelse(has_consensus, "Consensus", NA)
-) |>
-  na.omit() |>
-  as.character()
+  # keep consensus as the first method so it shows up first in comparison plots
+  if (has_submitter) "Submitter",
+  if (has_openscpca) "OpenScPCA",
+  if (has_consensus) "Consensus",
+  if (has_singler) "SingleR",
+  if (has_cellassign) "CellAssign",
+  if (has_scimilarity) "SCimilarity"
+)
+
+# use an empty character vector if no celltypes present
+if (is.null(available_celltypes)) {
+  available_celltypes <- character()
+}
 
 # was cellassign run?
 cellassign_not_run <- check_cellassign_not_run(
@@ -539,6 +543,7 @@ You can interpret this plot as follows:
   In other sections of this report, these cells are labeled as `Unknown cell types`.
   - For more information on how `SingleR` calculates annotation quality, please refer to [this `SingleR` documentation](https://rdrr.io/bioc/SingleR/man/pruneScores.html).
 - Diamonds represent the median of the delta median statistic specifically among high-quality annotations for the given cell type annotation.
+- Cell types with fewer than 3 labeled cells are combined and labeled as 'Other' in the plot.
 ")
 ```
 
@@ -589,13 +594,18 @@ if (any(delta_median_df$celltype == "Unknown cell type")) {
   stop("Failed to process SingleR data for diagnostic plot.")
 }
 
-# add column with ordered levels with wrapped labels for visualization
-delta_median_df$annotation_wrapped <- factor(
-  delta_median_df$celltype,
-  # rev() so large groups are at the TOP of the plot
-  levels = rev(levels(delta_median_df$celltype)),
-  labels = rev(stringr::str_wrap(levels(delta_median_df$celltype), 30))
-)
+delta_median_df <- delta_median_df |>
+  dplyr::mutate(
+    # add column with ordered levels with wrapped labels for visualization
+    annotation_wrapped = factor(celltype,
+      # rev() so large groups are at the TOP of the plot
+      levels = rev(levels(celltype)),
+      labels = rev(stringr::str_wrap(levels(celltype), 30))
+    ) |>
+      # group any celltypes with < 3 cells into "Other"
+      forcats::fct_lump_min(3) |>
+      forcats::fct_relevel("Other", after = 0)
+  )
 
 # Subset the data to just confident points for median+/-IQR
 delta_median_confident_df <- delta_median_df |>
@@ -669,8 +679,8 @@ We therefore expect reliable labels to have values close to 1.
 The plot below shows the distribution of `CellAssign`-calculated probabilities for the final cell type labels.
 Line segments represent individual values that comprise each distribution.
 
-For cell types with 2 or fewer labeled cells, only the individual value line segments are shown.
-Line segments are also taller for any cell type label with 5 or fewer cells.
+Line segments are taller for any cell type label with 5 or fewer cells.
+Cell types with fewer than 3 labeled cells are combined and labeled as 'Other' in the plot.
 ")
 
 # Determine height in inches for plot area
@@ -699,7 +709,11 @@ y_max <- celltype_df$cellassign_max_prediction |>
 
 # add count to celltype_df for setting alpha and yend values
 celltype_df <- celltype_df |>
-  dplyr::add_count(cellassign_celltype_annotation)
+  dplyr::add_count(cellassign_celltype_annotation) |>
+  dplyr::mutate(
+    cellassign_celltype_annotation = forcats::fct_lump_min(cellassign_celltype_annotation, 3) |>
+      forcats::fct_relevel(c("Other", "Unknown cell type"), after = Inf)
+  )
 
 # make the plot!
 ggplot(celltype_df) +
@@ -746,6 +760,82 @@ ggplot(celltype_df) +
     panel.grid.major.y = element_blank(),
     panel.spacing = unit(0.02, "in")
   )
+```
+
+
+<!---------------------- Scimilarity  ------------------------->
+```{r, eval = has_scimilarity}
+knitr::asis_output("
+## `SCimilarity` annotations
+
+To assess the quality of `SCimilarity` cell type annotations, we report the minimum distance between the query cell and all cells in the foundational model used for cell type annotation.
+
+- Cells that are similar to cells in the existing model have a lower distance and higher confidence in the model's prediction.
+- Cells that are further away from what the model has seen before have a larger distance and lower confidence in the model's prediction.
+
+It's important to note that the distance ranges vary across samples.
+As noted in the [`SCimilarity` cell type annotation vignette](https://genentech.github.io/scimilarity/notebooks/cell_annotation_tutorial.html#Annotation-QC), distances larger than 0.05 can indicate that the model is less confident in the prediction.
+For more information on the foundational model used and how cell types are assigned, see [Heimberg _et al._ 2024](https://doi.org/10.1038/s41586-024-08411-y).
+
+The plot below shows the distribution of the minimum distance metric reported by `SCimilarity` for each cell with the assigned cell type annotation indicated on the y-axis.
+Diamonds represent the median of the minimum distance metric among all cells assigned a given cell type annotation.
+Cells to the right of the dashed line are those for which the model is lesonfident in the prediction.
+
+Cell types with fewer than 3 labeled cells are combined and labeled as 'Other' in the plot.
+")
+```
+
+```{r, eval=has_scimilarity}
+scimilarity_df <- celltype_df |>
+  # just keep the scimilarity columns for simplicity
+  dplyr::select(barcodes, starts_with("scimilarity")) |>
+  # only look at cells that have scimilarity annotations
+  dplyr::filter(scimilarity_celltype_annotation != "Unclassified cell") |>
+  # wrap text for easier labeling
+  dplyr::mutate(
+    annotation_wrapped = factor(scimilarity_celltype_annotation,
+      levels = rev(levels(scimilarity_celltype_annotation)),
+      labels = stringr::str_wrap(rev(levels(scimilarity_celltype_annotation)), 30)
+    ) |>
+      # lump celltypes with fewer than 3 cells
+      forcats::fct_lump_min(3) |>
+      forcats::fct_relevel("Other", after = 0)
+  )
+
+# Determine height for plot area based on number of cell types
+plot_height <- pmax(
+  nlevels(scimilarity_df$annotation_wrapped) / 2.5,
+  3
+)
+```
+
+
+```{r, eval = has_scimilarity, warning=FALSE, message=FALSE, fig.height = plot_height, fig.width = 8}
+# sina plot looking at minimum distance across cells for each cell type annotation
+ggplot(scimilarity_df) +
+  aes(
+    x = scimilarity_min_distance,
+    y = annotation_wrapped
+  ) +
+  ggforce::geom_sina(
+    size = 0.8,
+    color = "black"
+  ) +
+  labs(
+    x = "Minimum distance from model",
+    y = "Cell type annotation"
+  ) +
+  # add median diamond
+  stat_summary(
+    color = "red",
+    geom = "point",
+    fun = "median",
+    shape = 18,
+    size = 2.25,
+    alpha = 0.9
+  ) +
+  # add a line for confidence level
+  geom_vline(xintercept = 0.05, linetype = "dashed")
 ```
 
 
