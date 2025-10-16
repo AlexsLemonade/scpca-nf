@@ -13,7 +13,10 @@ process run_infercnv {
   input:
     tuple val(meta), path(processed_rds), path(infercnv_gene_order)
   output:
-    tuple val(meta), path(processed_rds), path(results_file), path(table_file), path(heatmap_file), path(meta_json_file)
+    tuple val(meta),
+    path(processed_rds),
+    path(results_file), path(table_file), path(heatmap_file),
+    path(meta_json_file)
   script:
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
