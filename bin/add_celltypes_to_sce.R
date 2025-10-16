@@ -528,9 +528,9 @@ if (assign_consensus) {
     # get the full count
     reference_cell_count <- sum(sce$is_infercnv_reference)
 
-    # get hash for concatenated barcodes
+    # get hash for sorted concatenated barcodes
     concat_barcodes <- paste(
-      sce$barcodes[sce$is_infercnv_reference],
+      sort(sce$barcodes[sce$is_infercnv_reference]),
       collapse = ""
     )
     reference_cell_hash <- digest::digest(concat_barcodes, algo = "sha256")
