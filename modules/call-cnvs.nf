@@ -3,9 +3,9 @@
 process run_infercnv {
   container params.SCPCATOOLS_INFERCNV_CONTAINER
   publishDir (
-    path: "${meta.infercnv_dir}",
+    path: "${meta.infercnv_checkpoints_dir}",
     mode: 'copy',
-    pattern: "${meta.unique_id}_infercnv-*"
+    pattern: "{${meta.unique_id}_infercnv-*,scpca-meta.json}"
   )
   label 'mem_96'
   label 'cpus_8'
@@ -13,17 +13,20 @@ process run_infercnv {
   input:
     tuple val(meta), path(processed_rds), path(infercnv_gene_order)
   output:
-    tuple val(meta), path(processed_rds), path(results_file), path(table_file), path(heatmap_file)
+    tuple val(meta), path(processed_rds), path(results_file), path(table_file), path(heatmap_file), path(meta_json_file)
   script:
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
+    meta_json_file="scpca-meta.json"
 
-    meta += Utils.getVersions(workflow, nextflow) // why?
     meta_json = Utils.makeJson(meta)
     """
-    # note that inferCNV fails, the script will output empty results/heatmap files
-    mkdir infercnv_tmp
+
+    # Create directories
+    mkdir -p ${meta.infercnv_checkpoints_dir} # infercnv checkpoints dir exists
+    mkdir infercnv_tmp # temporary directory for infercnv intermediate files
+
     run_infercnv.R \
       --input_sce_file ${processed_rds} \
       --output_rds ${results_file} \
@@ -35,7 +38,7 @@ process run_infercnv {
       ${params.seed ? "--random_seed ${params.seed}" : ""}
 
     # write out meta file
-    echo '${meta_json}' > "${meta.infercnv_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${meta_json_file}"
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
@@ -46,7 +49,7 @@ process run_infercnv {
     touch "${results_file}"
     touch "${table_file}"
     touch "${heatmap_file}"
-    echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
+    echo '${meta_json}' > "${meta_json_file}"
     """
 }
 
@@ -99,10 +102,10 @@ workflow call_cnvs {
       .map{ meta_in, _unfiltered_sce, _filtered_sce, processed_sce ->
         def meta = meta_in.clone(); // local copy for safe modification
         // define infercnv checkpoint files
-        meta.infercnv_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
-        meta.infercnv_heatmap_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-heatmap.png";
-        meta.infercnv_results_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-results.rds";
-        meta.infercnv_table_file = "${meta.infercnv_dir}/${meta.unique_id}_infercnv-table.txt";
+        meta.infercnv_checkpoints_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
+        meta.infercnv_heatmap_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-heatmap.png";
+        meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds";
+        meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt";
         // if meta.infercnv_reference_cell_count doesn't exist, set it to null
         // this happens when perform_celltyping is on but a library has no cell type references
         meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null;
@@ -122,12 +125,11 @@ workflow call_cnvs {
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
           && file(it[0].infercnv_table_file).exists()
-          && Utils.getMetaVal(file("${it[0].infercnv_dir}/scpca-meta.json"), "infercnv_reference_cell_hash") == "${it[0].infercnv_reference_cell_hash}"
+          && Utils.getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash") == "${it[0].infercnv_reference_cell_hash}"
         ) || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells
         )
         run_infercnv: true
       }
-
 
     // run inferCNV
     // outputs: [meta, processed sce, results file, table file, heatmap file]
@@ -139,7 +141,7 @@ workflow call_cnvs {
         def infercnv_results = file(meta.infercnv_results_file)
         def infercnv_table   = file(meta.infercnv_table_file)
         def infercnv_heatmap = file(meta.infercnv_heatmap_file)
-        // ensure the infercnv_dir exists before proceeding; all these files are in the same dir
+        // ensure the infercnv_checkpoints_dir exists before proceeding; all these files are in the same dir
         infercnv_results.parent.mkdirs()
         // create empty files if they don't exist
         // https://www.nextflow.io/docs/latest/working-with-files.html#reading-and-writing-an-entire-file
@@ -149,7 +151,13 @@ workflow call_cnvs {
         // return simplified input with gene order file
         [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
       }
-      .mix(run_infercnv.out)
+      .mix(
+        // drop the meta json file
+        run_infercnv.out
+          .map{ meta, processed_sce, results_file, table_file, heatmap_file, _meta_json_file ->
+            [meta, processed_sce, results_file, table_file, heatmap_file]
+          }
+      )
 
 
     // add inferCNV results to the SCE object
