@@ -174,7 +174,7 @@ process add_celltypes_to_sce {
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     def singler_results = singler_dir ? "${singler_dir}/singler_results.rds": ""
     def cellassign_predictions = cellassign_dir ? "${cellassign_dir}/cellassign_predictions.tsv" : ""
-    def scimilarity_results = "${scimilarity_dir}/scimilarity_predictions.tsv"
+    def scimilarity_results = scimilarity_dir ? "${scimilarity_dir}/scimilarity_predictions.tsv" : ""
 
     """
     add_celltypes_to_sce.R \

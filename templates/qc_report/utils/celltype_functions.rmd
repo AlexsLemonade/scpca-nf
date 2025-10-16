@@ -1,6 +1,8 @@
 <!-- This document contains function definitions that are used by both
 `main_qc_report.rmd` and `celltypes_supplemental_report.rmd` to prepare
-cell typing results for analysis/visualization -->
+cell typing results for analysis/visualization 
+These functions are only loaded in `main_qc_report.rmd` if cell types are present
+-->
 
 
 ```{r}
@@ -37,6 +39,7 @@ create_celltype_df <- function(processed_sce) {
       contains("consensus"),
       contains("singler"),
       contains("cellassign"),
+      contains("scimilarity"),
       contains("openscpca", ),
       contains("submitter")
     )
@@ -60,6 +63,12 @@ create_celltype_df <- function(processed_sce) {
     celltype_df <- prepare_automated_annotation_values(
       celltype_df,
       cellassign_celltype_annotation
+    )
+  }
+  if ("scimilarity_celltype_annotation" %in% names(celltype_df)) {
+    celltype_df <- prepare_automated_annotation_values(
+      celltype_df,
+      scimilarity_celltype_annotation
     )
   }
 
@@ -241,7 +250,7 @@ make_jaccard_matrix <- function(celltype_df, colname1, colname2) {
 heatmap_col_fun <- circlize::colorRamp2(c(0, 1), colors = c("white", "darkslateblue"))
 
 # Set heatmap padding option
-heatmap_padding <- 0.2
+heatmap_padding <- 0.05
 ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
 
 #' Create a ComplexHeatmap from a matrix
@@ -273,6 +282,7 @@ create_single_heatmap <- function(
     row_title = row_title, # each heatmap gets its own title
     row_title_gp = grid::gpar(fontsize = 10),
     row_title_side = "right",
+    row_title_rot = 0, # annotation types on right should be horizontal
     row_names_side = "left",
     row_names_gp = grid::gpar(fontsize = labels_font_size),
     ## Column parameters
@@ -374,7 +384,7 @@ find_label_size <- function(input_labels) {
 #' @param col_names Vector of column names
 #' @param n_spacers Number of spacers between stacked heatmaps
 #' @param spacer_size Spacer size in inches
-#' @param min_height Minimize height required. Default 4"
+#' @param min_height Minimum height required. Default 6"
 #'
 #' @return Heatmap height in inches
 calculate_plot_height <- function(
@@ -382,7 +392,7 @@ calculate_plot_height <- function(
     col_names,
     n_spacers,
     spacer_size = heatmap_padding,
-    min_height = 4) {
+    min_height = 6) {
   # first, based on number of cells in row_names:
   #   6 cell types to an inch
   heat_height <- length(row_names) / 6
@@ -396,7 +406,7 @@ calculate_plot_height <- function(
   heat_height <- heat_height + n_spacers * spacer_size
 
   return(
-    max(c(min_height, heat_height))
+    pmax(min_height, heat_height)
   )
 }
 ```

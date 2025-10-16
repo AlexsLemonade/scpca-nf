@@ -36,6 +36,7 @@ create_ref_entry <- function(
     include_salmon,
     include_cellranger,
     include_star,
+    include_infercnv,
     reference_name) {
   # create base reference directory
   ref_dir <- file.path(
@@ -70,7 +71,9 @@ create_ref_entry <- function(
     splici_index = "",
     salmon_bulk_index = "",
     cellranger_index = "",
-    star_index = ""
+    star_index = "",
+    infercnv_gene_order = "",
+    cytoband = ""
   )
 
   # fill in values related to salmon/alevin-fry index
@@ -107,6 +110,10 @@ create_ref_entry <- function(
       ref_dir, "star_index",
       glue::glue("{reference_name}.star_idx")
     )
+  }
+
+  # fill in values related to infercnv gene order file
+  if (include_infercnv) {
     json_entry$infercnv_gene_order <- file.path(
       ref_dir, "infercnv",
       glue::glue("{reference_name}_gene_order_arms.txt.gz")

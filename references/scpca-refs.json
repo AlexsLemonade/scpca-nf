@@ -25,7 +25,9 @@
     "splici_index": "",
     "salmon_bulk_index": "",
     "cellranger_index": "homo_sapiens/ensembl-110/cellranger_index/Homo_sapiens.GRCh38.110_cellranger_full",
-    "star_index": ""
+    "star_index": "",
+    "infercnv_gene_order": "homo_sapiens/ensembl-110/infercnv/Homo_sapiens.GRCh38.110_gene_order_arms.txt.gz",
+    "cytoband": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110_cytoband.txt.gz"
   },
   "Mus_musculus.GRCm39.104": {
     "ref_dir": "mus_musculus/ensembl-104",
