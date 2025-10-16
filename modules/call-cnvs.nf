@@ -25,7 +25,7 @@ process run_infercnv {
 
     meta_json = Utils.makeJson(meta)
     """
-    # note that inferCNV fails, the script will output empty results/heatmap files
+    # note that if inferCNV fails, the script will output empty results/heatmap files
     mkdir infercnv_tmp
     run_infercnv.R \
       --input_sce_file ${processed_rds} \
