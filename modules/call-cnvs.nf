@@ -25,11 +25,8 @@ process run_infercnv {
 
     meta_json = Utils.makeJson(meta)
     """
-
-    # Create directories
-    mkdir -p ${meta.infercnv_checkpoints_dir} # infercnv checkpoints dir exists
-    mkdir infercnv_tmp # temporary directory for infercnv intermediate files
-
+    # note that inferCNV fails, the script will output empty results/heatmap files
+    mkdir infercnv_tmp
     run_infercnv.R \
       --input_sce_file ${processed_rds} \
       --output_rds ${results_file} \
