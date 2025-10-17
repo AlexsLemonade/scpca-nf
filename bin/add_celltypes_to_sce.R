@@ -525,8 +525,8 @@ if (assign_consensus) {
     metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
     sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
 
-    # get the full count
-    reference_cell_count <- sum(sce$is_infercnv_reference)
+    # get the full count; store as character for writing to file
+    reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
 
     # get hash for sorted concatenated barcodes
     concat_barcodes <- paste(
