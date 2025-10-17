@@ -112,7 +112,7 @@ workflow call_cnvs {
 
 
     // branch to skip libraries when either:
-    // - repeat is off and there are existing results
+    // - repeat is off and there are unchanged existing results
     // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
       .branch{
