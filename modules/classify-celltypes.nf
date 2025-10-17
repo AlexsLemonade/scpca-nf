@@ -206,7 +206,7 @@ process add_celltypes_to_sce {
 
     # Set to a value guaranteed to pass the threshold and run
     REFERENCE_CELL_COUNT=${params.infercnv_min_reference_cells + 1}
-    REFERENCE_CELL_HASH="NA"
+    REFERENCE_CELL_HASH=""
     """
 }
 
@@ -437,10 +437,10 @@ workflow annotate_celltypes {
     added_celltypes_ch = add_celltypes_to_sce.out
       .map{ meta_in, annotated_sce, cell_count, cell_hash ->
         def meta = meta_in.clone(); // local copy for safe modification
-        // ensure the count is saved as an integer: either the integer value, or null if it was NA since
-        // we can do future math comparisons with null but not with NA
-        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? null : cell_count.toInteger();
-        meta.infercnv_reference_cell_hash = Utils.parseNA(cell_hash);
+        // ensure the count is saved as an integer: either the integer value, or null if it was an empty string since
+        // we can do future math comparisons with null
+        meta.infercnv_reference_cell_count = cell_count ? cell_count.toInteger() : null;
+        meta.infercnv_reference_cell_hash = cell_hash;
         // return only meta and annotated_sce
         [meta, annotated_sce]
       }

@@ -109,14 +109,14 @@ option_list <- list(
     type = "character",
     help = "Path to write number of calculated inferCNV reference cells to.
       This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
-      If not calculated, this file will be created with the value NA instead of a count",
+      If not calculated, this file will be empty",
     default = "reference_cell_count.txt"
   ),
   make_option(
     opt_str = c("--reference_cell_hash_file"),
     type = "character",
     help = "Path to write out unique hash for all concatenated barcodes in reference cell set; used for checkpointing.
-      If not calculated, this file will be created with the value NA instead of a hash",
+      If not calculated, this file will be empty",
     default = "reference_cell_hash.txt"
   )
 )
@@ -167,8 +167,8 @@ stopifnot(
 sce <- readr::read_rds(opt$input_sce_file)
 
 # We'll count inferCNV reference cells when assigning consensus cell types
-reference_cell_count <- NA_integer_
-reference_cell_hash <- NA_character_
+reference_cell_count <- ""
+reference_cell_hash <- ""
 
 # set automated methods list
 # we'll use this to assign consensus and add cell type methods to the metadata
@@ -533,7 +533,7 @@ if (assign_consensus) {
       sort(sce$barcodes[sce$is_infercnv_reference]),
       collapse = ""
     )
-    reference_cell_hash <- digest::digest(concat_barcodes, algo = "sha256")
+    reference_cell_hash <- digest::digest(concat_barcodes)
   }
 }
 
@@ -541,5 +541,5 @@ if (assign_consensus) {
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
 # export normal cell count and hash
-readr::write_lines(reference_cell_count, opt$reference_cell_count_file)
-readr::write_lines(reference_cell_hash, opt$reference_cell_hash_file)
+readr::write_file(reference_cell_count, opt$reference_cell_count_file)
+readr::write_file(reference_cell_hash, opt$reference_cell_hash_file)

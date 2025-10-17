@@ -13,15 +13,12 @@ process run_infercnv {
   input:
     tuple val(meta), path(processed_rds), path(infercnv_gene_order)
   output:
-    tuple val(meta),
-    path(processed_rds),
-    path(results_file), path(table_file), path(heatmap_file),
-    path(meta_json_file)
+    tuple val(meta), path(processed_rds), path(results_file), path(table_file), path(heatmap_file), emit: infercnv
+    path "scpca-meta.json", emit: metafile
   script:
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
-    meta_json_file="scpca-meta.json"
 
     meta_json = Utils.makeJson(meta)
     """
@@ -38,7 +35,7 @@ process run_infercnv {
       ${params.seed ? "--random_seed ${params.seed}" : ""}
 
     # write out meta file
-    echo '${meta_json}' > "${meta_json_file}"
+    echo '${meta_json}' > scpca-meta.json
     """
   stub:
     results_file="${meta.unique_id}_infercnv-results.rds"
@@ -49,7 +46,7 @@ process run_infercnv {
     touch "${results_file}"
     touch "${table_file}"
     touch "${heatmap_file}"
-    echo '${meta_json}' > "${meta_json_file}"
+    echo '${meta_json}' > scpca-meta.json
     """
 }
 
@@ -151,13 +148,7 @@ workflow call_cnvs {
         // return simplified input with gene order file
         [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
       }
-      .mix(
-        // drop the meta json file
-        run_infercnv.out
-          .map{ meta, processed_sce, results_file, table_file, heatmap_file, _meta_json_file ->
-            [meta, processed_sce, results_file, table_file, heatmap_file]
-          }
-      )
+      .mix(run_infercnv.out.infercnv)
 
 
     // add inferCNV results to the SCE object
