@@ -1,9 +1,9 @@
 # Overview
 
-The `scpca-nf` workflow includes the option to perform cell type annotation, [as described in these instructions](./external-instructions.md#cell-type-annotation), with the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign), and [`SCimilarity`](https://genentech.github.io/scimilarity/index.html) which uses a foundational model to assign cell types.
+The `scpca-nf` workflow includes the option to perform cell type annotation, [as described in these instructions](./external-instructions.md#cell-type-annotation), with the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign), and [`SCimilarity`](https://genentech.github.io/scimilarity/index.html) which uses a cell atlas foundation model to assign cell types.
 
 Several [reference datasets](./external-instructions.md#singler-references) and [marker gene lists](./external-instructions.md#cellassign-references) have been pre-compiled for use with `SingleR` or `CellAssign`. 
-`SCimilarity` uses the custom foundational model described in  [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
+`SCimilarity` uses the custom foundation model described in  [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
 
 This document provides instructions for creating and using your own reference data set for `SingleR` annotation or marker gene list for `CellAssign`, as well as setting up `scpca-nf` to run with these custom references.
 To perform cell type annotation with your own references, you will need to follow these steps:

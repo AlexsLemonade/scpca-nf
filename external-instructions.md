@@ -351,7 +351,12 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 
 ## Cell type annotation
 
-`scpca-nf` can perform cell type annotation using three complementary methods, the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html), the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign), and [`SCimilarity`](https://genentech.github.io/scimilarity/index.html) which uses a foundational model to assign cell types.
+`scpca-nf` can perform cell type annotation using three complementary methods: 
+
+  - the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
+  - the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign)
+  - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
+ 
 Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
 For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus).
 
@@ -379,7 +384,7 @@ Note that you must use one of the references described here to be eligible for i
 
 If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
 
-`SCimilarity` uses a single foundational model as a reference that is publicly available on S3. 
+`SCimilarity` uses a single foundation model as a reference that is publicly available on S3. 
 For more information on the model, see [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
 
 #### `SingleR` references
