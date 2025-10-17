@@ -351,9 +351,14 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 
 ## Cell type annotation
 
-`scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
-Additionally, annotations from `SingleR` and `CellAssign` are used to assign a consensus cell type annotation.
-For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus).
+`scpca-nf` can perform cell type annotation using three complementary methods: 
+
+  - the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
+  - the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign)
+  - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
+ 
+Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus).
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
@@ -373,12 +378,14 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Choosing reference datasets
 
-The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) to be used with `SingleR` and/or `CellAssign`. 
 All references listed in this table are publicly available on S3 for use with cell type annotation.
-It is possible to provide your own references as well; instructions for this are forthcoming.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
 If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
+
+`SCimilarity` uses a single foundation model as a reference that is publicly available on S3. 
+For more information on the model, see [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
 
 #### `SingleR` references
 
@@ -426,9 +433,11 @@ checkpoints
 └── celltype
     └── library01
     │   ├── library01_cellassign
+        ├── library01_scimilarity
     │   └── library01_singler
     └── library02
         ├── library02_cellassign
+        ├── library01_scimilarity
         └── library02_singler
 ```
 
