@@ -169,7 +169,7 @@ process add_celltypes_to_sce {
     path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
     path(diagnosis_groups_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
-    tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT")
+    tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT"), env("REFERENCE_CELL_HASH")
   script:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     def singler_results = singler_dir ? "${singler_dir}/singler_results.rds": ""
@@ -192,18 +192,21 @@ process add_celltypes_to_sce {
       --consensus_validation_ref "${validation_ref_file}" \
       --diagnosis_celltype_ref "${diagnosis_celltypes_file}" \
       --diagnosis_groups_ref "${diagnosis_groups_file}" \
-      --reference_cell_count_file "reference_cell_count.txt"
+      --reference_cell_count_file "reference_cell_count.txt" \
+      --reference_cell_hash_file "reference_cell_hash.txt" \
 
       # save so we can export as environment variable
       REFERENCE_CELL_COUNT=\$(cat "reference_cell_count.txt")
+      REFERENCE_CELL_HASH=\$(cat "reference_cell_hash.txt")
     """
   stub:
     annotated_rds = "${meta.library_id}_processed_annotated.rds"
     """
     touch ${annotated_rds}
 
-    # Set to a value guaranteed to pass the threshold
+    # Set to a value guaranteed to pass the threshold and run
     REFERENCE_CELL_COUNT=${params.infercnv_min_reference_cells + 1}
+    REFERENCE_CELL_HASH=""
     """
 }
 
@@ -254,7 +257,7 @@ workflow annotate_celltypes {
       // add values to meta for later use
       .map{ _project_id, meta_in, processed_sce, singler_model_file, cellassign_reference_file ->
         def meta = meta_in.clone(); // local copy for safe modification
-        // results directories 
+        // results directories
         meta.celltype_checkpoints_dir = "${params.checkpoints_dir}/celltype/${meta.library_id}";
         meta.singler_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_singler";
         meta.cellassign_dir = "${meta.celltype_checkpoints_dir}/${meta.unique_id}_cellassign";
@@ -264,7 +267,7 @@ workflow annotate_celltypes {
         meta.cellassign_reference_file = cellassign_reference_file;
         meta.scimilarity_model_dir = params.scimilarity_model_dir;
         meta.scimilarity_ontology_map_file = params.scimilarity_ontology_map_file;
-        // output files 
+        // output files
         meta.singler_results_file = "${meta.singler_dir}/singler_results.rds";
         meta.cellassign_predictions_file = "${meta.cellassign_dir}/cellassign_predictions.tsv";
         meta.scimilarity_predictions_file = "${meta.scimilarity_dir}/scimilarity_predictions.tsv";
@@ -298,7 +301,7 @@ workflow annotate_celltypes {
     // singleR output channel: [unique id, singler_results]
     singler_output_ch = singler_input_ch.skip_singler
       // provide existing singler results dir for those we skipped
-      .map{ meta, _processed_sce, _singler_model -> 
+      .map{ meta, _processed_sce, _singler_model ->
         tuple(
           meta.unique_id,
           file(meta.singler_dir, type: 'dir', checkIfExists: true)
@@ -339,7 +342,7 @@ workflow annotate_celltypes {
     // cellassign output channel: [unique id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
       // provide existing cellassign predictions dir for those we skipped
-      .map{ meta, _processed_sce, _cellassign_ref -> 
+      .map{ meta, _processed_sce, _cellassign_ref ->
         tuple(
           meta.unique_id,
           file(meta.cellassign_dir, type: 'dir', checkIfExists: true)
@@ -358,15 +361,15 @@ workflow annotate_celltypes {
     // create scimilarity input channel: [meta, processed sce, scimilarity dir, ontology map]
     scimilarity_input_ch = celltype_input_ch
       // add in cellassign references
-      .map{meta, processed_sce -> 
-        [ 
-          meta, 
+      .map{meta, processed_sce ->
+        [
+          meta,
           processed_sce,
           file(meta.scimilarity_model_dir, type: 'dir', checkIfExists: true),
           file(meta.scimilarity_ontology_map_file, checkIfExists: true)
         ]
       }
-      // skip if scimilarity results exist and path to the model has not changed 
+      // skip if scimilarity results exist and path to the model has not changed
       .branch{
         skip_scimilarity: (
           !params.repeat_celltyping
@@ -383,7 +386,7 @@ workflow annotate_celltypes {
     // scimilarity output channel: [unique id, scimilarity_dir]
     scimilarity_output_ch = scimilarity_input_ch.skip_scimilarity
       // provide existing scimilarity predictions dir for those we skipped
-      .map{ meta, _processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file -> 
+      .map{ meta, _processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file ->
         tuple(
           meta.unique_id,
           file(meta.scimilarity_dir, type: 'dir', checkIfExists: true)
@@ -432,10 +435,12 @@ workflow annotate_celltypes {
 
     // add inferCNV logic to meta
     added_celltypes_ch = add_celltypes_to_sce.out
-      .map{ meta_in, annotated_sce, cell_count ->
+      .map{ meta_in, annotated_sce, cell_count, cell_hash ->
         def meta = meta_in.clone(); // local copy for safe modification
-        // ensure it's saved as an integer: either the integer value, or null if it was NA
-        meta.infercnv_reference_cell_count = Utils.parseNA(cell_count) == "" ? null : cell_count.toInteger();
+        // ensure the count is saved as an integer: either the integer value, or null if it was an
+        // empty string since we can do future math comparisons with null
+        meta.infercnv_reference_cell_count = cell_count ? cell_count.toInteger() : null;
+        meta.infercnv_reference_cell_hash = cell_hash;
         // return only meta and annotated_sce
         [meta, annotated_sce]
       }
@@ -449,11 +454,9 @@ workflow annotate_celltypes {
 
     // add back in the unchanged sce files to the results
     export_channel = celltyped_ch
-      .map{meta, processed_sce -> tuple(
-        meta.unique_id,
-        meta,
-        processed_sce
-        )}
+      .map{meta, processed_sce ->
+        [meta.unique_id, meta, processed_sce]
+      }
       // add in unfiltered and filtered sce files, for tissue samples only
       .join(
         sce_files_channel_branched.tissue.map{[it[0]["unique_id"], it[1], it[2]]},

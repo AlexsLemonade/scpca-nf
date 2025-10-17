@@ -109,8 +109,15 @@ option_list <- list(
     type = "character",
     help = "Path to write number of calculated inferCNV reference cells to.
       This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
-      If not calculated, this file will be created with the value NA instead of a count",
+      If not calculated, this file will be empty",
     default = "reference_cell_count.txt"
+  ),
+  make_option(
+    opt_str = c("--reference_cell_hash_file"),
+    type = "character",
+    help = "Path to write out unique hash for all concatenated barcodes in reference cell set; used for checkpointing.
+      If not calculated, this file will be empty",
+    default = "reference_cell_hash.txt"
   )
 )
 
@@ -160,7 +167,8 @@ stopifnot(
 sce <- readr::read_rds(opt$input_sce_file)
 
 # We'll count inferCNV reference cells when assigning consensus cell types
-reference_cell_count <- NA_integer_
+reference_cell_count <- ""
+reference_cell_hash <- ""
 
 # set automated methods list
 # we'll use this to assign consensus and add cell type methods to the metadata
@@ -517,13 +525,21 @@ if (assign_consensus) {
     metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
     sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
 
-    # get the full count
-    reference_cell_count <- sum(sce$is_infercnv_reference)
+    # get the full count; store as character for writing to file
+    reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
+
+    # get hash for sorted concatenated barcodes
+    concat_barcodes <- paste(
+      sort(sce$barcodes[sce$is_infercnv_reference]),
+      collapse = ""
+    )
+    reference_cell_hash <- digest::digest(concat_barcodes)
   }
 }
 
 # export annotated object with cell type assignments
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
-# export normal cell count
-readr::write_lines(reference_cell_count, opt$reference_cell_count_file)
+# export normal cell count and hash
+readr::write_file(reference_cell_count, opt$reference_cell_count_file)
+readr::write_file(reference_cell_hash, opt$reference_cell_hash_file)
