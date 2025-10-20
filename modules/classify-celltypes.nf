@@ -7,7 +7,7 @@ process classify_singler {
   )
   label 'mem_8'
   label 'cpus_4'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_rds), path(singler_model_file)
   output:
@@ -51,7 +51,7 @@ process classify_cellassign {
   label 'mem_max'
   label 'cpus_12'
   label 'long_running'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_rds), path(cellassign_reference_file)
   output:
@@ -108,7 +108,7 @@ process classify_scimilarity {
     )
   label 'mem_96'
   label 'cpus_4'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_rds), path(scimilarity_model_dir), path(scimilarity_ontology_map_file)
   output:
@@ -159,7 +159,7 @@ process add_celltypes_to_sce {
   container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_4'
   label 'cpus_2'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_rds), path(singler_dir), path(cellassign_dir), path(scimilarity_dir)
     path(celltype_ref_metadata) // TSV file of references metadata needed for CellAssign only
@@ -171,7 +171,7 @@ process add_celltypes_to_sce {
   output:
     tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT"), env("REFERENCE_CELL_HASH")
   script:
-    annotated_rds = "${meta.library_id}_processed_annotated.rds"
+    annotated_rds = "${meta.unique_id}_processed_annotated.rds"
     def singler_results = singler_dir ? "${singler_dir}/singler_results.rds": ""
     def cellassign_predictions = cellassign_dir ? "${cellassign_dir}/cellassign_predictions.tsv" : ""
     def scimilarity_results = scimilarity_dir ? "${scimilarity_dir}/scimilarity_predictions.tsv" : ""
@@ -200,7 +200,7 @@ process add_celltypes_to_sce {
       REFERENCE_CELL_HASH=\$(cat "reference_cell_hash.txt")
     """
   stub:
-    annotated_rds = "${meta.library_id}_processed_annotated.rds"
+    annotated_rds = "${meta.unique_id}_processed_annotated.rds"
     """
     touch ${annotated_rds}
 
@@ -275,6 +275,9 @@ workflow annotate_celltypes {
         [meta, processed_sce]
       }
 
+    /////////////////////////////////////////////////////
+    //                  SingleR                        //
+    /////////////////////////////////////////////////////
 
     // creates [meta, processed sce, singler model file]
     singler_input_ch = celltype_input_ch

@@ -5,7 +5,7 @@
 process qc_publish_sce {
   container params.SCPCATOOLS_REPORTS_CONTAINER
   label 'mem_16'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file)
@@ -23,29 +23,22 @@ process qc_publish_sce {
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     workflow_version = workflow.revision ?: workflow.manifest.version
 
-    // set output file names based on having 10x flex multiplexed or not
-    if (meta.technology in ["10xflex_v1.1_multi"]){
-      file_prefix = "${meta.library_id}-${meta.sample_id}"
-    } else {
-      file_prefix = "${meta.library_id}"
-    }
-
     // determine if we have a usable heatmap file
     has_infercnv = infercnv_heatmap_file && infercnv_heatmap_file.isFile() && infercnv_heatmap_file.size() > 0
 
     // names for final output files
-    unfiltered_out = "${file_prefix}_unfiltered.rds"
-    filtered_out = "${file_prefix}_filtered.rds"
-    processed_out = "${file_prefix}_processed.rds"
-    qc_report = "${file_prefix}_qc.html"
-    metadata_json = "${file_prefix}_metadata.json"
-    metrics_json = "${file_prefix}_metrics.json"
+    unfiltered_out = "${meta.unique_id}_unfiltered.rds"
+    filtered_out = "${meta.unique_id}_filtered.rds"
+    processed_out = "${meta.unique_id}_processed.rds"
+    qc_report = "${meta.unique_id}_qc.html"
+    metadata_json = "${meta.unique_id}_metadata.json"
+    metrics_json = "${meta.unique_id}_metrics.json"
 
     // check for cell types
     // only provide report template if cell typing was performed and either singler or cellassign was used
     // note that we use the value perform_celltyping, not the param here
     has_celltypes = perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${file_prefix}_celltype-report.html" // rendered HTML
+    celltype_report = "${meta.unique_id}_celltype-report.html" // rendered HTML
 
     """
     # move files for output
@@ -93,21 +86,15 @@ process qc_publish_sce {
       --metrics_json "${metrics_json}"
     """
   stub:
-    if (meta.technology in ["10xflex_v1.1_multi"]){
-      file_prefix = "${meta.library_id}-${meta.sample_id}"
-    } else {
-      file_prefix = "${meta.library_id}"
-    }
-
-    unfiltered_out = "${file_prefix}_unfiltered.rds"
-    filtered_out = "${file_prefix}_filtered.rds"
-    processed_out = "${file_prefix}_processed.rds"
-    qc_report = "${file_prefix}_qc.html"
-    metadata_json = "${file_prefix}_metadata.json"
-    metrics_json = "${file_prefix}_metrics.json"
+    unfiltered_out = "${meta.unique_id}_unfiltered.rds"
+    filtered_out = "${meta.unique_id}_filtered.rds"
+    processed_out = "${meta.unique_id}_processed.rds"
+    qc_report = "${meta.unique_id}_qc.html"
+    metadata_json = "${meta.unique_id}_metadata.json"
+    metrics_json = "${meta.unique_id}_metrics.json"
 
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${file_prefix}_celltype-report.html" // rendered HTML
+    celltype_report = "${meta.unique_id}_celltype-report.html" // rendered HTML
 
     """
     touch ${unfiltered_out}

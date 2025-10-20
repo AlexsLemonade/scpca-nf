@@ -284,14 +284,14 @@ process cellhash_demux_sce {
 process post_process_sce {
   container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_8'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
   output:
     tuple val(meta), path(unfiltered_rds), path(filter_labeled_rds), path(processed_rds)
   script:
-    filter_labeled_rds = "${meta.library_id}_filtered_labeled.rds"
-    processed_rds = "${meta.library_id}_processed.rds"
+    filter_labeled_rds = "${meta.unique_id}_filtered_labeled.rds"
+    processed_rds = "${meta.unique_id}_processed.rds"
     """
     post_process_sce.R \
       --filtered_sce_file ${filtered_rds} \
@@ -303,8 +303,8 @@ process post_process_sce {
       ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
-    filter_labeled_rds = "${meta.library_id}_filtered_labeled.rds"
-    processed_rds = "${meta.library_id}_processed.rds"
+    filter_labeled_rds = "${meta.unique_id}_filtered_labeled.rds"
+    processed_rds = "${meta.unique_id}_processed.rds"
     """
     touch ${filter_labeled_rds}
     touch ${processed_rds}
