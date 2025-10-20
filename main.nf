@@ -278,7 +278,7 @@ workflow {
   // send library ids in flex_sce_ch.skip_processing to log
   flex_sce_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+      log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
   // **** Process 10x tag-based RNA-seq data ****
@@ -388,7 +388,7 @@ workflow {
   // send library ids in post_process_ch.skip_processing to log
   post_process_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the processed object for ${it[0].library_id}.")
+      log.error("There are no cells found in the processed object for ${it[0].unique_id}.")
     }
 
   // Cluster SCE
