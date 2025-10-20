@@ -575,7 +575,7 @@ results
         └── {library_id}_qc.html
 ```
 
-If bulk libraries were processed, the following three files will also be present in the `project_id` directory:
+If bulk libraries were processed, the following three files will also be present in the `project_id/bulk` directory:
 - `{project_id}_bulk_metadata.tsv`: a summary table of metadata across all project bulk libraries
 - `{project_id}_bulk_quant.tsv`: a matrix of gene expression count values for all bulk libraries
 - `{project_id}_bulk_tpm.tsv`: a matrix of gene expression TPM values for all bulk libraries
