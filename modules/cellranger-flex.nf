@@ -230,9 +230,13 @@ workflow flex_quant{
         if(meta.technology.contains("single")){
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
             metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv")
+            // add unique id as just library id
+            updated_meta.unique_id = "${meta.library_id}"
           } else if(meta.technology.contains("multi")) {
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
             metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
+            // add unique id as library and sample id 
+            updated_meta.unique_id = "${meta.library_id}-${meta.sample_id}"
           }
         def versions_file = file("${meta.cellranger_multi_results_dir}/_versions");
         updated_meta.sample_id = sample_id;
