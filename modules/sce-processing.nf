@@ -125,7 +125,7 @@ process make_unfiltered_sce_with_feature {
 
         unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
-        touch "${meta.library_id}_unfiltered.rds"
+        touch "${meta.unique_id}_unfiltered.rds"
         """
 }
 
