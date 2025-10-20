@@ -164,7 +164,7 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  def ref_paths = Utils.readMeta(file(params.ref_json), library_metadata = false)
+  def ref_paths = Utils.readMeta(file(params.ref_json))
   all_runs_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // use only the rows in the run_id list (run, library, or sample can match)

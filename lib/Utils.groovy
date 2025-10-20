@@ -13,15 +13,13 @@ class Utils {
      * Read a metadata file in JSON format
      *
      * @param file A Nextflow file object with metadata in JSON format
-     * @param library_metadata Boolean indicating if the metadata is library metadata or not 
-     *  If true, unique_id is added if it doesn't already exist. Default: true
      * @return Metadata as a groovy Map object
      */
-  static def readMeta(file, boolean library_metadata = true) {
+  static def readMeta(file) {
     def meta = new JsonSlurper().parse(file)
     meta = meta.each{ key, value -> meta[key] = this.parseNA(value) }
 
-    if (!meta.unique_id && library_metadata){
+    if (meta.sample_id && meta.library_id && !meta.unique_id){
       meta.unique_id = meta.technology.contains("_multi") ? "${meta.library_id}-${meta.sample_id}" : meta.library_id
     }
 
