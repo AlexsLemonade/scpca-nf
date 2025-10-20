@@ -8,7 +8,7 @@ process cluster_sce {
   output:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(clustered_rds)
   script:
-    clustered_rds = "${unique_id}_clustered.rds"
+    clustered_rds = "${meta.unique_id}_clustered.rds"
     """
     cluster_sce.R \
       --processed_sce_file ${processed_rds} \
@@ -19,7 +19,7 @@ process cluster_sce {
       ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
-    clustered_rds = "${unique_id}_clustered.rds"
+    clustered_rds = "${meta.unique_id}_clustered.rds"
     """
     touch ${clustered_rds}
     """

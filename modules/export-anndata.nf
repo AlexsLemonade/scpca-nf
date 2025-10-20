@@ -35,7 +35,7 @@ process export_anndata {
       """
     stub:
       rna_h5ad_file = "${meta.unique_id}_${file_type}_rna.h5ad"
-      feature_h5ad_file = "${filemeta.unique_id_prefix}_${file_type}_${meta.feature_type}.h5ad"
+      feature_h5ad_file = "${meta.unique_id_prefix}_${file_type}_${meta.feature_type}.h5ad"
       feature_present = meta.feature_type in ["adt"]
       """
       touch ${rna_h5ad_file}
