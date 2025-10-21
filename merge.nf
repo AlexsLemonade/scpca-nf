@@ -202,7 +202,7 @@ workflow {
 
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
-    .map{project_id, library_id, sample_id, seq_unit, technology ->
+    .map{project_id, library_id, sample_id, _seq_unit, _technology ->
     [
       library_id,
       file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_processed.rds"),
@@ -221,8 +221,8 @@ workflow {
   }
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
-    // create tuple of [project id, library_id, processed_sce_file]
-    .map{project_id, library_id, sample_id, seq_unit, technology ->
+    // create tuple of [project id, library_id, processed_sce_file, metadata json]
+    .map{project_id, library_id, sample_id, _seq_unit, _technology ->
       [
       project_id,
       library_id,
@@ -246,7 +246,7 @@ workflow {
     }
 
   pre_merged_ch = grouped_libraries_ch.has_merge
-    .map{merge_file, project_id, has_adt ->
+    .map{merge_file, project_id, _has_adt ->
       [file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"), merge_file, project_id]
     }
 
