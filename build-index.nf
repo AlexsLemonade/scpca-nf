@@ -172,30 +172,30 @@ workflow {
       ]
     }
     // filter to only regenerate specified references
-    .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
+    .filter{ it -> build_all || it[0] in params.build_refs.tokenize(",") }
 
   // filter to relevant references and drop the boolean flags
   salmon_ref_ch = ref_ch
-    .filter{ it[2] }
+    .filter{ it -> it[2] }
     .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
       [ref_name, meta, gtf, fasta]
     }
 
   cellranger_ref_ch = ref_ch
-    .filter{ it[3] }
+    .filter{ it -> it[3] }
     .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
       [ref_name, meta, gtf, fasta]
     }
 
   star_ref_ch = ref_ch
-    .filter{ it[4] }
+    .filter{ it -> it[4] }
     .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
       [ref_name, meta, gtf, fasta]
     }
 
   // also remove fasta path and add path to cytoband
   infercnv_ref_ch = ref_ch
-    .filter{ it[5] }
+    .filter{ it -> it[5] }
     .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, _fasta ->
       [ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")]
     }

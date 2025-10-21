@@ -140,9 +140,9 @@ workflow {
   libraries_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to only include specified project ids
-    .filter{it.scpca_project_id in project_ids}
+    .filter{it -> it.scpca_project_id in project_ids}
     // filter to run all ids or just specified ones
-    .filter{
+    .filter{ it ->
       run_all
       || (it.scpca_run_id in run_ids)
       || (it.scpca_library_id in run_ids)
@@ -158,29 +158,29 @@ workflow {
 
   // get all projects that contain at least one library with CITEseq
   adt_projects = libraries_ch
-    .filter{it.technology.startsWith('citeseq')}
-    .collect{it.project_id}
+    .filter{it -> it.technology.startsWith('citeseq')}
+    .collect{it -> it.project_id}
     .map{it -> it.unique()}
 
   multiplex_projects = libraries_ch
-    .filter{it.technology.startsWith('cellhash')}
-    .collect{it.project_id}
+    .filter{it -> it.technology.startsWith('cellhash')}
+    .collect{it -> it.project_id}
     .map{it -> it.unique()}
 
   oversized_projects = libraries_ch
-    .filter{it.technology.startsWith("10x")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
+    .filter{it -> it.technology.startsWith("10x")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
     // pull out project id for grouping
     .map{it -> [it.project_id, it]}
     .groupTuple(by: 0) // group by project id
-    .filter{it[1].size() > params.max_merge_libraries} // get projects with more samples than max merge
-    .collect{it[0]} // get project id
+    .filter{it -> it[1].size() > params.max_merge_libraries} // get projects with more samples than max merge
+    .collect{it -> it[0]} // get project id
 
   filtered_libraries_ch = libraries_ch
     // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
-    .filter{it.seq_unit in ['cell', 'nucleus']}
+    .filter{it -> it.seq_unit in ['cell', 'nucleus']}
     // remove any multiplexed projects or oversized projects
     // future todo: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
-    .branch{
+    .branch{ it ->
       multiplexed: it.project_id in multiplex_projects.getVal()
       oversized: it.project_id in oversized_projects.getVal()
       single_sample: true
@@ -188,13 +188,13 @@ workflow {
 
   filtered_libraries_ch.multiplexed
     .unique{ it.project_id }
-    .subscribe{
+    .subscribe{ it ->
       log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
     }
 
   filtered_libraries_ch.oversized
     .unique{ it.project_id }
-    .subscribe{
+    .subscribe{ it ->
       log.warn("Not merging ${it.project_id} because it contains too many libraries.")
     }
 
@@ -206,7 +206,7 @@ workflow {
       file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_processed.rds"),
       file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_metadata.json")
     ]}
-  .subscribe{
+  .subscribe{ it ->
     if(!(it[1].exists() && it[1].size() > 0)){
       log.warn("Processed files do not exist for ${it[0]}. This library will not be included in the merged object.")
     }
@@ -228,7 +228,7 @@ workflow {
       file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_metadata.json")
     ]}
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
+    .filter{it -> it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
     .map{it -> it.dropRight(1)} // remove metadata file from tuple
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
@@ -238,7 +238,7 @@ workflow {
     .map{ project_id, library_id_list, sce_file_list ->
       [project_id, project_id in adt_projects.getVal(), library_id_list, sce_file_list]
     }
-    .branch{
+    .branch{ it ->
       has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && params.reuse_merge
       make_merge: true
     }

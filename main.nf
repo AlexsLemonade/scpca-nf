@@ -169,7 +169,7 @@ workflow {
     .splitCsv(header: true, sep: '\t')
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set
-    .filter{
+    .filter{ it ->
       run_all
       || (it.scpca_run_id in run_ids)
       || (it.scpca_library_id in run_ids)
@@ -233,7 +233,7 @@ workflow {
 
   // branch runs by technology
   runs_ch = unfiltered_runs_ch
-    .branch{
+    .branch{ it ->
       bulk: it.technology in bulk_techs
       feature: (it.technology in citeseq_techs) || (it.technology in cellhash_techs)
       rna: it.technology in rna_techs
@@ -243,24 +243,24 @@ workflow {
 
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.feature
-    .collect{it.library_id}
+    .collect{it -> it.library_id}
   rna_only_libs = runs_ch.rna
-    .filter{!(it.library_id in feature_libs.getVal())}
-    .collect{it.library_id}
+    .filter{it -> !(it.library_id in feature_libs.getVal())}
+    .collect{it -> it.library_id}
   multiplex_libs = runs_ch.rna
-    .filter{it.sample_id.contains(",")}
-    .collect{it.library_id}
+    .filter{it -> it.sample_id.contains(",")}
+    .collect{it -> it.library_id}
 
   // get list of samples with bulk RNA-seq
   bulk_samples = runs_ch.bulk
-    .collect{it.sample_id}
+    .collect{it -> it.sample_id}
 
   // get genetic multiplex libs with all bulk samples present
   genetic_multiplex_libs = runs_ch.rna
-    .filter{!params.skip_genetic_demux} // empty channel if skipping genetic demux
-    .filter{it.sample_id.contains(",")}
-    .filter{it.sample_id.tokenize(",").every{it in bulk_samples.getVal()}}
-    .collect{it.library_id}
+    .filter{it -> !params.skip_genetic_demux} // empty channel if skipping genetic demux
+    .filter{it -> it.sample_id.contains(",")}
+    .filter{it -> it.sample_id.tokenize(",").every{it in bulk_samples.getVal()}}
+    .collect{it -> it.library_id}
 
   // **** Process Bulk RNA-seq data ***
   bulk_quant_rna(runs_ch.bulk)
@@ -271,14 +271,14 @@ workflow {
   // **** Process 10x flex RNA-seq data ***
   flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file ?: empty_file))
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
-    .branch{
+    .branch{ it ->
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true
       }
 
   // send library ids in flex_sce_ch.skip_processing to log
   flex_sce_ch.skip_processing
-    .subscribe{
+    .subscribe{ it ->
       log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
@@ -287,18 +287,18 @@ workflow {
 
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
-    .filter{it[0]["library_id"] in rna_only_libs.getVal()}
+    .filter{it -> it[0]["library_id"] in rna_only_libs.getVal()}
   // make rds for rna only
   rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
-    .branch{
+    .branch{ it ->
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true
       }
 
   // send library ids in rna_sce_ch.skip_processing to log
   rna_sce_ch.skip_processing
-    .subscribe{
+    .subscribe{ it ->
       log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
@@ -322,13 +322,14 @@ workflow {
 
   // send library ids in all_feature_ch.skip_processing to log
   all_feature_ch.skip_processing
-    .subscribe{
+    .subscribe{ it ->
       log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
   // pull out cell hash libraries for demuxing
   feature_sce_ch = all_feature_ch.continue_processing
-    .branch{ // branch cellhash libs
+    // branch cellhash libs
+    .branch{ it ->
       cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
       single: true
     }
@@ -339,14 +340,14 @@ workflow {
 
   // join SCE outputs and branch by genetic multiplexing
   sce_ch = rna_sce_ch.continue_processing.mix(combined_feature_sce_ch)
-    .branch{
+    .branch{ it ->
       genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
       no_genetic: true
     }
 
   // **** Perform Genetic Demultiplexing ****
   genetic_multiplex_run_ch = runs_ch.rna
-    .filter{it.library_id in genetic_multiplex_libs.getVal()}
+    .filter{it -> it.library_id in genetic_multiplex_libs.getVal()}
   genetic_demux_vireo(genetic_multiplex_run_ch, unfiltered_runs_ch, cell_barcodes, bulk_techs)
 
 
@@ -369,14 +370,14 @@ workflow {
 
   post_process_ch = post_process_sce.out
     // only continue processing any samples with > 0 cells left after processing
-    .branch{
+    .branch{ it ->
       continue_processing: it[3].size() > 0 || it[3].name.startsWith("STUB")
       skip_processing: true
       }
 
   // send library ids in post_process_ch.skip_processing to log
   post_process_ch.skip_processing
-    .subscribe{
+    .subscribe{ it ->
       log.error("There are no cells found in the processed object for ${it[0].unique_id}.")
     }
 
@@ -436,7 +437,7 @@ workflow {
   // convert SCE object to anndata
   anndata_ch = qc_publish_sce.out.data
     // skip multiplexed libraries
-    .filter{!(it[0]["library_id"] in multiplex_libs.getVal())}
+    .filter{ it -> !(it[0]["library_id"] in multiplex_libs.getVal())}
   sce_to_anndata(anndata_ch)
 
 }

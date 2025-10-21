@@ -170,7 +170,7 @@ workflow build_celltype_ref {
   // create channel of cell type ref files and names
   celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
-    .branch{
+    .branch{ it ->
       singler: it.celltype_method == "SingleR"
       cellassign: it.celltype_method == "CellAssign"
     }
