@@ -17,8 +17,8 @@ process generate_reference {
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
-    splici_fasta = "fasta/" + file("${meta.splici_index}").name + ".fa.gz"
-    spliced_cdna_fasta =  "fasta/" + file("${meta.salmon_bulk_index}").name + ".fa.gz"
+    splici_fasta = "fasta/" + file(meta.splici_index).name + ".fa.gz"
+    spliced_cdna_fasta =  "fasta/" + file(meta.salmon_bulk_index).name + ".fa.gz"
     """
     make_reference_fasta.R \
       --gtf ${gtf} \

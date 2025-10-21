@@ -35,7 +35,7 @@ process train_singler_models_transcriptome {
   output:
     path celltype_model
   script:
-    ref_file_basename = file("${ref_file}").baseName
+    ref_file_basename = file(ref_file).baseName
     gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2) // take the last two elements which have assembly and version
       .join('-') // join to get GRCh38-104
@@ -74,7 +74,7 @@ process train_singler_models_flex {
   output:
     path celltype_model
   script:
-    ref_file_basename = file("${ref_file}").baseName
+    ref_file_basename = file(ref_file).baseName
     date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
     celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
     """
