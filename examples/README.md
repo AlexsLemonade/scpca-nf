@@ -58,7 +58,8 @@ Below is an example of a sample metadata file:
 | sample01        | FALSE       | FALSE        | Glioblastoma | 71  |
 
 **Note that the `diagnosis` and `age` columns are shown as example sample metadata one might include in the sample metadata file.
-The metadata file that you create does not need to match this exactly, but it must contain the required `scpca_sample_id` column.**
+The metadata file that you create does not need to match this exactly, but it must contain the required `scpca_sample_id` column.
+The `diagnosis` column only is required if running the workflow with [CNV inference](../external-instructions.md#cnv-inference)**
 
 The following command can then be used to test your configuration setup with the example data:
 
