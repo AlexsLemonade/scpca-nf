@@ -194,13 +194,13 @@ workflow {
 
   // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
   unfiltered_runs_ch = all_runs_ch.valid
-    .map{
+    .map{ it ->
       def sample_refs = ref_paths[it.sample_reference];
       [
         run_id: it.scpca_run_id,
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
-        unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : "${it.scpca_library_id}",
+        unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : it.scpca_library_id,
         project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
         submitter: Utils.parseNA(it.submitter),
         technology: it.technology.toLowerCase(),
@@ -307,15 +307,15 @@ workflow {
 
   // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
-    .map{[it[0]["library_id"]] + it } // add library_id from metadata as first element
+    .map{it -> [it[0]["library_id"]] + it } // add library_id from metadata as first element
     // join rna quant to feature quant by library_id; expect mismatches for rna-only, so don't fail
-    .join(map_quant_rna.out.map{[it[0]["library_id"]] + it },
+    .join(map_quant_rna.out.map{it -> [it[0]["library_id"]] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: false)
-    .map{it.drop(1)} // remove library_id index
+    .map{it -> it.drop(1)} // remove library_id index
 
   // make rds for RNA with feature quants
   all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, file(params.sample_metafile))
-    .branch{
+    .branch{ it ->
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
       skip_processing: true
     }
@@ -353,10 +353,10 @@ workflow {
   // join demux result with SCE output (fail if there are any missing or extra libraries)
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
-    .map{[it[0]["library_id"]] + it }
-    .join(sce_ch.genetic_multiplex.map{[it[0]["library_id"]] + it },
+    .map{it -> [it[0]["library_id"]] + it }
+    .join(sce_ch.genetic_multiplex.map{it -> [it[0]["library_id"]] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: true)
-    .map{it.drop(1)}
+    .map{it -> it.drop(1)}
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 
@@ -396,7 +396,7 @@ workflow {
     cnv_celltype_ch = call_cnvs(annotated_celltype_ch)
   } else {
     cnv_celltype_ch = annotated_celltype_ch
-      .map{meta, unfiltered, filtered, processed ->
+      .map{ meta, unfiltered, filtered, processed ->
         [meta, unfiltered, filtered, processed, []] // heatmap placeholder
       }
   }
@@ -404,13 +404,13 @@ workflow {
   // first mix any skipped libraries from both rna and feature libs
   no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing, flex_sce_ch.skip_processing)
     // add a fake processed file
-    .map{meta, unfiltered, filtered ->
+    .map{ meta, unfiltered, filtered ->
       [meta, unfiltered, filtered, empty_file, []]
     }
 
   // combine back with libraries that skipped filtering and post processing
   sce_output_ch = post_process_ch.skip_processing
-    .map{meta, unfiltered, filtered, processed ->
+    .map{ meta, unfiltered, filtered, processed ->
       [meta, unfiltered, filtered, processed, []]
     }
     .mix(cnv_celltype_ch, no_filtered_ch)

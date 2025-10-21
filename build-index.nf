@@ -44,8 +44,8 @@ process salmon_index {
     path splici_index_dir
     path spliced_cdna_index_dir
   script:
-    splici_index_dir = file("${meta.splici_index}").name
-    spliced_cdna_index_dir = file("${meta.salmon_bulk_index}").name
+    splici_index_dir = file(meta.splici_index).name
+    spliced_cdna_index_dir = file(meta.salmon_bulk_index).name
     """
     salmon index \
       -t ${splici_fasta} \
@@ -77,7 +77,7 @@ process cellranger_index {
   output:
     path cellranger_index
   script:
-    cellranger_index = file("${meta.cellranger_index}").name
+    cellranger_index = file(meta.cellranger_index).name
     assembly = ref_name.split("\\.")[1] // extract assembly from ref_name
     """
     gunzip -c ${fasta} > genome.fasta
@@ -104,7 +104,7 @@ process star_index {
   output:
     path output_dir
   script:
-    output_dir = file("${meta.star_index}").name
+    output_dir = file(meta.star_index).name
     """
     mkdir ${output_dir}
 
@@ -135,7 +135,7 @@ process infercnv_gene_order {
   output:
     path gene_order_file
   script:
-    gene_order_file = file("${meta.infercnv_gene_order}").name
+    gene_order_file = file(meta.infercnv_gene_order).name
     """
     prepare_infercnv_gene_order_file.R \
       --gtf_file ${gtf} \
@@ -156,7 +156,7 @@ workflow {
   // read in metadata with all organisms to create references for
   ref_ch = Channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
-    .map{
+    .map{ it ->
       def reference_name = "${it.organism}.${it.assembly}.${it.version}";
       def ref_name_paths = ref_paths[reference_name];
       // reference name & reference file paths for each organism
@@ -183,7 +183,7 @@ workflow {
 
   cellranger_ref_ch = ref_ch
     .filter{ it[3] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> 
+    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
       [ref_name, meta, gtf, fasta]
     }
 

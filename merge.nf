@@ -148,7 +148,7 @@ workflow {
       || (it.scpca_library_id in run_ids)
       || (it.scpca_sample_id in run_ids)
     }
-    .map{[
+    .map{ it -> [
       project_id: it.scpca_project_id,
       library_id: it.scpca_library_id,
       sample_id: it.scpca_sample_id.split(";").sort().join(","),
@@ -160,19 +160,17 @@ workflow {
   adt_projects = libraries_ch
     .filter{it.technology.startsWith('citeseq')}
     .collect{it.project_id}
-    .map{it.unique()}
+    .map{it -> it.unique()}
 
   multiplex_projects = libraries_ch
     .filter{it.technology.startsWith('cellhash')}
     .collect{it.project_id}
-    .map{it.unique()}
+    .map{it -> it.unique()}
 
   oversized_projects = libraries_ch
     .filter{it.technology.startsWith("10x")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
-    .map{[
-      it.project_id, // pull out project id for grouping
-      it
-    ]}
+    // pull out project id for grouping
+    .map{it -> [it.project_id, it]}
     .groupTuple(by: 0) // group by project id
     .filter{it[1].size() > params.max_merge_libraries} // get projects with more samples than max merge
     .collect{it[0]} // get project id
@@ -202,7 +200,7 @@ workflow {
 
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
-    .map{project_id, library_id, sample_id, _seq_unit, _technology ->
+    .map{ project_id, library_id, sample_id, _seq_unit, _technology ->
     [
       library_id,
       file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_processed.rds"),
@@ -222,7 +220,7 @@ workflow {
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
     // create tuple of [project id, library_id, processed_sce_file, metadata json]
-    .map{project_id, library_id, sample_id, _seq_unit, _technology ->
+    .map{ project_id, library_id, sample_id, _seq_unit, _technology ->
       [
       project_id,
       library_id,
@@ -231,13 +229,13 @@ workflow {
     ]}
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
     .filter{it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
-    .map{it[0..2]} // remove metadata file from tuple
+    .map{it -> it.dropRight(1)} // remove metadata file from tuple
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
     // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
     .groupTuple(by: 0)
     // add in boolean for if project contains samples with adt
-    .map{project_id, library_id_list, sce_file_list ->
+    .map{ project_id, library_id_list, sce_file_list ->
       [project_id, project_id in adt_projects.getVal(), library_id_list, sce_file_list]
     }
     .branch{
@@ -246,7 +244,7 @@ workflow {
     }
 
   pre_merged_ch = grouped_libraries_ch.has_merge
-    .map{merge_file, project_id, _has_adt ->
+    .map{ merge_file, project_id, _has_adt ->
       [file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"), merge_file, project_id]
     }
 
