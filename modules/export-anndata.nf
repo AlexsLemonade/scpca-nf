@@ -3,23 +3,16 @@
 process export_anndata {
     container params.SCPCATOOLS_ANNDATA_CONTAINER
     label 'mem_16'
-    tag "${meta.library_id}"
+    tag "${meta.unique_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
     input:
       tuple val(meta), path(sce_file), val(file_type)
     output:
-      tuple val(meta), path("${file_prefix}_${file_type}_*.h5ad"), val(file_type)
+      tuple val(meta), path("${meta.unique_id}_${file_type}_*.h5ad"), val(file_type)
     script:
-      // set output file names based on having 10x flex multiplexed or not
-      if (meta.technology in ["10xflex_v1.1_multi"]){
-        file_prefix = "${meta.library_id}-${meta.sample_id}"
-      } else {
-        file_prefix = "${meta.library_id}"
-      }
-
-      rna_h5ad_file = "${file_prefix}_${file_type}_rna.h5ad"
-      feature_h5ad_file = "${file_prefix}_${file_type}_${meta.feature_type}.h5ad"
-      pca_meta_file = "${file_prefix}_${file_type}_pca.tsv"
+      rna_h5ad_file = "${meta.unique_id}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${meta.unique_id}_${file_type}_${meta.feature_type}.h5ad"
+      pca_meta_file = "${meta.unique_id}_${file_type}_pca.tsv"
       feature_present = meta.feature_type in ["adt"]
       """
       sce_to_anndata.R \
@@ -41,15 +34,8 @@ process export_anndata {
 
       """
     stub:
-      // set output file names based on having 10x flex multiplexed or not
-      if (meta.technology in ["10xflex_v1.1_multi"]){
-        file_prefix = "${meta.library_id}-${meta.sample_id}"
-      } else {
-        file_prefix = "${meta.library_id}"
-      }
-
-      rna_h5ad_file = "${file_prefix}_${file_type}_rna.h5ad"
-      feature_h5ad_file = "${file_prefix}_${file_type}_${meta.feature_type}.h5ad"
+      rna_h5ad_file = "${meta.unique_id}_${file_type}_rna.h5ad"
+      feature_h5ad_file = "${meta.unique_id_prefix}_${file_type}_${meta.feature_type}.h5ad"
       feature_present = meta.feature_type in ["adt"]
       """
       touch ${rna_h5ad_file}
@@ -89,15 +75,15 @@ workflow sce_to_anndata {
       .map{it.dropRight(1)} // drop the file type
 
 
-    // combine all anndata files by library id
+    // combine all anndata files by unique id
     anndata_ch = export_anndata.out
       .map{ meta, h5ad_files, _file_type -> tuple(
-        meta.library_id, // pull out library id for grouping
+        meta.unique_id, // pull out unique id for grouping
         meta,
         h5ad_files // either *_rna.h5ad or [ *_rna.h5ad, *_feature.h5ad ]
       )}
-      // group by library id result is
-      // [library id, [meta, meta, meta], [h5ad files]]
+      // group by unique id result is
+      // [unique id, [meta, meta, meta], [h5ad files]]
       .groupTuple(by: 0, size: 3, remainder: true)
       // pull out just 1 meta object and h5ad files
       // [meta, [h5ad files]]

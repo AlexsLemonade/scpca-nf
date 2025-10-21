@@ -4,7 +4,7 @@
 process make_unfiltered_sce {
     container params.SCPCATOOLS_SLIM_CONTAINER
     label 'mem_8'
-    tag "${meta.library_id}"
+    tag "${meta.unique_id}"
     input:
         tuple val(meta), path(alevin_dir),
               path(mito_file), path(ref_gtf),
@@ -13,7 +13,7 @@ process make_unfiltered_sce {
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
         generate_unfiltered_sce_alevin.R \
           --alevin_dir ${alevin_dir} \
@@ -51,7 +51,7 @@ process make_unfiltered_sce {
 
         """
     stub:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
         touch ${unfiltered_rds}
         """
@@ -60,7 +60,7 @@ process make_unfiltered_sce {
 // channels with RNA and feature data
 process make_unfiltered_sce_with_feature {
     label 'mem_8'
-    tag "${rna_meta.library_id}"
+    tag "${rna_meta.unique_id}"
     container params.SCPCATOOLS_SLIM_CONTAINER
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
@@ -80,7 +80,7 @@ process make_unfiltered_sce_with_feature {
           meta['feature_type'] = "adt"
         }
 
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
         generate_unfiltered_sce_alevin.R \
           --alevin_dir ${alevin_dir} \
@@ -123,16 +123,16 @@ process make_unfiltered_sce_with_feature {
         meta['feature_type'] = feature_meta.technology.split('_')[0]
         meta['feature_meta'] = feature_meta
 
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
-        touch "${meta.library_id}_unfiltered.rds"
+        touch "${meta.unique_id}_unfiltered.rds"
         """
 }
 
 process make_unfiltered_sce_cellranger {
     container params.SCPCATOOLS_SLIM_CONTAINER
     label 'mem_8'
-    tag "${meta.library_id}"
+    tag "${meta.unique_id}"
     input:
         tuple val(meta), path(cellranger_dir),
               path(versions_file), path(metrics_file),
@@ -141,7 +141,7 @@ process make_unfiltered_sce_cellranger {
     output:
         tuple val(meta), path(unfiltered_rds)
     script:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
         generate_unfiltered_sce_cellranger.R \
           --cellranger_dir ${cellranger_dir} \
@@ -181,7 +181,7 @@ process make_unfiltered_sce_cellranger {
 
         """
     stub:
-        unfiltered_rds = "${meta.library_id}_unfiltered.rds"
+        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
         touch ${unfiltered_rds}
         """
@@ -190,13 +190,13 @@ process make_unfiltered_sce_cellranger {
 process filter_sce {
   container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_8'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(unfiltered_rds), path(feature_barcode_file)
   output:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
   script:
-    filtered_rds = "${meta.library_id}_filtered.rds"
+    filtered_rds = "${meta.unique_id}_filtered.rds"
 
     // Checks for whether we have ADT data:
     // - feature_type should be adt
@@ -221,7 +221,7 @@ process filter_sce {
       --threads ${task.cpus}
     """
   stub:
-    filtered_rds = "${meta.library_id}_filtered.rds"
+    filtered_rds = "${meta.unique_id}_filtered.rds"
     """
     touch ${filtered_rds}
     """
@@ -284,14 +284,14 @@ process cellhash_demux_sce {
 process post_process_sce {
   container params.SCPCATOOLS_SLIM_CONTAINER
   label 'mem_8'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   input:
     tuple val(meta), path(unfiltered_rds), path(filtered_rds)
   output:
     tuple val(meta), path(unfiltered_rds), path(filter_labeled_rds), path(processed_rds)
   script:
-    filter_labeled_rds = "${meta.library_id}_filtered_labeled.rds"
-    processed_rds = "${meta.library_id}_processed.rds"
+    filter_labeled_rds = "${meta.unique_id}_filtered_labeled.rds"
+    processed_rds = "${meta.unique_id}_processed.rds"
     """
     post_process_sce.R \
       --filtered_sce_file ${filtered_rds} \
@@ -303,8 +303,8 @@ process post_process_sce {
       ${params.seed ? "--random_seed ${params.seed}" : ""}
     """
   stub:
-    filter_labeled_rds = "${meta.library_id}_filtered_labeled.rds"
-    processed_rds = "${meta.library_id}_processed.rds"
+    filter_labeled_rds = "${meta.unique_id}_filtered_labeled.rds"
+    processed_rds = "${meta.unique_id}_processed.rds"
     """
     touch ${filter_labeled_rds}
     touch ${processed_rds}

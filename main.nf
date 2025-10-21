@@ -200,6 +200,7 @@ workflow {
         run_id: it.scpca_run_id,
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
+        unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : "${it.scpca_library_id}",
         project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
         submitter: Utils.parseNA(it.submitter),
         technology: it.technology.toLowerCase(),
@@ -278,7 +279,7 @@ workflow {
   // send library ids in flex_sce_ch.skip_processing to log
   flex_sce_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+      log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
   // **** Process 10x tag-based RNA-seq data ****
@@ -298,7 +299,7 @@ workflow {
   // send library ids in rna_sce_ch.skip_processing to log
   rna_sce_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+      log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
   // **** Process feature data ****
@@ -322,7 +323,7 @@ workflow {
   // send library ids in all_feature_ch.skip_processing to log
   all_feature_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the filtered object for ${it[0].library_id}.")
+      log.error("There are no cells found in the filtered object for ${it[0].unique_id}.")
     }
 
   // pull out cell hash libraries for demuxing
@@ -363,18 +364,6 @@ workflow {
   // combine all SCE outputs
   // Make channel for all library sce files
   all_sce_ch = sce_ch.no_genetic.mix(flex_sce_ch.continue_processing, genetic_demux_sce.out)
-    // add  unique ID  to metadata that will be used to label output folders and join skipped libraries throughout workflow
-    .map{ meta_in, unfiltered_sce, filtered_sce ->
-      def meta = meta_in.clone(); // clone meta before adding in unique id
-      // we can't use library ID for flex multiplexed so will use sample and library ID for those samples only
-      meta.unique_id = (meta.technology in ["10xflex_v1.1_multi"]) ? "${meta.library_id}-${meta.sample_id}" : "${meta.library_id}";
-      // return updated meta and sce files
-      return [
-        meta,
-        unfiltered_sce,
-        filtered_sce
-       ]
-    }
   post_process_sce(all_sce_ch)
 
 
@@ -388,7 +377,7 @@ workflow {
   // send library ids in post_process_ch.skip_processing to log
   post_process_ch.skip_processing
     .subscribe{
-      log.error("There are no cells found in the processed object for ${it[0].library_id}.")
+      log.error("There are no cells found in the processed object for ${it[0].unique_id}.")
     }
 
   // Cluster SCE

@@ -13,8 +13,10 @@ process cellranger_flex_single {
     tuple val(meta),
       path("${out_id}/outs/multi", type: 'dir'),
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'),
-      path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv")
+      path("${out_id}/_versions"), 
+      emit: main
+    path "${out_id}/outs/config.csv", emit: config
+    path "${out_id}/scpca-meta.json", emit: meta_file
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -69,7 +71,9 @@ process cellranger_flex_multi {
       path("${out_id}/outs/multi", type: 'dir'),
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'),
       path("${out_id}/_versions"),
-      path("${out_id}/outs/config.csv")
+      emit: main
+    path "${out_id}/outs/config.csv", emit: config
+    path "${out_id}/scpca-meta.json", emit: meta_file
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
     meta += Utils.getVersions(workflow, nextflow)
@@ -176,9 +180,9 @@ workflow flex_quant{
 
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
-    cellranger_flex_multi_flat_ch = cellranger_flex_multi.out
-      .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions, config]
-      .map{ meta, _multi_out, per_sample_out, versions, _config ->
+    cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.main
+      .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions]
+      .map{ meta, _multi_out, per_sample_out, versions ->
         def updated_meta = meta.clone(); // clone meta before replacing sample ID
         def sample_id = per_sample_out.name; // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs
@@ -189,6 +193,8 @@ workflow flex_quant{
 
         // update sample ID
         updated_meta.sample_id = sample_id;
+        // update existing unique ID to be sure it has the one sample id and not the comma separated list
+        updated_meta.unique_id = "${meta.library_id}-${sample_id}"
         // [meta, raw output dir, versions file, metrics file]
         return [
           updated_meta,
@@ -200,14 +206,16 @@ workflow flex_quant{
 
     // combine single and multi outputs
     // for singleplexed data, the raw output is in the multi folder
-    cellranger_flex_ch = cellranger_flex_single.out
+    cellranger_flex_ch = cellranger_flex_single.out.main
       // get path to raw output directory for singleplexed
-      .map{ meta, multi_out, per_sample_out, versions, _config -> tuple(
-        meta,
-        file("${multi_out}/count/raw_feature_bc_matrix", type: 'dir'),
-        versions,
-        file("${per_sample_out}/${meta.library_id}/metrics_summary.csv")
-      )}
+      .map{ meta, multi_out, per_sample_out, versions ->
+        [
+          meta,
+          file("${multi_out}/count/raw_feature_bc_matrix", type: 'dir'),
+          versions,
+          file("${per_sample_out}/${meta.library_id}/metrics_summary.csv")
+        ]
+      }
     .mix(cellranger_flex_multi_flat_ch)
 
     // make sure the libraries that we are skipping processing on have the correct channel format
@@ -233,6 +241,8 @@ workflow flex_quant{
           } else if(meta.technology.contains("multi")) {
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
             metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
+            // update existing unique ID to be sure it has the one sample id and not all
+            updated_meta.unique_id = "${meta.library_id}-${sample_id}"
           }
         def versions_file = file("${meta.cellranger_multi_results_dir}/_versions");
         updated_meta.sample_id = sample_id;
