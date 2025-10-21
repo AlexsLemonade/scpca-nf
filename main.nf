@@ -257,9 +257,9 @@ workflow {
 
   // get genetic multiplex libs with all bulk samples present
   genetic_multiplex_libs = runs_ch.rna
-    .filter{it -> !params.skip_genetic_demux} // empty channel if skipping genetic demux
+    .filter{ !params.skip_genetic_demux } // empty channel if skipping genetic demux
     .filter{it -> it.sample_id.contains(",")}
-    .filter{it -> it.sample_id.tokenize(",").every{it in bulk_samples.getVal()}}
+    .filter{ it.sample_id.tokenize(",").every{ sample -> sample in bulk_samples.getVal() } } 
     .collect{it -> it.library_id}
 
   // **** Process Bulk RNA-seq data ***
