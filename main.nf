@@ -58,7 +58,7 @@ def check_parameters() {
       param_error = true
     }
 
-    // check that scimilarity reference model and files exist 
+    // check that scimilarity reference model and files exist
     if(!file(params.scimilarity_model_dir, type: 'dir').exists()) {
       log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
       param_error = true
@@ -75,7 +75,7 @@ def check_parameters() {
       log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
       param_error = true
     }
-    
+
     // check that reference files related to consensus cell types exist
     if (!file(params.consensus_ref_file).exists()) {
       log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
@@ -395,32 +395,24 @@ workflow {
   if (params.perform_cnv_inference) {
     cnv_celltype_ch = call_cnvs(annotated_celltype_ch)
   } else {
-    cnv_celltype_ch = annotated_celltype_ch.map{
-        meta, unfiltered, filtered, processed ->
-          tuple(meta, unfiltered, filtered, processed, []) // heatmap placeholder
-       }
+    cnv_celltype_ch = annotated_celltype_ch
+      .map{meta, unfiltered, filtered, processed ->
+        [meta, unfiltered, filtered, processed, []] // heatmap placeholder
+      }
   }
 
   // first mix any skipped libraries from both rna and feature libs
   no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing, flex_sce_ch.skip_processing)
     // add a fake processed file
-    .map{meta, unfiltered, filtered -> tuple(
-      meta,
-      unfiltered,
-      filtered,
-      empty_file,
-      []
-    )}
+    .map{meta, unfiltered, filtered ->
+      [meta, unfiltered, filtered, empty_file, []]
+    }
 
   // combine back with libraries that skipped filtering and post processing
   sce_output_ch = post_process_ch.skip_processing
-    .map{ meta, unfiltered, filtered, processed -> tuple(
-      meta,
-      unfiltered,
-      filtered,
-      processed,
-      []
-    )}
+    .map{meta, unfiltered, filtered, processed ->
+      [meta, unfiltered, filtered, processed, []]
+    }
     .mix(cnv_celltype_ch, no_filtered_ch)
 
   def report_template_tuple = tuple(
