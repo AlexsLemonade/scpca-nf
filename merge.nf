@@ -202,10 +202,11 @@ workflow {
 
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
-    .map{[
-      it.library_id,
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds"),
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
+    .map{project_id, library_id, sample_id, seq_unit, technology ->
+    [
+      library_id,
+      file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_processed.rds"),
+      file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_metadata.json")
     ]}
   .subscribe{
     if(!(it[1].exists() && it[1].size() > 0)){
@@ -221,11 +222,12 @@ workflow {
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
     // create tuple of [project id, library_id, processed_sce_file]
-    .map{[
-      it.project_id,
-      it.library_id,
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds"),
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
+    .map{project_id, library_id, sample_id, seq_unit, technology ->
+      [
+      project_id,
+      library_id,
+      file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_processed.rds"),
+      file("${params.results_dir}/${project_id}/${sample_id}/${library_id}_metadata.json")
     ]}
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
     .filter{it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
@@ -235,23 +237,18 @@ workflow {
     // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
     .groupTuple(by: 0)
     // add in boolean for if project contains samples with adt
-    .map{project_id, library_id_list, sce_file_list -> tuple(
-      project_id,
-      project_id in adt_projects.getVal(), // determines if altExp should be included in the merged object
-      library_id_list,
-      sce_file_list
-    )}
+    .map{project_id, library_id_list, sce_file_list ->
+      [project_id, project_id in adt_projects.getVal(), library_id_list, sce_file_list]
+    }
     .branch{
       has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && params.reuse_merge
       make_merge: true
     }
 
   pre_merged_ch = grouped_libraries_ch.has_merge
-    .map{[ // merge file, project id, has adt
-      file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"),
-      it[0],
-      it[1]
-    ]}
+    .map{merge_file, project_id, has_adt ->
+      [file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"), merge_file, project_id]
+    }
 
   // merge SCE objects
   merge_sce(grouped_libraries_ch.make_merge)
