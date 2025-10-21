@@ -178,8 +178,8 @@ workflow build_celltype_ref {
 
   // singler refs to download and train
   singler_refs_ch = celltype_refs_ch.singler
-    .map{ ref_name, ref_source, _celltype_method, _organs ->
-      [ref_name, ref_source]
+    .map{ ref ->
+      [ref.celltype_ref_name, ref.celltype_ref_source]
     }
 
   // download and save reference files
@@ -199,8 +199,8 @@ workflow build_celltype_ref {
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
     // create a channel with ref_name, source, organs
-    .map{ ref_name, ref_source, _celltype_method, organs ->
-      [ref_name, ref_source, organs]
+    .map{ ref ->
+      [ref.ref_name, ref.ref_source, ref.organs]
     }
 
   generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
