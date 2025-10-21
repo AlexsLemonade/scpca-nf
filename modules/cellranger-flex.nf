@@ -206,7 +206,7 @@ workflow flex_quant{
 
     // combine single and multi outputs
     // for singleplexed data, the raw output is in the multi folder
-    cellranger_flex_ch = cellranger_flex_single.out
+    cellranger_flex_ch = cellranger_flex_single.out.main
       // get path to raw output directory for singleplexed
       .map{ meta, multi_out, per_sample_out, versions ->
         [
