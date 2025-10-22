@@ -207,15 +207,15 @@ workflow {
         file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
       ]
     }
-    .subscribe{ it ->
-      if(!(it[1].exists() && it[1].size() > 0)){
-        log.warn("Processed files do not exist for ${it[0]}. This library will not be included in the merged object.")
+    .subscribe{ library_id, processed, _meta_json ->
+      if(!(processed.exists() && processed.size() > 0)){
+        log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if(!(it[2].exists() && it[2].size() > 0)){
-        log.warn("Metadata file does not exist for ${it[0]}. This library will not be included in the merged object.")
+      else if(!(processed.exists() && processed.size() > 0)){
+        log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if (Utils.getMetaVal(it[2], "processed_cells") < 3){
-        log.warn("Library ${it[0]} has fewer than 3 cells. This library will not be included in the merged object.")
+      else if (Utils.getMetaVal(processed, "processed_cells") < 3){
+        log.warn("Library ${library_id} has fewer than 3 cells. This library will not be included in the merged object.")
       }
     }
 
@@ -229,8 +229,13 @@ workflow {
       ]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{it -> it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
-    .map{it -> it[0..2]} // remove metadata file
+    .filter{ _project_id, _library_id, processed, metajson ->
+      processed.exists() && processed.size() > 0 && Utils.getMetaVal(metajson, "processed_cells") >= 3
+    }
+    // remove metadata file
+    .map{ project_id, library_id, processed, _metajson ->
+      [project_id, library_id, processed]
+    }
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
     // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
