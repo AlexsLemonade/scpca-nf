@@ -159,16 +159,17 @@ workflow {
     .map{ it ->
       def reference_name = "${it.organism}.${it.assembly}.${it.version}";
       def ref_name_paths = ref_paths[reference_name];
-      // reference name & reference file paths for each organism
+      // return reference name & reference file paths for each organism
+      // return this is as a map (dictionary) so we can refer to items by name
       [
-        reference_name,
-        ref_name_paths,
-        it.include_salmon.toUpperCase() == "TRUE",
-        it.include_cellranger.toUpperCase() == "TRUE",
-        it.include_star.toUpperCase() == "TRUE",
-        it.include_infercnv.toUpperCase() == "TRUE",
-        file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"), // path to gtf
-        file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}") // path to fasta
+        ref_name: reference_name,
+        ref_paths: ref_name_paths,
+        include_salmon: it.include_salmon.toUpperCase() == "TRUE",
+        include_cellranger: it.include_cellranger.toUpperCase() == "TRUE",
+        include_star: it.include_star.toUpperCase() == "TRUE",
+        include_infercnv: it.include_infercnv.toUpperCase() == "TRUE",
+        gtf_path: file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"),
+        fasta_path: file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}")
       ]
     }
     // filter to only regenerate specified references
@@ -176,28 +177,31 @@ workflow {
 
   // filter to relevant references and drop the boolean flags
   salmon_ref_ch = ref_ch
-    .filter{ it -> it[2] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
-      [ref_name, meta, gtf, fasta]
+    .filter{ it -> it.include_salmon }
+    .map{ it ->
+      [it.ref_name, it.ref_paths, it.gtf_path, it.fasta_path]
     }
 
   cellranger_ref_ch = ref_ch
-    .filter{ it -> it[3] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
-      [ref_name, meta, gtf, fasta]
+    .filter{ it -> it.include_cellranger }
+    .map{ it ->
+      [it.ref_name, it.ref_paths, it.gtf_path, it.fasta_path]
     }
 
+
   star_ref_ch = ref_ch
-    .filter{ it -> it[4] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
-      [ref_name, meta, gtf, fasta]
+    .filter{ it -> it.include_star }
+    .map{ it ->
+      [it.ref_name, it.ref_paths, it.gtf_path, it.fasta_path]
     }
+
 
   // also remove fasta path and add path to cytoband
   infercnv_ref_ch = ref_ch
-    .filter{ it -> it[5] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, _fasta ->
-      [ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")]
+    .filter{ it -> it.include_infercnv }
+    .map{ it ->
+      def cytoband_path = file("${params.ref_rootdir}/${it.ref_paths["cytoband"]}");
+      [it.ref_name, it.ref_paths, it.gtf_path, cytoband_path]
     }
 
   // generate splici and spliced cDNA reference fasta
