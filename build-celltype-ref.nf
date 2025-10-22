@@ -189,7 +189,7 @@ workflow build_celltype_ref {
 
   // combine all output model files and join join file names into a comma separated string
   singler_models = train_singler_models_transcriptome.out.mix(train_singler_models_flex.out)
-    .reduce{a, b -> "$a,$b"}
+    .reduce{ a, b -> "$a,$b" }
   catalog_singler_models(singler_models)
 
   // cellassign refs
