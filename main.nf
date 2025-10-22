@@ -271,8 +271,8 @@ workflow {
   // **** Process 10x flex RNA-seq data ***
   flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file ?: empty_file))
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
-    .branch{ it ->
-      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
+    .branch{ _meta, _unfiltered, filtered ->
+      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
       skip_processing: true
     }
 
@@ -291,8 +291,8 @@ workflow {
   // make rds for rna only
   rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
-    .branch{ it ->
-      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
+    .branch{ _meta, _unfiltered, filtered ->
+      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
       skip_processing: true
     }
 
@@ -315,8 +315,8 @@ workflow {
 
   // make rds for RNA with feature quants
   all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, file(params.sample_metafile))
-    .branch{ it ->
-      continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUB")
+    .branch{ _meta, _unfiltered, filtered ->
+      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUB")
       skip_processing: true
     }
 
@@ -370,8 +370,8 @@ workflow {
 
   post_process_ch = post_process_sce.out
     // only continue processing any samples with > 0 cells left after processing
-    .branch{ it ->
-      continue_processing: it[3].size() > 0 || it[3].name.startsWith("STUB")
+    .branch{ _meta, _unfiltered, _filtered, processed ->
+      continue_processing: processed.size() > 0 || processed.name.startsWith("STUB")
       skip_processing: true
     }
 
