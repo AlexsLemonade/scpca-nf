@@ -185,6 +185,8 @@ Additionally, you may include columns `is_cell_line` and `is_xenograft` to indic
 Cell type annotation will not be performed for samples that are `TRUE`.
 - `is_xenograft`: Use `TRUE` if the sample is from a patient-derived xenograft and `FALSE` otherwise.
 
+**Note:** If running the workflow with [CNV inference](#cnv-inference), the sample metadata file must contain a `diagonosis` column.
+
 We have provided an example run metadata file for reference.
 
 | [View example `sample_metadata.tsv` file](examples/example_sample_metadata.tsv) |

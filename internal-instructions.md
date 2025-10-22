@@ -142,6 +142,7 @@ nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
 ```
 
 After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`.
+Be sure that only the results from `run01`, which is from `library01` and `sample01`, are included in the folder. 
 Make sure to adjust the settings to make the zip file publicly accessible.
 
 #### Processing example 10x Flex data

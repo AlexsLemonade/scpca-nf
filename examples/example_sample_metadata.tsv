@@ -1,4 +1,4 @@
-scpca_sample_id	is_cell_line	is_xenograft	optional_column_1	optional_column_2
+scpca_sample_id	is_cell_line	is_xenograft	diagnosis	optional_column_1
 sample01	FALSE	FALSE	diagnosis1	age1
 sample02	FALSE	FALSE	diagnosis1	age2
 sample03	TRUE	FALSE	diagnosis1	age3
