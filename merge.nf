@@ -140,7 +140,7 @@ workflow {
   libraries_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to only include specified project ids
-    .filter{it -> it.scpca_project_id in project_ids}
+    .filter{ it.scpca_project_id in project_ids }
     // filter to run all ids or just specified ones
     .filter{ it ->
       run_all
@@ -148,38 +148,40 @@ workflow {
       || (it.scpca_library_id in run_ids)
       || (it.scpca_sample_id in run_ids)
     }
-    .map{ it -> [
-      project_id: it.scpca_project_id,
-      library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id.split(";").sort().join(","),
-      seq_unit: it.seq_unit,
-      technology: it.technology
-    ]}
+    .map{ it ->
+      [
+        project_id: it.scpca_project_id,
+        library_id: it.scpca_library_id,
+        sample_id: it.scpca_sample_id.split(";").sort().join(","),
+        seq_unit: it.seq_unit,
+        technology: it.technology
+      ]
+    }
 
   // get all projects that contain at least one library with CITEseq
   adt_projects = libraries_ch
-    .filter{it -> it.technology.startsWith('citeseq')}
-    .collect{it -> it.project_id}
-    .map{it -> it.unique()}
+    .filter{ it.technology.startsWith('citeseq') }
+    .collect{ it.project_id }
+    .map{ it -> it.unique() }
 
   multiplex_projects = libraries_ch
-    .filter{it -> it.technology.startsWith('cellhash')}
-    .collect{it -> it.project_id}
-    .map{it -> it.unique()}
+    .filter{ it.technology.startsWith('cellhash') }
+    .collect{ it -> it.project_id }
+    .map{ it -> it.unique() }
 
   oversized_projects = libraries_ch
-    .filter{it -> it.technology.startsWith("10x")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
+    .filter{ it.technology.startsWith("10x") } // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
     // pull out project id for grouping
-    .map{it -> [it.project_id, it]}
+    .map{ it -> [it.project_id, it] }
     .groupTuple(by: 0) // group by project id
-    .filter{it -> it[1].size() > params.max_merge_libraries} // get projects with more samples than max merge
-    .collect{it -> it[0]} // get project id
+    .filter{ it[1].size() > params.max_merge_libraries } // get projects with more samples than max merge
+    .collect{ it[0] } // get project id
 
   filtered_libraries_ch = libraries_ch
     // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
-    .filter{it -> it.seq_unit in ['cell', 'nucleus']}
+    .filter{ it.seq_unit in ['cell', 'nucleus'] }
     // remove any multiplexed projects or oversized projects
-    // future todo: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
+    // future TODO: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
     .branch{ it ->
       multiplexed: it.project_id in multiplex_projects.getVal()
       oversized: it.project_id in oversized_projects.getVal()

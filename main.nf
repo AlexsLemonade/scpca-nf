@@ -243,24 +243,24 @@ workflow {
 
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.feature
-    .collect{it -> it.library_id}
+    .collect{ it.library_id }
   rna_only_libs = runs_ch.rna
-    .filter{it -> !(it.library_id in feature_libs.getVal())}
-    .collect{it -> it.library_id}
+    .filter{ !(it.library_id in feature_libs.getVal()) }
+    .collect{ it.library_id }
   multiplex_libs = runs_ch.rna
-    .filter{it -> it.sample_id.contains(",")}
-    .collect{it -> it.library_id}
+    .filter{ it.sample_id.contains(",") }
+    .collect{ it.library_id }
 
   // get list of samples with bulk RNA-seq
   bulk_samples = runs_ch.bulk
-    .collect{it -> it.sample_id}
+    .collect{ it.sample_id }
 
   // get genetic multiplex libs with all bulk samples present
   genetic_multiplex_libs = runs_ch.rna
     .filter{ !params.skip_genetic_demux } // empty channel if skipping genetic demux
-    .filter{it -> it.sample_id.contains(",")}
-    .filter{ it.sample_id.tokenize(",").every{ sample -> sample in bulk_samples.getVal() } } 
-    .collect{it -> it.library_id}
+    .filter{ it.sample_id.contains(",") }
+    .filter{ it.sample_id.tokenize(",").every{ sample -> sample in bulk_samples.getVal() } }
+    .collect{ it.library_id }
 
   // **** Process Bulk RNA-seq data ***
   bulk_quant_rna(runs_ch.bulk)
@@ -274,7 +274,7 @@ workflow {
     .branch{ it ->
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true
-      }
+    }
 
   // send library ids in flex_sce_ch.skip_processing to log
   flex_sce_ch.skip_processing
@@ -287,14 +287,14 @@ workflow {
 
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
-    .filter{it -> it[0]["library_id"] in rna_only_libs.getVal()}
+    .filter{ it[0]["library_id"] in rna_only_libs.getVal() }
   // make rds for rna only
   rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
     .branch{ it ->
       continue_processing: it[2].size() > 0 || it[2].name.startsWith("STUBL")
       skip_processing: true
-      }
+    }
 
   // send library ids in rna_sce_ch.skip_processing to log
   rna_sce_ch.skip_processing
@@ -307,11 +307,11 @@ workflow {
 
   // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
-    .map{it -> [it[0]["library_id"]] + it } // add library_id from metadata as first element
+    .map{ it -> [it[0]["library_id"]] + it } // add library_id from metadata as first element
     // join rna quant to feature quant by library_id; expect mismatches for rna-only, so don't fail
-    .join(map_quant_rna.out.map{it -> [it[0]["library_id"]] + it },
+    .join(map_quant_rna.out.map{ it -> [it[0]["library_id"]] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: false)
-    .map{it -> it.drop(1)} // remove library_id index
+    .map{ it -> it.drop(1) } // remove library_id index
 
   // make rds for RNA with feature quants
   all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, file(params.sample_metafile))
@@ -347,17 +347,17 @@ workflow {
 
   // **** Perform Genetic Demultiplexing ****
   genetic_multiplex_run_ch = runs_ch.rna
-    .filter{it -> it.library_id in genetic_multiplex_libs.getVal()}
+    .filter{ it.library_id in genetic_multiplex_libs.getVal() }
   genetic_demux_vireo(genetic_multiplex_run_ch, unfiltered_runs_ch, cell_barcodes, bulk_techs)
 
 
   // join demux result with SCE output (fail if there are any missing or extra libraries)
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
-    .map{it -> [it[0]["library_id"]] + it }
-    .join(sce_ch.genetic_multiplex.map{it -> [it[0]["library_id"]] + it },
+    .map{ it -> [it[0]["library_id"]] + it }
+    .join(sce_ch.genetic_multiplex.map{ it -> [it[0]["library_id"]] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: true)
-    .map{it -> it.drop(1)}
+    .map{ it -> it.drop(1) }
   // add genetic demux results to sce objects
   genetic_demux_sce(demux_results_ch)
 
@@ -373,7 +373,7 @@ workflow {
     .branch{ it ->
       continue_processing: it[3].size() > 0 || it[3].name.startsWith("STUB")
       skip_processing: true
-      }
+    }
 
   // send library ids in post_process_ch.skip_processing to log
   post_process_ch.skip_processing
@@ -437,7 +437,7 @@ workflow {
   // convert SCE object to anndata
   anndata_ch = qc_publish_sce.out.data
     // skip multiplexed libraries
-    .filter{ it -> !(it[0]["library_id"] in multiplex_libs.getVal())}
+    .filter{ !(it[0]["library_id"] in multiplex_libs.getVal()) }
   sce_to_anndata(anndata_ch)
 
 }
