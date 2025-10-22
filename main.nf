@@ -64,7 +64,7 @@ def check_parameters() {
       param_error = true
     } else {
       // make sure the directory contains the knn.bin file
-      knn_file = "${params.scimilarity_model_dir}/annotation/labelled_kNN.bin"
+      def knn_file = "${params.scimilarity_model_dir}/annotation/labelled_kNN.bin"
       if(!file(knn_file).exists()){
         log.error("The 'scimilarity_model_dir' is missing the annotation/labelled_kNN.bin file needed for annotation.")
         param_error = true
