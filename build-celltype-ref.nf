@@ -35,12 +35,11 @@ process train_singler_models_transcriptome {
   output:
     path celltype_model
   script:
-    ref_file_basename = file(ref_file).baseName
     gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2) // take the last two elements which have assembly and version
       .join('-') // join to get GRCh38-104
     date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
-    celltype_model = "${ref_file_basename}_${gene_set_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${gene_set_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -51,12 +50,11 @@ process train_singler_models_transcriptome {
       --threads ${task.cpus}
     """
   stub:
-    ref_file_basename = file("${ref_file}").baseName
     gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2)
       .join('-')
     date_str = java.time.LocalDate.now().toString()
-    celltype_model = "${ref_file_basename}_${gene_set_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${gene_set_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -74,9 +72,8 @@ process train_singler_models_flex {
   output:
     path celltype_model
   script:
-    ref_file_basename = file(ref_file).baseName
     date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
-    celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${probeset_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -87,9 +84,8 @@ process train_singler_models_flex {
       --threads ${task.cpus}
     """
   stub:
-    ref_file_basename = file("${ref_file}").baseName
     date_str = java.time.LocalDate.now().toString()
-    celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${probeset_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
     """
