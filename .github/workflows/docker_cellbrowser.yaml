@@ -26,9 +26,11 @@ on:
       - "v*.*.*"
 
 env:
-  REGISTRY: ghcr.io
-  REGISTRY_USER: alexslemonade
   IMAGE_NAME: scpca-nf/cellbrowser
+  GH_REGISTRY: ghcr.io
+  GH_REGISTRY_USER: alexslemonade
+  AWS_REGISTRY: 997241705947.dkr.ecr.us-east-1.amazonaws.com
+  AWS_PREFIX: ghcr_io
 
 jobs:
   test-build:
@@ -51,17 +53,30 @@ jobs:
   build-push:
     name: Build and Push Docker Image
     if: github.event_name == 'push'
+    environment: prod
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::997241705947:role/gha-ecr-access-role
+          role-session-name: githubActionSession
+          aws-region: us-east-1
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.GH_REGISTRY }}/${{ env.GH_REGISTRY_USER }}/${{ env.IMAGE_NAME }}
+            ${{ env.AWS_REGISTRY }}/${{ env.AWS_PREFIX }}/${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{raw}}
             type=edge,branch=main
@@ -73,12 +88,12 @@ jobs:
       - name: Docker login
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ env.GH_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: "{{defaultContext}}:docker/cellbrowser"
           push: true
