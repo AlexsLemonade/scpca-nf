@@ -52,13 +52,15 @@ workflow {
   libraries_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to run all ids or just specified ones
-    .map{it -> [
+    .map{ it ->
+      [
         project_id: it.scpca_project_id,
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
         run_id: it.scpca_run_id
-    ]}
-    .filter{
+      ]
+    }
+    .filter{ it ->
       run_all
       || (it.run_id in run_ids)
       || (it.library_id in run_ids)
@@ -66,10 +68,12 @@ workflow {
       || (it.project_id in project_ids)
     }
     .unique{ it.library_id }
-    .map{it -> [
-      it, // meta
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed_rna.h5ad")
-    ]}
+    .map{ it ->
+      [
+        it, // meta
+        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed_rna.h5ad")
+      ]
+    }
     // only include libraries where the h5ad file exists
     .filter{ it[1].exists() }
 

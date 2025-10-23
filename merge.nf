@@ -36,7 +36,7 @@ process merge_sce {
   input:
     tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
   output:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
+    tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -65,7 +65,7 @@ process generate_merge_report {
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_max'
   input:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
+    tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
     path(report_template)
   output:
     path(merge_report)
@@ -94,7 +94,7 @@ process export_anndata {
   tag "${merge_group_id}"
   publishDir "${params.results_dir}/${merge_group_id}/merged", mode: 'copy'
   input:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
+    tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   output:
     tuple val(merge_group_id), path("${merge_group_id}_merged_*.h5ad")
   script:
@@ -140,49 +140,49 @@ workflow {
   libraries_ch = Channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to only include specified project ids
-    .filter{it.scpca_project_id in project_ids}
+    .filter{ it.scpca_project_id in project_ids }
     // filter to run all ids or just specified ones
-    .filter{
+    .filter{ it ->
       run_all
       || (it.scpca_run_id in run_ids)
       || (it.scpca_library_id in run_ids)
       || (it.scpca_sample_id in run_ids)
     }
-    .map{[
-      project_id: it.scpca_project_id,
-      library_id: it.scpca_library_id,
-      sample_id: it.scpca_sample_id.split(";").sort().join(","),
-      seq_unit: it.seq_unit,
-      technology: it.technology
-    ]}
+    .map{ it ->
+      [
+        project_id: it.scpca_project_id,
+        library_id: it.scpca_library_id,
+        sample_id: it.scpca_sample_id.split(";").sort().join(","),
+        seq_unit: it.seq_unit,
+        technology: it.technology
+      ]
+    }
 
   // get all projects that contain at least one library with CITEseq
   adt_projects = libraries_ch
-    .filter{it.technology.startsWith('citeseq')}
-    .collect{it.project_id}
-    .map{it.unique()}
+    .filter{ it.technology.startsWith('citeseq') }
+    .collect{ it.project_id }
+    .map{ it -> it.unique() }
 
   multiplex_projects = libraries_ch
-    .filter{it.technology.startsWith('cellhash')}
-    .collect{it.project_id}
-    .map{it.unique()}
+    .filter{ it.technology.startsWith('cellhash') }
+    .collect{ it.project_id }
+    .map{ it -> it.unique() }
 
   oversized_projects = libraries_ch
-    .filter{it.technology.startsWith("10x")} // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
-    .map{[
-      it.project_id, // pull out project id for grouping
-      it
-    ]}
+    .filter{ it.technology.startsWith("10x") } // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
+    // pull out project id for grouping
+    .map{ it -> [it.project_id, it] }
     .groupTuple(by: 0) // group by project id
-    .filter{it[1].size() > params.max_merge_libraries} // get projects with more samples than max merge
-    .collect{it[0]} // get project id
+    .filter{ it[1].size() > params.max_merge_libraries } // get projects with more samples than max merge
+    .collect{ it[0] } // get project id
 
   filtered_libraries_ch = libraries_ch
     // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
-    .filter{it.seq_unit in ['cell', 'nucleus']}
+    .filter{ it.seq_unit in ['cell', 'nucleus'] }
     // remove any multiplexed projects or oversized projects
-    // future todo: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
-    .branch{
+    // future TODO: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
+    .branch{ it ->
       multiplexed: it.project_id in multiplex_projects.getVal()
       oversized: it.project_id in oversized_projects.getVal()
       single_sample: true
@@ -190,68 +190,68 @@ workflow {
 
   filtered_libraries_ch.multiplexed
     .unique{ it.project_id }
-    .subscribe{
+    .subscribe{ it ->
       log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
     }
 
   filtered_libraries_ch.oversized
     .unique{ it.project_id }
-    .subscribe{
+    .subscribe{ it ->
       log.warn("Not merging ${it.project_id} because it contains too many libraries.")
     }
 
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
-    .map{[
-      it.library_id,
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds"),
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
-    ]}
-  .subscribe{
-    if(!(it[1].exists() && it[1].size() > 0)){
-      log.warn("Processed files do not exist for ${it[0]}. This library will not be included in the merged object.")
+    .map{ it ->
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
+      [it.library_id, processed, meta_json ]
     }
-    else if(!(it[2].exists() && it[2].size() > 0)){
-      log.warn("Metadata file does not exist for ${it[0]}. This library will not be included in the merged object.")
+    .subscribe{ library_id, processed, meta_json ->
+      if(!(processed.exists() && processed.size() > 0) || !(processed.exists() && library_id.starts_with("STUBL"))){
+        log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
+      }
+      else if(!(meta_json.exists() && meta_json.size() > 0)){
+        log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
+      }
+      else if (Utils.getMetaVal(processed, "processed_cells") < 3){
+        log.warn("Library ${library_id} has fewer than 3 cells. This library will not be included in the merged object.")
+      }
     }
-    else if (Utils.getMetaVal(it[2], "processed_cells") < 3){
-      log.warn("Library ${it[0]} has fewer than 3 cells. This library will not be included in the merged object.")
-    }
-  }
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
-    // create tuple of [project id, library_id, processed_sce_file]
-    .map{[
-      it.project_id,
-      it.library_id,
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds"),
-      file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
-    ]}
+    .map{ it ->
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
+      [it.project_id, it.library_id, processed, meta_json]
+    }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
-    .map{it[0..2]} // remove metadata file from tuple
+    .filter{ _project_id, library_id, processed, meta_json ->
+      (processed.exists() && processed.size() > 0 && Utils.getMetaVal(meta_json, "processed_cells") >= 3)
+      || library_id.startsWith("STUBL")
+    }
+    // remove metadata file
+    .map{ project_id, library_id, processed, _meta_json ->
+      [project_id, library_id, processed]
+    }
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
     // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
     .groupTuple(by: 0)
     // add in boolean for if project contains samples with adt
-    .map{project_id, library_id_list, sce_file_list -> tuple(
-      project_id,
-      project_id in adt_projects.getVal(), // determines if altExp should be included in the merged object
-      library_id_list,
-      sce_file_list
-    )}
-    .branch{
+    .map{ project_id, library_id_list, sce_file_list ->
+      [project_id, project_id in adt_projects.getVal(), library_id_list, sce_file_list]
+    }
+    .branch{ it ->
       has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && params.reuse_merge
       make_merge: true
     }
 
   pre_merged_ch = grouped_libraries_ch.has_merge
-    .map{[ // merge file, project id, has adt
-      file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds"),
-      it[0],
-      it[1]
-    ]}
+    .map{ project_id, has_adt, _library_id_list, _sce_file_list ->
+      def merged_file = file("${params.results_dir}/${project_id}/merged/${project_id}_merged.rds")
+      [project_id, merged_file, has_adt]
+    }
 
   // merge SCE objects
   merge_sce(grouped_libraries_ch.make_merge)
