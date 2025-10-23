@@ -207,11 +207,11 @@ workflow {
       def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json");
       [it.library_id, processed, meta_json ]
     }
-    .subscribe{ library_id, processed, _meta_json ->
-      if(!(processed.exists() && processed.size() > 0)){
+    .subscribe{ library_id, processed, meta_json ->
+      if(!(processed.exists() && processed.size() > 0) || !(processed.exists() && library_id.starts_with("STUBL"))){
         log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if(!(processed.exists() && processed.size() > 0)){
+      else if(!(meta_json.exists() && meta_json.size() > 0)){
         log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
       }
       else if (Utils.getMetaVal(processed, "processed_cells") < 3){
@@ -226,8 +226,9 @@ workflow {
       [it.project_id, it.library_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{ _project_id, _library_id, processed, meta_json ->
-      processed.exists() && processed.size() > 0 && Utils.getMetaVal(meta_json, "processed_cells") >= 3
+    .filter{ _project_id, library_id, processed, meta_json ->
+      (processed.exists() && processed.size() > 0 && Utils.getMetaVal(meta_json, "processed_cells") >= 3)
+      || library_id.startsWith("STUBL")
     }
     // remove metadata file
     .map{ project_id, library_id, processed, _meta_json ->
