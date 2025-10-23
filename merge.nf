@@ -36,7 +36,7 @@ process merge_sce {
   input:
     tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
   output:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
+    tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   script:
     input_library_ids = library_ids.join(',')
     input_sces = scpca_nf_file.join(',')
@@ -65,7 +65,7 @@ process generate_merge_report {
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_max'
   input:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
+    tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
     path(report_template)
   output:
     path(merge_report)
@@ -94,7 +94,7 @@ process export_anndata {
   tag "${merge_group_id}"
   publishDir "${params.results_dir}/${merge_group_id}/merged", mode: 'copy'
   input:
-    tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
+    tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   output:
     tuple val(merge_group_id), path("${merge_group_id}_merged_*.h5ad")
   script:
@@ -249,11 +249,8 @@ workflow {
 
   pre_merged_ch = grouped_libraries_ch.has_merge
     .map{ project_id, has_adt, _library_id_list, _sce_file_list ->
-      [
-        file("${params.results_dir}/${project_id}/merged/${project_id}_merged.rds"),
-        project_id,
-        has_adt
-      ]
+      def merged_file = file("${params.results_dir}/${project_id}/merged/${project_id}_merged.rds"),
+      [project_id, merged_file, has_adt]
     }
 
   // merge SCE objects
