@@ -339,7 +339,7 @@ workflow generate_sce {
     filter_sce(unfiltered_sce_ch)
 
   emit: filter_sce.out
-  // a tuple of meta and the filtered and unfiltered rds files
+  // a tuple of meta and the unfiltered and filtered rds files
 }
 
 workflow generate_sce_with_feature {
@@ -369,7 +369,7 @@ workflow generate_sce_with_feature {
     filter_sce(unfiltered_feature_sce_ch)
 
   emit: filter_sce.out
-  // a tuple of meta and the filtered and unfiltered rds files
+  // a tuple of meta and the unfiltered and filtered rds files
 }
 
 workflow generate_sce_cellranger {
@@ -396,5 +396,5 @@ workflow generate_sce_cellranger {
     filter_sce(unfiltered_sce_ch)
 
   emit: filter_sce.out
-  // a tuple of meta and the filtered and unfiltered rds files
+  // a tuple of meta and the unfiltered and filtered rds files
 }

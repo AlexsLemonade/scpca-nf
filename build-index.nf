@@ -17,8 +17,8 @@ process generate_reference {
     tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
-    splici_fasta = "fasta/" + file("${meta.splici_index}").name + ".fa.gz"
-    spliced_cdna_fasta =  "fasta/" + file("${meta.salmon_bulk_index}").name + ".fa.gz"
+    splici_fasta = "fasta/" + file(meta.splici_index).name + ".fa.gz"
+    spliced_cdna_fasta =  "fasta/" + file(meta.salmon_bulk_index).name + ".fa.gz"
     """
     make_reference_fasta.R \
       --gtf ${gtf} \
@@ -44,8 +44,8 @@ process salmon_index {
     path splici_index_dir
     path spliced_cdna_index_dir
   script:
-    splici_index_dir = file("${meta.splici_index}").name
-    spliced_cdna_index_dir = file("${meta.salmon_bulk_index}").name
+    splici_index_dir = file(meta.splici_index).name
+    spliced_cdna_index_dir = file(meta.salmon_bulk_index).name
     """
     salmon index \
       -t ${splici_fasta} \
@@ -77,7 +77,7 @@ process cellranger_index {
   output:
     path cellranger_index
   script:
-    cellranger_index = file("${meta.cellranger_index}").name
+    cellranger_index = file(meta.cellranger_index).name
     assembly = ref_name.split("\\.")[1] // extract assembly from ref_name
     """
     gunzip -c ${fasta} > genome.fasta
@@ -104,7 +104,7 @@ process star_index {
   output:
     path output_dir
   script:
-    output_dir = file("${meta.star_index}").name
+    output_dir = file(meta.star_index).name
     """
     mkdir ${output_dir}
 
@@ -135,7 +135,7 @@ process infercnv_gene_order {
   output:
     path gene_order_file
   script:
-    gene_order_file = file("${meta.infercnv_gene_order}").name
+    gene_order_file = file(meta.infercnv_gene_order).name
     """
     prepare_infercnv_gene_order_file.R \
       --gtf_file ${gtf} \
@@ -156,19 +156,20 @@ workflow {
   // read in metadata with all organisms to create references for
   ref_ch = Channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
-    .map{
-      def reference_name = "${it.organism}.${it.assembly}.${it.version}";
-      def ref_name_paths = ref_paths[reference_name];
-      // reference name & reference file paths for each organism
+    .map{ it ->
+      def reference_name = "${it.organism}.${it.assembly}.${it.version}"
+      def ref_name_paths = ref_paths[reference_name]
+      // return reference name & reference file paths for each organism
+      // return this is as a map (dictionary) so we can refer to items by name
       [
-        reference_name,
-        ref_name_paths,
-        it.include_salmon.toUpperCase() == "TRUE",
-        it.include_cellranger.toUpperCase() == "TRUE",
-        it.include_star.toUpperCase() == "TRUE",
-        it.include_infercnv.toUpperCase() == "TRUE",
-        file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"), // path to gtf
-        file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}") // path to fasta
+        ref_name: reference_name,
+        ref_paths: ref_name_paths,
+        include_salmon: it.include_salmon.toUpperCase() == "TRUE",
+        include_cellranger: it.include_cellranger.toUpperCase() == "TRUE",
+        include_star: it.include_star.toUpperCase() == "TRUE",
+        include_infercnv: it.include_infercnv.toUpperCase() == "TRUE",
+        gtf_path: file("${params.ref_rootdir}/${ref_name_paths["ref_gtf"]}"),
+        fasta_path: file("${params.ref_rootdir}/${ref_name_paths["ref_fasta"]}")
       ]
     }
     // filter to only regenerate specified references
@@ -176,28 +177,31 @@ workflow {
 
   // filter to relevant references and drop the boolean flags
   salmon_ref_ch = ref_ch
-    .filter{ it[2] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
-      [ref_name, meta, gtf, fasta]
+    .filter{ it.include_salmon }
+    .map{ it ->
+      [it.ref_name, it.ref_paths, it.gtf_path, it.fasta_path]
     }
 
   cellranger_ref_ch = ref_ch
-    .filter{ it[3] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta -> 
-      [ref_name, meta, gtf, fasta]
+    .filter{ it.include_cellranger }
+    .map{ it ->
+      [it.ref_name, it.ref_paths, it.gtf_path, it.fasta_path]
     }
 
+
   star_ref_ch = ref_ch
-    .filter{ it[4] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, fasta ->
-      [ref_name, meta, gtf, fasta]
+    .filter{ it.include_star }
+    .map{ it ->
+      [it.ref_name, it.ref_paths, it.gtf_path, it.fasta_path]
     }
+
 
   // also remove fasta path and add path to cytoband
   infercnv_ref_ch = ref_ch
-    .filter{ it[5] }
-    .map{ ref_name, meta, _include_salmon, _include_cellranger, _include_star, _include_infercnv, gtf, _fasta ->
-      [ref_name, meta, gtf, file("${params.ref_rootdir}/${meta["cytoband"]}")]
+    .filter{ it.include_infercnv }
+    .map{ it ->
+      def cytoband_path = file("${params.ref_rootdir}/${it.ref_paths["cytoband"]}")
+      [it.ref_name, it.ref_paths, it.gtf_path, cytoband_path]
     }
 
   // generate splici and spliced cDNA reference fasta
