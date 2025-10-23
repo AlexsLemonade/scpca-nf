@@ -166,7 +166,7 @@ workflow {
 
   multiplex_projects = libraries_ch
     .filter{ it.technology.startsWith('cellhash') }
-    .collect{ it -> it.project_id }
+    .collect{ it.project_id }
     .map{ it -> it.unique() }
 
   oversized_projects = libraries_ch
@@ -203,11 +203,9 @@ workflow {
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
     .map{ it ->
-      [
-        it.library_id,
-        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds"),
-        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
-      ]
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
+      [it.library_id, processed, meta_json ]
     }
     .subscribe{ library_id, processed, _meta_json ->
       if(!(processed.exists() && processed.size() > 0)){
@@ -223,19 +221,16 @@ workflow {
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
     .map{ it ->
-      [
-        it.project_id,
-        it.library_id,
-        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds"),
-        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
-      ]
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
+      [it.project_id, it.library_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{ _project_id, _library_id, processed, metajson ->
-      processed.exists() && processed.size() > 0 && Utils.getMetaVal(metajson, "processed_cells") >= 3
+    .filter{ _project_id, _library_id, processed, meta_json ->
+      processed.exists() && processed.size() > 0 && Utils.getMetaVal(meta_json, "processed_cells") >= 3
     }
     // remove metadata file
-    .map{ project_id, library_id, processed, _metajson ->
+    .map{ project_id, library_id, processed, _meta_json ->
       [project_id, library_id, processed]
     }
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
