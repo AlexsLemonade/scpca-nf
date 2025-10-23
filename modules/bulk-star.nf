@@ -34,17 +34,19 @@ workflow star_bulk {
     bulk_channel // a channel with a map of metadata for each rna library to process
 
   main:
-    // create tuple of (metadata map, [Read 1 files], [Read 2 files])
+    // create list of (metadata map, [Read 1 files], [Read 2 files], star index)
     // regex to ensure correct file names if R1 or R2 are in sample identifier
     bulk_reads_ch = bulk_channel
-        .map{meta -> tuple(
-          meta,
-          files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
-          files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
-            .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/},
-          file(meta.star_index, type: 'dir', checkIfExists: true)
-        )}
+        .map{ meta ->
+          [
+            meta,
+            files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
+              .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
+            files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
+              .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/},
+            file(meta.star_index, type: 'dir', checkIfExists: true)
+          ]
+        }
     // map and index
     bulkmap_star(bulk_reads_ch) \
       | index_bam

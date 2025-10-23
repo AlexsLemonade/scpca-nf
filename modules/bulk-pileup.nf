@@ -38,30 +38,36 @@ workflow pileup_multibulk{
   main:
     //pull sample to front of bulk_mapped_ch
     sample_bulk_ch = bulk_mapped_ch
-      .map{[it[0].sample_id] + it}
+      .map{it -> [it[0].sample_id] + it}
 
     pileup_ch = multiplex_ch
-      .map{[it.sample_id.tokenize(","), it.library_id, it]} // split out sample ids into a tuple, add library_id separately
+       // split out sample ids into a tuple, add library_id separately
+      .map{ meta ->
+        [meta.sample_id.tokenize(","), meta.library_id, meta]
+      }
       .transpose() // one element per sample (library & meta objects repeated)
       .combine(sample_bulk_ch, by: 0) // combine by individual sample ids (use combine because of repeated values)
       .groupTuple(by: 1) // group by library id
-      .map{[
-        [ // create a meta object for each group of samples
-          sample_ids: it[0],
-          multiplex_run_id: it[2][0].run_id, // multiplex meta objects are repeated, but identical: use first element
-          multiplex_library_id: it[2][0].library_id,
-          multiplex_sample_id: it[2][0].sample_id,
-          n_samples: it[2][0].sample_id.split(",").length,
-          n_bulk_mapped: it[3].length,
-          bulk_run_ids: it[3].collect{it.run_id},
-          bulk_sample_ids: it[3].collect{it.sample_id},
-          bulk_library_ids: it[3].collect{it.library_id}
-        ],
-        it[4], // bamfiles
-        it[5], // bamfile indexes
-        file(it[2][0].ref_fasta, checkIfExists: true),
-        file(it[2][0].ref_fasta_index, checkIfExists: true)
-      ]}
+      // create [meta per sample, bamfiles, bamfile index, ref_fasta, ref_index]
+      .map{ sample_ids, library_id, multiplex_meta, bulk_meta, bamfile, bamfile_index ->
+        [
+          [ // create a meta object for each group of samples
+            sample_ids: sample_ids,
+            multiplex_run_id: multiplex_meta[0].run_id, // multiplex meta objects are repeated, but identical: use first element
+            multiplex_library_id: multiplex_meta[0].library_id,
+            multiplex_sample_id: multiplex_meta[0].sample_id,
+            n_samples: multiplex_meta[0].sample_id.split(",").length,
+            n_bulk_mapped: bulk_meta.length,
+            bulk_run_ids: bulk_meta.collect{ it.run_id },
+            bulk_sample_ids: bulk_meta.collect{ it.sample_id },
+            bulk_library_ids: bulk_meta.collect{ it.library_id }
+          ],
+          bamfile,
+          bamfile_index,
+          file(multiplex_meta[0].ref_fasta, checkIfExists: true),
+          file(multiplex_meta[0].ref_fasta_index, checkIfExists: true)
+        ]
+      }
 
     mpileup(pileup_ch)
 
