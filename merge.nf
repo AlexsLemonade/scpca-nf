@@ -38,8 +38,8 @@ process merge_sce {
   output:
     tuple path(merged_sce_file), val(merge_group_id), val(has_adt)
   script:
-    def input_library_ids = library_ids.join(',')
-    def input_sces = scpca_nf_file.join(',')
+    input_library_ids = library_ids.join(',')
+    input_sces = scpca_nf_file.join(',')
     merged_sce_file = "${merge_group_id}_merged.rds"
     """
     merge_sces.R \

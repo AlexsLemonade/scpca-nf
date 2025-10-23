@@ -35,10 +35,10 @@ process train_singler_models_transcriptome {
   output:
     path celltype_model
   script:
-    def gene_set_version = ref_assembly.tokenize('.')
+    gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2) // take the last two elements which have assembly and version
       .join('-') // join to get GRCh38-104
-    def date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
+    date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
     celltype_model = "${ref_file.baseName}_${gene_set_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
@@ -50,10 +50,10 @@ process train_singler_models_transcriptome {
       --threads ${task.cpus}
     """
   stub:
-    def gene_set_version = ref_assembly.tokenize('.')
+    gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2)
       .join('-')
-    def date_str = java.time.LocalDate.now().toString()
+    date_str = java.time.LocalDate.now().toString()
     celltype_model = "${ref_file.baseName}_${gene_set_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
@@ -72,7 +72,7 @@ process train_singler_models_flex {
   output:
     path celltype_model
   script:
-    def date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
+    date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
     celltype_model = "${ref_file.baseName}_${probeset_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
@@ -84,7 +84,7 @@ process train_singler_models_flex {
       --threads ${task.cpus}
     """
   stub:
-    def date_str = java.time.LocalDate.now().toString()
+    date_str = java.time.LocalDate.now().toString()
     celltype_model = "${ref_file.baseName}_${probeset_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
@@ -121,7 +121,7 @@ process generate_cellassign_refs {
   script:
     // get ref version from filename
     // this requires the date stored in the filename to be in ISO8601 format
-    def ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     generate_cellassign_refs.R \
@@ -131,7 +131,7 @@ process generate_cellassign_refs {
       --ref_mtx_file ${ref_file}
     """
   stub:
-    def ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
+    ref_version = (marker_gene_file =~ /.+(20[0-9]{2}\-[0-9]{2}\-[0-9]{2}).tsv/)[0][1]
     ref_file = "${ref_name}_${ref_source}_${ref_version}.tsv"
     """
     touch ${ref_file}
