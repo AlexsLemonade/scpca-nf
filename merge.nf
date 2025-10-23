@@ -249,7 +249,7 @@ workflow {
 
   pre_merged_ch = grouped_libraries_ch.has_merge
     .map{ project_id, has_adt, _library_id_list, _sce_file_list ->
-      def merged_file = file("${params.results_dir}/${project_id}/merged/${project_id}_merged.rds"),
+      def merged_file = file("${params.results_dir}/${project_id}/merged/${project_id}_merged.rds")
       [project_id, merged_file, has_adt]
     }
 
