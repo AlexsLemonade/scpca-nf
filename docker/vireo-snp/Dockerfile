@@ -17,3 +17,5 @@ RUN pip install vireoSNP==0.5.7 \
     && pip cache purge
 
 WORKDIR /home
+
+CMD ["bash"]

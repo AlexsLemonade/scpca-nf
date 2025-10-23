@@ -22,4 +22,5 @@ COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
 COPY --from=build /shell-hook.sh /shell-hook.sh
 
 ENTRYPOINT ["/bin/bash", "/shell-hook.sh"]
+
 CMD ["bash"]
