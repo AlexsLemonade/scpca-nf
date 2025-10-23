@@ -195,7 +195,7 @@ workflow {
   // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
   unfiltered_runs_ch = all_runs_ch.valid
     .map{ it ->
-      def sample_refs = ref_paths[it.sample_reference];
+      def sample_refs = ref_paths[it.sample_reference]
       [
         run_id: it.scpca_run_id,
         library_id: it.scpca_library_id,

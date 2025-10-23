@@ -157,8 +157,8 @@ workflow {
   ref_ch = Channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .map{ it ->
-      def reference_name = "${it.organism}.${it.assembly}.${it.version}";
-      def ref_name_paths = ref_paths[reference_name];
+      def reference_name = "${it.organism}.${it.assembly}.${it.version}"
+      def ref_name_paths = ref_paths[reference_name]
       // return reference name & reference file paths for each organism
       // return this is as a map (dictionary) so we can refer to items by name
       [
@@ -200,7 +200,7 @@ workflow {
   infercnv_ref_ch = ref_ch
     .filter{ it.include_infercnv }
     .map{ it ->
-      def cytoband_path = file("${params.ref_rootdir}/${it.ref_paths["cytoband"]}");
+      def cytoband_path = file("${params.ref_rootdir}/${it.ref_paths["cytoband"]}")
       [it.ref_name, it.ref_paths, it.gtf_path, cytoband_path]
     }
 

@@ -203,8 +203,8 @@ workflow {
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
     .map{ it ->
-      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds");
-      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json");
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
       [it.library_id, processed, meta_json ]
     }
     .subscribe{ library_id, processed, meta_json ->
@@ -221,8 +221,8 @@ workflow {
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
     .map{ it ->
-      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds");
-      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json");
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
       [it.project_id, it.library_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
