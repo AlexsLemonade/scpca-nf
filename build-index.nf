@@ -78,7 +78,7 @@ process cellranger_index {
     path cellranger_index
   script:
     cellranger_index = file(meta.cellranger_index).name
-    assembly = ref_name.split("\\.")[1] // extract assembly from ref_name
+    def assembly = ref_name.split("\\.")[1] // extract assembly from ref_name
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
