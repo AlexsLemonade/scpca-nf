@@ -228,7 +228,10 @@ workflow {
       file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
     ]}
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3}
+    .filter{
+      (it[2].exists() && it[2].size() > 0 && Utils.getMetaVal(it[3], "processed_cells") >= 3)
+      || it[1].startsWith("STUBL")
+    }
     .map{it[0..2]} // remove metadata file from tuple
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
