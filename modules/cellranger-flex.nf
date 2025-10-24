@@ -13,7 +13,7 @@ process cellranger_flex_single {
     tuple val(meta),
       path("${out_id}/outs/multi", type: 'dir'),
       path("${out_id}/outs/per_sample_outs/*", type: 'dir'),
-      path("${out_id}/_versions"), 
+      path("${out_id}/_versions"),
       emit: main
     path "${out_id}/outs/config.csv", emit: config
     path "${out_id}/scpca-meta.json", emit: meta_file
@@ -131,21 +131,22 @@ workflow flex_quant{
 
     flex_channel = flex_channel
       // add sample names and output directory to metadata
-      .map{
-        def meta = it.clone();
-        meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}";
-        meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi";
-        meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}";
+      .map{ it ->
+        def meta = it.clone()
+        meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}"
+        meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi"
+        meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}"
         meta // return modified meta object
       }
-      .branch{
+      .branch{ it ->
+        def meta_ref_assembly = Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
         // branch based on if cellranger results exist or repeat mapping is used
         make_cellranger_flex: (
           // input files exist
           it.files_directory && file(it.files_directory, type: 'dir').exists() && (
             params.repeat_mapping
             || !file(it.cellranger_multi_results_dir).exists()
-            || Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || meta_ref_assembly != it.ref_assembly
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()
@@ -154,22 +155,24 @@ workflow flex_quant{
 
     // send run ids in flex_channel.missing_inputs to log
     flex_channel.missing_inputs
-      .subscribe{
+      .subscribe{ it ->
         log.error("The expected input files or cellranger multi results files for ${it.run_id} are missing.")
       }
 
-    // tuple of inputs for running cell ranger regardless of multi or single
+    // list of inputs for running cell ranger regardless of multi or single
     // this channel only has libraries that need to be processed through cellranger
     flex_reads = flex_channel.make_cellranger_flex
-      .map{ meta -> tuple(
-        meta,
-        file(meta.files_directory, type: 'dir', checkIfExists: true),
-        file(meta.cellranger_index, type: 'dir', checkIfExists: true),
-        file(meta.flex_probeset, type: 'file', checkIfExists: true)
-      )}
-      .branch{ it ->
-        single: it[0]["technology"].contains("single")
-        multi: it[0]["technology"].contains("multi")
+      .map{ meta ->
+        [
+          meta,
+          file(meta.files_directory, type: 'dir', checkIfExists: true),
+          file(meta.cellranger_index, type: 'dir', checkIfExists: true),
+          file(meta.flex_probeset, type: 'file', checkIfExists: true)
+        ]
+      }
+      .branch{ meta, _files_directory, _cellranger_index, _flex_probeset ->
+        single: meta["technology"].contains("single")
+        multi: meta["technology"].contains("multi")
       }
 
     // run cellranger flex single
@@ -183,8 +186,8 @@ workflow flex_quant{
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.main
       .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions]
       .map{ meta, _multi_out, per_sample_out, versions ->
-        def updated_meta = meta.clone(); // clone meta before replacing sample ID
-        def sample_id = per_sample_out.name; // name of individual output directory is sample id
+        def updated_meta = meta.clone() // clone meta before replacing sample ID
+        def sample_id = per_sample_out.name // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs
         def expected_sample_ids = meta.sample_id.split(",")
         if(!(sample_id in expected_sample_ids)) {
@@ -192,16 +195,17 @@ workflow flex_quant{
         }
 
         // update sample ID
-        updated_meta.sample_id = sample_id;
+        updated_meta.sample_id = sample_id
         // update existing unique ID to be sure it has the one sample id and not the comma separated list
         updated_meta.unique_id = "${meta.library_id}-${sample_id}"
-        // [meta, raw output dir, versions file, metrics file]
-        return [
+
+        // return [meta, raw output dir, versions file, metrics file]
+        [
           updated_meta,
           file("${per_sample_out}/count/sample_raw_feature_bc_matrix", type: 'dir'),
           versions,
           file("${per_sample_out}/metrics_summary.csv")
-          ]
+        ]
       }
 
     // combine single and multi outputs
@@ -224,14 +228,16 @@ workflow flex_quant{
     // use existing meta to define the output directory for each sample in the library
     has_flex_ch = flex_channel.has_cellranger_flex
       // [tuple(sample_ids), meta]
-      .map{ meta -> tuple(
-        meta.sample_id.tokenize(","),
-        Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
-      )}
+      .map{ meta ->
+        [
+          meta.sample_id.tokenize(","),
+          Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
+        ]
+      }
       .transpose() // [sample id, meta]
       // replace existing sample id and define path to existing directory with raw output
       .map{ sample_id, meta ->
-        def updated_meta = meta.clone();
+        def updated_meta = meta.clone()
         // path depends on whether singleplex or multiplex
         def demux_h5_file
         def metrics_file
@@ -244,9 +250,11 @@ workflow flex_quant{
             // update existing unique ID to be sure it has the one sample id and not all
             updated_meta.unique_id = "${meta.library_id}-${sample_id}"
           }
-        def versions_file = file("${meta.cellranger_multi_results_dir}/_versions");
-        updated_meta.sample_id = sample_id;
-        return [updated_meta, demux_h5_file, versions_file, metrics_file]
+        def versions_file = file("${meta.cellranger_multi_results_dir}/_versions")
+        updated_meta.sample_id = sample_id
+
+        // return:
+        [updated_meta, demux_h5_file, versions_file, metrics_file]
       }
 
 
