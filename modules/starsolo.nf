@@ -63,13 +63,15 @@ workflow starsolo_map {
 
   main:
     sc_reads_ch = singlecell_ch
-      .map{meta -> tuple(
-        meta,
-        file("${meta.files_directory}/*_R1_*.fastq.gz"),
-        file("${meta.files_directory}/*_R2_*.fastq.gz"),
-        file("${params.barcode_dir}/${cell_barcodes[meta.technology]}"),
-        file(meta.star_index, type: 'dir')
-      )}
+      .map{ meta ->
+        [
+          meta,
+          file("${meta.files_directory}/*_R1_*.fastq.gz"),
+          file("${meta.files_directory}/*_R2_*.fastq.gz"),
+          file("${params.barcode_dir}/${cell_barcodes[meta.technology]}"),
+          file(meta.star_index, type: 'dir')
+        ]
+      }
     starsolo(sc_reads_ch)
     index_bam(starsolo.out.star_bam)
 
