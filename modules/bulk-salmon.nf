@@ -166,13 +166,18 @@ workflow bulk_quant_rna {
     // regex to ensure correct file names if R1 or R2 are in sample identifier
     bulk_reads_ch = bulk_channel.make_quants
       .map{ meta ->
-        [
-          meta,
-          files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
-          files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
-            .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/}
-        ]
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+
+        // check that appropriate files were found
+        assert R1_files: "No R1 files were found in ${meta.files_directory}."
+        if (meta.technology == 'paired_end') {
+          assert R2_files: "No R2 files were found in ${meta.files_directory}."
+        }
+
+        [meta, R1_files, R2_files]
       }
 
     // run fastp and salmon for libraries that are not skipping salmon

@@ -190,14 +190,14 @@ workflow map_quant_feature {
       // regex to ensure correct file names if R1 or R2 are in sample identifier
       // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
       .map{ meta ->
-        [
-          meta.feature_barcode_file,
-          meta,
-          files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
-          files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/}
-        ]
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+        // check appropriate files were found
+        assert R1_files && R2_files: "No R1 and/or R2 files were found in ${meta.files_directory}"
+
+        [meta.feature_barcode_file, meta, R1_files, R2_files]
       }
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
       .map{ it -> it.drop(1) } // remove the first element (feature_barcode_file)

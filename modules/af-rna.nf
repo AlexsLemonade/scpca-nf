@@ -158,17 +158,17 @@ workflow map_quant_rna {
     // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files], salmon index)
     rna_reads_ch = rna_channel.make_rad
       .map{ meta ->
-        [
-          meta,
-          // fail if the fastq files do not exist
-          // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
-          files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
-          files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/},
-          file(meta.salmon_splici_index, type: 'dir')
-        ]
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+        // check appropriate files were found
+        assert R1_files && R2_files: "No R1 and/or R2 files were found in ${meta.files_directory}"
+
+        def salmon_index = file(meta.salmon_splici_index, type: 'dir', checkIfExists: true)
+        [meta, R1_files, R2_files, salmon_index]
       }
+
 
     // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of metadata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
