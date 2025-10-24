@@ -343,6 +343,8 @@ workflow generate_sce {
         [meta, unfiltered, file(empty_file, checkIfExists: true)]
       }
 
+    filter_sce(unfiltered_sce_ch)
+
   emit: filter_sce.out
   // a tuple of meta and the filtered and unfiltered rds files
 }
