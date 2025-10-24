@@ -79,20 +79,24 @@ workflow cellsnp_vireo {
     mpileup_vcf_ch // channel of [meta_mpileup, vcf_file]
   main:
     mpileup_ch = mpileup_vcf_ch
-      .map{[it[0].multiplex_library_id] + it} // pull out library id for combining
+      .map{ it -> [it[0].multiplex_library_id] + it } // pull out library id for combining
 
     // make a channel with: [meta, star_bam, star_bai, star_quant, meta_mpileup, vcf_file]
-    star_mpileup_ch = starsolo_bam_ch.map{[it[0].library_id] + it} // add library id at start
+    star_mpileup_ch = starsolo_bam_ch
+      .map{ it -> [it[0].library_id] + it } // add library id at start    library, meta, bamfile, bam.bai, meta, solodir
       .join( // join starsolo outs by library_id
-        starsolo_quant_ch.map{[it[0].library_id] + it},
+        starsolo_quant_ch.map{ it -> [it[0].library_id] + it },
         by: 0, failOnDuplicate: true, failOnMismatch: true
       )
-      .map{[it[0], it[1], it[2], it[3], it[5]]} // remove redundant meta
+      // remove redundant meta
+      .map{ library_id, meta, star_bam, star_bai, _meta_dup, star_dir ->
+        [library_id, meta, star_bam, star_bai, star_dir]
+      }
       .join( // join starsolo and mpileup by library id
         mpileup_ch,
         by: 0, failOnDuplicate: true, failOnMismatch: true
       )
-      .map{it.drop(1)} // drop library id
+      .map{ it -> it.drop(1) } // drop library id
 
 
     cellsnp(star_mpileup_ch) \
