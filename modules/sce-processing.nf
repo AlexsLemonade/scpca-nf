@@ -323,28 +323,33 @@ workflow generate_sce {
     def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
-      .map{it.toList() + [file(it[0].mito_file, checkIfExists: true),
-                          file(it[0].ref_gtf, checkIfExists: true),
-                          // either submitter/openscpca cell type files, or empty array if not available
-                          it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
-                          it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
-                         ]}
+      .map{ meta, quant_dir ->
+        [
+          meta,
+          quant_dir,
+          file(meta.mito_file, checkIfExists: true),
+          file(meta.ref_gtf, checkIfExists: true),
+          // either submitter/openscpca cell type files, or empty array if not available
+          meta.submitter_cell_types_file ? file(meta.submitter_cell_types_file, checkIfExists: true) : [],
+          meta.openscpca_cell_types_file ? file(meta.openscpca_cell_types_file, checkIfExists: true) : []
+        ]
+      }
 
     make_unfiltered_sce(sce_ch, sample_metafile)
 
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
-      .map{it.toList() + [file(empty_file, checkIfExists: true)]}
-
-    filter_sce(unfiltered_sce_ch)
+      .map{ meta, unfiltered ->
+        [meta, unfiltered, file(empty_file, checkIfExists: true)]
+      }
 
   emit: filter_sce.out
-  // a tuple of meta and the unfiltered and filtered rds files
+  // a tuple of meta and the filtered and unfiltered rds files
 }
 
 workflow generate_sce_with_feature {
   // generate rds files for feature + quant samples
-  // input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
+  // the feature_quant_channel input is a channel with feature_meta, feature_quantdir, rna_meta, rna_quantdir
   take:
     feature_quant_channel
     sample_metafile
@@ -352,24 +357,36 @@ workflow generate_sce_with_feature {
     def empty_file = "${projectDir}/assets/NO_FILE"
 
     feature_sce_ch = feature_quant_channel
-      // RNA meta is in the third slot here
-      .map{it.toList() + [file(it[2].mito_file, checkIfExists: true),
-                          file(it[2].ref_gtf, checkIfExists: true),
-                          // either submitter/openscpca cell type files, or empty array if not available
-                          it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
-                          it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
-                         ]}
+      .map{ feature_meta, feature_quant_dir, rna_meta, rna_quant_dir ->
+        [
+          feature_meta,
+          feature_quant_dir,
+          rna_meta,
+          rna_quant_dir,
+          file(rna_meta.mito_file, checkIfExists: true),
+          file(rna_meta.ref_gtf, checkIfExists: true),
+          // either submitter/openscpca cell type files, or empty array if not available
+          feature_meta.submitter_cell_types_file ? file(feature_meta.submitter_cell_types_file, checkIfExists: true) : [],
+          feature_meta.openscpca_cell_types_file ? file(feature_meta.openscpca_cell_types_file, checkIfExists: true) : []
+        ]
+      }
 
     make_unfiltered_sce_with_feature(feature_sce_ch, sample_metafile)
 
     // append the feature barcode file
     unfiltered_feature_sce_ch = make_unfiltered_sce_with_feature.out
-      .map{it.toList() + [file(it[0]["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)]}
+      .map{ meta, unfiltered ->
+        [
+          meta,
+          unfiltered,
+          file(meta["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)
+        ]
+      }
 
     filter_sce(unfiltered_feature_sce_ch)
 
   emit: filter_sce.out
-  // a tuple of meta and the unfiltered and filtered rds files
+  // a tuple of meta and the filtered and unfiltered rds files
 }
 
 workflow generate_sce_cellranger {
@@ -381,20 +398,29 @@ workflow generate_sce_cellranger {
     def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
-      .map{it.toList() + [file(it[0].ref_gtf, checkIfExists: true),
-                          // either submitter/openscpca cell type files, or empty array if not available
-                          it[0].submitter_cell_types_file ? file(it[0].submitter_cell_types_file, checkIfExists: true) : [],
-                          it[0].openscpca_cell_types_file ? file(it[0].openscpca_cell_types_file, checkIfExists: true) : []
-                         ]}
+      .map{ meta, cellranger_dir, versions_file, metrics_file ->
+        [
+          meta,
+          cellranger_dir,
+          versions_file,
+          metrics_file,
+          file(meta.ref_gtf, checkIfExists: true),
+          // either submitter/openscpca cell type files, or empty array if not available
+          meta.submitter_cell_types_file ? file(meta.submitter_cell_types_file, checkIfExists: true) : [],
+          meta.openscpca_cell_types_file ? file(meta.openscpca_cell_types_file, checkIfExists: true) : []
+        ]
+      }
 
     make_unfiltered_sce_cellranger(sce_ch, sample_metafile)
 
     // provide empty feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce_cellranger.out
-      .map{it.toList() + [file(empty_file, checkIfExists: true)]}
+      .map{ meta, unfiltered ->
+        [meta, unfiltered, file(empty_file, checkIfExists: true)]
+      }
 
     filter_sce(unfiltered_sce_ch)
 
   emit: filter_sce.out
-  // a tuple of meta and the unfiltered and filtered rds files
+  // a tuple of meta and the filtered and unfiltered rds files
 }
