@@ -24,13 +24,13 @@ workflow genetic_demux_vireo {
       }
        // split based in whether repeat_genetic_demux is true and a previous dir exists
       .branch{ it ->
-        def meta_ref_assembly = Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_ref_assembly = Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly")
         make_demux: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             params.repeat_genetic_demux
             || !file(it.vireo_dir).exists()
-            || meta_ref_assembly != "${it.ref_assembly}"
+            || stored_ref_assembly != it.ref_assembly
           )
         )
         has_demux: file(it.vireo_dir).exists()
