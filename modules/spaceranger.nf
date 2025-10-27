@@ -144,7 +144,7 @@ workflow spaceranger_quant{
 
     // send run ids in spatial_channel.missing_inputs to log
     spatial_channel.missing_inputs
-      .subscribe{ it >
+      .subscribe{ it ->
         log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
       }
 

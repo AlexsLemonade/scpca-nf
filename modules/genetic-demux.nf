@@ -51,8 +51,7 @@ workflow genetic_demux_vireo {
 
     // make a channel of the bulk samples we need to process
     bulk_ch = unfiltered_runs_ch
-      .filter{ it.technology in bulk_techs }
-      .filter{ it.sample_id in bulk_samples.getVal() }
+      .filter{ it.technology in bulk_techs && it.sample_id in bulk_samples.getVal() }
 
     // map bulk samples
     star_bulk(bulk_ch)
