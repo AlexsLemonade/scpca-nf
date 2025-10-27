@@ -30,7 +30,7 @@ workflow genetic_demux_vireo {
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             params.repeat_genetic_demux
             || !file(it.vireo_dir).exists()
-            || stored_ref_assembly != it.ref_assembly
+            || it.ref_assembly != stored_ref_assembly
           )
         )
         has_demux: file(it.vireo_dir).exists()
