@@ -287,7 +287,7 @@ workflow {
 
   // get RNA-only libraries
   rna_quant_ch = map_quant_rna.out
-    .filter{ it[0]["library_id"] in rna_only_libs.getVal() }
+    .filter{ it[0].library_id in rna_only_libs.getVal() }
   // make rds for rna only
   rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
@@ -307,9 +307,9 @@ workflow {
 
   // join feature & RNA quants for feature reads
   feature_rna_quant_ch = map_quant_feature.out
-    .map{ it -> [it[0]["library_id"]] + it } // add library_id from metadata as first element
+    .map{ it -> [it[0].library_id] + it } // add library_id from metadata as first element
     // join rna quant to feature quant by library_id; expect mismatches for rna-only, so don't fail
-    .join(map_quant_rna.out.map{ it -> [it[0]["library_id"]] + it },
+    .join(map_quant_rna.out.map{ it -> [it[0].library_id] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: false)
     .map{ it -> it.drop(1) } // remove library_id index
 
@@ -330,7 +330,7 @@ workflow {
   feature_sce_ch = all_feature_ch.continue_processing
     // branch cellhash libs
     .branch{ it ->
-      cellhash: it[0]["feature_meta"]["technology"] in cellhash_techs
+      cellhash: it[0].feature_meta.technology in cellhash_techs
       single: true
     }
 
@@ -341,7 +341,7 @@ workflow {
   // join SCE outputs and branch by genetic multiplexing
   sce_ch = rna_sce_ch.continue_processing.mix(combined_feature_sce_ch)
     .branch{ it ->
-      genetic_multiplex: it[0]["library_id"] in genetic_multiplex_libs.getVal()
+      genetic_multiplex: it[0].library_id in genetic_multiplex_libs.getVal()
       no_genetic: true
     }
 
@@ -354,8 +354,8 @@ workflow {
   // join demux result with SCE output (fail if there are any missing or extra libraries)
   // output structure: [meta_demux, vireo_dir, meta_sce, sce_rds]
   demux_results_ch = genetic_demux_vireo.out
-    .map{ it -> [it[0]["library_id"]] + it }
-    .join(sce_ch.genetic_multiplex.map{ it -> [it[0]["library_id"]] + it },
+    .map{ it -> [it[0].library_id] + it }
+    .join(sce_ch.genetic_multiplex.map{ it -> [it[0].library_id] + it },
           by: 0, failOnDuplicate: true, failOnMismatch: true)
     .map{ it -> it.drop(1) }
   // add genetic demux results to sce objects
@@ -437,7 +437,7 @@ workflow {
   // convert SCE object to anndata
   anndata_ch = qc_publish_sce.out.data
     // skip multiplexed libraries
-    .filter{ !(it[0]["library_id"] in multiplex_libs.getVal()) }
+    .filter{ !(it[0].library_id in multiplex_libs.getVal()) }
   sce_to_anndata(anndata_ch)
 
 }

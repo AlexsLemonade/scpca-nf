@@ -16,10 +16,10 @@ workflow genetic_demux_vireo {
     // add vireo publish directory, vireo directory, and barcode file to meta
     multiplex_ch = multiplex_run_ch
       .map{ meta_in ->
-        def meta = meta_in.clone();
-        meta.vireo_publish_dir = "${params.checkpoints_dir}/vireo";
-        meta.vireo_dir = "${meta.vireo_publish_dir}/${meta.library_id}-vireo";
-        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}";
+        def meta = meta_in.clone()
+        meta.vireo_publish_dir = "${params.checkpoints_dir}/vireo"
+        meta.vireo_dir = "${meta.vireo_publish_dir}/${meta.library_id}-vireo"
+        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}"
         meta // return modified meta object
       }
        // split based in whether repeat_genetic_demux is true and a previous dir exists

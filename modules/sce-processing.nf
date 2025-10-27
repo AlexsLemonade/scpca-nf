@@ -72,12 +72,12 @@ process make_unfiltered_sce_with_feature {
     script:
         // add feature metadata as elements of the main meta object
         meta = rna_meta.clone()
-        meta['feature_type'] = feature_meta.technology.split('_')[0]
-        meta['feature_meta'] = feature_meta
+        meta.feature_type = feature_meta.technology.split('_')[0]
+        meta.feature_meta = feature_meta
 
         // If feature_type is "CITEseq", make it "adt"
-        if (meta['feature_type'] == "citeseq") {
-          meta['feature_type'] = "adt"
+        if (meta.feature_type == "citeseq") {
+          meta.feature_type = "adt"
         }
 
         unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
@@ -120,8 +120,8 @@ process make_unfiltered_sce_with_feature {
         """
     stub:
         meta = rna_meta.clone()
-        meta['feature_type'] = feature_meta.technology.split('_')[0]
-        meta['feature_meta'] = feature_meta
+        meta.feature_type = feature_meta.technology.split('_')[0]
+        meta.feature_meta = feature_meta
 
         unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
@@ -375,7 +375,7 @@ workflow generate_sce_with_feature {
         [
           meta,
           unfiltered,
-          file(meta["feature_meta"].feature_barcode_file ?: empty_file, checkIfExists: true)
+          file(meta.feature_meta.feature_barcode_file ?: empty_file, checkIfExists: true)
         ]
       }
 

@@ -131,8 +131,8 @@ workflow flex_quant{
 
     flex_channel = flex_channel
       // add sample names and output directory to metadata
-      .map{ it ->
-        def meta = it.clone()
+      .map{ meta_in ->
+        def meta = meta_in.clone()
         meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}"
         meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi"
         meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}"
@@ -171,8 +171,8 @@ workflow flex_quant{
         ]
       }
       .branch{ it ->
-        single: it[0]["technology"].contains("single")
-        multi: it[0]["technology"].contains("multi")
+        single: it[0].technology.contains("single")
+        multi: it[0].technology.contains("multi")
       }
 
     // run cellranger flex single

@@ -225,7 +225,7 @@ workflow annotate_celltypes {
     // branch to cell type the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
       .branch{ meta, _unfiltered, _filtered, _processed ->
-        cell_line: meta["sample_id"].split(",").every{ it in cell_line_samples.getVal() }
+        cell_line: meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
         // only run cell typing on tissue samples
         tissue: true
       }
@@ -312,7 +312,7 @@ workflow annotate_celltypes {
         ]
       }
       // add in missing ref samples
-      .mix(singler_input_ch.missing_ref.map{ it -> [it[0]["unique_id"], []] })
+      .mix(singler_input_ch.missing_ref.map{ it -> [it[0].unique_id, []] })
       // add in channel outputs
       .mix(classify_singler.out)
 
@@ -354,7 +354,7 @@ workflow annotate_celltypes {
         ]
       }
       // add missing ref samples
-      .mix(cellassign_input_ch.missing_ref.map{ it -> [it[0]["unique_id"], []] })
+      .mix(cellassign_input_ch.missing_ref.map{ it -> [it[0].unique_id, []] })
       // add in channel outputs
       .mix(classify_cellassign.out)
 

@@ -175,7 +175,7 @@ workflow {
     .map{ it -> [it.project_id, it] }
     .groupTuple(by: 0) // group by project id
     .filter{ it[1].size() > params.max_merge_libraries } // get projects with more samples than max merge
-    .collect{ it[0] } // get project id
+    .collect{ it[0] } // in this specific case, it[0] is the project_id
 
   filtered_libraries_ch = libraries_ch
     // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data

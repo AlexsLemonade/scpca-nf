@@ -20,6 +20,7 @@ process run_infercnv {
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
 
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     # note that if inferCNV fails, the script will output empty results/heatmap files
@@ -41,6 +42,7 @@ process run_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
+    meta += Utils.getVersions(workflow, nextflow)
     meta_json = Utils.makeJson(meta)
     """
     touch "${results_file}"
@@ -88,9 +90,10 @@ workflow call_cnvs {
       .map{ it -> it.scpca_sample_id }
       .toList()
 
+    // branch to run inferCNV on the non-cell line libraries only
     sce_files_channel_branched = sce_files_channel
-      .branch{ it ->
-        cell_line: it[0]["sample_id"].split(",").every{ it[0] in cell_line_samples.getVal() }
+      .branch{ meta, _unfiltered, _filtered, _processed ->
+        cell_line: meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
         tissue: true
       }
 
@@ -163,12 +166,12 @@ workflow call_cnvs {
 
     export_channel = add_infercnv_to_sce.out
       .map{ meta, processed_sce, infercnv_heatmap_file ->
-        [meta["unique_id"], meta, processed_sce, infercnv_heatmap_file]
+        [meta.unique_id, meta, processed_sce, infercnv_heatmap_file]
       }
       // add in unfiltered and filtered sce files, for tissue samples only
       .join(
         sce_files_channel_branched.tissue.map{ meta, unfiltered, filtered, _processed ->
-          [meta["unique_id"], unfiltered, filtered]
+          [meta.unique_id, unfiltered, filtered]
         },
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
