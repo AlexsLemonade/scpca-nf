@@ -324,15 +324,13 @@ workflow generate_sce {
 
     sce_ch = quant_channel
       .map{ meta, quant_dir ->
-        [
-          meta,
-          quant_dir,
-          file(meta.mito_file, checkIfExists: true),
-          file(meta.ref_gtf, checkIfExists: true),
-          // either submitter/openscpca cell type files, or empty array if not available
-          meta.submitter_cell_types_file ? file(meta.submitter_cell_types_file, checkIfExists: true) : [],
-          meta.openscpca_cell_types_file ? file(meta.openscpca_cell_types_file, checkIfExists: true) : []
-        ]
+        def mito_file = file(meta.mito_file, checkIfExists: true)
+        def ref_gtf = file(meta.ref_gtf, checkIfExists: true)
+         // either submitter/openscpca cell type files, or empty array if not available
+        def submitter_cell_types_file = meta.submitter_cell_types_file ? file(meta.submitter_cell_types_file, checkIfExists: true) : []
+        def openscpca_cell_types_file = meta.openscpca_cell_types_file ? file(meta.openscpca_cell_types_file, checkIfExists: true) : []
+
+        [meta, quant_dir, mito_file, ref_gtf, submitter_cell_types_file, openscpca_cell_types_file]
       }
 
     make_unfiltered_sce(sce_ch, sample_metafile)
@@ -360,17 +358,13 @@ workflow generate_sce_with_feature {
 
     feature_sce_ch = feature_quant_channel
       .map{ feature_meta, feature_quant_dir, rna_meta, rna_quant_dir ->
-        [
-          feature_meta,
-          feature_quant_dir,
-          rna_meta,
-          rna_quant_dir,
-          file(rna_meta.mito_file, checkIfExists: true),
-          file(rna_meta.ref_gtf, checkIfExists: true),
-          // either submitter/openscpca cell type files, or empty array if not available
-          feature_meta.submitter_cell_types_file ? file(feature_meta.submitter_cell_types_file, checkIfExists: true) : [],
-          feature_meta.openscpca_cell_types_file ? file(feature_meta.openscpca_cell_types_file, checkIfExists: true) : []
-        ]
+        def mito_file = file(rna_meta.mito_file, checkIfExists: true)
+        def ref_gtf = file(rna_meta.ref_gtf, checkIfExists: true)
+         // either submitter/openscpca cell type files, or empty array if not available
+        def submitter_cell_types_file = feature_meta.submitter_cell_types_file ? file(feature_meta.submitter_cell_types_file, checkIfExists: true) : []
+        def openscpca_cell_types_file = feature_meta.openscpca_cell_types_file ? file(feature_meta.openscpca_cell_types_file, checkIfExists: true) : []
+
+        [feature_meta, feature_quant_dir, rna_meta, rna_quant_dir, mito_file, ref_gtf, submitter_cell_types_file, openscpca_cell_types_file]
       }
 
     make_unfiltered_sce_with_feature(feature_sce_ch, sample_metafile)
@@ -401,16 +395,12 @@ workflow generate_sce_cellranger {
 
     sce_ch = quant_channel
       .map{ meta, cellranger_dir, versions_file, metrics_file ->
-        [
-          meta,
-          cellranger_dir,
-          versions_file,
-          metrics_file,
-          file(meta.ref_gtf, checkIfExists: true),
-          // either submitter/openscpca cell type files, or empty array if not available
-          meta.submitter_cell_types_file ? file(meta.submitter_cell_types_file, checkIfExists: true) : [],
-          meta.openscpca_cell_types_file ? file(meta.openscpca_cell_types_file, checkIfExists: true) : []
-        ]
+        def ref_gtf = file(meta.ref_gtf, checkIfExists: true)
+        // either submitter/openscpca cell type files, or empty array if not available
+        def submitter_cell_types_file = meta.submitter_cell_types_file ? file(meta.submitter_cell_types_file, checkIfExists: true) : []
+        def openscpca_cell_types_file = meta.openscpca_cell_types_file ? file(meta.openscpca_cell_types_file, checkIfExists: true) : []
+
+        [meta, cellranger_dir, versions_file, metrics_file, ref_gtf, submitter_cell_types_file, openscpca_cell_types_file]
       }
 
     make_unfiltered_sce_cellranger(sce_ch, sample_metafile)
