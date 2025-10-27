@@ -140,7 +140,7 @@ workflow bulk_quant_rna {
             // the results directory does not exist
             || !file(it.salmon_results_dir).exists()
             // the assembly has changed; if salmon_results_dir doesn't exist, these lines won't get hit
-            || it.ref_assembly != stored_ref_assembly,
+            || it.ref_assembly != stored_ref_assembly
             || it.t2g_bulk_path != stored_t2g_bulk_path
           )
         )
