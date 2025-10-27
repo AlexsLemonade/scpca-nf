@@ -150,7 +150,7 @@ workflow bulk_quant_rna {
 
     // send run ids in bulk_channel.missing_inputs to log
     bulk_channel.missing_inputs
-      .subscribe{
+      .subscribe{ it -> 
         log.error("The expected input fastq or salmon results files for ${it.run_id} are missing.")
       }
 
