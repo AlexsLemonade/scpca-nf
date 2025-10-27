@@ -171,8 +171,8 @@ workflow flex_quant{
         ]
       }
       .branch{ it ->
-        single: it[0]["technology"].contains("single")
-        multi: it[0]["technology"].contains("multi")
+        single: it[0].technology.contains("single")
+        multi: it[0].technology.contains("multi")
       }
 
     // run cellranger flex single
