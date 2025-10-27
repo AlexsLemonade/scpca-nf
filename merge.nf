@@ -208,7 +208,7 @@ workflow {
       [it.library_id, processed, meta_json ]
     }
     .subscribe{ library_id, processed, meta_json ->
-      if(!(processed.exists() && processed.size() > 0) && !(processed.exists() && library_id.startsWith("STUBL"))){
+      if(!processed.exists() || !(processed.size() > 0 || library_id.startsWith("STUBL")) )
         log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
       }
       else if(!(meta_json.exists() && meta_json.size() > 0)){
