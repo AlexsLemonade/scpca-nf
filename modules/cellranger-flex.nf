@@ -190,7 +190,7 @@ workflow flex_quant{
         def sample_id = per_sample_out.name // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs
         def expected_sample_ids = meta.sample_id.split(",")
-        if(!(sample_id in expected_sample_ids)) {
+        if (!(sample_id in expected_sample_ids)) {
             log.warn("${sample_id} found in output folder from cellranger multi for ${meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
@@ -241,12 +241,12 @@ workflow flex_quant{
         // path depends on whether singleplex or multiplex
         def demux_h5_file
         def metrics_file
-        if(meta.technology.contains("single")){
-            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
-            metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv")
-          } else if(meta.technology.contains("multi")) {
-            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
-            metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
+        if (meta.technology.contains("single")) {
+            def demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
+            def metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv")
+          } else if (meta.technology.contains("multi")) {
+            def demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
+            def metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
             // update existing unique ID to be sure it has the one sample id and not all
             meta.unique_id = "${meta.library_id}-${sample_id}"
           }
