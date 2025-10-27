@@ -545,7 +545,7 @@ report_table(
 ```
 
 
-```{r}
+```{r, eval=has_cell_changes}
 # summary plot
 cell_plot_df <- changed_cell_counts |>
   tidyr::drop_na(change_frac) # remove NAs for plotting
@@ -816,17 +816,23 @@ hvg_summary <- hvg_stats |>
     mean_cor = mean(hvg_rank_cor[which(!hvg_identical)])
   )
 
-knitr::asis_output(glue::glue_data(
-  hvg_summary,
-  "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed == 1, 'has', 'have')} changes in highly variable genes.
+if (!has_hvg_changes) {
+  knitr::asis_output(
+    "There are no changes in highly variable genes between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue_data(
+    hvg_summary,
+    "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed == 1, 'has', 'have')} changes in highly variable genes.
 
 
-  Among the libraries with changes, the mean number of genes changed is **{mean_change}**, which is a mean percentage change of **{round(mean_change_frac * 100, digits = 2)}%**.
-  The mean Jaccard index (reflecting the proportions shared genes) is **{round(mean_jaccard, digits = 2)}**, and the mean rank correlation (reflecting changes in ordering among the genes) is **{round(mean_cor, digits = 2)}**.
+    Among the libraries with changes, the mean number of genes changed is **{mean_change}**, which is a mean percentage change of **{round(mean_change_frac * 100, digits = 2)}%**.
+    The mean Jaccard index (reflecting the proportions shared genes) is **{round(mean_jaccard, digits = 2)}**, and the mean rank correlation (reflecting changes in ordering among the genes) is **{round(mean_cor, digits = 2)}**.
 
-  The plots and tables below show only the libraries that have changes in either the content or ordering of the highly variable genes.
-  "
-))
+    The plots and tables below show only the libraries that have changes in either the content or ordering of the highly variable genes.
+    "
+  ))
+}
 ```
 
 
@@ -1152,7 +1158,7 @@ types_summary <- types_stats |>
 
 # Overall text summary
 if (!has_changed_types) {
-  knitr::asis_output("No change in cell type assignments.")
+  knitr::asis_output("There are no changes in cell type assignments between the reference and comparison runs.")
 } else {
   type_n_libraries_changed <- length(unique(changed_types$library_id))
   type_n_projects_changed <- length(unique(changed_types$project_id))
