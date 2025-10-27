@@ -83,7 +83,8 @@ workflow cellsnp_vireo {
 
     // make a channel with: [meta, star_bam, star_bai, star_quant, meta_mpileup, vcf_file]
     star_mpileup_ch = starsolo_bam_ch
-      .map{ it -> [it[0].library_id] + it } // add library id at start    library, meta, bamfile, bam.bai, meta, solodir
+      // add library id at start
+      .map{ it -> [it[0].library_id] + it }
       .join( // join starsolo outs by library_id
         starsolo_quant_ch.map{ it -> [it[0].library_id] + it },
         by: 0, failOnDuplicate: true, failOnMismatch: true

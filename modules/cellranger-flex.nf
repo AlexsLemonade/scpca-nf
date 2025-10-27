@@ -139,14 +139,14 @@ workflow flex_quant{
         meta // return modified meta object
       }
       .branch{ it ->
-        def meta_ref_assembly = Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_ref_assembly = Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
         // branch based on if cellranger results exist or repeat mapping is used
         make_cellranger_flex: (
           // input files exist
           it.files_directory && file(it.files_directory, type: 'dir').exists() && (
             params.repeat_mapping
             || !file(it.cellranger_multi_results_dir).exists()
-            || meta_ref_assembly != it.ref_assembly
+            || it.ref_assembly != stored_ref_assembly
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()

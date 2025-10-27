@@ -288,11 +288,11 @@ workflow annotate_celltypes {
       }
       // skip if no singleR model file or if singleR results are already present
       .branch{ meta, _processed_sce, singler_model ->
-        def meta_singler_model_file = Utils.getMetaVal(file("${meta.singler_dir}/scpca-meta.json"), "singler_model_file")
+        def stored_singler_model_file = Utils.getMetaVal(file("${meta.singler_dir}/scpca-meta.json"), "singler_model_file")
         skip_singler: (
           !params.repeat_celltyping
           && file(meta.singler_results_file).exists()
-          && meta_singler_model_file == "${meta.singler_model_file}"
+          && meta.singler_model_file == stored_singler_model_file
         )
         missing_ref: singler_model == []
         do_singler: true
@@ -330,11 +330,11 @@ workflow annotate_celltypes {
       }
       // skip if no cellassign reference file or reference name is not defined
       .branch{ meta, _processed_sce, cellassign_ref ->
-        def meta_cellassign_reference_file = Utils.getMetaVal(file("${meta.cellassign_dir}/scpca-meta.json"), "cellassign_reference_file")
+        def stored_cellassign_reference_file = Utils.getMetaVal(file("${meta.cellassign_dir}/scpca-meta.json"), "cellassign_reference_file")
         skip_cellassign: (
           !params.repeat_celltyping
           && file(meta.cellassign_predictions_file).exists()
-          && meta_cellassign_reference_file == "${meta.cellassign_reference_file}"
+          && meta.cellassign_reference_file == stored_cellassign_reference_file
         )
         missing_ref: cellassign_ref == []
         do_cellassign: true
@@ -376,12 +376,12 @@ workflow annotate_celltypes {
       }
       // skip if scimilarity results exist and path to the model has not changed
       .branch{ it ->
-        def meta_scimilarity_model_dir = Utils.getMetaVal(file("${it[0].scimilarity_dir}/scpca-meta.json"), "scimilarity_model_dir")
+        def stored_scimilarity_model_dir = Utils.getMetaVal(file("${it[0].scimilarity_dir}/scpca-meta.json"), "scimilarity_model_dir")
 
         skip_scimilarity: (
           !params.repeat_celltyping
           && file(it[0].scimilarity_predictions_file).exists()
-          && meta_scimilarity_model_dir == "${it[0].scimilarity_model_dir}"
+          && it[0].scimilarity_model_dir == stored_scimilarity_model_dir
         )
         do_scimilarity: true
       }
