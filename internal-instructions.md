@@ -13,6 +13,7 @@
   - [Adding additional cell type references](#adding-additional-cell-type-references)
   - [Adding additional gene order files](#adding-additional-gene-order-files)
 - [Running the merge workflow](#running-the-merge-workflow)
+- [Comparing results between `scpca-nf` runs](#comparing-results-between-scpca-nf-runs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -142,7 +143,7 @@ nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
 ```
 
 After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`.
-Be sure that only the results from `run01`, which is from `library01` and `sample01`, are included in the folder. 
+Be sure that only the results from `run01`, which is from `library01` and `sample01`, are included in the folder.
 Make sure to adjust the settings to make the zip file publicly accessible.
 
 #### Processing example 10x Flex data
@@ -340,3 +341,22 @@ nextflow run merge.nf -profile ccdl,batch --project SCPCP00000X,SCPCP00000Y
 # Specify a set of run ids to use
 nextflow run merge.nf -profile ccdl,batch --project SCPCP000000 --run_ids SCPCR00000X,SCPCR00000Y
 ```
+
+## Comparing results between `scpca-nf` runs
+
+To facilitate comparisons between the production version of `scpca-nf` results and the results from a staging (or other) run, we have written a script and notebook to compare metrics between different runs, producing and HTML report.
+This script is found in the `scripts/compare-metrics` directory.
+
+The script can be run for a single project using a command like the following, assuming that AWS credentials are available in the environment:
+
+```
+Rscript scripts/compare-metrics/compare-metrics.R \
+  --project_id SCPCP000001 \
+  --output_file "SCPCP000001_metrics_comparison.html"
+```
+
+
+Multiple projects can be included using a comma-separated list for the `--project_id` argument, and if the `--project_id` argument is omitted, the comparison will include all projects.
+
+The default comparison will be between the metrics files available in the production and staging directories, treating the production versions as the reference run.
+The files are expected to be found at `s3://nextflow-ccdl-results/scpca-prod/results` and `s3://nextflow-ccdl-results/scpca-staging/results`, by default, but these can be changed using the `--ref_s3` and `--comp_s3` arguments.
