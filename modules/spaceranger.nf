@@ -129,12 +129,13 @@ workflow spaceranger_quant{
         meta // return modified meta object
       }
       .branch{ it ->
+        def stored_ref_assembly = Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             params.repeat_mapping
             || !file(it.spaceranger_results_dir).exists()
-            || Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || it.ref_assembly != stored_ref_assembly
           )
         )
         has_spatial: file(it.spaceranger_results_dir).exists()
