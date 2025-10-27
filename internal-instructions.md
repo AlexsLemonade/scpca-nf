@@ -344,7 +344,7 @@ nextflow run merge.nf -profile ccdl,batch --project SCPCP000000 --run_ids SCPCR0
 
 ## Comparing results between `scpca-nf` runs
 
-To facilitate comparisons between the production version of `scpca-nf` results and the results from a staging (or other) run, we have written a script and notebook to compare metrics between different runs, producing and HTML report.
+To facilitate comparisons between the production version of `scpca-nf` results and the results from a staging (or other) run, we have written a script and notebook to compare metrics between different runs, producing an HTML report.
 This script is found in the `scripts/compare-metrics` directory.
 
 The script can be run for a single project using a command like the following, assuming that AWS credentials are available in the environment:
