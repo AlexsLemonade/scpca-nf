@@ -34,17 +34,25 @@ workflow star_bulk {
     bulk_channel // a channel with a map of metadata for each rna library to process
 
   main:
-    // create tuple of (metadata map, [Read 1 files], [Read 2 files])
+    // create list of (metadata map, [Read 1 files], [Read 2 files], star index)
     // regex to ensure correct file names if R1 or R2 are in sample identifier
     bulk_reads_ch = bulk_channel
-        .map{meta -> tuple(
-          meta,
-          files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
-            .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
-          files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: meta.technology == 'paired_end')
-            .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/},
-          file(meta.star_index, type: 'dir', checkIfExists: true)
-        )}
+      .map{ meta ->
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+
+        // check that appropriate files were found
+        assert R1_files: "No R1 files were found in ${meta.files_directory}."
+        if (meta.technology == 'paired_end') {
+          assert R2_files: "No R2 files were found in ${meta.files_directory}."
+        }
+
+        def star_index = file(meta.star_index, type: 'dir', checkIfExists: true)
+        [meta, R1_files, R2_files, star_index]
+      }
+
     // map and index
     bulkmap_star(bulk_reads_ch) \
       | index_bam
