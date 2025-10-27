@@ -63,13 +63,18 @@ workflow starsolo_map {
 
   main:
     sc_reads_ch = singlecell_ch
-      .map{meta -> tuple(
-        meta,
-        file("${meta.files_directory}/*_R1_*.fastq.gz"),
-        file("${meta.files_directory}/*_R2_*.fastq.gz"),
-        file("${params.barcode_dir}/${cell_barcodes[meta.technology]}"),
-        file(meta.star_index, type: 'dir')
-      )}
+      .map{ meta ->
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+        // check appropriate files were found
+        assert R1_files && R2_files: "No R1 and/or R2 files were found in ${meta.files_directory}"
+
+        def barcode_file = file("${params.barcode_dir}/${cell_barcodes[meta.technology]}")
+        def star_index = file(meta.star_index, type: 'dir', checkIfExists: true)
+        [meta, R1_files, R2_files, barcode_file, star_index]
+      }
     starsolo(sc_reads_ch)
     index_bam(starsolo.out.star_bam)
 

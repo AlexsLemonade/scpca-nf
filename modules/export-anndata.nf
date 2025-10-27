@@ -52,42 +52,50 @@ workflow sce_to_anndata {
     sce_ch = sce_files_ch
       // spread files so only one type of file gets passed through to the process at a time
       // make tuple of [meta, sce_file, type of file, metadata.json]
-      .flatMap{[
-        [it[0], it[1], "unfiltered", it[4]],
-        [it[0], it[2], "filtered", it[4]],
-        [it[0], it[3], "processed", it[4]]
-      ]}
+      .flatMap{ meta, unfiltered, filtered, processed, meta_json ->
+        [
+          [meta, unfiltered, "unfiltered", meta_json],
+          [meta, filtered, "filtered", meta_json],
+          [meta, processed, "processed", meta_json]
+        ]
+      }
       // remove any sce files that don't have enough cells in the sce object
       // number of cells are stored in each metadata.json file
-      .filter{
-        def cells = Utils.getMetaVal(file(it[3]), "${it[2]}_cells");
+      .filter{ _meta, _sce_file, file_type, meta_json ->
+        def cells = Utils.getMetaVal(file(meta_json), "${file_type}_cells");
         cells == '' || cells > 2  // if no cell count, keep file for testing, otherwise require at least 3 cells
       }
       // remove metadata.json file from tuple
-      .map{it.dropRight(1)}
+      .map{ it -> it.dropRight(1) }
 
     // export each anndata file
     export_anndata(sce_ch)
 
     // get processed anndata files for cellbrowser
     processed_ch = export_anndata.out
-      .filter{ it[2] == "processed" }
-      .map{it.dropRight(1)} // drop the file type
+      .filter{ _meta, _h5ad_file, file_type ->
+        file_type == "processed"
+      }
+      .map{ it -> it.dropRight(1) } // drop the file type
 
 
     // combine all anndata files by unique id
     anndata_ch = export_anndata.out
-      .map{ meta, h5ad_files, _file_type -> tuple(
-        meta.unique_id, // pull out unique id for grouping
-        meta,
-        h5ad_files // either *_rna.h5ad or [ *_rna.h5ad, *_feature.h5ad ]
-      )}
+      .map{ meta, h5ad_files, _file_type ->
+        [
+          meta.unique_id, // pull out unique id for grouping
+          meta,
+          h5ad_files // either *_rna.h5ad or [ *_rna.h5ad, *_feature.h5ad ]
+        ]
+      }
       // group by unique id result is
       // [unique id, [meta, meta, meta], [h5ad files]]
       .groupTuple(by: 0, size: 3, remainder: true)
       // pull out just 1 meta object and h5ad files
       // [meta, [h5ad files]]
-      .map{ [it[1][0]] +  it[2] }
+      .map{ _unique_id, meta_list, h5ad_files ->
+        [meta_list[0], h5ad_files]
+      }
 
   emit:
     complete = anndata_ch
