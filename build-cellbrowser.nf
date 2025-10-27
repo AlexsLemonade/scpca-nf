@@ -68,11 +68,9 @@ workflow {
       || (it.project_id in project_ids)
     }
     .unique{ it.library_id }
-    .map{ it ->
-      [
-        it, // meta
-        file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed_rna.h5ad")
-      ]
+    .map{ meta ->
+      def h5ad_file = file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed_rna.h5ad")
+      [meta, h5ad_file]
     }
     // only include libraries where the h5ad file exists
     .filter{ it[1].exists() }
