@@ -84,28 +84,29 @@ workflow call_cnvs {
     // read in sample metadata and make a list of cell line samples; we won't run inferCNV on these
     cell_line_samples = Channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
-      .filter{it.is_cell_line.toBoolean()}
-      .map{it.scpca_sample_id}
+      .filter{ it.is_cell_line.toBoolean() }
+      .map{ it -> it.scpca_sample_id }
       .toList()
 
     sce_files_channel_branched = sce_files_channel
-      .branch{
-          cell_line: it[0]["sample_id"].split(",").every{it in cell_line_samples.getVal()}
-          tissue: true
+      .branch{ it ->
+        cell_line: it[0]["sample_id"].split(",").every{ it[0] in cell_line_samples.getVal() }
+        tissue: true
       }
 
     // create input for infercnv: [augmented meta, processed_sce, gene order file]
     infercnv_prepared_ch = sce_files_channel_branched.tissue
       .map{ meta_in, _unfiltered_sce, _filtered_sce, processed_sce ->
-        def meta = meta_in.clone(); // local copy for safe modification
+        def meta = meta_in.clone() // local copy for safe modification
         // define infercnv checkpoint files
-        meta.infercnv_checkpoints_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}";
-        meta.infercnv_heatmap_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-heatmap.png";
-        meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds";
-        meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt";
+        meta.infercnv_checkpoints_dir = "${params.checkpoints_dir}/infercnv/${meta.unique_id}"
+        meta.infercnv_heatmap_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-heatmap.png"
+        meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds"
+        meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt"
         // if meta.infercnv_reference_cell_count doesn't exist, set it to null
         // this happens when perform_celltyping is on but a library has no cell type references
-        meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null;
+        meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null
+
         // return simplified input with gene order file
         [meta, processed_sce, file(meta.infercnv_gene_order, checkIfExists: true)]
       }
@@ -115,15 +116,17 @@ workflow call_cnvs {
     // - repeat is off and there are unchanged existing results
     // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
-      .branch{
+      .branch{ it ->
+        def stored_cell_hash = Utils.getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
+
         skip_infercnv: (
         (
           !params.repeat_cnv_inference
           && file(it[0].infercnv_heatmap_file).exists()
           && file(it[0].infercnv_results_file).exists()
           && file(it[0].infercnv_table_file).exists()
-          && Utils.getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash") == "${it[0].infercnv_reference_cell_hash}"
-        ) || it[0]["infercnv_reference_cell_count"] < params.infercnv_min_reference_cells
+          && it[0].infercnv_reference_cell_hash == stored_cell_hash
+        ) || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
         )
         run_infercnv: true
       }
@@ -145,6 +148,7 @@ workflow call_cnvs {
         if (!infercnv_results.exists()) infercnv_results.text = ''
         if (!infercnv_table.exists())   infercnv_table.text = ''
         if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
+
         // return simplified input with gene order file
         [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
       }
@@ -169,9 +173,7 @@ workflow call_cnvs {
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange back to [meta, unfiltered, filtered, processed, infercnv_heatmap_file]
-      .map{_unique_id, meta, processed_sce, infercnv_heatmap_file, unfiltered_sce, filtered_sce ->
-        [meta, unfiltered_sce, filtered_sce, processed_sce, infercnv_heatmap_file]
-      }
+      .map{ it -> it.drop(1) }
       // mix in cell line libraries which we did not run inferCNV on
       .mix(
         // add in an empty file for heatmap placeholder first

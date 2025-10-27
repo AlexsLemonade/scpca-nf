@@ -134,6 +134,7 @@ workflow map_quant_rna {
        // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
        // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{ it ->
+        def stored_ref_assembly = Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly")
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -142,7 +143,7 @@ workflow map_quant_rna {
             // the rad directory does not exist
             || !file(it.rad_dir).exists()
             // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
-            || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || it.ref_assembly != stored_ref_assembly
           )
         )
         has_rad: file(it.rad_dir).exists()

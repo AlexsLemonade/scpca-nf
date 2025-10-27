@@ -50,9 +50,9 @@ process cellbrowser_site {
     tuple val(project_ids), path(library_dirs)
     path project_metadata
     path "cb_data"
-    path "${params.cellbrowser_dirname}"
+    path params.cellbrowser_dirname
   output:
-    path "${params.cellbrowser_dirname}"
+    path params.cellbrowser_dirname
   script:
     """
     # create the project config files
@@ -98,11 +98,13 @@ workflow cellbrowser_build {
     // create single channel of [[project_ids], [library_dirs]]
     project_libs_ch = cellbrowser_library.out
     // only include libraries with umap
-     .filter{it[2] == "true" }
+     .filter{ it[2] == "true" }
      // use dummy value to group everything together into tuples
-     .map{meta, library_dir, _has_umap -> [1, meta.project_id, library_dir] }
+     .map{ meta, library_dir, _has_umap ->
+        [1, meta.project_id, library_dir]
+      }
      .groupTuple()
-     .map{it -> it.drop(1)}
+     .map{ it -> it.drop(1) } // drop the dummy value
 
     // export processed anndata files for cellbrowser
     cellbrowser_site(
