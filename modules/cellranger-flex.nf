@@ -242,11 +242,11 @@ workflow flex_quant{
         def demux_h5_file
         def metrics_file
         if (meta.technology.contains("single")) {
-            def demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
-            def metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv")
+            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/multi/count/raw_feature_bc_matrix", type: 'dir')
+            metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${meta.library_id}/metrics_summary.csv")
           } else if (meta.technology.contains("multi")) {
-            def demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
-            def metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
+            demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
+            metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
             // update existing unique ID to be sure it has the one sample id and not all
             meta.unique_id = "${meta.library_id}-${sample_id}"
           }
