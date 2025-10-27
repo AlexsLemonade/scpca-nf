@@ -89,8 +89,8 @@ workflow call_cnvs {
       .toList()
 
     sce_files_channel_branched = sce_files_channel
-      .branch{ meta, _unfiltered, _filtered, _processed ->
-        cell_line: meta["sample_id"].split(",").every{ it in cell_line_samples.getVal() }
+      .branch{ it ->
+        cell_line: it[0]["sample_id"].split(",").every{ it[0] in cell_line_samples.getVal() }
         tissue: true
       }
 
@@ -116,17 +116,17 @@ workflow call_cnvs {
     // - repeat is off and there are unchanged existing results
     // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
-      .branch{ meta, _processed, _gene_order_file ->
-        def stored_cell_hash = Utils.getMetaVal(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
+      .branch{ it ->
+        def stored_cell_hash = Utils.getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
         skip_infercnv: (
         (
           !params.repeat_cnv_inference
-          && file(meta.infercnv_heatmap_file).exists()
-          && file(meta.infercnv_results_file).exists()
-          && file(meta.infercnv_table_file).exists()
-          && meta.infercnv_reference_cell_hash == stored_cell_hash
-        ) || meta.infercnv_reference_cell_count < params.infercnv_min_reference_cells
+          && file(it[0].infercnv_heatmap_file).exists()
+          && file(it[0].infercnv_results_file).exists()
+          && file(it[0].infercnv_table_file).exists()
+          && it[0].infercnv_reference_cell_hash == stored_cell_hash
+        ) || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
         )
         run_infercnv: true
       }

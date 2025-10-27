@@ -170,9 +170,9 @@ workflow flex_quant{
           file(meta.flex_probeset, type: 'file', checkIfExists: true)
         ]
       }
-      .branch{ meta, _files_directory, _cellranger_index, _flex_probeset ->
-        single: meta["technology"].contains("single")
-        multi: meta["technology"].contains("multi")
+      .branch{ it ->
+        single: it[0]["technology"].contains("single")
+        multi: it[0]["technology"].contains("multi")
       }
 
     // run cellranger flex single
@@ -185,23 +185,23 @@ workflow flex_quant{
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
     cellranger_flex_multi_flat_ch = cellranger_flex_multi.out.main
       .transpose() // [meta, multi_out_dir, per_sample_out_dir, versions]
-      .map{ meta, _multi_out, per_sample_out, versions ->
-        def updated_meta = meta.clone() // clone meta before replacing sample ID
+      .map{ meta_in, _multi_out, per_sample_out, versions ->
+        def meta = meta_in.clone() // clone meta before replacing sample ID
         def sample_id = per_sample_out.name // name of individual output directory is sample id
         // check that name of out directory is in expected sample IDs
         def expected_sample_ids = meta.sample_id.split(",")
         if(!(sample_id in expected_sample_ids)) {
-            log.warn("${sample_id} found in output folder from cellranger multi for ${updated_meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
+            log.warn("${sample_id} found in output folder from cellranger multi for ${meta.library_id} but does not match expected sample ids: ${expected_sample_ids}")
         }
 
         // update sample ID
-        updated_meta.sample_id = sample_id
+        meta.sample_id = sample_id
         // update existing unique ID to be sure it has the one sample id and not the comma separated list
-        updated_meta.unique_id = "${meta.library_id}-${sample_id}"
+        meta.unique_id = "${meta.library_id}-${sample_id}"
 
         // return [meta, raw output dir, versions file, metrics file]
         [
-          updated_meta,
+          meta,
           file("${per_sample_out}/count/sample_raw_feature_bc_matrix", type: 'dir'),
           versions,
           file("${per_sample_out}/metrics_summary.csv")
@@ -236,8 +236,8 @@ workflow flex_quant{
       }
       .transpose() // [sample id, meta]
       // replace existing sample id and define path to existing directory with raw output
-      .map{ sample_id, meta ->
-        def updated_meta = meta.clone()
+      .map{ sample_id, meta_in ->
+        def meta = meta_in.clone()
         // path depends on whether singleplex or multiplex
         def demux_h5_file
         def metrics_file
@@ -248,13 +248,13 @@ workflow flex_quant{
             demux_h5_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/count/sample_raw_feature_bc_matrix", type: 'dir')
             metrics_file = file("${meta.cellranger_multi_results_dir}/outs/per_sample_outs/${sample_id}/metrics_summary.csv")
             // update existing unique ID to be sure it has the one sample id and not all
-            updated_meta.unique_id = "${meta.library_id}-${sample_id}"
+            meta.unique_id = "${meta.library_id}-${sample_id}"
           }
         def versions_file = file("${meta.cellranger_multi_results_dir}/_versions")
-        updated_meta.sample_id = sample_id
+        meta.sample_id = sample_id
 
         // return:
-        [updated_meta, demux_h5_file, versions_file, metrics_file]
+        [meta, demux_h5_file, versions_file, metrics_file]
       }
 
 
