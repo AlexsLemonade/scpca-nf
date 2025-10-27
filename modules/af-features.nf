@@ -154,8 +154,8 @@ workflow map_quant_feature {
 
     // add the publish directories to the channel and branch based on existing rad files
     feature_ch = feature_channel
-      .map{ it ->
-        def meta = it.clone()
+      .map{ meta_in ->
+        def meta = meta_in.clone()
         meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}"
         meta.feature_rad_dir = "${meta.feature_rad_publish_dir}/${meta.run_id}-features"
         meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}"
