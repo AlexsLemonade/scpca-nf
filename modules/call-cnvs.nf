@@ -90,7 +90,7 @@ workflow call_cnvs {
 
     sce_files_channel_branched = sce_files_channel
       .branch{ it ->
-        cell_line: it[0]["sample_id"].split(",").every{ it[0] in cell_line_samples.getVal() }
+        cell_line: it[0]["sample_id"].split(",").every{ samples -> samples[0] in cell_line_samples.getVal() }
         tissue: true
       }
 
