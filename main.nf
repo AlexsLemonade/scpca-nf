@@ -34,7 +34,7 @@ def check_parameters() {
     param_error = true
   }
 
-  if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()){
+  if (params.cellhash_pool_file && !file(params.cellhash_pool_file).exists()) {
     log.error("The 'cellhash_pool_file' file ${params.cellhash_pool_file} can not be found.")
     param_error = true
   }
@@ -59,19 +59,19 @@ def check_parameters() {
     }
 
     // check that scimilarity reference model and files exist
-    if(!file(params.scimilarity_model_dir, type: 'dir').exists()) {
+    if (!file(params.scimilarity_model_dir, type: 'dir').exists()) {
       log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
       param_error = true
     } else {
       // make sure the directory contains the knn.bin file
       def knn_file = "${params.scimilarity_model_dir}/annotation/labelled_kNN.bin"
-      if(!file(knn_file).exists()){
+      if (!file(knn_file).exists()) {
         log.error("The 'scimilarity_model_dir' is missing the annotation/labelled_kNN.bin file needed for annotation.")
         param_error = true
       }
     }
 
-    if(!file(params.scimilarity_ontology_map_file).exists()) {
+    if (!file(params.scimilarity_ontology_map_file).exists()) {
       log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
       param_error = true
     }

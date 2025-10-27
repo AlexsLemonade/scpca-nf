@@ -102,9 +102,9 @@ def getCRsamples(files_dir) {
   if (!files_dir) { // return empty string if no files directory
     return ""
   }
-  def fastq_files = file(files_dir).list().findAll{it.contains('.fastq.gz')}
+  def fastq_files = file(files_dir).list().findAll{ it -> it.contains('.fastq.gz') }
   def samples = []
-  fastq_files.each{
+  fastq_files.each{ it ->
     // append sample names to list, using regex to extract element before S001, etc.
     // [0] for the first match set, [1] for the first extracted element
     samples << (it =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
@@ -121,20 +121,21 @@ workflow spaceranger_quant{
   main:
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
-      .map{
-        def meta = it.clone();
-        meta.cr_samples = getCRsamples(it.files_directory);
+      .map{ meta_in ->
+        def meta = meta_in.clone();
+        meta.cr_samples = getCRsamples(meta.files_directory);
         meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}";
         meta.spaceranger_results_dir = "${meta.spaceranger_publish_dir}/${meta.run_id}-spatial";
         meta // return modified meta object
       }
-      .branch{
+      .branch{ it ->
+        def stored_ref_assembly = Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             params.repeat_mapping
             || !file(it.spaceranger_results_dir).exists()
-            || Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly") != "${it.ref_assembly}"
+            || it.ref_assembly != stored_ref_assembly
           )
         )
         has_spatial: file(it.spaceranger_results_dir).exists()
@@ -143,33 +144,37 @@ workflow spaceranger_quant{
 
     // send run ids in spatial_channel.missing_inputs to log
     spatial_channel.missing_inputs
-      .subscribe{
+      .subscribe{ it ->
         log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
       }
 
     // create tuple of [metadata, fastq dir, and path to image file]
     spaceranger_reads = spatial_channel.make_spatial
-      .map{meta -> tuple(
-        meta,
-        file(meta.files_directory, type: 'dir'),
-        file("${meta.files_directory}/*.jpg"),
-        file(meta.cellranger_index, type: 'dir')
-      )}
+      .map{ meta ->
+        [
+          meta,
+          file(meta.files_directory, type: 'dir'),
+          file("${meta.files_directory}/*.jpg"),
+          file(meta.cellranger_index, type: 'dir')
+        ]
+    }
 
     // run spaceranger
     spaceranger(spaceranger_reads)
 
     // gather spaceranger output for completed libraries
-    // make a tuple of metadata (read from prior output) and prior results directory
+    // make a list of metadata (read from prior output) and prior results directory
     spaceranger_quants_ch = spatial_channel.has_spatial
-      .map{meta -> tuple(
-        Utils.readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
-        file(meta.spaceranger_results_dir, type: 'dir')
-      )}
+      .map{ meta ->
+        [
+          Utils.readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
+          file(meta.spaceranger_results_dir, type: 'dir')
+        ]
+      }
 
     grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
 
-      // generate metadata.json
+    // generate metadata.json
     spaceranger_publish(grouped_spaceranger_ch)
 
   // tuple of metadata, path to spaceranger output directory, and path to metadata json file
