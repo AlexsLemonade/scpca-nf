@@ -9,7 +9,7 @@ def check_parameters() {
   def param_error = false
 
   // check that at least one project has been provided
-  if(!params.project) {
+  if (!params.project) {
     log.error("At least one 'project' must be specified for merging.")
     param_error = true
   }
@@ -208,13 +208,13 @@ workflow {
       [it.library_id, processed, meta_json ]
     }
     .subscribe{ library_id, processed, meta_json ->
-      if(!(processed.exists() && processed.size() > 0) || !(processed.exists() && library_id.starts_with("STUBL"))){
+      if (!processed.exists() || !(processed.size() > 0 || library_id.startsWith("STUBL"))) {
         log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if(!(meta_json.exists() && meta_json.size() > 0)){
+      else if (!(meta_json.exists() && meta_json.size() > 0)) {
         log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if (Utils.getMetaVal(processed, "processed_cells") < 3){
+      else if (Utils.getMetaVal(meta_json, "processed_cells") < 3) {
         log.warn("Library ${library_id} has fewer than 3 cells. This library will not be included in the merged object.")
       }
     }
@@ -243,7 +243,8 @@ workflow {
       [project_id, project_id in adt_projects.getVal(), library_id_list, sce_file_list]
     }
     .branch{ it ->
-      has_merge: file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds").exists() && params.reuse_merge
+      def merged_sce = file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds")
+      has_merge: merged_sce.exists() && params.reuse_merge
       make_merge: true
     }
 
