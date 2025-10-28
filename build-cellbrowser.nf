@@ -49,7 +49,7 @@ workflow {
     log.warn("Some runs are not being included in the Cell Browser output; is this correct?")
   }
   //
-  libraries_ch = Channel.fromPath(params.run_metafile)
+  libraries_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to run all ids or just specified ones
     .map{ it ->

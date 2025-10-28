@@ -84,7 +84,7 @@ workflow call_cnvs {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
     // read in sample metadata and make a list of cell line samples; we won't run inferCNV on these
-    cell_line_samples = Channel.fromPath(params.sample_metafile)
+    cell_line_samples = channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
       .filter{ it.is_cell_line.toBoolean() }
       .map{ it -> it.scpca_sample_id }

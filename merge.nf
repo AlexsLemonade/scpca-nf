@@ -137,7 +137,7 @@ workflow {
   def run_all = run_ids[0] == "All"
 
   // read in run metafile and filter to projects of interest
-  libraries_ch = Channel.fromPath(params.run_metafile)
+  libraries_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to only include specified project ids
     .filter{ it.scpca_project_id in project_ids }

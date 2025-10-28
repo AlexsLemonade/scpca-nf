@@ -49,7 +49,7 @@ workflow pileup_multibulk{
       .combine(sample_bulk_ch, by: 0) // combine by individual sample ids (use combine because of repeated values)
       .groupTuple(by: 1) // group by library id
       // create [meta per sample, bamfiles, bamfile index, ref_fasta, ref_index]
-      .map{ sample_ids, library_id, multiplex_meta, bulk_meta, bamfile, bamfile_index ->
+      .map{ sample_ids, _library_id, multiplex_meta, bulk_meta, bamfile, bamfile_index ->
         [
           [ // create a meta object for each group of samples
             sample_ids: sample_ids,
