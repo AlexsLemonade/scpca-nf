@@ -1,7 +1,7 @@
 
 // process for converting rds files containing an SCE to h5 containing anndata containing the RNA data
 process export_anndata {
-    container params.SCPCATOOLS_ANNDATA_CONTAINER
+    container Utils.pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)
     label 'mem_16'
     tag "${meta.unique_id}"
     publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'

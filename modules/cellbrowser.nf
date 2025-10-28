@@ -1,6 +1,6 @@
 
 process cellbrowser_library {
-  container "${params.CELLBROWSER_CONTAINER}"
+  container "${Utils.pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
 
   input:
@@ -44,7 +44,7 @@ process cellbrowser_library {
 }
 
 process cellbrowser_site {
-  container "${params.CELLBROWSER_CONTAINER}"
+  container "${Utils.pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}"
   input:
     tuple val(project_ids), path(library_dirs)

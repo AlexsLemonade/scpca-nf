@@ -2,7 +2,7 @@
 
 // RNA only libraries
 process make_unfiltered_sce {
-    container params.SCPCATOOLS_SLIM_CONTAINER
+    container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
     label 'mem_8'
     tag "${meta.unique_id}"
     input:
@@ -61,7 +61,7 @@ process make_unfiltered_sce {
 process make_unfiltered_sce_with_feature {
     label 'mem_8'
     tag "${rna_meta.unique_id}"
-    container params.SCPCATOOLS_SLIM_CONTAINER
+    container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
     input:
         tuple val(feature_meta), path(feature_alevin_dir),
               val(rna_meta), path(alevin_dir),
@@ -130,7 +130,7 @@ process make_unfiltered_sce_with_feature {
 }
 
 process make_unfiltered_sce_cellranger {
-    container params.SCPCATOOLS_SLIM_CONTAINER
+    container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
     label 'mem_8'
     tag "${meta.unique_id}"
     input:
@@ -188,7 +188,7 @@ process make_unfiltered_sce_cellranger {
 }
 
 process filter_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
@@ -227,7 +227,7 @@ process filter_sce {
 }
 
 process genetic_demux_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   label 'mem_8'
   tag "${meta.library_id}"
   input:
@@ -253,7 +253,7 @@ process genetic_demux_sce {
 }
 
 process cellhash_demux_sce {
-  container params.SCPCATOOLS_SEURAT_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_seurat_container, params.pullthrough_registry)
   label 'mem_8'
   tag "${meta.library_id}"
   input:
@@ -281,7 +281,7 @@ process cellhash_demux_sce {
 }
 
 process post_process_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   label 'mem_8'
   tag "${meta.unique_id}"
   input:

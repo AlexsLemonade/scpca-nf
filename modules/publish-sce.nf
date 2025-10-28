@@ -3,7 +3,7 @@
 
 
 process qc_publish_sce {
-  container params.SCPCATOOLS_REPORTS_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)
   label 'mem_16'
   tag "${meta.unique_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'

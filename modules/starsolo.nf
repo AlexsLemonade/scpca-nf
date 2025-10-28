@@ -1,7 +1,7 @@
 include { index_bam } from './samtools.nf'
 
 process starsolo {
-  container params.STAR_CONTAINER
+  container Utils.pullthroughContainer(params.star_container, params.pullthrough_registry)
   tag "${meta.run_id}"
   label 'cpus_8'
   label 'mem_32'

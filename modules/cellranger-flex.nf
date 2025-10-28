@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 process cellranger_flex_single {
-  container params.CELLRANGER_CONTAINER
+  container Utils.pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
   publishDir "${meta.cellranger_multi_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-cellranger-multi"
   label 'cpus_12'
@@ -58,7 +58,7 @@ process cellranger_flex_single {
 }
 
 process cellranger_flex_multi {
-  container params.CELLRANGER_CONTAINER
+  container Utils.pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
   publishDir "${meta.cellranger_multi_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-cellranger-multi"
   label 'cpus_12'

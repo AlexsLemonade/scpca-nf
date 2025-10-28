@@ -353,12 +353,12 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 
 ## Cell type annotation
 
-`scpca-nf` can perform cell type annotation using three complementary methods: 
+`scpca-nf` can perform cell type annotation using three complementary methods:
 
   - the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
   - the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign)
   - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
- 
+
 Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
 For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus).
 
@@ -380,13 +380,13 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Choosing reference datasets
 
-The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) to be used with `SingleR` and/or `CellAssign`. 
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) to be used with `SingleR` and/or `CellAssign`.
 All references listed in this table are publicly available on S3 for use with cell type annotation.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
 If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
 
-`SCimilarity` uses a single foundation model as a reference that is publicly available on S3. 
+`SCimilarity` uses a single foundation model as a reference that is publicly available on S3.
 For more information on the model, see [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
 
 #### `SingleR` references
@@ -708,7 +708,7 @@ Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genom
 You will need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Cell Ranger software from 10X Genomics](https://www.10xgenomics.com/support/software/cell-ranger/downloads).
 For licensing reasons, we cannot provide a Docker container with Cell Ranger for you.
 As an example, the Dockerfile that we used to build Cell Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/cellranger).
-After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.CELLRANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.cellranger_container` to the registry location and image ID in the `user_template.config` file.
 
 There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`.
 
@@ -734,7 +734,7 @@ You will also need to provide a [docker image](https://docs.docker.com/get-start
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
 As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger).
 
-After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.spaceranger_container` to the registry location and image ID in the `user_template.config` file.
 _Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
 
 
@@ -850,7 +850,7 @@ If any libraries contain HTO counts, the RNA counts will still be merged and exp
 
 The `build-cellbrowser.nf` workflow will create an instance of the [UCSC Cell Browser](https://cellbrowser.readthedocs.io/en/master/index.html)with the libraries in the run metadata file, organized by project.
 This uses as its primary input the `.h5ad` files produced by the main `scpca-nf` workflow, which must be run first.
-This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files. 
+This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files.
 
 In addition to the [run](#prepare-the-run-metadata-file) and [sample](#prepare-the-sample-metadata-file) metadata files required by the main workflow, the `build-cellbrowser.nf` workflow also requires a project metadata file.
 This is a tab separate file file that contains, at a minimum, a column labeled `scpca_project_id` that contains all of the projects to be included in the Cell Browser.

@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 process save_singler_refs {
-  container params.SCPCATOOLS_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
   publishDir "${params.singler_references_dir}"
   label 'mem_8'
   input:
@@ -24,7 +24,7 @@ process save_singler_refs {
 }
 
 process train_singler_models_transcriptome {
-  container params.SCPCATOOLS_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
   publishDir "${params.singler_models_dir}"
   label 'cpus_4'
   label 'mem_16'
@@ -61,7 +61,7 @@ process train_singler_models_transcriptome {
 }
 
 process train_singler_models_flex {
-  container params.SCPCATOOLS_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
   publishDir "${params.singler_models_dir}"
   label 'cpus_4'
   label 'mem_16'
@@ -92,7 +92,7 @@ process train_singler_models_flex {
 }
 
 process catalog_singler_models {
-  container params.TIDYVERSE_CONTAINER
+  container Utils.pullthroughContainer(params.tidyverse_container, params.pullthrough_registry)
   publishDir "${params.singler_models_dir}"
   input:
     val celltype_references
@@ -109,7 +109,7 @@ process catalog_singler_models {
 }
 
 process generate_cellassign_refs {
-  container params.SCPCATOOLS_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
   publishDir "${params.cellassign_ref_dir}"
   label 'mem_8'
   input:
@@ -139,7 +139,7 @@ process generate_cellassign_refs {
 }
 
 process catalog_cellassign_refs {
-  container params.TIDYVERSE_CONTAINER
+  container Utils.pullthroughContainer(params.tidyverse_container, params.pullthrough_registry)
   publishDir "${params.cellassign_ref_dir}"
   input:
     val celltype_references

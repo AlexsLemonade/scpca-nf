@@ -1,7 +1,7 @@
 // run inferCNV on an SCE object that has consensus cell types
 
 process run_infercnv {
-  container params.SCPCATOOLS_INFERCNV_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)
   publishDir (
     path: "${meta.infercnv_checkpoints_dir}",
     mode: 'copy',
@@ -54,7 +54,7 @@ process run_infercnv {
 
 
 process add_infercnv_to_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   label 'mem_8'
   tag "${meta.unique_id}"
   input:

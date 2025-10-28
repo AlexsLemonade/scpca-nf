@@ -1,6 +1,6 @@
 
 process mpileup {
-  container params.BCFTOOLS_CONTAINER
+  container Utils.pullthroughContainer(params.bcftools_container, params.pullthrough_registry)
   label 'cpus_2'
   tag "${meta.multiplex_run_id}"
   input:
