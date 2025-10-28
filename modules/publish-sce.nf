@@ -1,14 +1,19 @@
 
-// generate QC report from unfiltered and filtered SCE.rds files using scpcaTools
+// generate QC report from SCE files and publish SCE files and JSONs
+
 
 process qc_publish_sce {
   container params.SCPCATOOLS_REPORTS_CONTAINER
   label 'mem_16'
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
-    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds)
+    tuple val(meta), path(unfiltered_rds), path(filtered_rds), path(processed_rds), path(infercnv_heatmap_file)
     tuple path(template_dir), val(qc_template_file), val(celltype_template_file)
+    val(perform_celltyping)
+    path(validation_groups_file)
+    path(validation_markers_file)
+    path(validation_palette_file)
   output:
     tuple val(meta), path(unfiltered_out), path(filtered_out), path(processed_out), path(metadata_json), emit: data
     path qc_report, emit: report
@@ -18,18 +23,22 @@ process qc_publish_sce {
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     workflow_version = workflow.revision ?: workflow.manifest.version
 
+    // determine if we have a usable heatmap file
+    has_infercnv = infercnv_heatmap_file && infercnv_heatmap_file.isFile() && infercnv_heatmap_file.size() > 0
+
     // names for final output files
-    unfiltered_out = "${meta.library_id}_unfiltered.rds"
-    filtered_out = "${meta.library_id}_filtered.rds"
-    processed_out = "${meta.library_id}_processed.rds"
-    qc_report = "${meta.library_id}_qc.html"
-    metadata_json = "${meta.library_id}_metadata.json"
-    metrics_json = "${meta.library_id}_metrics.json"
+    unfiltered_out = "${meta.unique_id}_unfiltered.rds"
+    filtered_out = "${meta.unique_id}_filtered.rds"
+    processed_out = "${meta.unique_id}_processed.rds"
+    qc_report = "${meta.unique_id}_qc.html"
+    metadata_json = "${meta.unique_id}_metadata.json"
+    metrics_json = "${meta.unique_id}_metrics.json"
 
     // check for cell types
     // only provide report template if cell typing was performed and either singler or cellassign was used
-    has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+    // note that we use the value perform_celltyping, not the param here
+    has_celltypes = perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
+    celltype_report = "${meta.unique_id}_celltype-report.html" // rendered HTML
 
     """
     # move files for output
@@ -46,6 +55,10 @@ process qc_publish_sce {
     # generate report and supplemental cell type report, if applicable
     sce_qc_report.R \
       --report_template "${template_dir / qc_template_file}" \
+      --validation_groups_file ${validation_groups_file} \
+      --validation_markers_file ${validation_markers_file} \
+      --validation_palette_file ${validation_palette_file} \
+      ${has_infercnv ? "--infercnv_heatmap_file ${infercnv_heatmap_file}" : ""} \
       --library_id "${meta.library_id}" \
       --sample_id "${meta.sample_id}" \
       --project_id "${meta.project_id}" \
@@ -59,6 +72,7 @@ process qc_publish_sce {
       --technology "${meta.technology}" \
       --seq_unit "${meta.seq_unit}" \
       --genome_assembly "${meta.ref_assembly}" \
+      --infercnv_min_reference_cells ${params.infercnv_min_reference_cells} \
       --workflow_url "${workflow_url}" \
       --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}" \
@@ -72,15 +86,15 @@ process qc_publish_sce {
       --metrics_json "${metrics_json}"
     """
   stub:
-    unfiltered_out = "${meta.library_id}_unfiltered.rds"
-    filtered_out = "${meta.library_id}_filtered.rds"
-    processed_out = "${meta.library_id}_processed.rds"
-    qc_report = "${meta.library_id}_qc.html"
-    metadata_json = "${meta.library_id}_metadata.json"
-    metrics_json = "${meta.library_id}_metrics.json"
+    unfiltered_out = "${meta.unique_id}_unfiltered.rds"
+    filtered_out = "${meta.unique_id}_filtered.rds"
+    processed_out = "${meta.unique_id}_processed.rds"
+    qc_report = "${meta.unique_id}_qc.html"
+    metadata_json = "${meta.unique_id}_metadata.json"
+    metrics_json = "${meta.unique_id}_metrics.json"
 
     has_celltypes = params.perform_celltyping && (meta.singler_model_file || meta.cellassign_reference_file)
-    celltype_report = "${meta.library_id}_celltype-report.html" // rendered HTML
+    celltype_report = "${meta.unique_id}_celltype-report.html" // rendered HTML
 
     """
     touch ${unfiltered_out}

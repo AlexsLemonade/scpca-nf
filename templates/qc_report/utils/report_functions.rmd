@@ -1,5 +1,6 @@
-<!-- This document contains function definitions that are used by both
-`main_qc_report.rmd` and `celltypes_supplemental_report.rmd` but are not specific to cell typing -->
+<!-- This document contains function definitions that are used by the
+`main_qc_report.rmd` and child reports, but are not specific to cell typing. 
+-->
 
 
 ```{r}
@@ -24,6 +25,56 @@ determine_umap_point_size <- function(n_processed_cells) {
   )
 
   return(c(umap_point_size, umap_facet_point_size))
+}
+
+#' Make UMAP colored by clusters
+#'
+#' @param sce SingleCellExperiment object with UMAP embeddings
+#' @param point_size Point size. Default is 1
+#'
+#' @return UMAP plot as a ggplot2 object
+#'
+plot_clusters_umap <- function(
+    sce,
+    point_size = 1) {
+  # umap colored by clusters
+  clusters_plot <- scater::plotUMAP(
+    sce,
+    point_size = umap_point_size,
+    point_alpha = 0.5,
+    colour_by = "cluster"
+  ) +
+    # remove axis numbers and background grid
+    scale_x_continuous(labels = NULL, breaks = NULL) +
+    scale_y_continuous(labels = NULL, breaks = NULL) +
+    guides(
+      color = guide_legend(
+        title = "Cluster",
+        nrow = 2,
+        # more visible points in legend
+        override.aes = list(
+          alpha = 1,
+          size = 1.5
+        )
+      )
+    ) +
+    theme_bw() +
+    theme(
+      legend.position = "bottom",
+      aspect.ratio = 1
+    )
+
+  # Determine palette based on number of levels.
+  # If we have <=8, we can use a CVD-friendly palette (they generally don't have more than 8 colors).
+  #  Otherwise, we will use the default palette.
+  if (length(levels(sce$cluster)) <= 8) {
+    clusters_plot +
+      scale_color_brewer(palette = "Set2")
+  } else {
+    clusters_plot
+  }
+
+  return(clusters_plot)
 }
 ```
 
@@ -105,5 +156,37 @@ print_sample_metadata <- function(meta_list) {
   ")
     )
   }
+}
+```
+
+```{r}
+#' Format DT datatables
+#'
+#' @param df Data frame to format
+#'
+#' @return DT datatable
+format_datatable <- function(df) {
+  df |>
+    DT::datatable(
+      rownames = FALSE,
+      extensions = "Scroller",
+      options = list(
+        scroller = TRUE,
+        deferRender = TRUE,
+        scrollX = TRUE,
+        scrollY = 400,
+        scrollCollapse = TRUE,
+        language = list(search = "Filter:"),
+        columnDefs = list(list(
+          # render missing values as "NA" rather than blanks in the table
+          targets = "_all",
+          render = DT::JS(
+            "function(data, type, row, meta) {",
+            "return data === null ? 'NA' : data;",
+            "}"
+          )
+        ))
+      )
+    )
 }
 ```

@@ -46,9 +46,11 @@ process alevin_feature {
     run_dir = "${meta.run_id}-features"
     // Define umi geometry by 10x version
     umi_geom_map = [
-      '10Xv2': '1[17-26]',
-      '10Xv3': '1[17-28]',
-      '10Xv3.1': '1[17-28]'
+      '10xv2': '1[17-26]',
+      '10xv3': '1[17-28]',
+      '10xv3.1': '1[17-28]',
+      '10xv3_5prime': '1[17-28]',
+      '10xv4': '1[17-28]'
     ]
     tech_version = meta.technology.split('_').last()
     umi_geom = umi_geom_map[tech_version]
@@ -144,25 +146,25 @@ workflow map_quant_feature {
   main:
     //get and map the feature barcode files
     feature_barcodes_ch = feature_channel
-      .map{meta -> tuple(
-        meta.feature_barcode_file,
-        file("${meta.feature_barcode_file}", checkIfExists: true)
-      )}
+      .map{ meta ->
+        [meta.feature_barcode_file, file(meta.feature_barcode_file, checkIfExists: true)]
+      }
       .unique()
     index_feature(feature_barcodes_ch)
 
     // add the publish directories to the channel and branch based on existing rad files
     feature_ch = feature_channel
-      .map{
-        def meta = it.clone();
-        meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}";
-        meta.feature_rad_dir = "${meta.feature_rad_publish_dir}/${meta.run_id}-features";
-        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}";
+      .map{ meta_in ->
+        def meta = meta_in.clone()
+        meta.feature_rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}"
+        meta.feature_rad_dir = "${meta.feature_rad_publish_dir}/${meta.run_id}-features"
+        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}"
+
         meta // return modified meta object
       }
       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
       // if neither fastq or rad dir are present, run goes into missing_inputs branch
-      .branch{
+      .branch{ it ->
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -178,38 +180,46 @@ workflow map_quant_feature {
 
     // send run ids in feature_ch.missing_inputs to log
     feature_ch.missing_inputs
-      .subscribe{
+      .subscribe{ it ->
         log.error("The expected feature input fastq or rad files for ${it.run_id} are missing.")
       }
 
     // pull out files that need to be repeated
     feature_reads_ch = feature_ch.make_rad
-      // create tuple of [metadata, [Read1 files], [Read2 files]]
+      // create list of [metadata, [Read1 files], [Read2 files]]
+      // regex to ensure correct file names if R1 or R2 are in sample identifier
       // We start by including the feature_barcode file so we can combine with the indices, but that will be removed
-      .map{meta -> tuple(
-        meta.feature_barcode_file,
-        meta,
-        file("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true),
-        file("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
-      )}
+      .map{ meta ->
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
+        // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+        // check appropriate files were found
+        assert R1_files && R2_files: "No R1 and/or R2 files were found in ${meta.files_directory}"
+
+        [meta.feature_barcode_file, meta, R1_files, R2_files]
+      }
       .combine(index_feature.out, by: 0) // combine by the feature_barcode_file (reused indices, so combine is needed)
-      .map{it.drop(1)} // remove the first element (feature_barcode_file)
+      .map{ it -> it.drop(1) } // remove the first element (feature_barcode_file)
 
     // // if the rad directory has been created and repeat_mapping is set to false
-    // create tuple of metdata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
+    // create list of metadata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     feature_rad_ch = feature_ch.has_rad
-      .map{meta -> tuple(
-        Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
-        file(meta.feature_rad_dir, type: 'dir', checkIfExists: true)
-      )}
+      .map{ meta ->
+        [
+          Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
+          file(meta.feature_rad_dir, type: 'dir', checkIfExists: true)
+        ]
+      }
 
     // run Alevin on feature reads
     alevin_feature(feature_reads_ch)
 
     // combine output from running alevin step with channel containing libraries that skipped creating RAD file
     all_feature_rad_ch = alevin_feature.out.mix(feature_rad_ch)
-      .map{it.toList() + [file(it[0].barcode_file)]}
-
+      .map{ meta, run_dir ->
+        [meta, run_dir, file(meta.barcode_file)]
+      }
 
     // quantify feature reads
     fry_quant_feature(all_feature_rad_ch)

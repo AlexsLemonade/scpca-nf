@@ -1,7 +1,10 @@
 #!/usr/bin/env Rscript
 
 # get script location and activate renv
-script_dir <- file.path(rprojroot::find_root(rprojroot::is_git_root), "scripts/compare-metrics")
+script_dir <- file.path(
+  rprojroot::find_root(rprojroot::is_git_root),
+  "scripts/compare-metrics"
+)
 renv::load(script_dir)
 
 # parse options
@@ -17,11 +20,11 @@ option_list <- list(
   make_option(
     c("-c", "--comp_s3"),
     type = "character",
-    default = "s3://nextflow-ccdl-results/metrics-test", # temporary default for testing
-    # default = "s3://nextflow-ccdl-results/scpca-staging/results", # normal default
+    default = "s3://nextflow-ccdl-results/scpca-staging/results",
     help = "S3 URI for the bucket and prefix for the comparison S3 files"
   ),
-  make_option(c("-p", "--project_id"),
+  make_option(
+    c("-p", "--project_id"),
     type = "character",
     default = "all",
     help = "Project ID(s) to filter the metrics files. Default is all projects"

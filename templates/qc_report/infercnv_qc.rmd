@@ -1,0 +1,212 @@
+# inferCNV results summary
+
+<!--
+This file is meant to be run as a child report from `main_qc_report.rmd`
+-->
+
+```{r results = 'asis', eval = has_infercnv_attempt}
+# metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run
+# metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
+if (is.na(metadata(processed_sce)$infercnv_success) &&
+  sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV was not run because there were not enough normal reference cells present in the processed object.
+    At least {params$infercnv_min_reference_cells} normal reference cells are required, but only {sum(processed_sce$is_infercnv_reference)} cells were present.
+    </div>
+  ")
+} else if (!metadata(processed_sce)$infercnv_success) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV failed to run; no results are included in this section.
+    </div>
+  ")
+}
+knitr::knit_exit(fully = FALSE) # use fully = FALSE to ensure the main report continues knitting
+```
+
+
+This section provides information about the results from running `inferCNV` to quantify copy-number variation (CNV) events.
+For full information about the `inferCNV` algorithm, please refer to [their official documentation](https://github.com/broadinstitute/infercnv/wiki).
+
+`inferCNV` was run with the [`i6` HMM](https://github.com/broadinstitute/infercnv/wiki/infercnv-i6-HMM-type) to quantify CNV events for each chromosome arm.
+Presumed normal cells, as identified from the consensus cell types, were specified as `inferCNV`'s baseline normal reference.
+
+## inferCNV processing information  {.tabset}
+
+### Normal reference cells
+
+The following table shows the consensus cell types used in the normal reference, as well as the number of cells in the processed object.
+The cell types to include were chosen as those most likely to be normal cells based on this sample's diagnosis.
+
+These cells were all specified as a single reference group for `inferCNV` to consider jointly, rather than considering each cell type separately.
+Similarly, all other cells were treated as a single group of query cells.
+
+```{r}
+ref_celltypes <- metadata(processed_sce)$infercnv_reference_celltypes
+colData(processed_sce) |>
+  as.data.frame() |>
+  dplyr::filter(consensus_celltype_annotation %in% ref_celltypes) |>
+  dplyr::count(consensus_celltype_annotation) |>
+  dplyr::arrange(desc(n)) |>
+  dplyr::rename(
+    "Consensus cell type" = consensus_celltype_annotation,
+    "Number of cells" = n
+  ) |>
+  format_datatable()
+```
+
+### inferCNV options
+
+`inferCNV` was run with the following options:
+
+```{r}
+# remove options that don't make sense to share in a report
+metadata(processed_sce)$infercnv_options |>
+  purrr::discard_at(c("out_dir", "counts_md5")) |>
+  purrr::map(
+    \(x) {
+      if (is.null(x)) {
+        "NULL"
+      } else {
+        # chr_exclude and min_max_counts_per_cell are vectors, so stringify for display
+        paste(x, collapse = " ")
+      }
+    }
+  ) |>
+  as.data.frame() |>
+  tidyr::pivot_longer(
+    dplyr::everything(),
+    names_to = "inferCNV option",
+    values_to = "value"
+  ) |>
+  format_datatable()
+```
+
+## inferCNV heatmap
+
+In this section, we display the CNV heatmap exported by `inferCNV`.
+The top heatmap displays expression values for all reference cells, and the bottom heatmap displays expression values for all other query cells.
+Each row in the heatmap corresponds to a cell, and each column corresponds to a gene, shown ordered along chromosomes.
+Note that CNV events were detected separately for each chromosome arm, as shown along the x-axis.
+
+For more information on interpreting this heatmap, please refer to the [`inferCNV` documentation](https://github.com/broadinstitute/inferCNV/wiki/Interpreting-the-figure).
+
+```{r}
+# use rel_path = FALSE to ensure pandoc can find the heatmap, which is a full path
+knitr::include_graphics(params$infercnv_heatmap_file, rel_path = FALSE)
+```
+
+## UMAP colored by total CNV
+
+This section displays the library UMAP colored by the total per-cell CNV as estimated by `inferCNV`.
+This total CNV value was calculated by summing across all CNV events inferred within each cell.
+
+```{r eval = has_umap, message=FALSE, warning=FALSE}
+# create UMAP colored by infercnv_total_cnv
+scater::plotUMAP(
+  processed_sce,
+  point_size = umap_point_size, # defined in UMAP child report
+  point_alpha = 0.5,
+  color_by = "infercnv_total_cnv"
+) +
+  scale_color_viridis_c(name = "cividis") +
+  # remove axis numbers and background grid
+  scale_x_continuous(labels = NULL, breaks = NULL) +
+  scale_y_continuous(labels = NULL, breaks = NULL) +
+  guides(
+    color = guide_colorbar(title = "Total CNV events")
+  ) +
+  theme_bw() +
+  theme(aspect.ratio = 1)
+```
+
+## Total CNV distributions
+
+This section displays the distributions of total CNVs across cell types.
+
+The first ridge plot shows the CNV distributions between cell type groups: Those included in the `inferCNV` normal reference, versus all other query cells.
+
+The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
+Note that any cell types with fewer than 3 cells are not shown in this plot.
+
+```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
+# Prepare data frames for plotting
+total_cnv_df <- scuttle::makePerCellDF(
+  processed_sce,
+  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv"),
+  use.dimred = FALSE
+) |>
+  tibble::rownames_to_column("barcodes") |>
+  dplyr::add_count(is_infercnv_reference) |>
+  dplyr::mutate(
+    is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
+    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n})")
+  ) |>
+  dplyr::select(-n) |>
+  # rename for consistency with cell type report section
+  dplyr::mutate(
+    consensus_celltype_annotation = ifelse(
+      consensus_celltype_annotation == "Unknown",
+      "Unknown cell type",
+      consensus_celltype_annotation
+    )
+  )
+
+# this data frame version is used for the plot across celltypes
+total_cnv_lumped_df <- total_cnv_df |>
+  # keep only cell types with at least 3 cells
+  dplyr::add_count(consensus_celltype_annotation) |>
+  dplyr::filter(n >= 3) |>
+  dplyr::select(-n) |>
+  lump_wrap_celltypes() |>
+  # rename for convenience
+  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
+
+# join in consensus colors which were defined in the celltypes_qc.rmd child report,
+# but do separately to preserve factor order out of lump_wrap_celltypes()
+hex_df <- data.frame(consensus_hex) |>
+  tibble::rownames_to_column("celltype_lumped") |>
+  dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
+hex_df$celltype_lumped <- factor(hex_df$celltype_lumped, levels = levels(total_cnv_lumped_df$celltype_lumped))
+
+total_cnv_lumped_df <- total_cnv_lumped_df |>
+  dplyr::inner_join(hex_df, by = "celltype_lumped")
+
+# set total_cnv_lumped_df$celltype_lumped levels for plotting
+new_labels_df <- forcats::fct_count(total_cnv_lumped_df$celltype_lumped)
+new_labels <- glue::glue("{new_labels_df$f} (N={new_labels_df$n})")
+total_cnv_lumped_df <- total_cnv_lumped_df |>
+  dplyr::mutate(
+    celltype_lumped = factor(celltype_lumped, labels = new_labels) |>
+      forcats::fct_rev() # reverse for display in ridge plot
+  )
+
+# first plot: across cell type groups
+cell_group_plot <- ggplot(total_cnv_df) +
+  aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
+  ggridges::geom_density_ridges2(scale = 0.9) +
+  labs(
+    x = "Total CNV events per cell",
+    y = "Cell type group",
+    title = "CNV between reference and query cell groups"
+  ) +
+  theme(legend.position = "none")
+
+
+
+# second plot: across cell types
+cell_type_plot <- ggplot(total_cnv_lumped_df) +
+  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = consensus_hex) +
+  ggridges::geom_density_ridges2(scale = 0.9) +
+  scale_fill_identity() +
+  labs(
+    x = "Total CNV events per cell",
+    y = "Consensus cell type",
+    title = "CNV across consensus cell types"
+  ) +
+  theme(legend.position = "none")
+
+
+cell_group_plot / cell_type_plot + plot_layout(heights = c(1, 3))
+```

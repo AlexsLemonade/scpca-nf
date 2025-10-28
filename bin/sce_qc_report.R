@@ -24,6 +24,30 @@ option_list <- list(
     Only used if `celltype_report_file` is not empty"
   ),
   make_option(
+    opt_str = c("--validation_groups_file"),
+    type = "character",
+    default = NULL,
+    help = "path to tsv file mapping consensus cell types to validation groups to use for plotting"
+  ),
+  make_option(
+    opt_str = c("--validation_markers_file"),
+    type = "character",
+    default = NULL,
+    help = "path to tsv file with marker genes for each validation group"
+  ),
+  make_option(
+    opt_str = c("--validation_palette_file"),
+    type = "character",
+    default = NULL,
+    help = "Color palette for validation groups"
+  ),
+  make_option(
+    opt_str = c("--infercnv_heatmap_file"),
+    type = "character",
+    default = "",
+    help = "Path to inferCNV heatmap file, if inferCNV results exist"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_sce"),
     default = "",
     type = "character",
@@ -94,6 +118,12 @@ option_list <- list(
     type = "character",
     default = NA,
     help = "genome assembly used for mapping"
+  ),
+  make_option(
+    opt_str = c("--infercnv_min_reference_cells"),
+    type = "integer",
+    default = NA_integer_,
+    help = "Minimum number of normal reference cells required to have run inferCNV"
   ),
   make_option(
     opt_str = "--workflow_url",
@@ -263,6 +293,43 @@ jsonlite::write_json(
   pretty = TRUE
 )
 
+# check for consensus input files
+has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
+
+# check for validation groups files if consensus cell types are present
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_file does not exist" = file.exists(opt$validation_groups_file),
+    "Consensus cell types are present but the validation_markers_file does not exist" = file.exists(opt$validation_markers_file),
+    "Consensus cell types are present but the validation_palette_file does not exist" = file.exists(opt$validation_palette_file)
+  )
+
+  # read in info for consensus cell type validation
+  # validation groups and marker gene table urls
+  validation_groups_df <- readr::read_tsv(opt$validation_groups_file)
+  # read in validation markers
+  validation_markers_df <- readr::read_tsv(opt$validation_markers_file)
+  # define color palette
+  validation_palette_df <- readr::read_tsv(opt$validation_palette_file)
+} else {
+  validation_groups_df <- NULL
+  validation_markers_df <- NULL
+  validation_palette_df <- NULL
+}
+
+# check for inferCNV input
+has_infercnv <- !is.null(metadata(processed_sce)$infercnv_success)
+if (has_infercnv) {
+  stopifnot(
+    "inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file),
+    "infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells)
+  )
+  # MUST use an absolute path for pandoc to find the file in the report
+  heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
+} else {
+  heatmap_path <- NULL
+}
+
 # render main QC report
 scpcaTools::generate_qc_report(
   library_id = metadata_list$library_id,
@@ -274,7 +341,14 @@ scpcaTools::generate_qc_report(
   extra_params = list(
     seed = opt$seed,
     # this will only be used if cell types exist
-    celltype_report = opt$celltype_report_file
+    celltype_report = opt$celltype_report_file,
+    # only used if consensus cell types exist
+    validation_groups_df = validation_groups_df,
+    validation_markers_df = validation_markers_df,
+    validation_palette_df = validation_palette_df,
+    # only used if inferCNV was requested
+    infercnv_min_reference_cells = opt$infercnv_min_reference_cells,
+    infercnv_heatmap_file = heatmap_path
   )
 )
 
@@ -298,7 +372,11 @@ if (opt$celltype_report_file != "") {
       envir = new.env(),
       params = list(
         library = metadata_list$library_id,
-        processed_sce = processed_sce
+        processed_sce = processed_sce,
+        # only used if consensus cell types exist
+        validation_groups_df = validation_groups_df,
+        validation_markers_df = validation_markers_df,
+        validation_palette_df = validation_palette_df
       )
     )
   }

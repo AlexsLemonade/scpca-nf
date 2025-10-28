@@ -9,15 +9,23 @@ on:
 
 jobs:
   nf-stub-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Nextflow
-        uses: nf-core/setup-nextflow@v2
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          version: latest
+          java-version: "21"
+          distribution: "corretto"
+
+      - name: Setup Nextflow
+        #   uses: nf-core/setup-nextflow@v2
+        # manual install as the action is currently broken
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
 
       - name: Check Nextflow workflow
         run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
