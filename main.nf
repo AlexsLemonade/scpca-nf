@@ -146,9 +146,6 @@ workflow {
   def citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
   def cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
 
-  // used when a given file is not defined
-  def empty_file = "${projectDir}/assets/NO_FILE"
-
   // select runs to use
   def run_ids = []
   def project_ids = []
@@ -269,7 +266,7 @@ workflow {
   spaceranger_quant(runs_ch.spatial)
 
   // **** Process 10x flex RNA-seq data ***
-  flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file ?: empty_file))
+  flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file ?: [])) // if it's empty but needed, this would have failed already
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
     .branch{ _meta, _unfiltered, filtered ->
       continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
@@ -335,7 +332,7 @@ workflow {
     }
 
   // apply cellhash demultiplexing
-  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file ?: empty_file))
+  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file ?: []))
   combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing
@@ -404,14 +401,15 @@ workflow {
 
   // first mix any skipped libraries from both rna and feature libs
   no_filtered_ch = rna_sce_ch.skip_processing.mix(all_feature_ch.skip_processing, flex_sce_ch.skip_processing)
-    // add a fake processed file
+    // add [] as placeholder for fake processed file and infercnv heatmap
     .map{ meta, unfiltered, filtered ->
-      [meta, unfiltered, filtered, empty_file, []]
+      [meta, unfiltered, filtered, [], []]
     }
 
   // combine back with libraries that skipped filtering and post processing
   sce_output_ch = post_process_ch.skip_processing
     .map{ meta, unfiltered, filtered, processed ->
+      // [] as placeholder for infercnv heatmap
       [meta, unfiltered, filtered, processed, []]
     }
     .mix(cnv_celltype_ch, no_filtered_ch)
