@@ -142,9 +142,9 @@ workflow {
   def bulk_techs = ['single_end', 'paired_end']
   def spatial_techs = ['visium']
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
-  def rna_techs = single_cell_techs.findAll{it.startsWith('10xv')}
-  def citeseq_techs = single_cell_techs.findAll{it.startsWith('CITEseq')}
-  def cellhash_techs = single_cell_techs.findAll{it.startsWith('cellhash')}
+  def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
+  def citeseq_techs = single_cell_techs.findAll{ it.startsWith('CITEseq') }
+  def cellhash_techs = single_cell_techs.findAll{ it.startsWith('cellhash') }
 
   // used when a given file is not defined
   def empty_file = "${projectDir}/assets/NO_FILE"
@@ -165,7 +165,7 @@ workflow {
   }
 
   def ref_paths = Utils.readMeta(file(params.ref_json))
-  all_runs_ch = Channel.fromPath(params.run_metafile)
+  all_runs_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // use only the rows in the run_id list (run, library, or sample can match)
     // or run by project or submitter if the project parameter is set

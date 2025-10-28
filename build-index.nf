@@ -154,7 +154,7 @@ workflow {
   ref_paths = Utils.readMeta(file(params.ref_json))
 
   // read in metadata with all organisms to create references for
-  ref_ch = Channel.fromPath(params.ref_metadata)
+  ref_ch = channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .map{ it ->
       def reference_name = "${it.organism}.${it.assembly}.${it.version}"
