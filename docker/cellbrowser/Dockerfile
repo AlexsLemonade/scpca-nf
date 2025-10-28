@@ -21,6 +21,8 @@ WORKDIR /app
 COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
 COPY --from=build /shell-hook.sh /shell-hook.sh
 
-ENTRYPOINT ["/bin/bash", "/shell-hook.sh"]
+# ensure pixi environment is in PATH, as Singularity may not run ENTRYPOINT
+ENV PATH="/app/.pixi/envs/default/bin:${PATH}"
 
+ENTRYPOINT ["/bin/bash", "/shell-hook.sh"]
 CMD ["bash"]
