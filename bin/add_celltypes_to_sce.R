@@ -487,25 +487,32 @@ if (assign_consensus) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
 
-    diagnosis <- metadata(sce)$sample_metadata$diagnosis
+    # unique in case of multiplexed
+    diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
+    stopifnot("Could not determine diagnosis from processed SCE metadata" = !is.null(diagnosis))
 
-    # Get the broad_diagnosis from the map file if possible, or use the sample diagnosis otherwise
-    broad_diagnosis <- diagnosis
-    if (file.exists(opt$diagnosis_groups_ref)) {
-      diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
+    # If we have multiple diagnoses (multiplexed), we require a group mapping file
+    if (length(diagnosis) > 1) {
+      stopifnot(
+        "To perform CNV inference on multiplexed samples with different diagnoses, a diagnosis group metadata file must be provided." =
+          file.exists(opt$diagnosis_groups_ref)
+      )
+    }
 
-      # Only use the map file if the sample diagnosis exists
-      # It might _not_ exist if external users don't provide their own opt$diagnosis_groups_ref file
-      # but also don't override the default file in config to be empty/NA
-      if (diagnosis %in% diagnosis_map_df$sample_diagnosis) {
-        broad_diagnosis <- diagnosis_map_df |>
-          dplyr::filter(sample_diagnosis == diagnosis) |>
-          dplyr::pull("diagnosis_group")
-      }
+    # If the map file does not exist, specify the sample diagnosis as the broad diagnosis
+    if (!file.exists(opt$diagnosis_groups_ref)) {
+      broad_diagnosis <- diagnosis
+    } else {
+      broad_diagnosis <- readr::read_tsv(opt$diagnosis_groups_ref) |>
+        dplyr::filter(sample_diagnosis %in% diagnosis) |>
+        dplyr::pull("diagnosis_group") |>
+        # in case of multiplexed
+        unique()
     }
 
     stopifnot(
-      "Could not determine known diagnosis group from sample diagnosis." =
+      "A single broad diagnosis for the library could not be identified" = length(broad_diagnosis) == 1,
+      "Could not determine a single known diagnosis group from sample diagnosis." =
         broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
     )
 
