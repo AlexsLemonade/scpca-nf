@@ -1,3 +1,5 @@
+// Include utility functions
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
 include { index_bam } from './samtools.nf'
 
 process bulkmap_star {

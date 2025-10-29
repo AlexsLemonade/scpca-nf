@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// Include utility functions
+include { getVersions; makeJson; readMeta; getMetaVal } from './lib/utils.nf'
+
 // Workflow to merge SCE objects into a single object.
 // This workflow does NOT perform integration, i.e. batch correction.
 
@@ -214,7 +217,7 @@ workflow {
       else if (!(meta_json.exists() && meta_json.size() > 0)) {
         log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if (Utils.getMetaVal(meta_json, "processed_cells") < 3) {
+      else if (getMetaVal(meta_json, "processed_cells") < 3) {
         log.warn("Library ${library_id} has fewer than 3 cells. This library will not be included in the merged object.")
       }
     }
@@ -227,7 +230,7 @@ workflow {
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
     .filter{ _project_id, library_id, processed, meta_json ->
-      (processed.exists() && processed.size() > 0 && Utils.getMetaVal(meta_json, "processed_cells") >= 3)
+      (processed.exists() && processed.size() > 0 && getMetaVal(meta_json, "processed_cells") >= 3)
       || library_id.startsWith("STUBL")
     }
     // remove metadata file

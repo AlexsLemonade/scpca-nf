@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// include utility functions
+include { readMeta; makeJson; getMetaVal; parseNA; getVersions } from './lib/utils.nf'
+
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
 include { map_quant_feature } from './modules/af-features.nf'
@@ -14,6 +17,7 @@ include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { call_cnvs } from './modules/call-cnvs.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
+
 
 def check_parameters() {
   // parameter check function
@@ -164,7 +168,7 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  def ref_paths = Utils.readMeta(file(params.ref_json))
+  def ref_paths = readMeta(file(params.ref_json))
   all_runs_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // use only the rows in the run_id list (run, library, or sample can match)
@@ -201,18 +205,18 @@ workflow {
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
         unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : it.scpca_library_id,
-        project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
-        submitter: Utils.parseNA(it.submitter),
+        project_id: parseNA(it.scpca_project_id)?: "no_project",
+        submitter: parseNA(it.submitter),
         technology: it.technology.toLowerCase(),
-        assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
+        assay_ontology_term_id: parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
-        submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
-        openscpca_cell_types_file: Utils.parseNA(it.openscpca_cell_types_file),
-        feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
-        feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
-        files_directory: Utils.parseNA(it.files_directory),
-        slide_serial_number: Utils.parseNA(it.slide_serial_number),
-        slide_section: Utils.parseNA(it.slide_section),
+        submitter_cell_types_file: parseNA(it.submitter_cell_types_file),
+        openscpca_cell_types_file: parseNA(it.openscpca_cell_types_file),
+        feature_barcode_file: parseNA(it.feature_barcode_file),
+        feature_barcode_geom: parseNA(it.feature_barcode_geom),
+        files_directory: parseNA(it.files_directory),
+        slide_serial_number: parseNA(it.slide_serial_number),
+        slide_section: parseNA(it.slide_section),
         ref_assembly: it.sample_reference,
         ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
         ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",

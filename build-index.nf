@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+include { getVersions; makeJson; readMeta; getMetaVal } from './lib/utils.nf'
+
 include { build_celltype_ref } from './build-celltype-ref.nf'
 
 // generate fasta and annotation files with spliced cDNA + intronic reads
@@ -151,7 +153,7 @@ workflow {
   build_all = params.build_refs == "All"
 
   // read in json file with all reference paths
-  ref_paths = Utils.readMeta(file(params.ref_json))
+  ref_paths = readMeta(file(params.ref_json))
 
   // read in metadata with all organisms to create references for
   ref_ch = channel.fromPath(params.ref_metadata)

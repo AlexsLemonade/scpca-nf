@@ -1,5 +1,7 @@
 // generate unfiltered and filtered RDS files using scpcaTools
 
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+
 // RNA only libraries
 process make_unfiltered_sce {
     container params.SCPCATOOLS_SLIM_CONTAINER

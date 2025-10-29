@@ -1,4 +1,7 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+
+
 process mpileup {
   container params.BCFTOOLS_CONTAINER
   label 'cpus_2'
