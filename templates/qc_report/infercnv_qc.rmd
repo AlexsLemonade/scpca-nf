@@ -15,7 +15,7 @@ if (is.na(metadata(processed_sce)$infercnv_success) &&
     At least {params$infercnv_min_reference_cells} normal reference cells are required, but only {sum(processed_sce$is_infercnv_reference)} cells were present.
     </div>
   ")
-} else if (isFALSE(metadata(processed_sce)$infercnv_success)) {
+} else if (!(metadata(processed_sce)$infercnv_success)) {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV failed to run; no results are included in this section.

@@ -322,14 +322,14 @@ if (has_consensus) {
 # if TRUE, we need infercnv_min_reference_cells and a heatmap file
 infercnv_success <- metadata(processed_sce)$infercnv_success
 heatmap_path <- NULL
-if (!isFALSE(infercnv_success)) {
+if (is.na(infercnv_success) | infercnv_success) {
   stopifnot("infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells))
   if (isTRUE(infercnv_success)) {
     stopifnot("inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file))
     # MUST use an absolute path for pandoc to find the file in the report
     heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
   }
-} 
+}
 
 # render main QC report
 scpcaTools::generate_qc_report(
