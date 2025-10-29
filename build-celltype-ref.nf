@@ -164,7 +164,7 @@ workflow build_celltype_ref {
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
 
   // create channel of cell type ref files and names
-  celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
+  celltype_refs_ch = channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .branch{ it ->
       singler: it.celltype_method == "SingleR"

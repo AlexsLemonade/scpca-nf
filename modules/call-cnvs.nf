@@ -84,7 +84,7 @@ workflow call_cnvs {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
     // read in sample metadata and make a list of cell line samples; we won't run inferCNV on these
-    cell_line_samples = Channel.fromPath(params.sample_metafile)
+    cell_line_samples = channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
       .filter{ it.is_cell_line.toBoolean() }
       .map{ it -> it.scpca_sample_id }
@@ -163,7 +163,6 @@ workflow call_cnvs {
     // note we keep the heatmap file to eventually stage for QC report
     add_infercnv_to_sce(add_infercnv_results_ch)
 
-
     export_channel = add_infercnv_to_sce.out
       .map{ meta, processed_sce, infercnv_heatmap_file ->
         [meta.unique_id, meta, processed_sce, infercnv_heatmap_file]
@@ -176,7 +175,9 @@ workflow call_cnvs {
         by: 0, failOnMismatch: true, failOnDuplicate: true
       )
       // rearrange back to [meta, unfiltered, filtered, processed, infercnv_heatmap_file]
-      .map{ it -> it.drop(1) }
+      .map{ _unique_id, meta, processed_sce, heatmap_file, unfiltered_sce, filtered_sce ->
+        [meta, unfiltered_sce, filtered_sce, processed_sce, heatmap_file]
+      }
       // mix in cell line libraries which we did not run inferCNV on
       .mix(
         // add in an empty file for heatmap placeholder first

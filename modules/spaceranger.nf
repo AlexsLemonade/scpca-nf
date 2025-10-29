@@ -102,7 +102,7 @@ def getCRsamples(files_dir) {
   if (!files_dir) { // return empty string if no files directory
     return ""
   }
-  def fastq_files = file(files_dir).list().findAll{ it -> it.contains('.fastq.gz') }
+  def fastq_files = files("${files_dir}/*.fastq.gz")
   def samples = []
   fastq_files.each{ it ->
     // append sample names to list, using regex to extract element before S001, etc.

@@ -216,7 +216,7 @@ workflow annotate_celltypes {
   main:
 
     // read in sample metadata and make a list of cell line samples; these won't be cell typed
-    cell_line_samples = Channel.fromPath(params.sample_metafile)
+    cell_line_samples = channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
       .filter{ it.is_cell_line.toBoolean() }
       .map{ it -> it.scpca_sample_id }
@@ -237,7 +237,7 @@ workflow annotate_celltypes {
       }
 
     // channel with [project_id, singler_model_file, cellassign_reference_file]
-    celltype_ch = Channel.fromPath(params.project_celltype_metafile)
+    celltype_ch = channel.fromPath(params.project_celltype_metafile)
       .splitCsv(header: true, sep: '\t')
       .map{ it ->
         def singler_model_file = Utils.parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : ''
