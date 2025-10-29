@@ -143,7 +143,7 @@ workflow {
   def spatial_techs = ['visium']
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
-  def citeseq_techs = single_cell_techs.findAll{ it.startsWith('CITEseq') }
+  def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
   def cellhash_techs = single_cell_techs.findAll{ it.startsWith('cellhash') }
 
   // used when a given file is not defined
