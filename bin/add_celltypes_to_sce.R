@@ -492,8 +492,8 @@ if (assign_consensus) {
     # If we have multiple diagnoses (multiplexed), we require a group mapping file
     if (length(diagnosis) > 1) {
       stopifnot(
-        "To perform CNV inference on multiplexed samples with different diagnoses, a diagnosis group metadata file must be provided." = 
-        file.exists(opt$diagnosis_groups_ref) 
+        "To perform CNV inference on multiplexed samples with different diagnoses, a diagnosis group metadata file must be provided." =
+          file.exists(opt$diagnosis_groups_ref)
       )
     }
 
@@ -509,8 +509,8 @@ if (assign_consensus) {
     }
 
     stopifnot(
-     "A single broad diagnosis for the library could not be identified" = length(broad_diagnosis) == 1,
-     "Could not determine a single known diagnosis group from sample diagnosis." =
+      "A single broad diagnosis for the library could not be identified" = length(broad_diagnosis) == 1,
+      "Could not determine a single known diagnosis group from sample diagnosis." =
         broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
     )
 

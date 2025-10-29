@@ -329,7 +329,7 @@ if (!isFALSE(infercnv_success)) {
     # MUST use an absolute path for pandoc to find the file in the report
     heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
   }
-} 
+}
 
 # render main QC report
 scpcaTools::generate_qc_report(
