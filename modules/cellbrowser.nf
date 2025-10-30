@@ -2,7 +2,7 @@
 include { pullthroughContainer } from '../lib/utils.nf'
 
 process cellbrowser_library {
-  container pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
 
   input:

@@ -3,7 +3,7 @@
 include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process cellranger_flex_single {
-  container pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.cellranger_container, params.pullthrough_registry)}"
   publishDir "${meta.cellranger_multi_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-cellranger-multi"
   label 'cpus_12'
@@ -59,7 +59,7 @@ process cellranger_flex_single {
 }
 
 process cellranger_flex_multi {
-  container pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.cellranger_container, params.pullthrough_registry)}"
   publishDir "${meta.cellranger_multi_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-cellranger-multi"
   label 'cpus_12'

@@ -31,7 +31,7 @@ def check_parameters() {
 
 // merge individual SCE objects into one SCE object
 process merge_sce {
-  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${merge_group_id}"
   label 'mem_max'
   label 'long_running'
@@ -63,7 +63,7 @@ process merge_sce {
 
 // create merge report
 process generate_merge_report {
-  container pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)}"
   tag "${merge_group_id}"
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_max'
@@ -91,7 +91,7 @@ process generate_merge_report {
 }
 
 process export_anndata {
-  container pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)}"
   label 'mem_max'
   label 'long_running'
   tag "${merge_group_id}"

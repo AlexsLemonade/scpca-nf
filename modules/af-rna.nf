@@ -4,7 +4,7 @@ include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } fr
 
 // generates RAD file using alevin
 process alevin_rad {
-  container pullthroughContainer(params.salmon_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   label 'cpus_12'
   label 'mem_24'
   label 'disk_big'
@@ -59,7 +59,7 @@ process alevin_rad {
 
 // quantify rna from RAD input
 process fry_quant_rna {
-  container pullthroughContainer(params.alevinfry_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.alevinfry_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_16'
   tag "${meta.run_id}-rna"

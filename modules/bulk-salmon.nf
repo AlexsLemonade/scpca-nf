@@ -2,7 +2,7 @@
 include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process fastp {
-  container pullthroughContainer(params.fastp_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.fastp_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.library_id}-bulk"
@@ -29,7 +29,7 @@ process fastp {
 }
 
 process salmon {
-  container pullthroughContainer(params.salmon_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   label 'cpus_12'
   label 'mem_24'
   tag "${meta.library_id}-bulk"
@@ -68,7 +68,7 @@ process salmon {
 }
 
 process merge_bulk_quants {
-  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_8'
   publishDir "${params.results_dir}/${meta.project_id}/bulk", mode: 'copy'
   tag "${meta.project_id}"

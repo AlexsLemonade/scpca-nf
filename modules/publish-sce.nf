@@ -4,7 +4,7 @@
 include { pullthroughContainer } from '../lib/utils.nf'
 
 process qc_publish_sce {
-  container pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)}"
   label 'mem_16'
   tag "${meta.unique_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'

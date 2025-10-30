@@ -3,7 +3,7 @@
 include { getVersions; makeJson; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process run_infercnv {
-  container pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)}"
   publishDir (
     path: "${meta.infercnv_checkpoints_dir}",
     mode: 'copy',
@@ -56,7 +56,7 @@ process run_infercnv {
 
 
 process add_infercnv_to_sce {
-  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_8'
   tag "${meta.unique_id}"
   input:

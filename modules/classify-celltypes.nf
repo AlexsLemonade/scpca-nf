@@ -2,7 +2,7 @@
 include { getVersions; makeJson; readMeta; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
 
 process classify_singler {
-  container pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir (
     path: "${meta.celltype_checkpoints_dir}",
     mode: 'copy'
@@ -45,7 +45,7 @@ process classify_singler {
 
 
 process classify_cellassign {
-  container pullthroughContainer(params.scpcatools_scvi_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_scvi_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
@@ -103,7 +103,7 @@ process classify_cellassign {
 }
 
 process classify_scimilarity {
-  container pullthroughContainer(params.scpcatools_scimilarity_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_scimilarity_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
@@ -158,7 +158,7 @@ process classify_scimilarity {
 }
 
 process add_celltypes_to_sce {
-  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_4'
   label 'cpus_2'
   tag "${meta.unique_id}"

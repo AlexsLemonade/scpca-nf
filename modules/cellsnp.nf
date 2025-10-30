@@ -2,7 +2,7 @@
 include { getVersions; makeJson; pullthroughContainer } from '../lib/utils.nf'
 
 process cellsnp {
-  container pullthroughContainer(params.cellsnp_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.cellsnp_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_16'
   tag "${meta_star.run_id}"
@@ -42,7 +42,7 @@ process cellsnp {
 }
 
 process vireo {
-  container pullthroughContainer(params.vireo_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.vireo_container, params.pullthrough_registry)}"
   publishDir "${meta.vireo_publish_dir}", mode: 'copy'
   tag "${meta.run_id}"
   label 'cpus_8'

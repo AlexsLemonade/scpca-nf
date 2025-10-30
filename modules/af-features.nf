@@ -3,7 +3,7 @@ include { getVersions; makeJson; readMeta; pullthroughContainer } from '../lib/u
 
 //index a feature barcode file
 process index_feature{
-  container pullthroughContainer(params.salmon_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   tag "${id}"
 
   input:
@@ -31,7 +31,7 @@ process index_feature{
 
 // generates RAD file for alevin feature matrix using alevin
 process alevin_feature {
-  container pullthroughContainer(params.salmon_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-features"
@@ -91,7 +91,7 @@ process alevin_feature {
 
 // quantify features from rad input
 process fry_quant_feature {
-  container pullthroughContainer(params.alevinfry_container, params.pullthrough_registry)
+  container "${pullthroughContainer(params.alevinfry_container, params.pullthrough_registry)}"
   label 'cpus_8'
   tag "${meta.run_id}-features"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
