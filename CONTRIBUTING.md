@@ -196,19 +196,18 @@ bad.map{
 ```
 
 
-In `.map{ }` closures, the codebase follows them convention that `it[0]` will refer to the `meta` map/dictionary that carries library/sample metadata through the workflow.
-If using only `it` as the explicit variable would require additional indexing, we prefer to be even more explicit:
+In `.map{ }` closures, the codebase follows the convention that `it[0]` will refer to the `meta` map/dictionary that carries library/sample metadata through the workflow.
+If specifying just `it` as the explicit closure variable would require additional indexing during the channel transformation, we prefer to be even more explicit:
 
 ```groovy
 // do this:
-// note that we preface unused variables with underscores
 good.map{ meta, _unfiltered, _filtered, processed -> 
   [meta, processed]
 }
 
 // don't do this:
 bad.map{ it -> 
-  [it[0], processed[3]]
+  [it[0], it[3]]
 }
 ```
 
@@ -217,11 +216,11 @@ bad.map{ it ->
 We generally adopt these spacing conventions:
 
 ```groovy
-// For closures, use spaces surrounding braces:
+// For closures, use spaces surrounding braces {}:
 good.map{ it -> [it.unique_id, it] } // do this
 bad.map{it -> [it.unique_id, it]} // not this
 
-// Parentheses do not need spaces:
+// Parentheses () and brackets [] do not need spaces, e.g.:
 good.join(other_thing) // do this
 bad.join( other_thing ) // not this
 
