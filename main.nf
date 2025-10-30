@@ -266,7 +266,11 @@ workflow {
   spaceranger_quant(runs_ch.spatial)
 
   // **** Process 10x flex RNA-seq data ***
-  flex_quant(runs_ch.flex, flex_probesets, file(params.cellhash_pool_file ?: [])) // if it's empty but needed, this would have failed already
+  flex_quant(
+    runs_ch.flex, 
+    flex_probesets, 
+    params.cellhash_pool_file ? file(params.cellhash_pool_file) : []
+  )
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
     .branch{ _meta, _unfiltered, filtered ->
       continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
@@ -332,7 +336,10 @@ workflow {
     }
 
   // apply cellhash demultiplexing
-  cellhash_demux_ch = cellhash_demux_sce(feature_sce_ch.cellhash, file(params.cellhash_pool_file ?: []))
+  cellhash_demux_ch = cellhash_demux_sce(
+    feature_sce_ch.cellhash, 
+    params.cellhash_pool_file ? file(params.cellhash_pool_file): []
+  )
   combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)
 
   // join SCE outputs and branch by genetic multiplexing

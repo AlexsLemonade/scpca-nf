@@ -201,7 +201,7 @@ process filter_sce {
     // Checks for whether we have ADT data:
     // - feature_type should be adt
     // - barcode file should have been provided
-    adt_present = meta.feature_type == 'adt' & feature_barcode_file != []
+    adt_present = meta.feature_type == 'adt' && feature_barcode_file
 
     """
     filter_sce.R \
