@@ -81,7 +81,7 @@ jobs:
             ${{ env.AWS_REGISTRY }}/${{ env.AWS_PREFIX }}/${{ env.GH_REGISTRY_USER }}/${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{raw}}
-            type=edge,branch=main
+            type=edge,branch=development
             type=ref,event=branch
 
       - name: Set up Docker Buildx
