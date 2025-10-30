@@ -1,9 +1,9 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 
 process mpileup {
-  container Utils.pullthroughContainer(params.bcftools_container, params.pullthrough_registry)
+  container pullthroughContainer(params.bcftools_container, params.pullthrough_registry)
   label 'cpus_2'
   tag "${meta.multiplex_run_id}"
   input:

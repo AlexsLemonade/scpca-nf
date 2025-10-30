@@ -1,13 +1,13 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-include { getVersions; makeJson; readMeta; getMetaVal } from './lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from './lib/utils.nf'
 
 include { build_celltype_ref } from './build-celltype-ref.nf'
 
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference {
-  container Utils.pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
+  container pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
   // publish fasta and annotation files within reference directory
   publishDir "${params.ref_rootdir}/${meta.ref_dir}", mode: 'copy'
   label 'mem_32'
@@ -35,7 +35,7 @@ process generate_reference {
 
 
 process salmon_index {
-  container Utils.pullthroughContainer(params.salmon_container, params.pullthrough_registry)
+  container pullthroughContainer(params.salmon_container, params.pullthrough_registry)
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
@@ -70,7 +70,7 @@ process salmon_index {
 }
 
 process cellranger_index {
-  container Utils.pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
+  container pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
@@ -97,7 +97,7 @@ process cellranger_index {
 }
 
 process star_index {
-  container Utils.pullthroughContainer(params.star_container, params.pullthrough_registry)
+  container pullthroughContainer(params.star_container, params.pullthrough_registry)
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
@@ -129,7 +129,7 @@ process star_index {
 }
 
 process infercnv_gene_order {
-  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   label 'mem_8'
   publishDir "${params.ref_rootdir}/${meta.ref_dir}/infercnv", mode: 'copy'
   input:

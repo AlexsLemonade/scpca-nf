@@ -1,8 +1,8 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process spaceranger {
-  container Utils.pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)
+  container pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
@@ -48,7 +48,7 @@ process spaceranger {
 }
 
 process spaceranger_publish {
-  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:

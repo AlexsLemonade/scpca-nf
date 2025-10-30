@@ -92,3 +92,27 @@ def getVersions(WorkflowMetadata workflow, NextflowMeta nextflow) {
     nextflow_version: nextflow.version.toString(),
   ]
 }
+
+
+/**
+  * Make a pullthrough container URL if a pullthrough URL is provided
+  *
+  * @param image_url The original image URL
+  * @param pullthrough_url The pullthrough URL to use
+  * @return The modified image URL with the pullthrough prefix
+  */
+def pullthroughContainer(image_url, pullthrough_url = ""){
+  def container = image_url
+  def pullthrough_prefixes = [
+    "public.ecr.aws": "public_ecr_aws",
+    "quay.io": "quay_io",
+    "ghcr.io": "ghcr_io",
+  ]
+  if (pullthrough_url) {
+    def registry = container.tokenize('/')[0]
+    if (registry in pullthrough_prefixes.keySet()) {
+      container = container.replaceFirst(registry, "${pullthrough_url}/${pullthrough_prefixes[registry]}")
+    }
+  }
+  return container
+}

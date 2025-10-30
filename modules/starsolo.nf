@@ -1,9 +1,9 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 include { index_bam } from './samtools.nf'
 
 process starsolo {
-  container Utils.pullthroughContainer(params.star_container, params.pullthrough_registry)
+  container pullthroughContainer(params.star_container, params.pullthrough_registry)
   tag "${meta.run_id}"
   label 'cpus_8'
   label 'mem_32'

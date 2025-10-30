@@ -1,6 +1,8 @@
+include { pullthroughContainer} from '../lib/utils.nf'
+
 // perform graph-based clustering on a processed SCE object
 process cluster_sce {
-  container Utils.pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
+  container pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)
   label 'mem_8'
   tag "${meta.library_id}"
   input:

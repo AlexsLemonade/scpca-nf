@@ -1,6 +1,8 @@
 
+include { pullthroughContainer } from '../lib/utils.nf'
+
 process cellbrowser_library {
-  container "${Utils.pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
+  container pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)
   tag "${meta.library_id}"
 
   input:
@@ -44,7 +46,7 @@ process cellbrowser_library {
 }
 
 process cellbrowser_site {
-  container "${Utils.pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
+  container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}"
   input:
     tuple val(project_ids), path(library_dirs)
