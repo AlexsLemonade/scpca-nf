@@ -1,0 +1,15 @@
+diagnosis_group	celltype_groups
+B-cell leukemia	dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast
+T-cell leukemia	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,endothelial cell,pericyte,fibroblast
+Acute myeloid leukemia	B cell,innate lymphoid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast
+Mixed phenotype acute leukemia	endothelial cell,pericyte,fibroblast
+Sarcoma	B cell,dendritic cell,innate lymphoid cell,macrophage,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Brain and CNS	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Adrenal cortex carcinoma	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Gastrointestinal stromal tumor	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell
+Germ cell tumor	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Hepatoblastoma	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Melanoma	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast
+Rhabdoid tumor	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast
+Wilms tumor	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+Neuroblastoma	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast

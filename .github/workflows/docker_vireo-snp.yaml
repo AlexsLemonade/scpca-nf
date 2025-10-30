@@ -1,0 +1,104 @@
+name: Build Docker image scpca-nf/vireo-snp
+
+concurrency:
+  # only one run per branch at a time
+  group: "docker_vireo-snp_${{ github.ref }}"
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+    paths:
+      - "docker/vireo-snp/Dockerfile"
+      - "docker/vireo-snp/.dockerignore"
+      - "docker/vireo-snp/pixi.lock"
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - "docker/vireo-snp/Dockerfile"
+      - "docker/vireo-snp/.dockerignore"
+      - "docker/vireo-snp/pixi.lock"
+    tags:
+      - "v*.*.*"
+
+env:
+  IMAGE_NAME: scpca-nf/vireo-snp
+  GH_REGISTRY: ghcr.io
+  GH_REGISTRY_USER: alexslemonade
+  AWS_REGISTRY: 997241705947.dkr.ecr.us-east-1.amazonaws.com
+  AWS_PREFIX: ghcr_io
+
+jobs:
+  test-build:
+    name: Test Build Docker Image
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: "{{defaultContext}}:docker/vireo-snp"
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-push:
+    name: Build and Push Docker Image
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::997241705947:role/gha-ecr-access-role
+          role-session-name: githubActionSession
+          aws-region: us-east-1
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GH_REGISTRY }}/${{ env.GH_REGISTRY_USER }}/${{ env.IMAGE_NAME }}
+            ${{ env.AWS_REGISTRY }}/${{ env.AWS_PREFIX }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{raw}}
+            type=edge,branch=main
+            type=ref,event=branch
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GH_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: "{{defaultContext}}:docker/vireo-snp"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

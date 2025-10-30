@@ -7,10 +7,13 @@
   - [Testing the workflow with stub processes](#testing-the-workflow-with-stub-processes)
   - [Running `scpca-nf` for ScPCA Portal release](#running-scpca-nf-for-scpca-portal-release)
   - [Processing example data](#processing-example-data)
+    - [Processing example 10x Flex data](#processing-example-10x-flex-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding additional organisms](#adding-additional-organisms)
   - [Adding additional cell type references](#adding-additional-cell-type-references)
+  - [Adding additional gene order files](#adding-additional-gene-order-files)
 - [Running the merge workflow](#running-the-merge-workflow)
+- [Comparing results between `scpca-nf` runs](#comparing-results-between-scpca-nf-runs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -20,12 +23,12 @@ This section provides instructions for running the main workflow, found in [`mai
 Note that there are three other workflows:
 
 - [`build-index.nf`](build-index.nf) for building reference indices (see #adding-additional-organisms)
-- [`build-celltype-ref.nf`](build-cellltype-ref.nf) for creating cell type annotation references (see #adding-additional-cell-type-references)
+- [`build-celltype-ref.nf`](build-celltype-ref.nf) for creating cell type annotation references (see #adding-additional-cell-type-references)
 - [`merge.nf`](merge.nf) for merging processed objects produced by the main workflow (see #running-the-merge-workflow)
 
 The instructions below assume that you are a member of the Data Lab with access to AWS.
 Most of the workflow settings described are configured for the ALSF Childhood Cancer Data Lab computational infrastructure.
-To process samples that are not part of the ScPCA project, please see the [instructions on using `scpca-nf` with external data](external-data-instructions.md).
+To process samples that are not part of the ScPCA project, please see the [instructions on using `scpca-nf` with external data](external-instructions.md).
 
 To process single-cell and single-nuclei samples using `scpca-nf` you will need access to at least 24 GB of RAM and 12 CPUs, so we recommend using AWS batch.
 The first step in running the workflow is ensuring that your AWS credentials are configured.
@@ -53,7 +56,7 @@ There are several flags and/or parameters which you may additionally wish to spe
 - Workflow parameters:
   - `--run_ids list,of,ids`: A custom comma-separated list of ids (run, library, or sample) for this run.
   - `--project list,of,project_ids`: A custom comma-separated list of project ids for this run
-    [The default](config/profile_ccdl.config) run ids are `"SCPCR000001,SCPCS000101"`.
+    [The default](config/ccdl_profiles.config) run ids are `"SCPCR000001,SCPCS000101"`.
   - `--repeat_mapping`: Use this flag to repeat mapping, even if results already exist.
     - By default, the workflow checks whether each library has existing `alevin-fry` or `salmon` mapping results, and skips mapping for libraries with existing results.
       Using this flag will override that default behavior and repeat mapping even if the given library's results exist.
@@ -69,6 +72,12 @@ There are several flags and/or parameters which you may additionally wish to spe
     - By default, the workflow checks whether each library has existing cell type annotation results for `SingleR` and/or `CellAssign` (depending on references for that library).
       Using this flag will override that default behavior and repeat cell type annotation even if the given library's results exist.
     - This flag is _only considered_ if `--perform_celltyping` is also used.
+  - `--perform_cnv_inference`: Use this flag to perform CNV inference, which is turned off by default.
+    - If CNV inference is specified, cell type annotation will automatically be turned on (e.g., `perform_celltyping` will be set to `true`)
+  - `--repeat_cnv_inference`: Use this flag to repeat CNV inference, even if results already exist.
+    - By default, the workflow checks whether each library has existing `inferCNV` results.
+      Using this flag will override that default behavior and repeat CNV inference even if the given library's results exist.
+    - This flag is _only considered_ if `--perform_cnv_inference` is also used.
 
 Please refer to [`nextflow.config`](nextflow.config) and [other configuration files](config/) for other parameters which can be modified.
 
@@ -133,8 +142,29 @@ nextflow pull AlexsLemonade/scpca-nf -r development
 nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
 ```
 
-After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-nf-references/example-data/scpca_out.zip`.
+After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-references/example-data/scpca_out.zip`.
+Be sure that only the results from `run01`, which is from `library01` and `sample01`, are included in the folder.
 Make sure to adjust the settings to make the zip file publicly accessible.
+
+#### Processing example 10x Flex data
+
+Any samples that are processed using the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) are quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `alevin-fry`.
+
+There are two example datasets available on S3 that can be used for testing changes to the `cellranger-flex.nf` module.
+FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-references/example-data/example_fastqs`.
+The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
+The datasets used are listed below:
+
+1. [library06 - Human Kidney Nuclei - Singleplexed](https://10x.vercel.app/datasets/Human_Kidney_4k_GEM-X_Flex)
+2. [library07 - Human PBMCs - Multiplexed](https://10x.vercel.app/datasets/80k_Human_PBMCs_PTG_MultiproPanel_IC_4plex)
+
+For the second dataset (Human PBMCs), only the GEX FASTQ files were saved to S3.
+
+To process these datasets, use the `example` profile and specify the appropriate run, library, or sample IDs:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf -r {branch or revision} -profile example,batch --run_ids library06,library07
+```
 
 ## Maintaining references for `scpca-nf`
 
@@ -142,7 +172,7 @@ Inside the `references` folder are files and scripts related to maintaining the 
 
 1. `ref-metadata.tsv`: Each row of this TSV file corresponds to a reference that is available for mapping with `scpca-nf`.
    The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
-   This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta` and `gtf` files are stored in the proper location on S3.
+   This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta`, `gtf`, and `cytoband` (used to build `inferCNV` gene order files) files are stored in the proper location on S3.
    See [instructions for adding additional organisms](#adding-additional-organisms) for more details.
 
 2. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
@@ -166,6 +196,25 @@ Inside the `references` folder are files and scripts related to maintaining the 
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
+5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow.
+   They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
+
+   The following files are used for cell typing, including assigning consensus cell types.
+   If new cell typing methods are added or there are changes to references used for cell typing, these files will need to be updated.
+
+   - [`panglao-cell-type-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/panglao-cell-type-ontologies.tsv)
+   - [`scimilarity-mapped-ontologies.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-scimilarity/references/scimilarity-mapped-ontologies.tsv)
+   - [`consensus-cell-type-reference.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-cell-type-reference.tsv)
+   - [`consensus-validation-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/consensus-validation-groups.tsv)
+   - [`validation-markers.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/cell-type-consensus/references/validation-markers.tsv)
+
+   The following are used for `inferCNV` inference to determine which cell types to include in the normal reference.
+   Additional rows will need to be added to these files if additional diagnoses are added to ScPCA.
+
+   - [`diagnosis-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/broad-diagnosis-map.tsv)
+     - Before including in this repository, this file was modified from its `OpenScPCA-analysis` version to contain only two columns, `diagnosis_group` and `sample_diagnosis` (renamed from the original column name `submitted_diagnosis`), which are the column names that `scpca-nf` expects in this file.
+   - [`diagnosis-celltype-groups.tsv`](https://github.com/AlexsLemonade/OpenScPCA-analysis/blob/v0.2.3/analyses/infercnv-consensus-cell-type/references/diagnosis-celltype-groups.tsv)
+
 ### Adding additional organisms
 
 Adding additional organisms is handled, in part, by the `build-index.nf` workflow.
@@ -173,7 +222,7 @@ Adding additional organisms is handled, in part, by the `build-index.nf` workflo
 Follow the below steps to add support for additional references:
 
 1. Download the desired `fasta` and `gtf` files for the organism of choice from `Ensembl`.
-   Add these to the `s3://scpca-nf-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+   Add these to the `s3://scpca-references` bucket with the following directory structure, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
 
 ```
 homo_sapiens
@@ -186,9 +235,12 @@ homo_sapiens
 ```
 
 2. Add the `organism`, `assembly`, and `version` associated with the new reference to the `ref-metadata.tsv` file.
+Specify which indexes should be built for this reference version, using the `include_salmon`, `include_cellranger`, and `include_star` columns.
+If the `inferCNV` gene order file is also needed, also set the `include_infercnv` column to `TRUE` and follow instructions in the [Adding additional gene order files section](#adding-additional-gene-order-files) below.
 3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
 4. Generate the index files using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
-5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-nf-references`).
+To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
+5. Ensure that the new reference files are public and in the correct location on S3 (`s3://scpca-references`).
 
 ### Adding additional cell type references
 
@@ -201,31 +253,66 @@ Follow these steps to add support for additional cell type references.
 
 1. Add the `celltype_ref_name`, `celltype_ref_source`, `celltype_method`, and `organs` (if applicable) for the new reference to [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
 
-    - `<celltype_ref_name>` represents the reference dataset name.
+    - `{celltype_ref_name}` represents the reference dataset name.
       For use with `SingleR`, this should be taken directly from a `celldex` dataset.
-      For `CellAssign`, names are established by the Data Lab as `<tissue/organ>-compartment` to represent a set of markers for a given tissue/organ.
-    - `<celltype_ref_source>` represents the reference dataset source. Currently only `celldex` and `PanglaoDB` are supported for `SingleR` and `CellAssign`, respectively.
-    - `<celltype_method>` represents which annotation method to use with the specified reference, either `SingleR` or `CellAssign`.
+      For `CellAssign`, names are established by the Data Lab as `{tissue/organ}-compartment` to represent a set of markers for a given tissue/organ.
+    - `{celltype_ref_source}` represents the reference dataset source. Currently only `celldex` and `PanglaoDB` are supported for `SingleR` and `CellAssign`, respectively.
+    - `{celltype_method}` represents which annotation method to use with the specified reference, either `SingleR` or `CellAssign`.
     - `organs` indicates which organs to be included in creation of references with `PanglaoDB` as the `celltype_ref_source`.
        This must be a comma separated list of all organs to include.
 
 2. Generate the new cell type reference using `nextflow run build-celltype-ref.nf -profile ccdl,batch` from the root directory of this repository.
 3. Ensure that the new reference files are public and in the correct location on S3.
 
-`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-nf-references/celltype/singler_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<version>.rds`.
-Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-nf-references/celltype/singler_models`, named as `<celltype_ref_name>_<celltype_ref_source>_<version>_model.rds`.
+`SingleR` reference files, which are the full reference datasets from the `celldex` package, should be in `s3://scpca-references/celltype/singler_references` and named as `{celltype_ref_name}_{celltype_ref_source}_{version}.rds`.
+Corresponding "trained" model files for use in the cell type annotation workflow should be stored in `s3://scpca-references/celltype/singler_models`, named as `{celltype_ref_name}_{celltype_ref_source}_{version}_{gene_set_version}_{date_generated}_model.rds`.
 
-  - `<celltype_ref_name>` is a given `celldex` dataset.
+  - `{celltype_ref_name}` is a given `celldex` dataset.
     - Note that the workflow parameter `singler_label_name` will determine which `celldex` dataset label is used for annotation; by default, we use `"label.ont"` (ontology labels).
-  - `<celltype_ref_source>` is `celldex`.
-  - `<version>` is the `celldex` version used during reference building, where we use dashes in place of periods (e.g., version `x.y.z` would be represented as `x-y-z`).
+  - `{celltype_ref_source}` is `celldex`.
+  - `{version}` is the `celldex` version used during reference building, where we use dashes in place of periods (e.g., version `x.y.z` would be represented as `x-y-z`).
+  - `{gene_set_version}` refers to the reference transcriptome or probe set used for mapping.
+Currently, one model for the transcriptome references and one model for the flex probe sets are saved.
 
-`CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-nf-references/celltype/cellassign_references` and named as `<celltype_ref_name>_<celltype_ref_source>_<date>.tsv`.
+`CellAssign` organ-specific reference gene matrices should be stored in `s3://scpca-references/celltype/cellassign_references` and named as `{celltype_ref_name}_{celltype_ref_source}_{date}.tsv`.
 
-  - `<celltype_ref_name>` is a given reference name established by the Data Lab.
-  - `<celltype_ref_source>` is `PanglaoDB`
-  - `<date>` is the `PanglaoDB` date, which serves as their version, in ISO8601 format.
+  - `{celltype_ref_name}` is a given reference name established by the Data Lab.
+  - `{celltype_ref_source}` is `PanglaoDB`
+  - `{date}` is the `PanglaoDB` date, which serves as their version, in ISO8601 format.
 
+### Adding additional gene order files
+
+Adding additional [gene order files](https://github.com/broadinstitute/inferCNV/wiki/File-Definitions#gene-ordering-file) to use with `inferCNV` is handled by the `build-ref.nf` workflow.
+A new gene order file will be needed if new a `gtf` file (e.g. a new `Ensembl` version or species) is added to references.
+The gene order files consider chromosome arms as well, so an appropriate `cytoband` file with chromosome arm boundaries is also needed.
+
+Follow these steps to add additional gene order files.
+
+1. Ensure input files needed for creating the new gene order file have been added to `s3://scpca-references`.
+This includes both a `gtf` file which can be downloaded from `Ensembl`, and a `cytoband` file delimiting chromosome arms which can be downloaded from the appropriate reference subdirectory in `ftp://hgdownload.cse.ucsc.edu/goldenPath/`.
+When adding these files to the `s3://scpca-references` bucket, the directory structure should be as follows, where the root directory here corresponds to the `organism` and the subdirectory corresponds to the `Ensembl` version:
+
+```
+homo_sapiens
+└── ensembl-104
+    └── annotation
+        ├── Homo_sapiens.GRCh38.104.gtf.gz
+        └── Homo_sapiens.GRCh38.104_cytoband.txt.gz
+```
+
+If the `gtf` file is also new, be sure to also follow [these previous instructions](#adding-additional-organisms) for adding additional organisms.
+
+2. Update the `include_infercnv` field in the `ref-metadata.tsv` file to `TRUE` for the new version being generated.
+3. Generate an updated `scpca-refs.json` by running the script, `create-reference-json.R`, located in the `scripts` directory.
+4. Generate the gene order file using `nextflow run build-index.nf -profile ccdl,batch` from the root directory of this repository.
+To generate the index files for only the new organism, use the `--build_refs` argument at the command line and specify the name of the reference to build, e.g., `nextflow run build-index.nf -profile ccdl,batch --build_refs Homo_sapiens.GRCh38.104`.
+5. Ensure that the gene order file is public and in the correct location on S3 (`s3://scpca-references`), for example:
+```
+homo_sapiens
+└── ensembl-104
+    └── infercnv
+        └── Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz
+```
 
 ## Running the merge workflow
 
@@ -254,3 +341,22 @@ nextflow run merge.nf -profile ccdl,batch --project SCPCP00000X,SCPCP00000Y
 # Specify a set of run ids to use
 nextflow run merge.nf -profile ccdl,batch --project SCPCP000000 --run_ids SCPCR00000X,SCPCR00000Y
 ```
+
+## Comparing results between `scpca-nf` runs
+
+To facilitate comparisons between the production version of `scpca-nf` results and the results from a staging (or other) run, we have written a script and notebook to compare metrics between different runs, producing an HTML report.
+This script is found in the `scripts/compare-metrics` directory.
+
+The script can be run for a single project using a command like the following, assuming that AWS credentials are available in the environment:
+
+```
+Rscript scripts/compare-metrics/compare-metrics.R \
+  --project_id SCPCP000001 \
+  --output_file "SCPCP000001_metrics_comparison.html"
+```
+
+
+Multiple projects can be included using a comma-separated list for the `--project_id` argument, and if the `--project_id` argument is omitted, the comparison will include all projects.
+
+The default comparison will be between the metrics files available in the production and staging directories, treating the production versions as the reference run.
+The files are expected to be found at `s3://nextflow-ccdl-results/scpca-prod/results` and `s3://nextflow-ccdl-results/scpca-staging/results`, by default, but these can be changed using the `--ref_s3` and `--comp_s3` arguments.

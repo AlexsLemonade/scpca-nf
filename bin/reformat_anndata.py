@@ -3,7 +3,7 @@
 This script takes an AnnData object and checks for the `logcounts` in layers.
 If present, `logcounts` is moved to `X` and `X` (which has the raw counts) is moved to `raw.X`
 
-In addition, any DataFrames in `obsm` are conerted to ndarrays, highly variable genes are converted to a `var` column.
+In addition, any DataFrames in `obsm` are converted to ndarrays, highly variable genes are converted to a `var` column.
 If a `pca_meta_file` is provided, PCA variance statistics and standard creation values are in the format expected by scanpy.
 """
 

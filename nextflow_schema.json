@@ -38,6 +38,14 @@
           "description": "Sample metadata file",
           "help_text": "A sample information file. See <https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#prepare-the-sample-metadata-file> for more information."
         },
+        "project_metafile": {
+          "type": "string",
+          "description": "Project metadata file",
+          "fa_icon": "fas fa-file-alt",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "help_text": "A file containing project-level metadata. Only required if generating the CellBrowser output."
+        },
         "project_celltype_metafile": {
           "type": "string",
           "description": "Celltype metadata file",
@@ -71,6 +79,20 @@
           "format": "directory-path",
           "description": "Checkpoints directory",
           "help_text": "Directory to store checkpoint files, used when optionally skipping steps."
+        },
+        "cellbrowser_dirname": {
+          "type": "string",
+          "fa_icon": "fas fa-folder-open",
+          "description": "UCSC Cell Browser output directory name",
+          "help_text": "Directory name for UCSC Cell Browser output files (nested under `outdir`). Only used by the build-cellbrowser workflow.",
+          "default": "cellbrowser",
+          "hidden": true
+        },
+        "cellbrowser_rebuild": {
+          "type": "boolean",
+          "description": "Fully rebuild the Cell Browser site",
+          "help_text": "If true, the CellBrowser site will be fully rebuilt. If false, only metadata will be updated.",
+          "hidden": true
         }
       }
     },
@@ -128,6 +150,15 @@
           "help_text": "A comma-separated list of run IDs to merge. Use \"All\" to merge all runs in the run_metafile. Only used in the merge.nf workflow",
           "hidden": true
         },
+        "perform_cnv_inference": {
+          "type": "boolean",
+          "description": "Perform CNV inference"
+        },
+        "repeat_cnv_inference": {
+          "type": "boolean",
+          "description": "Repeat CNV inference if results are already present",
+          "help_text": "If CNV inference has already been run and output files exist, inference is skipped by default."
+        },
         "reuse_merge": {
           "type": "boolean",
           "description": "Reuse merge results",
@@ -139,6 +170,13 @@
           "default": 100,
           "description": "Maximum number of libraries to merge",
           "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power. Only used in the merge.nf workflow.",
+          "hidden": true
+        },
+        "build_refs": {
+          "type": "string",
+          "default": "All",
+          "description": "Reference indices to build",
+          "help_text": "A comma-separated list of references to build indices for, e.g. 'Homo_sapiens.GRCh38.104', or 'All' to build all reference indices.",
           "hidden": true
         }
       },
@@ -159,6 +197,15 @@
           "help_text": "Root location containing reference files.",
           "fa_icon": "fas fa-folder-open"
         },
+        "ref_json": {
+          "type": "string",
+          "default": "${projectDir}/references/scpca-refs.json",
+          "format": "file-path",
+          "mimetype": "application/json",
+          "description": "Reference JSON file",
+          "help_text": "JSON file describing the locations of reference files within the root directory.",
+          "fa_icon": "fas fa-file-alt"
+        },
         "barcode_dir": {
           "type": "string",
           "default": "s3://scpca-nf-references/barcodes/10X",
@@ -167,13 +214,14 @@
           "help_text": "Directory containing 10x barcode files.",
           "fa_icon": "fas fa-folder-open"
         },
-        "ref_json": {
+        "probes_dir": {
           "type": "string",
-          "default": "${projectDir}/references/scpca-refs.json",
-          "format": "file-path",
-          "mimetype": "application/json",
-          "description": "Reference JSON file",
-          "help_text": "JSON file describing the locations of reference files within the root directory.",
+          "default": "s3://scpca-references/flex-probe-refs",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "flex_probeset_file": {
+          "type": "string",
+          "default": "s3://scpca-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
           "fa_icon": "fas fa-file-alt"
         },
         "celltype_ref_dir": {
@@ -200,6 +248,24 @@
           "help_text": "Directory containing `CellAssign` reference files.",
           "fa_icon": "fas fa-folder-open"
         },
+        "scimilarity_model_dir": {
+          "type": "string",
+          "default": "s3://scpca-references/celltype/scimilarity_references/model_v1.1",
+          "format": "directory-path",
+          "description": "SCimilarity reference model directory",
+          "help_text": "Directory containing SCimilarity foundational model",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "scimilarity_ontology_map_file": {
+          "type": "string",
+          "default": "${projectDir}/references/scimilarity-mapped-ontologies.tsv",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "SCimilarity annotations ontology map",
+          "help_text": "Map of SCimilarity annotations to Cell Ontology terms",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
         "ref_metadata": {
           "type": "string",
           "default": "${projectDir}/references/ref-metadata.tsv",
@@ -215,6 +281,11 @@
           "default": "Homo_sapiens.GRCh38.104",
           "description": "Organism",
           "help_text": "Organism for cell type references, used in `build-celltype-ref.nf`.",
+          "hidden": true
+        },
+        "celltype_probeset_version": {
+          "type": "string",
+          "default": "10xflex-v1-1",
           "hidden": true
         },
         "singler_references_dir": {
@@ -267,6 +338,51 @@
           "help_text": "Reference file for consensus cell type calling.",
           "hidden": true,
           "fa_icon": "fas fa-file-alt"
+        },
+        "validation_groups_file": {
+          "type": "string",
+          "default": "${projectDir}/references/consensus-validation-groups.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Validation cell type group reference file",
+          "help_text": "Reference file assigning consensus cell types to a validation group.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
+        "validation_markers_file": {
+          "type": "string",
+          "default": "${projectDir}/references/validation-markers.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Validation cell type marker gene reference file",
+          "help_text": "Reference file containing marker genes associated with each validation group.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
+        "validation_palette_file": {
+          "type": "string",
+          "default": "${projectDir}/templates/palettes/validation-group-palette.tsv",
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Color palette for validation groups in plots used in the report",
+          "help_text": "Path to TSV file containing hex codes to use for coloring each consensus cell type validation group.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
+        },
+        "diagnosis_groups_file": {
+          "type": "string",
+          "default": "${projectDir}/references/diagnosis-groups.tsv",
+          "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells",
+          "hidden": true
+        },
+        "diagnosis_celltypes_file": {
+          "type": "string",
+          "default": "${projectDir}/references/diagnosis-celltype-groups.tsv",
+          "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells",
+          "hidden": true
         }
       },
       "fa_icon": "fas fa-copy"
@@ -340,6 +456,18 @@
           "hidden": true,
           "description": "SingleR label name",
           "help_text": "Label name for `SingleR` references, used in `build-celltype-ref.nf`."
+        },
+        "infercnv_min_reference_cells": {
+          "type": "integer",
+          "default": 100,
+          "description": "Minimum number of normal reference cells needed to run inferCNV",
+          "help_text": "Minimum number of normal reference cells needed to run inferCNV for a given library."
+        },
+        "cellbrowser_default_label": {
+          "type": "string",
+          "default": "consensus_celltype_annotation",
+          "description": "Default label field for cells in UCSC Cell Browser.",
+          "help_text": "Default label field for cells in the UCSC Cell Browser, used in `build-cellbrowser.nf`."
         }
       },
       "fa_icon": "fas fa-tasks"
@@ -361,6 +489,38 @@
         }
       }
     },
+    "template_files": {
+      "title": "Template Files",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "report_template_dir": {
+          "type": "string",
+          "format": "directory-path",
+          "default": "${projectDir}/templates/qc_report",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "report_template_file": {
+          "type": "string",
+          "default": "main_qc_report.rmd",
+          "fa_icon": "fas fa-file-alt"
+        },
+        "celltype_report_template_file": {
+          "type": "string",
+          "default": "celltypes_supplemental_report.rmd",
+          "fa_icon": "fas fa-file-alt"
+        },
+        "cellbrowser_template_dir": {
+          "type": "string",
+          "format": "directory-path",
+          "default": "${projectDir}/templates/cellbrowser",
+          "fa_icon": "fas fa-folder-open",
+          "description": "Template directory with Cell Browser site config files",
+          "help_text": "Template directory with Cell Browser site config files. Should contain a `cellbrowser.conf` file and a `desc.conf` file, as well as any additional files such as `abstract.html`."
+        }
+      }
+    },
     "containers": {
       "title": "Containers",
       "type": "object",
@@ -370,37 +530,49 @@
       "properties": {
         "SCPCATOOLS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SLIM_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_ANNDATA_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_REPORTS_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SEURAT_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "SCPCATOOLS_SCVI_CONTAINER": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.2",
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.3",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
+        },
+        "SCPCATOOLS_INFERCNV_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.3",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
+        },
+        "SCPCATOOLS_SCIMILARITY_CONTAINER": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:edge",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -467,6 +639,11 @@
           "type": "string",
           "hidden": true,
           "fa_icon": "fab fa-docker"
+        },
+        "CELLBROWSER_CONTAINER": {
+          "type": "string",
+          "default": "quay.io/biocontainers/ucsc-cell-browser:1.2.15--pyhdfd78af_0",
+          "fa_icon": "fab fa-docker"
         }
       }
     }
@@ -486,6 +663,9 @@
     },
     {
       "$ref": "#/$defs/resource_maximums"
+    },
+    {
+      "$ref": "#/$defs/template_files"
     },
     {
       "$ref": "#/$defs/containers"
