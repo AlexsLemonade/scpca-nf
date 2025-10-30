@@ -1,4 +1,6 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+
 // process for converting rds files containing an SCE to h5 containing anndata containing the RNA data
 process export_anndata {
     container Utils.pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)
@@ -62,7 +64,7 @@ workflow sce_to_anndata {
       // remove any sce files that don't have enough cells in the sce object
       // number of cells are stored in each metadata.json file
       .filter{ _meta, _sce_file, file_type, meta_json ->
-        def cells = Utils.getMetaVal(file(meta_json), "${file_type}_cells");
+        def cells = getMetaVal(file(meta_json), "${file_type}_cells");
         cells == '' || cells > 2  // if no cell count, keep file for testing, otherwise require at least 3 cells
       }
       // remove metadata.json file from tuple

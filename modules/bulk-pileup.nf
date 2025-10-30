@@ -1,4 +1,7 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+
+
 process mpileup {
   container Utils.pullthroughContainer(params.bcftools_container, params.pullthrough_registry)
   label 'cpus_2'

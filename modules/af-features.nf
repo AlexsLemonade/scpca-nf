@@ -1,4 +1,6 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+
 //index a feature barcode file
 process index_feature{
   container Utils.pullthroughContainer(params.salmon_container, params.pullthrough_registry)
@@ -56,8 +58,8 @@ process alevin_feature {
     umi_geom = umi_geom_map[tech_version]
     // get meta to write as file
     // make sure workflow version strings are correct
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${run_dir}
     salmon alevin \
@@ -78,8 +80,8 @@ process alevin_feature {
     """
   stub:
     run_dir = "${meta.run_id}-features"
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${run_dir}
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
@@ -100,8 +102,8 @@ process fry_quant_feature {
   script:
     quant_dir = rad_dir + '_quant'
     // get meta to write as file
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
@@ -130,8 +132,8 @@ process fry_quant_feature {
     """
   stub:
     quant_dir = rad_dir + '_quant'
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p '${quant_dir}'
     echo '${meta_json}' > ${quant_dir}/scpca-meta.json
@@ -207,7 +209,7 @@ workflow map_quant_feature {
     feature_rad_ch = feature_ch.has_rad
       .map{ meta ->
         [
-          Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
+          readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
           file(meta.feature_rad_dir, type: 'dir', checkIfExists: true)
         ]
       }

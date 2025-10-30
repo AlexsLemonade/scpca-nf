@@ -1,5 +1,7 @@
 // run inferCNV on an SCE object that has consensus cell types
 
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+
 process run_infercnv {
   container Utils.pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)
   publishDir (
@@ -20,8 +22,8 @@ process run_infercnv {
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
 
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     # note that if inferCNV fails, the script will output empty results/heatmap files
     mkdir infercnv_tmp
@@ -42,8 +44,8 @@ process run_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     touch "${results_file}"
     touch "${table_file}"
@@ -120,7 +122,7 @@ workflow call_cnvs {
     // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
       .branch{ it ->
-        def stored_cell_hash = Utils.getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
+        def stored_cell_hash = getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
         skip_infercnv: (
         (

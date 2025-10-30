@@ -1,4 +1,6 @@
 
+// Include utility functions
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
 // include processes
 include { star_bulk } from './bulk-star.nf'
 include { pileup_multibulk } from './bulk-pileup.nf'
@@ -24,7 +26,7 @@ workflow genetic_demux_vireo {
       }
        // split based in whether repeat_genetic_demux is true and a previous dir exists
       .branch{ it ->
-        def stored_ref_assembly = Utils.getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_ref_assembly = getMetaVal(file("${it.vireo_dir}/scpca-meta.json"), "ref_assembly")
         make_demux: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -69,7 +71,7 @@ workflow genetic_demux_vireo {
     demux_out = multiplex_ch.has_demux
       .map{ meta ->
         [
-          Utils.readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
+          readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
           file(meta.vireo_dir, type: 'dir', checkIfExists: true)
         ]
       }

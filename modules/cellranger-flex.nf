@@ -1,5 +1,6 @@
-#!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+
+// Include utility functions
+include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
 
 process cellranger_flex_single {
   container Utils.pullthroughContainer(params.cellranger_container, params.pullthrough_registry)
@@ -19,8 +20,8 @@ process cellranger_flex_single {
     path "${out_id}/scpca-meta.json", emit: meta_file
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
 
     # create config file
@@ -45,8 +46,8 @@ process cellranger_flex_single {
     """
   stub:
     out_id = file(meta.cellranger_multi_results_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${out_id}/outs/per_sample_outs/${meta.library_id}
     mkdir -p ${out_id}/outs/multi
@@ -76,8 +77,8 @@ process cellranger_flex_multi {
     path "${out_id}/scpca-meta.json", emit: meta_file
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
 
     # create config file
@@ -108,8 +109,8 @@ process cellranger_flex_multi {
   stub:
     out_id = file(meta.cellranger_multi_results_dir).name
     sample_ids = meta.sample_id.tokenize(",")
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     ${sample_ids.collect { "mkdir -p ${out_id}/outs/per_sample_outs/${it}" }.join("\n")}
     ${sample_ids.collect { "touch ${out_id}/outs/per_sample_outs/${it}/metrics_summary.csv" }.join("\n")}
@@ -139,7 +140,7 @@ workflow flex_quant{
         meta // return modified meta object
       }
       .branch{ it ->
-        def stored_ref_assembly = Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_ref_assembly = getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
         // branch based on if cellranger results exist or repeat mapping is used
         make_cellranger_flex: (
           // input files exist
@@ -231,7 +232,7 @@ workflow flex_quant{
       .map{ meta ->
         [
           meta.sample_id.tokenize(","),
-          Utils.readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
+          readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
         ]
       }
       .transpose() // [sample id, meta]

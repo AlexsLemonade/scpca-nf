@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+include { getVersions; makeJson; readMeta; getMetaVal } from './lib/utils.nf'
+
 process save_singler_refs {
   container Utils.pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)
   publishDir "${params.singler_references_dir}"
@@ -158,7 +160,7 @@ process catalog_cellassign_refs {
 workflow build_celltype_ref {
 
   // read in json file with all reference paths
-  ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
+  ref_paths = getMetaVal(file(params.ref_json), params.celltype_organism)
   // get path to tx2gene and gtf
   t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
