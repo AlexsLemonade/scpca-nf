@@ -202,9 +202,8 @@ process filter_sce {
 
     // Checks for whether we have ADT data:
     // - feature_type should be adt
-    // - barcode file should _not_ be the empty file NO_FILE
-    adt_present = meta.feature_type == 'adt' &
-      feature_barcode_file.name != "NO_FILE"
+    // - barcode file should have been provided
+    adt_present = meta.feature_type == 'adt' && feature_barcode_file
 
     """
     filter_sce.R \
@@ -322,7 +321,6 @@ workflow generate_sce {
     quant_channel
     sample_metafile
   main:
-    def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
       .map{ meta, quant_dir ->
@@ -337,10 +335,10 @@ workflow generate_sce {
 
     make_unfiltered_sce(sce_ch, sample_metafile)
 
-    // provide empty feature barcode file, since no features here
+    // provide empty array as placeholder for feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce.out
       .map{ meta, unfiltered ->
-        [meta, unfiltered, file(empty_file, checkIfExists: true)]
+        [meta, unfiltered, []]
       }
 
     filter_sce(unfiltered_sce_ch)
@@ -356,7 +354,6 @@ workflow generate_sce_with_feature {
     feature_quant_channel
     sample_metafile
   main:
-    def empty_file = "${projectDir}/assets/NO_FILE"
 
     feature_sce_ch = feature_quant_channel
       .map{ feature_meta, feature_quant_dir, rna_meta, rna_quant_dir ->
@@ -374,11 +371,8 @@ workflow generate_sce_with_feature {
     // append the feature barcode file
     unfiltered_feature_sce_ch = make_unfiltered_sce_with_feature.out
       .map{ meta, unfiltered ->
-        [
-          meta,
-          unfiltered,
-          file(meta.feature_meta.feature_barcode_file ?: empty_file, checkIfExists: true)
-        ]
+        def feature_barcode_file = meta.feature_meta.feature_barcode_file ? file(meta.feature_meta.feature_barcode_file, checkIfExists: true) : []
+        [meta, unfiltered, feature_barcode_file]
       }
 
     filter_sce(unfiltered_feature_sce_ch)
@@ -393,7 +387,6 @@ workflow generate_sce_cellranger {
     quant_channel
     sample_metafile
   main:
-    def empty_file = "${projectDir}/assets/NO_FILE"
 
     sce_ch = quant_channel
       .map{ meta, cellranger_dir, versions_file, metrics_file ->
@@ -407,10 +400,10 @@ workflow generate_sce_cellranger {
 
     make_unfiltered_sce_cellranger(sce_ch, sample_metafile)
 
-    // provide empty feature barcode file, since no features here
+    // provide empty array as placeholder for feature barcode file, since no features here
     unfiltered_sce_ch = make_unfiltered_sce_cellranger.out
       .map{ meta, unfiltered ->
-        [meta, unfiltered, file(empty_file, checkIfExists: true)]
+        [meta, unfiltered, []]
       }
 
     filter_sce(unfiltered_sce_ch)
