@@ -130,7 +130,7 @@ bad.map{
 }
 ```
 
-Using `def` also improves code readbility in closures:
+Using `def` also improves code readability in closures:
 
 ```groovy
 // do this:
@@ -196,7 +196,7 @@ bad.map{
 ```
 
 
-In `.map{ }` closures, the codebase follows the convention that `it[0]` will refer to the `meta` map/dictionary that carries library/sample metadata through the workflow.
+In `.map{ }` closures, the code base follows the convention that `it[0]` will refer to the `meta` map/dictionary that carries library/sample metadata through the workflow.
 If specifying just `it` as the explicit closure variable would require additional indexing during the channel transformation, we prefer to be even more explicit:
 
 ```groovy
