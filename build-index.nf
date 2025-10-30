@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from './lib/utils.nf'
+include { makeJson; readMeta; pullthroughContainer } from './lib/utils.nf'
 
 include { build_celltype_ref } from './build-celltype-ref.nf'
 

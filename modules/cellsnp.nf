@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; pullthroughContainer } from '../lib/utils.nf'
 
 process cellsnp {
   container pullthroughContainer(params.cellsnp_container, params.pullthrough_registry)

@@ -1,6 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
-
+include { pullthroughContainer } from '../lib/utils.nf'
 
 process mpileup {
   container pullthroughContainer(params.bcftools_container, params.pullthrough_registry)

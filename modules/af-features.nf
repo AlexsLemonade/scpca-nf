@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; pullthroughContainer } from '../lib/utils.nf'
 
 //index a feature barcode file
 process index_feature{

@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 // Include utility functions
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from './lib/utils.nf'
+include { makeJson; getMetaVal; pullthroughContainer } from './lib/utils.nf'
 
 // Workflow to merge SCE objects into a single object.
 // This workflow does NOT perform integration, i.e. batch correction.

@@ -1,6 +1,6 @@
 
 // Include utility functions
-include { getVersions; makeJson; readMeta; getMetaVal } from '../lib/utils.nf'
+include { readMeta; getMetaVal } from '../lib/utils.nf'
 // include processes
 include { star_bulk } from './bulk-star.nf'
 include { pileup_multibulk } from './bulk-pileup.nf'

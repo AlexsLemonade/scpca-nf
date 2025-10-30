@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from './lib/utils.nf'
+include {  getMetaVal; pullthroughContainer } from './lib/utils.nf'
 
 process save_singler_refs {
   container pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)

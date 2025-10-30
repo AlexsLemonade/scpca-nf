@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 // include utility functions
-include { readMeta; makeJson; getMetaVal; parseNA; getVersions } from './lib/utils.nf'
+include { readMeta; parseNA } from './lib/utils.nf'
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
@@ -271,8 +271,8 @@ workflow {
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
-    runs_ch.flex, 
-    flex_probesets, 
+    runs_ch.flex,
+    flex_probesets,
     params.cellhash_pool_file ? file(params.cellhash_pool_file) : []
   )
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
@@ -341,7 +341,7 @@ workflow {
 
   // apply cellhash demultiplexing
   cellhash_demux_ch = cellhash_demux_sce(
-    feature_sce_ch.cellhash, 
+    feature_sce_ch.cellhash,
     params.cellhash_pool_file ? file(params.cellhash_pool_file): []
   )
   combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)

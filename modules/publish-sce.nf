@@ -1,7 +1,7 @@
 
 // generate QC report from SCE files and publish SCE files and JSONs
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { pullthroughContainer } from '../lib/utils.nf'
 
 process qc_publish_sce {
   container pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)

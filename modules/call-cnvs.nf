@@ -1,6 +1,6 @@
 // run inferCNV on an SCE object that has consensus cell types
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process run_infercnv {
   container pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)

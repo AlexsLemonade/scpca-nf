@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 // process for converting rds files containing an SCE to h5 containing anndata containing the RNA data
 process export_anndata {
