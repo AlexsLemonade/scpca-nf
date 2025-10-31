@@ -105,14 +105,14 @@ Be sure to use the `-r` flag to specify the latest release tag for the workflow,
 For example:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.8.8 -profile ccdl_staging,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.9.0 -profile ccdl_staging,batch --project SCPCP000000
 ```
 
 When that run has completed successfully, check that the outputs are as expected.
 You can then run the workflow using the `ccdl_prod` profile:
 
 ```
-nextflow run AlexsLemonade/scpca-nf -r v0.8.8 -profile ccdl_prod,batch --project SCPCP000000
+nextflow run AlexsLemonade/scpca-nf -r v0.9.0 -profile ccdl_prod,batch --project SCPCP000000
 ```
 
 Both of these profiles have `-with-tower` set by default, and will use the [ScPCA workspace](https://cloud.seqera.io/orgs/CCDL/workspaces/ScPCA/watch) for monitoring (allowing all team members to see progress).
