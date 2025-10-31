@@ -117,7 +117,7 @@ To avoid this, any variables declared in functions or closures (such as `.map{ }
 
 ```groovy
 // do this:
-good.map{
+good.map{ it ->
   def my_var = it;
   my_var + 1
 }
