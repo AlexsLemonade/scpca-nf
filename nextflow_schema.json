@@ -528,119 +528,119 @@
       "default": "",
       "fa_icon": "fab fa-docker",
       "properties": {
-        "SCPCATOOLS_CONTAINER": {
+        "scpcatools_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SLIM_CONTAINER": {
+        "scpcatools_slim_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_ANNDATA_CONTAINER": {
+        "scpcatools_anndata_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_REPORTS_CONTAINER": {
+        "scpcatools_reports_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SEURAT_CONTAINER": {
+        "scpcatools_seurat_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SCVI_CONTAINER": {
+        "scpcatools_scvi_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_INFERCNV_CONTAINER": {
+        "scpcatools_infercnv_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SCIMILARITY_CONTAINER": {
+        "scpcatools_scimilarity_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:edge",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "ALEVINFRY_CONTAINER": {
+        "alevinfry_container": {
           "type": "string",
           "default": "quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "BCFTOOLS_CONTAINER": {
+        "bcftools_container": {
           "type": "string",
           "default": "quay.io/biocontainers/bcftools:1.14--h88f3f91_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "CELLSNP_CONTAINER": {
+        "cellsnp_container": {
           "type": "string",
           "default": "quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "FASTP_CONTAINER": {
+        "fastp_container": {
           "type": "string",
           "default": "quay.io/biocontainers/fastp:0.23.0--h79da9fb_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SALMON_CONTAINER": {
+        "salmon_container": {
           "type": "string",
           "default": "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SAMTOOLS_CONTAINER": {
+        "samtools_container": {
           "type": "string",
           "default": "quay.io/biocontainers/samtools:1.14--hb421002_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "STAR_CONTAINER": {
+        "star_container": {
           "type": "string",
           "default": "quay.io/biocontainers/star:2.7.9a--h9ee0642_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "TIDYVERSE_CONTAINER": {
+        "tidyverse_container": {
           "type": "string",
-          "default": "rocker/tidyverse:4.4.0",
+          "default": "docker.io/rocker/tidyverse:4.4.0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "VIREO_CONTAINER": {
+        "vireo_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/vireo-snp:v0.5.7",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "CELLRANGER_CONTAINER": {
+        "cellranger_container": {
           "type": "string",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SPACERANGER_CONTAINER": {
+        "spaceranger_container": {
           "type": "string",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "CELLBROWSER_CONTAINER": {
+        "cellbrowser_container": {
           "type": "string",
           "default": "quay.io/biocontainers/ucsc-cell-browser:1.2.15--pyhdfd78af_0",
           "fa_icon": "fab fa-docker"

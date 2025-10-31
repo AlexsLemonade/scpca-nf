@@ -1,8 +1,11 @@
 // These processes are not currently used by any workflow.
 
+include { pullthroughContainer} from '../lib/utils.nf'
+
+
 // Process to integrate SCEs with fastMNN
 process integrate_fastmnn {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   label 'mem_16'
   label 'cpus_4'
   input:
@@ -28,7 +31,7 @@ process integrate_fastmnn {
 
 // Process to integrate SCEs with Harmony
 process integrate_harmony {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir "${params.results_dir}/integration/${integration_group}"
   label 'mem_16'
   input:

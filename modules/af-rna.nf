@@ -1,7 +1,10 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+
+
 // generates RAD file using alevin
 process alevin_rad {
-  container params.SALMON_CONTAINER
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   label 'cpus_12'
   label 'mem_24'
   label 'disk_big'
@@ -25,8 +28,8 @@ process alevin_rad {
       '10xv4': '--chromiumV3'
     ]
     // get meta to write as file
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     // run alevin like normal with the --rad flag
     // creates output directory with RAD file needed for alevin-fry
     """
@@ -46,8 +49,8 @@ process alevin_rad {
     """
   stub:
     rad_dir = file(meta.rad_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${rad_dir}
     echo '${meta_json}' > ${rad_dir}/scpca-meta.json
@@ -56,7 +59,7 @@ process alevin_rad {
 
 // quantify rna from RAD input
 process fry_quant_rna {
-  container params.ALEVINFRY_CONTAINER
+  container "${pullthroughContainer(params.alevinfry_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_16'
   tag "${meta.run_id}-rna"
@@ -70,8 +73,8 @@ process fry_quant_rna {
   script:
     quant_dir = rad_dir + '_quant'
     // get meta to write as file
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     if [ $barcode_file == *.gz ]; then
       gunzip -c ${barcode_file} > permitted_barcodes.txt
@@ -106,8 +109,8 @@ process fry_quant_rna {
     """
   stub:
     quant_dir = rad_dir + '_quant'
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p '${quant_dir}'
     echo '${meta_json}' > ${quant_dir}/scpca-meta.json
@@ -134,7 +137,7 @@ workflow map_quant_rna {
        // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
        // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{ it ->
-        def stored_ref_assembly = Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_ref_assembly = getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly")
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -176,7 +179,7 @@ workflow map_quant_rna {
     rna_rad_ch = rna_channel.has_rad
       .map{ meta ->
         [
-          Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
+          readMeta(file("${meta.rad_dir}/scpca-meta.json")),
           file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
         ]
       }

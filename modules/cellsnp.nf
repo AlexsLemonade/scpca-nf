@@ -1,6 +1,8 @@
 
+include { getVersions; makeJson; pullthroughContainer } from '../lib/utils.nf'
+
 process cellsnp {
-  container params.CELLSNP_CONTAINER
+  container "${pullthroughContainer(params.cellsnp_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_16'
   tag "${meta_star.run_id}"
@@ -40,7 +42,7 @@ process cellsnp {
 }
 
 process vireo {
-  container params.VIREO_CONTAINER
+  container "${pullthroughContainer(params.vireo_container, params.pullthrough_registry)}"
   publishDir "${meta.vireo_publish_dir}", mode: 'copy'
   tag "${meta.run_id}"
   label 'cpus_8'
@@ -51,8 +53,8 @@ process vireo {
     tuple val(meta), path(outdir)
   script:
     outdir = file(meta.vireo_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     vireo \
       --cellData ${cellsnp_dir} \
@@ -64,8 +66,8 @@ process vireo {
     """
   stub:
     outdir = file(meta.vireo_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${outdir}
     echo '${meta_json}' > ${outdir}/scpca-meta.json

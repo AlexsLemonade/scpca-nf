@@ -1,6 +1,8 @@
 
+include { pullthroughContainer} from '../lib/utils.nf'
+
 process index_bam {
-  container params.SAMTOOLS_CONTAINER
+  container "${pullthroughContainer(params.samtools_container, params.pullthrough_registry)}"
   tag "${meta.run_id}"
   input:
     tuple val(meta), path(bamfile)

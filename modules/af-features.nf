@@ -1,7 +1,9 @@
 
+include { getVersions; makeJson; readMeta; pullthroughContainer } from '../lib/utils.nf'
+
 //index a feature barcode file
 process index_feature{
-  container params.SALMON_CONTAINER
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   tag "${id}"
 
   input:
@@ -29,7 +31,7 @@ process index_feature{
 
 // generates RAD file for alevin feature matrix using alevin
 process alevin_feature {
-  container params.SALMON_CONTAINER
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.run_id}-features"
@@ -56,8 +58,8 @@ process alevin_feature {
     umi_geom = umi_geom_map[tech_version]
     // get meta to write as file
     // make sure workflow version strings are correct
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${run_dir}
     salmon alevin \
@@ -78,8 +80,8 @@ process alevin_feature {
     """
   stub:
     run_dir = "${meta.run_id}-features"
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${run_dir}
     echo '${meta_json}' > ${run_dir}/scpca-meta.json
@@ -89,7 +91,7 @@ process alevin_feature {
 
 // quantify features from rad input
 process fry_quant_feature {
-  container params.ALEVINFRY_CONTAINER
+  container "${pullthroughContainer(params.alevinfry_container, params.pullthrough_registry)}"
   label 'cpus_8'
   tag "${meta.run_id}-features"
   publishDir "${params.checkpoints_dir}/alevinfry/${meta.library_id}", mode: 'copy', enabled: params.publish_fry_outs
@@ -100,8 +102,8 @@ process fry_quant_feature {
   script:
     quant_dir = rad_dir + '_quant'
     // get meta to write as file
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     alevin-fry generate-permit-list \
       -i ${rad_dir} \
@@ -130,8 +132,8 @@ process fry_quant_feature {
     """
   stub:
     quant_dir = rad_dir + '_quant'
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p '${quant_dir}'
     echo '${meta_json}' > ${quant_dir}/scpca-meta.json
@@ -207,7 +209,7 @@ workflow map_quant_feature {
     feature_rad_ch = feature_ch.has_rad
       .map{ meta ->
         [
-          Utils.readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
+          readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
           file(meta.feature_rad_dir, type: 'dir', checkIfExists: true)
         ]
       }

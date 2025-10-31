@@ -1,8 +1,10 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+include {  getMetaVal; pullthroughContainer } from './lib/utils.nf'
+
 process save_singler_refs {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir "${params.singler_references_dir}"
   label 'mem_8'
   input:
@@ -24,7 +26,7 @@ process save_singler_refs {
 }
 
 process train_singler_models_transcriptome {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir "${params.singler_models_dir}"
   label 'cpus_4'
   label 'mem_16'
@@ -61,7 +63,7 @@ process train_singler_models_transcriptome {
 }
 
 process train_singler_models_flex {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir "${params.singler_models_dir}"
   label 'cpus_4'
   label 'mem_16'
@@ -92,7 +94,7 @@ process train_singler_models_flex {
 }
 
 process catalog_singler_models {
-  container params.TIDYVERSE_CONTAINER
+  container "${pullthroughContainer(params.tidyverse_container, params.pullthrough_registry)}"
   publishDir "${params.singler_models_dir}"
   input:
     val celltype_references
@@ -109,7 +111,7 @@ process catalog_singler_models {
 }
 
 process generate_cellassign_refs {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir "${params.cellassign_ref_dir}"
   label 'mem_8'
   input:
@@ -139,7 +141,7 @@ process generate_cellassign_refs {
 }
 
 process catalog_cellassign_refs {
-  container params.TIDYVERSE_CONTAINER
+  container "${pullthroughContainer(params.tidyverse_container, params.pullthrough_registry)}"
   publishDir "${params.cellassign_ref_dir}"
   input:
     val celltype_references
@@ -158,7 +160,7 @@ process catalog_cellassign_refs {
 workflow build_celltype_ref {
 
   // read in json file with all reference paths
-  ref_paths = Utils.getMetaVal(file(params.ref_json), params.celltype_organism)
+  ref_paths = getMetaVal(file(params.ref_json), params.celltype_organism)
   // get path to tx2gene and gtf
   t2g_3col_path = file("${params.ref_rootdir}/${ref_paths["t2g_3col_path"]}")
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")

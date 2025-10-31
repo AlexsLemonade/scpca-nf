@@ -1,6 +1,8 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+
 process fastp {
-  container params.FASTP_CONTAINER
+  container "${pullthroughContainer(params.fastp_container, params.pullthrough_registry)}"
   label 'cpus_8'
   label 'mem_8'
   tag "${meta.library_id}-bulk"
@@ -27,7 +29,7 @@ process fastp {
 }
 
 process salmon {
-  container params.SALMON_CONTAINER
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   label 'cpus_12'
   label 'mem_24'
   tag "${meta.library_id}-bulk"
@@ -39,8 +41,8 @@ process salmon {
   script:
     salmon_dir = file(meta.salmon_results_dir).name
     // get meta to write as file
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     salmon quant -i ${index} \
       -l A \
@@ -57,8 +59,8 @@ process salmon {
     """
   stub:
     salmon_dir = file(meta.salmon_results_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions(workflow, nextflow)
+    meta_json = makeJson(meta)
     """
     mkdir -p ${salmon_dir}
     echo '${meta_json}' > ${salmon_dir}/scpca-meta.json
@@ -66,7 +68,7 @@ process salmon {
 }
 
 process merge_bulk_quants {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_8'
   publishDir "${params.results_dir}/${meta.project_id}/bulk", mode: 'copy'
   tag "${meta.project_id}"
@@ -129,9 +131,9 @@ workflow bulk_quant_rna {
       }
       // split based on whether repeat_mapping is true and the salmon results directory exists
       // and whether the assembly matches the current assembly
-      .branch{ it -> 
-        def stored_ref_assembly = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly")
-        def stored_t2g_bulk_path = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path")
+      .branch{ it ->
+        def stored_ref_assembly = getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_t2g_bulk_path = getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path")
         make_quants: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -150,7 +152,7 @@ workflow bulk_quant_rna {
 
     // send run ids in bulk_channel.missing_inputs to log
     bulk_channel.missing_inputs
-      .subscribe{ it -> 
+      .subscribe{ it ->
         log.error("The expected input fastq or salmon results files for ${it.run_id} are missing.")
       }
 
@@ -159,7 +161,7 @@ workflow bulk_quant_rna {
     quants_ch = bulk_channel.has_quants
       .map{ meta ->
         [
-          Utils.readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
+          readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
           file(meta.salmon_results_dir, type: 'dir', checkIfExists: true)
         ]
       }
