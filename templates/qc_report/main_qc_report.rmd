@@ -5,6 +5,11 @@ params:
   filtered_sce: NULL
   processed_sce: NULL
   celltype_report: NULL
+  validation_groups_df: NULL
+  validation_markers_df: NULL
+  validation_palette_df: NULL
+  infercnv_min_reference_cells: NULL
+  infercnv_heatmap_file: NULL
   date: !r Sys.Date()
   seed: NULL
 
@@ -21,6 +26,18 @@ output:
     code_download: true
 ---
 
+<!--Make sure tabs always fit on one line-->
+<style>
+  .nav-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex: 1 1 auto !important;
+    text-align: center;
+    white-space: normal !important;
+  }
+</style>
+
+
 ```{r setup, message = FALSE, echo = FALSE}
 # knitr options
 knitr::opts_chunk$set(
@@ -30,6 +47,7 @@ knitr::opts_chunk$set(
 library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 
 # Set default ggplot theme
 theme_set(
@@ -54,7 +72,7 @@ set.seed(params$seed)
 ```
 
 
-<!-- source functions --> 
+<!-- source functions -->
 ```{r, child='utils/report_functions.rmd'}
 ```
 
@@ -114,31 +132,76 @@ if (has_cellhash) {
   modalities <- c(modalities, "Multiplex")
 }
 
-# check for umap and celltypes, but need to be sure that processed_sce exists first
+# if processed, check for umap, celltypes, and infercnv
 if (has_processed) {
   has_umap <- "UMAP" %in% reducedDimNames(processed_sce)
   has_clusters <- "cluster" %in% names(colData(processed_sce))
+  has_consensus <- "consensus_celltype_annotation" %in% names(colData(processed_sce))
   has_singler <- "singler" %in% metadata(processed_sce)$celltype_methods
   has_cellassign <- "cellassign" %in% metadata(processed_sce)$celltype_methods
+  has_scimilarity <- "scimilarity" %in% metadata(processed_sce)$celltype_methods
+  has_openscpca <- "openscpca" %in% metadata(processed_sce)$celltype_methods
   has_submitter <- "submitter" %in% metadata(processed_sce)$celltype_methods &&
     !all(is.na(processed_sce$submitter_celltype_annotation)) # make sure they aren't all NA
 
   # If at least 1 is present, we have cell type annotations.
-  has_celltypes <- any(has_singler, has_cellassign, has_submitter)
+  has_celltypes <- any(has_singler, has_cellassign, has_scimilarity, has_consensus, has_submitter, has_openscpca)
+
+  # Determine inferCNV condition and include one check while we're in this if
+  # define these with FALSE baseline, to be overridden if present
+  has_infercnv_results <- FALSE
+  has_infercnv_attempt <- FALSE
+  if (!is.null(metadata(processed_sce)$infercnv_success)) {
+    # TRUE or FALSE only
+    has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE)
+
+    # has_infercnv_attempt used when there are no results but a success status
+    has_infercnv_attempt <- !has_infercnv_results
+
+    # this is the only condition we'll need this information
+    if (is.na(metadata(processed_sce)$infercnv_success)) {
+      stopifnot(
+        "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
+      )
+    }
+  }
 
   is_supplemental <- FALSE # this is not the celltype supp report
 } else {
   has_umap <- FALSE
   has_clusters <- FALSE
+  has_consensus <- FALSE
   has_singler <- FALSE
   has_cellassign <- FALSE
+  has_scimilarity <- FALSE
+  has_openscpca <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
+  has_infercnv_attempt <- FALSE
+  has_infercnv_results <- FALSE
 }
 
+
 # check for celltypes_report if celltypes are present
-if ((has_singler | has_cellassign) & is.null(params$celltype_report)) {
+if ((has_consensus | has_singler | has_cellassign | has_scimilarity) & is.null(params$celltype_report)) {
   stop("Cell type annotations were provided but the parameter specifying the cell type report file is missing.")
+}
+
+# check for validation group info if consensus cell types are present
+if (has_consensus) {
+  stopifnot(
+    "Consensus cell types are present but the validation_groups_df has not been provided" = !is.null(params$validation_groups_df),
+    "Consensus cell types are present but the validation_markers_df has not been provided" = !is.null(params$validation_markers_df),
+    "Consensus cell types are present but the validation_palette_df has not been provided" = !is.null(params$validation_palette_df)
+  )
+}
+
+# check for heatmap if inferCNV is present
+if (has_infercnv_results) {
+  stopifnot(
+    "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
+    "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
+  )
 }
 
 # check if we have multiplex
@@ -208,7 +271,7 @@ if ("cell line" %in% sample_types) {
 }
 ```
 
-# Metadata and Processing Information for `r library_id`
+# Metadata and Processing Information for `r library_id` {.tabset}
 
 ```{r, eval = has_multiplex, results='asis'}
 # convert sample id to bullet separated list
@@ -225,11 +288,11 @@ glue::glue("
 ")
 ```
 
-## Sample Metadata
+## Sample metadata
 
-The below table summarizes clinical metadata for the sample associated with this library. 
-Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value. 
-These links will direct you to a web page with information about that ontology term identifier.  
+The below table summarizes clinical metadata for the sample associated with this library.
+Blue hyperlinks are present for any terms with an ontology term identifier associated with the displayed human readable value.
+These links will direct you to a web page with information about that ontology term identifier.
 
 ```{r}
 # extract sce metadata containing processing information as table
@@ -252,26 +315,46 @@ if (!has_multiplex) {
 }
 ```
 
-## Raw Library Metrics
+## Raw library metrics
 
 ```{r }
 # extract sce metadata containing processing information as table
 unfiltered_meta <- metadata(unfiltered_sce)
+mapping_tool <- unfiltered_meta$mapping_tool
 
 library_information <- tibble::tibble(
   "Library id" = library_id,
   "Sample id" = paste(sample_id, collapse = ", "),
   "Tech version" = format(unfiltered_meta$tech_version), # format to keep nulls
   "Data modalities" = paste(modalities, collapse = ", "),
-  "Cells reported by alevin-fry" =
-    format(unfiltered_meta$af_num_cells, big.mark = ",", scientific = FALSE),
-  "Number of genes assayed" =
-    format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
-  "Number of RNA-seq reads sequenced" =
-    format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
-  "Percent of RNA-seq reads mapped to transcripts" =
-    paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%")
+  "Mapping tool" = format(mapping_tool)
 )
+
+if (mapping_tool == "alevin-fry") {
+  library_information <- library_information |>
+    mutate(
+      "Cells reported by alevin-fry" =
+        format(unfiltered_meta$af_num_cells, big.mark = ",", scientific = FALSE),
+      "Number of genes assayed" =
+        format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
+      "Number of RNA-seq reads sequenced" =
+        format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
+      "Percent of RNA-seq reads mapped to transcripts" =
+        paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%"),
+    )
+} else if (mapping_tool == "cellranger-multi") {
+  library_information <- library_information |>
+    mutate(
+      "Cells reported by cellranger multi" =
+        format(unfiltered_meta$cellranger_num_cells, big.mark = ",", scientific = FALSE),
+      "Number of probes assayed" =
+        format(nrow(unfiltered_sce), big.mark = ",", scientific = FALSE),
+      "Number of RNA-seq reads sequenced" =
+        format(unfiltered_meta$total_reads, big.mark = ",", scientific = FALSE),
+      "Percent of RNA-seq reads mapped to probes" =
+        paste0(unfiltered_meta$pct_mapped_reads, "%"),
+    )
+}
 
 if (has_adt) {
   adt_exp <- altExp(filtered_sce, "adt") # must be filtered_sce in case has_processed is FALSE
@@ -317,26 +400,36 @@ knitr::kable(library_information, align = "r") |>
   kableExtra::column_spec(2, monospace = TRUE)
 ```
 
-## Pre-Processing Information
+## Pre-processing information
 
 ```{r }
 # define transcript type
 transcript_type <- paste(unfiltered_meta$transcript_type, collapse = " ")
 
-processing_info <- tibble::tibble(
-  "Salmon version" = format(unfiltered_meta$salmon_version),
-  "Alevin-fry version" = format(unfiltered_meta$alevinfry_version),
-  "Transcriptome index" = format(unfiltered_meta$reference_index),
-  "Alevin-fry droplet detection" = format(unfiltered_meta$af_permit_type),
-  "Resolution" = format(unfiltered_meta$af_resolution),
-  "Transcripts included" = dplyr::case_when(
-    transcript_type == "total spliced" ~ "Total and spliced only",
-    transcript_type == "spliced" ~ "Spliced only",
-    TRUE ~ transcript_type
-  )
-) |>
-  reformat_nulls() |>
-  t()
+if (mapping_tool == "alevin-fry") {
+  processing_info <- tibble::tibble(
+    "Salmon version" = format(unfiltered_meta$salmon_version),
+    "Alevin-fry version" = format(unfiltered_meta$alevinfry_version),
+    "Transcriptome index" = format(unfiltered_meta$reference_index),
+    "Alevin-fry droplet detection" = format(unfiltered_meta$af_permit_type),
+    "Resolution" = format(unfiltered_meta$af_resolution),
+    "Transcripts included" = dplyr::case_when(
+      transcript_type == "total spliced" ~ "Total and spliced only",
+      transcript_type == "spliced" ~ "Spliced only",
+      TRUE ~ transcript_type
+    )
+  ) |>
+    reformat_nulls() |>
+    t()
+} else if (mapping_tool == "cellranger-multi") {
+  processing_info <- tibble::tibble(
+    "Cellranger version" = format(unfiltered_meta$cellranger_version),
+    "Transcriptome index" = format(unfiltered_meta$reference_index),
+    "Reference probe set" = format(unfiltered_meta$reference_probeset)
+  ) |>
+    reformat_nulls() |>
+    t()
+}
 
 
 # make table with processing information
@@ -351,7 +444,7 @@ knitr::kable(processing_info, align = "r") |>
 
 # RNA-seq Experiment Summary
 
-## Cell Statistics
+## Cell statistics
 
 ```{r}
 basic_statistics <- tibble::tibble(
@@ -444,7 +537,14 @@ if (has_processed) {
 }
 ```
 
-## Knee Plot
+## Quality control plots {.tabset}
+
+### Knee plot
+
+The total UMI count of each droplet (barcode) plotted against the rank of that droplet allows visualization of the distribution of sequencing depth across droplets.
+The droplets that are expected to contain cells were identified with [`DropletUtils::emptyDropsCellRanger()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html), unless otherwise specified in the `Cell Statistics` table, which uses both the total UMI counts and expressed gene content (adapted from [Lun  _et al._ 2019](https://doi.org/10.1186/s13059-019-1662-y)).
+As the boundary between droplets passing and failing this filter is not solely dependent on total UMI count, some regions contain droplets in both categories.
+The color in this plot indicates the percentage of droplets in a region passing the filter.
 
 ```{r, fig.alt="Smoothed knee plot of filtered and unfiltered droplets"}
 unfiltered_celldata <- data.frame(colData(unfiltered_sce)) |>
@@ -497,12 +597,12 @@ ggplot(grouped_celldata, aes(x = med_rank, y = med_sum, color = pct_passed)) +
   )
 ```
 
-The total UMI count of each droplet (barcode) plotted against the rank of that droplet allows visualization of the distribution of sequencing depth across droplets.
-The droplets that are expected to contain cells were identified with [`DropletUtils::emptyDropsCellRanger()`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html), unless otherwise specified in the `Cell Statistics` table, which uses both the total UMI counts and expressed gene content (adapted from [Lun  _et al._ 2019](https://doi.org/10.1186/s13059-019-1662-y)).
-As the boundary between droplets passing and failing this filter is not solely dependent on total UMI count, some regions contain droplets in both categories.
-The color in this plot indicates the percentage of droplets in a region passing the filter.
 
-## Cell Read Metrics
+### Cell read metrics
+
+The below plot of cell metrics includes only droplets which have passed the `emptyDropsCellRanger()` filter.
+The plot will usually display a strong (but curved) relationship between the total UMI count and the number of genes detected.
+Cells with low UMI counts and high mitochondrial percentages may require further filtering.
 
 ```{r, fig.alt="Total UMI x genes expressed"}
 filtered_celldata <- data.frame(colData(filtered_sce))
@@ -532,11 +632,18 @@ ggplot(
   )
 ```
 
-The above plot of cell metrics includes only droplets which have passed the `emptyDropsCellRanger()` filter.
-The plot will usually display a strong (but curved) relationship between the total UMI count and the number of genes detected.
-Cells with low UMI counts and high mitochondrial percentages may require further filtering.
 
-## miQC Model Diagnostics
+### miQC model diagnostics
+
+We calculate the probability that a cell is compromised due to degradation or rupture using [`miQC`](https://bioconductor.org/packages/release/bioc/html/miQC.html) ([Hippen _et al._ 2021](https://doi.org/10.1371/journal.pcbi.1009290)).
+This relies on fitting a mixture model using the number of genes expressed by a cell and the percentage of mitochondrial reads.
+The expected plot will show a characteristic triangular shape and two model fit lines.
+Cells with low numbers of genes expressed may have both low and high mitochondrial percentage, but cells with many genes tend to have a low mitochondrial percentage.
+Compromised cells are likely to have a fewer genes detected and higher percentage of mitochondrial reads.
+
+If the model has failed to fit properly, the pattern of cells may differ, and there may not be model fit lines.
+This can be the result of a low-quality library or may occur if there is no mitochondrial content, as in the case of a high-quality single-nucleus sample.
+In such situations, the calculated probability of compromise may not be valid (see [miQC vignette](https://bioconductor.org/packages/3.13/bioc/vignettes/miQC/inst/doc/miQC.html#when-not-to-use-miqc) for more details).
 
 ```{r, fig.alt="miQC model diagnostics plot", results='asis', warning=FALSE}
 if (skip_miQC) {
@@ -573,17 +680,8 @@ if (skip_miQC) {
 }
 ```
 
-We calculate the probability that a cell is compromised due to degradation or rupture using [`miQC`](https://bioconductor.org/packages/release/bioc/html/miQC.html) ([Hippen _et al._ 2021](https://doi.org/10.1371/journal.pcbi.1009290)).
-This relies on fitting a mixture model using the number of genes expressed by a cell and the percentage of mitochondrial reads.
-The expected plot will show a characteristic triangular shape and two model fit lines.
-Cells with low numbers of genes expressed may have both low and high mitochondrial percentage, but cells with many genes tend to have a low mitochondrial percentage.
-Compromised cells are likely to have a fewer genes detected and higher percentage of mitochondrial reads.
 
-If the model has failed to fit properly, the pattern of cells may differ, and there may not be model fit lines.
-This can be the result of a low-quality library or may occur if there is no mitochondrial content, as in the case of a high-quality single-nucleus sample.
-In such situations, the calculated probability of compromise may not be valid (see [miQC vignette](https://bioconductor.org/packages/3.13/bioc/vignettes/miQC/inst/doc/miQC.html#when-not-to-use-miqc) for more details).
-
-## Removing low quality cells
+### Removing low quality cells
 
 The below plot highlights cells that were removed prior to normalization and dimensionality reduction.
 Cells that should be removed based on RNA counts are those that are identified to be low quality cells, such as cells with high probability of being compromised.
@@ -635,7 +733,6 @@ if (has_filtered && has_processed) {
 The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
 
 
-
 <!-- Next section include only if UMAP is present -->
 ```{r, child='umap_qc.rmd', eval = has_umap}
 ```
@@ -648,13 +745,16 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```{r, child='multiplex_qc.rmd', eval = has_cellhash}
 ```
 
-<!-- Next sections only included if celltype annotations are present -->
+<!-- Next two sections only included if celltype annotations are present -->
 ```{r, child='utils/celltype_functions.rmd', eval = has_celltypes}
 ```
 
 ```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 ```
 
+<!-- Next section only included if inferCNV is present or was attempted -->
+```{r, child='infercnv_qc.rmd', eval = has_infercnv_results || has_infercnv_attempt}
+```
 
 # Session Info
 <details>

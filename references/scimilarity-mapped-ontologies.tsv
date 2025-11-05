@@ -1,0 +1,204 @@
+scimilarity_celltype_annotation	cl_annotation	scimilarity_celltype_ontology
+progenitor cell	progenitor cell	CL:0011026
+native cell	cell	CL:0000000
+oligodendrocyte precursor cell	oligodendrocyte precursor cell	CL:0002453
+radial glial cell	radial glial cell	CL:0000681
+microglial cell	microglial cell	CL:0000129
+blood vessel endothelial cell	blood vessel endothelial cell	CL:0000071
+glutamatergic neuron	glutamatergic neuron	CL:0000679
+CD14-positive monocyte	CD14-positive monocyte	CL:0001054
+central memory CD4-positive, alpha-beta T cell	central memory CD4-positive, alpha-beta T cell	CL:0000904
+naive thymus-derived CD8-positive, alpha-beta T cell	naive thymus-derived CD8-positive, alpha-beta T cell	CL:0000900
+natural killer cell	natural killer cell	CL:0000623
+effector memory CD8-positive, alpha-beta T cell	effector memory CD8-positive, alpha-beta T cell	CL:0000913
+CD14-low, CD16-positive monocyte	CD14-low, CD16-positive monocyte	CL:0002396
+B cell	B cell	CL:0000236
+naive thymus-derived CD4-positive, alpha-beta T cell	naive thymus-derived CD4-positive, alpha-beta T cell	CL:0000895
+CD4-positive, alpha-beta cytotoxic T cell	CD4-positive, alpha-beta cytotoxic T cell	CL:0000934
+naive B cell	naive B cell	CL:0000788
+mucosal invariant T cell	mucosal invariant T cell	CL:0000940
+gamma-delta T cell	gamma-delta T cell	CL:0000798
+central memory CD8-positive, alpha-beta T cell	central memory CD8-positive, alpha-beta T cell	CL:0000907
+double negative thymocyte	double negative thymocyte	CL:0002489
+memory B cell	memory B cell	CL:0000787
+plasmacytoid dendritic cell	plasmacytoid dendritic cell	CL:0000784
+CD8-positive, alpha-beta T cell	CD8-positive, alpha-beta T cell	CL:0000625
+naive regulatory T cell	naive regulatory T cell	CL:0002677
+plasmablast	plasmablast	CL:0000980
+effector memory CD4-positive, alpha-beta T cell	effector memory CD4-positive, alpha-beta T cell	CL:0000905
+conventional dendritic cell	conventional dendritic cell	CL:0000990
+hematopoietic stem cell	hematopoietic stem cell	CL:0000037
+platelet	platelet	CL:0000233
+CD16-negative, CD56-bright natural killer cell, human	CD16-negative, CD56-bright natural killer cell, human	CL:0000938
+CD4-positive, alpha-beta T cell	CD4-positive, alpha-beta T cell	CL:0000624
+myeloid dendritic cell, human	myeloid dendritic cell, human	CL:0001057
+innate lymphoid cell	innate lymphoid cell	CL:0001065
+erythrocyte	erythrocyte	CL:0000232
+oligodendrocyte	oligodendrocyte	CL:0000128
+endothelial cell	endothelial cell	CL:0000115
+neural crest cell	neural crest cell	CL:0011012
+T cell	T cell	CL:0000084
+keratinocyte	keratinocyte	CL:0000312
+stem cell	stem cell	CL:0000034
+macrophage	macrophage	CL:0000235
+pericyte	pericyte	CL:0000669
+fibroblast	fibroblast	CL:0000057
+secretory cell	secretory cell	CL:0000151
+mesenchymal cell	mesenchymal cell	CL:0008019
+endothelial cell of vascular tree	endothelial cell of vascular tree	CL:0002139
+melanocyte	melanocyte	CL:0000148
+endothelial cell of lymphatic vessel	endothelial cell of lymphatic vessel	CL:0002138
+pancreatic A cell	pancreatic A cell	CL:0000171
+type B pancreatic cell	type B pancreatic cell	CL:0000169
+pancreatic D cell	pancreatic D cell	CL:0000173
+pancreatic stellate cell	pancreatic stellate cell	CL:0002410
+pancreatic ductal cell	pancreatic ductal cell	CL:0002079
+pancreatic acinar cell	pancreatic acinar cell	CL:0002064
+enteroendocrine cell	enteroendocrine cell	CL:0000164
+tracheal goblet cell	tracheal goblet cell	CL:1000329
+CD8-positive, alpha-beta memory T cell	CD8-positive, alpha-beta memory T cell	CL:0000909
+respiratory basal cell	respiratory basal cell	CL:0002633
+ciliated cell	ciliated cell	CL:0000064
+monocyte	monocyte	CL:0000576
+dendritic cell	dendritic cell	CL:0000451
+naive T cell	naive T cell	CL:0000898
+CD16-positive, CD56-dim natural killer cell, human	CD16-positive, CD56-dim natural killer cell, human	CL:0000939
+mast cell	mast cell	CL:0000097
+neutrophil	neutrophil	CL:0000775
+club cell	club cell	CL:0000158
+duct epithelial cell	duct epithelial cell	CL:0000068
+Langerhans cell	Langerhans cell	CL:0000453
+pulmonary ionocyte	pulmonary ionocyte	CL:0017000
+mature NK T cell	mature NK T cell	CL:0000814
+squamous epithelial cell	squamous epithelial cell	CL:0000076
+plasmacytoid dendritic cell, human	plasmacytoid dendritic cell, human	CL:0001058
+regulatory T cell	regulatory T cell	CL:0000815
+plasma cell	plasma cell	CL:0000786
+CD4-positive, alpha-beta memory T cell	CD4-positive, alpha-beta memory T cell	CL:0000897
+T follicular helper cell	T follicular helper cell	CL:0002038
+neuroendocrine cell	neuroendocrine cell	CL:0000165
+follicular dendritic cell	follicular dendritic cell	CL:0000442
+classical monocyte	classical monocyte	CL:0000860
+CD4-positive helper T cell	CD4-positive helper T cell	CL:0000492
+CD8-positive, alpha-beta cytotoxic T cell	CD8-positive, alpha-beta cytotoxic T cell	CL:0000794
+non-classical monocyte	non-classical monocyte	CL:0000875
+hematopoietic precursor cell	hematopoietic precursor cell	CL:0008001
+class switched memory B cell	class switched memory B cell	CL:0000972
+effector memory CD8-positive, alpha-beta T cell, terminally differentiated	effector memory CD8-positive, alpha-beta T cell, terminally differentiated	CL:0001062
+granulocyte	granulocyte	CL:0000094
+astrocyte	astrocyte	CL:0000127
+neuron	neuron	CL:0000540
+effector CD8-positive, alpha-beta T cell	effector CD8-positive, alpha-beta T cell	CL:0001050
+IgG plasma cell	IgG plasma cell	CL:0000985
+myeloid dendritic cell	myeloid dendritic cell	CL:0000782
+IgA plasma cell	IgA plasma cell	CL:0000987
+immature B cell	immature B cell	CL:0000816
+dendritic cell, human	dendritic cell, human	CL:0001056
+IgM plasma cell	IgM plasma cell	CL:0000986
+T-helper 1 cell	T-helper 1 cell	CL:0000545
+erythroid progenitor cell	erythroid progenitor cell	CL:0000038
+megakaryocyte	megakaryocyte	CL:0000556
+T-helper 17 cell	T-helper 17 cell	CL:0000899
+myofibroblast cell	myofibroblast cell	CL:0000186
+smooth muscle cell	smooth muscle cell	CL:0000192
+type II pneumocyte	pulmonary alveolar type 2 cell	CL:0002063
+lung endothelial cell	lung endothelial cell	CL:1001567
+lung macrophage	lung macrophage	CL:1001603
+lung ciliated cell	lung multiciliated epithelial cell	CL:1000271
+type I pneumocyte	pulmonary alveolar type 1 cell	CL:0002062
+fibroblast of lung	fibroblast of lung	CL:0002553
+mesothelial cell	mesothelial cell	CL:0000077
+lung secretory cell	lung secretory cell	CL:1000272
+slow muscle cell	slow muscle cell	CL:0000189
+fast muscle cell	fast muscle cell	CL:0000190
+leukocyte	leukocyte	CL:0000738
+fat cell	adipocyte	CL:0000136
+glial cell	glial cell	CL:0000125
+luminal epithelial cell of mammary gland	luminal epithelial cell of mammary gland	CL:0002326
+basal cell	basal cell	CL:0000646
+glandular epithelial cell	glandular secretory epithelial cell	CL:0000150
+fibroblast of cardiac tissue	fibroblast of cardiac tissue	CL:0002548
+smooth muscle cell of prostate	smooth muscle cell of prostate	CL:1000487
+enteric smooth muscle cell	enteric smooth muscle cell	CL:0002504
+interstitial cell of Cajal	interstitial cell of Cajal	CL:0002088
+cardiac muscle cell	cardiac muscle cell	CL:0000746
+cardiac endothelial cell	cardiac endothelial cell	CL:0010008
+alveolar macrophage	alveolar macrophage	CL:0000583
+luminal cell of prostate epithelium	luminal cell of prostate epithelium	CL:0002340
+enterocyte	enterocyte	CL:0000584
+goblet cell	goblet cell	CL:0000160
+paneth cell	paneth cell	CL:0000510
+epithelial cell of proximal tubule	epithelial cell of proximal tubule	CL:0002306
+kidney proximal convoluted tubule epithelial cell	kidney proximal convoluted tubule epithelial cell	CL:1000838
+parietal epithelial cell	parietal epithelial cell	CL:1000452
+double-positive, alpha-beta thymocyte	double-positive, alpha-beta thymocyte	CL:0000809
+kidney collecting duct intercalated cell	kidney collecting duct intercalated cell	CL:1001432
+kidney collecting duct principal cell	kidney collecting duct principal cell	CL:1001431
+intestinal crypt stem cell	intestinal crypt stem cell	CL:0002250
+endothelial cell of artery	endothelial cell of artery	CL:1000413
+vein endothelial cell	vein endothelial cell	CL:0002543
+activated CD4-positive, alpha-beta T cell	activated CD4-positive, alpha-beta T cell	CL:0000896
+myeloid cell	myeloid cell	CL:0000763
+intestinal tuft cell	intestinal tuft cell	CL:0019032
+mesodermal cell	mesodermal cell	CL:0000222
+animal cell	eukaryotic cell	CL:0000255
+erythroid lineage cell	erythroid lineage cell	CL:0000764
+colon epithelial cell	colon epithelial cell	CL:0011108
+epithelial cell	epithelial cell	CL:0000066
+retinal rod cell	retinal rod cell	CL:0000604
+retinal cone cell	retinal cone cell	CL:0000573
+retina horizontal cell	retina horizontal cell	CL:0000745
+OFF-bipolar cell	OFF-bipolar cell	CL:0000750
+retinal bipolar neuron	retinal bipolar neuron	CL:0000748
+amacrine cell	amacrine cell	CL:0000561
+retinal ganglion cell	retinal ganglion cell	CL:0000740
+Mueller cell	Mueller cell	CL:0000636
+retinal pigment epithelial cell	retinal pigment epithelial cell	CL:0002586
+ON-bipolar cell	ON-bipolar cell	CL:0000749
+alpha-beta T cell	alpha-beta T cell	CL:0000789
+thymocyte	thymocyte	CL:0000893
+medullary thymic epithelial cell	medullary thymic epithelial cell	CL:0002365
+precursor B cell	precursor B cell	CL:0000817
+vascular associated smooth muscle cell	vascular associated smooth muscle cell	CL:0000359
+group 3 innate lymphoid cell	group 3 innate lymphoid cell	CL:0001071
+lymphocyte	lymphocyte	CL:0000542
+common lymphoid progenitor	common lymphoid progenitor	CL:0000051
+endothelial cell of hepatic sinusoid	endothelial cell of hepatic sinusoid	CL:1000398
+hepatocyte	hepatocyte	CL:0000182
+cholangiocyte	cholangiocyte	CL:1000488
+ionocyte	ionocyte	CL:0005006
+mucus secreting cell	mucus secreting cell	CL:0000319
+activated CD8-positive, alpha-beta T cell	activated CD8-positive, alpha-beta T cell	CL:0000906
+CD141-positive myeloid dendritic cell	CD141-positive myeloid dendritic cell	CL:0002394
+effector CD4-positive, alpha-beta T cell	effector CD4-positive, alpha-beta T cell	CL:0001044
+CD1c-positive myeloid dendritic cell	CD1c-positive myeloid dendritic cell	CL:0002399
+intermediate monocyte	intermediate monocyte	CL:0002393
+stromal cell	stromal cell	CL:0000499
+capillary endothelial cell	capillary endothelial cell	CL:0002144
+mesenchymal stem cell	mesenchymal stem cell	CL:0000134
+basal cell of prostate epithelium	basal cell of prostate epithelium	CL:0002341
+kidney epithelial cell	kidney epithelial cell	CL:0002518
+bronchial smooth muscle cell	bronchial smooth muscle cell	CL:0002598
+transit amplifying cell of small intestine	transit amplifying cell of small intestine	CL:0009012
+paneth cell of epithelium of small intestine	paneth cell of epithelium of small intestine	CL:1000343
+stromal cell of ovary	stromal cell of ovary	CL:0002132
+kidney loop of Henle thick ascending limb epithelial cell	kidney loop of Henle thick ascending limb epithelial cell	CL:1001106
+kidney connecting tubule epithelial cell	kidney connecting tubule epithelial cell	CL:1000768
+kidney interstitial fibroblast	kidney interstitial fibroblast	CL:1000692
+periportal region hepatocyte	periportal region hepatocyte	CL:0019026
+Kupffer cell	Kupffer cell	CL:0000091
+hepatic stellate cell	hepatic stellate cell	CL:0000632
+cardiac neuron	cardiac neuron	CL:0010022
+epicardial adipocyte	epicardial adipocyte	CL:1000309
+CD14-positive, CD16-positive monocyte	CD14-positive, CD16-positive monocyte	CL:0002397
+CD4-positive, CD25-positive, alpha-beta regulatory T cell	CD4-positive, CD25-positive, alpha-beta regulatory T cell	CL:0000792
+kidney loop of Henle thin descending limb epithelial cell	kidney loop of Henle thin descending limb epithelial cell	CL:1001111
+kidney distal convoluted tubule epithelial cell	kidney distal convoluted tubule epithelial cell	CL:1000849
+germinal center B cell	germinal center B cell	CL:0000844
+inflammatory macrophage	inflammatory macrophage	CL:0000863
+pro-B cell	pro-B cell	CL:0000826
+neural cell	neural cell	CL:0002319
+respiratory epithelial cell	respiratory tract epithelial cell	CL:0002368
+follicular B cell	follicular B cell	CL:0000843
+memory T cell	memory T cell	CL:0000813
+lung neuroendocrine cell	pulmonary neuroendocrine cell	CL:1000223

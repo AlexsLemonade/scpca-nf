@@ -4,7 +4,8 @@
 # used with scpca-nf. The output of this script will create a json file where each key corresponds
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
 # to the organization used for storing references in `s3://scpca-references`.
-# To create the json file, use a TSV file that contains three columns, `organism`, `assembly`, and `version`
+# To create the json file, use a TSV file that contains the following columns:
+# `organism`, `assembly`, `version`, `include_salmon`, `include_cellranger`, `include_star`
 
 library(optparse)
 project_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
@@ -32,6 +33,10 @@ create_ref_entry <- function(
     organism,
     assembly,
     version,
+    include_salmon,
+    include_cellranger,
+    include_star,
+    include_infercnv,
     reference_name) {
   # create base reference directory
   ref_dir <- file.path(
@@ -60,31 +65,64 @@ create_ref_entry <- function(
       annotation_dir,
       glue::glue("{reference_name}.mitogenes.txt")
     ),
-    t2g_3col_path = file.path(
+    # fill in optional entries with empty strings
+    t2g_3col_path = "",
+    t2g_bulk_path = "",
+    splici_index = "",
+    salmon_bulk_index = "",
+    cellranger_index = "",
+    star_index = "",
+    infercnv_gene_order = "",
+    cytoband = ""
+  )
+
+  # fill in values related to salmon/alevin-fry index
+  if (include_salmon) {
+    json_entry$t2g_3col_path <- file.path(
       annotation_dir,
       glue::glue("{reference_name}.spliced_intron.tx2gene_3col.tsv")
-    ),
-    t2g_bulk_path = file.path(
+    )
+    json_entry$t2g_bulk_path <- file.path(
       annotation_dir,
       glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")
-    ),
-    splici_index = file.path(
+    )
+    json_entry$splici_index <- file.path(
       ref_dir, "salmon_index",
       glue::glue("{reference_name}.spliced_intron.txome")
-    ),
-    salmon_bulk_index = file.path(
+    )
+    json_entry$salmon_bulk_index <- file.path(
       ref_dir, "salmon_index",
       glue::glue("{reference_name}.spliced_cdna.txome")
-    ),
-    cellranger_index = file.path(
+    )
+  }
+
+  # fill in values related to cellranger index
+  if (include_cellranger) {
+    json_entry$cellranger_index <- file.path(
       ref_dir, "cellranger_index",
       glue::glue("{reference_name}_cellranger_full")
-    ),
-    star_index = file.path(
+    )
+  }
+
+  # fill in values related to star index
+  if (include_star) {
+    json_entry$star_index <- file.path(
       ref_dir, "star_index",
       glue::glue("{reference_name}.star_idx")
     )
-  )
+  }
+
+  # fill in values related to infercnv gene order file
+  if (include_infercnv) {
+    json_entry$infercnv_gene_order <- file.path(
+      ref_dir, "infercnv",
+      glue::glue("{reference_name}_gene_order_arms.txt.gz")
+    )
+    json_entry$cytoband <- file.path(
+      ref_dir, "annotation",
+      glue::glue("{reference_name}_cytoband.txt.gz")
+    )
+  }
 
   return(json_entry)
 }

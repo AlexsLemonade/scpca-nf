@@ -1,0 +1,4 @@
+diagnosis_group	celltype_groups
+diagnosis1	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte
+diagnosis2	B cell,dendritic cell,innate lymphoid cell,macrophage,monocyte,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte,fibroblast
+diagnosis3	B cell,dendritic cell,innate lymphoid cell,macrophage,myeloid cell,natural killer cell,plasma cell,T cell,endothelial cell,pericyte

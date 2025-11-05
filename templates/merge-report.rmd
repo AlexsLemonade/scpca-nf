@@ -115,8 +115,8 @@ num_libraries <- merged_sce$library_id |>
 
 The merged object summarized in this report is comprised of `r num_libraries` individual libraries, which are described in the following table.
 
-- `Technology version` indicates which 10X Genomics kit was used for library preparation.
-- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10X version.
+- `Technology version` indicates which 10x Genomics kit was used for library preparation.
+- `Experimental factor ontology` indicates the associated [Experimental factor ontology](https://www.ebi.ac.uk/efo/) (EFO) for the specified 10x version.
 - `Suspension type` indicates if the library was prepared from a single-cell (`cell`) or single-nuclei (`nucleus`) suspension.
 
 

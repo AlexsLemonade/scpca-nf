@@ -10,6 +10,7 @@
     "splici_index": "stub/salmon_index/stub.spliced_intron.txome",
     "salmon_bulk_index": "stub/salmon_index/stub.spliced_cdna.txome",
     "cellranger_index": "stub/cellranger_index/stub_cellranger_full",
-    "star_index": "stub/star_index/stub.star_idx"
+    "star_index": "stub/star_index/stub.star_idx",
+    "infercnv_gene_order": "stub/infercnv/stub_gene_order_arms.txt.gz"
   }
 }

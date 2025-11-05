@@ -88,7 +88,13 @@ metrics <- list(
   processed_cells = metadata$processed_cells,
   droplet_filtering_method = metadata$droplet_filtering_method,
   normalization_method = metadata$normalization_method,
-  cell_filtering_method = metadata$cell_filtering_method
+  cell_filtering_method = metadata$cell_filtering_method,
+  workflow_version = metadata$workflow_version,
+  date_processed = metadata$date_processed,
+  salmon_version = metadata$salmon_version,
+  alevinfry_version = metadata$alevinfry_version,
+  min_gene_cutoff = metadata$min_gene_cutoff,
+  prob_compromised_cutoff = metadata$prob_compromised_cutoff
 )
 
 # read sce files and compile metrics for output files
@@ -109,9 +115,17 @@ if (file.size(opt$filtered_sce) > 0) {
   metrics$filtered_total_spliced <- total_spliced(filtered_sce)
   metrics$filtered_expressed_genes <- sum(rowSums(counts(filtered_sce)) > 0)
   metrics$filtered_altexp_total <- altexp_totals(filtered_sce)
-  metrics$miqc_pass_count <- sum(filtered_sce$miQC_pass)
+  metrics$miqc_pass_count <- ifelse(
+    is.null(filtered_sce$miQC_pass),
+    NA_integer_,
+    sum(filtered_sce$miQC_pass)
+  )
   metrics$scpca_filter_count <- sum(filtered_sce$scpca_filter == "Keep")
-  metrics$adt_scpca_filter_count <- sum(filtered_sce$adt_scpca_filter == "Keep")
+  metrics$adt_scpca_filter_count <- ifelse(
+    is.null(filtered_sce$adt_scpca_filter),
+    NA_integer_,
+    sum(filtered_sce$adt_scpca_filter == "Keep")
+  )
 
   rm(filtered_sce)
 }
@@ -128,16 +142,24 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
   # cluster counts as unnamed vector
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
-  metrics$singler_reference <- metadata(processed_sce)$singler_reference
-  metrics$cellassign_reference <- metadata(processed_sce)$cellassign_reference
+  metrics$singler_reference <- ifelse(
+    is.null(metadata(processed_sce)$singler_reference),
+    NA_character_,
+    metadata(processed_sce)$singler_reference
+  )
+  metrics$cellassign_reference <- ifelse(
+    is.null(metadata(processed_sce)$cellassign_reference),
+    NA_character_,
+    metadata(processed_sce)$cellassign_reference
+  )
   # convert celltype annotation counts to named lists
-  metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_ontology))
+  metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_annotation))
   metrics$cellassign_celltypes <- as.list(table(processed_sce$cellassign_celltype_annotation))
+  metrics$consensus_celltypes <- as.list(table(processed_sce$consensus_celltype_annotation))
 }
 
 jsonlite::write_json(
   metrics,
   path = opt$metrics_json,
-  auto_unbox = TRUE,
   pretty = TRUE
 )

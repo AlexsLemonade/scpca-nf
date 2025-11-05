@@ -1,0 +1,19 @@
+[workspace]
+authors = ["Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation <scpca@ccdatalab.org>"]
+channels = ["conda-forge", "bioconda"]
+name = "cellbrowser"
+platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+ucsc-cell-browser = ">=1.2.15,<2"
+scanpy = ">=1.11.4,<2"
+
+# dependencies for Nextflow images, only available on Linux
+[target.linux-64.dependencies]
+procps-ng = ">=4.0.4,<5"
+
+[target.linux-aarch64.dependencies]
+procps-ng = ">=4.0.4,<5"
