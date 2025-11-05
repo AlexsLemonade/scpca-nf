@@ -198,55 +198,17 @@ for (annotation in names(annotation_list)) {
 
 # Determine SCE columns to retain  ---------------------------------------------
 
-# Define all possible colData columns which we might want to retain
-possible_columns <- c(
-  "barcodes",
-  # RNA statistics and post-processing
-  "sum",
-  "detected",
-  "total",
-  "subsets_mito_sum",
-  "subsets_mito_detected",
-  "subsets_mito_percent",
-  "miQC_pass",
-  "prob_compromised",
-  "scpca_filter",
-  "additional_modalities",
-  # cell type names
-  "submitter_celltype_annotation",
-  "singler_celltype_annotation",
-  "singler_celltype_ontology",
-  "cellassign_celltype_annotation",
-  "cellassign_celltype_ontology",
-  "cellassign_max_prediction",
-  "consensus_celltype_annotation",
-  "consensus_celltype_ontology",
-  # ADT statistics
-  "adt_scpca_filter",
-  "altexps_adt_sum",
-  "altexps_adt_detected",
-  "altexps_adt_percent",
-  # cellhash statistics & demux results
-  "altexps_cellhash_sum",
-  "altexps_cellhash_detected",
-  "altexps_cellhash_percent",
-  "hashedDrops_sampleid",
-  "HTODemux_sampleid",
-  "vireo_sampleid"
+# Define colData columns we do not want to include in the merged object
+# these apply to both the main and altExps
+exclude_columns <- c(
+  "sizeFactor",
+  "cluster"
 )
 
-# Define colData columns to retain based on intersection with present columns
-retain_coldata_columns <- intersect(possible_columns, present_columns)
+# Define colData columns to retain by removing columns to exclude
+retain_coldata_columns <- setdiff(present_columns, exclude_columns)
 
 # Define altExp columns to retain/preserve, currently only for "adt"
-adt_possible_columns <- c(
-  "zero.ambient",
-  "high.ambient",
-  "ambient.scale",
-  "sum.controls",
-  "high.controls",
-  "discard"
-)
 adt_present_columns <- sce_list |>
   # only consider "adt" altExps
   purrr::keep(\(sce) "adt" %in% altExpNames(sce)) |>
@@ -262,7 +224,7 @@ if (is.null(adt_present_columns) && sum(adt_altexps) > 0) {
   stop("Error in determining which adt altExp columns should be retained.")
 }
 
-retain_altexp_coldata_list <- list("adt" = intersect(adt_possible_columns, adt_present_columns))
+retain_altexp_coldata_list <- list("adt" = setdiff(adt_present_columns, exclude_columns))
 preserve_altexp_rowdata_list <- list("adt" = c("adt_id", "target_type"))
 
 # Merge SCEs -------------------------------------------------------------------
