@@ -136,6 +136,7 @@ workflow map_quant_rna {
        // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{ it ->
         def stored_ref_assembly = Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_tech = Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "technology").toLowerCase()
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -146,7 +147,7 @@ workflow map_quant_rna {
             // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
             || it.ref_assembly != stored_ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || it.technology.toLowerCase() != stored_tech
           )
         )
         has_rad: file(it.rad_dir).exists()

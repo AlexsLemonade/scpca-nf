@@ -129,9 +129,10 @@ workflow bulk_quant_rna {
       }
       // split based on whether repeat_mapping is true and the salmon results directory exists
       // and whether the assembly matches the current assembly
-      .branch{ it -> 
+      .branch{ it ->
         def stored_ref_assembly = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_t2g_bulk_path = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path")
+        def stored_tech = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "technology").toLowerCase()
         make_quants: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -143,7 +144,7 @@ workflow bulk_quant_rna {
             || it.ref_assembly != stored_ref_assembly
             || it.t2g_bulk_path != stored_t2g_bulk_path
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || it.technology.toLowerCase() != stored_tech
           )
         )
         has_quants: file(it.salmon_results_dir).exists()
@@ -152,7 +153,7 @@ workflow bulk_quant_rna {
 
     // send run ids in bulk_channel.missing_inputs to log
     bulk_channel.missing_inputs
-      .subscribe{ it -> 
+      .subscribe{ it ->
         log.error("The expected input fastq or salmon results files for ${it.run_id} are missing.")
       }
 

@@ -130,13 +130,14 @@ workflow spaceranger_quant{
       }
       .branch{ it ->
         def stored_ref_assembly = Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_tech = Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology").toLowerCase()
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             params.repeat_mapping
             || !file(it.spaceranger_results_dir).exists()
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || it.technology.toLowerCase() != stored_tech
             || it.ref_assembly != stored_ref_assembly
           )
         )

@@ -166,6 +166,7 @@ workflow map_quant_feature {
       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
       // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{ it ->
+        def stored_tech = Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "technology").toLowerCase()
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -174,7 +175,7 @@ workflow map_quant_feature {
             // or the feature rad file directory does not exist
             || !file(it.feature_rad_dir).exists()
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
+            || it.technology.toLowerCase() != stored_tech
           )
         )
         has_rad: file(it.feature_rad_dir).exists()
