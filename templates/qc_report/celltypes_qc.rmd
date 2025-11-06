@@ -29,6 +29,42 @@ create_celltype_n_table <- function(df, celltype_column) {
     )
 }
 
+#' Function to lump celltype columns in an existing data frame for all of the
+#'  following columns, if they exist: `{type}_celltype_annotation`.
+#' The cell types will also be renamed via wrapping at the given `wrap` level.
+#'  The resulting lumped column will be named:
+#'  `{type}>_celltype_annotation_lumped`.
+#'
+#'
+#' @param df Data frame to manipulate
+#' @param n_celltypes Number of groups to lump into, with rest put into "Other" group. Default is 7.
+#' @param wrap Characters to wrap the cell type label
+#'
+#' @return Updated df with new column of lumped celltypes for each present method
+lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
+  df <- df |>
+    # First, wrap labels
+    dplyr::mutate(
+      across(
+        ends_with("_celltype_annotation"),
+        \(x) stringr::str_wrap(x, wrap)
+      )
+    ) |>
+    # Next, apply factor lumping, but ensure final order is via frequency with the "others" at the end
+    dplyr::mutate(
+      across(
+        ends_with("_celltype_annotation"),
+        \(x) {
+          x |>
+            forcats::fct_lump_n(n_celltypes, other_level = "All remaining cell types", ties.method = "first") |>
+            forcats::fct_infreq() |>
+            forcats::fct_relevel("Unknown cell type", "All remaining cell types", after = Inf)
+        },
+        .names = "{.col}_lumped"
+      )
+    )
+  return(df)
+}
 
 #' Create a faceted UMAP panel where each panel has only one cell type colored
 #'
@@ -165,12 +201,28 @@ methods_bullets <- c(
   ifelse(has_openscpca, "OpenScPCA", NA),
   ifelse(has_consensus, "Consensus cell types", NA),
   ifelse(has_singler, "`SingleR`", NA),
-  ifelse(has_cellassign, "`CellAssign`", NA)
+  ifelse(has_cellassign, "`CellAssign`", NA),
+  ifelse(has_scimilarity, "`SCimilarity`", NA)
 ) |>
   na.omit() |>
   # make it bullets
   stringr::str_replace_all("^", "* ") |>
   stringr::str_flatten(collapse = "\n")
+
+# define map of automated methods to their proper names for use when printing text and plot labels
+automated_celltype_names <- c(
+  "SingleR" = "singler",
+  "CellAssign" = "cellassign",
+  "SCimilarity" = "scimilarity"
+)
+
+# get a vector of the automated methods that are present and were used to generate consensus
+# keep the proper names to use for labels of plots
+automated_celltypes_available <- automated_celltype_names |>
+  purrr::keep(\(x) x %in% metadata(processed_sce)$consensus_celltype_methods) |>
+  names()
+# make a pretty string for use in text
+automated_celltypes_string <- stringr::str_flatten_comma(automated_celltypes_available, last = ", and ")
 
 # print the bullets and other info messages
 glue::glue("
@@ -187,10 +239,10 @@ if (cellassign_not_run) {
 
 if (has_consensus) {
   glue::glue(
-    "\n\nConsensus cell types are obtained based on agreement between `SingleR` and `CellAssign` using an ontology-aware approach.
+    "\n\nConsensus cell types are obtained based on agreement between all available automated methods ({automated_celltypes_string}) using an ontology-aware approach.
 If no common label is identified, no consensus cell type is assigned.
 See the [ScPCA Portal documentation](https://scpca.readthedocs.io/en/stable/processing_information.html#cell-type-annotation) for a full description on how these cell type annotations are assigned.
-`SingleR` and `CellAssign` annotation results are provided in the [supplementary cell type QC report](`r params$celltype_report`)."
+Annotation results from {automated_celltypes_string} are provided in the [supplementary cell type QC report](`r params$celltype_report`)."
   )
 }
 
@@ -232,7 +284,7 @@ umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
-```{r, eval = (has_cellassign || has_singler) && (is_supplemental || !has_consensus), results='asis'}
+```{r, eval = (has_cellassign || has_singler || has_scimilarity) && (is_supplemental || !has_consensus), results='asis'}
 unclassified_methods <- c()
 
 # check for unclassified SingleR cells
@@ -264,6 +316,23 @@ if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclass
     dplyr::mutate(
       cellassign_celltype_annotation = forcats::fct_drop(
         cellassign_celltype_annotation,
+        only = "Unclassified cell"
+      )
+    )
+}
+
+# check for unclassified scimilarity cells
+if (has_scimilarity && any(celltype_df$scimilarity_celltype_annotation == "Unclassified cell")) {
+  unclassified_methods <- c(unclassified_methods, "SCimilarity")
+
+  # remove unclassified cells
+  celltype_df <- celltype_df |>
+    dplyr::filter(
+      scimilarity_celltype_annotation != "Unclassified cell"
+    ) |>
+    dplyr::mutate(
+      scimilarity_celltype_annotation = forcats::fct_drop(
+        scimilarity_celltype_annotation,
         only = "Unclassified cell"
       )
     )
@@ -306,7 +375,7 @@ create_celltype_n_table(celltype_df, submitter_celltype_annotation) |>
 ```{r, eval = has_consensus}
 knitr::asis_output('### Consensus cell type annotations
 
-In this table, cells labeled "Unknown cell type" are those whose `SingleR` and `CellAssign` annotations did not agree.
+In this table, cells labeled "Unknown cell type" are those whose annotations across automated cell type methods did not agree.
 In the processed result files, these cells are labeled `Unknown`.
 ')
 
@@ -331,6 +400,14 @@ In this table, cells labeled "Unknown cell type" are those which `CellAssign` co
 In the processed result files, these cells are labeled `"other"`.
 ')
 create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
+  format_datatable()
+```
+
+```{r, eval = has_scimilarity && (!has_consensus || is_supplemental)}
+knitr::asis_output("### `SCimilarity` annotations
+
+")
+create_celltype_n_table(celltype_df, scimilarity_celltype_annotation) |>
   format_datatable()
 ```
 
@@ -481,6 +558,27 @@ faceted_umap(
 )
 ```
 
+```{r}
+if (has_scimilarity & has_umap && (is_supplemental || !has_consensus)) {
+  scimilarity_n_celltypes <- length(levels(umap_df$scimilarity_celltype_annotation_lumped))
+  scimilarity_dims <- determine_umap_dimensions(scimilarity_n_celltypes)
+  knitr::asis_output("### `SCimilarity` annotations")
+} else {
+  # set fake dims for evaluating next chunk
+  scimilarity_dims <- c(1, 1)
+}
+```
+
+```{r, eval = has_scimilarity && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = scimilarity_dims[1], fig.height = scimilarity_dims[2], fig.align = "center"}
+# umap for cell assign annotations
+faceted_umap(
+  umap_df,
+  scimilarity_n_celltypes,
+  scimilarity_celltype_annotation_lumped,
+  point_size = umap_facet_point_size
+)
+```
+
 
 ```{r, eval=has_consensus}
 knitr::asis_output('
@@ -517,7 +615,7 @@ markers_df <- validation_markers_df |>
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
-celltype_colors <- validation_palette_df |>
+celltype_colors <- params$validation_palette_df |>
   tibble::deframe()
 ```
 
@@ -697,8 +795,8 @@ if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
 
 ```{r}
 # boolean for whether or not to include heatmaps comparing submitter or openscpca
-submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler))
-openscpca_heatmaps <- (has_openscpca & (has_consensus | has_cellassign | has_singler))
+submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler | has_scimilarity))
+openscpca_heatmaps <- (has_openscpca & (has_consensus | has_cellassign | has_singler | has_scimilarity))
 ```
 
 ```{r, eval= (submitter_heatmaps | openscpca_heatmaps) | (has_consensus & is_supplemental), results = 'asis'}
@@ -708,7 +806,7 @@ glue::glue(
 
   This section displays heatmaps comparing cell labels from various methods.
 
-  We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between         pairs of labels assigned by different annotation methods.
+  We use the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index) to display the agreement between between pairs of labels assigned by different annotation methods.
 
   The Jaccard index reflects the degree of overlap between the two labels and ranges from 0 to 1.
 

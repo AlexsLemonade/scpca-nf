@@ -19,6 +19,10 @@ class Utils {
     def meta = new JsonSlurper().parse(file)
     meta = meta.each{ key, value -> meta[key] = this.parseNA(value) }
 
+    if (meta.sample_id && meta.library_id && !meta.unique_id){
+      meta.unique_id = meta.technology.contains("_multi") ? "${meta.library_id}-${meta.sample_id}" : meta.library_id
+    }
+
     return(meta)
   }
 

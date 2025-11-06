@@ -67,6 +67,18 @@ option_list <- list(
     default = ""
   ),
   make_option(
+    opt_str = c("--scimilarity_results"),
+    type = "character",
+    help = "path to tsv file containing SCimilarity results",
+    default = ""
+  ),
+  make_option(
+    opt_str = c("--scimilarity_model_dir"),
+    type = "character",
+    help = "Name of directory with the model used for SCimilarity",
+    default = ""
+  ),
+  make_option(
     opt_str = c("--consensus_celltype_ref"),
     type = "character",
     help = "Path to file containing the reference for assigning consensus cell type labels",
@@ -97,8 +109,15 @@ option_list <- list(
     type = "character",
     help = "Path to write number of calculated inferCNV reference cells to.
       This calculation is only performed if `diagnosis_celltype_ref`, `diagnosis_groups_ref`, and `consensus_validation_ref` are provided.
-      If not calculated, this file will be created with the value NA instead of a count",
+      If not calculated, this file will be empty",
     default = "reference_cell_count.txt"
+  ),
+  make_option(
+    opt_str = c("--reference_cell_hash_file"),
+    type = "character",
+    help = "Path to write out unique hash for all concatenated barcodes in reference cell set; used for checkpointing.
+      If not calculated, this file will be empty",
+    default = "reference_cell_hash.txt"
   )
 )
 
@@ -148,7 +167,12 @@ stopifnot(
 sce <- readr::read_rds(opt$input_sce_file)
 
 # We'll count inferCNV reference cells when assigning consensus cell types
-reference_cell_count <- NA_integer_
+reference_cell_count <- ""
+reference_cell_hash <- ""
+
+# set automated methods list
+# we'll use this to assign consensus and add cell type methods to the metadata
+automated_methods <- c()
 
 # SingleR results --------------------------------------------------------------
 
@@ -229,8 +253,8 @@ if (has_singler) {
   metadata(sce)$singler_gene_set_version <- singler_ref_info[["gene_set_version"]]
   metadata(sce)$singler_date <- singler_ref_info[["date"]]
 
-  # add note about cell type method to metadata
-  metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "singler")
+  # note that singler is included in methods
+  automated_methods <- c(automated_methods, "singler")
 }
 
 # CellAssign results -----------------------------------------------------------
@@ -304,9 +328,7 @@ if (has_cellassign) {
     metadata(sce)$cellassign_reference_version <- cellassign_ref_info[["ref_version"]]
 
     # add cellassign as celltype method
-    # note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
-    #  come out to just the string "cellassign"
-    metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, "cellassign")
+    automated_methods <- c(automated_methods, "cellassign")
 
     # add cellassign reference organs to metadata
     cellassign_organs <- opt$celltype_ref_metafile |>
@@ -321,41 +343,123 @@ if (has_cellassign) {
   }
 }
 
+# SCimilarity ------------------------------------------------------------------
+
+has_scimilarity <- file.exists(opt$scimilarity_results)
+if (has_scimilarity) {
+  # check that scimilarity model info is provided
+  stopifnot(
+    "SCimilarity model directory name must be provided" = opt$scimilarity_model_dir != ""
+  )
+
+  # read in cell types
+  celltype_assignments <- readr::read_tsv(opt$scimilarity_results) |>
+    # account for the fact that we could have lost some cells we had previously when re-processing through filtering steps
+    dplyr::filter(barcode %in% colnames(sce)) |>
+    # select the columns to include in the processed object and make sure they are named correctly
+    dplyr::select(
+      barcodes = barcode,
+      scimilarity_celltype_annotation,
+      scimilarity_celltype_ontology,
+      scimilarity_min_distance = min_dist
+    )
+
+  # join by barcode to make sure assignments are in the right order
+  celltype_df <- data.frame(barcodes = sce$barcodes) |>
+    dplyr::left_join(celltype_assignments, by = "barcodes") |>
+    # any cells that are NA were not classified by scimilarity
+    dplyr::mutate(scimilarity_celltype_annotation = ifelse(is.na(scimilarity_celltype_annotation), "Unclassified cell", scimilarity_celltype_annotation))
+
+  # add cell types to colData
+  sce$scimilarity_celltype_annotation <- celltype_df$scimilarity_celltype_annotation
+  sce$scimilarity_celltype_ontology <- celltype_df$scimilarity_celltype_ontology
+  sce$scimilarity_min_distance <- celltype_df$scimilarity_min_distance
+
+  # add model name to metadata
+  metadata(sce)$scimilarity_model <- opt$scimilarity_model_dir
+
+  # add scimilarity as celltype method
+  automated_methods <- c(automated_methods, "scimilarity")
+}
+
+# add automated methods to the metadata of the object
+# note that if `metadata(sce)$celltype_methods` doesn't exist yet, this will
+#  come out to just the automated methods
+metadata(sce)$celltype_methods <- c(metadata(sce)$celltype_methods, automated_methods)
+
+# Consensus assignment ---------------------------------------------------------
+
+# set columns to use for joining based on methods that are present
+# define the prefix of the column in the consensus reference that contains the appropriate consensus term given the provided methods
+# e.g., all three methods use the main consensus_annotation column
+# if the library only has scimilarity and singler, use singler_scimilarity_pair_annotation column, etc.
+
+# first set join and ref column prefix to null
+# presence of these values determines if consensus should be added
+
+# by default don't assign consensus
+assign_consensus <- FALSE
+
+# if there's at least two methods then assign consensus using the available methods
+if (length(automated_methods) > 1) {
+  assign_consensus <- TRUE
+
+  # define the columns to use in joining based on the existing methods
+  join_columns <- glue::glue("{automated_methods}_celltype_ontology")
+
+  # column map indicating which consensus column should be used with which combination of methods
+  ref_column_map <- list(
+    "consensus" = c("singler", "cellassign", "scimilarity"),
+    "cellassign_singler_pair" = c("singler", "cellassign"),
+    "singler_scimilarity_pair" = c("singler", "scimilarity"),
+    "cellassign_scimilarity_pair" = c("cellassign", "scimilarity")
+  )
+
+  # find the appropriate column to use
+  ref_column_prefix <- ref_column_map |>
+    purrr::keep(\(x) setequal(x, automated_methods)) |>
+    names()
+
+  stopifnot("Error getting reference column prefix" = length(ref_column_prefix) == 1)
+}
+
 # assign consensus cell type labels
-if (has_singler && has_cellassign) {
+if (assign_consensus) {
   # now make sure that reference file exists
   stopifnot(
     "Consensus cell type reference file does not exist" = file.exists(opt$consensus_celltype_ref)
   )
 
-  # read in consensus table
   consensus_ref_df <- readr::read_tsv(opt$consensus_celltype_ref) |>
-    # select unique combinations of consensus refs based on ontology columns
-    # TODO: Update when incorporating scimilarity
-    dplyr::select(
-      blueprint_ontology,
-      panglao_ontology,
-      consensus_ontology = cellassign_singler_pair_ontology,
-      consensus_annotation = cellassign_singler_pair_annotation
+    # select columns to use for joining and consensus assignments
+    # first make sure the names match what we expect
+    dplyr::rename(
+      cellassign_celltype_ontology = panglao_ontology,
+      singler_celltype_ontology = blueprint_ontology,
+      scimilarity_celltype_ontology = scimilarity_ontology
     ) |>
-    tidyr::drop_na() |>
-    dplyr::distinct()
+    # now just filter to join columns and ref column with consensus cell types
+    dplyr::select(all_of(join_columns), starts_with(ref_column_prefix)) |>
+    # only keep unique combos
+    dplyr::distinct() |>
+    # make sure the columns used to get the consensus cell type actually have the consensus_ prefix rather than singler_cellassign_pair_, etc.
+    dplyr::rename_with(
+      \(x) stringr::str_replace(x, ref_column_prefix, "consensus"),
+      .cols = starts_with(ref_column_prefix)
+    )
 
   # create df with consensus assignments
   celltype_df <- colData(sce) |>
     as.data.frame() |>
     dplyr::select(
       barcodes,
-      contains("celltype") # get both singler and cellassign with ontology
+      contains("celltype") # get any available cell type columns with ontology
     ) |>
     # then add consensus labels
     dplyr::left_join(
       consensus_ref_df,
-      by = c(
-        "singler_celltype_ontology" = "blueprint_ontology",
-        "cellassign_celltype_ontology" = "panglao_ontology"
-      ),
-      relationship = "many-to-many" # account for multiple of the same cell type
+      by = join_columns,
+      relationship = "many-to-one" # account for multiple of the same cell type
     ) |>
     # use unknown for NA annotation but keep ontology ID as NA
     tidyr::replace_na(list(consensus_annotation = "Unknown"))
@@ -364,6 +468,8 @@ if (has_singler && has_cellassign) {
   sce$consensus_celltype_annotation <- celltype_df$consensus_annotation
   sce$consensus_celltype_ontology <- celltype_df$consensus_ontology
 
+  # add a note to metadata indicating which methods were used to assign consensus
+  metadata(sce)$consensus_celltype_methods <- automated_methods
 
   # Count the number of normal reference cells -------------------------
 
@@ -379,25 +485,32 @@ if (has_singler && has_cellassign) {
     consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
     diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
 
-    diagnosis <- metadata(sce)$sample_metadata$diagnosis
+    # unique in case of multiplexed
+    diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
+    stopifnot("Could not determine diagnosis from processed SCE metadata" = !is.null(diagnosis))
 
-    # Get the broad_diagnosis from the map file if possible, or use the sample diagnosis otherwise
-    broad_diagnosis <- diagnosis
-    if (file.exists(opt$diagnosis_groups_ref)) {
-      diagnosis_map_df <- readr::read_tsv(opt$diagnosis_groups_ref)
+    # If we have multiple diagnoses (multiplexed), we require a group mapping file
+    if (length(diagnosis) > 1) {
+      stopifnot(
+        "To perform CNV inference on multiplexed samples with different diagnoses, a diagnosis group metadata file must be provided." =
+          file.exists(opt$diagnosis_groups_ref)
+      )
+    }
 
-      # Only use the map file if the sample diagnosis exists
-      # It might _not_ exist if external users don't provide their own opt$diagnosis_groups_ref file
-      # but also don't override the default file in config to be empty/NA
-      if (diagnosis %in% diagnosis_map_df$sample_diagnosis) {
-        broad_diagnosis <- diagnosis_map_df |>
-          dplyr::filter(sample_diagnosis == diagnosis) |>
-          dplyr::pull("diagnosis_group")
-      }
+    # If the map file does not exist, specify the sample diagnosis as the broad diagnosis
+    if (!file.exists(opt$diagnosis_groups_ref)) {
+      broad_diagnosis <- diagnosis
+    } else {
+      broad_diagnosis <- readr::read_tsv(opt$diagnosis_groups_ref) |>
+        dplyr::filter(sample_diagnosis %in% diagnosis) |>
+        dplyr::pull("diagnosis_group") |>
+        # in case of multiplexed
+        unique()
     }
 
     stopifnot(
-      "Could not determine known diagnosis group from sample diagnosis." =
+      "A single broad diagnosis for the library could not be identified" = length(broad_diagnosis) == 1,
+      "Could not determine a single known diagnosis group from sample diagnosis." =
         broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
     )
 
@@ -419,13 +532,21 @@ if (has_singler && has_cellassign) {
     metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
     sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
 
-    # get the full count
-    reference_cell_count <- sum(sce$is_infercnv_reference)
+    # get the full count; store as character for writing to file
+    reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
+
+    # get hash for sorted concatenated barcodes
+    concat_barcodes <- paste(
+      sort(sce$barcodes[sce$is_infercnv_reference]),
+      collapse = ""
+    )
+    reference_cell_hash <- digest::digest(concat_barcodes)
   }
 }
 
 # export annotated object with cell type assignments
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
-# export normal cell count
-readr::write_lines(reference_cell_count, opt$reference_cell_count_file)
+# export normal cell count and hash
+readr::write_file(reference_cell_count, opt$reference_cell_count_file)
+readr::write_file(reference_cell_hash, opt$reference_cell_hash_file)

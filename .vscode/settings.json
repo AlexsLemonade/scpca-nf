@@ -1,5 +1,7 @@
 {
   "nextflow.files.exclude": [".git", ".nf-test", "work", ".pixi", ".github"],
+  "nextflow.errorReportingMode": "warnings",
+  "nextflow.languageVersion": "25.04",
   "[nextflow]": {
     "editor.tabSize": 2,
     "editor.formatOnSave": false

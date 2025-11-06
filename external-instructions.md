@@ -22,6 +22,9 @@
   - [Preparing the project cell type metadata file](#preparing-the-project-cell-type-metadata-file)
   - [Repeating cell type annotation](#repeating-cell-type-annotation)
   - [Providing existing cell type labels](#providing-existing-cell-type-labels)
+- [CNV inference](#cnv-inference)
+  - [Preparing a custom diagnosis cell types metadata file](#preparing-a-custom-diagnosis-cell-types-metadata-file)
+  - [Repeating CNV inference](#repeating-cnv-inference)
 - [Output files](#output-files)
 - [Special considerations for specific data types](#special-considerations-for-specific-data-types)
   - [Libraries with additional feature data (ADT or cellhash)](#libraries-with-additional-feature-data-adt-or-cellhash)
@@ -38,6 +41,7 @@
   - [Special considerations for specific data types when running `merge.nf`](#special-considerations-for-specific-data-types-when-running-mergenf)
     - [Merging libraries with CITE-seq data](#merging-libraries-with-cite-seq-data)
     - [Merging libraries with cellhash data](#merging-libraries-with-cellhash-data)
+- [The `build-cellbrowser.nf` workflow](#the-build-cellbrowsernf-workflow)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -80,11 +84,11 @@ Once you have set up your environment and created the metadata and configuration
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -config <path to config file>  \
-  -profile <name of profile>
+  -config {path to config file}  \
+  -profile {name of profile}
 ```
 
-Where `<path to config file>` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `<name of profile>` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
+Where `{path to config file}` is the **relative** path to the [configuration file](#configuration-files) that you have setup and `{name of profile}` is the name of the profile that you chose when [creating a profile](#setting-up-a-profile-in-the-configuration-file).
 This command will pull the `scpca-nf` workflow directly from Github, and run it based on the settings in the configuration file that you have defined.
 
 **Note:** `scpca-nf` is under active development.
@@ -92,14 +96,14 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.8.8` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.9.0` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.8.8 \
-  -config <path to config file>  \
-  -profile <name of profile>
+  -r v0.9.0 \
+  -config {path to config file}  \
+  -profile {name of profile}
 ```
 
 For each library that is successfully processed, the workflow will return quantified gene expression data as a `SingleCellExperiment` object stored in an RDS file along with a summary HTML report and any relevant intermediate files.
@@ -181,6 +185,8 @@ Additionally, you may include columns `is_cell_line` and `is_xenograft` to indic
 Cell type annotation will not be performed for samples that are `TRUE`.
 - `is_xenograft`: Use `TRUE` if the sample is from a patient-derived xenograft and `FALSE` otherwise.
 
+**Note:** If running the workflow with [CNV inference](#cnv-inference), the sample metadata file must contain a `diagonosis` column.
+
 We have provided an example run metadata file for reference.
 
 | [View example `sample_metadata.tsv` file](examples/example_sample_metadata.tsv) |
@@ -199,7 +205,7 @@ Three workflow parameters are required for running `scpca-nf` on your own data:
 - `outdir`: the output directory where results will be stored.
   - The default output is `scpca_out`, but again, you will likely want to customize this.
 
-These parameters can be set at the command line using `--run_metafile <path to run metadata file>` or `--outdir <path to output>`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
+These parameters can be set at the command line using `--run_metafile {path to run metadata file}` or `--outdir {path to output}`, but we encourage you to set them in the configuration file, following the [configuration file setup instructions below](#configuration-files).
 
 Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
@@ -219,9 +225,9 @@ We could first create a file `my_config.config` (or a filename of your choice) w
 
 ```groovy
 // my_config.config
-params.run_metafile = '<path to run metadata file>'
-params.sample_metafile = '<path to sample metadata file>'
-params.outdir = '<path to output>'
+params.run_metafile = '{path to run metadata file}'
+params.sample_metafile = '{path to sample metadata file}'
+params.outdir = '{path to output}'
 
 This file is then used with the `-config` (or `-c`) argument at the command line:
 
@@ -326,7 +332,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.8.8`, then you will want to set `-r v0.8.8` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.9.0`, then you will want to set `-r v0.9.0` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -347,9 +353,14 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 
 ## Cell type annotation
 
-`scpca-nf` can perform cell type annotation using two complementary methods: the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html) and the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign).
-Additionally, annotations from `SingleR` and `CellAssign` are used to assign a consensus cell type annotation.
-For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.2/analyses/cell-type-consensus).
+`scpca-nf` can perform cell type annotation using three complementary methods: 
+
+  - the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
+  - the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign)
+  - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
+ 
+Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus).
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
@@ -369,19 +380,21 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Choosing reference datasets
 
-The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv).
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) to be used with `SingleR` and/or `CellAssign`. 
 All references listed in this table are publicly available on S3 for use with cell type annotation.
-It is possible to provide your own references as well; instructions for this are forthcoming.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
 If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
 
+`SCimilarity` uses a single foundation model as a reference that is publicly available on S3. 
+For more information on the model, see [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
+
 #### `SingleR` references
 
 The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
-In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model. 
+In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model.
 The chosen gene set should correspond to the original reference genome used for mapping (indicated in the `sample_reference` column of the [run metadata file](#prepare-the-run-metadata-file)).
-For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`). 
+For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`).
 
 Please consult the [`celldex` documentation](https://bioconductor.org/packages/release/data/experiment/vignettes/celldex/inst/doc/userguide.html) to determine which of these references, if any, is most suitable for your dataset.
 
@@ -422,9 +435,11 @@ checkpoints
 └── celltype
     └── library01
     │   ├── library01_cellassign
+        ├── library01_scimilarity
     │   └── library01_singler
     └── library02
         ├── library02_cellassign
+        ├── library01_scimilarity
         └── library02_singler
 ```
 
@@ -453,6 +468,77 @@ The cell type label file is a TSV file with the following required columns:
 | `cell_type_assignment` | The annotation label for that cell                  |
 
 Optionally, you can also include a column `cell_type_ontology` with ontology labels corresponding to the given annotation label.
+
+## CNV inference
+
+`scpca-nf` optionally performs copy-number variation (CNV) inference using [`inferCNV`](https://github.com/broadinstitute/infercnv).
+As part of its algorithm, `inferCNV` uses a set of normal reference cells to quantify CNV events across all provided cells.
+`scpca-nf` uses the [consensus cell type labels](#cell-type-annotation) to create the set of normal reference cells based on each given sample's diagnosis.
+As such, to perform CNV inference, you must also [perform cell type annotation, as described above](#cell-type-annotation).
+
+By default, CNV inference is not performed, but can be invoked by following the below steps.
+Note that if CNV inference is turned on, cell type annotation will automatically be turned on as well.
+
+1. Ensure your [prepared sample metadata file](#prepare-the-sample-metadata-file) contains a `diagnosis` column.
+This column is **required** in your sample metadata file as `scpca-nf` uses this information to create the normal reference.
+2. Confirm that your samples' diagnoses are present in the `sample_diagnosis` column of the reference file [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv).
+This file contains a list of all diagnoses currently present in the ScPCA Portal.
+If your samples' diagnoses are not all present, you will need to provide a custom metadata file mapping your diagnoses to the desired normal reference cell types, [as described below](#preparing-a-custom-diagnosis-cell-types-metadata-file).
+
+Once you have followed both the above steps and the [steps to prepare for cell type annotation](#cell-type-annotation), you can use the following command to run the workflow with CNV inference:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_cnv_inference
+```
+
+### Preparing a custom diagnosis cell types metadata file
+
+If your samples' diagnoses are not all not present in the [`references/diagnosis-groups.tsv`](references/diagnosis-groups.tsv) reference file, you will need to provide a custom metadata file that specifies the consensus cell type labels to use in the `inferCNV` normal reference.
+
+The path/uri to this metadata file should be specified in your configuration file using the workflow parameter `diagnosis_celltypes_file`.
+It should contain two columns with the following information:
+
+|  |   |
+| --- | --- |
+| `diagnosis_group` | Sample diagnosis as recorded in the `diagnosis` column of the [sample metadata file](#prepare-the-sample-metadata-file)  |
+| `celltype_groups` | Consensus cell type _validation groups_ to include in an `inferCNV` normal reference for samples of the given broad diagnosis group  |
+
+In this file, there should be only one row per diagnosis (`diagnosis_group`).
+
+The `celltype_groups` column should be provided as a comma-separated list without spaces.
+Because there are many possible consensus cell type labels, the Data Lab has organized consensus cell types into broad validation groups, e.g. the validation group `B cell` contains all B cell types (mature B cell, naive B cell, etc.).
+Validation groups to use in the `inferCNV` normal reference should be specified in the `celltype_groups` column, _not_ individual consensus cell types.
+You can find all possible validation groups to consider using the reference file [`references/consensus-validation-groups.tsv`](references/consensus-validation-groups.tsv), which maps individual consensus cell types (`consensus_annotation`) to validation groups (`validation_group_annotation`).
+
+We have provided an example diagnosis cell type metadata file for reference.
+
+| [View example `diagnosis_celltypes.tsv` file](examples/example_diagnosis_celltypes.tsv) |
+| --------------------------------------------------------------------------------------------------- |
+
+### Repeating CNV inference
+
+When CNV inference is turned on with `--perform_cnv_inference`, `scpca-nf` will skip this process for any libraries whose results already exist in the `checkpoints` folder, as long as the specific cells to include in the `inferCNV` normal reference have not changed.
+The CNV inferences in the `checkpoints` folder will have the following structure:
+
+```
+checkpoints
+└── infercnv
+    ├── library01
+    └── library02
+```
+
+This saves substantial processing time if the normal reference cells are unchanged.
+However, you may wish to repeat the CNV inference if there have been other changes to the data or analysis.
+
+To force repeating CNV inference, use the `--repeat_cnv_inference` flag along with the `--perform_cnv_inference` flag at the command line:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf \
+  --perform_cnv_inference \
+  --repeat_cnv_inference
+```
+
 
 ## Output files
 
@@ -491,7 +577,7 @@ results
         └── {library_id}_qc.html
 ```
 
-If bulk libraries were processed, the following three files will also be present in the `project_id` directory:
+If bulk libraries were processed, the following three files will also be present in the `project_id/bulk` directory:
 - `{project_id}_bulk_metadata.tsv`: a summary table of metadata across all project bulk libraries
 - `{project_id}_bulk_quant.tsv`: a matrix of gene expression count values for all bulk libraries
 - `{project_id}_bulk_tpm.tsv`: a matrix of gene expression TPM values for all bulk libraries
@@ -614,10 +700,10 @@ Other columns may be included for reference (such as the `feature_barcode_file` 
 
 We have provided an example multiplex pool file for reference that can be found in [`examples/example_multiplex_pools.tsv`](examples/example_multiplex_pools.tsv).
 
-### 10x Flex gene expression libraries 
+### 10x Flex gene expression libraries
 
-Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`. 
-*Note:* Currently only libraries processed using the v1.1.0 probe set are supported. 
+Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`.
+*Note:* Currently only libraries processed using the v1.1.0 probe set are supported.
 
 You will need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Cell Ranger software from 10X Genomics](https://www.10xgenomics.com/support/software/cell-ranger/downloads).
 For licensing reasons, we cannot provide a Docker container with Cell Ranger for you.
@@ -626,8 +712,8 @@ After building the docker image, you will need to push it to a [private docker r
 
 There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`.
 
-If the libraries are multiplexed, the appropriate `technology` term, `10Xflex_v1.1_multi`, will need to be indicated in the `run_metadata.tsv` file and an additional TSV file, `cellhash_pool_file`, must be provided. 
-When processing multiplexed libraries, demultiplexing will be performed by `cellranger multi`, so the quantified gene expression data for each sample will be output separately.  
+If the libraries are multiplexed, the appropriate `technology` term, `10Xflex_v1.1_multi`, will need to be indicated in the `run_metadata.tsv` file and an additional TSV file, `cellhash_pool_file`, must be provided.
+When processing multiplexed libraries, demultiplexing will be performed by `cellranger multi`, so the quantified gene expression data for each sample will be output separately.
 
 The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed that contain multiplexing.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
@@ -703,9 +789,9 @@ The workflow can be run as shown:
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf/merge.nf \
-  -config <path to config file>  \
-  -profile <name of profile> \
-  --project <project ID whose libraries should be merged>
+  -config {path to config file}  \
+  -profile {name of profile} \
+  --project {project ID whose libraries should be merged}
 ```
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
@@ -715,9 +801,9 @@ Released versions can be found on the [`scpca-nf` repository releases page](http
 ```sh
 nextflow run AlexsLemonade/scpca-nf/merge.nf \
   -r v0.7.2 \
-  -config <path to config file>  \
-  -profile <name of profile> \
-  --project <project ID whose libraries should be merged>
+  -config {path to config file}  \
+  -profile {name of profile} \
+  --project {project ID whose libraries should be merged}
 ```
 
 ### Output files
@@ -728,10 +814,10 @@ These output files will follow this structure:
 
 ```
 merged
-└── <project_id>
-    ├── <project_id>_merged.rds
-    ├── <project_id>_merged_rna.h5ad
-    └── <project_id>_merged-summary-report.html
+└── {project_id}
+    ├── {project_id}_merged.rds
+    ├── {project_id}_merged_rna.h5ad
+    └── {project_id}_merged-summary-report.html
 ```
 
 
@@ -748,14 +834,49 @@ The output files will follow this structure if CITE-seq data is present:
 
 ```
 merged
-└── <project_id>
-    ├── <project_id>_merged.rds
-    ├── <project_id>_merged_rna.h5ad
-    ├── <project_id>_merged_adt.h5ad
-    └── <project_id>_merged-summary-report.html
+└── {project_id}
+    ├── {project_id}_merged.rds
+    ├── {project_id}_merged_rna.h5ad
+    ├── {project_id}_merged_adt.h5ad
+    └── {project_id}_merged-summary-report.html
 ```
 
 #### Merging libraries with cellhash data
 
 The `merge.nf` workflow currently does not support merging HTO counts from multiplexed libraries.
 If any libraries contain HTO counts, the RNA counts will still be merged and exported, but the HTO counts will not be included.
+
+## The `build-cellbrowser.nf` workflow
+
+The `build-cellbrowser.nf` workflow will create an instance of the [UCSC Cell Browser](https://cellbrowser.readthedocs.io/en/master/index.html)with the libraries in the run metadata file, organized by project.
+This uses as its primary input the `.h5ad` files produced by the main `scpca-nf` workflow, which must be run first.
+This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files. 
+
+In addition to the [run](#prepare-the-run-metadata-file) and [sample](#prepare-the-sample-metadata-file) metadata files required by the main workflow, the `build-cellbrowser.nf` workflow also requires a project metadata file.
+This is a tab separate file file that contains, at a minimum, a column labeled `scpca_project_id` that contains all of the projects to be included in the Cell Browser.
+
+Other fields may include:
+
+- `project_title`: A brief title for the project.
+- `abstract`: A plain-text abstract for the project.
+
+You can then run the workflow with the following command:
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/build-cellbrowser.nf \
+  -config {path to config file}  \
+  -profile {name of profile}
+```
+
+If desired, you can create a site with only a subset of the projects in the project metadata file by including the `--projects` argument, which takes a comma-separated list of projects to include.
+
+```sh
+nextflow run AlexsLemonade/scpca-nf/build-cellbrowser.nf \
+  -config {path to config file}  \
+  -profile {name of profile} \
+  --projects {project1,project2}
+```
+
+
+When the workflow is completed, all files for the Cell Browser site will be placed in the `{params.outdir}/cellbrowser` directory.
+This can be used with any web server to serve the Cell Browser site.

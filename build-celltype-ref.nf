@@ -31,16 +31,15 @@ process train_singler_models_transcriptome {
   input:
     tuple val(ref_name), path(ref_file)
     path t2g_3col_path
-    val ref_assembly // corresponds to assembly in meta.json files output from main.nf 
+    val ref_assembly // corresponds to assembly in meta.json files output from main.nf
   output:
     path celltype_model
   script:
-    ref_file_basename = file("${ref_file}").baseName
     gene_set_version = ref_assembly.tokenize('.')
-      .takeRight(2) // take the last two elements which have assembly and version 
+      .takeRight(2) // take the last two elements which have assembly and version
       .join('-') // join to get GRCh38-104
     date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
-    celltype_model = "${ref_file_basename}_${gene_set_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${gene_set_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -51,12 +50,11 @@ process train_singler_models_transcriptome {
       --threads ${task.cpus}
     """
   stub:
-    ref_file_basename = file("${ref_file}").baseName
     gene_set_version = ref_assembly.tokenize('.')
       .takeRight(2)
       .join('-')
     date_str = java.time.LocalDate.now().toString()
-    celltype_model = "${ref_file_basename}_${gene_set_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${gene_set_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -74,9 +72,8 @@ process train_singler_models_flex {
   output:
     path celltype_model
   script:
-    ref_file_basename = file("${ref_file}").baseName
     date_str = java.time.LocalDate.now().toString() // get current date in ISO8601 format
-    celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${probeset_version}_${date_str}_model.rds"
     """
     train_SingleR.R \
       --ref_file ${ref_file} \
@@ -87,9 +84,8 @@ process train_singler_models_flex {
       --threads ${task.cpus}
     """
   stub:
-    ref_file_basename = file("${ref_file}").baseName
     date_str = java.time.LocalDate.now().toString()
-    celltype_model = "${ref_file_basename}_${probeset_version}_${date_str}_model.rds"
+    celltype_model = "${ref_file.baseName}_${probeset_version}_${date_str}_model.rds"
     """
     touch ${celltype_model}
     """
@@ -168,19 +164,19 @@ workflow build_celltype_ref {
   ref_gtf = file("${params.ref_rootdir}/${ref_paths["ref_gtf"]}")
 
   // create channel of cell type ref files and names
-  celltype_refs_ch = Channel.fromPath(params.celltype_ref_metadata)
+  celltype_refs_ch = channel.fromPath(params.celltype_ref_metadata)
     .splitCsv(header: true, sep: '\t')
-    .branch{
+    .branch{ it ->
       singler: it.celltype_method == "SingleR"
       cellassign: it.celltype_method == "CellAssign"
     }
 
+
   // singler refs to download and train
   singler_refs_ch = celltype_refs_ch.singler
-    .map{[
-      ref_name: it.celltype_ref_name,
-      ref_source: it.celltype_ref_source
-    ]}
+    .map{ ref ->
+      [ref.celltype_ref_name, ref.celltype_ref_source]
+    }
 
   // download and save reference files
   save_singler_refs(singler_refs_ch)
@@ -193,23 +189,21 @@ workflow build_celltype_ref {
 
   // combine all output model files and join join file names into a comma separated string
   singler_models = train_singler_models_transcriptome.out.mix(train_singler_models_flex.out)
-    .reduce{a, b -> "$a,$b"}
+    .reduce{ a, b -> "$a,$b" }
   catalog_singler_models(singler_models)
 
   // cellassign refs
   cellassign_refs_ch = celltype_refs_ch.cellassign
     // create a channel with ref_name, source, organs
-    .map{[
-      ref_name: it.celltype_ref_name,
-      ref_source: it.celltype_ref_source,
-      organs: it.organs
-    ]}
+    .map{ ref ->
+      [ref.ref_name, ref.ref_source, ref.organs]
+    }
 
   generate_cellassign_refs(cellassign_refs_ch, ref_gtf, params.panglao_marker_genes_file)
 
   // join reference file names into a comma separated string
   cellassign_refs = generate_cellassign_refs.out.reduce{a, b -> "$a,$b"}
-  catalog_cellassign_refs(cellassign_refs)  
+  catalog_cellassign_refs(cellassign_refs)
 }
 
 workflow {

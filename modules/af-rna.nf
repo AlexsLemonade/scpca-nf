@@ -124,16 +124,18 @@ workflow map_quant_rna {
   main:
     // add rad publish directory, rad directory, and barcode file to meta
     rna_channel = rna_channel
-      .map{
-        def meta = it.clone();
-        meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}";
-        meta.rad_dir = "${meta.rad_publish_dir}/${meta.run_id}-rna";
-        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}";
-        meta // return modified meta object
+      .map{ meta_in ->
+        def meta = meta_in.clone()
+        meta.rad_publish_dir = "${params.checkpoints_dir}/rad/${meta.library_id}"
+        meta.rad_dir = "${meta.rad_publish_dir}/${meta.run_id}-rna"
+        meta.barcode_file = "${params.barcode_dir}/${cell_barcodes[meta.technology]}"
+
+        return meta // return modified meta object
       }
        // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
        // if neither fastq or rad dir are present, run goes into missing_inputs branch
-      .branch{
+      .branch{ it ->
+        def stored_ref_assembly = Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly")
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -142,7 +144,7 @@ workflow map_quant_rna {
             // the rad directory does not exist
             || !file(it.rad_dir).exists()
             // the assembly has changed; if rad_dir doesn't exist, this line won't get hit
-            || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "ref_assembly") != it.ref_assembly
+            || it.ref_assembly != stored_ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || Utils.getMetaVal(file("${it.rad_dir}/scpca-meta.json"), "technology").toLowerCase() != it.technology.toLowerCase()
           )
@@ -153,30 +155,34 @@ workflow map_quant_rna {
 
     // send run ids in rna_channel.missing_inputs to log
     rna_channel.missing_inputs
-      .subscribe{
+      .subscribe{ it ->
         log.error("The expected input fastq or rad files for ${it.run_id} are missing.")
       }
 
-    // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files])
+    // If we need to create rad files, create a new channel with tuple of (metadata map, [Read1 files], [Read2 files], salmon index)
     rna_reads_ch = rna_channel.make_rad
-      .map{meta -> tuple(
-        meta,
-        // fail if the fastq files do not exist
+      .map{ meta ->
+        def fastq_files = files("${meta.files_directory}/*.fastq.gz", checkIfExists: true)
         // add R1 and R2 regex to ensure correct file names if R1 or R2 are in sample identifier
-        files("${meta.files_directory}/*_{R1,R1_*}.fastq.gz", checkIfExists: true)
-          .findAll{it.name =~ /_R1(_\d+)?.fastq.gz$/},
-        files("${meta.files_directory}/*_{R2,R2_*}.fastq.gz", checkIfExists: true)
-          .findAll{it.name =~ /_R2(_\d+)?.fastq.gz$/},
-        file(meta.salmon_splici_index, type: 'dir')
-      )}
+        def R1_files = fastq_files.findAll{ it.name =~ /_R1(_\d+)?\.fastq\.gz$/ }
+        def R2_files = fastq_files.findAll{ it.name =~ /_R2(_\d+)?\.fastq\.gz$/ }
+        // check appropriate files were found
+        assert R1_files && R2_files: "No R1 and/or R2 files were found in ${meta.files_directory}"
+
+        def salmon_index = file(meta.salmon_splici_index, type: 'dir', checkIfExists: true)
+        [meta, R1_files, R2_files, salmon_index]
+      }
+
 
     // if the rad directory has been created and repeat_mapping is set to false
     // create tuple of metadata map (read from output) and rad_directory to be used directly as input to alevin-fry quantification
     rna_rad_ch = rna_channel.has_rad
-      .map{meta -> tuple(
-        Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
-        file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
-      )}
+      .map{ meta ->
+        [
+          Utils.readMeta(file("${meta.rad_dir}/scpca-meta.json")),
+          file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
+        ]
+      }
 
     // run Alevin for mapping on libraries that don't have RAD directory already created
     alevin_rad(rna_reads_ch)
@@ -184,7 +190,9 @@ workflow map_quant_rna {
     // combine output from running alevin step with channel containing libraries that skipped creating a RAD file
     all_rad_ch = alevin_rad.out.mix(rna_rad_ch)
       // add barcode and t2g files to channel to use in fry_quant_rna process
-      .map{it.toList() + [file(it[0].barcode_file), file(it[0].t2g_3col_path)]}
+      .map{ meta, rad_dir ->
+        [meta, rad_dir, file(meta.barcode_file), file(meta.t2g_3col_path)]
+      }
 
     // quantify with alevin-fry
     fry_quant_rna(all_rad_ch)
