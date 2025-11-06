@@ -132,7 +132,7 @@ workflow bulk_quant_rna {
       .branch{ it ->
         def stored_ref_assembly = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_t2g_bulk_path = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "t2g_bulk_path")
-        def stored_tech = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "technology").toLowerCase()
+        def stored_tech = Utils.getMetaVal(file("${it.salmon_results_dir}/scpca-meta.json"), "technology") ?: ""
         make_quants: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -144,7 +144,7 @@ workflow bulk_quant_rna {
             || it.ref_assembly != stored_ref_assembly
             || it.t2g_bulk_path != stored_t2g_bulk_path
             // or the technology has changed (to ensure re-mapping if tech was updated)
-            || it.technology.toLowerCase() != stored_tech
+            || it.technology.toLowerCase() != stored_tech.toLowerCase()
           )
         )
         has_quants: file(it.salmon_results_dir).exists()
