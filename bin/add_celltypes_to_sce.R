@@ -510,13 +510,9 @@ if (assign_consensus) {
 
     # if the only broad diagnosis is non-cancerous then skip counting
     # otherwise, proceed with counting
-    if (broad_diagnosis == "non-cancerous") {
-      # no reference cells here; store as character for writing to file
-      reference_cell_count <- "0"
-      reference_cell_hash <- digest::digest(reference_cell_count)
-    } else {
+    if (!all(broad_diagnosis == "Non-cancerous")) {
       # remove any potential instances of non-cancerous diagnosis
-      broad_diagnosis <- broad_diagnosis[broad_diagnosis != "non-cancerous"]
+      broad_diagnosis <- broad_diagnosis[broad_diagnosis != "Non-cancerous"]
 
       # check that remaining diagnoses can be mapped to appropriate cell types
       # right now we only support having a single broad diagnosis besides non-cancerous for multiplexed
