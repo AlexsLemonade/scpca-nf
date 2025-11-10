@@ -508,13 +508,16 @@ if (assign_consensus) {
         unique()
     }
 
-    # if the only broad diagnosis is non-cancerous then set everything to NA/false for reference cells
-    # otherwise, proceed with grabbing the appropriate cell types
+    # if the only broad diagnosis is non-cancerous then skip counting
+    # otherwise, proceed with counting
     if (broad_diagnosis == "non-cancerous") {
-      # add columns indicating that inferCNV reference cells are not relevant for this library
-      # these columns are needed to ensure the rest of the inferCNV module doesn't fail
-      metadata(sce)$infercnv_reference_celltypes <- NA
-      sce$is_infercnv_reference <- FALSE
+      # no reference cells here; store as character for writing to file
+      reference_cell_count <- "0"
+      reference_cell_hash <- digest::digest(reference_cell_count)
+
+      # indicate that infercnv did not succeed or fail, matching the addition in add_infercnv_to_sce.R
+      # the presence of this + non-cancerous diagnosis will be used to indicate that inferCNV was not run in the report
+      metadata(sce)$infercnv_success <- NA
     } else {
       # remove any potential instances of non-cancerous diagnosis
       broad_diagnosis <- broad_diagnosis[broad_diagnosis != "non-cancerous"]
@@ -544,16 +547,17 @@ if (assign_consensus) {
       # Add reference cell information to SCE
       metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
       sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
-    }
-    # get the full count; store as character for writing to file
-    reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
 
-    # get hash for sorted concatenated barcodes
-    concat_barcodes <- paste(
-      sort(sce$barcodes[sce$is_infercnv_reference]),
-      collapse = ""
-    )
-    reference_cell_hash <- digest::digest(concat_barcodes)
+      # get the full count; store as character for writing to file
+      reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
+
+      # get hash for sorted concatenated barcodes
+      concat_barcodes <- paste(
+        sort(sce$barcodes[sce$is_infercnv_reference]),
+        collapse = ""
+      )
+      reference_cell_hash <- digest::digest(concat_barcodes)
+    }
 
     # add a note about the diagnosis groups that were ultimately used to assign cells
     # if only non-cancerous then that will be listed
