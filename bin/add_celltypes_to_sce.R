@@ -552,7 +552,8 @@ if (assign_consensus) {
     }
 
     # include the total number of ref cells in the metadata
-    metadata(sce)$infercnv_num_reference_cells <- reference_cell_count
+    # make sure it's a number, if the value is "" this evaluates as NA
+    metadata(sce)$infercnv_num_reference_cells <- as.integer(reference_cell_count)
 
     # add a note about the diagnosis groups that were ultimately used to assign cells
     # if only non-cancerous then that will be listed

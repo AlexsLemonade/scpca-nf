@@ -8,7 +8,7 @@ This file is meant to be run as a child report from `main_qc_report.rmd`
 # metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run or is non-cancerous
 # metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
 infercnv_success <- metadata(processed_sce)$infercnv_success
-if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_diagnosis_groups == "non-cancerous") {
+if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_diagnosis_groups == "Non-cancerous") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because this library is from a non-cancerous sample or collection of non-cancerous samples.
