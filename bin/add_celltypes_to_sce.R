@@ -514,10 +514,6 @@ if (assign_consensus) {
       # no reference cells here; store as character for writing to file
       reference_cell_count <- "0"
       reference_cell_hash <- digest::digest(reference_cell_count)
-
-      # indicate that infercnv did not succeed or fail, matching the addition in add_infercnv_to_sce.R
-      # the presence of this + non-cancerous diagnosis will be used to indicate that inferCNV was not run in the report
-      metadata(sce)$infercnv_success <- NA
     } else {
       # remove any potential instances of non-cancerous diagnosis
       broad_diagnosis <- broad_diagnosis[broad_diagnosis != "non-cancerous"]
@@ -558,6 +554,9 @@ if (assign_consensus) {
       )
       reference_cell_hash <- digest::digest(concat_barcodes)
     }
+
+    # include the total number of ref cells in the metadata
+    metadata(sce)$infercnv_num_reference_cells <- reference_cell_count
 
     # add a note about the diagnosis groups that were ultimately used to assign cells
     # if only non-cancerous then that will be listed
