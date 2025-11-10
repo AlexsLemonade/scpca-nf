@@ -14,7 +14,7 @@ if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_diagnosis_groups
     inferCNV was not run because this library is from a non-cancerous sample or collection of non-cancerous samples.
     </div>
   ")
-} else if (is.na(infercnv_success) && sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
+} else if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_num_reference_cells < params$infercnv_min_reference_cells) {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
