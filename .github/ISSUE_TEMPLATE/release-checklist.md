@@ -16,6 +16,8 @@ assignees: ''
   - [ ] [`nextflow.config`](https://github.com/AlexsLemonade/scpca-nf/blob/main/nextflow.config)
   - [ ] [`internal-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/internal-instructions.md)
   - [ ] [`external-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md)
+- [ ] Update the tag for `scpca-nf` containers in `config/containers.config`
+  _Note:_ Any processes that use those containers will not work until the new tag has been created. 
 - [ ] Test that the workflow is in good working order with `nextflow run alexslemonade/scpca-nf -latest -r development`
 - [ ] File a PR from the `development` branch to the `main` branch. This should include all of the changes that will be associated with the next release.
 - [ ] (Optional) Generate new example `scpca-nf` output files.
