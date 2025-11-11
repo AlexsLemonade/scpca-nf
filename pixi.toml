@@ -6,8 +6,15 @@ platforms = ["linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
 
 [tasks]
+nf-runner-login = """
+  aws ssm start-session --target $(aws ec2 describe-instances \
+    --filters "Name=tag:Name,Values=Nextflow-runner" "Name=instance-state-name,Values=running" \
+    --query "Reservations[0].Instances[0].InstanceId" \
+    --output text)
+  """
 
 [dependencies]
+awscli = ">=2.13.6,<3"
 nextflow = ">=24.10.6,<25"
 pre-commit = ">=4.2.0,<5"
 prettier = ">=3.5.3,<4"
