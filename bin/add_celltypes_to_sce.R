@@ -510,39 +510,57 @@ if (assign_consensus) {
         unique()
     }
 
-    stopifnot(
-      "A single broad diagnosis for the library could not be identified" = length(broad_diagnosis) == 1,
-      "Could not determine a single known diagnosis group from sample diagnosis." =
-        broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
-    )
+    # if the only broad diagnosis is non-cancerous then skip counting
+    # otherwise, proceed with counting
+    if (!all(broad_diagnosis == "Non-cancerous")) {
+      # remove any potential instances of non-cancerous diagnosis
+      broad_diagnosis <- broad_diagnosis[broad_diagnosis != "Non-cancerous"]
 
-    # get the cell type groups to consider for this diagnosis
-    reference_validation_groups <- diagnosis_celltype_df |>
-      dplyr::filter(diagnosis_group == broad_diagnosis) |>
-      tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
-      dplyr::pull(celltype_groups) |>
-      # remove any leading or trailing spaces
-      stringr::str_trim()
+      # check that remaining diagnoses can be mapped to appropriate cell types
+      # right now we only support having a single broad diagnosis besides non-cancerous for multiplexed
+      stopifnot(
+        "A single broad diagnosis for the library could not be identified" = length(broad_diagnosis) == 1,
+        "Could not determine a single known diagnosis group from sample diagnosis." =
+          broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
+      )
 
-    # get the consensus cell types
-    ref_df <- consensus_validation_df |>
-      dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
-      dplyr::select(consensus_ontology, consensus_annotation) |>
-      dplyr::distinct()
+      # get the cell type groups to consider for this diagnosis
+      reference_validation_groups <- diagnosis_celltype_df |>
+        dplyr::filter(diagnosis_group == broad_diagnosis) |>
+        tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
+        dplyr::pull(celltype_groups) |>
+        # remove any leading or trailing spaces
+        stringr::str_trim()
 
-    # Add reference cell information to SCE
-    metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
-    sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
+      # get the consensus cell types
+      ref_df <- consensus_validation_df |>
+        dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
+        dplyr::select(consensus_ontology, consensus_annotation) |>
+        dplyr::distinct()
 
-    # get the full count; store as character for writing to file
-    reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
+      # Add reference cell information to SCE
+      metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
+      sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology # boolean
 
-    # get hash for sorted concatenated barcodes
-    concat_barcodes <- paste(
-      sort(sce$barcodes[sce$is_infercnv_reference]),
-      collapse = ""
-    )
-    reference_cell_hash <- digest::digest(concat_barcodes)
+      # get the full count; store as character for writing to file
+      reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
+
+      # get hash for sorted concatenated barcodes
+      concat_barcodes <- paste(
+        sort(sce$barcodes[sce$is_infercnv_reference]),
+        collapse = ""
+      )
+      reference_cell_hash <- digest::digest(concat_barcodes)
+    }
+
+    # include the total number of ref cells in the metadata
+    # make sure it's a number, if the value is "" this evaluates as NA
+    metadata(sce)$infercnv_num_reference_cells <- as.integer(reference_cell_count)
+
+    # add a note about the diagnosis groups that were ultimately used to assign cells
+    # if only non-cancerous then that will be listed
+    # for all others, the final diagnosis group that was used after removing non-cancerous
+    metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
   }
 }
 

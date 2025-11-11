@@ -61,7 +61,7 @@ sce <- readRDS(opts$input_sce_file)
 
 # check if we have inferCNV results based on file size
 if (file.info(opts$infercnv_results_file)$size == 0) {
-  if (sum(sce$is_infercnv_reference) < opts$infercnv_threshold) {
+  if (is.na(metadata(sce)$infercnv_num_reference_cells) || metadata(sce)$infercnv_num_reference_cells < opts$infercnv_threshold) {
     metadata(sce)$infercnv_success <- NA # infercnv wasn't run; it neither succeeded nor failed
   } else {
     metadata(sce)$infercnv_success <- FALSE # actually failed

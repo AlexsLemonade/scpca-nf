@@ -127,7 +127,7 @@ workflow flex_quant{
   take:
     flex_channel // a channel with a map of metadata for each flex library to process
     flex_probesets // map of probe set files for each technology
-    pool_file // path to file with barcode IDs for each sample when using multiplexed 10x flex
+    pool_file // file object with barcode IDs for each sample when using multiplexed 10x flex
   main:
 
     flex_channel = flex_channel
@@ -180,7 +180,7 @@ workflow flex_quant{
     cellranger_flex_single(flex_reads.single)
 
     // run cellranger multiplexed
-    cellranger_flex_multi(flex_reads.multi, file(pool_file))
+    cellranger_flex_multi(flex_reads.multi, pool_file)
 
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
