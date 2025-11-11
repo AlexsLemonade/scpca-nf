@@ -179,7 +179,7 @@ workflow flex_quant{
     cellranger_flex_single(flex_reads.single)
 
     // run cellranger multiplexed
-    cellranger_flex_multi(flex_reads.multi, file(pool_file))
+    cellranger_flex_multi(flex_reads.multi, pool_file)
 
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
