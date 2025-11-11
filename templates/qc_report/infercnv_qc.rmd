@@ -136,11 +136,22 @@ The first ridge plot shows the CNV distributions between cell type groups: Those
 The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
 Note that any cell types with fewer than 3 cells are not shown in this plot.
 
-```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
+```{r warning = FALSE, message = FALSE, results = 'asis'}
 # Prepare data frames for plotting
+cnv_cols <- c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv")
+if (!all(cnv_cols %in% colnames(processed_sce))) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    Not all expected inferCNV columns are present in the processed SCE object;
+    cannot create CNV distribution plots.
+    </div>
+  ")
+  knitr::knit_exit(fully = FALSE)
+}
+
 total_cnv_df <- scuttle::makePerCellDF(
   processed_sce,
-  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv"),
+  use.coldata = cnv_cols,
   use.dimred = FALSE
 ) |>
   tibble::rownames_to_column("barcodes") |>
@@ -174,7 +185,11 @@ total_cnv_lumped_df <- total_cnv_df |>
 hex_df <- data.frame(consensus_hex) |>
   tibble::rownames_to_column("celltype_lumped") |>
   dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
-hex_df$celltype_lumped <- factor(hex_df$celltype_lumped, levels = levels(total_cnv_lumped_df$celltype_lumped))
+
+hex_df$celltype_lumped <- factor(
+  hex_df$celltype_lumped,
+  levels = levels(total_cnv_lumped_df$celltype_lumped)
+)
 
 total_cnv_lumped_df <- total_cnv_lumped_df |>
   dplyr::inner_join(hex_df, by = "celltype_lumped")
@@ -187,7 +202,9 @@ total_cnv_lumped_df <- total_cnv_lumped_df |>
     celltype_lumped = factor(celltype_lumped, labels = new_labels) |>
       forcats::fct_rev() # reverse for display in ridge plot
   )
+```
 
+```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # first plot: across cell type groups
 cell_group_plot <- ggplot(total_cnv_df) +
   aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
@@ -198,7 +215,6 @@ cell_group_plot <- ggplot(total_cnv_df) +
     title = "CNV between reference and query cell groups"
   ) +
   theme(legend.position = "none")
-
 
 
 # second plot: across cell types
