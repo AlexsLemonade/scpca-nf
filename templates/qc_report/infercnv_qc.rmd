@@ -3,6 +3,32 @@
 <!--
 This file is meant to be run as a child report from `main_qc_report.rmd`
 -->
+```{r results = 'asis', eval = infercnv_unsuccessful}
+# metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run or is non-cancerous
+# metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
+infercnv_success <- metadata(processed_sce)$infercnv_success
+if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_diagnosis_groups == "Non-cancerous") {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV was not run because this library is from a non-cancerous sample or collection of non-cancerous samples.
+    </div>
+  ")
+} else if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_num_reference_cells < params$infercnv_min_reference_cells) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV was not run because there were not enough normal reference cells present in the processed object.
+    At least {params$infercnv_min_reference_cells} normal reference cells are required, but only {sum(processed_sce$is_infercnv_reference)} cells were present.
+    </div>
+  ")
+} else if (!(infercnv_success)) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV failed to run; no results are included in this section.
+    </div>
+  ")
+}
+knitr::knit_exit(fully = FALSE) # don't quit the whole report, just this subnotebook
+```
 
 
 This section provides information about the results from running `inferCNV` to quantify copy-number variation (CNV) events.
