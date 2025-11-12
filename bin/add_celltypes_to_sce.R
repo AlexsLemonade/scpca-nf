@@ -18,7 +18,7 @@ suppressPackageStartupMessages({
 #' Get reference information from a reference file
 #'
 #' @param ref_filename reference file name to parse
-#' @extension file extension to consider during parsing
+#' @param extension file extension to consider during parsing
 #'
 #' @return list of reference file components to include in SCE metadata
 get_ref_info <- function(ref_filename, extension, ref_type) {
@@ -141,7 +141,7 @@ add_singler_results <- function(sce, singler_results, singler_model_file) {
 #' @param predictions CellAssign predictions data frame
 #' @param cellassign_ref_file Path to CellAssign reference file
 #' @param celltype_ref_metafile Path to cell type reference metadata file
-#' @param panglao_ref_df Panglao ontology reference data frame
+#' @param panglao_ref_file Path to Panglao ontology reference file
 #'
 #' @return Updated SCE object with CellAssign annotations
 add_cellassign_results <- function(
