@@ -607,12 +607,23 @@ if (length(automated_methods) > 1) {
     if (!file.exists(opt$diagnosis_groups_ref)) {
       broad_diagnosis <- diagnosis
     } else {
-      broad_diagnosis <- readr::read_tsv(opt$diagnosis_groups_ref) |>
-        dplyr::filter(sample_diagnosis %in% diagnosis) |>
+      diagnosis_groups <- readr::read_tsv(opt$diagnosis_groups_ref)
+      broad_diagnosis <- data.frame(sample_diagnosis = diagnosis) |>
+        dplyr::left_join(diagnosis_groups, by = "sample_diagnosis") |>
+        # replace NA with sample diagnosis
+        dplyr::mutate(
+          diagnosis_group = dplyr::coalesce(diagnosis_group, sample_diagnosis)
+        ) |>
         dplyr::pull("diagnosis_group") |>
         # in case of multiplexed
         unique()
     }
+
+    # Check that we have at least one broad diagnosis
+    stopifnot(
+      "Could not determine broad diagnosis from sample diagnosis." =
+        length(broad_diagnosis) >= 1
+    )
 
     # if the only broad diagnosis is non-cancerous then skip counting
     # otherwise, proceed with counting
