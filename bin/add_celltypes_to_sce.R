@@ -347,7 +347,8 @@ option_list <- list(
   make_option(
     opt_str = c("-o", "--output_sce_file"),
     type = "character",
-    help = "path to output rds file to store annotated sce object. Must end in .rds"
+    help = "path to output rds file to store annotated sce object. Must end in .rds",
+    default = ""
   ),
   make_option(
     opt_str = c("--singler_results"),
@@ -379,14 +380,14 @@ option_list <- list(
     opt_str = c("--celltype_ref_metafile"),
     type = "character",
     help = "Metadata TSV file containing cell type reference metadata.
-            This file is used to obtain a list of organs used for CellAssign annotation and is only required if CellAssign results provided as input.",
+      This file is used to obtain a list of organs used for CellAssign annotation and is only required if CellAssign results provided as input.",
     default = ""
   ),
   make_option(
     opt_str = c("--panglao_ontology_ref"),
     type = "character",
     help = "Path to TSV file with panglao assignments and associated cell ontology ids.
-            This file is used to assign Cell Ontology identifier to the CellAssign annotations",
+      This file is used to assign Cell Ontology identifier to the CellAssign annotations",
     default = ""
   ),
   make_option(
@@ -417,14 +418,14 @@ option_list <- list(
     opt_str = c("--diagnosis_celltype_ref"),
     type = "character",
     help = "Path to TSV file mapping broad diagnoses to consensus validation groups for counting normal reference cells intended as input to inferCNV.
-    This file should have columns `diagnosis_group` and `celltype_groups` where the latter is a comma-separated list of consensus validation groups",
+      This file should have columns `diagnosis_group` and `celltype_groups` where the latter is a comma-separated list of consensus validation groups",
     default = ""
   ),
   make_option(
     opt_str = c("--diagnosis_groups_ref"),
     type = "character",
     help = "Path to TSV file mapping broad diagnoses to individual diagnoses for counting normal reference cells intended as input to inferCNV.
-    This file should have columns `diagnosis_group` for the broad diagnosis and `sample_diagnosis` with individual diagnoses in ScPCA",
+      This file should have columns `diagnosis_group` for the broad diagnosis and `sample_diagnosis` with individual diagnoses in ScPCA",
     default = ""
   ),
   make_option(
@@ -446,12 +447,14 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# check that input file exists and output file ends in rds
+# check that input file exists, output file ends in rds, and count files are provided
 stopifnot(
   "Missing input SCE file" = file.exists(opt$input_sce_file),
   "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
   "output file to store counted normal cells was not provided" =
-    !is.null(opt$reference_cell_count_file)
+    !is.null(opt$reference_cell_count_file) && opt$reference_cell_count_file != "",
+  "output file to store reference cell hash was not provided" =
+    !is.null(opt$reference_cell_hash_file) && opt$reference_cell_hash_file != ""
 )
 
 # read in input files
