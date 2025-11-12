@@ -150,13 +150,13 @@ if (has_processed) {
   # Determine inferCNV condition and include one check while we're in this if
   # define these with FALSE baseline, to be overridden if present
   has_infercnv_results <- FALSE
-  has_infercnv_attempt <- FALSE
+  infercnv_unsuccessful <- FALSE
   if (!is.null(metadata(processed_sce)$infercnv_success)) {
     # TRUE or FALSE only
     has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE)
 
-    # has_infercnv_attempt used when there are no results but a success status
-    has_infercnv_attempt <- !has_infercnv_results
+    # infercnv_unsuccessful used when there are no results but a success status
+    infercnv_unsuccessful <- !has_infercnv_results
 
     # this is the only condition we'll need this information
     if (is.na(metadata(processed_sce)$infercnv_success)) {
@@ -177,7 +177,7 @@ if (has_processed) {
   has_openscpca <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
-  has_infercnv_attempt <- FALSE
+  infercnv_unsuccessful <- FALSE
   has_infercnv_results <- FALSE
 }
 
@@ -753,7 +753,7 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```
 
 <!-- Next section only included if inferCNV is present or was attempted -->
-```{r, child='infercnv_qc.rmd', eval = has_infercnv_results || has_infercnv_attempt}
+```{r, child='infercnv_qc.rmd', eval = has_infercnv_results || infercnv_unsuccessful}
 ```
 
 # Session Info

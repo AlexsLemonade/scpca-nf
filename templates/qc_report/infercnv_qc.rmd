@@ -4,7 +4,7 @@
 This file is meant to be run as a child report from `main_qc_report.rmd`
 -->
 
-```{r results = 'asis', eval = has_infercnv_attempt}
+```{r results = 'asis', eval = infercnv_unsuccessful}
 # metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run or is non-cancerous
 # metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
 infercnv_success <- metadata(processed_sce)$infercnv_success
