@@ -335,13 +335,6 @@ assign_consensus_celltypes <- function(
   return(sce)
 }
 
-# check that input file exists and output file ends in rds
-stopifnot(
-  "Missing input SCE file" = file.exists(opt$input_sce_file),
-  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
-  "output file to store counted normal cells was not provided" =
-    !is.null(opt$reference_cell_count_file)
-)
 
 # Main script ----------------------------------------------------------------
 option_list <- list(
@@ -452,6 +445,14 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
+
+# check that input file exists and output file ends in rds
+stopifnot(
+  "Missing input SCE file" = file.exists(opt$input_sce_file),
+  "output sce file name must end in .rds" = stringr::str_ends(opt$output_sce_file, ".rds"),
+  "output file to store counted normal cells was not provided" =
+    !is.null(opt$reference_cell_count_file)
+)
 
 # read in input files
 sce <- readr::read_rds(opt$input_sce_file)
