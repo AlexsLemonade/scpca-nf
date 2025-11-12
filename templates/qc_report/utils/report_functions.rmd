@@ -35,8 +35,9 @@ determine_umap_point_size <- function(n_processed_cells) {
 #' @return UMAP plot as a ggplot2 object
 #'
 plot_clusters_umap <- function(
-    sce,
-    point_size = 1) {
+  sce,
+  point_size = 1
+) {
   # umap colored by clusters
   clusters_plot <- scater::plotUMAP(
     sce,
