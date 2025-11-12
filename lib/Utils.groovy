@@ -23,6 +23,10 @@ class Utils {
       meta.unique_id = meta.technology.contains("_multi") ? "${meta.library_id}-${meta.sample_id}" : meta.library_id
     }
 
+    if( meta.technology) {
+      meta.technology = meta.technology.toLowerCase()
+    }
+
     return(meta)
   }
 
