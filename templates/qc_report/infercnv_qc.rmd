@@ -183,13 +183,12 @@ total_cnv_lumped_df <- total_cnv_df |>
 # but do separately to preserve factor order out of lump_wrap_celltypes()
 hex_df <- data.frame(consensus_hex) |>
   tibble::rownames_to_column("celltype_lumped") |>
-  dplyr::mutate(
-    celltype_lumped = factor(
-      celltype_lumped,
-      levels = levels(total_cnv_lumped_df$celltype_lumped)
-    )
-  ) |>
-  dplyr::filter(!is.na(celltype_lumped))
+  dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
+
+hex_df$celltype_lumped <- factor(
+  hex_df$celltype_lumped,
+  levels = levels(total_cnv_lumped_df$celltype_lumped)
+)
 
 total_cnv_lumped_df <- total_cnv_lumped_df |>
   dplyr::inner_join(hex_df, by = "celltype_lumped")
