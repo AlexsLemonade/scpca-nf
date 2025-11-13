@@ -156,18 +156,16 @@ total_cnv_df <- scuttle::makePerCellDF(
   tibble::rownames_to_column("barcodes") |>
   dplyr::add_count(is_infercnv_reference) |>
   dplyr::mutate(
-    is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
-    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n})")
-  ) |>
-  dplyr::select(-n) |>
-  # rename for consistency with cell type report section
-  dplyr::mutate(
+    infercnv_reference_group = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
+    infercnv_reference_group = glue::glue("{infercnv_reference_group} (N={n})"),
+    # rename for consistency with cell type report section
     consensus_celltype_annotation = ifelse(
       consensus_celltype_annotation == "Unknown",
       "Unknown cell type",
       consensus_celltype_annotation
     )
-  )
+  ) |>
+  dplyr::select(-n)
 
 # this data frame version is used for the plot across celltypes
 total_cnv_lumped_df <- total_cnv_df |>
@@ -177,21 +175,12 @@ total_cnv_lumped_df <- total_cnv_df |>
   dplyr::select(-n) |>
   lump_wrap_celltypes() |>
   # rename for convenience
-  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
-
-# join in consensus colors which were defined in the celltypes_qc.rmd child report,
-# but do separately to preserve factor order out of lump_wrap_celltypes()
-hex_df <- data.frame(consensus_hex) |>
-  tibble::rownames_to_column("celltype_lumped") |>
-  dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
-
-hex_df$celltype_lumped <- factor(
-  hex_df$celltype_lumped,
-  levels = levels(total_cnv_lumped_df$celltype_lumped)
-)
-
-total_cnv_lumped_df <- total_cnv_lumped_df |>
-  dplyr::inner_join(hex_df, by = "celltype_lumped")
+  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped) |>
+  # join in consensus colors which were defined in the celltypes_qc.rmd child report
+  # make sure to use characters to avoid factor level issues
+  dplyr::mutate(
+    lumped_color = consensus_hex[as.character(celltype_lumped)]
+  )
 
 # set total_cnv_lumped_df$celltype_lumped levels for plotting
 new_labels_df <- forcats::fct_count(total_cnv_lumped_df$celltype_lumped)
@@ -206,7 +195,7 @@ total_cnv_lumped_df <- total_cnv_lumped_df |>
 ```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # first plot: across cell type groups
 cell_group_plot <- ggplot(total_cnv_df) +
-  aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
+  aes(x = infercnv_total_cnv, y = infercnv_reference_group, fill = infercnv_reference_group) +
   ggridges::geom_density_ridges2(scale = 0.9) +
   labs(
     x = "Total CNV events per cell",
