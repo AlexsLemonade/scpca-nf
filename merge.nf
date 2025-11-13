@@ -154,7 +154,7 @@ workflow {
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
         seq_unit: it.seq_unit,
-        technology: it.technology
+        technology: it.technology.toLowerCase()
       ]
     }
 
