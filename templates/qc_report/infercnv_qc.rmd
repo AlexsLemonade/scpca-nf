@@ -180,7 +180,8 @@ total_cnv_lumped_df <- total_cnv_df |>
   # make sure to use characters to avoid factor level issues
   dplyr::mutate(
     lumped_color = consensus_hex[as.character(celltype_lumped)]
-  )
+  ) |>
+  dplyr::filter(!is.na(lumped_color))
 
 # set total_cnv_lumped_df$celltype_lumped levels for plotting
 new_labels_df <- forcats::fct_count(total_cnv_lumped_df$celltype_lumped)
@@ -203,7 +204,6 @@ cell_group_plot <- ggplot(total_cnv_df) +
     title = "CNV between reference and query cell groups"
   ) +
   theme(legend.position = "none")
-
 
 # second plot: across cell types
 cell_type_plot <- ggplot(total_cnv_lumped_df) +
