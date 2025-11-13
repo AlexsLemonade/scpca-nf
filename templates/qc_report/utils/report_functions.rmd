@@ -104,11 +104,11 @@ print_sample_metadata <- function(meta_list) {
         "tissue_location"
       ),
       hr_value = c(
-        ifelse("age" %in% names(sample_metadata), as.character(sample_metadata$age), "NA"),
-        ifelse("sex" %in% names(sample_metadata), sample_metadata$sex, "NA"),
-        ifelse("organism" %in% names(sample_metadata), sample_metadata$organism, "NA"),
-        ifelse("diagnosis" %in% names(sample_metadata), sample_metadata$diagnosis, "NA"),
-        ifelse("tissue_location" %in% names(sample_metadata), sample_metadata$tissue_location, "NA")
+        ifelse("age" %in% names(sample_metadata), as.character(sample_metadata$age), "N/A"),
+        ifelse("sex" %in% names(sample_metadata), sample_metadata$sex, "N/A"),
+        ifelse("organism" %in% names(sample_metadata), sample_metadata$organism, "N/A"),
+        ifelse("diagnosis" %in% names(sample_metadata), sample_metadata$diagnosis, "N/A"),
+        ifelse("tissue_location" %in% names(sample_metadata), sample_metadata$tissue_location, "N/A")
       ),
       ontology_term_id = c(
         ifelse(
@@ -164,13 +164,13 @@ print_sample_metadata <- function(meta_list) {
       "Subdiagnosis" = ifelse(
         "subdiagnosis" %in% names(sample_metadata),
         sample_metadata$subdiagnosis,
-        "NA"
+        "N/A"
       ),
       "Tissue location" = url_list$tissue_location,
       "Disease timing" = ifelse(
         "disease_timing" %in% names(sample_metadata),
         sample_metadata$disease_timing,
-        "NA"
+        "N/A"
       ),
       "Age" = url_list$age,
       "Sex" = url_list$sex,
@@ -178,7 +178,7 @@ print_sample_metadata <- function(meta_list) {
       "Sample type" = ifelse(
         "sample_type" %in% names(meta_list),
         paste0(meta_list$sample_type, collapse = ", "),
-        "NA"
+        "N/A"
       )
     ) |>
       t() |>
