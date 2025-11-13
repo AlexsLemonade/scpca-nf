@@ -138,7 +138,7 @@ Note that any cell types with fewer than 3 cells are not shown in this plot.
 ```{r warning = FALSE, message = FALSE, results = 'asis'}
 # Prepare data frames for plotting
 cnv_cols <- c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv")
-if (!all(cnv_cols %in% colnames(processed_sce))) {
+if (!all(cnv_cols %in% colnames(colData(processed_sce)))) {
   glue::glue("
     <div class=\"alert alert-info\">
     Not all expected inferCNV columns are present in the processed SCE object;
