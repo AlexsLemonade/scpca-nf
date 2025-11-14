@@ -30,14 +30,15 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 # function to create individual json entries containing individual reference paths
 create_ref_entry <- function(
-    organism,
-    assembly,
-    version,
-    include_salmon,
-    include_cellranger,
-    include_star,
-    include_infercnv,
-    reference_name) {
+  organism,
+  assembly,
+  version,
+  include_salmon,
+  include_cellranger,
+  include_star,
+  include_infercnv,
+  reference_name
+) {
   # create base reference directory
   ref_dir <- file.path(
     tolower(organism),
