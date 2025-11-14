@@ -141,6 +141,7 @@ workflow flex_quant{
       }
       .branch{ it ->
         def stored_ref_assembly = getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_tech = getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "technology") ?: ""
         // branch based on if cellranger results exist or repeat mapping is used
         make_cellranger_flex: (
           // input files exist
@@ -148,6 +149,8 @@ workflow flex_quant{
             params.repeat_mapping
             || !file(it.cellranger_multi_results_dir).exists()
             || it.ref_assembly != stored_ref_assembly
+            // or the technology has changed (to ensure re-mapping if tech was updated)
+            || it.technology.toLowerCase() != stored_tech.toLowerCase()
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()
