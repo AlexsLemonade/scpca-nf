@@ -5,13 +5,6 @@ name = "scpca-nf"
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
 
-[tasks]
-nf-runner-login = """
-  aws ssm start-session --target $(aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=Nextflow-runner" "Name=instance-state-name,Values=running" \
-    --query "Reservations[0].Instances[0].InstanceId" \
-    --output text)
-  """
 
 [dependencies]
 awscli = ">=2.13.6,<3"
@@ -35,3 +28,17 @@ sbpack = { git = "https://github.com/rabix/sbpack", tag = "2024.10.30" }
 [environments]
 default = ["nfcore"]
 cavatica = ["sbpack"]
+
+
+[tasks.nf-runner-login]
+description = "Login to the Nextflow runner EC2 instance via AWS SSM."
+cmd = """
+aws_instance=$(aws ec2 describe-instances \
+    --filters "Name=tag:Name,Values=Nextflow-runner" "Name=instance-state-name,Values=running" \
+    --query "Reservations[0].Instances[0].InstanceId" \
+    --output text);
+aws ssm start-session \
+  --target $aws_instance \
+  --document-name AWS-StartInteractiveCommand \
+  --parameters '{"command":["sudo su - ec2-user"]}'
+"""
