@@ -28,7 +28,7 @@ process alevin_rad {
       '10xv4': '--chromiumV3'
     ]
     // get meta to write as file
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     // run alevin like normal with the --rad flag
     // creates output directory with RAD file needed for alevin-fry
@@ -49,7 +49,7 @@ process alevin_rad {
     """
   stub:
     rad_dir = file(meta.rad_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir -p ${rad_dir}
@@ -73,7 +73,7 @@ process fry_quant_rna {
   script:
     quant_dir = rad_dir + '_quant'
     // get meta to write as file
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     if [ $barcode_file == *.gz ]; then
@@ -109,7 +109,7 @@ process fry_quant_rna {
     """
   stub:
     quant_dir = rad_dir + '_quant'
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir -p '${quant_dir}'
