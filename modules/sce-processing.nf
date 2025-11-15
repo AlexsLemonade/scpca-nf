@@ -78,7 +78,7 @@ process make_unfiltered_sce_with_feature {
         meta.feature_meta = feature_meta
 
         // If feature_type is "CITEseq", make it "adt"
-        if (meta.feature_type == "citeseq") {
+        if (meta.feature_type.toLowerCase() == "citeseq") {
           meta.feature_type = "adt"
         }
 

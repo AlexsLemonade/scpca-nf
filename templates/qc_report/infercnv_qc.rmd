@@ -3,26 +3,31 @@
 <!--
 This file is meant to be run as a child report from `main_qc_report.rmd`
 -->
-
-```{r results = 'asis', eval = has_infercnv_attempt}
-# metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run
+```{r results = 'asis', eval = infercnv_unsuccessful}
+# metadata(processed_sce)$infercnv_success is NA: insufficient reference cells so inferCNV wasn't run or is non-cancerous
 # metadata(processed_sce)$infercnv_success is FALSE: inferCNV actually failed
-if (is.na(metadata(processed_sce)$infercnv_success) &&
-  sum(processed_sce$is_infercnv_reference) < params$infercnv_min_reference_cells) {
+infercnv_success <- metadata(processed_sce)$infercnv_success
+if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_diagnosis_groups == "Non-cancerous") {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    inferCNV was not run because this library is from a non-cancerous sample or collection of non-cancerous samples.
+    </div>
+  ")
+} else if (is.na(infercnv_success) && metadata(processed_sce)$infercnv_num_reference_cells < params$infercnv_min_reference_cells) {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
     At least {params$infercnv_min_reference_cells} normal reference cells are required, but only {sum(processed_sce$is_infercnv_reference)} cells were present.
     </div>
   ")
-} else if (!(metadata(processed_sce)$infercnv_success)) {
+} else if (!(infercnv_success)) {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV failed to run; no results are included in this section.
     </div>
   ")
 }
-knitr::knit_exit(fully = FALSE) # use fully = FALSE to ensure the main report continues knitting
+knitr::knit_exit(fully = FALSE) # don't quit the whole report, just this subnotebook
 ```
 
 
@@ -130,28 +135,41 @@ The first ridge plot shows the CNV distributions between cell type groups: Those
 The second ridge plot shows the CNV distributions across consensus cell types, showing only the top seven most common cell types.
 Note that any cell types with fewer than 3 cells are not shown in this plot.
 
-```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
+```{r results = 'asis'}
+# Check that we will be able to plot CNV distributions
+cnv_cols <- c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv")
+cols_present <- all(cnv_cols %in% colnames(colData(processed_sce)))
+if (!cols_present) {
+  glue::glue("
+    <div class=\"alert alert-info\">
+    Not all expected inferCNV columns are present in the processed SCE object.
+    Cannot create CNV distribution plots.
+    </div>
+  ")
+  knitr::knit_exit(fully = FALSE) # don't quit the whole report, just this subnotebook
+}
+```
+
+```{r}
 # Prepare data frames for plotting
 total_cnv_df <- scuttle::makePerCellDF(
   processed_sce,
-  use.coldata = c("is_infercnv_reference", "consensus_celltype_annotation", "infercnv_total_cnv"),
+  use.coldata = cnv_cols,
   use.dimred = FALSE
 ) |>
   tibble::rownames_to_column("barcodes") |>
   dplyr::add_count(is_infercnv_reference) |>
   dplyr::mutate(
-    is_infercnv_reference = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
-    is_infercnv_reference = glue::glue("{is_infercnv_reference} (N={n})")
-  ) |>
-  dplyr::select(-n) |>
-  # rename for consistency with cell type report section
-  dplyr::mutate(
+    infercnv_reference_group = ifelse(is_infercnv_reference, "Reference cells", "Query cells"),
+    infercnv_reference_group = glue::glue("{infercnv_reference_group} (N={n})"),
+    # rename for consistency with cell type report section
     consensus_celltype_annotation = ifelse(
       consensus_celltype_annotation == "Unknown",
       "Unknown cell type",
       consensus_celltype_annotation
     )
-  )
+  ) |>
+  dplyr::select(-n)
 
 # this data frame version is used for the plot across celltypes
 total_cnv_lumped_df <- total_cnv_df |>
@@ -161,17 +179,13 @@ total_cnv_lumped_df <- total_cnv_df |>
   dplyr::select(-n) |>
   lump_wrap_celltypes() |>
   # rename for convenience
-  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped)
-
-# join in consensus colors which were defined in the celltypes_qc.rmd child report,
-# but do separately to preserve factor order out of lump_wrap_celltypes()
-hex_df <- data.frame(consensus_hex) |>
-  tibble::rownames_to_column("celltype_lumped") |>
-  dplyr::filter(celltype_lumped %in% unique(total_cnv_lumped_df$celltype_lumped))
-hex_df$celltype_lumped <- factor(hex_df$celltype_lumped, levels = levels(total_cnv_lumped_df$celltype_lumped))
-
-total_cnv_lumped_df <- total_cnv_lumped_df |>
-  dplyr::inner_join(hex_df, by = "celltype_lumped")
+  dplyr::rename(celltype_lumped = consensus_celltype_annotation_lumped) |>
+  # join in consensus colors which were defined in the celltypes_qc.rmd child report
+  # make sure to use characters to avoid factor level issues
+  dplyr::mutate(
+    lumped_color = consensus_hex[as.character(celltype_lumped)]
+  ) |>
+  dplyr::filter(!is.na(lumped_color))
 
 # set total_cnv_lumped_df$celltype_lumped levels for plotting
 new_labels_df <- forcats::fct_count(total_cnv_lumped_df$celltype_lumped)
@@ -181,10 +195,12 @@ total_cnv_lumped_df <- total_cnv_lumped_df |>
     celltype_lumped = factor(celltype_lumped, labels = new_labels) |>
       forcats::fct_rev() # reverse for display in ridge plot
   )
+```
 
+```{r fig.width = 7, fig.height = 10, warning = FALSE, message = FALSE}
 # first plot: across cell type groups
 cell_group_plot <- ggplot(total_cnv_df) +
-  aes(x = infercnv_total_cnv, y = is_infercnv_reference, fill = is_infercnv_reference) +
+  aes(x = infercnv_total_cnv, y = infercnv_reference_group, fill = infercnv_reference_group) +
   ggridges::geom_density_ridges2(scale = 0.9) +
   labs(
     x = "Total CNV events per cell",
@@ -193,11 +209,9 @@ cell_group_plot <- ggplot(total_cnv_df) +
   ) +
   theme(legend.position = "none")
 
-
-
 # second plot: across cell types
 cell_type_plot <- ggplot(total_cnv_lumped_df) +
-  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = consensus_hex) +
+  aes(x = infercnv_total_cnv, y = celltype_lumped, fill = lumped_color) +
   ggridges::geom_density_ridges2(scale = 0.9) +
   scale_fill_identity() +
   labs(
