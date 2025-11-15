@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; getMetaVal; makeJson; readMeta; pullthroughContainer } from '../lib/utils.nf'
 
 //index a feature barcode file
 process index_feature{
@@ -167,7 +167,7 @@ workflow map_quant_feature {
       // branch based on whether mapping should be run (make_rad) or skipped (has_rad)
       // if neither fastq or rad dir are present, run goes into missing_inputs branch
       .branch{ it ->
-        def stored_tech = Utils.getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "technology") ?: ""
+        def stored_tech = getMetaVal(file("${it.feature_rad_dir}/scpca-meta.json"), "technology") ?: ""
         make_rad: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
