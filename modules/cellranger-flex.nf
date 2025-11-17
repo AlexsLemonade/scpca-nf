@@ -126,7 +126,7 @@ workflow flex_quant{
   take:
     flex_channel // a channel with a map of metadata for each flex library to process
     flex_probesets // map of probe set files for each technology
-    pool_file // path to file with barcode IDs for each sample when using multiplexed 10x flex
+    pool_file // file object with barcode IDs for each sample when using multiplexed 10x flex
   main:
 
     flex_channel = flex_channel
@@ -140,6 +140,7 @@ workflow flex_quant{
       }
       .branch{ it ->
         def stored_ref_assembly = Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_tech = Utils.getMetaVal(file("${it.cellranger_multi_results_dir}/scpca-meta.json"), "technology") ?: ""
         // branch based on if cellranger results exist or repeat mapping is used
         make_cellranger_flex: (
           // input files exist
@@ -147,6 +148,8 @@ workflow flex_quant{
             params.repeat_mapping
             || !file(it.cellranger_multi_results_dir).exists()
             || it.ref_assembly != stored_ref_assembly
+            // or the technology has changed (to ensure re-mapping if tech was updated)
+            || it.technology.toLowerCase() != stored_tech.toLowerCase()
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()
@@ -179,7 +182,7 @@ workflow flex_quant{
     cellranger_flex_single(flex_reads.single)
 
     // run cellranger multiplexed
-    cellranger_flex_multi(flex_reads.multi, file(pool_file))
+    cellranger_flex_multi(flex_reads.multi, pool_file)
 
     // transpose cellranger multi output to have one row per output folder
     // for multiplexed data, the directory with cellranger output is in the per_sample_outs folder
