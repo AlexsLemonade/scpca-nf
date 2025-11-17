@@ -7,10 +7,10 @@ version = "0.1.0"
 
 
 [dependencies]
-awscli = ">=2.13.6,<3"
-nextflow = ">=24.10.6,<25"
-pre-commit = ">=4.2.0,<5"
-prettier = ">=3.5.3,<4"
+awscli = ">=2.31.37,<3"
+nextflow = "=25.10.*"
+pre-commit = ">=4.4.0,<5"
+prettier = ">=3.6.2,<4"
 
 
 [feature.nfcore.dependencies]
