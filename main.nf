@@ -125,9 +125,11 @@ workflow {
     'citeseq_10xv2': '737K-august-2016.txt',
     'citeseq_10xv3': '3M-february-2018.txt',
     'citeseq_10xv3.1': '3M-february-2018.txt',
+    'citeseq_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
     'cellhash_10xv2': '737K-august-2016.txt',
     'cellhash_10xv3': '3M-february-2018.txt',
-    'cellhash_10xv3.1': '3M-february-2018.txt'
+    'cellhash_10xv3.1': '3M-february-2018.txt',
+    'cellhash_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
   ]
 
   // 10x flex probe set files
