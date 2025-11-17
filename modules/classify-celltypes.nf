@@ -437,8 +437,8 @@ workflow annotate_celltypes {
       file(params.panglao_ref_file), // used for assigning ontology IDs for CellAssign results
       file(params.consensus_ref_file), // used for assigning consensus cell types if both SingleR and CellAssign are used
       file(params.validation_groups_file),  // maps consensus cell types to cell type groups, for counting normal reference cells
-      params.diagnosis_celltypes_file ? file(params.diagnosis_celltypes_file, checkIfExists: true) : [], // maps broad diagnoses to cell type groups, for counting normal reference cells
-      params.diagnosis_groups_file ? file(params.diagnosis_groups_file, checkIfExists: true) : [] // maps sample diagnoses to broad diagnoses, for counting normal reference cells
+      (params.perform_cnv_inference && params.diagnosis_celltypes_file) ? file(params.diagnosis_celltypes_file, checkIfExists: true) : [], // maps broad diagnoses to cell type groups, for counting normal reference cells
+      (params.perform_cnv_inference && params.diagnosis_groups_file) ? file(params.diagnosis_groups_file, checkIfExists: true) : [] // maps sample diagnoses to broad diagnoses, for counting normal reference cells
     )
 
     // add inferCNV logic to meta

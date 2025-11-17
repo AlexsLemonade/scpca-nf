@@ -7,6 +7,7 @@ RUN pixi install --locked
 RUN pixi shell-hook > /shell-hook.sh
 RUN echo 'exec "$@"' >> /shell-hook.sh
 
+
 # use multi-stage build to remove pixi, cache, etc. in final image
 FROM ubuntu:24.04 AS production
 
