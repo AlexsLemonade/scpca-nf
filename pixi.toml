@@ -8,7 +8,7 @@ version = "0.1.0"
 
 [dependencies]
 awscli = ">=2.31.37,<3"
-nextflow = "=25.10.*"
+nextflow = "25.10.*"
 pre-commit = ">=4.4.0,<5"
 prettier = ">=3.6.2,<4"
 
