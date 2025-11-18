@@ -20,7 +20,7 @@ process cellranger_flex_single {
     path "${out_id}/scpca-meta.json", emit: meta_file
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
 
@@ -46,7 +46,7 @@ process cellranger_flex_single {
     """
   stub:
     out_id = file(meta.cellranger_multi_results_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir -p ${out_id}/outs/per_sample_outs/${meta.library_id}
@@ -77,7 +77,7 @@ process cellranger_flex_multi {
     path "${out_id}/scpca-meta.json", emit: meta_file
   script:
     out_id = file(meta.cellranger_multi_results_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
 
@@ -109,7 +109,7 @@ process cellranger_flex_multi {
   stub:
     out_id = file(meta.cellranger_multi_results_dir).name
     sample_ids = meta.sample_id.tokenize(",")
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     ${sample_ids.collect { "mkdir -p ${out_id}/outs/per_sample_outs/${it}" }.join("\n")}

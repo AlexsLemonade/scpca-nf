@@ -41,7 +41,7 @@ process salmon {
   script:
     salmon_dir = file(meta.salmon_results_dir).name
     // get meta to write as file
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     salmon quant -i ${index} \
@@ -59,7 +59,7 @@ process salmon {
     """
   stub:
     salmon_dir = file(meta.salmon_results_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir -p ${salmon_dir}

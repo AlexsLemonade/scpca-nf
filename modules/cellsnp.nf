@@ -53,7 +53,7 @@ process vireo {
     tuple val(meta), path(outdir)
   script:
     outdir = file(meta.vireo_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     vireo \
@@ -66,7 +66,7 @@ process vireo {
     """
   stub:
     outdir = file(meta.vireo_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir -p ${outdir}

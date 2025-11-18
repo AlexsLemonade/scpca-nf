@@ -86,11 +86,9 @@ def parseNA(str) {
 /**
   * Make a map of versions for the workflow and nextflow, for adding to metadata
   *
-  * @param workflow A nextflow WorkflowMetadata object containing the revision and manifest
-  * @param nextflow A NextflowMeta object (created by the nextflow runtime)
   * @return A map with keys "scpca_version" and "nextflow_version"
   */
-def getVersions(nextflow.script.WorkflowMetadata workflow, nextflow.NextflowMeta nextflow) {
+def getVersions() {
   [
     scpca_version: workflow.revision ?: workflow.manifest.version,
     nextflow_version: nextflow.version.toString(),

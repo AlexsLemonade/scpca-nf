@@ -22,7 +22,7 @@ process run_infercnv {
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
 
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     # note that if inferCNV fails, the script will output empty results/heatmap files
@@ -44,7 +44,7 @@ process run_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     touch "${results_file}"

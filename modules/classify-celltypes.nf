@@ -16,7 +16,7 @@ process classify_singler {
     tuple val(meta.unique_id), path(singler_dir)
   script:
     singler_dir = file(meta.singler_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     # create output directory
@@ -34,7 +34,7 @@ process classify_singler {
     """
   stub:
     singler_dir = file(meta.singler_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir "${singler_dir}"
@@ -60,7 +60,7 @@ process classify_cellassign {
     tuple val(meta.unique_id), path(cellassign_dir)
   script:
     cellassign_dir = file(meta.cellassign_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     # create output directory
@@ -93,7 +93,7 @@ process classify_cellassign {
     """
   stub:
     cellassign_dir = file(meta.cellassign_dir).name
-    meta += getVersions(workflow, nextflow)
+    meta += getVersions()
     meta_json = makeJson(meta)
     """
     mkdir "${cellassign_dir}"
@@ -117,7 +117,7 @@ process classify_scimilarity {
     tuple val(meta.unique_id), path(scimilarity_dir)
   script:
     scimilarity_dir = file(meta.scimilarity_dir).name
-    def meta_json = makeJson(meta + getVersions(workflow, nextflow))
+    def meta_json = makeJson(meta + getVersions())
     """
     # create output directory
     mkdir "${scimilarity_dir}"
@@ -149,7 +149,7 @@ process classify_scimilarity {
     """
   stub:
     scimilarity_dir = file(meta.scimilarity_dir).name
-    def meta_json = makeJson(meta + getVersions(workflow, nextflow))
+    def meta_json = makeJson(meta + getVersions())
     """
     mkdir "${scimilarity_dir}"
     echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
