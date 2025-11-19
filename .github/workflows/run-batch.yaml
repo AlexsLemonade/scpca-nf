@@ -51,7 +51,11 @@ jobs:
           run_mode: ${{ inputs.run_mode }}
           project_id: ${{ inputs.project }}
           resume: ${{ inputs.resume }}
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
         run: |
+          echo "Event Context: $EVENT_CONTEXT"
+          echo "Using revision: $revision"
+
           # check that the version tag exists if it was specified
           if [ -z $(git tag -l "$revision") ] && [ "$revision" != "${{ github.ref_name }}" ]; then
             echo "Error: Specified version tag '${revision}' does not exist."
