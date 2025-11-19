@@ -70,6 +70,7 @@ jobs:
 
       - name: Create zip archive
         run: |
+          mv scripts/aws/appspec.yml appspec.yml
           mv scripts/aws/run_nextflow.sh scripts/run_nextflow.sh
           zip -r source.zip . -i appspec.yml LICENSE scripts/tmux_launch.sh scripts/run_nextflow.sh
         working-directory: ${{ github.workspace }}
