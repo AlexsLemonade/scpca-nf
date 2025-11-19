@@ -6,7 +6,6 @@ on:
       version_tag:
         description: Tagged workflow version to deploy (optional)
         required: false
-        default: main
       project:
         description: Project ID
         required: true
