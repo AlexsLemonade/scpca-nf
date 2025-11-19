@@ -391,7 +391,7 @@ For more information on the model, see [Heimberg _et al._ 2025](https://doi.org/
 
 #### `SingleR` references
 
-The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
+The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-nf-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
 In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model.
 The chosen gene set should correspond to the original reference genome used for mapping (indicated in the `sample_reference` column of the [run metadata file](#prepare-the-run-metadata-file)).
 For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`).

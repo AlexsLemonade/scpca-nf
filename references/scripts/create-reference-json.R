@@ -3,7 +3,7 @@
 # Script for creating json file to hold path to reference files for organisms that can be
 # used with scpca-nf. The output of this script will create a json file where each key corresponds
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
-# to the organization used for storing references in `s3://scpca-references`.
+# to the organization used for storing references in `s3://scpca-nf-references`.
 # To create the json file, use a TSV file that contains the following columns:
 # `organism`, `assembly`, `version`, `include_salmon`, `include_cellranger`, `include_star`
 
@@ -88,11 +88,13 @@ create_ref_entry <- function(
       glue::glue("{reference_name}.spliced_cdna.tx2gene.tsv")
     )
     json_entry$splici_index <- file.path(
-      ref_dir, "salmon_index",
+      ref_dir,
+      "salmon_index",
       glue::glue("{reference_name}.spliced_intron.txome")
     )
     json_entry$salmon_bulk_index <- file.path(
-      ref_dir, "salmon_index",
+      ref_dir,
+      "salmon_index",
       glue::glue("{reference_name}.spliced_cdna.txome")
     )
   }
@@ -100,7 +102,8 @@ create_ref_entry <- function(
   # fill in values related to cellranger index
   if (include_cellranger) {
     json_entry$cellranger_index <- file.path(
-      ref_dir, "cellranger_index",
+      ref_dir,
+      "cellranger_index",
       glue::glue("{reference_name}_cellranger_full")
     )
   }
@@ -108,7 +111,8 @@ create_ref_entry <- function(
   # fill in values related to star index
   if (include_star) {
     json_entry$star_index <- file.path(
-      ref_dir, "star_index",
+      ref_dir,
+      "star_index",
       glue::glue("{reference_name}.star_idx")
     )
   }
@@ -116,11 +120,13 @@ create_ref_entry <- function(
   # fill in values related to infercnv gene order file
   if (include_infercnv) {
     json_entry$infercnv_gene_order <- file.path(
-      ref_dir, "infercnv",
+      ref_dir,
+      "infercnv",
       glue::glue("{reference_name}_gene_order_arms.txt.gz")
     )
     json_entry$cytoband <- file.path(
-      ref_dir, "annotation",
+      ref_dir,
+      "annotation",
       glue::glue("{reference_name}_cytoband.txt.gz")
     )
   }

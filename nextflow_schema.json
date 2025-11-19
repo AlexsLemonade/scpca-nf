@@ -216,12 +216,12 @@
         },
         "probes_dir": {
           "type": "string",
-          "default": "s3://scpca-references/flex-probe-refs",
+          "default": "s3://scpca-nf-references/flex-probe-refs",
           "fa_icon": "fas fa-folder-open"
         },
         "flex_probeset_file": {
           "type": "string",
-          "default": "s3://scpca-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
+          "default": "s3://scpca-nf-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
           "fa_icon": "fas fa-file-alt"
         },
         "celltype_ref_dir": {
@@ -250,7 +250,7 @@
         },
         "scimilarity_model_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/scimilarity_references/model_v1.1",
+          "default": "s3://scpca-nf-references/celltype/scimilarity_references/model_v1.1",
           "format": "directory-path",
           "description": "SCimilarity reference model directory",
           "help_text": "Directory containing SCimilarity foundational model",
