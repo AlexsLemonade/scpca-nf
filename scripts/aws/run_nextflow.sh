@@ -13,6 +13,9 @@ RUN_MODE=${RUN_MODE:-example}
 RESUME=${RESUME:-false}
 NEXTFLOW_PARAMS=${NEXTFLOW_PARAMS:-""}
 
+# set Java memory options for Nextflow
+export NXF_JVM_ARGS="-XX:InitialRAMPercentage=10 -XX:MaxRAMPercentage=40"
+
 date=$(date "+%Y-%m-%d")
 datetime=$(date "+%Y-%m-%dT%H%M")
 log_path=s3://ccdl-scpca-workdir-997241705947-us-east-1/logs/${RUN_MODE}/${date}
