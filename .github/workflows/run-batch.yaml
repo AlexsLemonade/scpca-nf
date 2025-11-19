@@ -53,7 +53,7 @@ jobs:
           resume: ${{ inputs.resume }}
         run: |
           # check that the version tag exists if it was specified
-          if [ -z $(git tag -l "$revision") ] && [ "$revision" != "$github.ref_name" ]; then
+          if [ -z $(git tag -l "$revision") ] && [ "$revision" != "${{ github.ref_name }}" ]; then
             echo "Error: Specified version tag '${revision}' does not exist."
             exit 1
           fi
