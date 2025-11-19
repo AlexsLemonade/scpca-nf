@@ -48,12 +48,13 @@ jobs:
         env:
           revision: ${{ inputs.revision }}
           run_mode: ${{ inputs.run_mode }}
-          output_mode: ${{ inputs.output_mode }}
+          project_id: ${{ inputs.project }}
           resume: ${{ inputs.resume }}
         run: |
           echo '#!/bin/bash' > scripts/tmux_launch.sh
           echo "export GITHUB_TAG=$revision" >> scripts/tmux_launch.sh
           echo "export RUN_MODE=$run_mode" >> scripts/tmux_launch.sh
+          echo "export PROJECT_ID=$project_id"
           echo "export RESUME=$resume" >> scripts/tmux_launch.sh
           echo 'tmux new-session -d -s nextflow /opt/nextflow/scripts/run_nextflow.sh' >> scripts/tmux_launch.sh
           chmod +x scripts/tmux_launch.sh
