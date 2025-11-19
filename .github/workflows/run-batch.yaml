@@ -3,9 +3,9 @@ name: Run Workflow on AWS Batch
 on:
   workflow_dispatch:
     inputs:
-      revision:
-        description: Branch or tag of Nextflow workflow to run
-        required: true
+      version_tag:
+        description: Tagged workflow version to deploy (optional)
+        required: false
         default: main
       project:
         description: Project ID
@@ -46,11 +46,18 @@ jobs:
 
       - name: Create tmux launch script
         env:
-          revision: ${{ inputs.revision }}
+          # use the provided version tag input or use to the current branch/ref name
+          revision: ${{ inputs.version_tag || github.ref_name }}
           run_mode: ${{ inputs.run_mode }}
           project_id: ${{ inputs.project }}
           resume: ${{ inputs.resume }}
         run: |
+          # check that the version tag exists if it was specified
+          if [ -z $(git tag -l "$revision") ] && [ "$revision" != "$github.ref_name" ]; then
+            echo "Error: Specified version tag '${revision}' does not exist."
+            exit 1
+          fi
+
           echo '#!/bin/bash' > scripts/tmux_launch.sh
           echo "export GITHUB_TAG=$revision" >> scripts/tmux_launch.sh
           echo "export RUN_MODE=$run_mode" >> scripts/tmux_launch.sh
