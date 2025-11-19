@@ -1,13 +1,12 @@
 #!/bin/bash
 set -u
 
-# Run the ScPCA Nextflow pipeline with options to specify the run mode and output
+# Run the ScPCA-nf pipeline with options to specify the run mode and output
 #
 # Available RUN_MODE values are:
 #   example:   run the example workflow
 #   testing:      run the workflow in the development testing environment
 #   staging:   run the full workflow with full data in the staging environment
-#   prod:      run the full workflow with full data in the production environment
 
 GITHUB_TAG=${GITHUB_TAG:-main}
 RUN_MODE=${RUN_MODE:-example}
@@ -19,7 +18,7 @@ datetime=$(date "+%Y-%m-%dT%H%M")
 log_path=s3://ccdl-scpca-workdir-997241705947-us-east-1/logs/${RUN_MODE}/${date}
 
 # Make sure environment includes local bin (where Nextflow is installed)
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin" ]]
 then
     PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
@@ -68,10 +67,8 @@ elif [[ "$RUN_MODE" == "testing" ]]; then
   profile="ccdl_testing"
 elif [[ "$RUN_MODE" == "staging" ]]; then
   profile="ccdl_staging"
-elif [[ "$RUN_MODE" == "prod" ]]; then
-  profile="ccdl_prod"
 else
-  echo "Invalid RUN_MODE: $RUN_MODE. Must be one of: example, testing, staging, prod." >> run_errors.log
+  echo "Invalid RUN_MODE: $RUN_MODE. Must be one of: example, testing, staging." >> run_errors.log
   exit 1
 fi
 
@@ -90,6 +87,7 @@ nextflow pull AlexsLemonade/scpca-nf -revision $GITHUB_TAG \
 # post any errors from the workflow pull and exit
 if [ -s run_errors.log ]; then
   # slack_error run_errors.log
+  aws s3 cp run_errors.log "${log_path}/${datetime}_run_errors.log"
   exit 1
 fi
 
@@ -120,13 +118,13 @@ aws s3 cp . "${log_path}" \
 
 
 # For example runs, compress the output directory and upload it to S3
-if [[ "$RUN_MODE" == "example" ]]; then
-  aws s3 cp --recursive "s3://scpca-nf-references/example-data/scpca_out" scpca_out \
-  && zip -r scpca_out.zip scpca_out \
-  && aws s3 cp scpca_out.zip "s3://scpca-nf-references/example-data/scpca_out.zip" \
-  || echo "Error uploading scpca_out.zip to S3" >> run_errors.log
-  rm -rf scpca_out scpca_out.zip
-fi
+# if [[ "$RUN_MODE" == "example" ]]; then
+#   aws s3 cp --recursive "s3://scpca-nf-references/example-data/scpca_out" scpca_out \
+#   && zip -r scpca_out.zip scpca_out \
+#   && aws s3 cp scpca_out.zip "s3://scpca-nf-references/example-data/scpca_out.zip" \
+#   || echo "Error uploading scpca_out.zip to S3" >> run_errors.log
+#   rm -rf scpca_out scpca_out.zip
+# fi
 
 # Post any errors to slack
 if [ -s run_errors.log ]; then
