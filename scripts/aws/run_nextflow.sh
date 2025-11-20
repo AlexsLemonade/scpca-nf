@@ -1,25 +1,29 @@
 #!/bin/bash
 set -u
 
-# Run the ScPCA Nextflow pipeline with options to specify the run mode and output
+# Run the ScPCA-nf pipeline with options to specify the run mode and output
 #
 # Available RUN_MODE values are:
 #   example:   run the example workflow
 #   testing:      run the workflow in the development testing environment
 #   staging:   run the full workflow with full data in the staging environment
-#   prod:      run the full workflow with full data in the production environment
-
-GITHUB_TAG=${GITHUB_TAG:-main}
-RUN_MODE=${RUN_MODE:-example}
-RESUME=${RESUME:-false}
-NEXTFLOW_PARAMS=${NEXTFLOW_PARAMS:-""}
 
 date=$(date "+%Y-%m-%d")
 datetime=$(date "+%Y-%m-%dT%H%M")
+
+REVISION=${REVISION:-main}
+RUN_MODE=${RUN_MODE:-example}
+RESUME=${RESUME:-false}
+NEXTFLOW_PARAMS=${NEXTFLOW_PARAMS:-""}
+JOB_NAME=${JOB_NAME:-${RUN_MODE}_${REVISION//[\/.]/-}_${datetime}}
+
+# set Java memory options for Nextflow
+export NXF_JVM_ARGS="-XX:InitialRAMPercentage=10 -XX:MaxRAMPercentage=40"
+
 log_path=s3://ccdl-scpca-workdir-997241705947-us-east-1/logs/${RUN_MODE}/${date}
 
 # Make sure environment includes local bin (where Nextflow is installed)
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin" ]]
 then
     PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
@@ -68,10 +72,8 @@ elif [[ "$RUN_MODE" == "testing" ]]; then
   profile="ccdl_testing"
 elif [[ "$RUN_MODE" == "staging" ]]; then
   profile="ccdl_staging"
-elif [[ "$RUN_MODE" == "prod" ]]; then
-  profile="ccdl_prod"
 else
-  echo "Invalid RUN_MODE: $RUN_MODE. Must be one of: example, testing, staging, prod." >> run_errors.log
+  echo "Invalid RUN_MODE: $RUN_MODE. Must be one of: example, testing, staging." >> run_errors.log
   exit 1
 fi
 
@@ -84,19 +86,20 @@ else
   resume_flag=""
 fi
 
-nextflow pull AlexsLemonade/scpca-nf -revision $GITHUB_TAG \
-|| echo "Error pulling scpca-nf workflow with revision '$GITHUB_TAG'" >> run_errors.log
+nextflow pull AlexsLemonade/scpca-nf -revision $REVISION \
+|| echo "Error pulling scpca-nf workflow with revision '$REVISION'" >> run_errors.log
 
 # post any errors from the workflow pull and exit
 if [ -s run_errors.log ]; then
   # slack_error run_errors.log
+  aws s3 cp run_errors.log "${log_path}/${datetime}_run_errors.log"
   exit 1
 fi
 
-
 nextflow run AlexsLemonade/scpca-nf \
-  -revision $GITHUB_TAG \
+  -revision $REVISION \
   -profile $profile \
+  -name $JOB_NAME \
   -with-report "${datetime}_scpca_report.html" \
   -with-trace  "${datetime}_scpca_trace.txt" \
   -with-tower \
@@ -119,7 +122,7 @@ aws s3 cp . "${log_path}" \
   || echo "Error copying logs to S3" >> run_errors.log
 
 
-# For example runs, compress the output directory and upload it to S3
+For example runs, compress the output directory and upload it to S3
 if [[ "$RUN_MODE" == "example" ]]; then
   aws s3 cp --recursive "s3://scpca-nf-references/example-data/scpca_out" scpca_out \
   && zip -r scpca_out.zip scpca_out \

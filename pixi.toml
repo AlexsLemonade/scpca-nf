@@ -30,16 +30,6 @@ default = ["nfcore"]
 cavatica = ["sbpack"]
 
 
-[tasks.nf-runner-login]
+[tasks.login-nf-runner]
 description = "Login to the Nextflow runner EC2 instance via AWS SSM."
-cmd = """
-aws_instance=$(aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=Nextflow-runner" "Name=instance-state-name,Values=running" \
-    --query "Reservations[0].Instances[0].InstanceId" \
-    --output text) && \
-aws ssm start-session \
-  --target $aws_instance \
-  --document-name AWS-StartInteractiveCommand \
-  --parameters '{"command":["sudo su - ec2-user"]}' ||
-echo "Login failed. Check your AWS configuration?"
-"""
+cmd = "bash scripts/aws/login_nf_runner.sh"
