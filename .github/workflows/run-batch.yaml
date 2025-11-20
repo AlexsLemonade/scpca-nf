@@ -73,7 +73,7 @@ jobs:
             nextflow_params="${nextflow_params} --run_ids $run_ids"
             # make a job name friendly version of run_ids and append to JOB_NAME
             job_name=${job_name}_${run_ids//,/-}
-          else if [ -n "$project" ]; then
+          elif [ -n "$project" ]; then
             nextflow_params="${nextflow_params} --project $project"
             job_name=${job_name}_${project//,/-}
           fi
@@ -90,6 +90,7 @@ jobs:
           export RESUME=$resume
           tmux new-session -d -s nextflow /opt/nextflow/scripts/run_nextflow.sh
           TMUX_EOF
+
           chmod +x scripts/tmux_launch.sh
 
       - name: Create zip archive
