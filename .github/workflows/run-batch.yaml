@@ -81,13 +81,15 @@ jobs:
           # append GHA run and attempt to ensure uniqueness
           job_name=${job_name}_${{ github.run_id }}-${{ github.run_attempt }}
 
-          echo '#!/bin/bash' > scripts/tmux_launch.sh
-          echo "export REVISION=$revision" >> scripts/tmux_launch.sh
-          echo "export RUN_MODE=$run_mode" >> scripts/tmux_launch.sh
-          echo "export JOB_NAME=$job_name" >> scripts/tmux_launch.sh
-          echo "export NEXTFLOW_PARAMS=\"${nextflow_params}\"" >> scripts/tmux_launch.sh
-          echo "export RESUME=$resume" >> scripts/tmux_launch.sh
-          echo 'tmux new-session -d -s nextflow /opt/nextflow/scripts/run_nextflow.sh' >> scripts/tmux_launch.sh
+          cat > scripts/tmux_launch.sh <<TMUX_EOF
+          #!/bin/bash
+          export REVISION=$revision
+          export RUN_MODE=$run_mode
+          export JOB_NAME=$job_name
+          export NEXTFLOW_PARAMS="${nextflow_params}"
+          export RESUME=$resume
+          tmux new-session -d -s nextflow /opt/nextflow/scripts/run_nextflow.sh
+          TMUX_EOF
           chmod +x scripts/tmux_launch.sh
 
       - name: Create zip archive
