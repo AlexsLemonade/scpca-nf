@@ -8,16 +8,18 @@ set -u
 #   testing:      run the workflow in the development testing environment
 #   staging:   run the full workflow with full data in the staging environment
 
-GITHUB_TAG=${GITHUB_TAG:-main}
+date=$(date "+%Y-%m-%d")
+datetime=$(date "+%Y-%m-%dT%H%M")
+
+REVISION=${REVISION:-main}
 RUN_MODE=${RUN_MODE:-example}
 RESUME=${RESUME:-false}
 NEXTFLOW_PARAMS=${NEXTFLOW_PARAMS:-""}
+JOB_NAME=${JOB_NAME:-${RUN_MODE}_${REVISION//[\/.]/-}_${datetime}}
 
 # set Java memory options for Nextflow
 export NXF_JVM_ARGS="-XX:InitialRAMPercentage=10 -XX:MaxRAMPercentage=40"
 
-date=$(date "+%Y-%m-%d")
-datetime=$(date "+%Y-%m-%dT%H%M")
 log_path=s3://ccdl-scpca-workdir-997241705947-us-east-1/logs/${RUN_MODE}/${date}
 
 # Make sure environment includes local bin (where Nextflow is installed)
@@ -94,10 +96,10 @@ if [ -s run_errors.log ]; then
   exit 1
 fi
 
-
 nextflow run AlexsLemonade/scpca-nf \
-  -revision $GITHUB_TAG \
+  -revision $REVISION \
   -profile $profile \
+  -name $JOB_NAME \
   -with-report "${datetime}_scpca_report.html" \
   -with-trace  "${datetime}_scpca_trace.txt" \
   -with-tower \

@@ -8,8 +8,11 @@ on:
         required: false
       project:
         description: Project ID
-        required: true
-        default: All
+        required: false
+      run_ids:
+        description: Comma-separated list of run IDs to process
+        required: false
+        default: "All"
       run_mode:
         description: Nextflow workflow run mode
         type: choice
@@ -48,7 +51,8 @@ jobs:
           # use the provided version tag input or use to the current branch/ref name
           revision: ${{ inputs.version_tag || github.ref_name }}
           run_mode: ${{ inputs.run_mode }}
-          project_id: ${{ inputs.project }}
+          project: ${{ inputs.project }}
+          run_ids: ${{ inputs.run_ids }}
           resume: ${{ inputs.resume }}
           EVENT_CONTEXT: ${{ toJSON(github.event) }}
         run: |
@@ -60,10 +64,28 @@ jobs:
             exit 1
           fi
 
+          # create job name from run mode and revision, transforming / and . to -
+          job_name=${run_mode}_${revision//[\/.]/-}
+          nextflow_params=""
+
+          # append run_ids or project to nextflow params and job name
+          if [ -n "$run_ids" ]; then
+            nextflow_params="${nextflow_params} --run_ids $run_ids"
+            # make a job name friendly version of run_ids and append to JOB_NAME
+            job_name=${job_name}_${run_ids//,/-}
+          else if [ -n "$project" ]; then
+            nextflow_params="${nextflow_params} --project $project"
+            job_name=${job_name}_${project//,/-}
+          fi
+
+          # append GHA run and attempt to ensure uniqueness
+          job_name=${job_name}_${{ github.run_id }}-${{ github.run_attempt }}
+
           echo '#!/bin/bash' > scripts/tmux_launch.sh
-          echo "export GITHUB_TAG=$revision" >> scripts/tmux_launch.sh
+          echo "export REVISION=$revision" >> scripts/tmux_launch.sh
           echo "export RUN_MODE=$run_mode" >> scripts/tmux_launch.sh
-          echo "export PROJECT_ID=$project_id"  >> scripts/tmux_launch.sh
+          echo "export JOB_NAME=$job_name" >> scripts/tmux_launch.sh
+          echo "export NEXTFLOW_PARAMS=\"${nextflow_params}\"" >> scripts/tmux_launch.sh
           echo "export RESUME=$resume" >> scripts/tmux_launch.sh
           echo 'tmux new-session -d -s nextflow /opt/nextflow/scripts/run_nextflow.sh' >> scripts/tmux_launch.sh
           chmod +x scripts/tmux_launch.sh
