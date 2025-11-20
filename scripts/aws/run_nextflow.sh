@@ -86,8 +86,8 @@ else
   resume_flag=""
 fi
 
-nextflow pull AlexsLemonade/scpca-nf -revision $GITHUB_TAG \
-|| echo "Error pulling scpca-nf workflow with revision '$GITHUB_TAG'" >> run_errors.log
+nextflow pull AlexsLemonade/scpca-nf -revision $REVISION \
+|| echo "Error pulling scpca-nf workflow with revision '$REVISION'" >> run_errors.log
 
 # post any errors from the workflow pull and exit
 if [ -s run_errors.log ]; then

@@ -12,7 +12,6 @@ on:
       run_ids:
         description: Comma-separated list of run IDs to process
         required: false
-        default: "All"
       run_mode:
         description: Nextflow workflow run mode
         type: choice
