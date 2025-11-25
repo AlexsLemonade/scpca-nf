@@ -3,7 +3,7 @@ app_content:
   executor_version: 24.10.6
 class: nextflow
 cwlVersion: None
-doc: "# `scpca-nf` v0.9.1
+doc: "# scpca-nf v0.9.1
 
 
   The `scpca-nf` workflow is used to process 10x single-cell data as part of the
@@ -172,7 +172,7 @@ inputs:
       - boolean
   - doc:
       Cell typing is skipped by default; use this option to incorporate cell type
-      annotations.
+      annotations. Requires that `project_celltype_metafile` is set.
     id: perform_celltyping
     inputBinding:
       prefix: --perform_celltyping
@@ -181,7 +181,9 @@ inputs:
     type:
       - "null"
       - boolean
-  - doc: CNV inference is skipped by default; use this option to incorporate CNV annotation. Requires cell typing.
+  - doc:
+      CNV inference is skipped by default; use this option to incorporate CNV annotation.
+      Requires cell typing.
     id: perform_cnv_inference
     inputBinding:
       prefix: --perform_cnv_inference

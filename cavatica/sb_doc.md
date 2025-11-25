@@ -1,4 +1,5 @@
-# `scpca-nf`
+# scpca-nf v0.9.1
+
 
 The  `scpca-nf` workflow is used to process 10x single-cell data as part of the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 
