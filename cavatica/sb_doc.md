@@ -9,13 +9,13 @@ These matrices are filtered and additional processing is performed to calculate 
 `scpca-nf` can also process libraries with ADT tags (e.g., CITE-seq), multiplexed libraries (e.g., cell hashing), bulk RNA-seq, and spatial transcriptomics samples.
 
 Full documentation for the workflow is available in the [scpca-nf GitHub repository](https://github.com/AlexsLemonade/scpca-nf).
-The [instructions for use on Cavatica](https://github.com/AlexsLemonade/scpca-nf/blob/development/cavatica-instructions.md) are currently available in the `development` branch of the repository.
+Please also refer to the additional [instructions for use on Cavatica](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md).
 
 ## Steps to run the workflow on Cavatica
 
 To run the `scpca-nf` workflow on Cavatica, you will need to follow the following steps:
 
 1. Upload all required input files to your Cavatica project
-2. Prepare a metadata files for runs and samples, as well as any additional files that may be required for your samples. See [Required input files](https://github.com/AlexsLemonade/scpca-nf/blob/development/cavatica-instructions.md#required-input-files) for more details.
-3. Transform the paths in the run metadata file to Cavatica `vs://` paths using the `sbmanifest` tool (see [Adding Cavatica paths to metadata files](https://github.com/AlexsLemonade/scpca-nf/blob/development/cavatica-instructions.md#adding-cavatica-paths-to-metadata-files) for more details).
+2. Prepare a metadata files for runs and samples, as well as any additional files that may be required for your samples. See [Required input files](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md#required-input-files) for more details.
+3. Transform the paths in the run metadata file to Cavatica `vs://` paths using the `sbmanifest` tool (see [Adding Cavatica paths to metadata files](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md#adding-cavatica-paths-to-metadata-files) for more details).
 4. Set options and run the `scpca-nf` workflow on Cavatica using the web interface.
