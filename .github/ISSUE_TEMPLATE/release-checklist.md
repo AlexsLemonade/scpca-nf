@@ -16,8 +16,11 @@ assignees: ''
   - [ ] [`nextflow.config`](https://github.com/AlexsLemonade/scpca-nf/blob/main/nextflow.config)
   - [ ] [`internal-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/internal-instructions.md)
   - [ ] [`external-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md)
-- [ ] Update the tag for `scpca-nf` containers in `config/containers.config`
-  _Note:_ Any processes that use those containers will not work until the new tag has been created. 
+  - [ ] [`sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml)
+- [ ] Update the tag for `scpca-nf` containers in `config/containers.config` and `nextflow-schema.json`
+  _Note:_ Any processes that use those containers will not work until the new tag has been created.
+- [ ] Check that the `nextflow-schema.json` is up to date with `pixi run nf-core pipelines schema build`
+- [ ] Check that [`sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml) entries are up to date (sadly, no automated tool for this)
 - [ ] Test that the workflow is in good working order with `nextflow run alexslemonade/scpca-nf -latest -r development`
 - [ ] File a PR from the `development` branch to the `main` branch. This should include all of the changes that will be associated with the next release.
 - [ ] (Optional) Generate new example `scpca-nf` output files.
