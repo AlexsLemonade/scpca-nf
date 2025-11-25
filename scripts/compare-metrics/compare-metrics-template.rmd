@@ -99,7 +99,12 @@ rank_cor <- function(a, b) {
   a_order <- match(a, all_levels)
   b_order <- match(b, all_levels)
 
-  cor(a_order, b_order, method = "spearman")
+  # only calculate correlation if the length is the same, otherwise return NA
+  if (length(a) == length(b)) {
+    cor(a_order, b_order, method = "spearman")
+  } else {
+    NA
+  }
 }
 
 
@@ -813,7 +818,7 @@ hvg_summary <- hvg_stats |>
     mean_change = mean(hvg_n_changed[which(!hvg_identical)]),
     mean_change_frac = mean(hvg_change_frac[which(!hvg_identical)]),
     mean_jaccard = mean(hvg_jaccard[which(!hvg_identical)]),
-    mean_cor = mean(hvg_rank_cor[which(!hvg_identical)])
+    mean_cor = mean(hvg_rank_cor[which(!hvg_identical)], na.rm = TRUE)
   )
 
 if (!has_hvg_changes) {
@@ -1083,8 +1088,31 @@ cluster_changes |>
 
 ### Cell type assignments {.tabset}
 
-
 ```{r}
+# get a list of all celltypes found
+# use this to make sure cell types are actually present
+all_celltypes <- metrics_df |>
+  dplyr::select(contains("celltypes")) |>
+  tidyr::pivot_longer(everything(), names_to = "celltype_method", values_to = "celltype") |>
+  dplyr::pull(celltype) |>
+  unlist()
+
+has_celltypes <- !is.null(all_celltypes)
+
+if (!has_celltypes) {
+  # make sure this is set to false so the chunks don't complain
+  has_changed_types <- FALSE
+  knitr::asis_output(
+    glue::glue(
+      "This project does not contain cell types."
+    )
+  )
+}
+```
+
+
+
+```{r, eval=has_celltypes}
 # create cell type change dataframe
 types_stats <- metrics_df |>
   # create new list columns with celltype_changes function
@@ -1151,7 +1179,7 @@ changed_types <- types_stats |>
 has_changed_types <- nrow(changed_types) > 0
 ```
 
-```{r}
+```{r, eval=has_celltypes}
 # Summary table for cell type changes
 
 types_summary <- types_stats |>
