@@ -3,10 +3,10 @@ app_content:
   executor_version: 24.10.6
 class: nextflow
 cwlVersion: None
-doc: "# `scpca-nf`
+doc: "# `scpca-nf` v0.9.1
 
 
-  The  `scpca-nf` workflow is used to process 10x single-cell data as part of the
+  The `scpca-nf` workflow is used to process 10x single-cell data as part of the
   [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 
 
