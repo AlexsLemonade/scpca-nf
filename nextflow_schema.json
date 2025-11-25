@@ -375,14 +375,22 @@
         "diagnosis_groups_file": {
           "type": "string",
           "default": "${projectDir}/references/diagnosis-groups.tsv",
-          "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells",
-          "hidden": true
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         },
         "diagnosis_celltypes_file": {
           "type": "string",
           "default": "${projectDir}/references/diagnosis-celltype-groups.tsv",
-          "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells",
-          "hidden": true
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         }
       },
       "fa_icon": "fas fa-copy"
