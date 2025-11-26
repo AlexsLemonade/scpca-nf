@@ -17,6 +17,8 @@ Please also refer to the additional [instructions for use on Cavatica](https://g
 To run the `scpca-nf` workflow on Cavatica, you will need to follow the following steps:
 
 1. Upload all required input files to your Cavatica project
-2. Prepare a metadata files for runs and samples, as well as any additional files that may be required for your samples. See [Required input files](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md#required-input-files) for more details.
-3. Transform the paths in the run metadata file to Cavatica `vs://` paths using the `sbmanifest` tool. See [Adding Cavatica paths to metadata files](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md#adding-cavatica-paths-to-metadata-files) for more details.
+2. Prepare a metadata files for runs and samples, as well as any additional files that may be required for your samples.
+  See [Required input files](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md#required-input-files) for more details.
+3. Transform the paths in the run metadata file to Cavatica `vs://` paths using the `sbmanifest` tool.
+  See [Adding Cavatica paths to metadata files](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md#adding-cavatica-paths-to-metadata-files) for more details.
 4. Set options and run the `scpca-nf` workflow on Cavatica using the web interface.
