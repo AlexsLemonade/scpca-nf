@@ -16,7 +16,7 @@ assignees: ''
   - [ ] [`nextflow.config`](https://github.com/AlexsLemonade/scpca-nf/blob/main/nextflow.config)
   - [ ] [`internal-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/internal-instructions.md)
   - [ ] [`external-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md)
-  - [ ] [`sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml)
+  - [ ] [`sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml) and [`sb_doc.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_doc.md)
 - [ ] Update the tag for `scpca-nf` containers in `config/containers.config` and `nextflow-schema.json`
   _Note:_ Any processes that use those containers will not work until the new tag has been created.
 - [ ] Check that the `nextflow-schema.json` is up to date with `pixi run nf-core pipelines schema build`
