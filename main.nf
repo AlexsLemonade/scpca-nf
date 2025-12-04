@@ -53,17 +53,17 @@ def check_parameters() {
 
   // cell type annotation file checks
   if (params.perform_celltyping || params.perform_cnv_inference) {
-    if (!file(params.project_celltype_metafile).exists()) {
+    if (!params.project_celltype_metafile || !file(params.project_celltype_metafile).exists()) {
       log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
       param_error = true
     }
-    if (!file(params.celltype_ref_metadata).exists()) {
+    if (!params.celltype_ref_metadata || !file(params.celltype_ref_metadata).exists()) {
       log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
       param_error = true
     }
 
     // check that scimilarity reference model and files exist
-    if (!file(params.scimilarity_model_dir, type: 'dir').exists()) {
+    if (!params.scimilarity_model_dir || !file(params.scimilarity_model_dir, type: 'dir').exists()) {
       log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
       param_error = true
     } else {
@@ -75,25 +75,25 @@ def check_parameters() {
       }
     }
 
-    if (!file(params.scimilarity_ontology_map_file).exists()) {
+    if (!params.scimilarity_ontology_map_file || !file(params.scimilarity_ontology_map_file).exists()) {
       log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
       param_error = true
     }
 
     // check that reference files related to consensus cell types exist
-    if (!file(params.consensus_ref_file).exists()) {
+    if (!params.consensus_ref_file || !file(params.consensus_ref_file).exists()) {
       log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
       param_error = true
     }
-    if (!file(params.validation_groups_file).exists()) {
+    if (!params.validation_groups_file || !file(params.validation_groups_file).exists()) {
       log.error("The 'validation_groups_file' file '${params.validation_groups_file}' can not be found.")
       param_error = true
     }
-    if (!file(params.validation_markers_file).exists()) {
+    if (!params.validation_markers_file || !file(params.validation_markers_file).exists()) {
       log.error("The 'validation_markers_file' file '${params.validation_markers_file}' can not be found.")
       param_error = true
     }
-    if (!file(params.validation_palette_file).exists()) {
+    if (!params.validation_palette_file || !file(params.validation_palette_file).exists()) {
       log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
       param_error = true
     }

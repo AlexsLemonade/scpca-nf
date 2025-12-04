@@ -21,6 +21,7 @@ nf-core = "3.*"
 python = "3.11.*"
 nf-core = "2.1.*"
 setuptools = ">=79.0.0,<80"
+"ruamel.yaml" = ">=0.18.16,<0.19"
 
 [feature.sbpack.pypi-dependencies]
 sbpack = { git = "https://github.com/rabix/sbpack", tag = "2024.10.30" }

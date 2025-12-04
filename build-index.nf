@@ -159,7 +159,7 @@ workflow {
   ref_ch = channel.fromPath(params.ref_metadata)
     .splitCsv(header: true, sep: '\t')
     .map{ it ->
-      def reference_name = "${it.organism}.${it.assembly}.${it.version}"
+      def reference_name = "${it.organism}.${it.assembly}.${it.version}".toString()
       def ref_name_paths = ref_paths[reference_name]
       // return reference name & reference file paths for each organism
       // return this is as a map (dictionary) so we can refer to items by name
@@ -175,7 +175,7 @@ workflow {
       ]
     }
     // filter to only regenerate specified references
-    .filter{ build_all || it[0] in params.build_refs.tokenize(",") }
+    .filter{ build_all || it.ref_name in params.build_refs.tokenize(",") }
 
   // filter to relevant references and drop the boolean flags
   salmon_ref_ch = ref_ch
