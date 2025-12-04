@@ -13,12 +13,15 @@ __pycache__
 .prettierignore
 .prettierrc.yml
 .pytest_cache
+.Rproj.user
 .ruff_cache
 .vscode
 *_qc.html
 *.egg-info
 *.git
 *.git*
+*.log
+air.toml
 celltypes_supplemental_report.html
 docker
 main_qc_report.html
