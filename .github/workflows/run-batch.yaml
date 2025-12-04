@@ -1,0 +1,80 @@
+name: Run Workflow on AWS Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Branch or tag of Nextflow workflow to run
+        required: true
+        default: main
+      project:
+        description: Project ID
+        required: true
+        default: All
+      run_mode:
+        description: Nextflow workflow run mode
+        type: choice
+        options:
+          - testing
+          - example
+          - staging
+      resume:
+        description: Use -resume flag for Nextflow launch
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Run Code Deploy Job
+    runs-on: ubuntu-latest
+    environment: "prod"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::997241705947:role/gha-nf-codedeploy-role
+          role-session-name: githubActionSession
+          aws-region: us-east-1
+
+      - name: Create tmux launch script
+        env:
+          revision: ${{ inputs.revision }}
+          run_mode: ${{ inputs.run_mode }}
+          project_id: ${{ inputs.project }}
+          resume: ${{ inputs.resume }}
+        run: |
+          echo '#!/bin/bash' > scripts/tmux_launch.sh
+          echo "export GITHUB_TAG=$revision" >> scripts/tmux_launch.sh
+          echo "export RUN_MODE=$run_mode" >> scripts/tmux_launch.sh
+          echo "export PROJECT_ID=$project_id"
+          echo "export RESUME=$resume" >> scripts/tmux_launch.sh
+          echo 'tmux new-session -d -s nextflow /opt/nextflow/scripts/run_nextflow.sh' >> scripts/tmux_launch.sh
+          chmod +x scripts/tmux_launch.sh
+
+      - name: Create zip archive
+        run: |
+          zip -r source.zip . -i appspec.yml LICENSE scripts/**
+        working-directory: ${{ github.workspace }}
+
+      - name: Copy zip to S3
+        run: aws s3 cp source.zip s3://pipeline-artifacts-997241705947-us-east-1/
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Trigger AWS CodeDeploy deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name Nextflow-batch \
+            --deployment-group-name Nextflow-batch-deployment-group \
+                  --s3-location bucket=pipeline-artifacts-997241705947-us-east-1,key=source.zip,bundleType=zip \
+                  --region us-east-1
+        env:
+          AWS_DEFAULT_REGION: us-east-1
