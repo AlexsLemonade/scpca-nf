@@ -50,12 +50,10 @@
           "type": "string",
           "description": "Celltype metadata file",
           "help_text": "project celltype metadata table, only used if you are performing cell type annotation",
-          "fa_icon": "fas fa-file-alt",
-          "default": "project_celltype_metadata.tsv"
+          "fa_icon": "fas fa-file-alt"
         },
         "cellhash_pool_file": {
           "type": "string",
-          "default": "multiplex_pools.tsv",
           "fa_icon": "fas fa-file-alt",
           "format": "file-path",
           "mimetype": "text/tab-separated-values",
@@ -375,14 +373,22 @@
         "diagnosis_groups_file": {
           "type": "string",
           "default": "${projectDir}/references/diagnosis-groups.tsv",
-          "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells",
-          "hidden": true
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Reference file mapping broad diagnoses to individual sample diagnoses for counting inferCNV normal reference cells.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         },
         "diagnosis_celltypes_file": {
           "type": "string",
           "default": "${projectDir}/references/diagnosis-celltype-groups.tsv",
-          "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells",
-          "hidden": true
+          "pattern": "\\.tsv$",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values",
+          "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells.",
+          "hidden": true,
+          "fa_icon": "fas fa-file-alt"
         }
       },
       "fa_icon": "fas fa-copy"
@@ -530,49 +536,49 @@
       "properties": {
         "scpcatools_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_slim_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_anndata_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_reports_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_seurat_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_scvi_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_infercnv_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.3",
+          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_scimilarity_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:edge",
+          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.4",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -624,9 +630,14 @@
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
+        "cellbrowser_container": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.9.1a",
+          "fa_icon": "fab fa-docker"
+        },
         "vireo_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/vireo-snp:v0.5.7",
+          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.9.1a",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -638,11 +649,6 @@
         "spaceranger_container": {
           "type": "string",
           "hidden": true,
-          "fa_icon": "fab fa-docker"
-        },
-        "cellbrowser_container": {
-          "type": "string",
-          "default": "quay.io/biocontainers/ucsc-cell-browser:1.2.15--pyhdfd78af_0",
           "fa_icon": "fab fa-docker"
         }
       }
