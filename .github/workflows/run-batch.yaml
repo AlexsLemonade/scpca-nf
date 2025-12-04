@@ -77,4 +77,4 @@ jobs:
                   --s3-location bucket=pipeline-artifacts-997241705947-us-east-1,key=source.zip,bundleType=zip \
                   --region us-east-1
         env:
-          AWS_DEFAULT_REGION: us-east-2
+          AWS_DEFAULT_REGION: us-east-1
