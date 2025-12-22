@@ -79,7 +79,7 @@ process fry_quant_rna {
     if [ $barcode_file == *.gz ]; then
       gunzip -c ${barcode_file} > permitted_barcodes.txt
     else
-      mv ${barcode_file} permitted_barcodes.txt
+      cp ${barcode_file} permitted_barcodes.txt
     fi
 
     alevin-fry generate-permit-list \
