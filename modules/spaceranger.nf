@@ -64,11 +64,11 @@ process spaceranger_publish {
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
 
-    # move over needed files to outs directory
-    mv ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
-    mv ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
-    mv ${spatial_out}/outs/spatial ${spatial_publish_dir}
-    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
+    # copy over needed files to outs directory
+    cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
+    cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
+    cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}
+    cp ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
