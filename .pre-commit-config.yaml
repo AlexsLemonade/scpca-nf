@@ -16,7 +16,7 @@ repos:
             test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
           )$
   - repo: https://github.com/crate-ci/typos
-    rev: v1.39.0
+    rev: v1
     hooks:
       - id: typos
   - repo: https://github.com/thlorenz/doctoc
@@ -27,7 +27,7 @@ repos:
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.14.4
+    rev: v0.14.10
     hooks:
       # Run the linter.
       - id: ruff
@@ -35,7 +35,7 @@ repos:
       - id: ruff-format
   - repo: https://github.com/lorenzwalthert/precommit
     # R styling and linting
-    rev: v0.4.3.9017
+    rev: v0.4.3.9020
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
