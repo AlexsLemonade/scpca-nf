@@ -3,8 +3,6 @@ nextflow.enable.dsl=2
 
 include { makeJson; readMeta; pullthroughContainer } from './lib/utils.nf'
 
-include { build_celltype_ref } from './build-celltype-ref.nf'
-
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
