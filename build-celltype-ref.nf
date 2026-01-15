@@ -5,7 +5,7 @@ include {  getMetaVal; pullthroughContainer } from './lib/utils.nf'
 
 process save_singler_refs {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
-  publishDir "${params.singler_references_dir}"
+  publishDir "${params.ref_outdir}/celltype/singler_references"
   label 'mem_8'
   input:
     tuple val(ref_name), val(ref_source)
@@ -27,7 +27,7 @@ process save_singler_refs {
 
 process train_singler_models_transcriptome {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
-  publishDir "${params.singler_models_dir}"
+  publishDir "${params.ref_outdir}/celltype/singler_models"
   label 'cpus_4'
   label 'mem_16'
   input:
@@ -64,7 +64,7 @@ process train_singler_models_transcriptome {
 
 process train_singler_models_flex {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
-  publishDir "${params.singler_models_dir}"
+  publishDir "${params.ref_outdir}/celltype/singler_models"
   label 'cpus_4'
   label 'mem_16'
   input:
@@ -95,7 +95,7 @@ process train_singler_models_flex {
 
 process catalog_singler_models {
   container "${pullthroughContainer(params.tidyverse_container, params.pullthrough_registry)}"
-  publishDir "${params.singler_models_dir}"
+  publishDir "${params.ref_outdir}/celltype/singler_models"
   input:
     val celltype_references
   output:
@@ -112,7 +112,7 @@ process catalog_singler_models {
 
 process generate_cellassign_refs {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
-  publishDir "${params.cellassign_ref_dir}"
+  publishDir "${params.ref_outdir}/celltype/cellassign_references"
   label 'mem_8'
   input:
     tuple val(ref_name), val(ref_source), val(organs)
@@ -142,7 +142,7 @@ process generate_cellassign_refs {
 
 process catalog_cellassign_refs {
   container "${pullthroughContainer(params.tidyverse_container, params.pullthrough_registry)}"
-  publishDir "${params.cellassign_ref_dir}"
+  publishDir "${params.ref_outdir}/celltype/cellassign_references"
   input:
     val celltype_references
   output:

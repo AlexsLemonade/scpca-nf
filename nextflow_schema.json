@@ -176,6 +176,14 @@
           "description": "Reference indices to build",
           "help_text": "A comma-separated list of references to build indices for, e.g. 'Homo_sapiens.GRCh38.104', or 'All' to build all reference indices.",
           "hidden": true
+        },
+        "ref_outdir": {
+          "type": "string",
+          "default": "s3://scpca-nf-references",
+          "format": "directory-path",
+          "description": "Reference building output directory",
+          "help_text": "Directory to store built reference indices. Defaults to the same as the `ref_rootdir`.",
+          "fa_icon": "fas fa-folder-open"
         }
       },
       "fa_icon": "fas fa-laptop-code"

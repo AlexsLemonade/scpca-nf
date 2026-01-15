@@ -3,13 +3,11 @@ nextflow.enable.dsl=2
 
 include { makeJson; readMeta; pullthroughContainer } from './lib/utils.nf'
 
-include { build_celltype_ref } from './build-celltype-ref.nf'
-
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   // publish fasta and annotation files within reference directory
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}", mode: 'copy'
   label 'mem_32'
   maxRetries 1
   input:
@@ -36,7 +34,7 @@ process generate_reference {
 
 process salmon_index {
   container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
   label 'mem_16'
   input:
@@ -71,7 +69,7 @@ process salmon_index {
 
 process cellranger_index {
   container "${pullthroughContainer(params.cellranger_container, params.pullthrough_registry)}"
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
   input:
@@ -98,7 +96,7 @@ process cellranger_index {
 
 process star_index {
   container "${pullthroughContainer(params.star_container, params.pullthrough_registry)}"
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
   input:
@@ -131,7 +129,7 @@ process star_index {
 process infercnv_gene_order {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_8'
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/infercnv", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/infercnv", mode: 'copy'
   input:
     tuple val(ref_name), val(meta), path(gtf), path(cytoband)
   output:
@@ -150,7 +148,7 @@ process infercnv_gene_order {
 workflow {
 
   // check which refs to build
-  build_all = params.build_refs == "All"
+  build_all = params.build_refs.toLowerCase() == "all"
 
   // read in json file with all reference paths
   ref_paths = readMeta(file(params.ref_json))
