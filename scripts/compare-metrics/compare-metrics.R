@@ -26,8 +26,8 @@ option_list <- list(
   make_option(
     c("-p", "--project_id"),
     type = "character",
-    default = "all",
-    help = "Project ID(s) to filter the metrics files. Default is all projects"
+    default = "",
+    help = "Project ID(s) to filter the metrics files"
   ),
   make_option(
     c("-o", "--output_file"),
@@ -49,7 +49,8 @@ opt <- parse_args(opt_parser)
 # check parameters
 stopifnot(
   "ref_s3 must be a valid S3 URI" = grepl("^s3://", opt$ref_s3),
-  "comp_s3 must be a valid S3 URI" = grepl("^s3://", opt$comp_s3)
+  "comp_s3 must be a valid S3 URI" = grepl("^s3://", opt$comp_s3),
+  "project_id must be provided" = nchar(opt$project_id) > 0
 )
 
 # split project ids (flexibly by commas, semicolons, and/or whitespace)
