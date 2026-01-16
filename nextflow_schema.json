@@ -179,10 +179,10 @@
         },
         "ref_outdir": {
           "type": "string",
-          "default": "s3://scpca-nf-references",
+          "default": "scpca_ref_out",
           "format": "directory-path",
           "description": "Reference building output directory",
-          "help_text": "Directory to store built reference indices. Defaults to the same as the `ref_rootdir`.",
+          "help_text": "Directory to store built reference indices. Defaults to `scpca_ref_out`",
           "fa_icon": "fas fa-folder-open"
         }
       },
