@@ -336,6 +336,82 @@ assign_consensus_celltypes <- function(
 }
 
 
+
+add_infercnv_reference_cells <- function(
+    sce,
+    consensus_validation_ref,
+    diagnosis_celltype_ref,
+    diagnosis_groups_ref,
+) {
+
+  # unique in case of multiplexed
+  diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
+
+  if (is.null(diagnosis)) {
+    infercnv_status <- "no_diagnosis"
+  } else if (length(diagnosis) > 1 && !file.exists(opt$diagnosis_groups_ref)) {
+    infercnv_status <- "no_diagnosis_multiplexed"
+  } else {
+    # Determine the broad_diagnosis group and check for edge cases
+    if (!file.exists(opt$diagnosis_groups_ref)) {
+      broad_diagnosis <- diagnosis # if no map file, use the given diagnosis
+    } else {
+      diagnosis_groups <- readr::read_tsv(opt$diagnosis_groups_ref)
+      broad_diagnosis <- data.frame(sample_diagnosis = diagnosis) |>
+        dplyr::left_join(diagnosis_groups, by = "sample_diagnosis") |>
+        # replace NA with sample diagnosis
+        dplyr::mutate(
+          diagnosis_group = dplyr::coalesce(diagnosis_group, sample_diagnosis)
+        ) |>
+        dplyr::pull("diagnosis_group") |>
+        # in case of multiplexed
+        unique()
+    }
+    if (length(broad_diagnosis) == 0) {
+      infercnv_status <- "unknown_diagnosis_group"
+    } else if (length(broad_diagnosis > 1)) {
+      infercnv_status <- "multiple_diagnosis_groups"
+      # TODO: Is this the desired behavior? If it's length 2 and 1 value non-cancerous, do we want to proceed with inferCNV with the other diagnosis?
+      # Right now this is more conservative and doesn't run inferCNV in this circumstance.
+    } else if (broad_diagnosis == "Non-cancerous") {
+      infercnv_status <- "skipped_non_cancerous"
+    } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
+      infercnv_status <- "missing_reference_celltypes"
+    }
+  }
+
+  # Only proceed to count if we have not overwritten this status
+  if (infercnv_status == "") {
+    # get the cell type groups to consider for this diagnosis
+    reference_validation_groups <- diagnosis_celltype_df |>
+      dplyr::filter(diagnosis_group == broad_diagnosis) |>
+      tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
+      dplyr::pull(celltype_groups) |>
+      # remove any leading or trailing spaces
+      stringr::str_trim()
+
+    # get the consensus cell types
+    ref_df <- consensus_validation_df |>
+      dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
+      dplyr::select(consensus_ontology, consensus_annotation) |>
+      dplyr::distinct()
+
+    # Add reference cell information to SCE
+    metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
+    sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology
+
+    # include the total number of reference cells in the metadata
+    metadata(sce)$infercnv_num_reference_cells <- sum(sce$is_infercnv_reference)
+
+    # add the diagnosis group used for id'ing reference cells
+    metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
+  }
+
+  return(sce)
+
+}
+
+
 # Main script ----------------------------------------------------------------
 option_list <- list(
   make_option(
@@ -463,6 +539,7 @@ sce <- readr::read_rds(opt$input_sce_file)
 # We'll count inferCNV reference cells when assigning consensus cell types
 reference_cell_count <- ""
 reference_cell_hash <- ""
+infercnv_status <- "" # use in case we cannot calculate the count
 
 # set automated methods list
 # we'll use this to assign consensus and add cell type methods to the metadata
@@ -563,8 +640,6 @@ metadata(sce)$celltype_methods <- c(
 # e.g., all three methods use the main consensus_annotation column
 # if the library only has scimilarity and singler, use singler_scimilarity_pair_annotation column, etc.
 
-# by default don't assign consensus
-assign_consensus <- FALSE
 
 # if there's at least two methods then assign consensus using the available methods
 if (length(automated_methods) > 1) {
@@ -581,113 +656,33 @@ if (length(automated_methods) > 1) {
   )
 
   # Count the number of reference cells -------------------------
-
-  # Calculate if these optional reference files were provided and are not 0 bytes
-  check_input_files <- c(
-    opt$consensus_validation_ref,
-    opt$diagnosis_celltype_ref
+  stopifnot(
+    "Consensus cell type validation file does not exist" = file.exists(opt$consensus_validation_ref)
   )
 
-  # Only calculate reference cell count if file sizes are not NA or 0
-  # the only way this "check" passes is if files exist and have contents
-  if (all(file.exists(check_input_files))) {
-    consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
-    diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
-
-    # unique in case of multiplexed
-    diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
-    stopifnot(
-      "Could not determine diagnosis from processed SCE metadata" = !is.null(diagnosis)
+  if (!file.exists(opt$diagnosis_celltype_ref)) {
+    infercnv_status <- "no_diagnosis_reference"
+  } else {
+    infercnv_status <- "possible" # TODO: do I need this? I don't think I do?
+    sce <- add_infercnv_reference_cells(
+      sce,
+      opt$consensus_validation_ref,
+      opt$diagnosis_celltype_ref,
+      opt$diagnosis_groups_ref
     )
-
-    # If we have multiple diagnoses (multiplexed), we require a group mapping file
-    if (length(diagnosis) > 1 && !file.exists(opt$diagnosis_groups_ref)) {
-      stop(
-        "To perform CNV inference on multiplexed samples with different diagnoses, a diagnosis group metadata file must be provided."
-      )
-    }
-
-    # If the map file does not exist, specify the sample diagnosis as the broad diagnosis
-    if (!file.exists(opt$diagnosis_groups_ref)) {
-      broad_diagnosis <- diagnosis
-    } else {
-      diagnosis_groups <- readr::read_tsv(opt$diagnosis_groups_ref)
-      broad_diagnosis <- data.frame(sample_diagnosis = diagnosis) |>
-        dplyr::left_join(diagnosis_groups, by = "sample_diagnosis") |>
-        # replace NA with sample diagnosis
-        dplyr::mutate(
-          diagnosis_group = dplyr::coalesce(diagnosis_group, sample_diagnosis)
-        ) |>
-        dplyr::pull("diagnosis_group") |>
-        # in case of multiplexed
-        unique()
-    }
-
-    # Check that we have at least one broad diagnosis
-    stopifnot(
-      "Could not determine broad diagnosis from sample diagnosis." =
-        length(broad_diagnosis) >= 1
-    )
-
-    # if the only broad diagnosis is non-cancerous then skip counting
-    # otherwise, proceed with counting
-    if (!all(broad_diagnosis == "Non-cancerous")) {
-      # remove any potential instances of non-cancerous diagnosis
-      broad_diagnosis <- broad_diagnosis[broad_diagnosis != "Non-cancerous"]
-
-      # check that remaining diagnoses can be mapped to appropriate cell types
-      # right now we only support having a single broad diagnosis besides non-cancerous for multiplexed
-      stopifnot(
-        "A single broad diagnosis for the library could not be identified" =
-          length(broad_diagnosis) == 1,
-        "Could not determine a single known diagnosis group from sample diagnosis." =
-          broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group
-      )
-
-      # get the cell type groups to consider for this diagnosis
-      reference_validation_groups <- diagnosis_celltype_df |>
-        dplyr::filter(diagnosis_group == broad_diagnosis) |>
-        tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
-        dplyr::pull(celltype_groups) |>
-        # remove any leading or trailing spaces
-        stringr::str_trim()
-
-      # get the consensus cell types
-      ref_df <- consensus_validation_df |>
-        dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
-        dplyr::select(consensus_ontology, consensus_annotation) |>
-        dplyr::distinct()
-
-      # Add reference cell information to SCE
-      metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
-      sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in%
-        ref_df$consensus_ontology # boolean
-
-      # get the full count; store as character for writing to file
-      reference_cell_count <- as.character(sum(sce$is_infercnv_reference))
-
-      # get hash for sorted concatenated barcodes
-      concat_barcodes <- paste(
-        sort(sce$barcodes[sce$is_infercnv_reference]),
-        collapse = ""
-      )
-      reference_cell_hash <- digest::digest(concat_barcodes)
-    }
-
-    # include the total number of ref cells in the metadata
-    # make sure it's a number, if the value is "" this evaluates as NA
-    metadata(sce)$infercnv_num_reference_cells <- as.integer(reference_cell_count)
-
-    # add a note about the diagnosis groups that were ultimately used to assign cells
-    # if only non-cancerous then that will be listed
-    # for all others, the final diagnosis group that was used after removing non-cancerous
-    metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
+    reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
+    reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
+      paste(collapse = "") |>
+      digest::digest(concat_barcodes)
   }
+} else {
+  infercnv_status <- "no_consensus"
 }
 
 # export annotated object with cell type assignments
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
-# export normal cell count and hash
+# export normal cell count and hash, and infercnv_status
 readr::write_file(reference_cell_count, opt$reference_cell_count_file)
 readr::write_file(reference_cell_hash, opt$reference_cell_hash_file)
+readr::write_file(infercnv_status, opt$infercnv_status_file)
