@@ -396,7 +396,6 @@ add_infercnv_reference_cells <- function(
     } else if (length(broad_diagnosis) > 1) {
       infercnv_status <- "multiple_diagnosis_groups_multiplexed"
     } else if (broad_diagnosis == "Non-cancerous") {
-      # TODO: Is this the desired behavior?
       infercnv_status <- "skipped_non_cancerous"
     } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
       infercnv_status <- "unknown_reference_celltypes"
