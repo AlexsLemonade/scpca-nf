@@ -348,7 +348,7 @@ add_infercnv_reference_cells <- function(
     sce,
     consensus_validation_ref,
     diagnosis_celltype_ref,
-    diagnosis_groups_ref,
+    diagnosis_groups_ref
 ) {
 
   # read in tsvs we know exist
