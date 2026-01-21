@@ -169,7 +169,7 @@ process add_celltypes_to_sce {
     path(diagnosis_celltypes_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
     path(diagnosis_groups_file) // maps broad diagnoses to cell type groups, for counting normal reference cells
   output:
-    tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT"), env("REFERENCE_CELL_HASH")
+    tuple val(meta), path(annotated_rds), env("REFERENCE_CELL_COUNT"), env("REFERENCE_CELL_HASH"), env("INFERCNV_STATUS")
   script:
     annotated_rds = "${meta.unique_id}_processed_annotated.rds"
     def singler_results = singler_dir ? "${singler_dir}/singler_results.rds": ""
@@ -194,10 +194,13 @@ process add_celltypes_to_sce {
       --diagnosis_groups_ref "${diagnosis_groups_file}" \
       --reference_cell_count_file "reference_cell_count.txt" \
       --reference_cell_hash_file "reference_cell_hash.txt" \
+      --reference_cell_hash_file "reference_cell_hash.txt" \
+      --infercnv_status_file "infercnv_status.txt" \
 
       # save so we can export as environment variable
       REFERENCE_CELL_COUNT=\$(cat "reference_cell_count.txt")
       REFERENCE_CELL_HASH=\$(cat "reference_cell_hash.txt")
+      INFERCNV_STATUS=\$(cat "infercnv_status.txt")
     """
   stub:
     annotated_rds = "${meta.unique_id}_processed_annotated.rds"
@@ -441,12 +444,13 @@ workflow annotate_celltypes {
 
     // add inferCNV logic to meta
     added_celltypes_ch = add_celltypes_to_sce.out
-      .map{ meta_in, annotated_sce, cell_count, cell_hash ->
+      .map{ meta_in, annotated_sce, cell_count, cell_hash, infercnv_status ->
         def meta = meta_in.clone() // local copy for safe modification
         // ensure the count is saved as an integer: either the integer value, or null if it was an
         // empty string since we can do future math comparisons with null
         meta.infercnv_reference_cell_count = cell_count ? cell_count.toInteger() : null
         meta.infercnv_reference_cell_hash = cell_hash
+        meta.infercnv_status = infercnv_status
 
         // return only meta and annotated_sce
         [meta, annotated_sce]
