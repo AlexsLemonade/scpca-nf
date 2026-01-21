@@ -347,10 +347,10 @@ assign_consensus_celltypes <- function(
 #'
 #' @returns Updated SCE object with reference cell count information
 add_infercnv_reference_cells <- function(
-    sce,
-    consensus_validation_ref,
-    diagnosis_celltype_ref,
-    diagnosis_groups_ref
+  sce,
+  consensus_validation_ref,
+  diagnosis_celltype_ref,
+  diagnosis_groups_ref
 ) {
   # will be populated with an edge case, or remain empty to be updated later
   # in add_infercnv_to_sce.R
