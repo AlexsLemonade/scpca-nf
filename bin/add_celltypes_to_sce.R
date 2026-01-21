@@ -350,6 +350,9 @@ add_infercnv_reference_cells <- function(
     diagnosis_celltype_ref,
     diagnosis_groups_ref
 ) {
+  # will be populated with an edge case, or remain empty to be updated later
+  # in add_infercnv_to_sce.R
+  infercnv_status <- ""
 
   # read in tsvs we know exist
   diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
@@ -358,6 +361,7 @@ add_infercnv_reference_cells <- function(
   # unique in case of multiplexed
   diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
 
+  ############## Determine the infercnv_status ########################
   if (is.null(diagnosis)) {
     infercnv_status <- "unknown_diagnosis"
   } else if (length(diagnosis) > 1 && !file.exists(opt$diagnosis_groups_ref)) {
@@ -390,7 +394,7 @@ add_infercnv_reference_cells <- function(
     }
   }
 
-  # Only proceed to count if we have not overwritten this status
+  ############### Count if we did not encounter an edge case ##################
   if (infercnv_status == "") {
     # get the cell type groups to consider for this diagnosis
     reference_validation_groups <- diagnosis_celltype_df |>
@@ -417,8 +421,9 @@ add_infercnv_reference_cells <- function(
     metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
   }
 
+  # save the status to the SCE before returning
+  metadata(sce)$infercnv_status <- infercnv_status
   return(sce)
-
 }
 
 
@@ -528,13 +533,6 @@ option_list <- list(
     help = "Path to write out unique hash for all concatenated barcodes in reference cell set; used for checkpointing.
       If not calculated, this file will be empty",
     default = "reference_cell_hash.txt"
-  ),
-  make_option(
-    opt_str = c("--infercnv_status_file"),
-    type = "character",
-    help = "Path to write out value of infercnv_status variable, which flags edge cases in which inferCNV cannot be run.
-      If no edge cases are identified, this file will be empty.",
-    default = "infercnv_status.txt"
   )
 )
 
@@ -556,7 +554,6 @@ sce <- readr::read_rds(opt$input_sce_file)
 # We'll count inferCNV reference cells when assigning consensus cell types
 reference_cell_count <- ""
 reference_cell_hash <- ""
-infercnv_status <- "" # use in case we cannot calculate the count
 
 # set automated methods list
 # we'll use this to assign consensus and add cell type methods to the metadata
@@ -678,7 +675,7 @@ if (length(automated_methods) > 1) {
   )
 
   if (!file.exists(opt$diagnosis_celltype_ref)) {
-    infercnv_status <- "no_diagnosis_celltype_reference"
+    metadata(sce)$infercnv_status <- "no_diagnosis_celltype_reference"
   } else {
     sce <- add_infercnv_reference_cells(
       sce,
@@ -686,13 +683,17 @@ if (length(automated_methods) > 1) {
       opt$diagnosis_celltype_ref,
       opt$diagnosis_groups_ref
     )
-    reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
-    reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
-      paste(collapse = "") |>
-      digest::digest()
   }
 } else {
-  infercnv_status <- "no_consensus"
+  metadata(sce)$infercnv_status <- "no_consensus"
+}
+
+# Update reference info calculations for export if no edge cases were encountered
+if (metadata(sce)$infercnv_status == "") {
+  reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
+  reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
+    paste(collapse = "") |>
+    digest::digest()
 }
 
 # export annotated object with cell type assignments
@@ -701,4 +702,3 @@ readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 # export normal cell count and hash, and infercnv_status
 readr::write_file(reference_cell_count, opt$reference_cell_count_file)
 readr::write_file(reference_cell_hash, opt$reference_cell_hash_file)
-readr::write_file(infercnv_status, opt$infercnv_status_file)
