@@ -336,13 +336,24 @@ assign_consensus_celltypes <- function(
 }
 
 
-
+#' Add reference cell information for inferCNV to SCE
+#'
+#' @param sce SingleCellExperiment object
+#' @param consensus_validation_ref Path to tsv mapping consensus validation groups to consensus labels
+#' @param diagnosis_celltype_ref Path to tsv mapping broad diagnoses to consensus validation groups
+#' @param diagnosis_groups_ref Path to tsv mapping broad diagnoses to individual diagnoses
+#'
+#' @returns Updated SCE object with reference cell count information
 add_infercnv_reference_cells <- function(
     sce,
     consensus_validation_ref,
     diagnosis_celltype_ref,
     diagnosis_groups_ref,
 ) {
+
+  # read in tsvs we know exist
+  diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
+  consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
 
   # unique in case of multiplexed
   diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
@@ -369,7 +380,7 @@ add_infercnv_reference_cells <- function(
     }
     if (length(broad_diagnosis) == 0) {
       infercnv_status <- "unknown_diagnosis_group"
-    } else if (length(broad_diagnosis > 1)) {
+    } else if (length(broad_diagnosis) > 1) {
       infercnv_status <- "multiple_diagnosis_groups"
       # TODO: Is this the desired behavior? If it's length 2 and 1 value non-cancerous, do we want to proceed with inferCNV with the other diagnosis?
       # Right now this is more conservative and doesn't run inferCNV in this circumstance.
@@ -518,6 +529,13 @@ option_list <- list(
     help = "Path to write out unique hash for all concatenated barcodes in reference cell set; used for checkpointing.
       If not calculated, this file will be empty",
     default = "reference_cell_hash.txt"
+  ),
+  make_option(
+    opt_str = c("--infercnv_status_file"),
+    type = "character",
+    help = "Path to write out value of infercnv_status variable, which flags edge cases in which inferCNV cannot be run.
+      If no edge cases are identified, this file will be empty.",
+    default = "infercnv_status.txt"
   )
 )
 
@@ -663,7 +681,6 @@ if (length(automated_methods) > 1) {
   if (!file.exists(opt$diagnosis_celltype_ref)) {
     infercnv_status <- "no_diagnosis_reference"
   } else {
-    infercnv_status <- "possible" # TODO: do I need this? I don't think I do?
     sce <- add_infercnv_reference_cells(
       sce,
       opt$consensus_validation_ref,
@@ -673,7 +690,7 @@ if (length(automated_methods) > 1) {
     reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
     reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
       paste(collapse = "") |>
-      digest::digest(concat_barcodes)
+      digest::digest()
   }
 } else {
   infercnv_status <- "no_consensus"
