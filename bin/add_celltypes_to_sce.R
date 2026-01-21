@@ -359,9 +359,9 @@ add_infercnv_reference_cells <- function(
   diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
 
   if (is.null(diagnosis)) {
-    infercnv_status <- "no_diagnosis"
+    infercnv_status <- "unknown_diagnosis"
   } else if (length(diagnosis) > 1 && !file.exists(opt$diagnosis_groups_ref)) {
-    infercnv_status <- "no_diagnosis_multiplexed"
+    infercnv_status <- "multiple_diagnoses_multiplexed"
   } else {
     # Determine the broad_diagnosis group and check for edge cases
     if (!file.exists(opt$diagnosis_groups_ref)) {
@@ -381,13 +381,12 @@ add_infercnv_reference_cells <- function(
     if (length(broad_diagnosis) == 0) {
       infercnv_status <- "unknown_diagnosis_group"
     } else if (length(broad_diagnosis) > 1) {
-      infercnv_status <- "multiple_diagnosis_groups"
-      # TODO: Is this the desired behavior? If it's length 2 and 1 value non-cancerous, do we want to proceed with inferCNV with the other diagnosis?
-      # Right now this is more conservative and doesn't run inferCNV in this circumstance.
+      infercnv_status <- "multiple_diagnosis_groups_multiplexed"
     } else if (broad_diagnosis == "Non-cancerous") {
+      # TODO: Is this the desired behavior?
       infercnv_status <- "skipped_non_cancerous"
     } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
-      infercnv_status <- "missing_reference_celltypes"
+      infercnv_status <- "unknown_reference_celltypes"
     }
   }
 
@@ -679,7 +678,7 @@ if (length(automated_methods) > 1) {
   )
 
   if (!file.exists(opt$diagnosis_celltype_ref)) {
-    infercnv_status <- "no_diagnosis_reference"
+    infercnv_status <- "no_diagnosis_celltype_reference"
   } else {
     sce <- add_infercnv_reference_cells(
       sce,
