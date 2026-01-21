@@ -336,7 +336,9 @@ assign_consensus_celltypes <- function(
 }
 
 
-#' Add reference cell information for inferCNV to SCE
+#' Add reference cell information for inferCNV to an SCE
+#'
+#' This function will also identify edge cases for which inferCNV cannot be run
 #'
 #' @param sce SingleCellExperiment object
 #' @param consensus_validation_ref Path to tsv mapping consensus validation groups to consensus labels
@@ -382,6 +384,13 @@ add_infercnv_reference_cells <- function(
         # in case of multiplexed
         unique()
     }
+    # For a multiplexed edge condition:
+    # if the length is 2 and 1 is non-cancerous, remove non-cancerous first
+    if (length(broad_diagnosis) == 2 & "Non-cancerous" %in% broad_diagnosis) {
+      broad_diagnosis <- broad_diagnosis[broad_diagnosis != "Non-cancerous"]
+    }
+
+    # assign remaining statuses for edge cases
     if (length(broad_diagnosis) == 0) {
       infercnv_status <- "unknown_diagnosis_group"
     } else if (length(broad_diagnosis) > 1) {
