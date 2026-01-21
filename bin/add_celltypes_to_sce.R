@@ -345,12 +345,11 @@ assign_consensus_celltypes <- function(
 #'
 #' @returns Updated SCE object with reference cell count information
 add_infercnv_reference_cells <- function(
-    sce,
-    consensus_validation_ref,
-    diagnosis_celltype_ref,
-    diagnosis_groups_ref
+  sce,
+  consensus_validation_ref,
+  diagnosis_celltype_ref,
+  diagnosis_groups_ref
 ) {
-
   # read in tsvs we know exist
   diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
   consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
@@ -418,7 +417,6 @@ add_infercnv_reference_cells <- function(
   }
 
   return(sce)
-
 }
 
 
