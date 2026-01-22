@@ -397,22 +397,20 @@ assign_infercnv_status <- function(
   }
 
   # Assign remaining statuses for edge cases
-  if (length(broad_diagnosis) > 1) {
-    metadata(sce)$infercnv_status <- "multiple_diagnosis_groups_multiplexed"
-  }
-  if (broad_diagnosis == "Non-cancerous") { # at this point we know it's length 1
-    metadata(sce)$infercnv_status <- "skipped_non_cancerous"
-  }
-  if (nrow(diagnosis_celltype_df) == 0) {
-    metadata(sce)$infercnv_status <- "no_diagnosis_celltype_reference"
-  } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
-    metadata(sce)$infercnv_status <- "unknown_reference_celltypes"
-  }
 
-  # Empty string if no edge case was found
-  if (is.null(metadata(sce)$infercnv_status)) {
-    metadata(sce)$infercnv_status <- ""
+  if (length(broad_diagnosis) > 1) {
+    infercnv_status <- "multiple_diagnosis_groups_multiplexed"
+  } else if (broad_diagnosis == "Non-cancerous") { # at this point we know it's length 1
+    infercnv_status <- "skipped_non_cancerous"
+  } else if (nrow(diagnosis_celltype_df) == 0) {
+    infercnv_status <- "no_diagnosis_celltype_reference"
+  } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
+    infercnv_status <- "unknown_reference_celltypes"
+  } else { # no edge case
+    infercnv_status <- ""
   }
+  
+metadata(sce)$infercnv_status <- infercnv_status
 
   return(sce)
 }
