@@ -194,7 +194,6 @@ process add_celltypes_to_sce {
       --diagnosis_groups_ref "${diagnosis_groups_file}" \
       --reference_cell_count_file "reference_cell_count.txt" \
       --reference_cell_hash_file "reference_cell_hash.txt" \
-      --reference_cell_hash_file "reference_cell_hash.txt"
 
       # save so we can export as environment variable
       REFERENCE_CELL_COUNT=\$(cat "reference_cell_count.txt")
