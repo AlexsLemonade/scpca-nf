@@ -372,7 +372,8 @@ assign_infercnv_status <- function(
     diagnosis_groups <- readr::read_tsv(diagnosis_groups_ref)
     broad_diagnosis <- data.frame(sample_diagnosis = diagnosis) |>
       dplyr::left_join(diagnosis_groups, by = "sample_diagnosis") |>
-      # replace NA with sample diagnosis
+      # replace NA diagnosis_group with sample diagnosis
+      # this means diagnosis_group will never be length 0
       dplyr::mutate(
         diagnosis_group = dplyr::coalesce(diagnosis_group, sample_diagnosis)
       ) |>
@@ -394,7 +395,7 @@ assign_infercnv_status <- function(
     metadata(sce)$infercnv_status <- "multiple_diagnosis_groups_multiplexed"
     return(sce)
   }
-  if (broad_diagnosis == "Non-cancerous") {
+  if (broad_diagnosis == "Non-cancerous") { # at this point we know it's length 1
     metadata(sce)$infercnv_status <- "skipped_non_cancerous"
     return(sce)
   }
