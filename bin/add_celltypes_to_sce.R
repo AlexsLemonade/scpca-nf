@@ -390,7 +390,7 @@ assign_infercnv_status <- function(
   metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
 
   # define data frame for use in checks
-  if (file.exists(diagnosis_celltype_ref)){
+  if (file.exists(diagnosis_celltype_ref)) {
     diagnosis_celltype_df <- readr::read_tsv(diagnosis_celltype_ref)
   } else {
     diagnosis_celltype_df <- data.frame()
