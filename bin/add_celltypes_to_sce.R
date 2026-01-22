@@ -389,29 +389,31 @@ assign_infercnv_status <- function(
   # save broad diagnosis to SCE before remaining checks
   metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
 
+  # define data frame for use in checks
+  if (file.exists(diagnosis_celltype_ref)){
+    diagnosis_celltype_df <- readr::read_tsv(diagnosis_celltype_ref)
+  } else {
+    diagnosis_celltype_df <- data.frame()
+  }
 
-  # Assign remaining statuses for edge cases, returning early to reduce nesting
+  # Assign remaining statuses for edge cases
   if (length(broad_diagnosis) > 1) {
     metadata(sce)$infercnv_status <- "multiple_diagnosis_groups_multiplexed"
-    return(sce)
   }
   if (broad_diagnosis == "Non-cancerous") { # at this point we know it's length 1
     metadata(sce)$infercnv_status <- "skipped_non_cancerous"
-    return(sce)
   }
-  if (!file.exists(diagnosis_celltype_ref)) {
+  if (nrow(diagnosis_celltype_df) == 0) {
     metadata(sce)$infercnv_status <- "no_diagnosis_celltype_reference"
-    return(sce)
-  } else {
-    diagnosis_celltype_df <- readr::read_tsv(diagnosis_celltype_ref)
-    if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
-      metadata(sce)$infercnv_status <- "unknown_reference_celltypes"
-      return(sce)
-    }
+  } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
+    metadata(sce)$infercnv_status <- "unknown_reference_celltypes"
   }
 
-  # If we made it here, no edge case was found
-  metadata(sce)$infercnv_status <- ""
+  # Empty string if no edge case was found
+  if (is.null(metadata(sce)$infercnv_status)) {
+    metadata(sce)$infercnv_status <- ""
+  }
+
   return(sce)
 }
 
