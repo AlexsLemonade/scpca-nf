@@ -397,7 +397,6 @@ assign_infercnv_status <- function(
   }
 
   # Assign remaining statuses for edge cases
-
   if (length(broad_diagnosis) > 1) {
     infercnv_status <- "multiple_diagnosis_groups_multiplexed"
   } else if (broad_diagnosis == "Non-cancerous") { # at this point we know it's length 1
@@ -409,8 +408,8 @@ assign_infercnv_status <- function(
   } else { # no edge case
     infercnv_status <- ""
   }
-  
-metadata(sce)$infercnv_status <- infercnv_status
+
+  metadata(sce)$infercnv_status <- infercnv_status
 
   return(sce)
 }
