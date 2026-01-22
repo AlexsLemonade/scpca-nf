@@ -710,7 +710,7 @@ if (length(automated_methods) > 1) {
     opt$diagnosis_celltype_ref
   )
   # calculate if passing status
-  if (metadata(sce)$infercnv_status == "") {
+  if (metadata(sce)$infercnv_status == "feasible") {
     sce <- add_infercnv_reference_cells(
       sce,
       opt$consensus_validation_ref,
