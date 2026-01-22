@@ -347,9 +347,9 @@ assign_consensus_celltypes <- function(
 #'
 #' @returns Updated SCE object with infercnv_status and infercnv_diagnosis_groups added to SCE metadata
 assign_infercnv_status <- function(
-    sce,
-    diagnosis_groups_ref,
-    diagnosis_celltype_ref
+  sce,
+  diagnosis_groups_ref,
+  diagnosis_celltype_ref
 ) {
   # unique in case of multiplexed
   diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
