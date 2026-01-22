@@ -336,6 +336,85 @@ assign_consensus_celltypes <- function(
 }
 
 
+#' Assign infercnv_status to SCE metadata
+#'
+#' If the final infercnv_status is "", no edge cases were encountered
+#' This function will also add infercnv_broad_diagnosis to the SCE metadata.
+#'
+#' @param sce SingleCellExperiment object
+#' @param diagnosis_celltype_ref Path to tsv mapping broad diagnoses to consensus validation groups
+#' @param diagnosis_groups_ref Path to tsv mapping broad diagnoses to individual diagnoses
+#'
+#' @returns Updated SCE object with infercnv_status and infercnv_broad_diagnosis added to SCE metadata
+assign_infercnv_status <- function(
+    sce,
+    diagnosis_groups_ref,
+    diagnosis_celltype_ref
+) {
+  # unique in case of multiplexed
+  diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
+
+  # Assign status and return early if there is no usable diagnosis information
+  # these edge cases will not have a broad_diagnosis saved in the SCE metadata
+  if (is.null(diagnosis)) {
+    metadata(sce)$infercnv_status <- "unknown_diagnosis"
+    return(sce)
+  }
+  if (length(diagnosis) > 1 && !file.exists(diagnosis_groups_ref)) {
+    metadata(sce)$infercnv_status <- "multiple_diagnoses_multiplexed"
+    return(sce)
+  }
+
+  # Find the broad_diagnosis
+  if (!file.exists(diagnosis_groups_ref)) {
+    broad_diagnosis <- diagnosis # if no map file, use the given diagnosis
+  } else {
+    diagnosis_groups <- readr::read_tsv(diagnosis_groups_ref)
+    broad_diagnosis <- data.frame(sample_diagnosis = diagnosis) |>
+      dplyr::left_join(diagnosis_groups, by = "sample_diagnosis") |>
+      # replace NA with sample diagnosis
+      dplyr::mutate(
+        diagnosis_group = dplyr::coalesce(diagnosis_group, sample_diagnosis)
+      ) |>
+      dplyr::pull(diagnosis_group) |>
+      # in case of multiplexed
+      unique()
+  }
+  # update broad_diagnosis - remove non-cancerous for multiplexed edge case
+  if (length(broad_diagnosis) > 1 & "Non-cancerous" %in% broad_diagnosis) {
+    broad_diagnosis <- broad_diagnosis[!broad_diagnosis == "Non-cancerous"]
+  }
+
+  # save broad diagnosis to SCE before remaining checks
+  metadata(sce)$infercnv_broad_diagnosis <- broad_diagnosis
+
+
+  # Assign remaining statuses for edge cases, returning early to reduce nesting
+  if (length(broad_diagnosis) > 1) {
+    metadata(sce)$infercnv_status <- "multiple_diagnosis_groups_multiplexed"
+    return(sce)
+  }
+  if (broad_diagnosis == "Non-cancerous") {
+    metadata(sce)$infercnv_status <- "skipped_non_cancerous"
+    return(sce)
+  }
+  if (!file.exists(diagnosis_celltype_ref)) {
+    metadata(sce)$infercnv_status <- "no_diagnosis_celltype_reference"
+    return(sce)
+  } else {
+    diagnosis_celltype_df <- readr::read_tsv(diagnosis_celltype_ref)
+    if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
+      metadata(sce)$infercnv_status <- "unknown_reference_celltypes"
+      return(sce)
+    }
+  }
+
+  # If we made it here, no edge case was found
+  metadata(sce)$infercnv_status <- ""
+  return(sce)
+}
+
+
 #' Add reference cell information for inferCNV to an SCE
 #'
 #' This function will also identify edge cases for which inferCNV cannot be run
@@ -682,15 +761,15 @@ if (length(automated_methods) > 1) {
     "Consensus cell type validation file does not exist" = file.exists(opt$consensus_validation_ref)
   )
 
-  if (!file.exists(opt$diagnosis_celltype_ref)) {
-    metadata(sce)$infercnv_status <- "no_diagnosis_celltype_reference"
-  } else {
-    sce <- add_infercnv_reference_cells(
-      sce,
-      opt$consensus_validation_ref,
-      opt$diagnosis_celltype_ref,
-      opt$diagnosis_groups_ref
-    )
+  # assign status, except for case where there are no consensus annotations
+  sce <- assign_infercnv_status(
+    sce,
+    opt$diagnosis_groups_ref,
+    opt$diagnosis_celltype_ref
+  )
+  # calculate if passing status
+  if (metadata(sce)$infercnv_status == "") {
+    # fill in next
   }
 } else {
   metadata(sce)$infercnv_status <- "no_consensus"
