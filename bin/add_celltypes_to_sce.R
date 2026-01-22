@@ -405,8 +405,8 @@ assign_infercnv_status <- function(
     infercnv_status <- "no_diagnosis_celltype_reference"
   } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
     infercnv_status <- "unknown_reference_celltypes"
-  } else { # no edge case
-    infercnv_status <- ""
+  } else { # no edge case - we can feasibly run inferCNV
+    infercnv_status <- "feasible"
   }
 
   metadata(sce)$infercnv_status <- infercnv_status
