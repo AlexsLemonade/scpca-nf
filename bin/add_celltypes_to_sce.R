@@ -339,13 +339,13 @@ assign_consensus_celltypes <- function(
 #' Assign infercnv_status to SCE metadata
 #'
 #' If the final infercnv_status is "", no edge cases were encountered
-#' This function will also add infercnv_broad_diagnosis to the SCE metadata.
+#' If it can be determined, this function will also add infercnv_diagnosis_groups to the SCE metadata
 #'
 #' @param sce SingleCellExperiment object
 #' @param diagnosis_celltype_ref Path to tsv mapping broad diagnoses to consensus validation groups
 #' @param diagnosis_groups_ref Path to tsv mapping broad diagnoses to individual diagnoses
 #'
-#' @returns Updated SCE object with infercnv_status and infercnv_broad_diagnosis added to SCE metadata
+#' @returns Updated SCE object with infercnv_status and infercnv_diagnosis_groups added to SCE metadata
 assign_infercnv_status <- function(
     sce,
     diagnosis_groups_ref,
@@ -386,7 +386,7 @@ assign_infercnv_status <- function(
   }
 
   # save broad diagnosis to SCE before remaining checks
-  metadata(sce)$infercnv_broad_diagnosis <- broad_diagnosis
+  metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
 
 
   # Assign remaining statuses for edge cases, returning early to reduce nesting
@@ -417,99 +417,41 @@ assign_infercnv_status <- function(
 
 #' Add reference cell information for inferCNV to an SCE
 #'
-#' This function will also identify edge cases for which inferCNV cannot be run
 #'
 #' @param sce SingleCellExperiment object
 #' @param consensus_validation_ref Path to tsv mapping consensus validation groups to consensus labels
 #' @param diagnosis_celltype_ref Path to tsv mapping broad diagnoses to consensus validation groups
-#' @param diagnosis_groups_ref Path to tsv mapping broad diagnoses to individual diagnoses
 #'
 #' @returns Updated SCE object with reference cell count information
 add_infercnv_reference_cells <- function(
   sce,
   consensus_validation_ref,
-  diagnosis_celltype_ref,
-  diagnosis_groups_ref
+  diagnosis_celltype_ref
 ) {
-  # will be populated with an edge case, or remain empty to be updated later
-  # in add_infercnv_to_sce.R
-  infercnv_status <- ""
-
-  # read in tsvs we know exist
-  diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
   consensus_validation_df <- readr::read_tsv(opt$consensus_validation_ref)
+  diagnosis_celltype_df <- readr::read_tsv(opt$diagnosis_celltype_ref)
 
-  # unique in case of multiplexed
-  diagnosis <- unique(metadata(sce)$sample_metadata$diagnosis)
+  # get the cell type groups to consider for this diagnosis
+  reference_validation_groups <- diagnosis_celltype_df |>
+    dplyr::filter(diagnosis_group == metadata(sce)$infercnv_diagnosis_groups) |>
+    tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
+    dplyr::pull(celltype_groups) |>
+    # remove any leading or trailing spaces
+    stringr::str_trim()
 
-  ############## Determine the infercnv_status ########################
-  if (is.null(diagnosis)) {
-    infercnv_status <- "unknown_diagnosis"
-  } else if (length(diagnosis) > 1 && !file.exists(opt$diagnosis_groups_ref)) {
-    infercnv_status <- "multiple_diagnoses_multiplexed"
-  } else {
-    # Determine the broad_diagnosis group and check for edge cases
-    if (!file.exists(opt$diagnosis_groups_ref)) {
-      broad_diagnosis <- diagnosis # if no map file, use the given diagnosis
-    } else {
-      diagnosis_groups <- readr::read_tsv(opt$diagnosis_groups_ref)
-      broad_diagnosis <- data.frame(sample_diagnosis = diagnosis) |>
-        dplyr::left_join(diagnosis_groups, by = "sample_diagnosis") |>
-        # replace NA with sample diagnosis
-        dplyr::mutate(
-          diagnosis_group = dplyr::coalesce(diagnosis_group, sample_diagnosis)
-        ) |>
-        dplyr::pull("diagnosis_group") |>
-        # in case of multiplexed
-        unique()
-    }
-    # For a multiplexed edge condition:
-    # if the length is 2 and 1 is non-cancerous, remove non-cancerous first
-    if (length(broad_diagnosis) == 2 & "Non-cancerous" %in% broad_diagnosis) {
-      broad_diagnosis <- broad_diagnosis[broad_diagnosis != "Non-cancerous"]
-    }
+  # get the consensus cell types
+  ref_df <- consensus_validation_df |>
+    dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
+    dplyr::select(consensus_ontology, consensus_annotation) |>
+    dplyr::distinct()
 
-    # assign remaining statuses for edge cases
-    if (length(broad_diagnosis) == 0) {
-      infercnv_status <- "unknown_diagnosis_group"
-    } else if (length(broad_diagnosis) > 1) {
-      infercnv_status <- "multiple_diagnosis_groups_multiplexed"
-    } else if (broad_diagnosis == "Non-cancerous") {
-      infercnv_status <- "skipped_non_cancerous"
-    } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
-      infercnv_status <- "unknown_reference_celltypes"
-    }
-  }
+  # Add reference cell information to SCE
+  metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
+  sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology
 
-  ############### Count if we did not encounter an edge case ##################
-  if (infercnv_status == "") {
-    # get the cell type groups to consider for this diagnosis
-    reference_validation_groups <- diagnosis_celltype_df |>
-      dplyr::filter(diagnosis_group == broad_diagnosis) |>
-      tidyr::separate_longer_delim(celltype_groups, delim = ",") |>
-      dplyr::pull(celltype_groups) |>
-      # remove any leading or trailing spaces
-      stringr::str_trim()
+  # include the total number of reference cells in the metadata
+  metadata(sce)$infercnv_num_reference_cells <- sum(sce$is_infercnv_reference)
 
-    # get the consensus cell types
-    ref_df <- consensus_validation_df |>
-      dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
-      dplyr::select(consensus_ontology, consensus_annotation) |>
-      dplyr::distinct()
-
-    # Add reference cell information to SCE
-    metadata(sce)$infercnv_reference_celltypes <- ref_df$consensus_annotation # vector of reference cell types
-    sce$is_infercnv_reference <- sce$consensus_celltype_ontology %in% ref_df$consensus_ontology
-
-    # include the total number of reference cells in the metadata
-    metadata(sce)$infercnv_num_reference_cells <- sum(sce$is_infercnv_reference)
-
-    # add the diagnosis group used for id'ing reference cells
-    metadata(sce)$infercnv_diagnosis_groups <- broad_diagnosis
-  }
-
-  # save the status to the SCE before returning
-  metadata(sce)$infercnv_status <- infercnv_status
   return(sce)
 }
 
@@ -769,18 +711,18 @@ if (length(automated_methods) > 1) {
   )
   # calculate if passing status
   if (metadata(sce)$infercnv_status == "") {
-    # fill in next
+    sce <- add_infercnv_reference_cells(
+      sce,
+      opt$consensus_validation_ref,
+      opt$diagnosis_celltype_ref
+    )
+    reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
+    reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
+      paste(collapse = "") |>
+      digest::digest()
   }
 } else {
   metadata(sce)$infercnv_status <- "no_consensus"
-}
-
-# Update reference info calculations for export if no edge cases were encountered
-if (metadata(sce)$infercnv_status == "") {
-  reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
-  reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
-    paste(collapse = "") |>
-    digest::digest()
 }
 
 # export annotated object with cell type assignments
