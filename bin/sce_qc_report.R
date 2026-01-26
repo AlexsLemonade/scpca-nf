@@ -321,7 +321,6 @@ if (has_consensus) {
 # only the two conditions checked require any input to the report
 heatmap_path <- NULL
 if (!is.null(metadata(processed_sce)$infercnv_status)) {
-
   if (metadata(processed_sce)$infercnv_status == "insufficient_reference_cells") {
     stopifnot("infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells))
   }

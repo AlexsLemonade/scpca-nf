@@ -150,13 +150,12 @@ if (has_processed) {
   # Determine inferCNV status
   infercnv_status <- metadata(processed_sce)$infercnv_status # save some typing
   if (!(is.null(infercnv_status))) {
-
     # turn on the child report
-    run_infercnv_report <- TRUE 
+    run_infercnv_report <- TRUE
 
     # whether to print non-successful messages - only used if run_infercnv_report is TRUE
-    show_infercnv_message <- infercnv_status != "success" 
-    
+    show_infercnv_message <- infercnv_status != "success"
+
     # associated checks
     if (infercnv_status == "insufficient_reference_cells") {
       stopifnot(
@@ -166,7 +165,7 @@ if (has_processed) {
       stopifnot(
         "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
         "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
-        )
+      )
     }
   }
 

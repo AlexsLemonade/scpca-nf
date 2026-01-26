@@ -26,63 +26,63 @@ if (infercnv_status == "unknown_diagnosis") {
     <div class=\"alert alert-info\">
     inferCNV was not run because a sample diagnosis was not provided in the sample metadata file.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "multiple_diagnoses_multiplexed") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because multiple diagnoses were detected across multiplexed samples.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "multiple_diagnosis_groups_multiplexed") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because multiple diagnosis groups were detected across multiplexed samples.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "skipped_non_cancerous") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because this library is from a non-cancerous sample or collection of non-cancerous samples.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "no_diagnosis_celltype_reference") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because the diagnosis cell types metadata file was not provided.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "unknown_reference_celltypes") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because reference cell types for the sample's diagnosis group were not present in the cell types metadata file.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "unknown_reference_celltypes") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because consensus cell type annotations were not assigned.
     </div>
-  ")  
+  ")
 } else if (infercnv_status == "insufficient_reference_cells") {
-glue::glue("
+  glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
     At least {params$infercnv_min_reference_cells} normal reference cells are required, but only {sum(processed_sce$is_infercnv_reference)} cells were present.
     </div>
-  ") 
+  ")
 } else if (infercnv_status == "failure") {
-glue::glue("
+  glue::glue("
     <div class=\"alert alert-info\">
     inferCNV failed to run; no results are included in this section.
     </div>
-  ") 
+  ")
 } else {
-glue::glue("
+  glue::glue("
     <div class=\"alert alert-info\">
     An unknown error with inferCNV occurred; no results are included in this section.
     </div>
-  ") 
-} 
+  ")
+}
 
 knitr::knit_exit(fully = FALSE) # don't quit the whole report, just this subnotebook
 ```
