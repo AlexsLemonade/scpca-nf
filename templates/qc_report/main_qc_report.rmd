@@ -154,7 +154,7 @@ if (has_processed) {
     run_infercnv_report <- TRUE
 
     # whether to print non-successful messages - only used if run_infercnv_report is TRUE
-    show_infercnv_message <- infercnv_status != "success"
+    infercnv_unsuccessful <- infercnv_status != "success"
 
     # associated checks
     if (infercnv_status == "insufficient_reference_cells") {
@@ -748,7 +748,7 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```
 
 <!-- Next section only included if there is an inferCNV status to report on -->
-```{r, child='infercnv_qc.rmd', eval = run_infercnv_report}
+```{r, child='infercnv_qc.rmd', eval = include_infercnv_report}
 ```
 
 # Session Info

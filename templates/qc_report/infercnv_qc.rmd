@@ -20,7 +20,7 @@ InferCNV status meanings:
 "success": Success!
 --> 
 
-```{r results = 'asis', eval = show_infercnv_message}
+```{r results = 'asis', eval = infercnv_unsuccessful}
 if (infercnv_status == "unknown_diagnosis") {
   glue::glue("
     <div class=\"alert alert-info\">
