@@ -151,7 +151,7 @@ if (has_processed) {
   infercnv_status <- metadata(processed_sce)$infercnv_status # save some typing
   if (!(is.null(infercnv_status))) {
     # turn on the child report
-    run_infercnv_report <- TRUE
+    include_infercnv_report <- TRUE
 
     # whether to print non-successful messages - only used if run_infercnv_report is TRUE
     infercnv_unsuccessful <- infercnv_status != "success"
