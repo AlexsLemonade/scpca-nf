@@ -19,6 +19,8 @@ The Data Lab will usually launch the `scpca-nf` workflows via GitHub Actions in 
 This is used to ensure that appropriate output locations and permissions are used.
 For details about those runs, see the [Data Processing README](https://github.com/AlexsLemonade/ScPCA-admin/blob/main/data-processing-and-handoff/README.md)
 
+Note that you may want to take advantage of the "Additional Nextflow options` field to set any parameters that are not already integrated with the GitHub Actions there.
+
 
 ## Testing the workflow during development
 
