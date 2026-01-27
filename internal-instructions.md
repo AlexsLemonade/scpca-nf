@@ -3,7 +3,9 @@
 **Table of Contents**
 
 - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
-- [Testing the workflow with stub processes](#testing-the-workflow-with-stub-processes)
+- [Testing the workflow during development](#testing-the-workflow-during-development)
+  - [Stub processes](#stub-processes)
+  - [Test data runs](#test-data-runs)
 - [Processing example data](#processing-example-data)
   - [Processing example 10x Flex data](#processing-example-10x-flex-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
@@ -15,10 +17,12 @@
 
 The Data Lab will usually launch the `scpca-nf` workflows via GitHub Actions in the ScPCA-admin repository.
 This is used to ensure that appropriate output locations and permissions are used.
-For details about those runs, see https://github.com/AlexsLemonade/ScPCA-admin/blob/main/data-processing-and-handoff/README.md
+For details about those runs, see the [Data Processing README](https://github.com/AlexsLemonade/ScPCA-admin/blob/main/data-processing-and-handoff/README.md)
 
 
-## Testing the workflow with stub processes
+## Testing the workflow during development
+
+### Stub processes
 
 Stub testing is useful for initial tests to be sure that the general workflow logic is correct.
 However, it does not test the actual processing of data, so will miss errors in command execution or data processing.
@@ -33,6 +37,14 @@ By default, the output directory (`outdir` parameter) is set as `test/output`.
 You may wish to verify that output contents in `test/output/checkpoints` and `test/output/results` are as expected when running the `stub` workflow.
 
 Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more information on maintaining the stub workflow.
+
+
+### Test data runs
+
+When you are ready to test the workflow with real data, you will want to use the `testing` mode in GitHub Actions.
+This can be configured to run the workflow from any branch using a subset of ScPCA data.
+For more information, see the [Data Processing README](https://github.com/AlexsLemonade/ScPCA-admin/blob/main/data-processing-and-handoff/README.md
+)
 
 ## Processing example data
 
