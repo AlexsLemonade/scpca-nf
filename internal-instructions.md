@@ -4,8 +4,8 @@
 
 - [Running `scpca-nf` as a Data Lab staff member](#running-scpca-nf-as-a-data-lab-staff-member)
 - [Testing the workflow with stub processes](#testing-the-workflow-with-stub-processes)
-  - [Processing example data](#processing-example-data)
-    - [Processing example 10x Flex data](#processing-example-10x-flex-data)
+- [Processing example data](#processing-example-data)
+  - [Processing example 10x Flex data](#processing-example-10x-flex-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding and updating reference files](#adding-and-updating-reference-files)
 
@@ -34,7 +34,7 @@ You may wish to verify that output contents in `test/output/checkpoints` and `te
 
 Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more information on maintaining the stub workflow.
 
-### Processing example data
+## Processing example data
 
 We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users.
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
@@ -42,30 +42,19 @@ If there have been major updates to the directory structure or the contents of t
 First, please check the metadata files present in `s3://scpca-nf-references/example-data` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
 Each of these files should be present, with the expected input columns as described in each documentation link.
 
+
 - `example_run_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-run-metadata-file))
 - `example_sample_metadata.tsv` ([documentation](./external-instructions.md#prepare-the-sample-metadata-file))
 - `example_project_celltype_metadata.tsv` ([documentation](./external-instructions.md#preparing-the-project-cell-type-metadata-file))
 - `example_multiplex_pools.tsv` ([documentation](./external-instructions.md#multiplexed-cellhash-libraries))
 
-Once you have confirmed that the metadata looks correct, use the following commands to run the workflow and re-process the example data:
+Once you have confirmed that the metadata looks correct, use the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GHA with the run mode set as `example` to process the example data.
 
-```sh
-# Obtain the latest development version
-nextflow pull AlexsLemonade/scpca-nf -r development
+### Processing example 10x Flex data
 
-# Run the workflow with the example config
-nextflow run AlexsLemonade/scpca-nf -r development -profile example,batch
-```
+The example data described above includes both 10x Chromium and 10x Flex data.
 
-After successful completion of the run, the `scpca_out` folder containing the outputs from `scpca-nf` should be zipped up and stored at the following location: `s3://scpca-nf-references/example-data/scpca_out.zip`.
-Be sure that only the results from `run01`, which is from `library01` and `sample01`, are included in the folder.
-Make sure to adjust the settings to make the zip file publicly accessible.
-
-#### Processing example 10x Flex data
-
-Any samples that are processed using the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) are quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `alevin-fry`.
-
-There are two example datasets available on S3 that can be used for testing changes to the `cellranger-flex.nf` module.
+There are two example datasets available on S3 that can be used specifically for testing changes to the `cellranger-flex.nf` module.
 FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
 The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
 The datasets used are listed below:
@@ -75,11 +64,7 @@ The datasets used are listed below:
 
 For the second dataset (Human PBMCs), only the GEX FASTQ files were saved to S3.
 
-To process these datasets, use the `example` profile and specify the appropriate run, library, or sample IDs:
-
-```sh
-nextflow run AlexsLemonade/scpca-nf -r {branch or revision} -profile example,batch --run_ids library06,library07
-```
+To process only these datasets, use the `example` run mode with the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GHA and specify the appropriate run ids, currently "library06,library07".
 
 ## Maintaining references for `scpca-nf`
 
