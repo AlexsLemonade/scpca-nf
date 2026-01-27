@@ -483,7 +483,8 @@ workflow annotate_celltypes {
       // mix in cell line libraries which were not cell typed
       .mix(sce_files_channel_branched.cell_line)
       // ensure meta.infercnv_reference_cell_count exists
-      .map{ meta, unfiltered_sce, filtered_sce, processed_sce -> 
+      .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce -> 
+        def meta = meta_in.clone()
         // make sure not to overwrite a literal 0 value with null
         meta.putIfAbsent('infercnv_reference_cell_count', null)
         [meta, unfiltered_sce, filtered_sce, processed_sce]
