@@ -445,7 +445,8 @@ workflow annotate_celltypes {
         def meta = meta_in.clone() // local copy for safe modification
         // ensure the count is saved as an integer: either the integer value, or null if it was an
         // empty string since we can do future math comparisons with null
-        meta.infercnv_reference_cell_count = cell_count ? cell_count.toInteger() : null
+        // note that this code assures that the literal number 0 remains a 0 (vs becoming null)
+        meta.infercnv_reference_cell_count = cell_count == "" ? null : cell_count.toInteger()
         meta.infercnv_reference_cell_hash = cell_hash
 
         // return only meta and annotated_sce
@@ -481,6 +482,14 @@ workflow annotate_celltypes {
       }
       // mix in cell line libraries which were not cell typed
       .mix(sce_files_channel_branched.cell_line)
+      // ensure meta.infercnv_reference_cell_count exists
+      .map{ meta, unfiltered_sce, filtered_sce, processed_sce -> 
+        // make sure not to overwrite a literal 0 value with null
+        if (!meta.containsKey('infercnv_reference_cell_count')) {
+          meta.infercnv_reference_cell_count = null
+        }
+        [meta, unfiltered_sce, filtered_sce, processed_sce]
+      }
 
   emit: export_channel
 
