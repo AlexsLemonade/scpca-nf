@@ -591,7 +591,7 @@ The dot plot shows the mean expression and percent of cells expressing the marke
 The y-axis includes marker genes for each cell type.
 Marker genes were obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html).
 All marker genes shown are specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells.
-Note that broad cell type groups without associated marker genes in `CellMarker2.0` are not shown. 
+Note that broad cell type groups without associated marker genes in `CellMarker2.0` are not shown.
 
 We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
 
@@ -616,7 +616,7 @@ markers_df <- validation_markers_df |>
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
-# any cell types missing from the palette should be excluded from the dotplot 
+# any cell types missing from the palette should be excluded from the dotplot
 celltype_colors <- params$validation_palette_df |>
   tibble::deframe()
 ```
@@ -694,7 +694,7 @@ group_stats_df <- consensus_df |>
   # this includes all possible marker genes and all possible validation group assignments
   dplyr::left_join(markers_df, by = c("ensembl_gene_id", "validation_group_annotation"), relationship = "many-to-many") |> # add total cells
   dplyr::left_join(total_cells_df, by = c("broad_celltype_group")) |>
-  # to be safe, ensure we're only retaining cell type group we have colors for 
+  # to be safe, ensure we're only retaining cell type group we have colors for
   dplyr::filter(broad_celltype_group %in% names(celltype_colors)) |>
   dplyr::mutate(
     # get total percent expressed
@@ -752,7 +752,7 @@ n_markers <- length(unique(dotplot_df$gene_symbol))
 n_celltypes <- length(unique(dotplot_df$broad_celltype_group))
 
 dotplot_height <- 8
-dotplot_width <- 15 
+dotplot_width <- 15
 dotplot_text_size <- 14
 
 # update default sizing if we have a lot of info in the plot
@@ -762,7 +762,7 @@ if (n_markers >= 50) {
   dotplot_text_size <- 18
 } else if (n_celltypes >= 20) {
   dotplot_height <- dotplot_height * 1.25
-} 
+}
 ```
 
 
