@@ -147,21 +147,24 @@ if (has_processed) {
   # If at least 1 is present, we have cell type annotations.
   has_celltypes <- any(has_singler, has_cellassign, has_scimilarity, has_consensus, has_submitter, has_openscpca)
 
-  # Determine inferCNV condition and include one check while we're in this if
-  # define these with FALSE baseline, to be overridden if present
-  has_infercnv_results <- FALSE
-  infercnv_unsuccessful <- FALSE
-  if (!is.null(metadata(processed_sce)$infercnv_success)) {
-    # TRUE or FALSE only
-    has_infercnv_results <- tidyr::replace_na(metadata(processed_sce)$infercnv_success, FALSE)
+  # Determine inferCNV status
+  infercnv_status <- metadata(processed_sce)$infercnv_status # save some typing
+  if (!(is.null(infercnv_status))) {
+    # turn on the child report
+    include_infercnv_report <- TRUE
 
-    # infercnv_unsuccessful used when there are no results but a success status
-    infercnv_unsuccessful <- !has_infercnv_results
+    # whether to print non-successful messages - only used if run_infercnv_report is TRUE
+    infercnv_unsuccessful <- infercnv_status != "success"
 
-    # this is the only condition we'll need this information
-    if (is.na(metadata(processed_sce)$infercnv_success)) {
+    # associated checks
+    if (infercnv_status == "insufficient_reference_cells") {
       stopifnot(
         "infercnv_min_reference_cells was not specified" = !is.null(params$infercnv_min_reference_cells)
+      )
+    } else if (infercnv_status == "success") {
+      stopifnot(
+        "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
+        "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
       )
     }
   }
@@ -177,8 +180,7 @@ if (has_processed) {
   has_openscpca <- FALSE
   has_submitter <- FALSE
   has_celltypes <- FALSE
-  infercnv_unsuccessful <- FALSE
-  has_infercnv_results <- FALSE
+  include_infercnv_report <- FALSE
 }
 
 
@@ -196,13 +198,6 @@ if (has_consensus) {
   )
 }
 
-# check for heatmap if inferCNV is present
-if (has_infercnv_results) {
-  stopifnot(
-    "inferCNV results are present but the heatmap file has not been provided" = !is.null(params$infercnv_heatmap_file),
-    "inferCNV heatmap file is empty" = file.info(params$infercnv_heatmap_file)$size > 0
-  )
-}
 
 # check if we have multiplex
 has_multiplex <- length(sample_id) > 1
@@ -752,9 +747,8 @@ The raw counts from all cells that remain after filtering low quality cells (RNA
 ```{r, child='celltypes_qc.rmd', eval = has_celltypes}
 ```
 
-<!-- Next sections only included if inferCNV is present or was attempted unsuccessfully -->
-
-```{r, child='infercnv_qc.rmd', eval = has_infercnv_results || infercnv_unsuccessful}
+<!-- Next section only included if there is an inferCNV status to report on -->
+```{r, child='infercnv_qc.rmd', eval = include_infercnv_report}
 ```
 
 # Session Info

@@ -716,7 +716,8 @@ if (length(automated_methods) > 1) {
       opt$consensus_validation_ref,
       opt$diagnosis_celltype_ref
     )
-    reference_cell_count <- metadata(sce)$infercnv_num_reference_cells
+    # convert to character for readr::write_file
+    reference_cell_count <- as.character(metadata(sce)$infercnv_num_reference_cells)
     reference_cell_hash <- sort(sce$barcodes[sce$is_infercnv_reference]) |>
       paste(collapse = "") |>
       digest::digest()
