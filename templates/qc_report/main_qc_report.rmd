@@ -524,7 +524,7 @@ if (has_processed) {
       <div class=\"alert alert-warning\">
 
       This library contains fewer than {min_processed} cells in the processed `SingleCellExperiment` object after removal of low quality cells.
-      UMAP is unable to be calculated and plots will not be shown.
+      This may affect the interpretation of results.
 
       </div>
     ")
@@ -728,8 +728,8 @@ if (has_filtered && has_processed) {
 The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
 
 
-<!-- Next section include only if UMAP is present -->
-```{r, child='umap_qc.rmd', eval = has_umap}
+<!-- Next section shows UMAPs, only if present -->
+```{r, child='umap_qc.rmd'}
 ```
 
 <!-- Next section included only if CITE-seq data is present -->
