@@ -148,6 +148,7 @@ if (has_processed) {
   has_celltypes <- any(has_singler, has_cellassign, has_scimilarity, has_consensus, has_submitter, has_openscpca)
 
   # Determine inferCNV status
+  include_infercnv_report <- FALSE # overwrite below if TRUE
   infercnv_status <- metadata(processed_sce)$infercnv_status # save some typing
   if (!(is.null(infercnv_status))) {
     # turn on the child report
