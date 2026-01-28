@@ -615,6 +615,7 @@ markers_df <- validation_markers_df |>
   dplyr::filter(gene_observed_count == 1 | validation_group_annotation == "hematopoietic precursor cell")
 
 # define color palette
+# any cell types missing from the palette should be excluded from the dotplot 
 celltype_colors <- params$validation_palette_df |>
   tibble::deframe()
 ```
@@ -692,6 +693,8 @@ group_stats_df <- consensus_df |>
   # this includes all possible marker genes and all possible validation group assignments
   dplyr::left_join(markers_df, by = c("ensembl_gene_id", "validation_group_annotation"), relationship = "many-to-many") |> # add total cells
   dplyr::left_join(total_cells_df, by = c("broad_celltype_group")) |>
+  # to be safe, ensure we're only retaining cell type group we have colors for 
+  dplyr::filter(broad_celltype_group %in% names(celltype_colors)) |>
   dplyr::mutate(
     # get total percent expressed
     percent_exp = (detected_count / total_cells) * 100,
@@ -743,7 +746,7 @@ dotplot_df <- group_stats_df |>
 ```
 
 
-```{r, eval = has_consensus, fig.height=7, fig.width=15}
+```{r, eval = has_consensus, fig.height = 7, fig.width = 15}
 # only make a dot plot if we have at least one validation group annotation present
 if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
   # make dotplot with marker gene exp
