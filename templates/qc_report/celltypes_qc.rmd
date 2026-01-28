@@ -591,6 +591,7 @@ The dot plot shows the mean expression and percent of cells expressing the marke
 The y-axis includes marker genes for each cell type.
 Marker genes were obtained from the list of Human cell markers on [`CellMarker2.0`](http://www.bio-bigdata.center/CellMarker_download.html).
 All marker genes shown are specific to a single cell type, with the exception of hematopoietic precursor cells, if present, which express genes found in other, more differentiated immune cells.
+Note that broad cell type groups without associated marker genes in `CellMarker2.0` are not shown. 
 
 We expect that each cell type group should show high expression of marker genes associated with that cell type compared to all other cells in the dataset.
 
@@ -662,7 +663,7 @@ consensus_df <- celltype_df |>
   dplyr::mutate(
     broad_celltype_group = dplyr::if_else(
       is.na(broad_celltype_group),
-      "unknown",
+      "Unknown cell type", # match rest of report text
       broad_celltype_group
     )
   )
@@ -746,7 +747,27 @@ dotplot_df <- group_stats_df |>
 ```
 
 
-```{r, eval = has_consensus, fig.height = 7, fig.width = 15}
+```{r, eval = has_consensus}
+n_markers <- length(unique(dotplot_df$gene_symbol))
+n_celltypes <- length(unique(dotplot_df$broad_celltype_group))
+
+dotplot_height <- 8
+dotplot_width <- 15 
+dotplot_text_size <- 14
+
+# update default sizing if we have a lot of info in the plot
+if (n_markers >= 50) {
+  dotplot_width <- pmin(n_markers * 0.3, 30)
+  dotplot_height <- 10
+  dotplot_text_size <- 18
+} else if (n_celltypes >= 20) {
+  dotplot_height <- dotplot_height * 1.25
+} 
+```
+
+
+
+```{r, eval = has_consensus, fig.height = dotplot_height, fig.width = dotplot_width}
 # only make a dot plot if we have at least one validation group annotation present
 if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
   # make dotplot with marker gene exp
@@ -761,7 +782,7 @@ if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
       strip.text.x = element_blank(),
       axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
       axis.ticks.x = element_blank(),
-      text = element_text(size = 14),
+      text = element_text(size = dotplot_text_size),
       panel.spacing = unit(0.5, "lines") # adjust spacing and match with annotation bar
     ) +
     labs(
@@ -780,7 +801,7 @@ if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
     ggmap::theme_nothing() +
     theme(
       strip.background = element_rect(fill = "transparent", color = NA),
-      strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = 12),
+      strip.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5, size = dotplot_text_size),
       strip.placement = "outside",
       legend.position = "none",
       panel.spacing = unit(0.5, "lines"),
