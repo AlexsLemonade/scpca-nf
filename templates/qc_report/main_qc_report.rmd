@@ -148,6 +148,7 @@ if (has_processed) {
   has_celltypes <- any(has_singler, has_cellassign, has_scimilarity, has_consensus, has_submitter, has_openscpca)
 
   # Determine inferCNV status
+  include_infercnv_report <- FALSE # overwrite below if TRUE
   infercnv_status <- metadata(processed_sce)$infercnv_status # save some typing
   if (!(is.null(infercnv_status))) {
     # turn on the child report
@@ -524,7 +525,7 @@ if (has_processed) {
       <div class=\"alert alert-warning\">
 
       This library contains fewer than {min_processed} cells in the processed `SingleCellExperiment` object after removal of low quality cells.
-      UMAP is unable to be calculated and plots will not be shown.
+      This may affect the interpretation of results.
 
       </div>
     ")
@@ -728,8 +729,8 @@ if (has_filtered && has_processed) {
 The raw counts from all cells that remain after filtering low quality cells (RNA only) are then normalized prior to selection of highly variable genes and dimensionality reduction.
 
 
-<!-- Next section include only if UMAP is present -->
-```{r, child='umap_qc.rmd', eval = has_umap}
+<!-- Next section shows UMAPs, only if present -->
+```{r, child='umap_qc.rmd'}
 ```
 
 <!-- Next section included only if CITE-seq data is present -->

@@ -6,7 +6,7 @@ innate lymphoid cell	#325A9B
 dendritic cell	#16FF32
 macrophage	#1C8356
 monocyte	#1CBE4F
-myeloid	#90AD1C
+myeloid cell	#90AD1C
 natural killer cell	#FBE426
 hematopoietic precursor cell	#FEAF16
 stem cell	#F7E1A0
@@ -15,12 +15,18 @@ chondrocyte	#B00068
 endothelial cell	#FC1CBF
 epithelial cell	#C075A6
 fibroblast	#B10DA1
-melanocyte	#FE00FA
+myofibroblast cell	#FE00FA
 muscle cell	#F6222E
 pericyte	#F8A19F
 stromal cell	#C4451C
 neuron	#1CFFCE
 astrocyte	#2ED9FF
 glial cell	#565656
-mesangial cell	#E2E2E2
-unknown	#E5E5E5
+mesangial cell	#CCD2D8
+Unknown cell type	#E5E5E5
+pigment cell	#5A1A00
+kidney cell	#8A8F6A
+endocrine cell	#FF7A00
+embryonic cell (metazoa)	#CEC3B2
+ciliated cell	#00B3B3
+cardiocyte	#7A0019

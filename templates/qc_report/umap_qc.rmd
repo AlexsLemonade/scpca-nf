@@ -1,5 +1,14 @@
 ## Dimensionality reduction {.tabset}
 
+```{r results = 'asis', eval = !has_umap}
+glue::glue("
+  <div class=\"alert alert-info\">
+  No plots are shown in this section because the UMAP (Uniform Manifold Approximation and Projection) embeddings could not be calculated.
+  </div>
+")
+knitr::knit_exit(fully = FALSE) # don't quit the whole report, just this subnotebook
+```
+
 The plots in this section show the UMAP (Uniform Manifold Approximation and Projection) embeddings for each cell. 
 
 ```{r}
