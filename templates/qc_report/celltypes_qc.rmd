@@ -663,7 +663,7 @@ consensus_df <- celltype_df |>
   dplyr::mutate(
     broad_celltype_group = dplyr::if_else(
       is.na(broad_celltype_group),
-      "Unknown cell type", # match rest of report text
+      "Unknown cell type", # match rest of report text; also must match the unknown label in the palette
       broad_celltype_group
     )
   )
