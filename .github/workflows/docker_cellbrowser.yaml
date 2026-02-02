@@ -48,7 +48,6 @@ jobs:
     if: github.event_name == 'push'
     environment: prod
     runs-on: ubuntu-latest
-
     env:
       IMAGE_NAME: scpca-nf/cellbrowser
       GH_REGISTRY: ghcr.io

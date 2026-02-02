@@ -54,7 +54,6 @@ jobs:
       GH_REGISTRY_USER: alexslemonade
       AWS_REGISTRY: "${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com"
       AWS_PREFIX: ghcr_io
-
     permissions:
       contents: read
       packages: write
