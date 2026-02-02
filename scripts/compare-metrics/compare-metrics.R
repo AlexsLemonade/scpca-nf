@@ -14,13 +14,13 @@ option_list <- list(
   make_option(
     c("-r", "--ref_s3"),
     type = "character",
-    default = "s3://ccdl-scpca-results-prod-997241705947-us-east-1/results",
+    default = "s3://ccdl-scpca-nf-results-prod/results",
     help = "S3 URI for the bucket and prefix for the reference files"
   ),
   make_option(
     c("-c", "--comp_s3"),
     type = "character",
-    default = "s3://ccdl-scpca-results-staging-997241705947-us-east-1/results",
+    default = "s3://ccdl-scpca-nf-results-staging/results",
     help = "S3 URI for the bucket and prefix for the comparison S3 files"
   ),
   make_option(
