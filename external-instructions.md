@@ -360,7 +360,7 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
   - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
  
 Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
-For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus).
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.4/analyses/cell-type-consensus).
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
