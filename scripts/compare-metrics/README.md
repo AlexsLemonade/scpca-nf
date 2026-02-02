@@ -14,4 +14,4 @@ Rscript compare-metrics.R \
 Multiple projects can be included using a comma-separated list for the `--project_id` argument.
 
 The default comparison will be between the metrics files available in the production and staging directories, treating the production versions as the reference run.
-The files are expected to be found at `s3://ccdl-scpca-results-prod-997241705947-us-east-1/results` and `s3://ccdl-scpca-results-staging-997241705947-us-east-1/results`, by default, but these can be changed using the `--ref_s3` and `--comp_s3` arguments.
+The files are expected to be found at `s3://ccdl-scpca-nf-results-prod/results` and `s3://ccdl-scpca-nf-results-staging/results`, by default, but these can be changed using the `--ref_s3` and `--comp_s3` arguments.

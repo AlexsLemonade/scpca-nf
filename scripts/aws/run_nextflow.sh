@@ -20,7 +20,7 @@ JOB_NAME=${JOB_NAME:-${RUN_MODE}_${REVISION//[\/.]/-}_${datetime}}
 # set Java memory options for Nextflow
 export NXF_JVM_ARGS="-XX:InitialRAMPercentage=10 -XX:MaxRAMPercentage=40"
 
-log_path=s3://ccdl-scpca-workdir-997241705947-us-east-1/logs/${RUN_MODE}/${date}
+log_path=s3://ccdl-scpca-nf-workdir/logs/${RUN_MODE}/${date}
 
 # Make sure environment includes local bin (where Nextflow is installed)
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin" ]]

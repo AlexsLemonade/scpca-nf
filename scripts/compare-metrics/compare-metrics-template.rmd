@@ -1,7 +1,7 @@
 ---
 params:
-  reference_s3: s3://ccdl-scpca-results-prod-997241705947-us-east-1/results
-  comparison_s3: s3://ccdl-scpca-results-staging-997241705947-us-east-1/results
+  reference_s3: s3://ccdl-scpca-nf-results-prod/results
+  comparison_s3: s3://ccdl-scpca-nf-results-staging/results
   project_id: "all"
   use_cache: false
 title: "`scpca-nf` Metrics Comparison"
