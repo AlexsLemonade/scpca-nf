@@ -9,6 +9,7 @@ monocyte	#1CBE4F
 myeloid cell	#90AD1C
 natural killer cell	#FBE426
 hematopoietic precursor cell	#FEAF16
+histamine secreting cell 	 #FF6F61 
 stem cell	#F7E1A0
 adipocyte	#FA0087
 chondrocyte	#B00068
@@ -21,6 +22,7 @@ pericyte	#F8A19F
 stromal cell	#C4451C
 neuron	#1CFFCE
 astrocyte	#2ED9FF
+chemoreceptor cell	#6A5ACD
 glial cell	#565656
 mesangial cell	#CCD2D8
 Unknown cell type	#E5E5E5
@@ -30,3 +32,6 @@ endocrine cell	#FF7A00
 embryonic cell (metazoa)	#CEC3B2
 ciliated cell	#00B3B3
 cardiocyte	#7A0019
+lung secretory cell    #8B5A2B
+retinal cell	#C19A6B
+surfactant secreting cell     #D94F8E
