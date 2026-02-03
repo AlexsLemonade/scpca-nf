@@ -140,8 +140,18 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$processed_altexp_total <- altexp_totals(processed_sce)
   metrics$hv_genes <- metadata(processed_sce)$highly_variable_genes
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
+  metrics$infercnv_total_cnv <- sum(processed_sce$infercnv_total_cnv)
   # cluster counts as unnamed vector
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
+
+  # infercnv reference cells as named list
+  metrics$infercnv_reference_cells <- colData(processed_sce) |>
+    as.data.frame() |>
+    dplyr::filter(is_infercnv_reference) |>
+    dplyr::pull(consensus_celltype_annotation) |>
+    table() |>
+    as.list()
+
   metrics$singler_reference <- ifelse(
     is.null(metadata(processed_sce)$singler_reference),
     NA_character_,
