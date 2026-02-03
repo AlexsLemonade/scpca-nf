@@ -31,7 +31,6 @@ altexp_totals <- function(sce) {
   return(exp_totals)
 }
 
-
 # set up arguments
 option_list <- list(
   make_option(
