@@ -444,7 +444,7 @@ add_infercnv_reference_cells <- function(
     dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
     dplyr::select(consensus_ontology, consensus_annotation) |>
     dplyr::distinct() |>
-    # keep only the cell types that appear in the SCE
+    # keep only the cell types that actually appear in the SCE
     dplyr::filter(consensus_annotation %in% unique(sce$consensus_celltype_annotation))
 
   # Add reference cell information to SCE
