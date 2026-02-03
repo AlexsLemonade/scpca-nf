@@ -146,12 +146,7 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
 
   # infercnv reference cells as named list
-  metrics$infercnv_reference_cells <- colData(processed_sce) |>
-    as.data.frame() |>
-    dplyr::filter(is_infercnv_reference) |>
-    dplyr::pull(consensus_celltype_annotation) |>
-    table() |>
-    as.list()
+  metrics$infercnv_reference_cells <- metadata(processed_sce)$infercnv_reference_celltypes
 
   metrics$singler_reference <- ifelse(
     is.null(metadata(processed_sce)$singler_reference),
