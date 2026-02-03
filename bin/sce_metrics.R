@@ -126,7 +126,7 @@ if (file.size(opt$filtered_sce) > 0) {
     NA_integer_,
     sum(filtered_sce$adt_scpca_filter == "Keep")
   )
-  metrics$scdblfinder_total_doublets <- sum(filtered_sce$scdblfinder_class == "doublet")
+  metrics$scdblfinder_total_doublets <- sum(filtered_sce$scDblFinder_class == "doublet")
 
   rm(filtered_sce)
 }
