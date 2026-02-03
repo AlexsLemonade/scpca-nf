@@ -443,7 +443,7 @@ add_infercnv_reference_cells <- function(
   ref_df <- consensus_validation_df |>
     dplyr::filter(validation_group_annotation %in% reference_validation_groups) |>
     dplyr::select(consensus_ontology, consensus_annotation) |>
-    dplyr::distinct()
+    dplyr::distinct() |>
     # keep only the cell types that appear in the SCE
     dplyr::filter(consensus_annotation %in% unique(sce$consensus_celltype_annotation))
 
