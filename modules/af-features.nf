@@ -47,6 +47,7 @@ process alevin_feature {
     // Define umi geometry by 10x version
     umi_geom_map = [
       '10xv2': '1[17-26]',
+      '10xv2.1': '1[17-26]',
       '10xv3': '1[17-28]',
       '10xv3.1': '1[17-28]',
       '10xv3_5prime': '1[17-28]',

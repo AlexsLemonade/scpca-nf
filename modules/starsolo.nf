@@ -16,6 +16,7 @@ process starsolo {
     tech_flag = [
       '10xv2': '',
       '10xv2_5prime': '',
+      '10xv2.1': '--soloUMIlen 12',
       '10xv3': '--soloUMIlen 12',
       '10xv3.1': '--soloUMIlen 12',
       '10xv3_5prime': '--soloUMIlen 12',
