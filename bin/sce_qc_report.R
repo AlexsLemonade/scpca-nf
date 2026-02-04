@@ -317,24 +317,20 @@ if (has_consensus) {
   validation_palette_df <- NULL
 }
 
-
-# first check that inferCNV was actually run, otherwise skip these checks
-has_infercnv <- !is.null(metadata(processed_sce)$infercnv_success)
+# check for inferCNV input if inferCNV was feasible and did not fail
+# only the two conditions checked require any input to the report
 heatmap_path <- NULL
-if (has_infercnv) {
-  # check for inferCNV input if success is TRUE or NA, but not if it's FALSE
-  # if NA, we just need the infercnv_min_reference_cells
-  # if TRUE, we need infercnv_min_reference_cells and a heatmap file
-  infercnv_success <- metadata(processed_sce)$infercnv_success
-  if (is.na(infercnv_success) | infercnv_success) {
+if (!is.null(metadata(processed_sce)$infercnv_status)) {
+  if (metadata(processed_sce)$infercnv_status == "insufficient_reference_cells") {
     stopifnot("infercnv_min_reference_cells parameter value was not provided" = !is.na(opt$infercnv_min_reference_cells))
-    if (isTRUE(infercnv_success)) {
-      stopifnot("inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file))
-      # MUST use an absolute path for pandoc to find the file in the report
-      heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
-    }
+  }
+  if (metadata(processed_sce)$infercnv_status == "success") {
+    stopifnot("inferCNV heatmap file does not exist" = file.exists(opt$infercnv_heatmap_file))
+    # MUST use an absolute path for pandoc to find the file in the report
+    heatmap_path <- normalizePath(opt$infercnv_heatmap_file)
   }
 }
+
 
 # render main QC report
 scpcaTools::generate_qc_report(
