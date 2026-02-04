@@ -13,7 +13,11 @@ We welcome contributions to the `scpca-nf` workflow, including usage reports and
 - [Stub workflows](#stub-workflows)
 - [Code style](#code-style)
   - [Nextflow](#nextflow)
-    - [A note on variables in Nextflow/Groovy](#a-note-on-variables-in-nextflowgroovy)
+    - [Using groovy variables](#using-groovy-variables)
+    - [Declaring groovy variables](#declaring-groovy-variables)
+    - [Channel transformations](#channel-transformations)
+    - [Explicit variables in closures](#explicit-variables-in-closures)
+    - [Spacing](#spacing)
   - [R and R Markdown](#r-and-r-markdown)
   - [Python](#python)
 - [Environment management with `pixi`](#environment-management-with-pixi)
@@ -85,24 +89,145 @@ This can be set in [Visual Studio Code](https://code.visualstudio.com) with the 
 }
 ```
 
-#### A note on variables in Nextflow/Groovy
+We additionally adopt the Nextflow style conventions described below.
 
-Variables in Groovy are set as global by default, which can have some unexpected consequences.
-To avoid this, any variables declared in functions or closures (such as `.map{}` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
+#### Using groovy variables
+
+We prefer to refer to variables directly as `variable` and not `${variable}` unless string interpolation is used.
+In addition, when indexing a value from a map/dictionary, use `.` and not `[""]`.
+Consider for example a variable `meta.unique_id`:
 
 ```groovy
+// do this:
+meta.unique_id
+
+// this is an acceptable scenario with string interpolation:
+outfile = "${meta.unique_id}_output.txt"
+
+// don't do this:
+meta["unique_id"]
+${meta.unique_id}
+```
+
+
+#### Declaring groovy variables 
+
+Variables in Groovy are set as global by default, which can have some unexpected consequences.
+To avoid this, any variables declared in functions or closures (such as `.map{ }` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
+
+```groovy
+// do this:
+good.map{ it ->
+  def my_var = it;
+  my_var + 1
+}
+
 // don't do this:
 bad.map{
   my_var = it;
   my_var + 1
 }
+```
 
-// do this instead:
-good.map{
-  def my_var = it;
-  my_var + 1
+Using `def` also improves code readability in closures:
+
+```groovy
+// do this:
+// note that we preface unused variables with underscores
+good.map{ meta, thing1, _thing2 -> 
+  // define the long item first for clarity in the returned list
+  def long_file = file(meta.long_file_name_in_meta, checkIfExists: true)
+  [meta, thing1, long_file]
+}
+
+
+// don't do this:
+bad.map{ meta, thing1, _thing2 -> 
+  [meta, thing1, file(meta.long_file_name_in_meta, checkIfExists: true)]
 }
 ```
+
+Note that we do not use `def` in script blocks in Nextflow processes.
+
+#### Channel transformations
+
+We return lists, not tuples, from channel transformations.
+In multi-line channel transformations, the `->` should appear at the _end_ of a line.
+
+```groovy
+// do this:
+good.map{ meta, thing1, _thing2 -> 
+  def long_file = file(meta.long_file_name_in_meta, checkIfExists: true)
+  [meta, thing1, long_file]
+}
+
+
+// don't do this:
+bad.map{ meta, thing1 -> [meta, thing1, file(meta.long_file_name_in_meta, checkIfExists: true)] }
+
+// also don't do this:
+bad.map{ meta, thing1 -> tuple(
+    meta, 
+    thing1, 
+    file(meta.long_file_name_in_meta, checkIfExists: true)
+  ) 
+}
+```
+
+
+
+#### Explicit variables in closures
+
+We use explicit variables in closures for all `.map{ }` statements and all other multi-line closures, but not for small one-line closures.
+
+```groovy
+// do this:
+good.map{ it -> 
+  def id = it[0].unique_id
+  [it, id]
+}
+
+// don't do this:
+bad.map{ 
+  def id = it[0].unique_id
+  [it, id]
+}
+```
+
+
+In `.map{ }` closures, the code base follows the convention that `it[0]` will refer to the `meta` map/dictionary that carries library/sample metadata through the workflow.
+If specifying just `it` as the explicit closure variable would require additional indexing during the channel transformation, we prefer to be even more explicit:
+
+```groovy
+// do this:
+good.map{ meta, _unfiltered, _filtered, processed -> 
+  [meta, processed]
+}
+
+// don't do this:
+bad.map{ it -> 
+  [it[0], it[3]]
+}
+```
+
+#### Spacing
+
+We generally adopt these spacing conventions:
+
+```groovy
+// For closures, use spaces surrounding braces {}:
+good.map{ it -> [it.unique_id, it] } // do this
+bad.map{it -> [it.unique_id, it]} // not this
+
+// Parentheses () and brackets [] do not need spaces, e.g.:
+good.join(other_thing) // do this
+bad.join( other_thing ) // not this
+
+// if/else spacing as follows:
+if (condition) { // do this
+if(condition){ // not this, or any other spacing variant
+```
+
 
 ### R and R Markdown
 
