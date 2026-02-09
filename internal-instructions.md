@@ -45,8 +45,7 @@ Please refer to our [`CONTRIBUTING.md`](CONTRIBUTING.md#stub-workflows) for more
 
 When you are ready to test the workflow with real data, you will want to use the `testing` mode in GitHub Actions.
 This can be configured to run the workflow from any branch using a subset of ScPCA data.
-For more information, see the [Data Processing README](https://github.com/AlexsLemonade/ScPCA-admin/blob/main/data-processing-and-handoff/README.md
-)
+For more information, see the [Data Processing README](https://github.com/AlexsLemonade/ScPCA-admin/blob/main/data-processing-and-handoff/README.md)
 
 ## Processing example data
 
