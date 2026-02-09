@@ -92,10 +92,13 @@ workflow call_cnvs {
       .map{ it -> it.scpca_sample_id }
       .toList()
 
-    // branch to run inferCNV on the non-cell line libraries only
+    // branch to run inferCNV on tissue samples with non-null reference cell counts only
     sce_files_channel_branched = sce_files_channel
       .branch{ meta, _unfiltered, _filtered, _processed ->
-        cell_line: meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
+        no_infercnv: (
+          meta.sample_id.split(",").every{ it in cell_line_samples.getVal() } 
+          || meta.infercnv_reference_cell_count == null
+        )
         tissue: true
       }
 
@@ -108,9 +111,6 @@ workflow call_cnvs {
         meta.infercnv_heatmap_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-heatmap.png"
         meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds"
         meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt"
-        // if meta.infercnv_reference_cell_count doesn't exist, set it to null
-        // this happens when perform_celltyping is on but a library has no cell type references
-        meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null
 
         // return simplified input with gene order file
         [meta, processed_sce, file(meta.infercnv_gene_order, checkIfExists: true)]
@@ -180,10 +180,10 @@ workflow call_cnvs {
       .map{ _unique_id, meta, processed_sce, heatmap_file, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce, heatmap_file]
       }
-      // mix in cell line libraries which we did not run inferCNV on
+      // mix in libraries which we did not run inferCNV on
       .mix(
         // add in an empty file for heatmap placeholder first
-        sce_files_channel_branched.cell_line
+        sce_files_channel_branched.no_infercnv
           .map{ meta, unfiltered_sce, filtered_sce, processed_sce ->
             [meta, unfiltered_sce, filtered_sce, processed_sce, []]
           }

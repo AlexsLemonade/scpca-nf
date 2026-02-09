@@ -640,12 +640,12 @@
         },
         "cellbrowser_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.9.2",
+          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.9.3",
           "fa_icon": "fab fa-docker"
         },
         "vireo_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.9.2",
+          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.9.3",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },

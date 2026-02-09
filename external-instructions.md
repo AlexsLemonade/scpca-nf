@@ -96,12 +96,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.9.2` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.9.3` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.9.2 \
+  -r v0.9.3 \
   -config {path to config file}  \
   -profile {name of profile}
 ```
@@ -332,7 +332,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.9.2`, then you will want to set `-r v0.9.2` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.9.3`, then you will want to set `-r v0.9.3` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -360,7 +360,7 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
   - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
 
 Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
-For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus).
+For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.4/analyses/cell-type-consensus).
 
 By default, no cell type annotation is performed.
 You can turn on cell type annotation by taking the following steps:
