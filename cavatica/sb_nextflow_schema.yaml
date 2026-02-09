@@ -3,7 +3,7 @@ app_content:
   executor_version: 24.10.6
 class: nextflow
 cwlVersion: None
-doc: "# scpca-nf v0.9.2
+doc: "# scpca-nf v0.9.3
 
 
   The `scpca-nf` workflow is used to process 10x single-cell data as part of the

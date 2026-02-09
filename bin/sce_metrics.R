@@ -126,6 +126,7 @@ if (file.size(opt$filtered_sce) > 0) {
     NA_integer_,
     sum(filtered_sce$adt_scpca_filter == "Keep")
   )
+  metrics$scdblfinder_total_doublets <- sum(filtered_sce$scDblFinder_class == "doublet")
 
   rm(filtered_sce)
 }
@@ -139,9 +140,11 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$processed_expressed_genes <- sum(rowSums(counts(processed_sce)) > 0)
   metrics$processed_altexp_total <- altexp_totals(processed_sce)
   metrics$hv_genes <- metadata(processed_sce)$highly_variable_genes
+  metrics$infercnv_total_cnv <- sum(processed_sce$infercnv_total_cnv)
+  metrics$infercnv_reference_cells <- metadata(processed_sce)$infercnv_reference_celltypes
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
-  # cluster counts as unnamed vector
-  metrics$cluster_sizes <- as.vector(table(processed_sce$cluster))
+  metrics$cluster_sizes <- as.vector(table(processed_sce$cluster)) # cluster counts as unnamed vector
+
   metrics$singler_reference <- ifelse(
     is.null(metadata(processed_sce)$singler_reference),
     NA_character_,
@@ -152,9 +155,15 @@ if (file.size(opt$processed_sce) > 0) {
     NA_character_,
     metadata(processed_sce)$cellassign_reference
   )
+  metrics$scimilarity_model <- ifelse(
+    is.null(metadata(processed_sce)$scimilarity_model),
+    NA_character_,
+    metadata(processed_sce)$scimilarity_model
+  )
   # convert celltype annotation counts to named lists
   metrics$singler_celltypes <- as.list(table(processed_sce$singler_celltype_annotation))
   metrics$cellassign_celltypes <- as.list(table(processed_sce$cellassign_celltype_annotation))
+  metrics$scimilarity_celltypes <- as.list(table(processed_sce$scimilarity_celltype_annotation))
   metrics$consensus_celltypes <- as.list(table(processed_sce$consensus_celltype_annotation))
 }
 

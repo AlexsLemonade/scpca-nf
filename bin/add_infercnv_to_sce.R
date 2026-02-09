@@ -6,10 +6,7 @@
 #  from the @options slot of the inferCNV output object
 # colData column `infercnv_total_cnv`: The sum of CNV per cell, calculated from the HMM output
 #
-# For all SCEs, we add a metadata field `infercnv_success` with a logical value, where we assign:
-# `TRUE`, if inferCNV successfully ran and produced results
-# `FALSE`, if inferCNV attempted but failed to run
-# `NA`, if inferCNV was not run; this case corresponds to insufficient reference cells
+# The metadata field `infercnv_status` is also updated
 
 suppressPackageStartupMessages({
   library(SingleCellExperiment)
@@ -61,10 +58,11 @@ sce <- readRDS(opts$input_sce_file)
 
 # check if we have inferCNV results based on file size
 if (file.info(opts$infercnv_results_file)$size == 0) {
-  if (is.na(metadata(sce)$infercnv_num_reference_cells) || metadata(sce)$infercnv_num_reference_cells < opts$infercnv_threshold) {
-    metadata(sce)$infercnv_success <- NA # infercnv wasn't run; it neither succeeded nor failed
+  # check reference cells
+  if (metadata(sce)$infercnv_num_reference_cells < opts$infercnv_threshold) {
+    metadata(sce)$infercnv_status <- "insufficient_reference_cells"
   } else {
-    metadata(sce)$infercnv_success <- FALSE # actually failed
+    metadata(sce)$infercnv_status <- "failure"
   }
 } else {
   # read inferCNV results
@@ -73,7 +71,7 @@ if (file.info(opts$infercnv_results_file)$size == 0) {
     tibble::rownames_to_column(var = "barcodes")
 
   # add inferCNV results to metadata
-  metadata(sce)$infercnv_success <- TRUE
+  metadata(sce)$infercnv_status <- "success"
   metadata(sce)$infercnv_options <- infercnv_results@options
   metadata(sce)$infercnv_table <- infercnv_table
 
