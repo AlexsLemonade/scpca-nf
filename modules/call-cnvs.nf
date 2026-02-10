@@ -9,7 +9,7 @@ process run_infercnv {
     mode: 'copy',
     pattern: "{${meta.unique_id}_infercnv-*,scpca-meta.json}"
   )
-  label 'mem_96'
+  label 'mem_128'
   label 'cpus_8'
   tag "${meta.unique_id}"
   input:
@@ -96,7 +96,7 @@ workflow call_cnvs {
     sce_files_channel_branched = sce_files_channel
       .branch{ meta, _unfiltered, _filtered, _processed ->
         no_infercnv: (
-          meta.sample_id.split(",").every{ it in cell_line_samples.getVal() } 
+          meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
           || meta.infercnv_reference_cell_count == null
         )
         tissue: true
