@@ -61,7 +61,7 @@ Each of these files should be present, with the expected input columns as descri
 - `example_project_celltype_metadata.tsv` ([documentation](./external-instructions.md#preparing-the-project-cell-type-metadata-file))
 - `example_multiplex_pools.tsv` ([documentation](./external-instructions.md#multiplexed-cellhash-libraries))
 
-Once you have confirmed that the metadata looks correct, use the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GHA with the run mode set as `example` to process the example data.
+Once you have confirmed that the metadata looks correct, use the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GitHub Actions workflow with the run mode set as `example` to process the example data.
 
 ### Processing example 10x Flex data
 
@@ -77,7 +77,7 @@ The datasets used are listed below:
 
 For the second dataset (Human PBMCs), only the GEX FASTQ files were saved to S3.
 
-To process only these datasets, use the `example` run mode with the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GHA and specify the appropriate run ids, currently "library06,library07".
+To process only these datasets, use the `example` run mode with the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GitHub Actions workflow and specify the appropriate run ids, currently "library06,library07".
 
 ## Maintaining references for `scpca-nf`
 

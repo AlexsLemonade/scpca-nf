@@ -25,7 +25,7 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 ```
 
 Note that for the code above to work, you must have set up `aws` command line tools on your machine, and have run [`aws configure`](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) to set up your credentials for AWS access.
-This is a private repository; access is only available to Alex's Lemonade (CCDL) users at this time.
+This is a private repository; access is only available to Alex's Lemonade (Data Lab) users at this time.
 
 ### Pulling the current image
 

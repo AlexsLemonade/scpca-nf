@@ -732,7 +732,7 @@ The metadata file must also contain columns with the `slide_section` and `slide_
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest).
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
-As an example, the [Dockerfile that we used to build Space Ranger](docker/spaceranger/Dockerfile) can be found in the `docker/spaceranger` directory of this repo.
+As an example, the [Dockerfile that we used to build Space Ranger](docker/spaceranger/Dockerfile) can be found in the `docker/spaceranger` directory of this repository.
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.spaceranger_container` to the registry location and image ID in the `user_template.config` file.
 _Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
