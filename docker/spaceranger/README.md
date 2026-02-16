@@ -4,7 +4,7 @@ This folder contains a Dockerfile for the Space Ranger analysis.
 ## Building the image
 
 In order to build this image, the Space Ranger software must be downloaded separately to comply with licensing, and should be placed in this folder (`docker/spaceranger`).
-- The current version of Space Ranger used here is `4.0.1` and can be downloaded from [10X Genomics Website](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest) after agreeing to their license terms.
+- The current version of Space Ranger used here is `4.0.1` and can be downloaded from [10X Genomics Website](https://www.10xgenomics.com/support/software/space-ranger/downloads) after agreeing to their license terms.
 - Following download, decompress the file to `space-ranger-4.0.1` within this directory (we do this outside the docker image to save space inside)
 
 Following download of Space Ranger, you can build the image running the following command from this `docker/spaceranger` working directory:

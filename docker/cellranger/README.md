@@ -5,7 +5,7 @@ This folder contains a Dockerfile for the Cell Ranger analysis.
 
 In order to build this image, the Cell Ranger software must be downloaded separately to comply with licensing, and should be placed in this folder (`docker/cellranger`).
 - The current version of Cell Ranger used here is `9.0.1` and can be downloaded from [10X Genomics Website](https://www.10xgenomics.com/support/software/cell-ranger/downloads/previous-versions).
-  - Download the `cellranger-9.0.1.tar.gz` file and extract it using the `tar -xf cellranger-9.0.1.tar.xz` command.
+  - Download the `cellranger-9.0.1.tar.gz` file and extract it using the `tar -xf cellranger-9.0.1.tar.gz` command.
   - The extracted directory should be named `cellranger-9.0.1` and contain the Cell Ranger software (we decompress outside the Docker image to save space)
 
 Following download of Cell anger, you can build the image running the following command from this `docker/cellranger` working directory:
