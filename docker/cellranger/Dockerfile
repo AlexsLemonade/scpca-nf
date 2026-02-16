@@ -12,9 +12,7 @@ LABEL org.opencontainers.image.source="https://github.com/AlexsLemonade/scpca-nf
 RUN dnf install -y procps-ng && dnf clean all
 
 # Install Cell Ranger
-WORKDIR /opt
-COPY cellranger-${CELLRANGER_VERSION}.tar.gz cellranger-${CELLRANGER_VERSION}.tar.gz
-RUN tar xzf cellranger-${CELLRANGER_VERSION}.tar.gz && rm cellranger-${CELLRANGER_VERSION}.tar.gz
+COPY cellranger-${CELLRANGER_VERSION} /opt/cellranger-${CELLRANGER_VERSION}
 ENV PATH="/opt/cellranger-${CELLRANGER_VERSION}:${PATH}"
 
 RUN cellranger telemetry disable

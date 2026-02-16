@@ -4,12 +4,13 @@ This folder contains a Dockerfile for the cellranger analysis.
 ## Building the image
 
 In order to build this image, the spaceranger software source code components must be downloaded separately to comply with licensing, and should be placed in this folder (`images/spaceranger`).
-- The current version of cellranger is `spaceranger-1.3.1.tar.gz` and can be downloaded from [10X Genomics Website](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest) after agreeing to their license terms.
+- The current version of cellranger is `spaceranger-4.0.1.tar.gz` and can be downloaded from [10X Genomics Website](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest) after agreeing to their license terms.
+- Following download, decompress the file to `space-ranger-4.0.1` within this directory (we do this outside the docker image to save space inside)
 
 Following download of spaceranger, you can build the image running the following command from this `images/spaceranger` working directory:
 
 ```
-docker buildx build . -t scpca-spaceranger:1.3.1 --platform linux/amd64
+docker buildx build . -t scpca-spaceranger:4.0.1 --platform linux/amd64
 ```
 
 At this point, the image should be ready for use on the local machine.
@@ -40,8 +41,8 @@ If the updated image needs to be pushed to AWS ECR, you can follow the outline s
 The current image was pushed with the following commands.
 
 ```
-docker tag scpca-spaceranger:1.3.1 ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:latest
-docker tag scpca-spaceranger:1.3.1 ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:1.3.1
-docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:1.3.1
+docker tag scpca-spaceranger:4.0.1 ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:latest
+docker tag scpca-spaceranger:4.0.1 ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:4.0.1
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:4.0.1
 docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/scpca-spaceranger:latest
 ```

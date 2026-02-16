@@ -12,9 +12,7 @@ LABEL org.opencontainers.image.source="https://github.com/AlexsLemonade/scpca-nf
 RUN dnf install -y procps-ng && dnf clean all
 
 # Install Space Ranger
-WORKDIR /opt
-COPY spaceranger-${SPACERANGER_VERSION}.tar.gz spaceranger-${SPACERANGER_VERSION}.tar.gz
-RUN tar xzf spaceranger-${SPACERANGER_VERSION}.tar.gz && rm spaceranger-${SPACERANGER_VERSION}.tar.gz
+COPY spaceranger-${SPACERANGER_VERSION} /opt/spaceranger-${SPACERANGER_VERSION}
 ENV PATH="/opt/spaceranger-${SPACERANGER_VERSION}:${PATH}"
 
 RUN spaceranger telemetry disable
