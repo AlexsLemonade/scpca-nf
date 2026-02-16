@@ -112,3 +112,4 @@ schema = {
 
 with open(ref_file, "w") as f:
     json.dump(schema, f, indent=4)
+    f.write("\n")  # Explicitly add a newline character to appease GitHub
