@@ -1,16 +1,22 @@
 FROM almalinux:9
-LABEL maintainer="ccdl@alexslemonade.org"
+ARG CELLRANGER_VERSION=9.0.1
+
+# Labels following the Open Containers Initiative (OCI) recommendations
+# For more information, see https://specs.opencontainers.org/image-spec/annotations/?v=v1.0.1
+LABEL org.opencontainers.image.title="scpca-nf/cellranger"
+LABEL org.opencontainers.image.description="Docker image to run Cell Ranger in scpca-nf"
+LABEL org.opencontainers.image.authors="Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation <scpca@ccdatalab.org>"
+LABEL org.opencontainers.image.source="https://github.com/AlexsLemonade/scpca-nf/tree/main/docker/cellranger"
 
 # Install dependencies to use with Nextflow
 RUN dnf install -y procps-ng && dnf clean all
 
-# Install bcl2fastq
-WORKDIR /tmp
-COPY bcl2fastq2-v2.20.0.422-Linux-x86_64.rpm bcl2fastq2.rpm
-RUN rpm -i bcl2fastq2.rpm
+# Install Cell Ranger
+WORKDIR /opt
+COPY cellranger-${CELLRANGER_VERSION}.tar.gz cellranger-${CELLRANGER_VERSION}.tar.gz
+RUN tar xzf cellranger-${CELLRANGER_VERSION}.tar.gz && rm cellranger-${CELLRANGER_VERSION}.tar.gz
+ENV PATH="/opt/cellranger-${CELLRANGER_VERSION}:${PATH}"
 
-# Install cellranger
-COPY cellranger-9.0.1 /opt/cellranger
-ENV PATH="/opt/cellranger:${PATH}"
+RUN cellranger telemetry disable
 
 WORKDIR /home
