@@ -1,0 +1,157 @@
+{
+    "sce": {
+        "unfiltered": {
+            "assayNames": [
+                "counts",
+                "spliced"
+            ],
+            "colData": {
+                "barcodes": "character",
+                "sum": "numeric",
+                "detected": "numeric",
+                "subsets_mito_sum": "numeric",
+                "subsets_mito_detected": "integer",
+                "subsets_mito_percent": "numeric",
+                "total": "numeric"
+            },
+            "rowData": {
+                "gene_ids": "character",
+                "gene_symbol": "character",
+                "mean": "numeric",
+                "detected": "numeric"
+            },
+            "has_submitter": {
+                "colData": {
+                    "submitter_celltype_annotation": "character"
+                }
+            },
+            "altExp": {
+                "adt": {
+                    "assayNames": [
+                        "counts"
+                    ],
+                    "colData": {
+                        "altexps_adt_sum": "numeric",
+                        "altexps_adt_detected": "integer",
+                        "altexps_adt_percent": "numeric"
+                    },
+                    "rowData": {
+                        "adt_id": "character",
+                        "mean": "numeric",
+                        "detected": "numeric"
+                    }
+                }
+            }
+        },
+        "filtered": {
+            "assayNames": [
+                "counts",
+                "spliced"
+            ],
+            "colData": {
+                "barcodes": "character",
+                "sum": "numeric",
+                "detected": "numeric",
+                "subsets_mito_sum": "numeric",
+                "subsets_mito_detected": "integer",
+                "subsets_mito_percent": "numeric",
+                "total": "numeric",
+                "prob_compromised": "numeric",
+                "miQC_pass": "logical",
+                "scpca_filter": "character",
+                "scDblFinder_class": "character",
+                "scDblFinder_score": "numeric"
+            },
+            "rowData": {
+                "gene_ids": "character",
+                "gene_symbol": "character",
+                "mean": "numeric",
+                "detected": "numeric"
+            },
+            "has_submitter": {
+                "colData": {
+                    "submitter_celltype_annotation": "character"
+                }
+            },
+            "altExp": {
+                "adt": {
+                    "assayNames": [
+                        "counts"
+                    ],
+                    "colData": {
+                        "altexps_adt_sum": "numeric",
+                        "altexps_adt_detected": "integer",
+                        "altexps_adt_percent": "numeric"
+                    },
+                    "rowData": {
+                        "adt_id": "character",
+                        "mean": "numeric",
+                        "detected": "numeric"
+                    }
+                }
+            },
+            "has_adt": {
+                "colData": {
+                    "adt_scpca_filter": "character"
+                }
+            }
+        },
+        "processed": {
+            "assayNames": [
+                "counts",
+                "spliced"
+            ],
+            "colData": {
+                "barcodes": "character",
+                "sum": "numeric",
+                "detected": "numeric",
+                "subsets_mito_sum": "numeric",
+                "subsets_mito_detected": "integer",
+                "subsets_mito_percent": "numeric",
+                "total": "numeric",
+                "prob_compromised": "numeric",
+                "miQC_pass": "logical",
+                "scpca_filter": "character",
+                "scDblFinder_class": "character",
+                "scDblFinder_score": "numeric"
+            },
+            "rowData": {
+                "gene_ids": "character",
+                "gene_symbol": "character",
+                "mean": "numeric",
+                "detected": "numeric"
+            },
+            "has_submitter": {
+                "colData": {
+                    "submitter_celltype_annotation": "character"
+                }
+            },
+            "altExp": {
+                "adt": {
+                    "assayNames": [
+                        "counts"
+                    ],
+                    "colData": {
+                        "altexps_adt_sum": "numeric",
+                        "altexps_adt_detected": "integer",
+                        "altexps_adt_percent": "numeric"
+                    },
+                    "rowData": {
+                        "adt_id": "character",
+                        "mean": "numeric",
+                        "detected": "numeric"
+                    }
+                }
+            },
+            "has_adt": {
+                "colData": {
+                    "adt_scpca_filter": "character"
+                }
+            },
+            "reducedDimNames": [
+                "PCA",
+                "UMAP"
+            ]
+        }
+    }
+}
