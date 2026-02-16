@@ -8,12 +8,10 @@ version = "0.1.0"
 
 [dependencies]
 awscli = ">=2.31.37,<3"
-
+aws-session-manager-plugin = ">=1.2.779.0,<2"
 nextflow = "25.10.*"
 pre-commit = ">=4.4.0,<5"
 prettier = ">=3.6.2,<4"
-aws-session-manager-plugin = ">=1.2.779.0,<2"
-
 
 [feature.nfcore.dependencies]
 nf-core = "3.*"
