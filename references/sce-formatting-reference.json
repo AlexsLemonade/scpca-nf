@@ -151,6 +151,12 @@
             "has_adt": {
                 "adt_scpca_filter": "character"
             },
+            "has_normalization": {
+                "sizeFactor": "numeric"
+            },
+            "has_clusters": {
+                "cluster": "factor"
+            },
             "has_celltyping": {
                 "singler_celltype_annotation": "character",
                 "singler_celltype_ontology": "character",
@@ -167,10 +173,6 @@
                 "is_infercnv_reference": "logical",
                 "infercnv_total_cnv": "integer"
             }
-        },
-        "colData_optional": {
-            "sizeFactor": "numeric",
-            "cluster": "factor"
         },
         "reducedDimNames": [
             "PCA",
@@ -202,9 +204,7 @@
                     "no_negative_control": {
                         "ambient.scale": "numeric",
                         "high.ambient": "logical"
-                    }
-                },
-                "colData_optional": {
+                    },
                     "sizeFactor": "numeric"
                 }
             }

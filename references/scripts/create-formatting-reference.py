@@ -51,13 +51,10 @@ filtered_conditional_cell_metadata = {
 
 # processed cell metadata ------------
 
-processed_optional_cell_metadata = {
-    "sizeFactor": "numeric",
-    "cluster": "factor",
-}
-
 processed_conditional_cell_metadata = {
     **filtered_conditional_cell_metadata,
+    "has_normalization": {"sizeFactor": "numeric"},
+    "has_clusters": {"cluster": "factor"},
     # TODO: should add another level of nesting with has_singler, has_cellassign, etc?
     "has_celltyping": {
         "singler_celltype_annotation": "character",
@@ -122,7 +119,10 @@ adt_filtered_conditional_altexp_cell_metadata = {
     },
 }
 
-adt_processed_optional_altexp_cell_metadata = {"sizeFactor": "numeric"}
+adt_processed_conditional_altexp_cell_metadata = {
+    **adt_filtered_conditional_altexp_cell_metadata,
+    "sizeFactor": "numeric",
+}
 
 # build unfiltered SCE -----------------
 
@@ -165,15 +165,13 @@ processed_sce = {
     "colData": filtered_cell_metadata,
     "rowData": gene_metadata,
     "colData_conditional": processed_conditional_cell_metadata,
-    "colData_optional": processed_optional_cell_metadata,
     "reducedDimNames": processed_embeddings,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
             "colData": adt_filtered_altexp_cell_metadata,
             "rowData": adt_unfiltered_altexp_gene_metadata,
-            "colData_conditional": adt_filtered_conditional_altexp_cell_metadata,
-            "colData_optional": adt_processed_optional_altexp_cell_metadata,
+            "colData_conditional": adt_processed_conditional_altexp_cell_metadata,
         }
     },
 }
