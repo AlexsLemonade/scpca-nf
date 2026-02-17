@@ -3,10 +3,10 @@
 # Creates the reference json file for formatting checks for scpca-nf output
 
 import json
-from copy import deepcopy
 
-# output reference file
-ref_file = "../formatting-reference.json"
+# output reference files
+sce_ref_file = "../sce-formatting-reference.json"
+anndata_ref_file = "../anndata-formatting-reference.json"
 
 # define names of slots and their types for each object type
 # --------------------- SCE ---------------------------
@@ -15,7 +15,7 @@ assays = ["counts", "spliced"]
 processed_assays = ["logcounts"]
 adt_assays = ["counts"]
 
-# cell metadata ------------
+# unfiltered cell metadata ------------
 cell_metadata = {
     "barcodes": "character",
     "sum": "numeric",
@@ -26,7 +26,17 @@ cell_metadata = {
     "total": "numeric",
 }
 
+conditional_cell_metadata = {
+    "has_submitter": {"submitter_celltype_annotation": "character"},
+    "has_openscpca": {
+        "openscpca_celltype_annotation": "character",
+        "openscpca_celltype_ontology": "character",
+    },
+}
+
+# filtered cell metadata ------------
 filtered_cell_metadata = {
+    **cell_metadata,
     "prob_compromised": "numeric",
     "miQC_pass": "logical",
     "scpca_filter": "character",
@@ -34,10 +44,37 @@ filtered_cell_metadata = {
     "scDblFinder_score": "numeric",
 }
 
-# TODO: don't include these actually because if either of these processes fail then they won't be there
-processed_cell_metadata = {
+filtered_conditional_cell_metadata = {
+    **conditional_cell_metadata,
+    "has_adt": {"adt_scpca_filter": "character"},
+}
+
+# processed cell metadata ------------
+
+processed_optional_cell_metadata = {
     "sizeFactor": "numeric",
     "cluster": "factor",
+}
+
+processed_conditional_cell_metadata = {
+    **filtered_conditional_cell_metadata,
+    # TODO: should add another level of nesting with has_singler, has_cellassign, etc?
+    "has_celltyping": {
+        "singler_celltype_annotation": "character",
+        "singler_celltype_ontology": "character",
+        "cellassign_celltype_annotation": "character",
+        "cellassign_celltype_ontology": "character",
+        "cellassign_max_prediction": "numeric",
+        "scimilarity_celltype_annotation": "character",
+        "scimilarity_celltype_ontology": "character",
+        "scimilarity_min_distance": "numeric",
+        "consensus_celltype_annotation": "character",
+        "consensus_celltype_ontology": "character",
+    },
+    "has_infercnv": {
+        "is_infercnv_reference": "logical",
+        "infercnv_total_cnv": "integer",
+    },
 }
 
 # row metadata ----------
@@ -53,8 +90,6 @@ processed_embeddings = ["PCA", "UMAP"]
 
 # alt exps gell/gene metadata ------------
 
-adt_filtered_main_cell_metadata = {"adt_scpca_filter": "character"}
-
 adt_unfiltered_altexp_cell_metadata = {
     "altexps_adt_sum": "numeric",
     "altexps_adt_detected": "integer",
@@ -65,51 +100,91 @@ adt_unfiltered_altexp_gene_metadata = {
     "adt_id": "character",
     "mean": "numeric",
     "detected": "numeric",
+    "target_type": "character",
 }
 
-# TODO: do we include the colData that's present in filtered projects?
-# See https://scpca.readthedocs.io/en/stable/sce_file_contents.html#additional-singlecellexperiment-components-for-cite-seq-libraries-with-adt-tags
-# A lot of these are only present in certain conditions, so it doesn't seem worth the check here?
+adt_filtered_altexp_cell_metadata = {
+    **adt_unfiltered_altexp_cell_metadata,
+    "zero.ambient": "logical",
+    "discard": "logical",
+}
 
-# build base SCE -----------------
+adt_filtered_conditional_altexp_cell_metadata = {
+    # indicate columns that are conditionally present based on negative control
+    # this is tracked by target column of rowData
+    "has_negative_control": {
+        "sum.controls": "integer",
+        "high.control": "logical",
+    },
+    "no_negative_control": {
+        "ambient.scale": "numeric",
+        "high.ambient": "logical",
+    },
+}
+
+adt_processed_optional_altexp_cell_metadata = {"sizeFactor": "numeric"}
+
+# build unfiltered SCE -----------------
 
 unfiltered_sce = {
     "assayNames": assays,
-    "colData": {**cell_metadata},
-    "rowData": {**gene_metadata},
-    "has_submitter": {"colData": {"submitter_celltype_annotation": "character"}},
+    "colData": cell_metadata,
+    "rowData": gene_metadata,
+    "colData_conditional": conditional_cell_metadata,
+    "altExp": {
+        "adt": {
+            "assayNames": adt_assays,
+            "colData": adt_unfiltered_altexp_cell_metadata,
+            "rowData": adt_unfiltered_altexp_gene_metadata,
+        }
+    },
 }
 
-# add in the altExp info
-unfiltered_sce["altExp"] = {
-    "adt": {
-        "assayNames": adt_assays,
-        "colData": {**adt_unfiltered_altexp_cell_metadata},
-        "rowData": {**adt_unfiltered_altexp_gene_metadata},
-    }
+
+# build filtered SCE ------
+
+filtered_sce = {
+    "assayNames": assays,
+    "colData": filtered_cell_metadata,
+    "rowData": gene_metadata,
+    "colData_conditional": filtered_conditional_cell_metadata,
+    "altExp": {
+        "adt": {
+            "assayNames": adt_assays,
+            "colData": adt_filtered_altexp_cell_metadata,
+            "rowData": adt_unfiltered_altexp_gene_metadata,
+            "colData_conditional": adt_filtered_conditional_altexp_cell_metadata,
+        }
+    },
 }
 
-# build filtered SCE using unfiltered as a base ------
-filtered_sce = deepcopy(unfiltered_sce)
+# build processed SCE  ------
 
-filtered_sce["colData"].update({**filtered_cell_metadata})
-# use has_adt to specify items that should be in the main object
-filtered_sce["has_adt"] = {"colData": {**adt_filtered_main_cell_metadata}}
-
-# build processed SCE with filtered as a base  ------
-processed_sce = deepcopy(filtered_sce)
-processed_sce["reducedDimNames"] = processed_embeddings
-
-# build and expoort schema --------------
-schema = {
-    "sce": {
-        "unfiltered": unfiltered_sce,
-        "filtered": filtered_sce,
-        "processed": processed_sce,
-    }
-    # TODO: Add in anndata
+processed_sce = {
+    "assayNames": assays,
+    "colData": filtered_cell_metadata,
+    "rowData": gene_metadata,
+    "colData_conditional": processed_conditional_cell_metadata,
+    "colData_optional": processed_optional_cell_metadata,
+    "reducedDimNames": processed_embeddings,
+    "altExp": {
+        "adt": {
+            "assayNames": adt_assays,
+            "colData": adt_filtered_altexp_cell_metadata,
+            "rowData": adt_unfiltered_altexp_gene_metadata,
+            "colData_conditional": adt_filtered_conditional_altexp_cell_metadata,
+            "colData_optional": adt_processed_optional_altexp_cell_metadata,
+        }
+    },
 }
 
-with open(ref_file, "w") as f:
-    json.dump(schema, f, indent=4)
+# build and expoort sce schema --------------
+sce_schema = {
+    "unfiltered": unfiltered_sce,
+    "filtered": filtered_sce,
+    "processed": processed_sce,
+}
+
+with open(sce_ref_file, "w") as f:
+    json.dump(sce_schema, f, indent=4)
     f.write("\n")  # Explicitly add a newline character to appease GitHub
