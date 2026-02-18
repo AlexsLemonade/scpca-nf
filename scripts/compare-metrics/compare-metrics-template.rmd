@@ -1156,7 +1156,7 @@ types_stats <- metrics_df |>
     dplyr::across(
       dplyr::ends_with(c("types_added", "types_removed")),
       \(x) purrr::map_chr(x, \(y) {
-	      # use NA_character_ if it's actually NA
+        # use NA_character_ if it's actually NA
         ifelse(is.na(y), NA_character_, paste0(y, collapse = ","))
       })
     )
