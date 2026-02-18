@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script generates a QC report using scpcaTools from a pair of filtered and unfiltered SCE objects
+# This script generates a JSON file with SCE metrics used by the compare-metrics report
 
 # import libraries
 suppressPackageStartupMessages({
