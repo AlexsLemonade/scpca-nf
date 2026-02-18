@@ -292,13 +292,12 @@ metrics_df <- dplyr::full_join(
   by = c("project_id", "sample_id", "library_id"),
   suffix = c(".ref", ".comp")
 )
-# temporary write for testing
+# write for caching
 readr::write_rds(metrics_df, "metrics.rds")
 ```
 
 ```{r, eval=use_cache}
 #| include: false
-# temporary chunk for testing
 metrics_df <- readr::read_rds("metrics.rds")
 ```
 
@@ -1156,7 +1155,10 @@ types_stats <- metrics_df |>
   dplyr::mutate(
     dplyr::across(
       dplyr::ends_with(c("types_added", "types_removed")),
-      \(x) purrr::map_chr(x, \(y) paste0(y, collapse = ","))
+      \(x) purrr::map_chr(x, \(y) {
+	      # use NA_character_ if it's actually NA
+        ifelse(is.na(y), NA_character_, paste0(y, collapse = ","))
+      })
     )
   ) |>
   # pivot by celltype method
@@ -1169,8 +1171,9 @@ types_stats <- metrics_df |>
     # convert characters back to lists for types added and removed prior to counting
     types_added = purrr::map(types_added, \(x) unlist(stringr::str_split(x, ","))),
     types_removed = purrr::map(types_removed, \(x) unlist(stringr::str_split(x, ","))),
-    types_added_count = purrr::map_int(types_added, length),
-    types_removed_count = purrr::map_int(types_removed, length)
+    # record NA instead of length if the value is actually NA
+    types_added_count = dplyr::if_else(is.na(types_added), NA_integer_, purrr::map_int(types_added, length)),
+    types_removed_count = dplyr::if_else(is.na(types_removed), NA_integer_, purrr::map_int(types_removed, length))
   ) |>
   dplyr::relocate(types_added_count, types_removed_count, .before = types_added)
 
@@ -1279,8 +1282,8 @@ changed_types |>
     colnames = c(
       "Project", "Sample", "Library",
       "Cell type method", "Minimum changed cell types", "Scaled distance",
+      "Added cell types", "Removed cell types",
       "Added cell type count", "Removed cell type count",
-      "Added cell types", "Removed cell types"
     )
   )
 ```
