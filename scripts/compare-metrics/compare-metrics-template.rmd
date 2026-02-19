@@ -28,6 +28,10 @@ knitr::opts_chunk$set(
 
 use_cache <- params$use_cache && file.exists("metrics.rds")
 
+# define all cell type methods considered for use throughout 
+all_celltype_methods <- c("singler", "cellassign", "scimilarity", "consensus")
+automated_celltype_refs <- c("singler_reference", "cellassign_reference", "scimilarity_model")
+
 set.seed(1234)
 ```
 
@@ -253,6 +257,25 @@ celltype_changes <- function(ref_celltypes, comp_celltypes) {
     types_removed = types_removed
   ))
 }
+
+# Helper function to add a column with cell type changes for each cell type method to metrics_df
+# df: the metrics_df being manipulated
+# methods: vector of cell type methods to count changes for; by default, all are counted
+add_celltype_changes <- function(df, methods = all_celltype_methods) {
+  methods |>
+    # use reduce to carry updates forward with each iteration
+    purrr::reduce( 
+      .init = df, 
+      \(df, method) {
+        dplyr::mutate(df,
+          "{method}" := purrr::map2(
+            !!sym(paste0(method, "_celltypes.ref")),
+            !!sym(paste0(method, "_celltypes.comp")),
+            celltype_changes
+          )
+        )
+    })
+}
 ```
 
 ```{r, eval=!use_cache}
@@ -361,8 +384,7 @@ processing_fields <- c(
   "normalization_method",
   "cell_filtering_method",
   "cluster_algorithm",
-  "singler_reference",
-  "cellassign_reference"
+  automated_celltype_refs
 )
 
 processing_changes <- metrics_df |>
@@ -1178,42 +1200,19 @@ if (!has_celltypes) {
 
 
 ```{r, eval=has_celltypes}
+
 # create cell type change dataframe
 types_stats <- metrics_df |>
-  # create new list columns with celltype_changes function
-  dplyr::mutate(
-    singler = purrr::map2(
-      singler_celltypes.ref, singler_celltypes.comp,
-      celltype_changes
-    ),
-    cellassign = purrr::map2(
-      cellassign_celltypes.ref, cellassign_celltypes.comp,
-      celltype_changes
-    )
-  ) |>
-  # add consensus cell type changes if present (temporary fix until all metrics files have consensus calls)
-  (\(data){
-    if (all(c("consensus_celltypes.ref", "consensus_celltypes.comp") %in% names(data))) {
-      dplyr::mutate(
-        data,
-        consensus = purrr::map2(
-          consensus_celltypes.ref, consensus_celltypes.comp,
-          celltype_changes
-        )
-      )
-    } else {
-      data
-    }
-  })() |>
+  add_celltype_changes() |>
   dplyr::select(
     project_id,
     sample_id,
     library_id,
-    any_of(c("singler", "cellassign", "consensus"))
+    any_of(all_celltype_methods)
   ) |>
   # spread out the list columns
   tidyr::unnest_wider(
-    any_of(c("singler", "cellassign", "consensus")),
+    any_of(all_celltype_methods),
     names_sep = "_"
   ) |>
   # make sure everything is a character string otherwise pivot doesn't work
@@ -1228,9 +1227,11 @@ types_stats <- metrics_df |>
   ) |>
   # pivot by celltype method
   tidyr::pivot_longer(
-    cols = starts_with(c("singler", "cellassign", "consensus")),
+    cols = starts_with(all_celltype_methods),
     names_to = c("celltype_method", ".value"),
-    names_pattern = "(singler|cellassign|consensus)_(.*)"
+    names_pattern = glue::glue( 
+      "({paste(all_celltype_methods, collapse ='|')})_(.*)"
+    )
   ) |>
   dplyr::mutate(
     # convert characters back to lists for types added and removed prior to counting
