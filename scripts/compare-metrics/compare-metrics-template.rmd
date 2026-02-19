@@ -1188,9 +1188,9 @@ if (!has_celltypes) {
 for (method in all_celltype_methods) {
   ref_col <- paste0(method, "_celltypes.ref")
   comp_col <- paste0(method, "_celltypes.comp")
-  
+
   # need to use list() to create a list column
-  metrics_df[[method]] <- list( 
+  metrics_df[[method]] <- list(
     celltype_changes(metrics_df[[ref_col]], metrics_df[[comp_col]])
   )
 }
