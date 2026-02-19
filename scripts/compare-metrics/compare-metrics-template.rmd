@@ -1282,8 +1282,8 @@ changed_types |>
     colnames = c(
       "Project", "Sample", "Library",
       "Cell type method", "Minimum changed cell types", "Scaled distance",
-      "Added cell types", "Removed cell types",
-      "Added cell type count", "Removed cell type count"
+      "Added cell type count", "Removed cell type count",
+      "Added cell types", "Removed cell types"
     )
   )
 ```
