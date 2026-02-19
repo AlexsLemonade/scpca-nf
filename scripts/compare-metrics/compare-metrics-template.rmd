@@ -1190,8 +1190,8 @@ for (method in all_celltype_methods) {
   comp_col <- paste0(method, "_celltypes.comp")
 
   metrics_df2[[method]] <- purrr::map2(
-    metrics_df[[ref_col]], 
-    metrics_df[[comp_col]], 
+    metrics_df[[ref_col]],
+    metrics_df[[comp_col]],
     celltype_changes
   )
 }
