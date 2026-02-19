@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 
 use_cache <- params$use_cache && file.exists("metrics.rds")
 
-# define all cell type methods considered for use throughout 
+# define all cell type methods considered for use throughout
 all_celltype_methods <- c("singler", "cellassign", "scimilarity", "consensus")
 automated_celltype_refs <- c("singler_reference", "cellassign_reference", "scimilarity_model")
 
@@ -264,17 +264,19 @@ celltype_changes <- function(ref_celltypes, comp_celltypes) {
 add_celltype_changes <- function(df, methods = all_celltype_methods) {
   methods |>
     # use reduce to carry updates forward with each iteration
-    purrr::reduce( 
+    purrr::reduce(
       .init = df, # start with df; each map iteration mutates on top of the last
       \(df, method) {
-        dplyr::mutate(df,
+        dplyr::mutate(
+          df,
           "{method}" := purrr::map2(
             !!sym(paste0(method, "_celltypes.ref")),
             !!sym(paste0(method, "_celltypes.comp")),
             celltype_changes
           )
         )
-    })
+      }
+    )
 }
 ```
 
@@ -1200,7 +1202,6 @@ if (!has_celltypes) {
 
 
 ```{r, eval=has_celltypes}
-
 # create cell type change dataframe
 types_stats <- metrics_df |>
   add_celltype_changes() |>
@@ -1229,7 +1230,7 @@ types_stats <- metrics_df |>
   tidyr::pivot_longer(
     cols = starts_with(all_celltype_methods),
     names_to = c("celltype_method", ".value"),
-    names_pattern = glue::glue( 
+    names_pattern = glue::glue(
       "({paste(all_celltype_methods, collapse ='|')})_(.*)"
     )
   ) |>
