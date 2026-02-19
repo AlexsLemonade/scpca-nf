@@ -777,6 +777,71 @@ report_table(
 
 ## Analysis changes
 
+
+### Doublet detection
+
+```{r}
+doublet_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("scdblfinder_total_doublets")
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with("scdblfinder_total_doublets"),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  ) |>
+  dplyr::select(-field)
+
+changed_doublet_counts <- doublet_changes |>
+  dplyr::filter(is.na(change) | change != 0)
+
+has_doublet_changes <- nrow(changed_doublet_counts) > 0
+```
+
+
+```{r}
+# doublet summary
+if (!has_doublet_changes) {
+  knitr::asis_output(
+    "There are no changes in the total doublet count between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue(
+    "Of the **{nrow(doublet_changes)}** libraries, **{nrow(changed_doublet_counts)}** {ifelse(nrow(changed_doublet_counts) == 1, 'has', 'have')} changes in total doublet counts."
+  ))
+}
+```
+
+```{r, eval=has_doublet_changes}
+# table of doublet changes
+report_table(
+  changed_doublet_counts,
+  summary = TRUE,
+  colnames = c("Project", "Sample", "Library", "Reference doublet count", "Comparison doublet count", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
+
+
+```{r, eval=has_doublet_changes}
+ggplot(changed_doublet_counts, aes(x = change_frac * 100)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Percent change in doublet count",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+```
+
+
 ### Highly variable genes {.tabset}
 
 ```{r}
