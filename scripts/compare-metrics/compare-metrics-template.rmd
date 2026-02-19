@@ -265,7 +265,7 @@ add_celltype_changes <- function(df, methods = all_celltype_methods) {
   methods |>
     # use reduce to carry updates forward with each iteration
     purrr::reduce( 
-      .init = df, 
+      .init = df, # start with df; each map iteration mutates on top of the last
       \(df, method) {
         dplyr::mutate(df,
           "{method}" := purrr::map2(
