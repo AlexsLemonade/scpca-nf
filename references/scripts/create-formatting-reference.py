@@ -26,7 +26,7 @@ cell_metadata = {
     "total": "numeric",
 }
 
-conditional_cell_metadata = {
+cell_metadata_conditional = {
     "has_submitter": {"submitter_celltype_annotation": "character"},
     "has_openscpca": {
         "openscpca_celltype_annotation": "character",
@@ -44,29 +44,37 @@ filtered_cell_metadata = {
     "scDblFinder_score": "numeric",
 }
 
-filtered_conditional_cell_metadata = {
-    **conditional_cell_metadata,
+filtered_cell_metadata_conditional = {
+    **cell_metadata_conditional,
     "has_adt": {"adt_scpca_filter": "character"},
 }
 
 # processed cell metadata ------------
 
-processed_conditional_cell_metadata = {
-    **filtered_conditional_cell_metadata,
+processed_cell_metadata_conditional = {
+    **filtered_cell_metadata_conditional,
     "has_normalization": {"sizeFactor": "numeric"},
     "has_clusters": {"cluster": "factor"},
-    # TODO: should add another level of nesting with has_singler, has_cellassign, etc?
+    # dictionary for each possible cell typing method
     "has_celltyping": {
-        "singler_celltype_annotation": "character",
-        "singler_celltype_ontology": "character",
-        "cellassign_celltype_annotation": "character",
-        "cellassign_celltype_ontology": "character",
-        "cellassign_max_prediction": "numeric",
-        "scimilarity_celltype_annotation": "character",
-        "scimilarity_celltype_ontology": "character",
-        "scimilarity_min_distance": "numeric",
-        "consensus_celltype_annotation": "character",
-        "consensus_celltype_ontology": "character",
+        "has_singler": {
+            "singler_celltype_annotation": "character",
+            "singler_celltype_ontology": "character",
+        },
+        "has_cellassign": {
+            "cellassign_celltype_annotation": "character",
+            "cellassign_celltype_ontology": "character",
+            "cellassign_max_prediction": "numeric",
+        },
+        "has_scimilarity": {
+            "scimilarity_celltype_annotation": "character",
+            "scimilarity_celltype_ontology": "character",
+            "scimilarity_min_distance": "numeric",
+        },
+        "has_consensus": {
+            "consensus_celltype_annotation": "character",
+            "consensus_celltype_ontology": "character",
+        },
     },
     "has_infercnv": {
         "is_infercnv_reference": "logical",
@@ -75,7 +83,7 @@ processed_conditional_cell_metadata = {
 }
 
 # row metadata ----------
-gene_metadata = {
+feature_metadata = {
     "gene_ids": "character",
     "gene_symbol": "character",
     "mean": "numeric",
@@ -83,30 +91,33 @@ gene_metadata = {
 }
 
 # reduced dimensionality ----------
-processed_embeddings = ["PCA", "UMAP"]
+reduced_dims = ["PCA", "UMAP"]
 
 # alt exps gell/gene metadata ------------
+# add main colData columns to conditional metadata
+cell_metadata_conditional.update(
+    {
+        "has_adt": {
+            "altexps_adt_sum": "numeric",
+            "altexps_adt_detected": "integer",
+            "altexps_adt_percent": "numeric",
+        },
+    }
+)
 
-adt_unfiltered_altexp_cell_metadata = {
-    "altexps_adt_sum": "numeric",
-    "altexps_adt_detected": "integer",
-    "altexps_adt_percent": "numeric",
-}
-
-adt_unfiltered_altexp_gene_metadata = {
+altexp_adt_feature_metadata = {
     "adt_id": "character",
     "mean": "numeric",
     "detected": "numeric",
     "target_type": "character",
 }
 
-adt_filtered_altexp_cell_metadata = {
-    **adt_unfiltered_altexp_cell_metadata,
+filtered_altexp_adt_cell_metadata = {
     "zero.ambient": "logical",
     "discard": "logical",
 }
 
-adt_filtered_conditional_altexp_cell_metadata = {
+filtered_altexp_adt_cell_metadata_conditional = {
     # indicate columns that are conditionally present based on negative control
     # this is tracked by target column of rowData
     "has_negative_control": {
@@ -119,8 +130,8 @@ adt_filtered_conditional_altexp_cell_metadata = {
     },
 }
 
-adt_processed_conditional_altexp_cell_metadata = {
-    **adt_filtered_conditional_altexp_cell_metadata,
+processed_altexp_adt_cell_metadata_conditional = {
+    **filtered_altexp_adt_cell_metadata_conditional,
     "sizeFactor": "numeric",
 }
 
@@ -129,14 +140,13 @@ adt_processed_conditional_altexp_cell_metadata = {
 unfiltered_sce = {
     "assayNames": assays,
     "colData": cell_metadata,
-    "rowData": gene_metadata,
-    "colData_conditional": conditional_cell_metadata,
+    "rowData": feature_metadata,
+    "colData_conditional": cell_metadata_conditional,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
-            "colData": adt_unfiltered_altexp_cell_metadata,
-            "rowData": adt_unfiltered_altexp_gene_metadata,
-        }
+            "rowData": altexp_adt_feature_metadata,
+        },
     },
 }
 
@@ -146,15 +156,15 @@ unfiltered_sce = {
 filtered_sce = {
     "assayNames": assays,
     "colData": filtered_cell_metadata,
-    "rowData": gene_metadata,
-    "colData_conditional": filtered_conditional_cell_metadata,
+    "rowData": feature_metadata,
+    "colData_conditional": filtered_cell_metadata_conditional,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
-            "colData": adt_filtered_altexp_cell_metadata,
-            "rowData": adt_unfiltered_altexp_gene_metadata,
-            "colData_conditional": adt_filtered_conditional_altexp_cell_metadata,
-        }
+            "colData": filtered_altexp_adt_cell_metadata,
+            "rowData": altexp_adt_feature_metadata,
+            "colData_conditional": filtered_altexp_adt_cell_metadata_conditional,
+        },
     },
 }
 
@@ -163,16 +173,16 @@ filtered_sce = {
 processed_sce = {
     "assayNames": assays,
     "colData": filtered_cell_metadata,
-    "rowData": gene_metadata,
-    "colData_conditional": processed_conditional_cell_metadata,
-    "reducedDimNames": processed_embeddings,
+    "rowData": feature_metadata,
+    "colData_conditional": processed_cell_metadata_conditional,
+    "reducedDimNames": reduced_dims,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
-            "colData": adt_filtered_altexp_cell_metadata,
-            "rowData": adt_unfiltered_altexp_gene_metadata,
-            "colData_conditional": adt_processed_conditional_altexp_cell_metadata,
-        }
+            "colData": filtered_altexp_adt_cell_metadata,
+            "rowData": altexp_adt_feature_metadata,
+            "colData_conditional": processed_altexp_adt_cell_metadata_conditional,
+        },
     },
 }
 

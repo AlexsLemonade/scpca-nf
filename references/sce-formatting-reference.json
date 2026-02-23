@@ -26,6 +26,11 @@
             "has_openscpca": {
                 "openscpca_celltype_annotation": "character",
                 "openscpca_celltype_ontology": "character"
+            },
+            "has_adt": {
+                "altexps_adt_sum": "numeric",
+                "altexps_adt_detected": "integer",
+                "altexps_adt_percent": "numeric"
             }
         },
         "altExp": {
@@ -33,11 +38,6 @@
                 "assayNames": [
                     "counts"
                 ],
-                "colData": {
-                    "altexps_adt_sum": "numeric",
-                    "altexps_adt_detected": "integer",
-                    "altexps_adt_percent": "numeric"
-                },
                 "rowData": {
                     "adt_id": "character",
                     "mean": "numeric",
@@ -90,9 +90,6 @@
                     "counts"
                 ],
                 "colData": {
-                    "altexps_adt_sum": "numeric",
-                    "altexps_adt_detected": "integer",
-                    "altexps_adt_percent": "numeric",
                     "zero.ambient": "logical",
                     "discard": "logical"
                 },
@@ -158,16 +155,24 @@
                 "cluster": "factor"
             },
             "has_celltyping": {
-                "singler_celltype_annotation": "character",
-                "singler_celltype_ontology": "character",
-                "cellassign_celltype_annotation": "character",
-                "cellassign_celltype_ontology": "character",
-                "cellassign_max_prediction": "numeric",
-                "scimilarity_celltype_annotation": "character",
-                "scimilarity_celltype_ontology": "character",
-                "scimilarity_min_distance": "numeric",
-                "consensus_celltype_annotation": "character",
-                "consensus_celltype_ontology": "character"
+                "has_singler": {
+                    "singler_celltype_annotation": "character",
+                    "singler_celltype_ontology": "character"
+                },
+                "has_cellassign": {
+                    "cellassign_celltype_annotation": "character",
+                    "cellassign_celltype_ontology": "character",
+                    "cellassign_max_prediction": "numeric"
+                },
+                "has_scimilarity": {
+                    "scimilarity_celltype_annotation": "character",
+                    "scimilarity_celltype_ontology": "character",
+                    "scimilarity_min_distance": "numeric"
+                },
+                "has_consensus": {
+                    "consensus_celltype_annotation": "character",
+                    "consensus_celltype_ontology": "character"
+                }
             },
             "has_infercnv": {
                 "is_infercnv_reference": "logical",
@@ -184,9 +189,6 @@
                     "counts"
                 ],
                 "colData": {
-                    "altexps_adt_sum": "numeric",
-                    "altexps_adt_detected": "integer",
-                    "altexps_adt_percent": "numeric",
                     "zero.ambient": "logical",
                     "discard": "logical"
                 },
