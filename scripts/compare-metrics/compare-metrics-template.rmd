@@ -1189,7 +1189,7 @@ for (method in all_celltype_methods) {
   ref_col <- paste0(method, "_celltypes.ref")
   comp_col <- paste0(method, "_celltypes.comp")
 
-  metrics_df2[[method]] <- purrr::map2(
+  metrics_df[[method]] <- purrr::map2(
     metrics_df[[ref_col]],
     metrics_df[[comp_col]],
     celltype_changes
@@ -1346,6 +1346,81 @@ changed_types |>
     )
   )
 ```
+
+
+
+### InferCNV
+
+#### Total inferCNV 
+
+```{r}
+total_infercnv_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("infercnv_total_cnv")
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with("infercnv_total_cnv"),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  ) |>
+  dplyr::select(-field)
+
+changed_total_infercnv_counts <- total_infercnv_changes |>
+  dplyr::filter(is.na(change) | change != 0)
+
+has_total_infercnv_changes <- nrow(changed_total_infercnv_counts) > 0
+```
+
+
+
+```{r}
+# total infercnv summary
+if (!has_total_infercnv_changes) {
+  knitr::asis_output(
+    "There are no changes in the total CNV estimate between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue(
+    "Of the **{nrow(total_infercnv_changes)}** libraries, **{nrow(total_infercnv_changes)}** {ifelse(nrow(changed_doublet_counts) == 1, 'has', 'have')} changes in total CNV estimate."
+  ))
+}
+```
+
+```{r, eval=has_total_infercnv_changes}
+report_table(
+  total_infercnv_changes,
+  summary = TRUE,
+  colnames = c("Project", "Sample", "Library", "Reference total CNV", "Comparison total CNV", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
+
+
+```{r, eval=has_total_infercnv_changes}
+ggplot(total_infercnv_changes, aes(x = change_frac * 100)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Percent change in total CNV estimate",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+```
+
+
+
+
+
+
+
+
 ## Session Info
 <details>
 <summary>Click to expand</summary>
