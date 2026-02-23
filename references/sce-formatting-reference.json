@@ -154,25 +154,23 @@
             "has_clusters": {
                 "cluster": "factor"
             },
-            "has_celltyping": {
-                "has_singler": {
-                    "singler_celltype_annotation": "character",
-                    "singler_celltype_ontology": "character"
-                },
-                "has_cellassign": {
-                    "cellassign_celltype_annotation": "character",
-                    "cellassign_celltype_ontology": "character",
-                    "cellassign_max_prediction": "numeric"
-                },
-                "has_scimilarity": {
-                    "scimilarity_celltype_annotation": "character",
-                    "scimilarity_celltype_ontology": "character",
-                    "scimilarity_min_distance": "numeric"
-                },
-                "has_consensus": {
-                    "consensus_celltype_annotation": "character",
-                    "consensus_celltype_ontology": "character"
-                }
+            "has_singler": {
+                "singler_celltype_annotation": "character",
+                "singler_celltype_ontology": "character"
+            },
+            "has_cellassign": {
+                "cellassign_celltype_annotation": "character",
+                "cellassign_celltype_ontology": "character",
+                "cellassign_max_prediction": "numeric"
+            },
+            "has_scimilarity": {
+                "scimilarity_celltype_annotation": "character",
+                "scimilarity_celltype_ontology": "character",
+                "scimilarity_min_distance": "numeric"
+            },
+            "has_consensus": {
+                "consensus_celltype_annotation": "character",
+                "consensus_celltype_ontology": "character"
             },
             "has_infercnv": {
                 "is_infercnv_reference": "logical",
