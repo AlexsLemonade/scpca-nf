@@ -1,0 +1,213 @@
+{
+    "unfiltered": {
+        "assayNames": [
+            "counts",
+            "spliced"
+        ],
+        "colData": {
+            "barcodes": "character",
+            "sum": "numeric",
+            "detected": "numeric",
+            "subsets_mito_sum": "numeric",
+            "subsets_mito_detected": "integer",
+            "subsets_mito_percent": "numeric",
+            "total": "numeric"
+        },
+        "rowData": {
+            "gene_ids": "character",
+            "gene_symbol": "character",
+            "mean": "numeric",
+            "detected": "numeric"
+        },
+        "colData_conditional": {
+            "has_submitter": {
+                "submitter_celltype_annotation": "character"
+            },
+            "has_openscpca": {
+                "openscpca_celltype_annotation": "character",
+                "openscpca_celltype_ontology": "character"
+            },
+            "has_adt": {
+                "altexps_adt_sum": "numeric",
+                "altexps_adt_detected": "integer",
+                "altexps_adt_percent": "numeric"
+            }
+        },
+        "altExp": {
+            "adt": {
+                "assayNames": [
+                    "counts"
+                ],
+                "rowData": {
+                    "adt_id": "character",
+                    "mean": "numeric",
+                    "detected": "numeric",
+                    "target_type": "character"
+                }
+            }
+        }
+    },
+    "filtered": {
+        "assayNames": [
+            "counts",
+            "spliced"
+        ],
+        "colData": {
+            "barcodes": "character",
+            "sum": "numeric",
+            "detected": "numeric",
+            "subsets_mito_sum": "numeric",
+            "subsets_mito_detected": "integer",
+            "subsets_mito_percent": "numeric",
+            "total": "numeric",
+            "prob_compromised": "numeric",
+            "miQC_pass": "logical",
+            "scpca_filter": "character",
+            "scDblFinder_class": "character",
+            "scDblFinder_score": "numeric"
+        },
+        "rowData": {
+            "gene_ids": "character",
+            "gene_symbol": "character",
+            "mean": "numeric",
+            "detected": "numeric"
+        },
+        "colData_conditional": {
+            "has_submitter": {
+                "submitter_celltype_annotation": "character"
+            },
+            "has_openscpca": {
+                "openscpca_celltype_annotation": "character",
+                "openscpca_celltype_ontology": "character"
+            },
+            "has_adt": {
+                "adt_scpca_filter": "character"
+            }
+        },
+        "altExp": {
+            "adt": {
+                "assayNames": [
+                    "counts"
+                ],
+                "colData": {
+                    "zero.ambient": "logical",
+                    "discard": "logical"
+                },
+                "rowData": {
+                    "adt_id": "character",
+                    "mean": "numeric",
+                    "detected": "numeric",
+                    "target_type": "character"
+                },
+                "colData_conditional": {
+                    "has_negative_control": {
+                        "sum.controls": "integer",
+                        "high.control": "logical"
+                    },
+                    "no_negative_control": {
+                        "ambient.scale": "numeric",
+                        "high.ambient": "logical"
+                    }
+                }
+            }
+        }
+    },
+    "processed": {
+        "assayNames": [
+            "counts",
+            "spliced"
+        ],
+        "colData": {
+            "barcodes": "character",
+            "sum": "numeric",
+            "detected": "numeric",
+            "subsets_mito_sum": "numeric",
+            "subsets_mito_detected": "integer",
+            "subsets_mito_percent": "numeric",
+            "total": "numeric",
+            "prob_compromised": "numeric",
+            "miQC_pass": "logical",
+            "scpca_filter": "character",
+            "scDblFinder_class": "character",
+            "scDblFinder_score": "numeric"
+        },
+        "rowData": {
+            "gene_ids": "character",
+            "gene_symbol": "character",
+            "mean": "numeric",
+            "detected": "numeric"
+        },
+        "colData_conditional": {
+            "has_submitter": {
+                "submitter_celltype_annotation": "character"
+            },
+            "has_openscpca": {
+                "openscpca_celltype_annotation": "character",
+                "openscpca_celltype_ontology": "character"
+            },
+            "has_adt": {
+                "adt_scpca_filter": "character"
+            },
+            "has_normalization": {
+                "sizeFactor": "numeric"
+            },
+            "has_clusters": {
+                "cluster": "factor"
+            },
+            "has_singler": {
+                "singler_celltype_annotation": "character",
+                "singler_celltype_ontology": "character"
+            },
+            "has_cellassign": {
+                "cellassign_celltype_annotation": "character",
+                "cellassign_celltype_ontology": "character",
+                "cellassign_max_prediction": "numeric"
+            },
+            "has_scimilarity": {
+                "scimilarity_celltype_annotation": "character",
+                "scimilarity_celltype_ontology": "character",
+                "scimilarity_min_distance": "numeric"
+            },
+            "has_consensus": {
+                "consensus_celltype_annotation": "character",
+                "consensus_celltype_ontology": "character"
+            },
+            "has_infercnv": {
+                "is_infercnv_reference": "logical",
+                "infercnv_total_cnv": "integer"
+            }
+        },
+        "reducedDimNames": [
+            "PCA",
+            "UMAP"
+        ],
+        "altExp": {
+            "adt": {
+                "assayNames": [
+                    "counts"
+                ],
+                "colData": {
+                    "zero.ambient": "logical",
+                    "discard": "logical"
+                },
+                "rowData": {
+                    "adt_id": "character",
+                    "mean": "numeric",
+                    "detected": "numeric",
+                    "target_type": "character"
+                },
+                "colData_conditional": {
+                    "has_negative_control": {
+                        "sum.controls": "integer",
+                        "high.control": "logical"
+                    },
+                    "no_negative_control": {
+                        "ambient.scale": "numeric",
+                        "high.ambient": "logical"
+                    },
+                    "sizeFactor": "numeric"
+                }
+            }
+        }
+    }
+}
