@@ -286,9 +286,6 @@ comp_metrics_paths <- s3fs::s3_dir_ls(
 ```{r, eval=!use_cache}
 #| include: false
 # read metrics files from S3
-
-ref_metrics_files <- list.files("ref_jsons/", full.names = TRUE)
-comp_metrics_paths <- list.files("comp_jsons/", full.names = TRUE)
 ref_data <- read_metrics_files(ref_metrics_files)
 comp_data <- read_metrics_files(comp_metrics_paths)
 
@@ -1421,7 +1418,7 @@ ggplot(total_infercnv_changes, aes(x = change_frac * 100)) +
 
 
 
-#### InferCNV reference cells {.tabset}
+#### InferCNV normal reference cell count
 
 ```{r}
 # reference cells can differ in one of two ways:
@@ -1491,12 +1488,10 @@ ggplot(infercnv_num_ref_changes, aes(x = change_frac * 100)) +
 ```
 
 
-
+#### InferCNV normal reference cell types {.tabset}
 
 
 ```{r}
-
-
 # check reference cell types
 infercnv_ref_celltype_stats <- metrics_df |>
   dplyr::mutate(
@@ -1514,53 +1509,12 @@ infercnv_ref_celltype_stats <- metrics_df |>
 changed_infercnv_ref_celltypes <- infercnv_ref_celltype_stats |>
   dplyr::filter(!infercnv_ref_identical)
 
-has_infercnv_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0 | nrow(changed_infercnv_ref_celltypes) > 0
-```
-
-
-
-
-```{r}
- metrics_df |>
-  dplyr::mutate(
-    infercnv_ref_identical = purrr::map2_lgl(infercnv_reference_cells.ref, infercnv_reference_cells.comp, identical),
-    infercnv_ref_removed = purrr::map2(infercnv_reference_cells.ref, infercnv_reference_cells.comp, setdiff),
-    infercnv_ref_added = purrr::map2(infercnv_reference_cells.comp, infercnv_reference_cells.ref, setdiff)
-  ) |>
-  dplyr::select(
-    project_id,
-    sample_id,
-    library_id,
-    starts_with("infercnv_ref")
-  )
-```
-
-
-
-
-```{r}
-infercnv_ref_stats <- metrics_df |>
-  dplyr::mutate(
-    infercnv_ref_identical = purrr::map2_lgl(infercnv_reference_cells.ref, infercnv_reference_cells.comp, identical),
-    infercnv_ref_removed = purrr::map2(infercnv_reference_cells.ref, infercnv_reference_cells.comp, setdiff),
-    infercnv_ref_added = purrr::map2(infercnv_reference_cells.comp, infercnv_reference_cells.ref, setdiff)
-  ) |>
-  dplyr::select(
-    project_id,
-    sample_id,
-    library_id,
-    starts_with("infercnv_ref")
-  )
-
-infercnv_ref_changes <- infercnv_ref_stats |>
-  dplyr::filter(!infercnv_ref_identical)
-
-has_infercnv_ref_changes <- nrow(infercnv_ref_changes) > 0
+has_infercnv_ref_changes <- nrow(changed_infercnv_ref_celltypes) > 0
 ```
 
 
 ```{r}
-infercnv_summary_df <- infercnv_ref_stats |>
+infercnv_ref_celltype_summary <- infercnv_ref_celltype_stats |>
   dplyr::summarize(
     n = dplyr::n(),
     n_changed = n - sum(infercnv_ref_identical),
@@ -1573,10 +1527,8 @@ if (!has_infercnv_ref_changes) {
   )
 } else {
   knitr::asis_output(glue::glue_data(
-    infercnv_summary_df,
-    "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed == 1, 'has', 'have')} changes in the normal reference cell types used for inferCNV between reference and comparison runs.
-    
-    The tables below show only the libraries with changes in normal reference celltypes.
+    infercnv_ref_celltype_summary,
+    "Of the **{n}** libraries, **{n_changed}** {ifelse(n_changed == 1, 'has', 'have')} changes in which cell types were used for the normal inferCNV reference between reference and comparison runs.
     "
   ))
 }
@@ -1587,13 +1539,11 @@ knitr::asis_output("\n\n##### Summary\n\n")
 ```
 
 
-```{r}
-infercnv_show_df <- infercnv_ref_stats |>
+```{r, eval=has_infercnv_ref_changes}
+infercnv_show_df <- infercnv_ref_celltype_stats |>
   dplyr::mutate(
-    original_reference_cells = purrr::map_chr(
-      infercnv_reference_cells.ref,
-      \(x) paste(x, collapse = ", ")
-    ),
+    num_ref_celltypes = purrr::map_int(infercnv_reference_cells.ref, length),
+    num_comp_celltypes = purrr::map_int(infercnv_reference_cells.comp, length),
     num_removed = purrr::map_int(infercnv_ref_removed, length),
     values_removed = purrr::map_chr(
       infercnv_ref_removed,
@@ -1604,6 +1554,7 @@ infercnv_show_df <- infercnv_ref_stats |>
       infercnv_ref_added,
       \(x) paste(x, collapse = ", ")
     )
+    
   )
 
 
@@ -1612,12 +1563,14 @@ infercnv_show_df |>
     project_id,
     sample_id, 
     library_id,
+    num_ref_celltypes,
+    num_comp_celltypes,
     num_removed,
     num_added
   ) |>
   report_table(
     summary = TRUE,
-    colnames = c("Project", "Sample", "Library", "Num cell types removed", "Num cell types added")
+    colnames = c("Project", "Sample", "Library", "# Reference SCE cell types", "# Comparison SCE cell types", "# Cell types removed", "# Cell types added")
   )
 ```
 
@@ -1625,18 +1578,17 @@ infercnv_show_df |>
 knitr::asis_output("\n\n##### Detail\n\n")
 ```
 
-```{r}
+```{r, eval=has_infercnv_ref_changes}
 infercnv_show_df |>
   dplyr::select(
     project_id,
     sample_id, 
     library_id,
     values_removed,
-    values_added, 
-    original_reference_cells
+    values_added
   ) |>
   report_table(
-    colnames = c("Project", "Sample", "Library", "Cell types removed", "Cell types added", "Reference list of reference cells")
+    colnames = c("Project", "Sample", "Library", "Cell types removed", "Cell types added")
   )
 ```
 
