@@ -1456,13 +1456,12 @@ has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
 if (!has_infercnv_num_ref_changes) {
   knitr::asis_output(
     "There are no changes in the number of normal inferCNV reference cells between the reference and comparison runs."
-  ) 
+  )
 } else {
   knitr::asis_output(glue::glue(
     "Of the **{nrow(infercnv_num_ref_changes)}** libraries, **{nrow(changed_infercnv_num_ref_counts)}** {ifelse(nrow(changed_infercnv_num_ref_counts) == 1, 'has', 'have')} changes in the number of normal inferCNV reference cells."
   ))
 }
-  
 ```
 
 ```{r, eval=has_infercnv_num_ref_changes}
@@ -1545,13 +1544,12 @@ infercnv_show_df <- changed_infercnv_ref_celltypes |>
       infercnv_ref_added,
       \(x) paste(x, collapse = ", ")
     )
-    
   )
 
 infercnv_show_df |>
   dplyr::select(
     project_id,
-    sample_id, 
+    sample_id,
     library_id,
     num_ref_celltypes,
     num_comp_celltypes,
@@ -1572,7 +1570,7 @@ knitr::asis_output("\n\n##### Detail\n\n")
 infercnv_show_df |>
   dplyr::select(
     project_id,
-    sample_id, 
+    sample_id,
     library_id,
     values_removed,
     values_added
