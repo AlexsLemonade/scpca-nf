@@ -1466,7 +1466,7 @@ if (!has_infercnv_num_ref_changes) {
 ```
 
 ```{r, eval=has_infercnv_num_ref_changes}
-# table of doublet changes
+# table of inferCNV reference cell count changes
 report_table(
   changed_infercnv_num_ref_counts,
   summary = TRUE,
@@ -1491,8 +1491,8 @@ ggplot(changed_infercnv_num_ref_counts, aes(x = change_frac * 100)) +
 
 
 ```{r}
-# check reference cell types
-infercnv_ref_celltype_stats <- metrics_df |>
+# Now, we check the actual reference cell types
+infercnv_ref_celltype_changes <- metrics_df |>
   dplyr::mutate(
     infercnv_ref_identical = purrr::map2_lgl(infercnv_reference_cells.ref, infercnv_reference_cells.comp, identical),
     infercnv_ref_removed = purrr::map2(infercnv_reference_cells.ref, infercnv_reference_cells.comp, setdiff),
@@ -1505,7 +1505,7 @@ infercnv_ref_celltype_stats <- metrics_df |>
     starts_with("infercnv_ref")
   )
 
-changed_infercnv_ref_celltypes <- infercnv_ref_celltype_stats |>
+changed_infercnv_ref_celltypes <- infercnv_ref_celltype_changes |>
   dplyr::filter(!infercnv_ref_identical)
 
 has_infercnv_ref_changes <- nrow(changed_infercnv_ref_celltypes) > 0
@@ -1519,7 +1519,7 @@ if (!has_infercnv_ref_changes) {
   )
 } else {
   knitr::asis_output(glue::glue(
-    "Of the **{nrow(infercnv_ref_celltype_stats)}** libraries, **{nrow(changed_infercnv_ref_celltypes)}** {ifelse(nrow(changed_infercnv_ref_celltypes) == 1, 'has', 'have')} changes in which cell types were used for the normal inferCNV reference between reference and comparison runs.
+    "Of the **{nrow(infercnv_ref_celltype_changes)}** libraries, **{nrow(changed_infercnv_ref_celltypes)}** {ifelse(nrow(changed_infercnv_ref_celltypes) == 1, 'has', 'have')} changes in which cell types were used for the normal inferCNV reference between reference and comparison runs.
     "
   ))
 }
