@@ -1455,11 +1455,11 @@ has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
 ```{r}
 if (!has_infercnv_num_ref_changes) {
   knitr::asis_output(
-    "There are no changes in the number of normal inferCNV reference cells between the reference and comparison runs."
+    "There are no changes in the number of normal cells used as a reference when running InferCNV between the reference and comparison runs."
   )
 } else {
   knitr::asis_output(glue::glue(
-    "Of the **{nrow(infercnv_num_ref_changes)}** libraries, **{nrow(changed_infercnv_num_ref_counts)}** {ifelse(nrow(changed_infercnv_num_ref_counts) == 1, 'has', 'have')} changes in the number of normal inferCNV reference cells."
+    "Of the **{nrow(infercnv_num_ref_changes)}** libraries, **{nrow(changed_infercnv_num_ref_counts)}** {ifelse(nrow(changed_infercnv_num_ref_counts) == 1, 'has', 'have')} changes in the number of normal cells used as a reference when running InferCNV."
   ))
 }
 ```
@@ -1469,7 +1469,7 @@ if (!has_infercnv_num_ref_changes) {
 report_table(
   changed_infercnv_num_ref_counts,
   summary = TRUE,
-  colnames = c("Project", "Sample", "Library", "Reference inferCNV normal ref cell count", "Comparison inferCNV normal ref cell count", "Change", "% change")
+  colnames = c("Project", "Sample", "Library", "Reference inferCNV normal cell count", "Comparison inferCNV normal cell count", "Change", "% change")
 ) |>
   DT::formatPercentage("change_frac", 2)
 ```
@@ -1514,11 +1514,11 @@ has_infercnv_ref_changes <- nrow(changed_infercnv_ref_celltypes) > 0
 ```{r}
 if (!has_infercnv_ref_changes) {
   knitr::asis_output(
-    "There are no changes in the normal reference cell types used for inferCNV between reference and comparison runs."
+    "There are no changes in the normal cell types used for reference when running InferCNV between reference and comparison runs."
   )
 } else {
   knitr::asis_output(glue::glue(
-    "Of the **{nrow(infercnv_ref_celltype_changes)}** libraries, **{nrow(changed_infercnv_ref_celltypes)}** {ifelse(nrow(changed_infercnv_ref_celltypes) == 1, 'has', 'have')} changes in which cell types were used for the normal inferCNV reference between reference and comparison runs.
+    "Of the **{nrow(infercnv_ref_celltype_changes)}** libraries, **{nrow(changed_infercnv_ref_celltypes)}** {ifelse(nrow(changed_infercnv_ref_celltypes) == 1, 'has', 'have')} changes in which cell types were used for the normal reference when running InferCNV between reference and comparison runs.
     "
   ))
 }
@@ -1558,7 +1558,7 @@ infercnv_show_df |>
   ) |>
   report_table(
     summary = TRUE,
-    colnames = c("Project", "Sample", "Library", "# Reference SCE cell types", "# Comparison SCE cell types", "# Cell types removed", "# Cell types added")
+    colnames = c("Project", "Sample", "Library", "Reference cell type count", "Comparison cell type count", "Added cell type count" "Removed cell type count")
   )
 ```
 
