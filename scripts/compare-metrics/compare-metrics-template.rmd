@@ -1189,7 +1189,7 @@ for (method in all_celltype_methods) {
   ref_col <- paste0(method, "_celltypes.ref")
   comp_col <- paste0(method, "_celltypes.comp")
 
-  metrics_df2[[method]] <- purrr::map2(
+  metrics_df[[method]] <- purrr::map2(
     metrics_df[[ref_col]],
     metrics_df[[comp_col]],
     celltype_changes
@@ -1346,6 +1346,227 @@ changed_types |>
     )
   )
 ```
+
+
+
+### InferCNV
+
+#### Total inferCNV 
+
+```{r}
+total_infercnv_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("infercnv_total_cnv")
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with("infercnv_total_cnv"),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  ) |>
+  dplyr::select(-field)
+
+changed_total_infercnv_counts <- total_infercnv_changes |>
+  dplyr::filter(is.na(change) | change != 0)
+
+has_total_infercnv_changes <- nrow(changed_total_infercnv_counts) > 0
+```
+
+
+
+```{r}
+# total infercnv summary
+if (!has_total_infercnv_changes) {
+  knitr::asis_output(
+    "There are no changes in the total CNV estimate between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue(
+    "Of the **{nrow(total_infercnv_changes)}** libraries, **{nrow(changed_total_infercnv_counts)}** {ifelse(nrow(changed_total_infercnv_counts) == 1, 'has', 'have')} changes in total CNV estimate."
+  ))
+}
+```
+
+```{r, eval=has_total_infercnv_changes}
+report_table(
+  changed_total_infercnv_counts,
+  summary = TRUE,
+  colnames = c("Project", "Sample", "Library", "Reference total CNV", "Comparison total CNV", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
+
+
+```{r, eval=has_total_infercnv_changes}
+ggplot(changed_total_infercnv_counts, aes(x = change_frac * 100)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Percent change in total CNV estimate",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+```
+
+
+
+
+
+#### InferCNV normal reference cell count
+
+```{r}
+# reference cells can differ in one of two ways:
+# the total number of cells in the reference, or the cell types themselves
+# a change in one may not appear in the other, so need to consider each separately
+
+infercnv_num_ref_changes <- metrics_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("infercnv_num_reference_cells"),
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with("infercnv_num_reference_cells"),
+    names_pattern = "(.+)\\.(ref|comp)$",
+    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+  ) |>
+  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+  dplyr::mutate(
+    change = comp - ref,
+    change_frac = change / ref
+  ) |>
+  dplyr::select(-field)
+
+changed_infercnv_num_ref_counts <- infercnv_num_ref_changes |>
+  dplyr::filter(is.na(change) | change != 0)
+
+has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
+```
+
+
+
+```{r}
+if (!has_infercnv_num_ref_changes) {
+  knitr::asis_output(
+    "There are no changes in the number of normal cells used as a reference when running InferCNV between the reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue(
+    "Of the **{nrow(infercnv_num_ref_changes)}** libraries, **{nrow(changed_infercnv_num_ref_counts)}** {ifelse(nrow(changed_infercnv_num_ref_counts) == 1, 'has', 'have')} changes in the number of normal cells used as a reference when running InferCNV."
+  ))
+}
+```
+
+```{r, eval=has_infercnv_num_ref_changes}
+# table of inferCNV reference cell count changes
+report_table(
+  changed_infercnv_num_ref_counts,
+  summary = TRUE,
+  colnames = c("Project", "Sample", "Library", "Reference inferCNV normal cell count", "Comparison inferCNV normal cell count", "Change", "% change")
+) |>
+  DT::formatPercentage("change_frac", 2)
+```
+
+
+```{r, eval=has_infercnv_num_ref_changes}
+ggplot(changed_infercnv_num_ref_counts, aes(x = change_frac * 100)) +
+  geom_histogram(bins = 20) +
+  labs(
+    x = "Percent change in number of inferCNV normal reference cells",
+    y = "Number of libraries"
+  ) +
+  theme_bw()
+```
+
+
+#### InferCNV normal reference cell types
+
+
+```{r}
+# Now, we check the actual reference cell types
+infercnv_ref_celltype_changes <- metrics_df |>
+  dplyr::mutate(
+    infercnv_ref_identical = purrr::map2_lgl(infercnv_reference_cells.ref, infercnv_reference_cells.comp, identical),
+    infercnv_ref_removed = purrr::map2(infercnv_reference_cells.ref, infercnv_reference_cells.comp, setdiff),
+    infercnv_ref_added = purrr::map2(infercnv_reference_cells.comp, infercnv_reference_cells.ref, setdiff)
+  ) |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    starts_with("infercnv_ref")
+  )
+
+changed_infercnv_ref_celltypes <- infercnv_ref_celltype_changes |>
+  dplyr::filter(!infercnv_ref_identical)
+
+has_infercnv_ref_changes <- nrow(changed_infercnv_ref_celltypes) > 0
+```
+
+
+```{r}
+if (!has_infercnv_ref_changes) {
+  knitr::asis_output(
+    "There are no changes in the normal cell types used for reference when running InferCNV between reference and comparison runs."
+  )
+} else {
+  knitr::asis_output(glue::glue(
+    "Of the **{nrow(infercnv_ref_celltype_changes)}** libraries, **{nrow(changed_infercnv_ref_celltypes)}** {ifelse(nrow(changed_infercnv_ref_celltypes) == 1, 'has', 'have')} changes in which cell types were used for the normal reference when running InferCNV between reference and comparison runs.
+    "
+  ))
+}
+```
+
+
+```{r, eval=has_infercnv_ref_changes}
+infercnv_show_df <- changed_infercnv_ref_celltypes |>
+  dplyr::mutate(
+    num_ref_celltypes = purrr::map_int(infercnv_reference_cells.ref, length),
+    num_comp_celltypes = purrr::map_int(infercnv_reference_cells.comp, length),
+    num_removed = purrr::map_int(infercnv_ref_removed, length),
+    values_removed = purrr::map_chr(
+      infercnv_ref_removed,
+      \(x) paste(x, collapse = ", ")
+    ),
+    num_added = purrr::map_int(infercnv_ref_added, length),
+    values_added = purrr::map_chr(
+      infercnv_ref_added,
+      \(x) paste(x, collapse = ", ")
+    )
+  )
+
+infercnv_show_df |>
+  dplyr::select(
+    project_id,
+    sample_id,
+    library_id,
+    num_ref_celltypes,
+    num_comp_celltypes,
+    num_removed,
+    num_added,
+    values_removed,
+    values_added
+  ) |>
+  report_table(
+    summary = TRUE,
+    colnames =
+      c(
+        "Project", "Sample", "Library",
+        "Reference cell type count", "Comparison cell type count",
+        "Removed cell type count", "Added cell type count",
+        "Cell types removed", "Cell types added"
+      )
+  )
+```
+
+
 ## Session Info
 <details>
 <summary>Click to expand</summary>

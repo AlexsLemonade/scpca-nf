@@ -47,6 +47,7 @@ HTOs
 HVGs
 Ichihara
 inferCNV
+InferCNV
 intronic
 JA
 Jaccard
