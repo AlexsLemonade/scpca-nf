@@ -1486,7 +1486,7 @@ ggplot(changed_infercnv_num_ref_counts, aes(x = change_frac * 100)) +
 ```
 
 
-#### InferCNV normal reference cell types {.tabset}
+#### InferCNV normal reference cell types
 
 
 ```{r}
@@ -1524,10 +1524,6 @@ if (!has_infercnv_ref_changes) {
 }
 ```
 
-```{r, eval=has_infercnv_ref_changes}
-knitr::asis_output("\n\n##### Summary\n\n")
-```
-
 
 ```{r, eval=has_infercnv_ref_changes}
 infercnv_show_df <- changed_infercnv_ref_celltypes |>
@@ -1554,33 +1550,20 @@ infercnv_show_df |>
     num_ref_celltypes,
     num_comp_celltypes,
     num_removed,
-    num_added
-  ) |>
-  report_table(
-    summary = TRUE,
-    colnames = c("Project", "Sample", "Library", "Reference cell type count", "Comparison cell type count", "Added cell type count" "Removed cell type count")
-  )
-```
-
-```{r eval=has_infercnv_ref_changes}
-knitr::asis_output("\n\n##### Detail\n\n")
-```
-
-```{r, eval=has_infercnv_ref_changes}
-infercnv_show_df |>
-  dplyr::select(
-    project_id,
-    sample_id,
-    library_id,
+    num_added, 
     values_removed,
     values_added
   ) |>
   report_table(
-    colnames = c("Project", "Sample", "Library", "Cell types removed", "Cell types added")
+    summary = TRUE,
+    colnames = 
+      c("Project", "Sample", "Library", 
+        "Reference cell type count", "Comparison cell type count", 
+        "Added cell type count", "Removed cell type count", 
+        "Cell types removed", "Cell types added"
+      )
   )
 ```
-
-
 
 
 ## Session Info
