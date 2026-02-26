@@ -1550,16 +1550,17 @@ infercnv_show_df |>
     num_ref_celltypes,
     num_comp_celltypes,
     num_removed,
-    num_added, 
+    num_added,
     values_removed,
     values_added
   ) |>
   report_table(
     summary = TRUE,
-    colnames = 
-      c("Project", "Sample", "Library", 
-        "Reference cell type count", "Comparison cell type count", 
-        "Added cell type count", "Removed cell type count", 
+    colnames =
+      c(
+        "Project", "Sample", "Library",
+        "Reference cell type count", "Comparison cell type count",
+        "Added cell type count", "Removed cell type count",
         "Cell types removed", "Cell types added"
       )
   )
