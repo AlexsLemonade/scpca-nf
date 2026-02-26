@@ -1560,7 +1560,7 @@ infercnv_show_df |>
       c(
         "Project", "Sample", "Library",
         "Reference cell type count", "Comparison cell type count",
-        "Removed cell type count", "Added cell type count", 
+        "Removed cell type count", "Added cell type count",
         "Cell types removed", "Cell types added"
       )
   )
