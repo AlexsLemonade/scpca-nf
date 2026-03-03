@@ -10,10 +10,10 @@ doc_file="sb_doc.md"
 exclude_file="sb_exclude.txt"
 
 # get the action and app ID from the command line
-# cavatica app id: <username>/<project>/<app>
-APP_ID=${2:-"jashapiro/scpca-nf-test/scpca-nf-development"}
 # use "build" or "push": default is build
 ACTION=${1:-"build"}
+# cavatica app id: <username>/<project>/<app>
+APP_ID=${2:-"jashapiro/scpca-nf-test/scpca-nf-development"}
 
 if [ "$ACTION" == "build" ]; then
     # default to multi-instance mode
