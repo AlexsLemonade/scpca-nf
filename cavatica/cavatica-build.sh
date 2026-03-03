@@ -5,12 +5,14 @@ set -euo pipefail
 # Run from the script file location
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# cavatica app id: <username>/<project>/<app>
-app_id="jashapiro/scpca-nf-test/scpca-nf"
+# default files for docs and exclusions for upload
 doc_file="sb_doc.md"
 exclude_file="sb_exclude.txt"
 
-# get the action from the command line, default is build
+# get the action and app ID from the command line
+# cavatica app id: <username>/<project>/<app>
+APP_ID=${2:-"jashapiro/scpca-nf-test/scpca-nf-development"}
+# use "build" or "push": default is build
 ACTION=${1:-"build"}
 
 if [ "$ACTION" == "build" ]; then
@@ -27,7 +29,7 @@ if [ "$ACTION" == "build" ]; then
     # Build sb_nextflow_schema.yaml
     pixi run -e cavatica sbpack_nf \
       --workflow-path .. \
-      --appid ${app_id} \
+      --appid ${APP_ID} \
       --sb-doc ${doc_file} \
       ${mode_arg} \
       --dump-sb-app
@@ -45,7 +47,7 @@ elif [ "$ACTION" == "push" ]; then
       --profile . \
       --workflow-path .. \
       --sb-schema sb_nextflow_schema.yaml \
-      --appid ${app_id} \
+      --appid ${APP_ID} \
       --exclude $(< $exclude_file)
 else
     echo "Invalid action: $ACTION"
