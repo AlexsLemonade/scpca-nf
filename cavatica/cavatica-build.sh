@@ -13,7 +13,17 @@ exclude_file="sb_exclude.txt"
 # use "build" or "push": default is build
 ACTION=${1:-"build"}
 # cavatica app id: <username>/<project>/<app>
-APP_ID=${2:-"jashapiro/scpca-nf-test/scpca-nf-development"}
+APP_TYPE=${2:-development}
+
+project_id="jashapiro/scpca-nf-test"
+
+if [ $APP_TYPE == "development" ] ; then
+  app_id="${project_id}/scpca-nf-development"
+elif [ $APP_TYPE != "main" ]; then
+  app_id="${project_id}/scpca-nf"
+else
+  echo "The second argument must be 'development' or 'main'."
+fi
 
 if [ "$ACTION" == "build" ]; then
     # default to multi-instance mode
