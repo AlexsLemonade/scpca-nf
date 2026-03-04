@@ -38,6 +38,38 @@
                 "altexps_cellhash_percent": "numeric"
             }
         },
+        "metadata": [
+            "library_id",
+            "sample_id",
+            "project_id",
+            "reference_index",
+            "total_reads",
+            "mapping_tool",
+            "tech_version",
+            "assay_ontology_term_id",
+            "seq_unit",
+            "transcript_type",
+            "sample_metadata",
+            "sample_type"
+        ],
+        "metadata_conditional": {
+            "alevin-fry": [
+                "salmon_version",
+                "mapped_reads",
+                "alevinfry_version",
+                "af_permit_type",
+                "af_resolution",
+                "usa_mode",
+                "af_num_cells",
+                "include_unspliced"
+            ],
+            "cellranger-multi": [
+                "cellranger_version",
+                "reference_probeset",
+                "pct_mapped_reads",
+                "cellranger_num_cells"
+            ]
+        },
         "altExp": {
             "adt": {
                 "assayNames": [
@@ -119,6 +151,30 @@
                 "vireo_doublet_logLikRatio": "numeric"
             }
         },
+        "metadata": [
+            "library_id",
+            "sample_id",
+            "project_id",
+            "reference_index",
+            "total_reads",
+            "mapping_tool",
+            "tech_version",
+            "assay_ontology_term_id",
+            "seq_unit",
+            "transcript_type",
+            "sample_metadata",
+            "sample_type",
+            "filtering_method",
+            "miQC_model",
+            "prob_compromised_cutoff",
+            "scpca_filter_method",
+            "min_gene_cutoff"
+        ],
+        "metadata_conditional": {
+            "umi_filtering": [
+                "umi_cutoff"
+            ]
+        },
         "altExp": {
             "adt": {
                 "assayNames": [
@@ -143,7 +199,10 @@
                         "ambient.scale": "numeric",
                         "high.ambient": "logical"
                     }
-                }
+                },
+                "metadata": [
+                    "ambient_profile"
+                ]
             },
             "cellhash": {
                 "assayNames": [
@@ -271,6 +330,81 @@
             "PCA",
             "UMAP"
         ],
+        "metadata": [
+            "library_id",
+            "sample_id",
+            "project_id",
+            "reference_index",
+            "total_reads",
+            "mapping_tool",
+            "tech_version",
+            "assay_ontology_term_id",
+            "seq_unit",
+            "transcript_type",
+            "sample_metadata",
+            "sample_type",
+            "filtering_method",
+            "miQC_model",
+            "prob_compromised_cutoff",
+            "scpca_filter_method",
+            "min_gene_cutoff",
+            "normalization",
+            "highly_variable_genes"
+        ],
+        "metadata_conditional": {
+            "umi_filtering": [
+                "umi_cutoff"
+            ],
+            "has_clusters": [
+                "cluster_algorithm",
+                "cluster_weighting",
+                "cluster_nn"
+            ],
+            "has_submitter": [
+                "celltype_methods"
+            ],
+            "has_openscpca": [
+                "celltype_methods",
+                "openscpca_celltype_module_name",
+                "openscpca_celltype_nf_version",
+                "openscpca_celltype_release_date"
+            ],
+            "has_singler": [
+                "celltype_methods",
+                "singler_results",
+                "singler_reference",
+                "singler_reference_label",
+                "singler_reference_source",
+                "singler_reference_version"
+            ],
+            "has_cellassign": [
+                "celltype_methods",
+                "cellassign_predictions",
+                "cellassign_reference",
+                "cellassign_reference_organs",
+                "cellassign_reference_source",
+                "cellassign_reference_version"
+            ],
+            "has_scimilarity": [
+                "celltype_methods",
+                "scimilarity_model"
+            ],
+            "has_consensus": [
+                "consensus_celltype_methods"
+            ],
+            "has_infercnv": [
+                "infercnv_reference_celltypes",
+                "infercnv_num_reference_cells",
+                "infercnv_diagnosis_groups",
+                "infercnv_status",
+                "infercnv_options",
+                "infercnv_table"
+            ],
+            "has_adt": [
+                "adt_scpca_filter_method",
+                "adt_normalization"
+            ]
+        },
         "altExp": {
             "adt": {
                 "assayNames": [
@@ -296,7 +430,10 @@
                         "high.ambient": "logical"
                     },
                     "sizeFactor": "numeric"
-                }
+                },
+                "metadata": [
+                    "ambient_profile"
+                ]
             },
             "cellhash": {
                 "assayNames": [

@@ -114,6 +114,104 @@ feature_metadata = {
 # reduced dimensionality ----------
 reduced_dims = ["PCA", "UMAP"]
 
+# experiment metadata --------------
+unfiltered_experiment_metadata = [
+    "library_id",
+    "sample_id",
+    "project_id",
+    "reference_index",
+    "total_reads",
+    "mapping_tool",
+    "tech_version",
+    "assay_ontology_term_id",
+    "seq_unit",
+    "transcript_type",
+    "sample_metadata",
+    "sample_type",
+]
+
+unfiltered_experiment_metadata_conditional = {
+    # experiment metadata that's based on mapping tool
+    # stored in metadata(sce)$mapping_tool
+    "alevin-fry": [
+        "salmon_version",
+        "mapped_reads",
+        "alevinfry_version",
+        "af_permit_type",
+        "af_resolution",
+        "usa_mode",
+        "af_num_cells",
+        "include_unspliced",
+    ],
+    "cellranger-multi": [
+        "cellranger_version",
+        "reference_probeset",
+        "pct_mapped_reads",
+        "cellranger_num_cells",
+    ],
+}
+
+filtered_experiment_metadata = unfiltered_experiment_metadata + [
+    "filtering_method",
+    "miQC_model",
+    "prob_compromised_cutoff",
+    "scpca_filter_method",
+    "min_gene_cutoff",
+]
+
+filtered_experiment_metadata_conditional = {
+    # if filtering_method is UMI cutoff
+    "umi_filtering": ["umi_cutoff"]
+}
+
+processed_experiment_metadata = filtered_experiment_metadata + [
+    "normalization",
+    "highly_variable_genes",
+]
+
+processed_experiment_metadata_conditional = {
+    **filtered_experiment_metadata_conditional,
+    "has_clusters": ["cluster_algorithm", "cluster_weighting", "cluster_nn"],
+    # note that celltype_methods exists if either one of these methods is present
+    "has_submitter": ["celltype_methods"],
+    "has_openscpca": [
+        "celltype_methods",
+        "openscpca_celltype_module_name",
+        "openscpca_celltype_nf_version",
+        "openscpca_celltype_release_date",
+    ],
+    "has_singler": [
+        "celltype_methods",
+        "singler_results",
+        "singler_reference",
+        "singler_reference_label",
+        "singler_reference_source",
+        "singler_reference_version",
+    ],
+    "has_cellassign": [
+        "celltype_methods",
+        "cellassign_predictions",
+        "cellassign_reference",
+        "cellassign_reference_organs",
+        "cellassign_reference_source",
+        "cellassign_reference_version",
+    ],
+    "has_scimilarity": [
+        "celltype_methods",
+        "scimilarity_model",
+    ],
+    "has_consensus": ["consensus_celltype_methods"],
+    "has_infercnv": [
+        "infercnv_reference_celltypes",
+        "infercnv_num_reference_cells",
+        "infercnv_diagnosis_groups",
+        "infercnv_status",
+        "infercnv_options",
+        "infercnv_table",
+    ],
+    "has_adt": ["adt_scpca_filter_method", "adt_normalization"],
+}
+
 # alt exps gell/gene metadata ------------
 # adt specific items
 altexp_adt_feature_metadata = {
@@ -145,6 +243,8 @@ processed_altexp_adt_cell_metadata_conditional = {
     **filtered_altexp_adt_cell_metadata_conditional,
     "sizeFactor": "numeric",
 }
+
+filtered_altexp_adt_experiment_metadata = ["ambient_profile"]
 
 # cellhash specific items
 unfiltered_altexp_cellhash_feature_metadata = {
@@ -191,6 +291,8 @@ unfiltered_sce = {
     "colData": cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": cell_metadata_conditional,
+    "metadata": unfiltered_experiment_metadata,
+    "metadata_conditional": unfiltered_experiment_metadata_conditional,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
@@ -211,12 +313,15 @@ filtered_sce = {
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": filtered_cell_metadata_conditional,
+    "metadata": filtered_experiment_metadata,
+    "metadata_conditional": filtered_experiment_metadata_conditional,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
             "colData": filtered_altexp_adt_cell_metadata,
             "rowData": altexp_adt_feature_metadata,
             "colData_conditional": filtered_altexp_adt_cell_metadata_conditional,
+            "metadata": filtered_altexp_adt_experiment_metadata,
         },
         "cellhash": {
             "assayNames": cellhash_assays,
@@ -234,12 +339,15 @@ processed_sce = {
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
     "reducedDimNames": reduced_dims,
+    "metadata": processed_experiment_metadata,
+    "metadata_conditional": processed_experiment_metadata_conditional,
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
             "colData": filtered_altexp_adt_cell_metadata,
             "rowData": altexp_adt_feature_metadata,
             "colData_conditional": processed_altexp_adt_cell_metadata_conditional,
+            "metadata": filtered_altexp_adt_experiment_metadata,
         },
         "cellhash": {
             "assayNames": cellhash_assays,
