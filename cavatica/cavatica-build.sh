@@ -5,6 +5,9 @@ set -euo pipefail
 # Run from the script file location
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+# default project
+project_id="jashapiro/scpca-nf-test"
+
 # default files for docs and exclusions for upload
 doc_file="sb_doc.md"
 exclude_file="sb_exclude.txt"
@@ -12,14 +15,12 @@ exclude_file="sb_exclude.txt"
 # get the action and app ID from the command line
 # use "build" or "push": default is build
 ACTION=${1:-"build"}
-# cavatica app id: <username>/<project>/<app>
+# cavatica app type: either "development" or "main"
 APP_TYPE=${2:-development}
-
-project_id="jashapiro/scpca-nf-test"
 
 if [ $APP_TYPE == "development" ] ; then
   app_id="${project_id}/scpca-nf-development"
-elif [ $APP_TYPE != "main" ]; then
+elif [ $APP_TYPE == "main" ]; then
   app_id="${project_id}/scpca-nf"
 else
   echo "The second argument must be 'development' or 'main'."
