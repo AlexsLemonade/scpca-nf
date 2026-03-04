@@ -1,6 +1,7 @@
 [files]
 extend-exclude = [
-  "references/*.tsv"
+  "references/*.tsv",
+  "references/*.json"
 ]
 
 [default.extend-identifiers]
