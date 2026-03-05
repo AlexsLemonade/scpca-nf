@@ -191,13 +191,6 @@ workflow {
     .branch{ it ->
       unknown_tech: !(it.technology.toLowerCase() in all_techs)
       unknown_ref: !(it.sample_reference in ref_paths)
-      unknown_spatial_slide_serial: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_serial_number)
-      unknown_spatial_slide_section: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_section)
-      // TODO: this should say visium1
-      unknown_spatial_image: it.technology.toLowerCase() == "visium" && !parseNA(it.image_file)
-      unknown_spatial_cytaimage: it.technology.toLowerCase() in spatial_techs 
-        && it.technology.toLowerCase() != "visium" 
-        && !parseNA(it.cytaimage_file)
       valid: true
     }
 
@@ -208,19 +201,6 @@ workflow {
   // warn about unknown references for any samples
   all_runs_ch.unknown_ref.subscribe{ it ->
     log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
-  }
-  // warn about missing spatial information
-  all_runs_ch.unknown_spatial_slide_serial.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing a slide serial number and will not be processed.")
-  }
-  all_runs_ch.unknown_spatial_slide_section.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing a slide section (area) and will not be processed.")
-  }
-  all_runs_ch.unknown_spatial_image.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing an image file and will not be processed.")
-  }
-  all_runs_ch.unknown_spatial_cytaimage.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing a cytaimage file and will not be processed.")
   }
 
   // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths

@@ -141,6 +141,13 @@ workflow spaceranger_quant{
       .branch{ it ->
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
+        // branch for invalid cases
+        missing_slide_serial: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_serial_number)
+        missing_slide_section: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_section)
+        missing_image: it.technology.toLowerCase() == "visium" && !parseNA(it.image_file)  // TODO: this should eventually say visium1
+        missing_cytaimage: it.technology.toLowerCase() in spatial_techs 
+          && it.technology.toLowerCase() != "visium" // TODO: this should eventually say visium1
+          && !parseNA(it.cytaimage_file)
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -155,11 +162,24 @@ workflow spaceranger_quant{
         missing_inputs: true
       }
 
-    // send run ids in spatial_channel.missing_inputs to log
-    spatial_channel.missing_inputs
-      .subscribe{ it ->
-        log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
-      }
+    // TODO: warn or error?
+    // warn about missing spatial information
+    spatial_channel.missing_slide_serial.subscribe{ it ->
+      log.warn("Run '${it.run_id}' is missing a slide serial number and will not be processed.")
+    }
+    spatial_channel.missing_slide_section.subscribe{ it ->
+      log.warn("Run '${it.run_id}' is missing a slide section (area) and will not be processed.")
+    }
+    spatial_channel.missing_image.subscribe{ it ->
+      log.warn("Run '${it.run_id}' is missing an image file and will not be processed.")
+    }
+    spatial_channel.missing_cytaimage.subscribe{ it ->
+      log.warn("Run '${it.run_id}' is missing a cytaimage file and will not be processed.")
+    }
+    spatial_channel.missing_inputs.subscribe{ it ->
+      log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
+    }
+  
 
     // create tuple of [metadata, fastq dir, cytaimage file, index, probe set, paths, to, other, images]
     spaceranger_reads = spatial_channel.make_spatial
