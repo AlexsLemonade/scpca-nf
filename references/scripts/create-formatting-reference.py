@@ -161,6 +161,7 @@ filtered_altexp_cellhash_feature_metadata = {
 filtered_altexp_cellhash_cell_metadata_conditional = {
     # indicate columns that are conditionally present based on demultiplexing methods used
     # this is tracked based on demux columns in colData
+    # this is the same as what's in the processed object
     "has_hashedDrops": {
         "hashedDrops_Total": "numeric",
         "hashedDrops_Best": "integer",
