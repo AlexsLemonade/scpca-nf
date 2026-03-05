@@ -107,7 +107,7 @@ def getCRsamples(files_dir) {
   fastq_files.each{ it ->
     // append sample names to list, using regex to extract element before S001, etc.
     // [0] for the first match set, [1] for the first extracted element
-    samples << (it =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
+    samples << (it.name =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
   }
   // convert samples list to a `set` to remove duplicate entries,
   // then join to a comma separated string.
