@@ -37,7 +37,7 @@ process salmon_index {
   container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
   publishDir "${params.ref_outdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
-  label 'mem_16'
+  label 'mem_24'
   tag "${ref_name}"
   input:
     tuple val(ref_name), path(splici_fasta), path(spliced_cdna_fasta), 
