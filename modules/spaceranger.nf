@@ -6,10 +6,12 @@ process spaceranger {
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
-  label 'mem_24'
+  label 'mem_32'
   label 'disk_big'
   input:
-    tuple val(meta), path(fastq_dir), path(image_file), path(index)
+    tuple val(meta), path(fastq_dir), path(index), 
+    path(cytaimage_file), path(cytassist_probe_file), 
+    path(image_file), path(darkimage_file), path(colorizedimage_file)
   output:
     tuple val(meta), path(out_id)
   script:
@@ -24,18 +26,22 @@ process spaceranger {
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()} \
-      --image=${image_file} \
-      --slide=${meta.slide_serial_number ?: "NA"} \
-      --area=${meta.slide_section ?: "NA"}
+      --slide=${meta.slide_serial_number} \
+      --area=${meta.slide_section} \
+      --create-bam false \
+      ${cytassist_probe_file ? "--probe-set ${cytassist_probe_file}" : ""} \
+      ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
+      ${image_file ? "--image ${image_file}" : ""} \
+      ${darkimage_file ? "--darkimage ${darkimage_file}" : ""} \
+      ${colorizedimage_file ? "--colorizedimage ${colorizedimage_file}" : ""}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
+    # TODO: Why is this still present in the checkpoints directory???
+    # TODO: Is there more we'd like to remove?
     # remove Space Ranger intermediates directory
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
-
-    # remove bam and bai files
-    rm ${out_id}/outs/*.bam*
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -47,6 +53,7 @@ process spaceranger {
     """
 }
 
+// TODO: need to accommodate HD outputs which are slightly different
 process spaceranger_publish {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
@@ -107,6 +114,7 @@ def getCRsamples(files_dir) {
   fastq_files.each{ it ->
     // append sample names to list, using regex to extract element before S001, etc.
     // [0] for the first match set, [1] for the first extracted element
+    // use .name to ensure we aren't getting a full path
     samples << (it.name =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
   }
   // convert samples list to a `set` to remove duplicate entries,
@@ -116,8 +124,10 @@ def getCRsamples(files_dir) {
 
 
 workflow spaceranger_quant{
-  take: spatial_channel
-  // a channel with a map of metadata for each spatial library to process
+  take:
+    spatial_channel // a channel with a map of metadata for each spatial library to process
+    cytassist_probesets // map of CytAssist probe set files for each species
+    cytassist_probe_techs // list of which technologies require a probe set
   main:
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
@@ -151,14 +161,29 @@ workflow spaceranger_quant{
         log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
       }
 
-    // create tuple of [metadata, fastq dir, and path to image file]
+    // create tuple of [metadata, fastq dir, cytaimage file, index, probe set, paths, to, other, images]
     spaceranger_reads = spatial_channel.make_spatial
       .map{ meta ->
+        // probeset logic
+        def species = meta.ref_assembly.split('\\.')[0]
+        def use_probeset = meta.technology in cytassist_probe_techs
+        def probeset_file = use_probeset ? file("${params.cytassist_probes_dir}/${cytassist_probesets[species]}", checkIfExists: true) : []
+
+        // image logic
+        def cytaimage_file = meta.cytaimage_file ? file(meta.cytaimage_file, checkIfExists: true) : []
+        def image_file = meta.image_file ? file(meta.image_file, checkIfExists: true) : []
+        def darkimage_file = meta.darkimage_file ? file(meta.darkimage_file, checkIfExists: true) : []
+        def colorizedimage_file = meta.colorizedimage_file ? file(meta.colorizedimage_file, checkIfExists: true) : []
+        
         [
           meta,
           file(meta.files_directory, type: 'dir'),
-          file("${meta.files_directory}/*.jpg"),
-          file(meta.cellranger_index, type: 'dir')
+          file(meta.cellranger_index, type: 'dir'),
+          cytaimage_file, 
+          probeset_file,
+          image_file,
+          darkimage_file,
+          colorizedimage_file          
         ]
     }
 

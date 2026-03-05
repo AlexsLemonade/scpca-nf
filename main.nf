@@ -142,11 +142,18 @@ workflow {
     '10xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
   ]
 
+  // 10x cytassist probe files
+  def cytassist_probesets = [
+    'Homo_sapiens': 'Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv',
+    'Mus_musculus': 'Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv'
+  ]
+
   // supported technologies
   def single_cell_techs = cell_barcodes.keySet()
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
-  def spatial_techs = ['visium']
+  def spatial_techs = ['visium', 'visium2', 'visium_hd', 'visium_hd_3prime'] // TODO: Make the original visium "visium1" or similar
+  def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
@@ -269,7 +276,11 @@ workflow {
   bulk_quant_rna(runs_ch.bulk)
 
   // **** Process Spatial Transcriptomics data ****
-  spaceranger_quant(runs_ch.spatial)
+  spaceranger_quant(
+    runs_ch.spatial, 
+    cytassist_probesets, // names of probe files
+    cytassist_probe_techs // which techs need a probe file
+  )
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
