@@ -153,7 +153,6 @@ workflow {
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
   def spatial_techs = ['visium', 'visium2', 'visium_hd', 'visium_hd_3prime'] // TODO: Make the original visium "visium1" or similar
-  def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
@@ -217,6 +216,7 @@ workflow {
         technology: it.technology.toLowerCase(),
         assay_ontology_term_id: parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
+        organism: it.sample_reference.split('\\.')[0],
         submitter_cell_types_file: parseNA(it.submitter_cell_types_file),
         openscpca_cell_types_file: parseNA(it.openscpca_cell_types_file),
         feature_barcode_file: parseNA(it.feature_barcode_file),
@@ -224,10 +224,6 @@ workflow {
         files_directory: parseNA(it.files_directory),
         slide_serial_number: parseNA(it.slide_serial_number),
         slide_section: parseNA(it.slide_section),
-        cytaimage_file: parseNA(it.cytaimage_file),
-        image_file: parseNA(it.image_file),
-        darkimage_file: parseNA(it.darkimage_file),
-        colorizedimage_file: parseNA(it.colorizedimage_file),
         ref_assembly: it.sample_reference,
         ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
         ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
@@ -283,8 +279,7 @@ workflow {
   // **** Process Spatial Transcriptomics data ****
   spaceranger_quant(
     runs_ch.spatial, 
-    cytassist_probesets, // names of probe files
-    cytassist_probe_techs // which techs need a probe file
+    cytassist_probesets // names of probe files
   )
 
   // **** Process 10x flex RNA-seq data ***

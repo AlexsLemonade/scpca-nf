@@ -9,15 +9,17 @@ process spaceranger {
   label 'mem_32'
   label 'disk_big'
   input:
-    tuple val(meta), path(fastq_dir), path(index), 
-    path(cytaimage_file), path(cytassist_probe_file), 
-    path(image_file), path(darkimage_file), path(colorizedimage_file)
+    tuple val(meta), path(files_dir), path(index), 
+      path(cytassist_probe_file) 
   output:
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
     meta += getVersions()
     meta_json = makeJson(meta)
+
+    // set up file arguments - they are inside files_dir
+
     """
     spaceranger count \
       --id=${out_id} \
@@ -127,8 +129,10 @@ workflow spaceranger_quant{
   take:
     spatial_channel // a channel with a map of metadata for each spatial library to process
     cytassist_probesets // map of CytAssist probe set files for each species
-    cytassist_probe_techs // list of which technologies require a probe set
   main:
+    // techs that use the probe file
+    def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
@@ -185,9 +189,8 @@ workflow spaceranger_quant{
     spaceranger_reads = spatial_channel.make_spatial
       .map{ meta ->
         // probeset logic
-        def species = meta.ref_assembly.split('\\.')[0]
         def use_probeset = meta.technology in cytassist_probe_techs
-        def probeset_file = use_probeset ? file("${params.cytassist_probes_dir}/${cytassist_probesets[species]}", checkIfExists: true) : []
+        def probeset_file = use_probeset ? file("${params.cytassist_probes_dir}/${cytassist_probesets[organism]}", checkIfExists: true) : []
 
         // image logic
         def cytaimage_file = meta.cytaimage_file ? file(meta.cytaimage_file, checkIfExists: true) : []
