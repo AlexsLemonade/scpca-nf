@@ -244,7 +244,7 @@ inputs:
     label: Probe files directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/flex-probe-refs
+    sbg:toolDefaultValue: s3://scpca-nf-references/flex-probe-refs
     type:
       - "null"
       - Directory
@@ -255,7 +255,7 @@ inputs:
     label: Probe files directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv
+    sbg:toolDefaultValue: s3://scpca-nf-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv
     type:
       - "null"
       - File
@@ -299,7 +299,7 @@ inputs:
     label: SCimilarity reference model directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/scimilarity_references/model_v1.1
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype/scimilarity_references/model_v1.1
     type:
       - "null"
       - Directory

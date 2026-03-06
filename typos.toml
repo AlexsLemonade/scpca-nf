@@ -1,6 +1,8 @@
 [files]
 extend-exclude = [
-  "references/*.tsv"
+  "references/*.tsv",
+  "references/*.json",
+  "references/scripts/create-formatting-reference.py"
 ]
 
 [default.extend-identifiers]
