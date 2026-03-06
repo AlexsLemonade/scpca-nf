@@ -115,101 +115,117 @@ feature_metadata = {
 reduced_dims = ["PCA", "UMAP"]
 
 # experiment metadata --------------
-unfiltered_experiment_metadata = [
-    "library_id",
-    "sample_id",
-    "project_id",
-    "reference_index",
-    "total_reads",
-    "mapping_tool",
-    "tech_version",
-    "assay_ontology_term_id",
-    "seq_unit",
-    "transcript_type",
-    "sample_metadata",
-    "sample_type",
-]
+unfiltered_experiment_metadata = {
+    "library_id": "character",
+    "sample_id": "character",
+    "project_id": "character",
+    "reference_index": "character",
+    "total_reads": "integer",
+    "mapping_tool": "character",
+    "tech_version": "character",
+    "assay_ontology_term_id": "character",
+    "seq_unit": "character",
+    "transcript_type": "character",
+    "sample_metadata": "character",
+    "sample_type": "character",
+}
 
 unfiltered_experiment_metadata_conditional = {
     # experiment metadata that's based on mapping tool
     # stored in metadata(sce)$mapping_tool
-    "alevin-fry": [
-        "salmon_version",
-        "mapped_reads",
-        "alevinfry_version",
-        "af_permit_type",
-        "af_resolution",
-        "usa_mode",
-        "af_num_cells",
-        "include_unspliced",
-    ],
-    "cellranger-multi": [
-        "cellranger_version",
-        "reference_probeset",
-        "pct_mapped_reads",
-        "cellranger_num_cells",
-    ],
+    "alevin-fry": {
+        "salmon_version": "character",
+        "mapped_reads": "integer",
+        "alevinfry_version": "character",
+        "af_permit_type": "character",
+        "af_resolution": "character",
+        "usa_mode": "logical",
+        "af_num_cells": "integer",
+        "include_unspliced": "logical",
+    },
+    "cellranger-multi": {
+        "cellranger_version": "character",
+        "reference_probeset": "character",
+        "pct_mapped_reads": "numeric",
+        "cellranger_num_cells": "integer",
+    },
 }
 
-filtered_experiment_metadata = unfiltered_experiment_metadata + [
-    "filtering_method",
-    "miQC_model",
-    "prob_compromised_cutoff",
-    "scpca_filter_method",
-    "min_gene_cutoff",
-]
+filtered_experiment_metadata = {
+    **unfiltered_experiment_metadata,
+    "filtering_method": "character",
+    # this is NA if miQC failed
+    "prob_compromised_cutoff": "NA",
+    "scpca_filter_method": "character",
+    "min_gene_cutoff": "integer",
+}
 
 filtered_experiment_metadata_conditional = {
-    # if filtering_method is UMI cutoff
-    "umi_filtering": ["umi_cutoff"]
+    # if empty drops filtering_method is UMI cutoff
+    "umi_filtering": {"umi_cutoff": "numeric"},
+    # if miQC is present, these should have specific contents
+    # miQC model is an S4 object and is removed from the processed
+    "has_miQC": {"miQC_model": "S4", "prob_compromised_cutoff": "numeric"},
 }
 
-processed_experiment_metadata = filtered_experiment_metadata + [
-    "normalization",
-    "highly_variable_genes",
-]
+processed_experiment_metadata = {
+    **filtered_experiment_metadata,
+    "normalization": "character",
+    "highly_variable_genes": "character",
+}
 
 processed_experiment_metadata_conditional = {
-    **filtered_experiment_metadata_conditional,
-    "has_clusters": ["cluster_algorithm", "cluster_weighting", "cluster_nn"],
+    ## reuse filtered conditional since miQC model gets removed for processed
+    # if empty drops filtering_method is UMI cutoff
+    "umi_filtering": {"umi_cutoff": "numeric"},
+    # if miQC is present, these should have specific contents
+    "has_miQC": {"miQC_model": None, "prob_compromised_cutoff": "numeric"},
+    "has_clusters": {
+        "cluster_algorithm": "character",
+        "cluster_weighting": "character",
+        "cluster_nn": "numeric",
+    },
     # note that celltype_methods exists if either one of these methods is present
-    "has_submitter": ["celltype_methods"],
-    "has_openscpca": [
-        "celltype_methods",
-        "openscpca_celltype_module_name",
-        "openscpca_celltype_nf_version",
-        "openscpca_celltype_release_date",
-    ],
-    "has_singler": [
-        "celltype_methods",
-        "singler_results",
-        "singler_reference",
-        "singler_reference_label",
-        "singler_reference_source",
-        "singler_reference_version",
-    ],
-    "has_cellassign": [
-        "celltype_methods",
-        "cellassign_predictions",
-        "cellassign_reference",
-        "cellassign_reference_organs",
-        "cellassign_reference_source",
-        "cellassign_reference_version",
-    ],
-    "has_scimilarity": [
-        "celltype_methods",
-        "scimilarity_model",
-    ],
-    "has_consensus": ["consensus_celltype_methods"],
-    "has_infercnv": [
-        "infercnv_reference_celltypes",
-        "infercnv_num_reference_cells",
-        "infercnv_diagnosis_groups",
-        "infercnv_status",
-        "infercnv_options",
-        "infercnv_table",
-    ],
-    "has_adt": ["adt_scpca_filter_method", "adt_normalization"],
+    "has_submitter": {"celltype_methods": "character"},
+    "has_openscpca": {
+        "celltype_methods": "character",
+        "openscpca_celltype_module_name": "character",
+        "openscpca_celltype_nf_version": "character",
+        "openscpca_celltype_release_date": "character",
+    },
+    "has_singler": {
+        "celltype_methods": "character",
+        "singler_results": "S4",
+        "singler_reference": "character",
+        "singler_reference_label": "character",
+        "singler_reference_source": "character",
+        "singler_reference_version": "character",
+    },
+    "has_cellassign": {
+        "celltype_methods": "character",
+        "cellassign_predictions": "character",
+        "cellassign_reference": "character",
+        "cellassign_reference_organs": "character",
+        "cellassign_reference_source": "character",
+        "cellassign_reference_version": "character",
+    },
+    "has_scimilarity": {
+        "celltype_methods": "character",
+        "scimilarity_model": "character",
+    },
+    "has_consensus": {"consensus_celltype_methods": "character"},
+    "has_infercnv": {
+        "infercnv_reference_celltypes": "character",
+        "infercnv_num_reference_cells": "integer",
+        "infercnv_diagnosis_groups": "character",
+        "infercnv_status": "character",
+        "infercnv_options": "character",
+        "infercnv_table": "character",
+    },
+    "has_adt": {
+        "adt_scpca_filter_method": "character",
+        "adt_normalization": "character",
+    },
 }
 
 # alt exps gell/gene metadata ------------
@@ -244,7 +260,7 @@ processed_altexp_adt_cell_metadata_conditional = {
     "sizeFactor": "numeric",
 }
 
-filtered_altexp_adt_experiment_metadata = ["ambient_profile"]
+filtered_altexp_adt_experiment_metadata = {"ambient_profile": "character"}
 
 # cellhash specific items
 unfiltered_altexp_cellhash_feature_metadata = {
