@@ -1,7 +1,7 @@
 {
     "unfiltered": {
         "rna": {
-            "has.raw.X": false,
+            "has_raw.X": false,
             "layers": [
                 "spliced"
             ],
@@ -95,7 +95,7 @@
     },
     "filtered": {
         "rna": {
-            "has.raw.X": false,
+            "has_raw.X": false,
             "layers": [
                 "spliced"
             ],
@@ -218,7 +218,7 @@
     },
     "processed": {
         "rna": {
-            "has.raw.X": true,
+            "has_raw.X": true,
             "layers": [
                 "spliced"
             ],

@@ -561,7 +561,7 @@ filtered_altexp_adt_uns_metadata = convert_cell_row_metadata_types(
 
 unfiltered_anndata = {
     "rna": {
-        "has.raw.X": False,
+        "has_raw.X": False,
         "layers": layers,
         "obs": obs_metadata,
         "var": var_metadata,
@@ -579,7 +579,7 @@ unfiltered_anndata = {
 
 filtered_anndata = {
     "rna": {
-        "has.raw.X": False,
+        "has_raw.X": False,
         "layers": layers,
         "obs": filtered_obs_metadata,
         "var": var_metadata,
@@ -599,7 +599,7 @@ filtered_anndata = {
 
 processed_anndata = {
     "rna": {
-        "has.raw.X": True,
+        "has_raw.X": True,
         "layers": layers,
         "obs": filtered_obs_metadata,
         "var": var_metadata,
