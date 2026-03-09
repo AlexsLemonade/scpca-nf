@@ -116,6 +116,15 @@ if (is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versi
   stop("Versions file missing or `spaceranger_versions_file` not specified.")
 }
 
+# check that technology exists
+# TODO: visium -> visium1
+allowed_techs <- c("visium", "visium2", "visium_hd", "visium_hd_3prime")
+if (!opt$technology %in% allowed_techs) {
+  stop(
+    glue::glue("The `technology` must be one of: {paste(allowed_techs, collapse = ', ').}")
+  )
+}
+
 # replace workflow url and commit if not provided
 if (opt$workflow_url == "null") {
   opt$workflow_url <- NA
