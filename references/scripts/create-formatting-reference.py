@@ -374,7 +374,7 @@ processed_sce = {
     },
 }
 
-# build and expoort sce schema --------------
+# build and export sce schema --------------
 sce_schema = {
     "unfiltered": unfiltered_sce,
     "filtered": filtered_sce,
@@ -383,4 +383,246 @@ sce_schema = {
 
 with open(sce_ref_file, "w") as f:
     json.dump(sce_schema, f, indent=4)
+    f.write("\n")  # Explicitly add a newline character to appease GitHub
+
+# --------------------- AnnData ---------------------------
+
+# cell and row metadata are dtypes
+cell_row_metadata_map = {
+    "numeric": "float64",
+    "integer": "int32",
+    "logical": "bool",
+    "character": "category",
+}
+
+
+def convert_cell_row_metadata_types(metadata):
+    for key, value in metadata.items():
+        # if the value is a dict, this is conditional metadata and we need to convert the inner values
+        # use recursion to do this
+        if isinstance(value, dict):
+            convert_cell_row_metadata_types(value)
+        # if the value is barcodes, gene_ids, or adt_ids, this is an object in dtypes
+        elif key in ["barcodes", "gene_ids", "adt_id"]:
+            metadata[key] = "object"
+        # otherwise convert the value as long as the value is in the cell_row_metadata_map
+        elif value in cell_row_metadata_map.keys():
+            metadata[key] = cell_row_metadata_map[value]
+
+    return metadata
+
+
+# types for uns metadata entries that are not cell or row metadata
+experiment_metadata_map = {
+    "character": "str",
+    "integer": "numpy.int64",
+    "numeric": "numpy.float64",
+    "logical": "numpy.bool_",
+    "data.frame": "pandas.DataFrame",
+    "DFrame": "pandas.DataFrame",
+}
+
+# these all get stored as numpy.ndarray and not str even though they are considered character in R
+list_metadata_entries = [
+    "celltype_methods",
+    "consensus_celltype_methods",
+    "highly_variable_genes",
+    "infercnv_reference_celltypes",
+    "infercnv_options",
+]
+
+
+def convert_experiment_metadata_types(metadata):
+    for key, value in metadata.items():
+        # account for nested ditionaries in the conditional experiment metadata
+        if isinstance(value, dict):
+            convert_experiment_metadata_types(value)
+        # if key is in the list of entries that get saved as an array, convert to numpy.ndarray
+        elif key in list_metadata_entries:
+            metadata[key] = "numpy.ndarray"
+        # otherwise convert any values that are present in the map
+        elif value in experiment_metadata_map.keys():
+            metadata[key] = experiment_metadata_map[value]
+
+    return metadata
+
+
+# layer/assays ---------
+layers = ["spliced"]
+
+# unfiltered cell metadata ------------
+anndata_specific_obs_metadata = {
+    # sample metadata is present in obs for anndata
+    # this minimally includes library id, sample id and assay ontology term id
+    "library_id": "category",
+    "sample_id": "category",
+    "assay_ontology_term_id": "category",
+    # columns that we explicitly add in sce_to_annndata
+    "suspension_type": "category",
+    "is_primary_data": "bool",
+}
+
+# if the library is multiplexed, the sample ID doesn't get added
+anndata_specific_obs_metadata_conditional = {
+    "is_multiplexed": {
+        "sample_id": None,
+    }
+}
+
+obs_metadata = {
+    **convert_cell_row_metadata_types(cell_metadata),
+    **anndata_specific_obs_metadata,
+}
+
+obs_metadata_conditional = {
+    **convert_cell_row_metadata_types(cell_metadata_conditional),
+    **anndata_specific_obs_metadata_conditional,
+}
+
+# filtered cell metadata ------------
+filtered_obs_metadata = {
+    **convert_cell_row_metadata_types(filtered_cell_metadata),
+    **anndata_specific_obs_metadata,
+}
+
+filtered_cell_metadata_conditional = {
+    **convert_cell_row_metadata_types(filtered_cell_metadata_conditional),
+    **anndata_specific_obs_metadata_conditional,
+}
+
+# processed cell metadata ------------
+
+processed_obs_metadata_conditional = {
+    **convert_cell_row_metadata_types(processed_cell_metadata_conditional),
+    **anndata_specific_obs_metadata_conditional,
+}
+
+# row metadata ----------
+var_metadata = {
+    **convert_cell_row_metadata_types(feature_metadata),
+    "feature_is_filtered": "bool",
+    "highly_variable": "bool",
+}
+
+# reduced dimensionality ----------
+processed_obsm = ["X_pca", "X_umap"]
+
+# experiment metadata --------------
+anndata_uns_metadata = {
+    "X_name": "str",
+    "pca": "dict",
+    "schema_version": "str",
+}
+
+unfiltered_uns_metadata = {
+    **convert_experiment_metadata_types(unfiltered_experiment_metadata),
+    **anndata_uns_metadata,
+}
+
+unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
+    unfiltered_experiment_metadata_conditional
+)
+
+filtered_uns_metadata = convert_experiment_metadata_types(filtered_experiment_metadata)
+
+filtered_uns_metadata_conditional = convert_experiment_metadata_types(
+    filtered_experiment_metadata_conditional
+)
+
+processed_uns_metadata = convert_experiment_metadata_types(
+    processed_experiment_metadata
+)
+
+processed_uns_metadata_conditional = convert_experiment_metadata_types(
+    processed_experiment_metadata_conditional
+)
+
+# alt exps gell/gene metadata ------------
+# adt specific items
+altexp_adt_var_metadata = convert_cell_row_metadata_types(altexp_adt_feature_metadata)
+
+filtered_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
+    filtered_altexp_adt_cell_metadata
+)
+
+filtered_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
+    filtered_altexp_adt_cell_metadata_conditional
+)
+
+processed_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
+    processed_altexp_adt_cell_metadata_conditional
+)
+
+filtered_altexp_adt_uns_metadata = convert_cell_row_metadata_types(
+    filtered_altexp_adt_experiment_metadata
+)
+
+# build unfiltered AnnData -----------------
+
+unfiltered_anndata = {
+    "rna": {
+        "has.raw.X": False,
+        "layers": layers,
+        "obs": obs_metadata,
+        "var": var_metadata,
+        "obs_conditional": obs_metadata_conditional,
+        "uns": unfiltered_uns_metadata,
+        "uns_conditional": unfiltered_uns_metadata_conditional,
+    },
+    "adt": {
+        "var": altexp_adt_var_metadata,
+    },
+}
+
+
+# build filtered anndata ------
+
+filtered_anndata = {
+    "rna": {
+        "has.raw.X": False,
+        "layers": layers,
+        "obs": filtered_obs_metadata,
+        "var": var_metadata,
+        "obs_conditional": filtered_cell_metadata_conditional,
+        "uns": filtered_uns_metadata,
+        "uns_conditional": filtered_uns_metadata_conditional,
+    },
+    "adt": {
+        "obs": filtered_altexp_adt_obs_metadata,
+        "var": altexp_adt_var_metadata,
+        "obs_conditional": filtered_altexp_adt_obs_metadata_conditional,
+        "uns": filtered_altexp_adt_uns_metadata,
+    },
+}
+
+# build processed AnnData  ------
+
+processed_anndata = {
+    "rna": {
+        "has.raw.X": True,
+        "layers": layers,
+        "obs": filtered_obs_metadata,
+        "var": var_metadata,
+        "obs_conditional": processed_obs_metadata_conditional,
+        "obsm": processed_obsm,
+        "uns": processed_uns_metadata,
+        "uns_conditional": processed_uns_metadata_conditional,
+    },
+    "adt": {
+        "obs": filtered_altexp_adt_obs_metadata,
+        "var": altexp_adt_var_metadata,
+        "obs_conditional": processed_altexp_adt_obs_metadata_conditional,
+        "uns": filtered_altexp_adt_uns_metadata,
+    },
+}
+
+# build and export anndata schema --------------
+anndata_schema = {
+    "unfiltered": unfiltered_anndata,
+    "filtered": filtered_anndata,
+    "processed": processed_anndata,
+}
+
+with open(anndata_ref_file, "w") as f:
+    json.dump(anndata_schema, f, indent=4)
     f.write("\n")  # Explicitly add a newline character to appease GitHub
