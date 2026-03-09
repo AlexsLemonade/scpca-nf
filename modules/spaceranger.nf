@@ -38,7 +38,7 @@ process spaceranger {
     image_arg=""
     for image_type in image colorizedimage darkimage; do
       if [ -n "\$(ls ${files_directory}/\${image_type}/ 2>/dev/null)" ]; then
-        image_arg="--\${image_type} \$(ls ${files_directory}/\${image_type}/* | tr '\n' ',' | sed 's/,$//')"
+        image_arg="--\${image_type} \$(ls ${files_directory}/\${image_type}/* | paste -sd',')"
         break
       fi
     done
