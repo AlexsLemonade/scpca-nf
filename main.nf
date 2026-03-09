@@ -232,7 +232,7 @@ workflow {
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
         // TODO: UPDATE TO USE REFS DIRECTORY ONCE THIS IS IN THE PUBLIC BUCKET
-        cytassist_probe_file: sample_refs.cytassist_probe ? "${sample_refs.cytassist_probe}" : '',
+        cytassist_probe: sample_refs.cytassist_probe ? "${sample_refs.cytassist_probe}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
