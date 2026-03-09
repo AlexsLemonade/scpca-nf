@@ -142,12 +142,6 @@ workflow {
     '10xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
   ]
 
-  // 10x cytassist probe files
-  def cytassist_probesets = [
-    'Homo_sapiens': 'Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv',
-    'Mus_musculus': 'Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv'
-  ]
-
   // supported technologies
   def single_cell_techs = cell_barcodes.keySet()
   def flex_techs = flex_probesets.keySet()
@@ -237,6 +231,8 @@ workflow {
         cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
+        // TODO: UPDATE TO USE REFS DIRECTORY ONCE THIS IS IN THE PUBLIC BUCKET
+        cytassist_probe_file: sample_refs.cytassist_probe ? "${sample_refs.cytassist_probe}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
