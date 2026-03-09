@@ -14,6 +14,7 @@ anndata_ref_file = "../anndata-formatting-reference.json"
 assays = ["counts", "spliced"]
 processed_assays = ["logcounts"]
 adt_assays = ["counts"]
+cellhash_assays = ["counts"]
 
 # unfiltered cell metadata ------------
 cell_metadata = {
@@ -32,6 +33,16 @@ cell_metadata_conditional = {
         "openscpca_celltype_annotation": "character",
         "openscpca_celltype_ontology": "character",
     },
+    "has_adt": {
+        "altexps_adt_sum": "numeric",
+        "altexps_adt_detected": "integer",
+        "altexps_adt_percent": "numeric",
+    },
+    "has_cellhash": {
+        "altexps_cellhash_sum": "numeric",
+        "altexps_cellhash_detected": "integer",
+        "altexps_cellhash_percent": "numeric",
+    },
 }
 
 # filtered cell metadata ------------
@@ -47,6 +58,19 @@ filtered_cell_metadata = {
 filtered_cell_metadata_conditional = {
     **cell_metadata_conditional,
     "has_adt": {"adt_scpca_filter": "character"},
+    # additional columns that are present based on the type of demultiplexing used
+    "has_hashedDrops": {"hashedDrops_sampleid": "character"},
+    "has_HTODemux": {"HTODemux_sampleid": "character"},
+    "has_vireo": {
+        "vireo_sampleid": "character",
+        "vireo_donor_id": "character",
+        "vireo_prob_max": "numeric",
+        "vireo_prob_doublet": "numeric",
+        "vireo_n_vars": "numeric",
+        "vireo_best_singlet": "character",
+        "vireo_best_doublet": "character",
+        "vireo_doublet_logLikRatio": "numeric",
+    },
 }
 
 # processed cell metadata ------------
@@ -91,17 +115,7 @@ feature_metadata = {
 reduced_dims = ["PCA", "UMAP"]
 
 # alt exps gell/gene metadata ------------
-# add main colData columns to conditional metadata
-cell_metadata_conditional.update(
-    {
-        "has_adt": {
-            "altexps_adt_sum": "numeric",
-            "altexps_adt_detected": "integer",
-            "altexps_adt_percent": "numeric",
-        },
-    }
-)
-
+# adt specific items
 altexp_adt_feature_metadata = {
     "adt_id": "character",
     "mean": "numeric",
@@ -132,6 +146,45 @@ processed_altexp_adt_cell_metadata_conditional = {
     "sizeFactor": "numeric",
 }
 
+# cellhash specific items
+unfiltered_altexp_cellhash_feature_metadata = {
+    "mean": "numeric",
+    "detected": "numeric",
+}
+
+filtered_altexp_cellhash_feature_metadata = {
+    **unfiltered_altexp_cellhash_feature_metadata,
+    "barcode_id": "character",
+    "sample_id": "character",
+}
+
+filtered_altexp_cellhash_cell_metadata_conditional = {
+    # indicate columns that are conditionally present based on demultiplexing methods used
+    # this is tracked based on demux columns in colData
+    # this is the same as what's in the processed object
+    "has_hashedDrops": {
+        "hashedDrops_Total": "numeric",
+        "hashedDrops_Best": "integer",
+        "hashedDrops_Second": "integer",
+        "hashedDrops_LogFC": "numeric",
+        "hashedDrops_LogFC2": "numeric",
+        "hashedDrops_Doublet": "logical",
+        "hashedDrops_Confident": "logical",
+        "hashedDrops_sampleid": "character",
+        "hashedDrops_bestsample": "character",
+    },
+    "has_HTODemux": {
+        "HTODemux_maxID": "character",
+        "HTODemux_secondID": "character",
+        "HTODemux_margin": "numeric",
+        "HTODemux_classification": "character",
+        "HTODemux_classification.global": "character",
+        "HTODemux_hash.ID": "integer",
+        "HTODemux_maxsample": "character",
+        "HTODemux_sampleid": "character",
+    },
+}
+
 # build unfiltered SCE -----------------
 
 unfiltered_sce = {
@@ -143,6 +196,10 @@ unfiltered_sce = {
         "adt": {
             "assayNames": adt_assays,
             "rowData": altexp_adt_feature_metadata,
+        },
+        "cellhash": {
+            "assayNames": cellhash_assays,
+            "rowData": unfiltered_altexp_cellhash_feature_metadata,
         },
     },
 }
@@ -162,6 +219,11 @@ filtered_sce = {
             "rowData": altexp_adt_feature_metadata,
             "colData_conditional": filtered_altexp_adt_cell_metadata_conditional,
         },
+        "cellhash": {
+            "assayNames": cellhash_assays,
+            "rowData": filtered_altexp_cellhash_feature_metadata,
+            "colData_conditional": filtered_altexp_cellhash_cell_metadata_conditional,
+        },
     },
 }
 
@@ -179,6 +241,11 @@ processed_sce = {
             "colData": filtered_altexp_adt_cell_metadata,
             "rowData": altexp_adt_feature_metadata,
             "colData_conditional": processed_altexp_adt_cell_metadata_conditional,
+        },
+        "cellhash": {
+            "assayNames": cellhash_assays,
+            "rowData": filtered_altexp_cellhash_feature_metadata,
+            "colData_conditional": filtered_altexp_cellhash_cell_metadata_conditional,
         },
     },
 }
