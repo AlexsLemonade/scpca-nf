@@ -140,7 +140,7 @@ create_ref_entry <- function(
     # TODO: probe file name?
     json_entry$cytassist_probe <- file.path(
       cytassist_probe_dir,
-      glue::glue("{reference_name}_cytassist-v2.1.0.csv.gz")
+      glue::glue("{reference_name}_cytassist-v2.1.0.csv")
     )
   }
   return(json_entry)
