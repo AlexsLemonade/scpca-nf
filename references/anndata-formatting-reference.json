@@ -63,7 +63,6 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "X_name": "str",
-                "pca": "dict",
                 "schema_version": "str"
             },
             "uns_conditional": {
@@ -336,7 +335,8 @@
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "numpy.int64",
                 "normalization": "str",
-                "highly_variable_genes": "numpy.ndarray"
+                "highly_variable_genes": "numpy.ndarray",
+                "pca": "dict"
             },
             "uns_conditional": {
                 "umi_filtering": {

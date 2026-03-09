@@ -510,7 +510,6 @@ processed_obsm = ["X_pca", "X_umap"]
 # experiment metadata --------------
 anndata_uns_metadata = {
     "X_name": "str",
-    "pca": "dict",
     "schema_version": "str",
 }
 
@@ -529,9 +528,10 @@ filtered_uns_metadata_conditional = convert_experiment_metadata_types(
     filtered_experiment_metadata_conditional
 )
 
-processed_uns_metadata = convert_experiment_metadata_types(
-    processed_experiment_metadata
-)
+processed_uns_metadata = {
+    **convert_experiment_metadata_types(processed_experiment_metadata),
+    "pca": "dict",
+}
 
 processed_uns_metadata_conditional = convert_experiment_metadata_types(
     processed_experiment_metadata_conditional
