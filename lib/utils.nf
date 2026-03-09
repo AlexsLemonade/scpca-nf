@@ -14,7 +14,7 @@ def readMeta(file) {
     meta.unique_id = meta.technology.contains("_multi") ? "${meta.library_id}-${meta.sample_id}" : meta.library_id
   }
 
-  if(meta.technology) {
+  if (meta.technology) {
     meta.technology = meta.technology.toLowerCase()
   }
 
@@ -117,4 +117,25 @@ def pullthroughContainer(image_url, pullthrough_url = ""){
     }
   }
   return container
+}
+
+
+/**
+  * For a given directory, return its files as long as there are <= max_files present
+  * This is used to get images files for space ranger
+  *
+  * @param dir Directory to search for a single file in
+  * @return File path(s) or [] if no or too many files 
+  */
+def getImageFiles(dir, max_files = 1) {
+  def f = files("${dir}/*")
+  // empty or too many
+  if (f.size() == 0 || f.size() > max_files) {
+    return ([])
+  }
+  // return the 1+ files if they exist
+  if (max_files == 1) {
+    return (f[0]) // we want to return the single file here, so index it out
+  }
+  return (f)
 }

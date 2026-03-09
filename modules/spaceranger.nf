@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
@@ -8,9 +8,9 @@ process spaceranger {
   label 'cpus_12'
   label 'mem_32'
   label 'disk_big'
-  input:
-    tuple val(meta), path(files_dir), path(index), 
-      path(cytassist_probe_file) 
+  input: 
+    tuple val(meta), path(index), path(probeset_file) 
+      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type)
   output:
     tuple val(meta), path(out_id)
   script:
@@ -18,7 +18,12 @@ process spaceranger {
     meta += getVersions()
     meta_json = makeJson(meta)
 
-    // set up file arguments - they are inside files_dir
+    // TODO: We are currently assuming that only one of the non-cytassist images should exist, 
+    //  and therefore we only want to provide a single argument
+    image_arg = image_type == "image"           ? "--image ${image_file}" :
+                image_type == "colorizedimage"  ? "--colorizedimage ${image_file}" :
+                image_type == "darkimage"       ? "--darkimage ${[image_file].flatten().join(',')}" :
+                ""
 
     """
     spaceranger count \
@@ -31,11 +36,9 @@ process spaceranger {
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} \
       --create-bam false \
-      ${cytassist_probe_file ? "--probe-set ${cytassist_probe_file}" : ""} \
+      ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
-      ${image_file ? "--image ${image_file}" : ""} \
-      ${darkimage_file ? "--darkimage ${darkimage_file}" : ""} \
-      ${colorizedimage_file ? "--colorizedimage ${colorizedimage_file}" : ""}
+      ${image_arg}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
@@ -140,18 +143,15 @@ workflow spaceranger_quant{
         meta.cr_samples = getCRsamples(meta.files_directory)
         meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
         meta.spaceranger_results_dir = "${meta.spaceranger_publish_dir}/${meta.run_id}-spatial"
+
         meta // return modified meta object
       }
       .branch{ it ->
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
         // branch for invalid cases
-        missing_slide_serial: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_serial_number)
-        missing_slide_section: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_section)
-        missing_image: it.technology.toLowerCase() == "visium" && !parseNA(it.image_file)  // TODO: this should eventually say visium1
-        missing_cytaimage: it.technology.toLowerCase() in spatial_techs 
-          && it.technology.toLowerCase() != "visium" // TODO: this should eventually say visium1
-          && !parseNA(it.cytaimage_file)
+        missing_slide_serial: !parseNA(it.slide_serial_number)
+        missing_slide_section: !parseNA(it.slide_section)
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -166,7 +166,7 @@ workflow spaceranger_quant{
         missing_inputs: true
       }
 
-    // TODO: warn or error?
+    // TODO: Should these be warn or error?
     // warn about missing spatial information
     spatial_channel.missing_slide_serial.subscribe{ it ->
       log.warn("Run '${it.run_id}' is missing a slide serial number and will not be processed.")
@@ -174,39 +174,38 @@ workflow spaceranger_quant{
     spatial_channel.missing_slide_section.subscribe{ it ->
       log.warn("Run '${it.run_id}' is missing a slide section (area) and will not be processed.")
     }
-    spatial_channel.missing_image.subscribe{ it ->
-      log.warn("Run '${it.run_id}' is missing an image file and will not be processed.")
-    }
-    spatial_channel.missing_cytaimage.subscribe{ it ->
-      log.warn("Run '${it.run_id}' is missing a cytaimage file and will not be processed.")
-    }
     spatial_channel.missing_inputs.subscribe{ it ->
       log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
     }
   
 
-    // create tuple of [metadata, fastq dir, cytaimage file, index, probe set, paths, to, other, images]
+    // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file, image type]
     spaceranger_reads = spatial_channel.make_spatial
       .map{ meta ->
         // probeset logic
         def use_probeset = meta.technology in cytassist_probe_techs
-        def probeset_file = use_probeset ? file("${params.cytassist_probes_dir}/${cytassist_probesets[organism]}", checkIfExists: true) : []
+        def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
-        // image logic
-        def cytaimage_file = meta.cytaimage_file ? file(meta.cytaimage_file, checkIfExists: true) : []
-        def image_file = meta.image_file ? file(meta.image_file, checkIfExists: true) : []
-        def darkimage_file = meta.darkimage_file ? file(meta.darkimage_file, checkIfExists: true) : []
-        def colorizedimage_file = meta.colorizedimage_file ? file(meta.colorizedimage_file, checkIfExists: true) : []
-        
+        // image logic: first three must be a single file, but darkimage can be several
+        def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage")
+        def image_file = getImageFiles("${meta.files_directory}/image")
+        def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
+        def darkimage_files = getImageFiles("${meta.files_directory}/darkimage/*", 6) // max 6 files: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/inputs/image-image-recommendation
+
+        // TODO: We are currently assuming that only one of the non-cytassist images should exist
+        def image_type = image_file ? "image" :
+                         colorizedimage_file ? "colorizedimage" :
+                         darkimage_files ? "darkimage" :
+                         ""
+
         [
           meta,
-          file(meta.files_directory, type: 'dir'),
           file(meta.cellranger_index, type: 'dir'),
-          cytaimage_file, 
           probeset_file,
-          image_file,
-          darkimage_file,
-          colorizedimage_file          
+          file(meta.files_directory, type: 'dir'),
+          cytaimage_file, 
+          image_file, 
+          image_type   
         ]
     }
 
