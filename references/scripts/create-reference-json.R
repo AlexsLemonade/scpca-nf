@@ -75,7 +75,7 @@ create_ref_entry <- function(
     cellranger_index = "",
     star_index = "",
     infercnv_gene_order = "",
-    cytoband = "", 
+    cytoband = "",
     cytassist_probe = ""
   )
 
@@ -136,11 +136,11 @@ create_ref_entry <- function(
   if (include_cytassist) {
     # TODO: UPDATE THIS DIRECTORY to: file.path(ref_dir, "cytassist")
     cytassist_probe_dir <- "s3://ccdl-scpca-nf-results-testing/example-data/visium-test-runs/cytassist-probes"
-    
+
     # TODO: probe file name?
     json_entry$cytassist_probe <- file.path(
       cytassist_probe_dir,
-      glue::glue("{reference_name}_cytassist-v2.1.0.csv.gz") 
+      glue::glue("{reference_name}_cytassist-v2.1.0.csv.gz")
     )
   }
   return(json_entry)
