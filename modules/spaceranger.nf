@@ -9,8 +9,8 @@ process spaceranger {
   label 'mem_32'
   label 'disk_big'
   input: 
-    tuple val(meta), path(index), path(probeset_file),
-      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type)
+    tuple val(meta), path(index), path(probeset_file), path(files_directory)
+    //  path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type)
   output:
     tuple val(meta), path(out_id)
   script:
@@ -20,16 +20,32 @@ process spaceranger {
 
     // TODO: We are currently assuming that only one of the non-cytassist images should exist, 
     //  and therefore we only want to provide a single argument
-    image_arg = image_type == "image"           ? "--image ${image_file}" :
-                image_type == "colorizedimage"  ? "--colorizedimage ${image_file}" :
-                image_type == "darkimage"       ? "--darkimage ${[image_file].flatten().join(',')}" :
-                ""
-
+   // image_arg = image_type == "image"           ? "--image ${image_file}" :
+   //             image_type == "colorizedimage"  ? "--colorizedimage ${image_file}" :
+    //            image_type == "darkimage"       ? "--darkimage ${[image_file].flatten().join(',')}" :
+    //            ""
     """
+    ###### TODO: In this approach I'm not counting how many files there are. I'm assuming a present file(s) is ok.
+    # First, set up image arguments
+    # Cytaimage
+    cytaimage_arg=""
+    if [ -n "$(ls ${files_directory}/cytaimage/ 2>/dev/null)" ]; then
+      cytaimage_arg="--cytaimage $(ls ${files_directory}/cytaimage/*)"
+    fi
+
+    # Other image, allowing for multiple in the directory
+    image_arg=""
+    for image_type in image colorizedimage darkimage; do
+      if [ -n "$(ls ${files_directory}/${image_type}/ 2>/dev/null)" ]; then
+        image_arg="--${image_type} $(ls ${files_directory}/${image_type}/* | tr '\n' ',')"
+        break
+      fi
+    done
+
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastq_dir} \
+      --fastqs=${files_directory}/fastq \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()} \
@@ -37,8 +53,8 @@ process spaceranger {
       --area=${meta.slide_section} \
       --create-bam false \
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
-      ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
-      ${image_arg}
+      \${cytaimage_arg} \
+      \${image_arg}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
@@ -185,25 +201,26 @@ workflow spaceranger_quant{
         def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
         // image logic: first three must be a single file, but darkimage can be several
-        def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage")
-        def image_file = getImageFiles("${meta.files_directory}/image")
-        def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
-        def darkimage_files = getImageFiles("${meta.files_directory}/darkimage/*", 6) // max 6 files: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/inputs/image-image-recommendation
+        //def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage")
+        //def image_file = getImageFiles("${meta.files_directory}/image")
+        //def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
+      //  def darkimage_files = getImageFiles("${meta.files_directory}/darkimage/*", 6) // max 6 files: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/inputs/image-image-recommendation
 
         // TODO: We are currently assuming that only one of the non-cytassist images should exist
-        def image_type = image_file ? "image" :
-                         colorizedimage_file ? "colorizedimage" :
-                         darkimage_files ? "darkimage" :
-                         ""
+       // def image_type = image_file ? "image" :
+        //                 colorizedimage_file ? "colorizedimage" :
+        //                 darkimage_files ? "darkimage" :
+        //                 ""
 
         [
           meta,
           file(meta.cellranger_index, type: 'dir'),
           probeset_file,
-          file("${meta.files_directory}/fastq", type: 'dir'),
-          cytaimage_file, 
-          image_file, 
-          image_type   
+          file(meta.files_directory, type: 'dir') 
+          //file("${meta.files_directory}/fastq", type: 'dir'),
+          //cytaimage_file, 
+          //image_file, 
+          //image_type   
         ]
     }
 
