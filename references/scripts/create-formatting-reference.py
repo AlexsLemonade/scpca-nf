@@ -155,7 +155,7 @@ filtered_experiment_metadata = {
     **unfiltered_experiment_metadata,
     "filtering_method": "character",
     # this is NA if miQC failed
-    "prob_compromised_cutoff": "NA",
+    "prob_compromised_cutoff": "logical",
     "scpca_filter_method": "character",
     "min_gene_cutoff": "integer",
 }
@@ -179,7 +179,7 @@ processed_experiment_metadata_conditional = {
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "numeric"},
     # if miQC is present, these should have specific contents
-    "has_miQC": {"miQC_model": None, "prob_compromised_cutoff": "numeric"},
+    "has_miQC": {"prob_compromised_cutoff": "numeric"},
     "has_clusters": {
         "cluster_algorithm": "character",
         "cluster_weighting": "character",
@@ -200,6 +200,10 @@ processed_experiment_metadata_conditional = {
         "singler_reference_label": "character",
         "singler_reference_source": "character",
         "singler_reference_version": "character",
+        # TODO: these are NA right now because we are using the old SingleR refs
+        # only projects that use the new refs will have these set correctly...
+        "singler_gene_set_version": "logical",
+        "singler_date": "logical",
     },
     "has_cellassign": {
         "celltype_methods": "character",
@@ -260,7 +264,10 @@ processed_altexp_adt_cell_metadata_conditional = {
     "sizeFactor": "numeric",
 }
 
-filtered_altexp_adt_experiment_metadata = {"ambient_profile": "character"}
+filtered_altexp_adt_experiment_metadata = {
+    **unfiltered_experiment_metadata,
+    "ambient_profile": "character",
+}
 
 # cellhash specific items
 unfiltered_altexp_cellhash_feature_metadata = {
@@ -314,6 +321,8 @@ unfiltered_sce = {
         "adt": {
             "assayNames": adt_assays,
             "rowData": altexp_adt_feature_metadata,
+            "metadata": unfiltered_experiment_metadata,
+            "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
         "cellhash": {
             "assayNames": cellhash_assays,
@@ -339,6 +348,7 @@ filtered_sce = {
             "rowData": altexp_adt_feature_metadata,
             "colData_conditional": filtered_altexp_adt_cell_metadata_conditional,
             "metadata": filtered_altexp_adt_experiment_metadata,
+            "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
         "cellhash": {
             "assayNames": cellhash_assays,
@@ -365,6 +375,7 @@ processed_sce = {
             "rowData": altexp_adt_feature_metadata,
             "colData_conditional": processed_altexp_adt_cell_metadata_conditional,
             "metadata": filtered_altexp_adt_experiment_metadata,
+            "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
         "cellhash": {
             "assayNames": cellhash_assays,
