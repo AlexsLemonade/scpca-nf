@@ -9,7 +9,7 @@ process spaceranger {
   label 'mem_32'
   label 'disk_big'
   input: 
-    tuple val(meta), path(index), path(probeset_file) 
+    tuple val(meta), path(index), path(probeset_file),
       path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type)
   output:
     tuple val(meta), path(out_id)
