@@ -29,15 +29,15 @@ process spaceranger {
     # First, set up image arguments
     # Cytaimage
     cytaimage_arg=""
-    if [ -n "$(ls ${files_directory}/cytaimage/ 2>/dev/null)" ]; then
-      cytaimage_arg="--cytaimage $(ls ${files_directory}/cytaimage/*)"
+    if [ -n "\$(ls ${files_directory}/cytaimage/ 2>/dev/null)" ]; then
+      cytaimage_arg="--cytaimage \$(ls ${files_directory}/cytaimage/*)"
     fi
 
     # Other image, allowing for multiple in the directory
     image_arg=""
     for image_type in image colorizedimage darkimage; do
-      if [ -n "$(ls ${files_directory}/${image_type}/ 2>/dev/null)" ]; then
-        image_arg="--${image_type} $(ls ${files_directory}/${image_type}/* | tr '\n' ',')"
+      if [ -n "\$(ls ${files_directory}/${image_type}/ 2>/dev/null)" ]; then
+        image_arg="--\${image_type} \$(ls ${files_directory}/${image_type}/* | tr '\n' ',')"
         break
       fi
     done
