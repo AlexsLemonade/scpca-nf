@@ -129,9 +129,7 @@ def getCRsamples(files_dir) {
 
 
 workflow spaceranger_quant{
-  take:
-    spatial_channel // a channel with a map of metadata for each spatial library to process
-    cytassist_probesets // map of CytAssist probe set files for each species
+  take: spatial_channel // a channel with a map of metadata for each spatial library to process
   main:
     // techs that use the probe file
     def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
