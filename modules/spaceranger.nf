@@ -200,7 +200,7 @@ workflow spaceranger_quant{
           meta,
           file(meta.cellranger_index, type: 'dir'),
           probeset_file,
-          file(meta.files_directory, type: 'dir'),
+          file("${meta.files_directory}/fastq", type: 'dir'),
           cytaimage_file, 
           image_file, 
           image_type   
