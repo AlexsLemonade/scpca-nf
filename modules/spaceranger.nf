@@ -25,7 +25,7 @@ process spaceranger {
     //            image_type == "darkimage"       ? "--darkimage ${[image_file].flatten().join(',')}" :
     //            ""
     """
-    ###### TODO: In this approach I'm not counting how many files there are. I'm assuming a present file(s) is ok.
+    ###### TODO: In this approach I'm not counting how many files there are but assuming any presence is ok
     # First, set up image arguments
     # Cytaimage
     cytaimage_arg=""
@@ -33,11 +33,12 @@ process spaceranger {
       cytaimage_arg="--cytaimage \$(ls ${files_directory}/cytaimage/*)"
     fi
 
+    # TODO: this code assumes the first one found will get used - need to confirm this is what we want.
     # Other image, allowing for multiple in the directory
     image_arg=""
     for image_type in image colorizedimage darkimage; do
       if [ -n "\$(ls ${files_directory}/\${image_type}/ 2>/dev/null)" ]; then
-        image_arg="--\${image_type} \$(ls ${files_directory}/\${image_type}/* | tr '\n' ',')"
+        image_arg="--\${image_type} \$(ls ${files_directory}/\${image_type}/* | tr '\n' ',' | sed 's/,$//')"
         break
       fi
     done
@@ -53,8 +54,8 @@ process spaceranger {
       --area=${meta.slide_section} \
       --create-bam false \
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
-      \${cytaimage_arg} \
-      \${image_arg}
+      \$cytaimage_arg \
+      \$image_arg
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
