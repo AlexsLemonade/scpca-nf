@@ -126,7 +126,7 @@ unfiltered_experiment_metadata = {
     "assay_ontology_term_id": "character",
     "seq_unit": "character",
     "transcript_type": "character",
-    "sample_metadata": "character",
+    "sample_metadata": "data.frame",
     "sample_type": "character",
 }
 
@@ -195,7 +195,7 @@ processed_experiment_metadata_conditional = {
     },
     "has_singler": {
         "celltype_methods": "character",
-        "singler_results": "S4",
+        "singler_results": "DFrame",
         "singler_reference": "character",
         "singler_reference_label": "character",
         "singler_reference_source": "character",
@@ -203,7 +203,7 @@ processed_experiment_metadata_conditional = {
     },
     "has_cellassign": {
         "celltype_methods": "character",
-        "cellassign_predictions": "character",
+        "cellassign_predictions": "data.frame",
         "cellassign_reference": "character",
         "cellassign_reference_organs": "character",
         "cellassign_reference_source": "character",
@@ -219,7 +219,7 @@ processed_experiment_metadata_conditional = {
         "infercnv_num_reference_cells": "integer",
         "infercnv_diagnosis_groups": "character",
         "infercnv_status": "character",
-        "infercnv_options": "character",
+        "infercnv_options": "list",
         "infercnv_table": "character",
     },
     "has_adt": {
