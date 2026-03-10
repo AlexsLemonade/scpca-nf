@@ -180,7 +180,7 @@ workflow {
       || (it.submitter in project_ids)
       || (it.scpca_project_id in project_ids)
     }
-    // make sure technology and references are known, and all spatial information is provided
+    // make sure technology and references are known
     .branch{ it ->
       unknown_tech: !(it.technology.toLowerCase() in all_techs)
       unknown_ref: !(it.sample_reference in ref_paths)
