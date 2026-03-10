@@ -177,7 +177,7 @@ workflow spaceranger_quant{
 
         // image logic
         // TODO: size check approach?
-        def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", cytaimage: true)
+        def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
         if (cytaimage_file.size() == 1) {
           cytaimage_file = cytaimage_file[0]
         } else {
