@@ -18,6 +18,7 @@ We welcome contributions to the `scpca-nf` workflow, including usage reports and
     - [Channel transformations](#channel-transformations)
     - [Explicit variables in closures](#explicit-variables-in-closures)
     - [Spacing](#spacing)
+    - [Working with optional files](#working-with-optional-files)
   - [R and R Markdown](#r-and-r-markdown)
   - [Python](#python)
 - [Environment management with `pixi`](#environment-management-with-pixi)
@@ -226,6 +227,19 @@ bad.join( other_thing ) // not this
 // if/else spacing as follows:
 if (condition) { // do this
 if(condition){ // not this, or any other spacing variant
+```
+
+#### Working with optional files
+
+When a file is optional for a process to consume, we prefer to pass empty files in as `[]`.
+Nextflow will effectively treat this as a non-existent file, and boolean statements will treat it as falsey.
+
+For example, when defining a Path variable to stage for a process, we use the following general syntax (with [`def` as appropriate](#declaring-groovy-variables)):
+
+```groovy
+// do this:
+// define as Path variable if file exists, or [] if not 
+def file_to_stage = variable_with_filename ? file(variable_with_filename, checkIfExists: true) : []
 ```
 
 
