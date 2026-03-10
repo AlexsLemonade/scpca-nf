@@ -224,7 +224,7 @@ processed_experiment_metadata_conditional = {
         "infercnv_diagnosis_groups": "character",
         "infercnv_status": "character",
         "infercnv_options": "list",
-        "infercnv_table": "character",
+        "infercnv_table": "data.frame",
     },
     "has_adt": {
         "adt_scpca_filter_method": "character",
