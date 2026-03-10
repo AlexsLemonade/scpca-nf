@@ -1,6 +1,8 @@
 
+include { getVersions; makeJson; readMeta; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
+
 process classify_singler {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   publishDir (
     path: "${meta.celltype_checkpoints_dir}",
     mode: 'copy'
@@ -14,8 +16,8 @@ process classify_singler {
     tuple val(meta.unique_id), path(singler_dir)
   script:
     singler_dir = file(meta.singler_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     # create output directory
     mkdir "${singler_dir}"
@@ -32,8 +34,8 @@ process classify_singler {
     """
   stub:
     singler_dir = file(meta.singler_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     mkdir "${singler_dir}"
     echo '${meta_json}' > "${singler_dir}/scpca-meta.json"
@@ -43,7 +45,7 @@ process classify_singler {
 
 
 process classify_cellassign {
-  container params.SCPCATOOLS_SCVI_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_scvi_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
@@ -58,8 +60,8 @@ process classify_cellassign {
     tuple val(meta.unique_id), path(cellassign_dir)
   script:
     cellassign_dir = file(meta.cellassign_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     # create output directory
     mkdir "${cellassign_dir}"
@@ -91,8 +93,8 @@ process classify_cellassign {
     """
   stub:
     cellassign_dir = file(meta.cellassign_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     mkdir "${cellassign_dir}"
     echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
@@ -101,7 +103,7 @@ process classify_cellassign {
 }
 
 process classify_scimilarity {
-  container params.SCPCATOOLS_SCIMILARITY_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_scimilarity_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
@@ -115,7 +117,7 @@ process classify_scimilarity {
     tuple val(meta.unique_id), path(scimilarity_dir)
   script:
     scimilarity_dir = file(meta.scimilarity_dir).name
-    def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
+    def meta_json = makeJson(meta + getVersions())
     """
     # create output directory
     mkdir "${scimilarity_dir}"
@@ -147,7 +149,7 @@ process classify_scimilarity {
     """
   stub:
     scimilarity_dir = file(meta.scimilarity_dir).name
-    def meta_json = Utils.makeJson(meta + Utils.getVersions(workflow, nextflow))
+    def meta_json = makeJson(meta + getVersions())
     """
     mkdir "${scimilarity_dir}"
     echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
@@ -156,7 +158,7 @@ process classify_scimilarity {
 }
 
 process add_celltypes_to_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_4'
   label 'cpus_2'
   tag "${meta.unique_id}"
@@ -240,8 +242,8 @@ workflow annotate_celltypes {
     celltype_ch = channel.fromPath(params.project_celltype_metafile)
       .splitCsv(header: true, sep: '\t')
       .map{ it ->
-        def singler_model_file = Utils.parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : ''
-        def cellassign_ref_file = Utils.parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : ''
+        def singler_model_file = parseNA(it.singler_ref_file) ? "${params.singler_models_dir}/${it.singler_ref_file}" : ''
+        def cellassign_ref_file = parseNA(it.cellassign_ref_file) ? "${params.cellassign_ref_dir}/${it.cellassign_ref_file}" : ''
 
         [it.scpca_project_id, singler_model_file, cellassign_ref_file]
       }
@@ -288,7 +290,7 @@ workflow annotate_celltypes {
       }
       // skip if no singleR model file or if singleR results are already present
       .branch{ meta, _processed_sce, singler_model ->
-        def stored_singler_model_file = Utils.getMetaVal(file("${meta.singler_dir}/scpca-meta.json"), "singler_model_file")
+        def stored_singler_model_file = getMetaVal(file("${meta.singler_dir}/scpca-meta.json"), "singler_model_file")
         skip_singler: (
           !params.repeat_celltyping
           && file(meta.singler_results_file).exists()
@@ -330,7 +332,7 @@ workflow annotate_celltypes {
       }
       // skip if no cellassign reference file or reference name is not defined
       .branch{ meta, _processed_sce, cellassign_ref ->
-        def stored_cellassign_reference_file = Utils.getMetaVal(file("${meta.cellassign_dir}/scpca-meta.json"), "cellassign_reference_file")
+        def stored_cellassign_reference_file = getMetaVal(file("${meta.cellassign_dir}/scpca-meta.json"), "cellassign_reference_file")
         skip_cellassign: (
           !params.repeat_celltyping
           && file(meta.cellassign_predictions_file).exists()
@@ -376,7 +378,7 @@ workflow annotate_celltypes {
       }
       // skip if scimilarity results exist and path to the model has not changed
       .branch{ it ->
-        def stored_scimilarity_model_dir = Utils.getMetaVal(file("${it[0].scimilarity_dir}/scpca-meta.json"), "scimilarity_model_dir")
+        def stored_scimilarity_model_dir = getMetaVal(file("${it[0].scimilarity_dir}/scpca-meta.json"), "scimilarity_model_dir")
 
         skip_scimilarity: (
           !params.repeat_celltyping
@@ -435,8 +437,8 @@ workflow annotate_celltypes {
       file(params.panglao_ref_file), // used for assigning ontology IDs for CellAssign results
       file(params.consensus_ref_file), // used for assigning consensus cell types if both SingleR and CellAssign are used
       file(params.validation_groups_file),  // maps consensus cell types to cell type groups, for counting normal reference cells
-      params.diagnosis_celltypes_file ? file(params.diagnosis_celltypes_file, checkIfExists: true) : [], // maps broad diagnoses to cell type groups, for counting normal reference cells
-      params.diagnosis_groups_file ? file(params.diagnosis_groups_file, checkIfExists: true) : [] // maps sample diagnoses to broad diagnoses, for counting normal reference cells
+      (params.perform_cnv_inference && params.diagnosis_celltypes_file) ? file(params.diagnosis_celltypes_file, checkIfExists: true) : [], // maps broad diagnoses to cell type groups, for counting normal reference cells
+      (params.perform_cnv_inference && params.diagnosis_groups_file) ? file(params.diagnosis_groups_file, checkIfExists: true) : [] // maps sample diagnoses to broad diagnoses, for counting normal reference cells
     )
 
     // add inferCNV logic to meta
@@ -445,7 +447,8 @@ workflow annotate_celltypes {
         def meta = meta_in.clone() // local copy for safe modification
         // ensure the count is saved as an integer: either the integer value, or null if it was an
         // empty string since we can do future math comparisons with null
-        meta.infercnv_reference_cell_count = cell_count ? cell_count.toInteger() : null
+        // note that this code assures that the literal number 0 remains a 0 (vs becoming null)
+        meta.infercnv_reference_cell_count = cell_count == "" ? null : cell_count.toInteger()
         meta.infercnv_reference_cell_hash = cell_hash
 
         // return only meta and annotated_sce
@@ -481,6 +484,13 @@ workflow annotate_celltypes {
       }
       // mix in cell line libraries which were not cell typed
       .mix(sce_files_channel_branched.cell_line)
+      // ensure meta.infercnv_reference_cell_count exists
+      .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce -> 
+        def meta = meta_in.clone()
+        // make sure not to overwrite a literal 0 value with null
+        meta.putIfAbsent('infercnv_reference_cell_count', null)
+        [meta, unfiltered_sce, filtered_sce, processed_sce]
+      }
 
   emit: export_channel
 

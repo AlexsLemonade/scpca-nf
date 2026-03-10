@@ -162,7 +162,6 @@ if (opt$is_merged) {
 message("Formatting done")
 
 
-
 # export sce as anndata object
 # this function will also remove any R-specific object types from the SCE metadata
 #   before converting to AnnData

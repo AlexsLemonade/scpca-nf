@@ -1,6 +1,8 @@
 
+include { pullthroughContainer } from '../lib/utils.nf'
+
 process mpileup {
-  container params.BCFTOOLS_CONTAINER
+  container "${pullthroughContainer(params.bcftools_container, params.pullthrough_registry)}"
   label 'cpus_2'
   tag "${meta.multiplex_run_id}"
   input:

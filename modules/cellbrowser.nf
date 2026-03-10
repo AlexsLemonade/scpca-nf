@@ -1,6 +1,8 @@
 
+include { pullthroughContainer } from '../lib/utils.nf'
+
 process cellbrowser_library {
-  container "${params.CELLBROWSER_CONTAINER}"
+  container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
 
   input:
@@ -44,13 +46,12 @@ process cellbrowser_library {
 }
 
 process cellbrowser_site {
-  container "${params.CELLBROWSER_CONTAINER}"
+  container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}"
   input:
     tuple val(project_ids), path(library_dirs)
     path project_metadata
-    path "cb_data"
-    path params.cellbrowser_dirname
+    path template_dir, stageAs: "cb_data"
   output:
     path params.cellbrowser_dirname
   script:
@@ -72,7 +73,6 @@ process cellbrowser_site {
 
     # build the site
     CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf \
-      --redo ${params.cellbrowser_rebuild ? "matrix" : "meta"} \
       --outDir ${params.cellbrowser_dirname}
     """
   stub:
@@ -89,11 +89,11 @@ workflow cellbrowser_build {
   main:
     cellbrowser_library(processed_anndata_ch)
 
-    // use existing output directory if it exists
-    def cb_outdir = file("${params.outdir}/${params.cellbrowser_dirname}", type: 'dir')
-    if (!cb_outdir.exists()) {
-      cb_outdir.mkdirs()
-    }
+    // use existing output directory if it exists (This caused trouble with rebuilds; we may want to revisit it later)
+    // def cb_outdir = file("${params.outdir}/${params.cellbrowser_dirname}", type: 'dir')
+    // if (!cb_outdir.exists()) {
+    //   cb_outdir.mkdirs()
+    // }
 
     // create single channel of [[project_ids], [library_dirs]]
     project_libs_ch = cellbrowser_library.out
@@ -110,8 +110,7 @@ workflow cellbrowser_build {
     cellbrowser_site(
       project_libs_ch,
       file(params.project_metafile),
-      file(params.cellbrowser_template_dir, type: 'dir', checkIfExists: true),
-      cb_outdir
+      file(params.cellbrowser_template_dir, type: 'dir', checkIfExists: true)
     )
 
   emit:

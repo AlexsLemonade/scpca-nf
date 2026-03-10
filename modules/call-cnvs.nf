@@ -1,13 +1,15 @@
 // run inferCNV on an SCE object that has consensus cell types
 
+include { getVersions; makeJson; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+
 process run_infercnv {
-  container params.SCPCATOOLS_INFERCNV_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)}"
   publishDir (
     path: "${meta.infercnv_checkpoints_dir}",
     mode: 'copy',
     pattern: "{${meta.unique_id}_infercnv-*,scpca-meta.json}"
   )
-  label 'mem_96'
+  label 'mem_128'
   label 'cpus_8'
   tag "${meta.unique_id}"
   input:
@@ -20,8 +22,8 @@ process run_infercnv {
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
 
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     # note that if inferCNV fails, the script will output empty results/heatmap files
     mkdir infercnv_tmp
@@ -42,8 +44,8 @@ process run_infercnv {
     results_file="${meta.unique_id}_infercnv-results.rds"
     table_file="${meta.unique_id}_infercnv-table.txt"
     heatmap_file="${meta.unique_id}_infercnv-heatmap.png"
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     touch "${results_file}"
     touch "${table_file}"
@@ -54,7 +56,7 @@ process run_infercnv {
 
 
 process add_infercnv_to_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
@@ -90,10 +92,13 @@ workflow call_cnvs {
       .map{ it -> it.scpca_sample_id }
       .toList()
 
-    // branch to run inferCNV on the non-cell line libraries only
+    // branch to run inferCNV on tissue samples with non-null reference cell counts only
     sce_files_channel_branched = sce_files_channel
       .branch{ meta, _unfiltered, _filtered, _processed ->
-        cell_line: meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
+        no_infercnv: (
+          meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
+          || meta.infercnv_reference_cell_count == null
+        )
         tissue: true
       }
 
@@ -106,9 +111,6 @@ workflow call_cnvs {
         meta.infercnv_heatmap_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-heatmap.png"
         meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds"
         meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt"
-        // if meta.infercnv_reference_cell_count doesn't exist, set it to null
-        // this happens when perform_celltyping is on but a library has no cell type references
-        meta.infercnv_reference_cell_count = meta.infercnv_reference_cell_count ?: null
 
         // return simplified input with gene order file
         [meta, processed_sce, file(meta.infercnv_gene_order, checkIfExists: true)]
@@ -120,7 +122,7 @@ workflow call_cnvs {
     // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
       .branch{ it ->
-        def stored_cell_hash = Utils.getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
+        def stored_cell_hash = getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
         skip_infercnv: (
         (
@@ -178,10 +180,10 @@ workflow call_cnvs {
       .map{ _unique_id, meta, processed_sce, heatmap_file, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce, heatmap_file]
       }
-      // mix in cell line libraries which we did not run inferCNV on
+      // mix in libraries which we did not run inferCNV on
       .mix(
         // add in an empty file for heatmap placeholder first
-        sce_files_channel_branched.cell_line
+        sce_files_channel_branched.no_infercnv
           .map{ meta, unfiltered_sce, filtered_sce, processed_sce ->
             [meta, unfiltered_sce, filtered_sce, processed_sce, []]
           }

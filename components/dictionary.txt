@@ -27,6 +27,7 @@ Dockerfile
 doi
 DS
 DV
+ECR
 EFO
 embeddings
 Ensembl
@@ -46,6 +47,7 @@ HTOs
 HVGs
 Ichihara
 inferCNV
+InferCNV
 intronic
 JA
 Jaccard
@@ -65,6 +67,7 @@ pixi
 Prasad
 pre
 preprint
+README
 reproducibility
 reproducibly
 SCE

@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// include utility functions
+include { readMeta; parseNA } from './lib/utils.nf'
+
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
 include { map_quant_feature } from './modules/af-features.nf'
@@ -14,6 +17,7 @@ include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { call_cnvs } from './modules/call-cnvs.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
+
 
 def check_parameters() {
   // parameter check function
@@ -49,17 +53,17 @@ def check_parameters() {
 
   // cell type annotation file checks
   if (params.perform_celltyping || params.perform_cnv_inference) {
-    if (!file(params.project_celltype_metafile).exists()) {
+    if (!params.project_celltype_metafile || !file(params.project_celltype_metafile).exists()) {
       log.error("The 'project_celltype_metafile' file '${params.project_celltype_metafile}' can not be found.")
       param_error = true
     }
-    if (!file(params.celltype_ref_metadata).exists()) {
+    if (!params.celltype_ref_metadata || !file(params.celltype_ref_metadata).exists()) {
       log.error("The 'celltype_ref_metadata' file '${params.celltype_ref_metadata}' can not be found.")
       param_error = true
     }
 
     // check that scimilarity reference model and files exist
-    if (!file(params.scimilarity_model_dir, type: 'dir').exists()) {
+    if (!params.scimilarity_model_dir || !file(params.scimilarity_model_dir, type: 'dir').exists()) {
       log.error("The 'scimilarity_model_dir' directory '${params.scimilarity_model_dir}' can not be found.")
       param_error = true
     } else {
@@ -71,25 +75,25 @@ def check_parameters() {
       }
     }
 
-    if (!file(params.scimilarity_ontology_map_file).exists()) {
+    if (!params.scimilarity_ontology_map_file || !file(params.scimilarity_ontology_map_file).exists()) {
       log.error("The 'scimilarity_ontology_map_file' file '${params.scimilarity_ontology_map_file}' can not be found.")
       param_error = true
     }
 
     // check that reference files related to consensus cell types exist
-    if (!file(params.consensus_ref_file).exists()) {
+    if (!params.consensus_ref_file || !file(params.consensus_ref_file).exists()) {
       log.error("The 'consensus_ref_file' file '${params.consensus_ref_file}' can not be found.")
       param_error = true
     }
-    if (!file(params.validation_groups_file).exists()) {
+    if (!params.validation_groups_file || !file(params.validation_groups_file).exists()) {
       log.error("The 'validation_groups_file' file '${params.validation_groups_file}' can not be found.")
       param_error = true
     }
-    if (!file(params.validation_markers_file).exists()) {
+    if (!params.validation_markers_file || !file(params.validation_markers_file).exists()) {
       log.error("The 'validation_markers_file' file '${params.validation_markers_file}' can not be found.")
       param_error = true
     }
-    if (!file(params.validation_palette_file).exists()) {
+    if (!params.validation_palette_file || !file(params.validation_palette_file).exists()) {
       log.error("The 'validation_palette_file' file '${params.validation_palette_file}' can not be found.")
       param_error = true
     }
@@ -125,9 +129,11 @@ workflow {
     'citeseq_10xv2': '737K-august-2016.txt',
     'citeseq_10xv3': '3M-february-2018.txt',
     'citeseq_10xv3.1': '3M-february-2018.txt',
+    'citeseq_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
     'cellhash_10xv2': '737K-august-2016.txt',
     'cellhash_10xv3': '3M-february-2018.txt',
-    'cellhash_10xv3.1': '3M-february-2018.txt'
+    'cellhash_10xv3.1': '3M-february-2018.txt',
+    'cellhash_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
   ]
 
   // 10x flex probe set files
@@ -161,7 +167,7 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  def ref_paths = Utils.readMeta(file(params.ref_json))
+  def ref_paths = readMeta(file(params.ref_json))
   all_runs_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // use only the rows in the run_id list (run, library, or sample can match)
@@ -198,18 +204,18 @@ workflow {
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
         unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : it.scpca_library_id,
-        project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
-        submitter: Utils.parseNA(it.submitter),
+        project_id: parseNA(it.scpca_project_id)?: "no_project",
+        submitter: parseNA(it.submitter),
         technology: it.technology.toLowerCase(),
-        assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
+        assay_ontology_term_id: parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
-        submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
-        openscpca_cell_types_file: Utils.parseNA(it.openscpca_cell_types_file),
-        feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
-        feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
-        files_directory: Utils.parseNA(it.files_directory),
-        slide_serial_number: Utils.parseNA(it.slide_serial_number),
-        slide_section: Utils.parseNA(it.slide_section),
+        submitter_cell_types_file: parseNA(it.submitter_cell_types_file),
+        openscpca_cell_types_file: parseNA(it.openscpca_cell_types_file),
+        feature_barcode_file: parseNA(it.feature_barcode_file),
+        feature_barcode_geom: parseNA(it.feature_barcode_geom),
+        files_directory: parseNA(it.files_directory),
+        slide_serial_number: parseNA(it.slide_serial_number),
+        slide_section: parseNA(it.slide_section),
         ref_assembly: it.sample_reference,
         ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
         ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
@@ -267,8 +273,8 @@ workflow {
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
-    runs_ch.flex, 
-    flex_probesets, 
+    runs_ch.flex,
+    flex_probesets,
     params.cellhash_pool_file ? file(params.cellhash_pool_file) : []
   )
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
@@ -337,7 +343,7 @@ workflow {
 
   // apply cellhash demultiplexing
   cellhash_demux_ch = cellhash_demux_sce(
-    feature_sce_ch.cellhash, 
+    feature_sce_ch.cellhash,
     params.cellhash_pool_file ? file(params.cellhash_pool_file): []
   )
   combined_feature_sce_ch = cellhash_demux_ch.mix(feature_sce_ch.single)

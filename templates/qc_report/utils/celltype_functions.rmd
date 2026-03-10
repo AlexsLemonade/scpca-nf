@@ -95,8 +95,9 @@ create_celltype_df <- function(processed_sce) {
 #'
 #' @return Updated data frame with the `annotation_column` reformatted
 prepare_automated_annotation_values <- function(
-    df,
-    annotation_column) {
+  df,
+  annotation_column
+) {
   unknown_string <- "Unknown cell type"
 
   df |>
@@ -175,8 +176,9 @@ prepare_submitter_annotation_values <- function(df) {
 #'
 #' @return TRUE if CellAssign was not run, FALSE if CellAssign was run
 check_cellassign_not_run <- function(
-    has_cellassign,
-    sce_coldata) {
+  has_cellassign,
+  sce_coldata
+) {
   if (!has_cellassign && "cellassign_celltype_annotation" %in% names(sce_coldata)) {
     # This means the values should all be `"Not run"`
     if (!(all(sce_coldata$cellassign_celltype_annotation == "Not run"))) {
@@ -265,14 +267,15 @@ ComplexHeatmap::ht_opt(TITLE_PADDING = grid::unit(heatmap_padding, "in"))
 #'
 #' @return A ComplexHeatmap object
 create_single_heatmap <- function(
-    mat,
-    row_title,
-    column_title,
-    labels_font_size,
-    keep_legend_name,
-    col_fun = heatmap_col_fun,
-    column_names_side = "bottom",
-    ...) {
+  mat,
+  row_title,
+  column_title,
+  labels_font_size,
+  keep_legend_name,
+  col_fun = heatmap_col_fun,
+  column_names_side = "bottom",
+  ...
+) {
   heat <- ComplexHeatmap::Heatmap(
     t(mat), # transpose because matrix rows are in common & we want a vertical arrangement
     col = col_fun,
@@ -315,11 +318,12 @@ create_single_heatmap <- function(
 #'
 #' @return A list of ComplexHeatmap objects
 create_heatmap_list <- function(
-    matrix_list,
-    column_title,
-    labels_font_size,
-    col_fun = heatmap_col_fun,
-    ...) {
+  matrix_list,
+  column_title,
+  labels_font_size,
+  col_fun = heatmap_col_fun,
+  ...
+) {
   # We only want one shared legend in the end, arbitrarily grab the first one
   keep_legend_name <- names(matrix_list)[1]
 
@@ -388,11 +392,12 @@ find_label_size <- function(input_labels) {
 #'
 #' @return Heatmap height in inches
 calculate_plot_height <- function(
-    row_names,
-    col_names,
-    n_spacers,
-    spacer_size = heatmap_padding,
-    min_height = 6) {
+  row_names,
+  col_names,
+  n_spacers,
+  spacer_size = heatmap_padding,
+  min_height = 6
+) {
   # first, based on number of cells in row_names:
   #   6 cell types to an inch
   heat_height <- length(row_names) / 6

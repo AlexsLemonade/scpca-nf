@@ -1,8 +1,8 @@
-#!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process spaceranger {
-  container params.SPACERANGER_CONTAINER
+  container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
@@ -14,8 +14,8 @@ process spaceranger {
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     spaceranger count \
       --id=${out_id} \
@@ -39,8 +39,8 @@ process spaceranger {
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
-    meta += Utils.getVersions(workflow, nextflow)
-    meta_json = Utils.makeJson(meta)
+    meta += getVersions()
+    meta_json = makeJson(meta)
     """
     mkdir -p ${out_id}/outs
     echo '${meta_json}' > ${out_id}/scpca-meta.json
@@ -48,7 +48,7 @@ process spaceranger {
 }
 
 process spaceranger_publish {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
@@ -64,11 +64,11 @@ process spaceranger_publish {
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
 
-    # move over needed files to outs directory
-    mv ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
-    mv ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
-    mv ${spatial_out}/outs/spatial ${spatial_publish_dir}
-    mv ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
+    # copy over needed files to outs directory
+    cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
+    cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
+    cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}
+    cp ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
@@ -129,12 +129,15 @@ workflow spaceranger_quant{
         meta // return modified meta object
       }
       .branch{ it ->
-        def stored_ref_assembly = Utils.getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
+        def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
             params.repeat_mapping
             || !file(it.spaceranger_results_dir).exists()
+            // or the technology has changed (to ensure re-mapping if tech was updated)
+            || it.technology.toLowerCase() != stored_tech.toLowerCase()
             || it.ref_assembly != stored_ref_assembly
           )
         )
@@ -167,7 +170,7 @@ workflow spaceranger_quant{
     spaceranger_quants_ch = spatial_channel.has_spatial
       .map{ meta ->
         [
-          Utils.readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
+          readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
           file(meta.spaceranger_results_dir, type: 'dir')
         ]
       }
