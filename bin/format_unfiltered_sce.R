@@ -82,7 +82,9 @@ sample_metadata_df <- readr::read_tsv(
   dplyr::rename("sample_id" = "scpca_sample_id") |>
   # add library ID as column in sample metadata
   # we need this so we are able to merge sample metadata with colData later
-  dplyr::mutate(library_id = opt$library_id)
+  dplyr::mutate(library_id = opt$library_id) |>
+  # ensure this is a data frame for formatting checks
+  as.data.frame()
 
 if ("upload_date" %in% colnames(sample_metadata_df)) {
   sample_metadata_df <- sample_metadata_df |>
