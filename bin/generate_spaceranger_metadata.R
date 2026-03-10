@@ -178,7 +178,6 @@ metadata_list <- list(
   unfiltered_spots = nrow(unfiltered_barcodes),
   total_reads = metrics_summary$`Number of Reads`,
   mapped_reads = metrics_summary[[reads_mapped_column]],
-  temp_tissue_colname = metrics_summary[[tissue_spots_column]],
   genome_assembly = opt$genome_assembly,
   mapping_index = opt$index_filename,
   date_processed = lubridate::format_ISO8601(lubridate::now(tzone = "UTC"), usetz = TRUE),
@@ -192,8 +191,8 @@ metadata_list <- list(
     ifelse(is.null(x), NA, x)
   })
 
-# update the tissue column name
-names(metadata_list)[names(metadata_list) == "temp_tissue_colname"] <- tissue_colname
+# add the tissue field with a dependent name
+metadata_list[[tissue_colname]] <- metrics_summary[[tissue_spots_column]]
 
 
 # Output metadata as JSON
