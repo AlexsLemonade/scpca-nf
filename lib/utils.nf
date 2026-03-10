@@ -14,7 +14,7 @@ def readMeta(file) {
     meta.unique_id = meta.technology.contains("_multi") ? "${meta.library_id}-${meta.sample_id}" : meta.library_id
   }
 
-  if(meta.technology) {
+  if (meta.technology) {
     meta.technology = meta.technology.toLowerCase()
   }
 
@@ -117,4 +117,25 @@ def pullthroughContainer(image_url, pullthrough_url = ""){
     }
   }
   return container
+}
+
+
+/**
+  * For a given directory, return its space ranger image files 
+  *
+  * @param dir Directory to search image files(s) in
+  * @param cytaimage Boolean if the image file(s) to grab are the cytaimage
+  * @return Array of file paths
+  */
+def getImageFiles(dir, cytaimage = false) {
+  
+  // https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/inputs/image-image-recommendation
+  def image_extensions = cytaimage
+    ? ["tif", "tiff"] 
+    : ["tif", "tiff", "btf", "tf2", "tf8", "jpg", "jpeg", "qptiff"]
+
+  def f = files("${dir}/*")
+    .findAll { it =~ /(?i)\.(${image_extensions.join('|')})$/ }
+
+  return (f)
 }

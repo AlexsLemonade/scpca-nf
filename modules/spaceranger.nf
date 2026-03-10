@@ -1,21 +1,23 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
-  label 'mem_24'
+  label 'mem_32'
   label 'disk_big'
-  input:
-    tuple val(meta), path(fastq_dir), path(image_file), path(index)
+  input: 
+    tuple val(meta), path(index), path(probeset_file),
+      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type) 
   output:
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
     meta += getVersions()
     meta_json = makeJson(meta)
+    image_arg = image_type ? "--${image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     """
     spaceranger count \
       --id=${out_id} \
@@ -24,18 +26,20 @@ process spaceranger {
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()} \
-      --image=${image_file} \
-      --slide=${meta.slide_serial_number ?: "NA"} \
-      --area=${meta.slide_section ?: "NA"}
+      --slide=${meta.slide_serial_number} \
+      --area=${meta.slide_section} \
+      --create-bam false \
+      ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
+      ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
+      ${image_arg}
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
+    # TODO: Why is this still present in the checkpoints directory???
+    # TODO: Is there more we'd like to remove?
     # remove Space Ranger intermediates directory
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
-
-    # remove bam and bai files
-    rm ${out_id}/outs/*.bam*
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -47,6 +51,7 @@ process spaceranger {
     """
 }
 
+// TODO: need to accommodate HD outputs which are slightly different
 process spaceranger_publish {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
@@ -107,7 +112,8 @@ def getCRsamples(files_dir) {
   fastq_files.each{ it ->
     // append sample names to list, using regex to extract element before S001, etc.
     // [0] for the first match set, [1] for the first extracted element
-    samples << (it =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
+    // use .name to ensure we aren't getting a full path
+    samples << (it.name =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
   }
   // convert samples list to a `set` to remove duplicate entries,
   // then join to a comma separated string.
@@ -116,21 +122,27 @@ def getCRsamples(files_dir) {
 
 
 workflow spaceranger_quant{
-  take: spatial_channel
-  // a channel with a map of metadata for each spatial library to process
+  take: spatial_channel // a channel with a map of metadata for each spatial library to process
   main:
+    // techs that use the probe file
+    def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
         def meta = meta_in.clone()
-        meta.cr_samples = getCRsamples(meta.files_directory)
+        meta.cr_samples = getCRsamples("${meta.files_directory}/fastq")
         meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
         meta.spaceranger_results_dir = "${meta.spaceranger_publish_dir}/${meta.run_id}-spatial"
+
         meta // return modified meta object
       }
       .branch{ it ->
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
+        // branch for invalid cases
+        missing_slide_serial: !it.slide_serial_number
+        missing_slide_section: !it.slide_section
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
@@ -145,20 +157,50 @@ workflow spaceranger_quant{
         missing_inputs: true
       }
 
-    // send run ids in spatial_channel.missing_inputs to log
-    spatial_channel.missing_inputs
-      .subscribe{ it ->
-        log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
-      }
+    spatial_channel.missing_slide_serial.subscribe{ it ->
+      log.error("Run '${it.run_id}' is missing a slide serial number and will not be processed.")
+    }
+    spatial_channel.missing_slide_section.subscribe{ it ->
+      log.error("Run '${it.run_id}' is missing a slide section (area) and will not be processed.")
+    }
+    spatial_channel.missing_inputs.subscribe{ it ->
+      log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
+    }
+  
 
-    // create tuple of [metadata, fastq dir, and path to image file]
+    // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file, image type]
     spaceranger_reads = spatial_channel.make_spatial
       .map{ meta ->
+        // probeset logic
+        def use_probeset = meta.technology in cytassist_probe_techs
+        def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
+
+        // image logic
+        // TODO: size check approach?
+        def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
+        if (cytaimage_file.size() == 1) {
+          cytaimage_file = cytaimage_file[0]
+        } else {
+          log.error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
+          cytaimage_file = []
+        }
+        def image_file = getImageFiles("${meta.files_directory}/image")
+        def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
+        def darkimage_files = getImageFiles("${meta.files_directory}/darkimage") 
+
+        def image_type = image_file ? "image" :
+                         colorizedimage_file ? "colorizedimage" :
+                         darkimage_files ? "darkimage" :
+                         ""
+
         [
           meta,
-          file(meta.files_directory, type: 'dir'),
-          file("${meta.files_directory}/*.jpg"),
-          file(meta.cellranger_index, type: 'dir')
+          file(meta.cellranger_index, type: 'dir'),
+          probeset_file,
+          file("${meta.files_directory}/fastq", type: 'dir'),
+          cytaimage_file, 
+          image_file, 
+          image_type   
         ]
     }
 
