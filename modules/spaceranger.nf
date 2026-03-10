@@ -1,5 +1,5 @@
 
-include { parseNA; getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
+include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
@@ -165,8 +165,8 @@ workflow spaceranger_quant{
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
         // branch for invalid cases
-        missing_slide_serial: !parseNA(it.slide_serial_number)
-        missing_slide_section: !parseNA(it.slide_section)
+        missing_slide_serial: !it.slide_serial_number
+        missing_slide_section: !it.slide_section
         make_spatial: (
           // input files exist
           it.files_directory && file(it.files_directory, type: "dir").exists() && (
