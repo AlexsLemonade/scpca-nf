@@ -135,7 +135,7 @@ def getImageFiles(dir, cytaimage = false) {
     : ["tif", "tiff", "btf", "tf2", "tf8", "jpg", "jpeg", "qptiff"]
 
   def f = files("${dir}/*")
-    findAll { it =~ /(?i)\.(${image_extensions.join('|')})$/ }
+    .findAll { it =~ /(?i)\.(${image_extensions.join('|')})$/ }
 
   return (f)
 }
