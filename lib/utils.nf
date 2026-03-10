@@ -121,21 +121,21 @@ def pullthroughContainer(image_url, pullthrough_url = ""){
 
 
 /**
-  * For a given directory, return its files as long as there are <= max_files present
-  * This is used to get images files for space ranger
+  * For a given directory, return its space ranger image files 
   *
-  * @param dir Directory to search for a single file in
-  * @return File path(s) or [] if no or too many files 
+  * @param dir Directory to search image files(s) in
+  * @param cytaimage Boolean if the image file(s) to grab are the cytaimage
+  * @return Array of file paths
   */
-def getImageFiles(dir, max_files = 1) {
+def getImageFiles(dir, cytaimage = false) {
+  
+  // https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/inputs/image-image-recommendation
+  def image_extensions = cytaimage
+    ? ["tif", "tiff"] 
+    : ["tif", "tiff", "btf", "tf2", "tf8", "jpg", "jpeg", "qptiff"]
+
   def f = files("${dir}/*")
-  // empty or too many
-  if (f.size() == 0 || f.size() > max_files) {
-    return ([])
-  }
-  // return the 1+ files if they exist
-  if (max_files == 1) {
-    return (f[0]) // we want to return the single file here, so index it out
-  }
+    findAll { it =~ /(?i)\.(${image_extensions.join('|')})$/ }
+
   return (f)
 }
