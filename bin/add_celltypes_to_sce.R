@@ -622,7 +622,8 @@ if (has_cellassign) {
   # if cell assign predictions file exists but is empty then cell assign failed and we want to account for that with Not Run
   if (file.size(opt$cellassign_predictions) > 0) {
     # read in predictions file
-    cellassign_df <- readr::read_tsv(opt$cellassign_predictions)
+    cellassign_df <- readr::read_tsv(opt$cellassign_predictions) |>
+      as.data.frame()
   } else {
     cellassign_df <- NULL
     has_cellassign <- FALSE # reset to false so that we don't add in consensus cell types

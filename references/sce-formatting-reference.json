@@ -80,6 +80,38 @@
                     "mean": "numeric",
                     "detected": "numeric",
                     "target_type": "character"
+                },
+                "metadata": {
+                    "library_id": "character",
+                    "sample_id": "character",
+                    "project_id": "character",
+                    "reference_index": "character",
+                    "total_reads": "integer",
+                    "mapping_tool": "character",
+                    "tech_version": "character",
+                    "assay_ontology_term_id": "character",
+                    "seq_unit": "character",
+                    "transcript_type": "character",
+                    "sample_metadata": "data.frame",
+                    "sample_type": "character"
+                },
+                "metadata_conditional": {
+                    "alevin-fry": {
+                        "salmon_version": "character",
+                        "mapped_reads": "integer",
+                        "alevinfry_version": "character",
+                        "af_permit_type": "character",
+                        "af_resolution": "character",
+                        "usa_mode": "logical",
+                        "af_num_cells": "integer",
+                        "include_unspliced": "logical"
+                    },
+                    "cellranger-multi": {
+                        "cellranger_version": "character",
+                        "reference_probeset": "character",
+                        "pct_mapped_reads": "numeric",
+                        "cellranger_num_cells": "integer"
+                    }
                 }
             },
             "cellhash": {
@@ -165,7 +197,7 @@
             "sample_metadata": "data.frame",
             "sample_type": "character",
             "filtering_method": "character",
-            "prob_compromised_cutoff": "NA",
+            "prob_compromised_cutoff": "logical",
             "scpca_filter_method": "character",
             "min_gene_cutoff": "integer"
         },
@@ -204,7 +236,37 @@
                     }
                 },
                 "metadata": {
+                    "library_id": "character",
+                    "sample_id": "character",
+                    "project_id": "character",
+                    "reference_index": "character",
+                    "total_reads": "integer",
+                    "mapping_tool": "character",
+                    "tech_version": "character",
+                    "assay_ontology_term_id": "character",
+                    "seq_unit": "character",
+                    "transcript_type": "character",
+                    "sample_metadata": "data.frame",
+                    "sample_type": "character",
                     "ambient_profile": "character"
+                },
+                "metadata_conditional": {
+                    "alevin-fry": {
+                        "salmon_version": "character",
+                        "mapped_reads": "integer",
+                        "alevinfry_version": "character",
+                        "af_permit_type": "character",
+                        "af_resolution": "character",
+                        "usa_mode": "logical",
+                        "af_num_cells": "integer",
+                        "include_unspliced": "logical"
+                    },
+                    "cellranger-multi": {
+                        "cellranger_version": "character",
+                        "reference_probeset": "character",
+                        "pct_mapped_reads": "numeric",
+                        "cellranger_num_cells": "integer"
+                    }
                 }
             },
             "cellhash": {
@@ -347,7 +409,7 @@
             "sample_metadata": "data.frame",
             "sample_type": "character",
             "filtering_method": "character",
-            "prob_compromised_cutoff": "NA",
+            "prob_compromised_cutoff": "logical",
             "scpca_filter_method": "character",
             "min_gene_cutoff": "integer",
             "normalization": "character",
@@ -358,7 +420,6 @@
                 "umi_cutoff": "numeric"
             },
             "has_miQC": {
-                "miQC_model": null,
                 "prob_compromised_cutoff": "numeric"
             },
             "has_clusters": {
@@ -381,7 +442,9 @@
                 "singler_reference": "character",
                 "singler_reference_label": "character",
                 "singler_reference_source": "character",
-                "singler_reference_version": "character"
+                "singler_reference_version": "character",
+                "singler_gene_set_version": "logical",
+                "singler_date": "logical"
             },
             "has_cellassign": {
                 "celltype_methods": "character",
@@ -438,7 +501,37 @@
                     "sizeFactor": "numeric"
                 },
                 "metadata": {
+                    "library_id": "character",
+                    "sample_id": "character",
+                    "project_id": "character",
+                    "reference_index": "character",
+                    "total_reads": "integer",
+                    "mapping_tool": "character",
+                    "tech_version": "character",
+                    "assay_ontology_term_id": "character",
+                    "seq_unit": "character",
+                    "transcript_type": "character",
+                    "sample_metadata": "data.frame",
+                    "sample_type": "character",
                     "ambient_profile": "character"
+                },
+                "metadata_conditional": {
+                    "alevin-fry": {
+                        "salmon_version": "character",
+                        "mapped_reads": "integer",
+                        "alevinfry_version": "character",
+                        "af_permit_type": "character",
+                        "af_resolution": "character",
+                        "usa_mode": "logical",
+                        "af_num_cells": "integer",
+                        "include_unspliced": "logical"
+                    },
+                    "cellranger-multi": {
+                        "cellranger_version": "character",
+                        "reference_probeset": "character",
+                        "pct_mapped_reads": "numeric",
+                        "cellranger_num_cells": "integer"
+                    }
                 }
             },
             "cellhash": {
