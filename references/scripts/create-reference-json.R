@@ -37,6 +37,7 @@ create_ref_entry <- function(
   include_cellranger,
   include_star,
   include_infercnv,
+  include_cytassist,
   reference_name
 ) {
   # create base reference directory
@@ -74,7 +75,8 @@ create_ref_entry <- function(
     cellranger_index = "",
     star_index = "",
     infercnv_gene_order = "",
-    cytoband = ""
+    cytoband = "",
+    cytassist_probe = ""
   )
 
   # fill in values related to salmon/alevin-fry index
@@ -125,12 +127,22 @@ create_ref_entry <- function(
       glue::glue("{reference_name}_gene_order_arms.txt.gz")
     )
     json_entry$cytoband <- file.path(
-      ref_dir,
-      "annotation",
+      annotation_dir,
       glue::glue("{reference_name}_cytoband.txt.gz")
     )
   }
 
+  # fill in values for cytassist probes
+  if (include_cytassist) {
+    # TODO: UPDATE THIS DIRECTORY to: file.path(ref_dir, "cytassist")
+    cytassist_probe_dir <- "s3://ccdl-scpca-nf-results-testing/example-data/visium-test-runs/cytassist-probes"
+
+    # TODO: probe file name?
+    json_entry$cytassist_probe <- file.path(
+      cytassist_probe_dir,
+      glue::glue("{reference_name}_cytassist-v2.1.0.csv")
+    )
+  }
   return(json_entry)
 }
 

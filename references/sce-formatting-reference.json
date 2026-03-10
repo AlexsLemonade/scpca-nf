@@ -31,6 +31,43 @@
                 "altexps_adt_sum": "numeric",
                 "altexps_adt_detected": "integer",
                 "altexps_adt_percent": "numeric"
+            },
+            "has_cellhash": {
+                "altexps_cellhash_sum": "numeric",
+                "altexps_cellhash_detected": "integer",
+                "altexps_cellhash_percent": "numeric"
+            }
+        },
+        "metadata": {
+            "library_id": "character",
+            "sample_id": "character",
+            "project_id": "character",
+            "reference_index": "character",
+            "total_reads": "integer",
+            "mapping_tool": "character",
+            "tech_version": "character",
+            "assay_ontology_term_id": "character",
+            "seq_unit": "character",
+            "transcript_type": "character",
+            "sample_metadata": "data.frame",
+            "sample_type": "character"
+        },
+        "metadata_conditional": {
+            "alevin-fry": {
+                "salmon_version": "character",
+                "mapped_reads": "integer",
+                "alevinfry_version": "character",
+                "af_permit_type": "character",
+                "af_resolution": "character",
+                "usa_mode": "logical",
+                "af_num_cells": "integer",
+                "include_unspliced": "logical"
+            },
+            "cellranger-multi": {
+                "cellranger_version": "character",
+                "reference_probeset": "character",
+                "pct_mapped_reads": "numeric",
+                "cellranger_num_cells": "integer"
             }
         },
         "altExp": {
@@ -43,6 +80,47 @@
                     "mean": "numeric",
                     "detected": "numeric",
                     "target_type": "character"
+                },
+                "metadata": {
+                    "library_id": "character",
+                    "sample_id": "character",
+                    "project_id": "character",
+                    "reference_index": "character",
+                    "total_reads": "integer",
+                    "mapping_tool": "character",
+                    "tech_version": "character",
+                    "assay_ontology_term_id": "character",
+                    "seq_unit": "character",
+                    "transcript_type": "character",
+                    "sample_metadata": "data.frame",
+                    "sample_type": "character"
+                },
+                "metadata_conditional": {
+                    "alevin-fry": {
+                        "salmon_version": "character",
+                        "mapped_reads": "integer",
+                        "alevinfry_version": "character",
+                        "af_permit_type": "character",
+                        "af_resolution": "character",
+                        "usa_mode": "logical",
+                        "af_num_cells": "integer",
+                        "include_unspliced": "logical"
+                    },
+                    "cellranger-multi": {
+                        "cellranger_version": "character",
+                        "reference_probeset": "character",
+                        "pct_mapped_reads": "numeric",
+                        "cellranger_num_cells": "integer"
+                    }
+                }
+            },
+            "cellhash": {
+                "assayNames": [
+                    "counts"
+                ],
+                "rowData": {
+                    "mean": "numeric",
+                    "detected": "numeric"
                 }
             }
         }
@@ -82,6 +160,54 @@
             },
             "has_adt": {
                 "adt_scpca_filter": "character"
+            },
+            "has_cellhash": {
+                "altexps_cellhash_sum": "numeric",
+                "altexps_cellhash_detected": "integer",
+                "altexps_cellhash_percent": "numeric"
+            },
+            "has_hashedDrops": {
+                "hashedDrops_sampleid": "character"
+            },
+            "has_HTODemux": {
+                "HTODemux_sampleid": "character"
+            },
+            "has_vireo": {
+                "vireo_sampleid": "character",
+                "vireo_donor_id": "character",
+                "vireo_prob_max": "numeric",
+                "vireo_prob_doublet": "numeric",
+                "vireo_n_vars": "numeric",
+                "vireo_best_singlet": "character",
+                "vireo_best_doublet": "character",
+                "vireo_doublet_logLikRatio": "numeric"
+            }
+        },
+        "metadata": {
+            "library_id": "character",
+            "sample_id": "character",
+            "project_id": "character",
+            "reference_index": "character",
+            "total_reads": "integer",
+            "mapping_tool": "character",
+            "tech_version": "character",
+            "assay_ontology_term_id": "character",
+            "seq_unit": "character",
+            "transcript_type": "character",
+            "sample_metadata": "data.frame",
+            "sample_type": "character",
+            "filtering_method": "character",
+            "prob_compromised_cutoff": "logical",
+            "scpca_filter_method": "character",
+            "min_gene_cutoff": "integer"
+        },
+        "metadata_conditional": {
+            "umi_filtering": {
+                "umi_cutoff": "numeric"
+            },
+            "has_miQC": {
+                "miQC_model": "S4",
+                "prob_compromised_cutoff": "numeric"
             }
         },
         "altExp": {
@@ -107,6 +233,73 @@
                     "no_negative_control": {
                         "ambient.scale": "numeric",
                         "high.ambient": "logical"
+                    }
+                },
+                "metadata": {
+                    "library_id": "character",
+                    "sample_id": "character",
+                    "project_id": "character",
+                    "reference_index": "character",
+                    "total_reads": "integer",
+                    "mapping_tool": "character",
+                    "tech_version": "character",
+                    "assay_ontology_term_id": "character",
+                    "seq_unit": "character",
+                    "transcript_type": "character",
+                    "sample_metadata": "data.frame",
+                    "sample_type": "character",
+                    "ambient_profile": "character"
+                },
+                "metadata_conditional": {
+                    "alevin-fry": {
+                        "salmon_version": "character",
+                        "mapped_reads": "integer",
+                        "alevinfry_version": "character",
+                        "af_permit_type": "character",
+                        "af_resolution": "character",
+                        "usa_mode": "logical",
+                        "af_num_cells": "integer",
+                        "include_unspliced": "logical"
+                    },
+                    "cellranger-multi": {
+                        "cellranger_version": "character",
+                        "reference_probeset": "character",
+                        "pct_mapped_reads": "numeric",
+                        "cellranger_num_cells": "integer"
+                    }
+                }
+            },
+            "cellhash": {
+                "assayNames": [
+                    "counts"
+                ],
+                "rowData": {
+                    "mean": "numeric",
+                    "detected": "numeric",
+                    "barcode_id": "character",
+                    "sample_id": "character"
+                },
+                "colData_conditional": {
+                    "has_hashedDrops": {
+                        "hashedDrops_Total": "numeric",
+                        "hashedDrops_Best": "integer",
+                        "hashedDrops_Second": "integer",
+                        "hashedDrops_LogFC": "numeric",
+                        "hashedDrops_LogFC2": "numeric",
+                        "hashedDrops_Doublet": "logical",
+                        "hashedDrops_Confident": "logical",
+                        "hashedDrops_sampleid": "character",
+                        "hashedDrops_bestsample": "character"
+                    },
+                    "has_HTODemux": {
+                        "HTODemux_maxID": "character",
+                        "HTODemux_secondID": "character",
+                        "HTODemux_margin": "numeric",
+                        "HTODemux_classification": "character",
+                        "HTODemux_classification.global": "character",
+                        "HTODemux_hash.ID": "integer",
+                        "HTODemux_maxsample": "character",
+                        "HTODemux_sampleid": "character"
                     }
                 }
             }
@@ -148,6 +341,27 @@
             "has_adt": {
                 "adt_scpca_filter": "character"
             },
+            "has_cellhash": {
+                "altexps_cellhash_sum": "numeric",
+                "altexps_cellhash_detected": "integer",
+                "altexps_cellhash_percent": "numeric"
+            },
+            "has_hashedDrops": {
+                "hashedDrops_sampleid": "character"
+            },
+            "has_HTODemux": {
+                "HTODemux_sampleid": "character"
+            },
+            "has_vireo": {
+                "vireo_sampleid": "character",
+                "vireo_donor_id": "character",
+                "vireo_prob_max": "numeric",
+                "vireo_prob_doublet": "numeric",
+                "vireo_n_vars": "numeric",
+                "vireo_best_singlet": "character",
+                "vireo_best_doublet": "character",
+                "vireo_doublet_logLikRatio": "numeric"
+            },
             "has_normalization": {
                 "sizeFactor": "numeric"
             },
@@ -181,6 +395,85 @@
             "PCA",
             "UMAP"
         ],
+        "metadata": {
+            "library_id": "character",
+            "sample_id": "character",
+            "project_id": "character",
+            "reference_index": "character",
+            "total_reads": "integer",
+            "mapping_tool": "character",
+            "tech_version": "character",
+            "assay_ontology_term_id": "character",
+            "seq_unit": "character",
+            "transcript_type": "character",
+            "sample_metadata": "data.frame",
+            "sample_type": "character",
+            "filtering_method": "character",
+            "prob_compromised_cutoff": "logical",
+            "scpca_filter_method": "character",
+            "min_gene_cutoff": "integer",
+            "normalization": "character",
+            "highly_variable_genes": "character"
+        },
+        "metadata_conditional": {
+            "umi_filtering": {
+                "umi_cutoff": "numeric"
+            },
+            "has_miQC": {
+                "prob_compromised_cutoff": "numeric"
+            },
+            "has_clusters": {
+                "cluster_algorithm": "character",
+                "cluster_weighting": "character",
+                "cluster_nn": "numeric"
+            },
+            "has_submitter": {
+                "celltype_methods": "character"
+            },
+            "has_openscpca": {
+                "celltype_methods": "character",
+                "openscpca_celltype_module_name": "character",
+                "openscpca_celltype_nf_version": "character",
+                "openscpca_celltype_release_date": "character"
+            },
+            "has_singler": {
+                "celltype_methods": "character",
+                "singler_results": "DFrame",
+                "singler_reference": "character",
+                "singler_reference_label": "character",
+                "singler_reference_source": "character",
+                "singler_reference_version": "character",
+                "singler_gene_set_version": "logical",
+                "singler_date": "logical"
+            },
+            "has_cellassign": {
+                "celltype_methods": "character",
+                "cellassign_predictions": "data.frame",
+                "cellassign_reference": "character",
+                "cellassign_reference_organs": "character",
+                "cellassign_reference_source": "character",
+                "cellassign_reference_version": "character"
+            },
+            "has_scimilarity": {
+                "celltype_methods": "character",
+                "scimilarity_model": "character"
+            },
+            "has_consensus": {
+                "consensus_celltype_methods": "character"
+            },
+            "has_infercnv": {
+                "infercnv_reference_celltypes": "character",
+                "infercnv_num_reference_cells": "integer",
+                "infercnv_diagnosis_groups": "character",
+                "infercnv_status": "character",
+                "infercnv_options": "list",
+                "infercnv_table": "character"
+            },
+            "has_adt": {
+                "adt_scpca_filter_method": "character",
+                "adt_normalization": "character"
+            }
+        },
         "altExp": {
             "adt": {
                 "assayNames": [
@@ -206,6 +499,73 @@
                         "high.ambient": "logical"
                     },
                     "sizeFactor": "numeric"
+                },
+                "metadata": {
+                    "library_id": "character",
+                    "sample_id": "character",
+                    "project_id": "character",
+                    "reference_index": "character",
+                    "total_reads": "integer",
+                    "mapping_tool": "character",
+                    "tech_version": "character",
+                    "assay_ontology_term_id": "character",
+                    "seq_unit": "character",
+                    "transcript_type": "character",
+                    "sample_metadata": "data.frame",
+                    "sample_type": "character",
+                    "ambient_profile": "character"
+                },
+                "metadata_conditional": {
+                    "alevin-fry": {
+                        "salmon_version": "character",
+                        "mapped_reads": "integer",
+                        "alevinfry_version": "character",
+                        "af_permit_type": "character",
+                        "af_resolution": "character",
+                        "usa_mode": "logical",
+                        "af_num_cells": "integer",
+                        "include_unspliced": "logical"
+                    },
+                    "cellranger-multi": {
+                        "cellranger_version": "character",
+                        "reference_probeset": "character",
+                        "pct_mapped_reads": "numeric",
+                        "cellranger_num_cells": "integer"
+                    }
+                }
+            },
+            "cellhash": {
+                "assayNames": [
+                    "counts"
+                ],
+                "rowData": {
+                    "mean": "numeric",
+                    "detected": "numeric",
+                    "barcode_id": "character",
+                    "sample_id": "character"
+                },
+                "colData_conditional": {
+                    "has_hashedDrops": {
+                        "hashedDrops_Total": "numeric",
+                        "hashedDrops_Best": "integer",
+                        "hashedDrops_Second": "integer",
+                        "hashedDrops_LogFC": "numeric",
+                        "hashedDrops_LogFC2": "numeric",
+                        "hashedDrops_Doublet": "logical",
+                        "hashedDrops_Confident": "logical",
+                        "hashedDrops_sampleid": "character",
+                        "hashedDrops_bestsample": "character"
+                    },
+                    "has_HTODemux": {
+                        "HTODemux_maxID": "character",
+                        "HTODemux_secondID": "character",
+                        "HTODemux_margin": "numeric",
+                        "HTODemux_classification": "character",
+                        "HTODemux_classification.global": "character",
+                        "HTODemux_hash.ID": "integer",
+                        "HTODemux_maxsample": "character",
+                        "HTODemux_sampleid": "character"
+                    }
                 }
             }
         }

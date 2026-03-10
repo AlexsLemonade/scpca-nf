@@ -116,6 +116,14 @@ if (is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versi
   stop("Versions file missing or `spaceranger_versions_file` not specified.")
 }
 
+# check that technology exists
+allowed_techs <- c("visium", "visium1", "visium2", "visium_hd", "visium_hd_3prime")
+if (!opt$technology %in% allowed_techs) {
+  stop(
+    glue::glue("The `technology` must be one of: {paste(allowed_techs, collapse = ', ')}.")
+  )
+}
+
 # replace workflow url and commit if not provided
 if (opt$workflow_url == "null") {
   opt$workflow_url <- NA
@@ -144,8 +152,7 @@ metrics_summary <- readr::read_csv(opt$metrics_summary_file)
 spaceranger_versions <- jsonlite::read_json(opt$spaceranger_versions_file)
 
 # determine column names for exporting metrics, which depends on technology
-# TODO: visium -> visium1
-if (opt$technology %in% c("visium", "visium_hd_3prime")) {
+if (opt$technology %in% c("visium", "visium1", "visium_hd_3prime")) {
   reads_mapped_column <- "Reads Mapped Confidently to Genome"
 } else {
   # visium2 and visium_hd
@@ -156,7 +163,7 @@ if (opt$technology %in% c("visium_hd", "visium_hd_3prime")) {
   tissue_spots_column <- "Number of Squares Under Tissue 2 µm"
   tissue_colname <- "tissue_squares"
 } else {
-  # visium2 and visium1
+  # visium2 and visium(1)
   tissue_spots_column <- "Number of Spots Under Tissue"
   tissue_colname <- "tissue_spots"
 }
@@ -171,7 +178,6 @@ metadata_list <- list(
   unfiltered_spots = nrow(unfiltered_barcodes),
   total_reads = metrics_summary$`Number of Reads`,
   mapped_reads = metrics_summary[[reads_mapped_column]],
-  temp_tissue_colname = metrics_summary[[tissue_spots_column]],
   genome_assembly = opt$genome_assembly,
   mapping_index = opt$index_filename,
   date_processed = lubridate::format_ISO8601(lubridate::now(tzone = "UTC"), usetz = TRUE),
@@ -185,8 +191,8 @@ metadata_list <- list(
     ifelse(is.null(x), NA, x)
   })
 
-# update the tissue column name
-names(metadata_list)[names(metadata_list) == "temp_tissue_colname"] <- tissue_colname
+# add the tissue field with a dependent name
+metadata_list[[tissue_colname]] <- metrics_summary[[tissue_spots_column]]
 
 
 # Output metadata as JSON

@@ -142,18 +142,11 @@ workflow {
     '10xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
   ]
 
-  // 10x cytassist probe files
-  def cytassist_probesets = [
-    'Homo_sapiens': 'Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv',
-    'Mus_musculus': 'Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv'
-  ]
-
   // supported technologies
   def single_cell_techs = cell_barcodes.keySet()
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
-  def spatial_techs = ['visium', 'visium2', 'visium_hd', 'visium_hd_3prime'] // TODO: Make the original visium "visium1" or similar
-  def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+  def spatial_techs = ['visium', 'visium1', 'visium2', 'visium_hd', 'visium_hd_3prime'] // visium for legacy
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
@@ -187,17 +180,10 @@ workflow {
       || (it.submitter in project_ids)
       || (it.scpca_project_id in project_ids)
     }
-    // make sure technology and references are known, and all spatial information is provided
+    // make sure technology and references are known
     .branch{ it ->
       unknown_tech: !(it.technology.toLowerCase() in all_techs)
       unknown_ref: !(it.sample_reference in ref_paths)
-      unknown_spatial_slide_serial: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_serial_number)
-      unknown_spatial_slide_section: it.technology.toLowerCase() in spatial_techs && !parseNA(it.slide_section)
-      // TODO: this should say visium1
-      unknown_spatial_image: it.technology.toLowerCase() == "visium" && !parseNA(it.image_file)
-      unknown_spatial_cytaimage: it.technology.toLowerCase() in spatial_techs 
-        && it.technology.toLowerCase() != "visium" 
-        && !parseNA(it.cytaimage_file)
       valid: true
     }
 
@@ -208,19 +194,6 @@ workflow {
   // warn about unknown references for any samples
   all_runs_ch.unknown_ref.subscribe{ it ->
     log.warn("The sample reference '${it.sample_reference}' for run '${it.scpca_run_id}' is not known and this run will not be processed.")
-  }
-  // warn about missing spatial information
-  all_runs_ch.unknown_spatial_slide_serial.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing a slide serial number and will not be processed.")
-  }
-  all_runs_ch.unknown_spatial_slide_section.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing a slide section (area) and will not be processed.")
-  }
-  all_runs_ch.unknown_spatial_image.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing an image file and will not be processed.")
-  }
-  all_runs_ch.unknown_spatial_cytaimage.subscribe{ it ->
-    log.warn("Run '${it.scpca_run_id}' is missing a cytaimage file and will not be processed.")
   }
 
   // convert row data to a metadata map, keeping columns we will need (& some renaming) and reference paths
@@ -244,10 +217,6 @@ workflow {
         files_directory: parseNA(it.files_directory),
         slide_serial_number: parseNA(it.slide_serial_number),
         slide_section: parseNA(it.slide_section),
-        cytaimage_file: parseNA(it.cytaimage_file),
-        image_file: parseNA(it.image_file),
-        darkimage_file: parseNA(it.darkimage_file),
-        colorizedimage_file: parseNA(it.colorizedimage_file),
         ref_assembly: it.sample_reference,
         ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
         ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
@@ -261,6 +230,8 @@ workflow {
         cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
+        // TODO: UPDATE TO USE REFS DIRECTORY ONCE THIS IS IN THE PUBLIC BUCKET
+        cytassist_probe: sample_refs.cytassist_probe ? "${sample_refs.cytassist_probe}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
@@ -301,11 +272,7 @@ workflow {
   bulk_quant_rna(runs_ch.bulk)
 
   // **** Process Spatial Transcriptomics data ****
-  spaceranger_quant(
-    runs_ch.spatial, 
-    cytassist_probesets, // names of probe files
-    cytassist_probe_techs // which techs need a probe file
-  )
+  spaceranger_quant(runs_ch.spatial)
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
