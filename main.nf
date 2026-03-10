@@ -210,7 +210,7 @@ workflow {
         technology: it.technology.toLowerCase(),
         assay_ontology_term_id: parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
-        organism: it.sample_reference.split('\\.')[0],
+        organism: it.organism,
         submitter_cell_types_file: parseNA(it.submitter_cell_types_file),
         openscpca_cell_types_file: parseNA(it.openscpca_cell_types_file),
         feature_barcode_file: parseNA(it.feature_barcode_file),
