@@ -117,8 +117,7 @@ if (is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versi
 }
 
 # check that technology exists
-# TODO: visium -> visium1
-allowed_techs <- c("visium", "visium2", "visium_hd", "visium_hd_3prime")
+allowed_techs <- c("visium", "visium1", "visium2", "visium_hd", "visium_hd_3prime")
 if (!opt$technology %in% allowed_techs) {
   stop(
     glue::glue("The `technology` must be one of: {paste(allowed_techs, collapse = ', ')}.")
@@ -153,8 +152,7 @@ metrics_summary <- readr::read_csv(opt$metrics_summary_file)
 spaceranger_versions <- jsonlite::read_json(opt$spaceranger_versions_file)
 
 # determine column names for exporting metrics, which depends on technology
-# TODO: visium -> visium1
-if (opt$technology %in% c("visium", "visium_hd_3prime")) {
+if (opt$technology %in% c("visium", "visium1", "visium_hd_3prime")) {
   reads_mapped_column <- "Reads Mapped Confidently to Genome"
 } else {
   # visium2 and visium_hd
@@ -165,7 +163,7 @@ if (opt$technology %in% c("visium_hd", "visium_hd_3prime")) {
   tissue_spots_column <- "Number of Squares Under Tissue 2 µm"
   tissue_colname <- "tissue_squares"
 } else {
-  # visium2 and visium1
+  # visium2 and visium(1)
   tissue_spots_column <- "Number of Spots Under Tissue"
   tissue_colname <- "tissue_spots"
 }

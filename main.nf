@@ -146,7 +146,7 @@ workflow {
   def single_cell_techs = cell_barcodes.keySet()
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
-  def spatial_techs = ['visium', 'visium2', 'visium_hd', 'visium_hd_3prime'] // TODO: Make the original visium "visium1" or similar
+  def spatial_techs = ['visium', 'visium1', 'visium2', 'visium_hd', 'visium_hd_3prime'] // visium for legacy
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
