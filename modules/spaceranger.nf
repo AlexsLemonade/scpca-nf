@@ -17,7 +17,7 @@ process spaceranger {
     out_id = file(meta.spaceranger_results_dir).name
     meta += getVersions()
     meta_json = makeJson(meta)
-    image_arg = image_type ? "--{image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    image_arg = image_type ? "--${image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     """
     spaceranger count \
       --id=${out_id} \
