@@ -22,7 +22,7 @@ process spaceranger {
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${files_directory}/fastq \
+      --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
       --localmem=${task.memory.toGiga()} \
