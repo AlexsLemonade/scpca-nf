@@ -179,9 +179,8 @@ workflow spaceranger_quant{
         def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
         // image logic
-        // note: getImageFiles() will always return an array, so it is never falsey
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
-        if (meta.technology in non_cytassist_techs && cytaimage_file.size() > 0) {
+        if (meta.technology in non_cytassist_techs && cytaimage_file) {
           log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
           cytaimage_file = []
         } else if (!(meta.technology in non_cytassist_techs)) {
@@ -199,9 +198,9 @@ workflow spaceranger_quant{
         def darkimage_files = getImageFiles("${meta.files_directory}/darkimage") 
 
         // use size of the images to determine which one to pass in, since image file values are never falsey
-        def image_type = image_file.size() > 0 ? "image" :
-                         colorizedimage_file.size() > 0 ? "colorizedimage" :
-                         darkimage_files.size() > 0 ? "darkimage" :
+        def image_type = image_file ? "image" :
+                         colorizedimage_file ? "colorizedimage" :
+                         darkimage_files ? "darkimage" :
                          ""
 
         [
