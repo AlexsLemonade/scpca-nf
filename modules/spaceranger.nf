@@ -179,7 +179,6 @@ workflow spaceranger_quant{
         def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
         // image logic
-        // TODO: size check approach?
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
         if (meta.technology in non_cytassist_techs && cytaimage_file.size() == 1) {
           cytaimage_file = cytaimage_file[0]
