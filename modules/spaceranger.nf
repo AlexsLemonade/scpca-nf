@@ -182,7 +182,7 @@ workflow spaceranger_quant{
         // note: getImageFiles() will always return an array, so it is never falsey
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
         if (meta.technology in non_cytassist_techs && cytaimage_file.size() > 0) {
-          log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory} but found ${cytaimage_file.size()} files.")
+          log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
           cytaimage_file = []
         } else if (!(meta.technology in non_cytassist_techs) && cytaimage_file.size() != 1) {
           log.error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
@@ -190,16 +190,17 @@ workflow spaceranger_quant{
         } else {
            // we correctly have one cytaimage file, so index it out
           cytaimage_file = cytaimage_file[0]
-        } // if no condition was met, that means the cytaimage_file is already []
+        } 
 
 
         def image_file = getImageFiles("${meta.files_directory}/image")
         def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
         def darkimage_files = getImageFiles("${meta.files_directory}/darkimage") 
 
-        def image_type = image_file ? "image" :
-                         colorizedimage_file ? "colorizedimage" :
-                         darkimage_files ? "darkimage" :
+        // use size of the images to determine which one to pass in, since image file values are never falsey
+        def image_type = image_file.size() > 0 ? "image" :
+                         colorizedimage_file.size() > 0 ? "colorizedimage" :
+                         darkimage_files.size() > 0 ? "darkimage" :
                          ""
 
         [
