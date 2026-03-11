@@ -179,17 +179,19 @@ workflow spaceranger_quant{
         def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
         // image logic
+        // note: getImageFiles() will always return an array, so it is never falsey
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
-        if (meta.technology in non_cytassist_techs && cytaimage_file){
+        if (meta.technology in non_cytassist_techs && cytaimage_file.size() > 0) {
           log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory} but found ${cytaimage_file.size()} files.")
           cytaimage_file = []
-        } else if (cytaimage_file.size() > 1) {
+        } else if (!(meta.technology in non_cytassist_techs) && cytaimage_file.size() != 1) {
           log.error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
-          cytaimage_file = [] 
+          cytaimage_file = []
         } else {
-          // we have 1 cytaimage file as we should
+           // we correctly have one cytaimage file, so index it out
           cytaimage_file = cytaimage_file[0]
-       }
+        } // if no condition was met, that means the cytaimage_file is already []
+
 
         def image_file = getImageFiles("${meta.files_directory}/image")
         def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
