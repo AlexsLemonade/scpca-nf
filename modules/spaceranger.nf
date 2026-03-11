@@ -126,6 +126,9 @@ workflow spaceranger_quant{
   main:
     // techs that use the probe file
     def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+    
+    // techs that are _not_ cytassist
+    def non_cytassist_techs = ['visium', 'visium1']
 
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
@@ -178,7 +181,7 @@ workflow spaceranger_quant{
         // image logic
         // TODO: size check approach?
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
-        if (cytaimage_file.size() == 1) {
+        if (meta.technology in non_cytassist_techs && cytaimage_file.size() == 1) {
           cytaimage_file = cytaimage_file[0]
         } else {
           log.error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
