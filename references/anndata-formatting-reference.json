@@ -8,7 +8,7 @@
             "obs": {
                 "barcodes": "object",
                 "sum": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "subsets_mito_sum": "float64",
                 "subsets_mito_detected": "int32",
                 "subsets_mito_percent": "float64",
@@ -23,7 +23,7 @@
                 "gene_ids": "object",
                 "gene_symbol": "category",
                 "mean": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "feature_is_filtered": "bool",
                 "highly_variable": "bool"
             },
@@ -59,7 +59,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "str",
+                "transcript_type": "numpy.ndarray",
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "X_name": "str",
@@ -88,7 +88,7 @@
             "var": {
                 "adt_id": "object",
                 "mean": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "target_type": "category"
             }
         }
@@ -102,7 +102,7 @@
             "obs": {
                 "barcodes": "object",
                 "sum": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "subsets_mito_sum": "float64",
                 "subsets_mito_detected": "int32",
                 "subsets_mito_percent": "float64",
@@ -122,7 +122,7 @@
                 "gene_ids": "object",
                 "gene_symbol": "category",
                 "mean": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "feature_is_filtered": "bool",
                 "highly_variable": "bool"
             },
@@ -172,13 +172,15 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "str",
+                "transcript_type": "numpy.ndarray",
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "NA",
+                "prob_compromised_cutoff": "numpy.bool_",
                 "scpca_filter_method": "str",
-                "min_gene_cutoff": "numpy.int64"
+                "min_gene_cutoff": "numpy.int64",
+                "X_name": "str",
+                "schema_version": "str"
             },
             "uns_conditional": {
                 "umi_filtering": {
@@ -198,7 +200,7 @@
             "var": {
                 "adt_id": "object",
                 "mean": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "target_type": "category"
             },
             "obs_conditional": {
@@ -212,6 +214,18 @@
                 }
             },
             "uns": {
+                "library_id": "category",
+                "sample_id": "category",
+                "project_id": "category",
+                "reference_index": "category",
+                "total_reads": "int32",
+                "mapping_tool": "category",
+                "tech_version": "category",
+                "assay_ontology_term_id": "category",
+                "seq_unit": "category",
+                "transcript_type": "category",
+                "sample_metadata": "data.frame",
+                "sample_type": "category",
                 "ambient_profile": "category"
             }
         }
@@ -225,7 +239,7 @@
             "obs": {
                 "barcodes": "object",
                 "sum": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "subsets_mito_sum": "float64",
                 "subsets_mito_detected": "int32",
                 "subsets_mito_percent": "float64",
@@ -245,7 +259,7 @@
                 "gene_ids": "object",
                 "gene_symbol": "category",
                 "mean": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "feature_is_filtered": "bool",
                 "highly_variable": "bool"
             },
@@ -327,29 +341,34 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "str",
+                "transcript_type": "numpy.ndarray",
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "NA",
+                "prob_compromised_cutoff": "numpy.bool_",
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "numpy.int64",
                 "normalization": "str",
                 "highly_variable_genes": "numpy.ndarray",
-                "pca": "dict"
+                "X_name": "str",
+                "schema_version": "str",
+                "pca": {
+                    "param": "dict",
+                    "variance": "float64",
+                    "variance_ratio": "float64"
+                }
             },
             "uns_conditional": {
                 "umi_filtering": {
                     "umi_cutoff": "numpy.float64"
                 },
                 "has_miQC": {
-                    "miQC_model": null,
                     "prob_compromised_cutoff": "numpy.float64"
                 },
                 "has_clusters": {
                     "cluster_algorithm": "str",
                     "cluster_weighting": "str",
-                    "cluster_nn": "numpy.float64"
+                    "cluster_nn": "numpy.int64"
                 },
                 "has_submitter": {
                     "celltype_methods": "numpy.ndarray"
@@ -366,7 +385,9 @@
                     "singler_reference": "str",
                     "singler_reference_label": "str",
                     "singler_reference_source": "str",
-                    "singler_reference_version": "str"
+                    "singler_reference_version": "str",
+                    "singler_gene_set_version": "numpy.bool_",
+                    "singler_date": "numpy.bool_"
                 },
                 "has_cellassign": {
                     "celltype_methods": "numpy.ndarray",
@@ -389,7 +410,7 @@
                     "infercnv_diagnosis_groups": "str",
                     "infercnv_status": "str",
                     "infercnv_options": "numpy.ndarray",
-                    "infercnv_table": "str"
+                    "infercnv_table": "pandas.DataFrame"
                 },
                 "has_adt": {
                     "adt_scpca_filter_method": "str",
@@ -405,7 +426,7 @@
             "var": {
                 "adt_id": "object",
                 "mean": "float64",
-                "detected": "float64",
+                "detected": "int32",
                 "target_type": "category"
             },
             "obs_conditional": {
@@ -420,6 +441,18 @@
                 "sizeFactor": "float64"
             },
             "uns": {
+                "library_id": "category",
+                "sample_id": "category",
+                "project_id": "category",
+                "reference_index": "category",
+                "total_reads": "int32",
+                "mapping_tool": "category",
+                "tech_version": "category",
+                "assay_ontology_term_id": "category",
+                "seq_unit": "category",
+                "transcript_type": "category",
+                "sample_metadata": "data.frame",
+                "sample_type": "category",
                 "ambient_profile": "category"
             }
         }

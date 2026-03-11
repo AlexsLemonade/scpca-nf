@@ -399,7 +399,7 @@ with open(sce_ref_file, "w") as f:
 # --------------------- AnnData ---------------------------
 
 # cell and row metadata are dtypes
-cell_row_metadata_map = {
+CELL_ROW_METADATA_MAP = {
     "numeric": "float64",
     "integer": "int32",
     "logical": "bool",
@@ -413,18 +413,21 @@ def convert_cell_row_metadata_types(metadata):
         # use recursion to do this
         if isinstance(value, dict):
             convert_cell_row_metadata_types(value)
+        # if detected, this is an int
+        elif key == "detected":
+            metadata[key] = "int32"
         # if the value is barcodes, gene_ids, or adt_ids, this is an object in dtypes
         elif key in ["barcodes", "gene_ids", "adt_id"]:
             metadata[key] = "object"
-        # otherwise convert the value as long as the value is in the cell_row_metadata_map
-        elif value in cell_row_metadata_map.keys():
-            metadata[key] = cell_row_metadata_map[value]
+        # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
+        elif value in CELL_ROW_METADATA_MAP.keys():
+            metadata[key] = CELL_ROW_METADATA_MAP[value]
 
     return metadata
 
 
 # types for uns metadata entries that are not cell or row metadata
-experiment_metadata_map = {
+EXPERIMENT_METADATA_MAP = {
     "character": "str",
     "integer": "numpy.int64",
     "numeric": "numpy.float64",
@@ -434,12 +437,13 @@ experiment_metadata_map = {
 }
 
 # these all get stored as numpy.ndarray and not str even though they are considered character in R
-list_metadata_entries = [
+LIST_METADATA_ENTRIES = [
     "celltype_methods",
     "consensus_celltype_methods",
     "highly_variable_genes",
     "infercnv_reference_celltypes",
     "infercnv_options",
+    "transcript_type",
 ]
 
 
@@ -448,12 +452,14 @@ def convert_experiment_metadata_types(metadata):
         # account for nested ditionaries in the conditional experiment metadata
         if isinstance(value, dict):
             convert_experiment_metadata_types(value)
+        elif key == "cluster_nn":
+            metadata[key] = "numpy.int64"
         # if key is in the list of entries that get saved as an array, convert to numpy.ndarray
-        elif key in list_metadata_entries:
+        elif key in LIST_METADATA_ENTRIES:
             metadata[key] = "numpy.ndarray"
         # otherwise convert any values that are present in the map
-        elif value in experiment_metadata_map.keys():
-            metadata[key] = experiment_metadata_map[value]
+        elif value in EXPERIMENT_METADATA_MAP.keys():
+            metadata[key] = EXPERIMENT_METADATA_MAP[value]
 
     return metadata
 
@@ -533,7 +539,10 @@ unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
     unfiltered_experiment_metadata_conditional
 )
 
-filtered_uns_metadata = convert_experiment_metadata_types(filtered_experiment_metadata)
+filtered_uns_metadata = {
+    **convert_experiment_metadata_types(filtered_experiment_metadata),
+    **anndata_uns_metadata,
+}
 
 filtered_uns_metadata_conditional = convert_experiment_metadata_types(
     filtered_experiment_metadata_conditional
@@ -541,7 +550,12 @@ filtered_uns_metadata_conditional = convert_experiment_metadata_types(
 
 processed_uns_metadata = {
     **convert_experiment_metadata_types(processed_experiment_metadata),
-    "pca": "dict",
+    **anndata_uns_metadata,
+    "pca": {
+        "param": "dict",
+        "variance": "float64",
+        "variance_ratio": "float64",
+    },
 }
 
 processed_uns_metadata_conditional = convert_experiment_metadata_types(
