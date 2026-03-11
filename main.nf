@@ -146,7 +146,7 @@ workflow {
   def single_cell_techs = cell_barcodes.keySet()
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
-  def spatial_techs = ['visium']
+  def spatial_techs = ['visium', 'visium1', 'visium2', 'visium_hd', 'visium_hd_3prime'] // visium for legacy
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
@@ -186,6 +186,7 @@ workflow {
       unknown_ref: !(it.sample_reference in ref_paths)
       valid: true
     }
+
   // warn about unknown technologies
   all_runs_ch.unknown_tech.subscribe{ it ->
     log.warn("The technology '${it.technology}' for run '${it.scpca_run_id}' is not recognized and this run will not be processed.")
@@ -229,6 +230,8 @@ workflow {
         cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
+        // TODO: UPDATE TO USE REFS DIRECTORY ONCE THIS IS IN THE PUBLIC BUCKET
+        cytassist_probe: sample_refs.cytassist_probe ? "${sample_refs.cytassist_probe}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
