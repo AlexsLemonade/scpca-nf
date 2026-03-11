@@ -51,7 +51,6 @@ process spaceranger {
     """
 }
 
-// TODO: need to accommodate HD outputs which are slightly different
 process spaceranger_publish {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
@@ -65,21 +64,36 @@ process spaceranger_publish {
     metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     cellranger_index_name = file(meta.cellranger_index).name
+
+    is_hd = meta.technology.contains("_hd")
     """
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
 
     # copy over needed files to outs directory
-    cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
-    cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
     cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}
     cp ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
+
+    # copy over files to outs directory that depend on the technology, and define inputs to the R script
+    if [[ ${is_hd} == "true" ]]; then
+      cp -r ${spatial_out}/outs/binned_outputs ${spatial_publish_dir}
+      cp -r ${spatial_out}/outs/segmented_outputs ${spatial_publish_dir}
+
+      unfiltered_barcodes_file="${spatial_out}/outs/segmented_outputs/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/segmented_outputs/filtered_feature_bc_matrix/barcodes.tsv.gz"
+    else
+      cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
+      cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
+      
+      unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
+    fi
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
       --sample_id ${meta.sample_id} \
-      --unfiltered_barcodes_file "${spatial_publish_dir}/raw_feature_bc_matrix/barcodes.tsv.gz" \
-      --filtered_barcodes_file "${spatial_publish_dir}/filtered_feature_bc_matrix/barcodes.tsv.gz" \
+      --unfiltered_barcodes_file \${unfiltered_barcodes_file} \
+      --filtered_barcodes_file \${filtered_barcodes_file} \
       --metrics_summary_file "${spatial_out}/outs/metrics_summary.csv" \
       --spaceranger_versions_file "${spatial_out}/_versions" \
       --metadata_json ${metadata_json} \
