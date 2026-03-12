@@ -185,7 +185,8 @@ workflow spaceranger_quant{
           cytaimage_file = []
         } else { // we have a cytassist tech
           if (cytaimage_file.size() != 1) {
-            log.error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
+            // fully error if no cytaimage, since it is required
+            error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
             cytaimage_file = []
           } else {
             // we correctly have one cytaimage file, so index it out
@@ -193,24 +194,52 @@ workflow spaceranger_quant{
           }
         } 
 
-
+        // look for any additional images and check that there are not too many
         def image_file = getImageFiles("${meta.files_directory}/image")
+        if (image_file.size() > 1) {
+          log.error("Expected no more than 1 brightfield image file for ${meta.technology} in ${meta.files_directory}/image but found ${image_file.size()} files.")
+          image_file = []
+        } 
         def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
-        def darkimage_files = getImageFiles("${meta.files_directory}/darkimage") 
+        if (colorizedimage_file.size() > 1) {
+          log.error("Expected no more than 1 colorized image file for ${meta.technology} in ${meta.files_directory}/colorizedimage but found ${colorizedimage_file.size()} files.")
+          colorizedimage_file = []
+        } 
+        def darkimage_file = getImageFiles("${meta.files_directory}/darkimage")
+        if (darkimage_file.size() > 6) {
+          log.error("Expected between 1-6 dark image files for ${meta.technology} in ${meta.files_directory}/darkimage but found ${darkimage_file.size()} files.")
+          darkimage_file = []
+        } 
 
-        // use size of the images to determine which one to pass in, since image file values are never falsey
-        def image_type = image_file ? "image" :
-                         colorizedimage_file ? "colorizedimage" :
-                         darkimage_files ? "darkimage" :
-                         ""
+        // Determine which image file to pass in to spaceranger 
+        // Pair files and their types, and subset to only existing files
+        def present_images = [
+            [image_file, "image"],
+            [colorizedimage_file, "colorizedimage"],
+            [darkimage_file, "darkimage"]
+          ]
+          .findAll{ it[0].size() > 0 } 
 
+        // confirm we have the right number of images:
+        // no more than 1 image for any technology, but require 1 for non-cytassist
+        if (present_images.size() > 1) {
+          // ensure informative print statement with info about the detected files
+          error("Expected no more than 1 type of provided image in ${meta.files_directory} but found: ${present_images.collect { "${it[1]}: ${it[0]}" }.join(", ")}")
+        } else if (meta.technology in non_cytassist_techs && present_images.size() == 0) {
+          error("At least one image file is required for ${meta.technology} but none were found in ${meta.files_directory}.")
+        }
+
+        // Simultaneously define the the image file itself and image_type (the spaceranger flag)
+        def (selected_image_file, image_type) = present_images[0] ?: [[], ""]
+
+        // input to spaceranger process
         [
           meta,
           file(meta.cellranger_index, type: 'dir'),
           probeset_file,
           file("${meta.files_directory}/fastq", type: 'dir'),
           cytaimage_file, 
-          image_file, 
+          selected_image_file, 
           image_type   
         ]
     }
