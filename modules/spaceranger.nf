@@ -185,7 +185,8 @@ workflow spaceranger_quant{
           cytaimage_file = []
         } else { // we have a cytassist tech
           if (cytaimage_file.size() != 1) {
-            log.error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
+            // fully error if no cytaimage, since it is required
+            error("Expected exactly 1 cytaimage file in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
             cytaimage_file = []
           } else {
             // we correctly have one cytaimage file, so index it out
