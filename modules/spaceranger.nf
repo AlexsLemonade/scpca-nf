@@ -224,7 +224,7 @@ workflow spaceranger_quant{
         // no more than 1 image for any technology, but require 1 for non-cytassist
         if (present_images.size() > 1) {
           error("Expected no more than 1 type of provided image in ${meta.files_directory} but found: ${present_images.collect { "${it[1]}: ${it[0]}" }.join(", ")}")
-        } else if (meta.technology in non_cytassist_techs && !image_type) {
+        } else if (meta.technology in non_cytassist_techs && present_images.size() == 0) {
           error("At least one image file is required for ${meta.technology} but none were found in ${meta.files_directory}.")
         }
 
