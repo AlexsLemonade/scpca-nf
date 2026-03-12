@@ -3,6 +3,7 @@
 # Creates the reference json file for formatting checks for scpca-nf output
 
 import json
+import copy
 
 # output reference files
 sce_ref_file = "../sce-formatting-reference.json"
@@ -425,8 +426,8 @@ def convert_cell_row_metadata_types(metadata):
         elif key in CELL_ROW_METADATA_EXCEPTIONS.keys():
             metadata[key] = CELL_ROW_METADATA_EXCEPTIONS[key]
         # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
-        elif key in CELL_ROW_METADATA_MAP.keys():
-            metadata[key] = CELL_ROW_METADATA_MAP[key]
+        elif value in CELL_ROW_METADATA_MAP.keys():
+            metadata[key] = CELL_ROW_METADATA_MAP[value]
 
     return metadata
 
@@ -434,9 +435,9 @@ def convert_cell_row_metadata_types(metadata):
 # types for uns metadata entries that are not cell or row metadata
 EXPERIMENT_METADATA_MAP = {
     "character": "str",
-    "integer": "numpy.int64",
-    "numeric": "numpy.float64",
-    "logical": "numpy.bool_",
+    "integer": "int",
+    "numeric": "float",
+    "logical": "bool",
     "data.frame": "pandas.DataFrame",
     "DFrame": "pandas.DataFrame",
 }
@@ -450,7 +451,6 @@ EXPERIMENT_METADATA_EXCEPTIONS_MAP = {
     "infercnv_reference_celltypes": "numpy.ndarray",
     "infercnv_options": "numpy.ndarray",
     "transcript_type": "numpy.ndarray",
-    "cluster_nn": "numpy.int64",
 }
 
 
@@ -463,8 +463,8 @@ def convert_experiment_metadata_types(metadata):
         elif key in EXPERIMENT_METADATA_EXCEPTIONS_MAP.keys():
             metadata[key] = EXPERIMENT_METADATA_EXCEPTIONS_MAP[key]
         # otherwise convert any values that are present in the map
-        elif key in EXPERIMENT_METADATA_MAP.keys():
-            metadata[key] = EXPERIMENT_METADATA_MAP[key]
+        elif value in EXPERIMENT_METADATA_MAP.keys():
+            metadata[key] = EXPERIMENT_METADATA_MAP[value]
 
     return metadata
 
@@ -492,36 +492,40 @@ anndata_specific_obs_metadata_conditional = {
 }
 
 obs_metadata = {
-    **convert_cell_row_metadata_types(cell_metadata),
+    **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata)),
     **anndata_specific_obs_metadata,
 }
 
 obs_metadata_conditional = {
-    **convert_cell_row_metadata_types(cell_metadata_conditional),
+    **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata_conditional)),
     **anndata_specific_obs_metadata_conditional,
 }
 
 # filtered cell metadata ------------
 filtered_obs_metadata = {
-    **convert_cell_row_metadata_types(filtered_cell_metadata),
+    **convert_cell_row_metadata_types(copy.deepcopy(filtered_cell_metadata)),
     **anndata_specific_obs_metadata,
 }
 
 filtered_cell_metadata_conditional = {
-    **convert_cell_row_metadata_types(filtered_cell_metadata_conditional),
+    **convert_cell_row_metadata_types(
+        copy.deepcopy(filtered_cell_metadata_conditional)
+    ),
     **anndata_specific_obs_metadata_conditional,
 }
 
 # processed cell metadata ------------
 
 processed_obs_metadata_conditional = {
-    **convert_cell_row_metadata_types(processed_cell_metadata_conditional),
+    **convert_cell_row_metadata_types(
+        copy.deepcopy(processed_cell_metadata_conditional)
+    ),
     **anndata_specific_obs_metadata_conditional,
 }
 
 # row metadata ----------
 var_metadata = {
-    **convert_cell_row_metadata_types(feature_metadata),
+    **convert_cell_row_metadata_types(copy.deepcopy(feature_metadata)),
     "feature_is_filtered": "bool",
     "highly_variable": "bool",
 }
@@ -536,25 +540,25 @@ anndata_uns_metadata = {
 }
 
 unfiltered_uns_metadata = {
-    **convert_experiment_metadata_types(unfiltered_experiment_metadata),
+    **convert_experiment_metadata_types(copy.deepcopy(unfiltered_experiment_metadata)),
     **anndata_uns_metadata,
 }
 
 unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
-    unfiltered_experiment_metadata_conditional
+    copy.deepcopy(unfiltered_experiment_metadata_conditional)
 )
 
 filtered_uns_metadata = {
-    **convert_experiment_metadata_types(filtered_experiment_metadata),
+    **convert_experiment_metadata_types(copy.deepcopy(filtered_experiment_metadata)),
     **anndata_uns_metadata,
 }
 
 filtered_uns_metadata_conditional = convert_experiment_metadata_types(
-    filtered_experiment_metadata_conditional
+    copy.deepcopy(filtered_experiment_metadata_conditional)
 )
 
 processed_uns_metadata = {
-    **convert_experiment_metadata_types(processed_experiment_metadata),
+    **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
     **anndata_uns_metadata,
     "pca": {
         "param": "dict",
@@ -564,27 +568,29 @@ processed_uns_metadata = {
 }
 
 processed_uns_metadata_conditional = convert_experiment_metadata_types(
-    processed_experiment_metadata_conditional
+    copy.deepcopy(processed_experiment_metadata_conditional)
 )
 
 # alt exps gell/gene metadata ------------
 # adt specific items
-altexp_adt_var_metadata = convert_cell_row_metadata_types(altexp_adt_feature_metadata)
+altexp_adt_var_metadata = convert_cell_row_metadata_types(
+    copy.deepcopy(altexp_adt_feature_metadata)
+)
 
 filtered_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
-    filtered_altexp_adt_cell_metadata
+    copy.deepcopy(filtered_altexp_adt_cell_metadata)
 )
 
 filtered_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
-    filtered_altexp_adt_cell_metadata_conditional
+    copy.deepcopy(filtered_altexp_adt_cell_metadata_conditional)
 )
 
 processed_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
-    processed_altexp_adt_cell_metadata_conditional
+    copy.deepcopy(processed_altexp_adt_cell_metadata_conditional)
 )
 
 filtered_altexp_adt_uns_metadata = convert_cell_row_metadata_types(
-    filtered_altexp_adt_experiment_metadata
+    copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
 
 # build unfiltered AnnData -----------------

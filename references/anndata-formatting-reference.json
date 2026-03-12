@@ -54,7 +54,7 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "numpy.int64",
+                "total_reads": "int",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
@@ -68,19 +68,19 @@
             "uns_conditional": {
                 "alevin-fry": {
                     "salmon_version": "str",
-                    "mapped_reads": "numpy.int64",
+                    "mapped_reads": "int",
                     "alevinfry_version": "str",
                     "af_permit_type": "str",
                     "af_resolution": "str",
-                    "usa_mode": "numpy.bool_",
-                    "af_num_cells": "numpy.int64",
-                    "include_unspliced": "numpy.bool_"
+                    "usa_mode": "bool",
+                    "af_num_cells": "int",
+                    "include_unspliced": "bool"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
-                    "pct_mapped_reads": "numpy.float64",
-                    "cellranger_num_cells": "numpy.int64"
+                    "pct_mapped_reads": "float",
+                    "cellranger_num_cells": "int"
                 }
             }
         },
@@ -167,7 +167,7 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "numpy.int64",
+                "total_reads": "int",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
@@ -176,19 +176,19 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "numpy.bool_",
+                "prob_compromised_cutoff": "bool",
                 "scpca_filter_method": "str",
-                "min_gene_cutoff": "numpy.int64",
+                "min_gene_cutoff": "int",
                 "X_name": "str",
                 "schema_version": "str"
             },
             "uns_conditional": {
                 "umi_filtering": {
-                    "umi_cutoff": "numpy.float64"
+                    "umi_cutoff": "float"
                 },
                 "has_miQC": {
                     "miQC_model": "S4",
-                    "prob_compromised_cutoff": "numpy.float64"
+                    "prob_compromised_cutoff": "float"
                 }
             }
         },
@@ -336,7 +336,7 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "numpy.int64",
+                "total_reads": "int",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
@@ -345,9 +345,9 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "numpy.bool_",
+                "prob_compromised_cutoff": "bool",
                 "scpca_filter_method": "str",
-                "min_gene_cutoff": "numpy.int64",
+                "min_gene_cutoff": "int",
                 "normalization": "str",
                 "highly_variable_genes": "numpy.ndarray",
                 "X_name": "str",
@@ -360,15 +360,15 @@
             },
             "uns_conditional": {
                 "umi_filtering": {
-                    "umi_cutoff": "numpy.float64"
+                    "umi_cutoff": "float"
                 },
                 "has_miQC": {
-                    "prob_compromised_cutoff": "numpy.float64"
+                    "prob_compromised_cutoff": "float"
                 },
                 "has_clusters": {
                     "cluster_algorithm": "str",
                     "cluster_weighting": "str",
-                    "cluster_nn": "numpy.int64"
+                    "cluster_nn": "float"
                 },
                 "has_submitter": {
                     "celltype_methods": "numpy.ndarray"
@@ -386,8 +386,8 @@
                     "singler_reference_label": "str",
                     "singler_reference_source": "str",
                     "singler_reference_version": "str",
-                    "singler_gene_set_version": "numpy.bool_",
-                    "singler_date": "numpy.bool_"
+                    "singler_gene_set_version": "bool",
+                    "singler_date": "bool"
                 },
                 "has_cellassign": {
                     "celltype_methods": "numpy.ndarray",
@@ -406,7 +406,7 @@
                 },
                 "has_infercnv": {
                     "infercnv_reference_celltypes": "numpy.ndarray",
-                    "infercnv_num_reference_cells": "numpy.int64",
+                    "infercnv_num_reference_cells": "int",
                     "infercnv_diagnosis_groups": "str",
                     "infercnv_status": "str",
                     "infercnv_options": "numpy.ndarray",
