@@ -146,7 +146,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_library_id`     | A unique library ID for each unique set of cells |
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
+| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium1` (first-generation Visium without CytAssist), `visium2` (second-generation Visium with CytAssist), `visium_hd`, or `visium_hd_3prime` <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
 | `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `tech_version` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
@@ -745,12 +745,14 @@ To process spatial transcriptomic libraries, all FASTQ files for each sequencing
 
 Which specific files you will need depends on the Visium technology version you are using:
 
-* First-generation Visium libraries require require a populated `fastq` directory, and a single type of image file
+* All technologies require a populated `fastq` directory
+* First-generation Visium libraries require a single type of image file
   * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory.
-  * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image
-  * Only the directory that contains the image file needs to exist
-* Visium CytaAssist, Visium HD, and Visium HD 3' libraries require a populated `fastq` directory, and an CytAssist image file provided in the `cytaimage` directory
+  * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image, so place your image in a directory named according to its type
+  * Only the directory that contains the image file needs to exist; empty directories are not necessary to include
+* Visium CytaAssist, Visium HD, and Visium HD 3' libraries require a CytAssist image file provided in the `cytaimage/` directory
   * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
+  * Only the directory that contains the optional image file needs to exist; empty directories are not necessary to include
 
 The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
 
