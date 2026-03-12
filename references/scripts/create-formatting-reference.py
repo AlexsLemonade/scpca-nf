@@ -406,6 +406,14 @@ CELL_ROW_METADATA_MAP = {
     "character": "category",
 }
 
+# outlier types for cell and row metadata
+CELL_ROW_METADATA_EXCEPTIONS = {
+    "detected": "int32",
+    "barcodes": "object",
+    "gene_ids": "object",
+    "adt_id": "object",
+}
+
 
 def convert_cell_row_metadata_types(metadata):
     for key, value in metadata.items():
@@ -413,15 +421,12 @@ def convert_cell_row_metadata_types(metadata):
         # use recursion to do this
         if isinstance(value, dict):
             convert_cell_row_metadata_types(value)
-        # if detected, this is an int
-        elif key == "detected":
-            metadata[key] = "int32"
-        # if the value is barcodes, gene_ids, or adt_ids, this is an object in dtypes
-        elif key in ["barcodes", "gene_ids", "adt_id"]:
-            metadata[key] = "object"
+        # check if the key is one of the exceptions where the types aren't what we expect
+        elif key in CELL_ROW_METADATA_EXCEPTIONS.keys():
+            metadata[key] = CELL_ROW_METADATA_EXCEPTIONS[key]
         # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
-        elif value in CELL_ROW_METADATA_MAP.keys():
-            metadata[key] = CELL_ROW_METADATA_MAP[value]
+        elif key in CELL_ROW_METADATA_MAP.keys():
+            metadata[key] = CELL_ROW_METADATA_MAP[key]
 
     return metadata
 
@@ -436,15 +441,17 @@ EXPERIMENT_METADATA_MAP = {
     "DFrame": "pandas.DataFrame",
 }
 
-# these all get stored as numpy.ndarray and not str even though they are considered character in R
-LIST_METADATA_ENTRIES = [
-    "celltype_methods",
-    "consensus_celltype_methods",
-    "highly_variable_genes",
-    "infercnv_reference_celltypes",
-    "infercnv_options",
-    "transcript_type",
-]
+# outlier types
+# most of these stored as numpy.ndarray and not str even though they are considered character in R
+EXPERIMENT_METADATA_EXCEPTIONS_MAP = {
+    "celltype_methods": "numpy.ndarray",
+    "consensus_celltype_methods": "numpy.ndarray",
+    "highly_variable_genes": "numpy.ndarray",
+    "infercnv_reference_celltypes": "numpy.ndarray",
+    "infercnv_options": "numpy.ndarray",
+    "transcript_type": "numpy.ndarray",
+    "cluster_nn": "numpy.int64",
+}
 
 
 def convert_experiment_metadata_types(metadata):
@@ -452,14 +459,12 @@ def convert_experiment_metadata_types(metadata):
         # account for nested ditionaries in the conditional experiment metadata
         if isinstance(value, dict):
             convert_experiment_metadata_types(value)
-        elif key == "cluster_nn":
-            metadata[key] = "numpy.int64"
-        # if key is in the list of entries that get saved as an array, convert to numpy.ndarray
-        elif key in LIST_METADATA_ENTRIES:
-            metadata[key] = "numpy.ndarray"
+        # account for exceptions to the conversion
+        elif key in EXPERIMENT_METADATA_EXCEPTIONS_MAP.keys():
+            metadata[key] = EXPERIMENT_METADATA_EXCEPTIONS_MAP[key]
         # otherwise convert any values that are present in the map
-        elif value in EXPERIMENT_METADATA_MAP.keys():
-            metadata[key] = EXPERIMENT_METADATA_MAP[value]
+        elif key in EXPERIMENT_METADATA_MAP.keys():
+            metadata[key] = EXPERIMENT_METADATA_MAP[key]
 
     return metadata
 
@@ -470,11 +475,11 @@ layers = ["spliced"]
 # unfiltered cell metadata ------------
 anndata_specific_obs_metadata = {
     # sample metadata is present in obs for anndata
-    # this minimally includes library id, sample id and assay ontology term id
+    # this minimally includes library id and sample id
     "library_id": "category",
     "sample_id": "category",
-    "assay_ontology_term_id": "category",
     # columns that we explicitly add in sce_to_annndata
+    "assay_ontology_term_id": "category",
     "suspension_type": "category",
     "is_primary_data": "bool",
 }
