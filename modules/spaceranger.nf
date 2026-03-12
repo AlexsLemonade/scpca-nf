@@ -211,7 +211,13 @@ workflow spaceranger_quant{
           darkimage_file = []
         } 
 
-        // Determine which image file to pass in to spaceranger - there can only be one
+        // there can only be one of image, colorizedimage, or darkimage
+        def found_images = [image_file, colorizedimage_file, darkimage_file].count { it.size() > 0 }
+        if (found_images > 1) {
+            error("Expected no more than 1 type of provided image in ${meta.files_directory} but found these: ${found_images}")
+        }
+
+        // Determine which image file to pass in to spaceranger 
         // Here we simultaneously define the image_type (the spaceranger flag), and the image file itself
         // The first file with size greater than 0 becomes the one we pass in, checking in order of brightfield, colorized, and dark
         def (selected_image_file, image_type) = [
@@ -225,7 +231,7 @@ workflow spaceranger_quant{
           error("At least one image file is required for ${meta.technology} but none were found in ${meta.files_directory}.")
         }
 
-
+        // input to spaceranger process
         [
           meta,
           file(meta.cellranger_index, type: 'dir'),
