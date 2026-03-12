@@ -727,7 +727,31 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 ### Spatial transcriptomics libraries
 
-To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file).
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
+
+```text
+{files_directory}
+├── fastq
+│   ├── X_L001_R1.fastq.gz
+│   ├── X_L001_R2.fastq.gz
+│   ├── Y_L002_R1.fastq.gz
+│   └── Y_L002_R2.fastq.gz
+├── cytaimage
+│   └── image.tiff
+├── image
+├── colorizedimage
+└── darkimage
+```
+
+Which specific files you will need depends on the Visium technology version you are using:
+
+* First-generation Visium libraries require require a populated `fastq` directory, and a single type of image file
+  * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory.
+  * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image
+  * Only the directory that contains the image file needs to exist
+* Visium CytaAssist, Visium HD, and Visium HD 3' libraries require a populated `fastq` directory, and an CytAssist image file provided in the `cytaimage` directory
+  * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
+
 The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest).
@@ -735,8 +759,7 @@ For licensing reasons, we cannot provide a Docker container with Space Ranger fo
 As an example, the [Dockerfile that we used to build Space Ranger](docker/spaceranger/Dockerfile) can be found in the `docker/spaceranger` directory of this repository.
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.spaceranger_container` to the registry location and image ID in the `user_template.config` file.
-_Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
-
+_Note: The workflow is currently set up to run Space Ranger version `4.0.1` has not been tested with other Space Ranger versions._
 
 ## Additional workflow settings
 
