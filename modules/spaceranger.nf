@@ -218,7 +218,7 @@ workflow spaceranger_quant{
         }
 
         // Determine which image file to pass in to spaceranger 
-        // Here we simultaneously define the image_type (the spaceranger flag), and the image file itself
+        // Here we simultaneously define the the image file itself and image_type (the spaceranger flag)
         // The first file with size greater than 0 becomes the one we pass in, checking in order of brightfield, colorized, and dark
         def (selected_image_file, image_type) = [
             [image_file, "image"],
