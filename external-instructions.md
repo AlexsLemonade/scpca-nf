@@ -750,7 +750,7 @@ Which specific files you will need depends on the Visium technology version you 
   * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory.
   * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image, so place your image in a directory named according to its type
   * Only the directory that contains the image file needs to exist; empty directories are not necessary to include
-* Visium CytaAssist, Visium HD, and Visium HD 3' libraries require a CytAssist image file provided in the `cytaimage/` directory
+* Visium CytAssist, Visium HD, and Visium HD 3' libraries require a CytAssist image file provided in the `cytaimage/` directory
   * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
   * Only the directory that contains the optional image file needs to exist; empty directories are not necessary to include
 

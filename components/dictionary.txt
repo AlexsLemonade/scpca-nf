@@ -10,6 +10,7 @@ ARI
 barcode
 bioinformatics
 bioRxiv
+brightfield
 Cavatica
 cDNA
 CellAssign
@@ -20,6 +21,7 @@ conda
 config
 customizable
 customizations
+CytAssist
 data's
 demultiplexed
 demultiplexing
@@ -40,6 +42,7 @@ GEX
 Github
 glioblastoma
 GRCh
+HD
 Heimberg
 Hippen
 HPC
