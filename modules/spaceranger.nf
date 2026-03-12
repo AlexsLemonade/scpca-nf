@@ -36,6 +36,10 @@ process spaceranger {
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
+    # DEBUGGING - why still intermediates????
+    ls ${out_id} > ${out_id}/contents.txt
+
+
     # TODO: Why is this still present in the checkpoints directory???
     # TODO: Is there more we'd like to remove?
     # remove Space Ranger intermediates directory
