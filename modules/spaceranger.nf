@@ -211,25 +211,25 @@ workflow spaceranger_quant{
           darkimage_file = []
         } 
 
-        // there can only be one of image, colorizedimage, or darkimage
-        def found_images = [image_file, colorizedimage_file, darkimage_file].count { it.size() > 0 }
-        if (found_images > 1) {
-            error("Expected no more than 1 type of provided image in ${meta.files_directory} but found these: ${found_images}")
-        }
-
         // Determine which image file to pass in to spaceranger 
-        // Here we simultaneously define the the image file itself and image_type (the spaceranger flag)
-        // The first file with size greater than 0 becomes the one we pass in, checking in order of brightfield, colorized, and dark
-        def (selected_image_file, image_type) = [
+        // Pair files and their types, and subset to only existing files
+        def present_images = [
             [image_file, "image"],
             [colorizedimage_file, "colorizedimage"],
             [darkimage_file, "darkimage"]
-          ].find{ it[0].size() > 0 } ?: [[], ""]
+          ]
+          .findAll{ it[0].size() > 0 } 
 
-        // if not using cytassist technology confirm there's an image
-        if (meta.technology in non_cytassist_techs && !image_type) {
+        // confirm we have the right number of images:
+        // no more than 1 image for any technology, but require 1 for non-cytassist
+        if (present_images.size() > 1) {
+          error("Expected no more than 1 type of provided image in ${meta.files_directory} but found: ${present_images.collect { "${it[1]}: ${it[0]}" }.join(", ")}")
+        } else if (meta.technology in non_cytassist_techs && !image_type) {
           error("At least one image file is required for ${meta.technology} but none were found in ${meta.files_directory}.")
         }
+
+        // Simultaneously define the the image file itself and image_type (the spaceranger flag)
+        def (selected_image_file, image_type) = present_images[0] ?: [[], ""]
 
         // input to spaceranger process
         [
