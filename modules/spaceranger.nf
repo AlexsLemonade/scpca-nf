@@ -56,8 +56,8 @@ process spaceranger_hd {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
-  label 'cpus_12'
-  label 'mem_48'
+  label 'cpus_24'
+  label 'mem_128'
   label 'disk_big'
   input: 
     tuple val(meta), path(index), path(probeset_file),
