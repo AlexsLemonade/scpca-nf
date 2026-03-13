@@ -129,8 +129,8 @@ process spaceranger_publish {
       cp -r ${spatial_out}/outs/binned_outputs ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/segmented_outputs ${spatial_publish_dir}
 
-      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_002um/raw_feature_bc_matrix/barcodes.tsv.gz"
-      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_002um/filtered_feature_bc_matrix/barcodes.tsv.gz"
+      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
     else
       cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}

@@ -160,7 +160,7 @@ if (opt$technology %in% c("visium", "visium1", "visium_hd_3prime")) {
 }
 
 if (opt$technology %in% c("visium_hd", "visium_hd_3prime")) {
-  tissue_spots_column <- "Number of Squares Under Tissue 2 µm"
+  tissue_spots_column <- "Number of Squares Under Tissue 8 µm"
   tissue_colname <- "tissue_squares"
 
   filtered_colname <- "filtered_squares"
