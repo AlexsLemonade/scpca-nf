@@ -28,7 +28,7 @@ process spaceranger {
       --localmem=${task.memory.toGiga()} \
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} \
-      --create-bam false \
+      --create-bam=false \
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
@@ -36,12 +36,64 @@ process spaceranger {
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
-    # DEBUGGING - why still intermediates????
+    # TODO DEBUGGING - why still intermediates????
     ls ${out_id} > ${out_id}/contents.txt
 
+    # TODO: Why is this still present in the checkpoints directory???
+    # remove Space Ranger intermediates directory
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS/
+    """
+  stub:
+    out_id = file(meta.spaceranger_results_dir).name
+    meta += getVersions()
+    meta_json = makeJson(meta)
+    """
+    mkdir -p ${out_id}/outs
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+    """
+}
+
+
+// this process is identical to spaceranger, but with more memory for HD & HD 3' datasets
+process spaceranger_hd {
+  container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
+  publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
+  tag "${meta.run_id}-spatial"
+  label 'cpus_12'
+  label 'mem_48'
+  label 'disk_big'
+  input: 
+    tuple val(meta), path(index), path(probeset_file),
+      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type) 
+  output:
+    tuple val(meta), path(out_id)
+  script:
+    out_id = file(meta.spaceranger_results_dir).name
+    meta += getVersions()
+    meta_json = makeJson(meta)
+    image_arg = image_type ? "--${image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    """
+    spaceranger count \
+      --id=${out_id} \
+      --transcriptome=${index} \
+      --fastqs=${fastq_dir} \
+      --sample=${meta.cr_samples} \
+      --localcores=${task.cpus} \
+      --localmem=${task.memory.toGiga()} \
+      --slide=${meta.slide_serial_number} \
+      --area=${meta.slide_section} \
+      --create-bam=false \
+      ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
+      ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
+      ${image_arg}
+
+    # write metadata
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    # TODO DEBUGGING - why still intermediates????
+    ls ${out_id} > ${out_id}/contents.txt
 
     # TODO: Why is this still present in the checkpoints directory???
-    # TODO: Is there more we'd like to remove?
     # remove Space Ranger intermediates directory
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS/
     """
@@ -147,6 +199,9 @@ workflow spaceranger_quant{
     
     // techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
+
+    // hd techs for branching; use list instead of regex for discoverability/maintenance
+    def hd_techs = ['visium_hd', 'visium_hd_3prime']
 
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
@@ -261,9 +316,14 @@ workflow spaceranger_quant{
           image_type   
         ]
     }
+    .branch {
+      hd:  it[0].technology in hd_techs
+      non_hd: true
+    }
 
-    // run spaceranger
-    spaceranger(spaceranger_reads)
+    // run spaceranger and mix back up
+    spaceranger(spaceranger_reads.non_hd)
+    spaceranger_hd(spaceranger_reads.hd)
 
     // gather spaceranger output for completed libraries
     // make a list of metadata (read from prior output) and prior results directory
@@ -275,7 +335,9 @@ workflow spaceranger_quant{
         ]
       }
 
-    grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
+    grouped_spaceranger_ch = spaceranger.out
+      .mix(spaceranger_hd.out)
+      .mix(spaceranger_quants_ch)
 
     // generate metadata.json
     spaceranger_publish(grouped_spaceranger_ch)
