@@ -33,15 +33,19 @@ process spaceranger {
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
 
-    # write metadata
-    echo '${meta_json}' > ${out_id}/scpca-meta.json
+    # debugging games
+    ls ${out_id} > ${out_id}/before_contents.txt
 
-    # TODO DEBUGGING - why still intermediates????
-    ls ${out_id} > ${out_id}/contents.txt
-
+    # debugging games - move it up and list contents after attempting removal
     # TODO: Why is this still present in the checkpoints directory???
     # remove Space Ranger intermediates directory
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS/
+
+    # write metadata
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    # debugging games
+    ls ${out_id} > ${out_id}/after_contents.txt
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -90,12 +94,9 @@ process spaceranger_hd {
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
 
-    # TODO DEBUGGING - why still intermediates????
-    ls ${out_id} > ${out_id}/contents.txt
-
-    # TODO: Why is this still present in the checkpoints directory???
+    # TODO: Why is this still present in the checkpoints directory?
     # remove Space Ranger intermediates directory
-    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS/
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
