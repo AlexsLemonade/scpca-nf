@@ -43,7 +43,7 @@ process spaceranger {
     # TODO: Why is this still present in the checkpoints directory???
     # TODO: Is there more we'd like to remove?
     # remove Space Ranger intermediates directory
-    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS/
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
