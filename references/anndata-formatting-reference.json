@@ -187,7 +187,6 @@
                     "umi_cutoff": "float"
                 },
                 "has_miQC": {
-                    "miQC_model": "S4",
                     "prob_compromised_cutoff": "float"
                 }
             }
@@ -214,19 +213,19 @@
                 }
             },
             "uns": {
-                "library_id": "category",
-                "sample_id": "category",
-                "project_id": "category",
-                "reference_index": "category",
-                "total_reads": "int32",
-                "mapping_tool": "category",
-                "tech_version": "category",
-                "assay_ontology_term_id": "category",
-                "seq_unit": "category",
-                "transcript_type": "category",
-                "sample_metadata": "data.frame",
-                "sample_type": "category",
-                "ambient_profile": "category"
+                "library_id": "str",
+                "sample_id": "str",
+                "project_id": "str",
+                "reference_index": "str",
+                "total_reads": "int",
+                "mapping_tool": "str",
+                "tech_version": "str",
+                "assay_ontology_term_id": "str",
+                "seq_unit": "str",
+                "transcript_type": "numpy.ndarray",
+                "sample_metadata": "pandas.DataFrame",
+                "sample_type": "str",
+                "ambient_profile": "str"
             }
         }
     },
@@ -368,7 +367,7 @@
                 "has_clusters": {
                     "cluster_algorithm": "str",
                     "cluster_weighting": "str",
-                    "cluster_nn": "float"
+                    "cluster_nn": "int"
                 },
                 "has_submitter": {
                     "celltype_methods": "numpy.ndarray"
@@ -441,19 +440,19 @@
                 "sizeFactor": "float64"
             },
             "uns": {
-                "library_id": "category",
-                "sample_id": "category",
-                "project_id": "category",
-                "reference_index": "category",
-                "total_reads": "int32",
-                "mapping_tool": "category",
-                "tech_version": "category",
-                "assay_ontology_term_id": "category",
-                "seq_unit": "category",
-                "transcript_type": "category",
-                "sample_metadata": "data.frame",
-                "sample_type": "category",
-                "ambient_profile": "category"
+                "library_id": "str",
+                "sample_id": "str",
+                "project_id": "str",
+                "reference_index": "str",
+                "total_reads": "int",
+                "mapping_tool": "str",
+                "tech_version": "str",
+                "assay_ontology_term_id": "str",
+                "seq_unit": "str",
+                "transcript_type": "numpy.ndarray",
+                "sample_metadata": "pandas.DataFrame",
+                "sample_type": "str",
+                "ambient_profile": "str"
             }
         }
     }

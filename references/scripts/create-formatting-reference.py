@@ -451,6 +451,7 @@ EXPERIMENT_METADATA_EXCEPTIONS_MAP = {
     "infercnv_reference_celltypes": "numpy.ndarray",
     "infercnv_options": "numpy.ndarray",
     "transcript_type": "numpy.ndarray",
+    "cluster_nn": "int",
 }
 
 
@@ -553,9 +554,13 @@ filtered_uns_metadata = {
     **anndata_uns_metadata,
 }
 
-filtered_uns_metadata_conditional = convert_experiment_metadata_types(
-    copy.deepcopy(filtered_experiment_metadata_conditional)
-)
+filtered_uns_metadata_conditional = {
+    # if empty drops filtering_method is UMI cutoff
+    "umi_filtering": {"umi_cutoff": "float"},
+    # if miQC is present, the prob_compromised_cutoff column should be present
+    # no miQC_model since we remove S4 objects
+    "has_miQC": {"prob_compromised_cutoff": "float"},
+}
 
 processed_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
@@ -589,7 +594,7 @@ processed_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
     copy.deepcopy(processed_altexp_adt_cell_metadata_conditional)
 )
 
-filtered_altexp_adt_uns_metadata = convert_cell_row_metadata_types(
+filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
     copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
 
