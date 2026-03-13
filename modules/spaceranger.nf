@@ -143,7 +143,7 @@ workflow spaceranger_quant{
   take: spatial_channel // a channel with a map of metadata for each spatial library to process
   main:
     // techs that use the probe file
-    def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+    def cytassist_probe_techs = ['visium2', 'visium_hd']
     
     // techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
