@@ -747,7 +747,7 @@ Which specific files you will need depends on the Visium technology version you 
 
 * All technologies require a populated `fastq` directory
 * First-generation Visium libraries require a single type of image file
-  * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory.
+  * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
   * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image, so place your image in a directory named according to its type
   * Only the directory that contains the image file needs to exist; empty directories are not necessary to include
 * Visium CytAssist, Visium HD, and Visium HD 3' libraries require a CytAssist image file provided in the `cytaimage/` directory
@@ -761,7 +761,7 @@ For licensing reasons, we cannot provide a Docker container with Space Ranger fo
 As an example, the [Dockerfile that we used to build Space Ranger](docker/spaceranger/Dockerfile) can be found in the `docker/spaceranger` directory of this repository.
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.spaceranger_container` to the registry location and image ID in the `user_template.config` file.
-_Note: The workflow is currently set up to run Space Ranger version `4.0.1` has not been tested with other Space Ranger versions._
+_Note: The workflow is currently set up to run Space Ranger version `4.0.1` and has not been tested with other Space Ranger versions._
 
 ## Additional workflow settings
 
