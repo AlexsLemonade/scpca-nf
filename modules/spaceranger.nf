@@ -136,8 +136,8 @@ process spaceranger_publish {
       cp -r ${spatial_out}/outs/binned_outputs ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/segmented_outputs ${spatial_publish_dir}
 
-      unfiltered_barcodes_file="${spatial_out}/outs/segmented_outputs/raw_feature_bc_matrix/barcodes.tsv.gz"
-      filtered_barcodes_file="${spatial_out}/outs/segmented_outputs/filtered_feature_bc_matrix/barcodes.tsv.gz"
+      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_002um/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_002um/filtered_feature_bc_matrix/barcodes.tsv.gz"
     else
       cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
@@ -201,8 +201,6 @@ workflow spaceranger_quant{
     // techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
 
-    // hd techs for branching; use list instead of regex for discoverability/maintenance
-    def hd_techs = ['visium_hd', 'visium_hd_3prime']
 
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
@@ -318,7 +316,7 @@ workflow spaceranger_quant{
         ]
     }
     .branch {
-      hd:  it[0].technology in hd_techs
+      hd: it[0].technology.contains("_hd")
       non_hd: true
     }
 
