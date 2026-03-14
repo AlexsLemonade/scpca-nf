@@ -142,7 +142,7 @@ process spaceranger_publish {
 
       # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
       if [[ -d ${spatial_out}/outs/segmented_outputs ]]; then
-        cp ${spatial_out}/outs/segmented_outputs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
+        cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
 
         mkdir -p ${spatial_publish_dir}/segmented_outputs/spatial
 
