@@ -142,13 +142,14 @@ process spaceranger_publish {
 
       # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
       if [[ -d ${spatial_out}/outs/segmented_outputs ]]; then
-         # this file only exists if segmentation was performed
         cp ${spatial_out}/outs/segmented_outputs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
 
         mkdir -p ${spatial_publish_dir}/segmented_outputs/spatial
 
+        cp -r ${spatial_out}/outs/segmented_outputs/cell_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
+        cp -r ${spatial_out}/outs/segmented_outputs/nucleus_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
         cp -r ${spatial_out}/outs/segmented_outputs/spatial/scalefactors_json.json ${spatial_publish_dir}/segmented_outputs/spatial/scalefactors_json.json
-        # these use _cell_, not _bc_ in count directory names
+        # segemented outputs use `cell` instead of `bc` in count directory names
         cp -r ${spatial_out}/outs/segmented_outputs/raw_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
         cp -r ${spatial_out}/outs/segmented_outputs/filtered_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
       fi
