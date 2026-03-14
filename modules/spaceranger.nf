@@ -126,10 +126,10 @@ process spaceranger_publish {
 
     # copy over files to outs directory that depend on the technology, and define inputs to the R script
     if [[ ${is_hd} == "true" ]]; then
-      # ensure we are only copying over the count & spatial results, not any nested analysis dirs
-      # we also need to ensure symlinks in nested spatial directories aren't copied (which is most files)
+      # ensure we are only copying over the count & spatial results, not nested analysis dirs, and that we aren't copying symlinks
 
       cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}/
+      cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
 
       for square_dir in square_002um square_008um square_016um; do
         mkdir -p ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial
@@ -142,8 +142,6 @@ process spaceranger_publish {
 
       # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
       if [[ -d ${spatial_out}/outs/segmented_outputs ]]; then
-        cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
-
         mkdir -p ${spatial_publish_dir}/segmented_outputs/spatial
 
         cp -r ${spatial_out}/outs/segmented_outputs/cell_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
