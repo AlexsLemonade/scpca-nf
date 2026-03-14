@@ -127,8 +127,11 @@ process spaceranger_publish {
     # copy over files to outs directory that depend on the technology, and define inputs to the R script
     if [[ ${is_hd} == "true" ]]; then
       cp -r ${spatial_out}/outs/binned_outputs ${spatial_publish_dir}
-      cp -r ${spatial_out}/outs/segmented_outputs ${spatial_publish_dir}
-
+      if [[ -d ${spatial_out}/outs/segmented_outputs ]]; then
+        # only present if a brightfield image was supplied
+        cp -r ${spatial_out}/outs/segmented_outputs ${spatial_publish_dir}
+      fi
+      # use square_008um to match stats calculated in the R script and spaceranger web summary
       unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
     else
@@ -194,6 +197,8 @@ workflow spaceranger_quant{
     // techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
 
+    // hd technologies
+    def hd_techs = ['visium_hd', 'visium_hd_3prime']
 
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
@@ -238,12 +243,14 @@ workflow spaceranger_quant{
 
     // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file, image type]
     spaceranger_reads = spatial_channel.make_spatial
-      .map{ meta ->
+      .map{ meta_in ->
+        def meta = meta_in.clone()
+
         // probeset logic
         def use_probeset = meta.technology in cytassist_probe_techs
         def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
-        // image logic
+        // cytaimage logic
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
         if (meta.technology in non_cytassist_techs) {
           if (cytaimage_file) log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
@@ -297,7 +304,10 @@ workflow spaceranger_quant{
         // Simultaneously define the the image file itself and image_type (the spaceranger flag)
         def (selected_image_file, image_type) = present_images[0] ?: [[], ""]
 
-        // input to spaceranger process
+        // used for checking for segmented_results for hd technologies
+        meta.has_brightfield_image = image_type == "image"
+
+        // prepared input to spaceranger process
         [
           meta,
           file(meta.cellranger_index, type: 'dir'),
@@ -309,7 +319,7 @@ workflow spaceranger_quant{
         ]
     }
     .branch {
-      hd: it[0].technology.contains("_hd")
+      hd: it[0].technology in hd_techs
       non_hd: true
     }
 
@@ -327,9 +337,21 @@ workflow spaceranger_quant{
         ]
       }
 
+    // log error about segmented_outputs as needed
+    spaceranger_hd.out
+      .map{ meta, out_id ->
+        def has_segmented_outputs_dir = file("${meta.spaceranger_results_dir}/segmented_outputs").exists()
+        if (meta.has_brightfield_image && !has_segmented_outputs_dir) {
+          log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
+        }
+        [meta, out_id]
+      }
+
+
     grouped_spaceranger_ch = spaceranger.out
       .mix(spaceranger_hd.out)
       .mix(spaceranger_quants_ch)
+
 
     // generate metadata.json
     spaceranger_publish(grouped_spaceranger_ch)
