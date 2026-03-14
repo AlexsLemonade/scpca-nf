@@ -146,7 +146,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_library_id`     | A unique library ID for each unique set of cells |
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
+| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium1` (first-generation Visium without CytAssist), `visium2` (second-generation Visium with CytAssist), `visium_hd`, or `visium_hd_3prime` <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
 | `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `tech_version` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
@@ -727,7 +727,33 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 ### Spatial transcriptomics libraries
 
-To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file).
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
+
+```text
+{files_directory}
+├── fastq
+│   ├── X_L001_R1.fastq.gz
+│   ├── X_L001_R2.fastq.gz
+│   ├── Y_L002_R1.fastq.gz
+│   └── Y_L002_R2.fastq.gz
+├── cytaimage
+│   └── image.tiff
+├── image
+├── colorizedimage
+└── darkimage
+```
+
+Which specific files you will need depends on the Visium technology version you are using:
+
+* All technologies require a populated `fastq` directory
+* First-generation Visium libraries require a single type of image file
+  * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
+  * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image, so place your image in a directory named according to its type
+  * Only the directory that contains the image file needs to exist; empty directories are not necessary to include
+* Visium CytAssist, Visium HD, and Visium HD 3' libraries require a CytAssist image file provided in the `cytaimage/` directory
+  * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
+  * Only the directory that contains the optional image file needs to exist; empty directories are not necessary to include
+
 The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest).
@@ -735,8 +761,7 @@ For licensing reasons, we cannot provide a Docker container with Space Ranger fo
 As an example, the [Dockerfile that we used to build Space Ranger](docker/spaceranger/Dockerfile) can be found in the `docker/spaceranger` directory of this repository.
 
 After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.spaceranger_container` to the registry location and image ID in the `user_template.config` file.
-_Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
-
+_Note: The workflow is currently set up to run Space Ranger version `4.0.1` and has not been tested with other Space Ranger versions._
 
 ## Additional workflow settings
 
