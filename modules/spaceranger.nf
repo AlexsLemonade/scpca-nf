@@ -132,12 +132,12 @@ process spaceranger_publish {
       cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}/
 
       for square_dir in square_002um square_008um square_016um; do
-        mkdir -p ${spatial_publish_dir}/binned_outputs/${square_dir}/spatial
+        mkdir -p ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial
 
-        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/spatial/scalefactors_json.json ${spatial_publish_dir}/binned_outputs/${square_dir}/spatial/
-        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/spatial/tissue_positions.parquet ${spatial_publish_dir}/binned_outputs/${square_dir}/spatial/
-        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/raw_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/${square_dir}/
-        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/filtered_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/${square_dir}/
+        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/spatial/scalefactors_json.json ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial/
+        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/spatial/tissue_positions.parquet ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial/
+        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/raw_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/\${square_dir}/
+        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/filtered_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/\${square_dir}/
       done
 
       # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
@@ -164,9 +164,6 @@ process spaceranger_publish {
       unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
     fi
-
-    # Remove all the .fusion.symlinks files which got copied over
-    find ${spatial_publish_dir} -name ".fusion.symlinks" -delete
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
