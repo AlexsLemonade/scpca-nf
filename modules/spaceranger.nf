@@ -126,11 +126,26 @@ process spaceranger_publish {
 
     # copy over files to outs directory that depend on the technology, and define inputs to the R script
     if [[ ${is_hd} == "true" ]]; then
-      cp -r ${spatial_out}/outs/binned_outputs ${spatial_publish_dir}
+      # ensure we are only copying over the count & spatial results, not any analysis dirs
+      
+      # TODO: there is also a top-level barcode_mappings.parquet file in spatial directories that maps across binning/segmenteation - 
+      for square_dir in square_002um square_008um square_016um; do
+        mkdir -p ${spatial_publish_dir}/binned_outputs/${square_dir}
+        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/spatial ${spatial_publish_dir}/binned_outputs/${square_dir}/
+        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/raw_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/${square_dir}/
+        cp -r ${spatial_out}/outs/binned_outputs/${square_dir}/filtered_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/${square_dir}/
+      done
+
+      # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
+      # NOTE: these use _cell_, not _bc_ in count directory names
       if [[ -d ${spatial_out}/outs/segmented_outputs ]]; then
-        # only present if a brightfield image was supplied
-        cp -r ${spatial_out}/outs/segmented_outputs ${spatial_publish_dir}
+        mkdir ${spatial_publish_dir}/segmented_outputs
+        cp ${spatial_out}/outs/segmented_outputs/barcode_mappings.parquet ${spatial_publish_dir}/segmented_outputs/${meta.library_id}_barcode_mappings.parquet
+        cp -r ${spatial_out}/outs/segmented_outputs/spatial ${spatial_publish_dir}/segmented_outputs/
+        cp -r ${spatial_out}/outs/segmented_outputs/raw_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
+        cp -r ${spatial_out}/outs/segmented_outputs/filtered_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
       fi
+
       # use square_008um to match stats calculated in the R script and spaceranger web summary
       unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
@@ -141,6 +156,9 @@ process spaceranger_publish {
       unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
     fi
+
+    # Remove all the .fusion.symlinks files which got copied over
+    find ${spatial_publish_dir} -name ".fusion.symlinks" -delete
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
