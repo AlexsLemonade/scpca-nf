@@ -147,7 +147,7 @@ process spaceranger_publish {
         cp -r ${spatial_out}/outs/segmented_outputs/cell_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
         cp -r ${spatial_out}/outs/segmented_outputs/nucleus_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
         cp -r ${spatial_out}/outs/segmented_outputs/spatial/scalefactors_json.json ${spatial_publish_dir}/segmented_outputs/spatial/scalefactors_json.json
-        # segemented outputs use `cell` instead of `bc` in count directory names
+        # segmented outputs use `cell` instead of `bc` in count directory names
         cp -r ${spatial_out}/outs/segmented_outputs/raw_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
         cp -r ${spatial_out}/outs/segmented_outputs/filtered_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
       fi
