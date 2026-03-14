@@ -218,9 +218,6 @@ workflow spaceranger_quant{
     // techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
 
-    // hd technologies
-    def hd_techs = ['visium_hd', 'visium_hd_3prime']
-
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
@@ -340,7 +337,7 @@ workflow spaceranger_quant{
         ]
     }
     .branch {
-      hd: it[0].technology in hd_techs
+      hd: it[0].technology.contains("_hd")
       non_hd: true
     }
 
