@@ -161,9 +161,9 @@ process spaceranger_publish {
 
       # segmented_outputs are only present if a brightfield image was supplied, so copy conditionally
       seg_src=${spatial_out}/outs/segmented_outputs      
-      if [[ -d ${seg_src} ]]; then
+      if [[ -d \${seg_src} ]]; then
         seg_dest=${spatial_publish_dir}/segmented_outputs
-        mkdir -p ${seg_dest}/spatial
+        mkdir -p \${seg_dest}/spatial
 
         # top-level files
         cp \${seg_src}/cell_segmentations.geojson \${seg_dest}
@@ -171,11 +171,11 @@ process spaceranger_publish {
 
         # spatial files
         cp -r ${spatial_publish_dir}/spatial \${seg_dest}
-        cp ${seg_src}/spatial/scalefactors_json.json ${seg_dest}/spatial/
+        cp \${seg_src}/spatial/scalefactors_json.json \${seg_dest}/spatial/
 
         # count files - these use `cell` instead of `bc` in count directory names
-        cp -r ${seg_src}/raw_feature_cell_matrix ${seg_dest}
-        cp -r ${seg_src}/filtered_feature_cell_matrix ${seg_dest}
+        cp -r \${seg_src}/raw_feature_cell_matrix \${seg_dest}
+        cp -r \${seg_src}/filtered_feature_cell_matrix \${seg_dest}
       fi
 
       # use square_008um to match stats calculated in the R script and spaceranger web summary
