@@ -133,41 +133,46 @@ process spaceranger_publish {
     cp ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
 
     # copy over files to outs directory that depend on the technology, and define inputs to the R script
-    if [[ ${is_hd} == "true" ]]; then
-      # ensure we are only copying over the count & spatial results, not nested analysis dirs, and that we aren't copying symlinks
-
-      cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
-
-      for square_dir in square_002um square_008um square_016um; do
-        mkdir -p ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial
-
-        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/spatial/scalefactors_json.json ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial/
-        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/spatial/tissue_positions.parquet ${spatial_publish_dir}/binned_outputs/\${square_dir}/spatial/
-        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/raw_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/\${square_dir}/
-        cp -r ${spatial_out}/outs/binned_outputs/\${square_dir}/filtered_feature_bc_matrix ${spatial_publish_dir}/binned_outputs/\${square_dir}/
-      done
-
-      # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
-      if [[ -d ${spatial_out}/outs/segmented_outputs ]]; then
-        mkdir -p ${spatial_publish_dir}/segmented_outputs/spatial
-
-        cp -r ${spatial_out}/outs/segmented_outputs/cell_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
-        cp -r ${spatial_out}/outs/segmented_outputs/nucleus_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
-        cp -r ${spatial_out}/outs/segmented_outputs/spatial/scalefactors_json.json ${spatial_publish_dir}/segmented_outputs/spatial/scalefactors_json.json
-        # segmented outputs use `cell` instead of `bc` in count directory names
-        cp -r ${spatial_out}/outs/segmented_outputs/raw_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
-        cp -r ${spatial_out}/outs/segmented_outputs/filtered_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
-      fi
-
-      # use square_008um to match stats calculated in the R script and spaceranger web summary
-      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
-      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
-    else
+    if [[ ${is_hd} != "true" ]]; then
       cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
       
       unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
+    else  
+      # For HD runs, ensure we are only copying over the count & spatial results
+      # Don't copy nested analysis dirs or symlinks that are part of Space Ranger's expected output
+
+      cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
+
+      for square_src in ${spatial_out}/outs/binned_outputs/square_*; do
+        square_dest=${spatial_publish_dir}/binned_outputs/\$(basename \$square_src)
+        mkdir -p \${square_dest}
+        cp \${square_src}/spatial/scalefactors_json.json \${square_dest}/spatial/
+        cp \${square_src}/spatial/tissue_positions.parquet \${square_dest}/spatial/
+        cp -r \${square_src}/raw_feature_bc_matrix \${square_dest}/
+        cp -r \${square_src}/filtered_feature_bc_matrix \${square_dest}/
+      done
+
+      # only present if a brightfield image was supplied, so copy segmented_outputs conditionally
+      source_dir=${spatial_out}/outs/segmented_outputs      
+      if [[ -d ${source_dir} ]]; then
+        mkdir -p ${spatial_publish_dir}/segmented_outputs/spatial
+
+        # top-level files
+        cp ${source_dir}/cell_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/
+        cp ${source_dir}/nucleus_segmentations.geojson ${spatial_publish_dir}/segmented_outputs/  
+
+        # nested files
+        cp ${source_dir}/spatial/scalefactors_json.json ${spatial_publish_dir}/segmented_outputs/spatial/
+        # segmented outputs use `cell` instead of `bc` in count directory names
+        cp -r ${source_dir}/raw_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/
+        cp -r ${source_dir}/filtered_feature_cell_matrix ${spatial_publish_dir}/segmented_outputs/  
+      fi
+
+      # use square_008um to match stats calculated in the R script and spaceranger web summary
+      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
     fi
 
     generate_spaceranger_metadata.R \
