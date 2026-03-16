@@ -3,6 +3,7 @@
 # Creates the reference json file for formatting checks for scpca-nf output
 
 import json
+import copy
 
 # output reference files
 sce_ref_file = "../sce-formatting-reference.json"
@@ -385,7 +386,7 @@ processed_sce = {
     },
 }
 
-# build and expoort sce schema --------------
+# build and export sce schema --------------
 sce_schema = {
     "unfiltered": unfiltered_sce,
     "filtered": filtered_sce,
@@ -394,4 +395,275 @@ sce_schema = {
 
 with open(sce_ref_file, "w") as f:
     json.dump(sce_schema, f, indent=4)
+    f.write("\n")  # Explicitly add a newline character to appease GitHub
+
+# --------------------- AnnData ---------------------------
+
+# cell and row metadata are dtypes
+CELL_ROW_METADATA_MAP = {
+    "numeric": "float64",
+    "integer": "int32",
+    "logical": "bool",
+    "character": "category",
+}
+
+# outlier types for cell and row metadata
+CELL_ROW_METADATA_EXCEPTIONS = {
+    "detected": "int32",
+    "barcodes": "object",
+    "gene_ids": "object",
+    "adt_id": "object",
+}
+
+
+def convert_cell_row_metadata_types(metadata):
+    for key, value in metadata.items():
+        # if the value is a dict, this is conditional metadata and we need to convert the inner values
+        # use recursion to do this
+        if isinstance(value, dict):
+            convert_cell_row_metadata_types(value)
+        # check if the key is one of the exceptions where the types aren't what we expect
+        elif key in CELL_ROW_METADATA_EXCEPTIONS.keys():
+            metadata[key] = CELL_ROW_METADATA_EXCEPTIONS[key]
+        # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
+        elif value in CELL_ROW_METADATA_MAP.keys():
+            metadata[key] = CELL_ROW_METADATA_MAP[value]
+
+    return metadata
+
+
+# types for uns metadata entries that are not cell or row metadata
+EXPERIMENT_METADATA_MAP = {
+    "character": "str",
+    "integer": "int",
+    "numeric": "float",
+    "logical": "bool",
+    "data.frame": "pandas.DataFrame",
+    "DFrame": "pandas.DataFrame",
+}
+
+# outlier types
+# most of these stored as numpy.ndarray and not str even though they are considered character in R
+EXPERIMENT_METADATA_EXCEPTIONS_MAP = {
+    "celltype_methods": "numpy.ndarray",
+    "consensus_celltype_methods": "numpy.ndarray",
+    "highly_variable_genes": "numpy.ndarray",
+    "infercnv_reference_celltypes": "numpy.ndarray",
+    "infercnv_options": "numpy.ndarray",
+    "transcript_type": "numpy.ndarray",
+    "cluster_nn": "int",
+}
+
+
+def convert_experiment_metadata_types(metadata):
+    for key, value in metadata.items():
+        # account for nested ditionaries in the conditional experiment metadata
+        if isinstance(value, dict):
+            convert_experiment_metadata_types(value)
+        # account for exceptions to the conversion
+        elif key in EXPERIMENT_METADATA_EXCEPTIONS_MAP.keys():
+            metadata[key] = EXPERIMENT_METADATA_EXCEPTIONS_MAP[key]
+        # otherwise convert any values that are present in the map
+        elif value in EXPERIMENT_METADATA_MAP.keys():
+            metadata[key] = EXPERIMENT_METADATA_MAP[value]
+
+    return metadata
+
+
+# layer/assays ---------
+layers = ["spliced"]
+
+# unfiltered cell metadata ------------
+anndata_specific_obs_metadata = {
+    # sample metadata is present in obs for anndata
+    # this minimally includes library id and sample id
+    "library_id": "category",
+    "sample_id": "category",
+    # columns that we explicitly add in sce_to_annndata
+    "assay_ontology_term_id": "category",
+    "suspension_type": "category",
+    "is_primary_data": "bool",
+}
+
+# if the library is multiplexed, the sample ID doesn't get added
+anndata_specific_obs_metadata_conditional = {
+    "is_multiplexed": {
+        "sample_id": None,
+    }
+}
+
+obs_metadata = {
+    **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata)),
+    **anndata_specific_obs_metadata,
+}
+
+obs_metadata_conditional = {
+    **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata_conditional)),
+    **anndata_specific_obs_metadata_conditional,
+}
+
+# filtered cell metadata ------------
+filtered_obs_metadata = {
+    **convert_cell_row_metadata_types(copy.deepcopy(filtered_cell_metadata)),
+    **anndata_specific_obs_metadata,
+}
+
+filtered_cell_metadata_conditional = {
+    **convert_cell_row_metadata_types(
+        copy.deepcopy(filtered_cell_metadata_conditional)
+    ),
+    **anndata_specific_obs_metadata_conditional,
+}
+
+# processed cell metadata ------------
+
+processed_obs_metadata_conditional = {
+    **convert_cell_row_metadata_types(
+        copy.deepcopy(processed_cell_metadata_conditional)
+    ),
+    **anndata_specific_obs_metadata_conditional,
+}
+
+# row metadata ----------
+var_metadata = {
+    **convert_cell_row_metadata_types(copy.deepcopy(feature_metadata)),
+    "feature_is_filtered": "bool",
+    "highly_variable": "bool",
+}
+
+# reduced dimensionality ----------
+processed_obsm = ["X_pca", "X_umap"]
+
+# experiment metadata --------------
+anndata_uns_metadata = {
+    "X_name": "str",
+    "schema_version": "str",
+}
+
+unfiltered_uns_metadata = {
+    **convert_experiment_metadata_types(copy.deepcopy(unfiltered_experiment_metadata)),
+    **anndata_uns_metadata,
+}
+
+unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
+    copy.deepcopy(unfiltered_experiment_metadata_conditional)
+)
+
+filtered_uns_metadata = {
+    **convert_experiment_metadata_types(copy.deepcopy(filtered_experiment_metadata)),
+    **anndata_uns_metadata,
+}
+
+filtered_uns_metadata_conditional = {
+    # if empty drops filtering_method is UMI cutoff
+    "umi_filtering": {"umi_cutoff": "float"},
+    # if miQC is present, the prob_compromised_cutoff column should be present
+    # no miQC_model since we remove S4 objects
+    "has_miQC": {"prob_compromised_cutoff": "float"},
+}
+
+processed_uns_metadata = {
+    **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
+    **anndata_uns_metadata,
+    "pca": {
+        "param": "dict",
+        "variance": "float64",
+        "variance_ratio": "float64",
+    },
+}
+
+processed_uns_metadata_conditional = convert_experiment_metadata_types(
+    copy.deepcopy(processed_experiment_metadata_conditional)
+)
+
+# alt exps gell/gene metadata ------------
+# adt specific items
+altexp_adt_var_metadata = convert_cell_row_metadata_types(
+    copy.deepcopy(altexp_adt_feature_metadata)
+)
+
+filtered_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
+    copy.deepcopy(filtered_altexp_adt_cell_metadata)
+)
+
+filtered_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
+    copy.deepcopy(filtered_altexp_adt_cell_metadata_conditional)
+)
+
+processed_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
+    copy.deepcopy(processed_altexp_adt_cell_metadata_conditional)
+)
+
+filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
+    copy.deepcopy(filtered_altexp_adt_experiment_metadata)
+)
+
+# build unfiltered AnnData -----------------
+
+unfiltered_anndata = {
+    "rna": {
+        "has_raw.X": False,
+        "layers": layers,
+        "obs": obs_metadata,
+        "var": var_metadata,
+        "obs_conditional": obs_metadata_conditional,
+        "uns": unfiltered_uns_metadata,
+        "uns_conditional": unfiltered_uns_metadata_conditional,
+    },
+    "adt": {
+        "var": altexp_adt_var_metadata,
+    },
+}
+
+
+# build filtered anndata ------
+
+filtered_anndata = {
+    "rna": {
+        "has_raw.X": False,
+        "layers": layers,
+        "obs": filtered_obs_metadata,
+        "var": var_metadata,
+        "obs_conditional": filtered_cell_metadata_conditional,
+        "uns": filtered_uns_metadata,
+        "uns_conditional": filtered_uns_metadata_conditional,
+    },
+    "adt": {
+        "obs": filtered_altexp_adt_obs_metadata,
+        "var": altexp_adt_var_metadata,
+        "obs_conditional": filtered_altexp_adt_obs_metadata_conditional,
+        "uns": filtered_altexp_adt_uns_metadata,
+    },
+}
+
+# build processed AnnData  ------
+
+processed_anndata = {
+    "rna": {
+        "has_raw.X": True,
+        "layers": layers,
+        "obs": filtered_obs_metadata,
+        "var": var_metadata,
+        "obs_conditional": processed_obs_metadata_conditional,
+        "obsm": processed_obsm,
+        "uns": processed_uns_metadata,
+        "uns_conditional": processed_uns_metadata_conditional,
+    },
+    "adt": {
+        "obs": filtered_altexp_adt_obs_metadata,
+        "var": altexp_adt_var_metadata,
+        "obs_conditional": processed_altexp_adt_obs_metadata_conditional,
+        "uns": filtered_altexp_adt_uns_metadata,
+    },
+}
+
+# build and export anndata schema --------------
+anndata_schema = {
+    "unfiltered": unfiltered_anndata,
+    "filtered": filtered_anndata,
+    "processed": processed_anndata,
+}
+
+with open(anndata_ref_file, "w") as f:
+    json.dump(anndata_schema, f, indent=4)
     f.write("\n")  # Explicitly add a newline character to appease GitHub
