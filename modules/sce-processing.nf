@@ -185,7 +185,7 @@ process make_unfiltered_sce_cellranger {
     stub:
         unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
         """
-        touch ${unfiltered_rds}
+        echo "unfiltered" > ${unfiltered_rds}
         """
 }
 
@@ -224,7 +224,7 @@ process filter_sce {
   stub:
     filtered_rds = "${meta.unique_id}_filtered.rds"
     """
-    touch ${filtered_rds}
+    echo "filtered" > ${filtered_rds}
     """
 }
 
@@ -250,7 +250,7 @@ process genetic_demux_sce {
   stub:
     demux_rds = "${filtered_rds.baseName}_genetic-demux.rds"
     """
-    touch ${demux_rds}
+    echo "genetic-demux" > ${demux_rds}
     """
 }
 
@@ -278,7 +278,7 @@ process cellhash_demux_sce {
   stub:
     demux_rds = "${filtered_rds.baseName}_cellhash-demux.rds"
     """
-    touch ${demux_rds}
+    echo "cellhash-demux" > ${demux_rds}
     """
 }
 
@@ -307,8 +307,8 @@ process post_process_sce {
     filter_labeled_rds = "${meta.unique_id}_filtered_labeled.rds"
     processed_rds = "${meta.unique_id}_processed.rds"
     """
-    touch ${filter_labeled_rds}
-    touch ${processed_rds}
+    echo "filtered-labeled" > ${filter_labeled_rds}
+    echo "processed" > ${processed_rds}
     """
 }
 

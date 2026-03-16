@@ -282,7 +282,7 @@ workflow {
   )
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
     .branch{ _meta, _unfiltered, filtered ->
-      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
+      continue_processing: filtered.size() > 0
       skip_processing: true
     }
 
@@ -302,7 +302,7 @@ workflow {
   rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
     .branch{ _meta, _unfiltered, filtered ->
-      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
+      continue_processing: filtered.size() > 0
       skip_processing: true
     }
 
