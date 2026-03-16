@@ -4,189 +4,188 @@ include { pullthroughContainer } from '../lib/utils.nf'
 
 // RNA only libraries
 process make_unfiltered_sce {
-    container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
-    label 'mem_8'
-    tag "${meta.unique_id}"
-    input:
-        tuple val(meta), path(alevin_dir),
-              path(mito_file), path(ref_gtf),
-              path(submitter_cell_types_file), path(openscpca_cell_types_file)
-        path sample_metafile
-    output:
-        tuple val(meta), path(unfiltered_rds)
-    script:
-        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
-        """
-        generate_unfiltered_sce_alevin.R \
-          --alevin_dir ${alevin_dir} \
-          --unfiltered_file ${unfiltered_rds} \
-          --technology ${meta.technology} \
-          --seq_unit ${meta.seq_unit} \
-          --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}" \
-          --project_id "${meta.project_id}" \
-          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
-          ${params.spliced_only ? '--spliced_only' : ''}
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
+  label 'mem_8'
+  tag "${meta.unique_id}"
+  input:
+    tuple val(meta), path(alevin_dir),
+          path(mito_file), path(ref_gtf),
+          path(submitter_cell_types_file), path(openscpca_cell_types_file)
+    path sample_metafile
+  output:
+    tuple val(meta), path(unfiltered_rds)
+  script:
+    unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
+    """
+    generate_unfiltered_sce_alevin.R \
+      --alevin_dir ${alevin_dir} \
+      --unfiltered_file ${unfiltered_rds} \
+      --technology ${meta.technology} \
+      --seq_unit ${meta.seq_unit} \
+      --library_id "${meta.library_id}" \
+      --sample_id "${meta.sample_id}" \
+      --project_id "${meta.project_id}" \
+      ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
+      ${params.spliced_only ? '--spliced_only' : ''}
 
-        format_unfiltered_sce.R \
-          --sce_file ${unfiltered_rds} \
-          --mito_file ${mito_file} \
-          --gtf_file ${ref_gtf} \
-          --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}" \
-          --sample_metadata_file ${sample_metafile}
+    format_unfiltered_sce.R \
+      --sce_file ${unfiltered_rds} \
+      --mito_file ${mito_file} \
+      --gtf_file ${ref_gtf} \
+      --library_id "${meta.library_id}" \
+      --sample_id "${meta.sample_id}" \
+      --sample_metadata_file ${sample_metafile}
 
-        # Only run scripts if annotations are available:
-        if [[ -f "${submitter_cell_types_file}" ]]; then
-          add_submitter_annotations.R \
-            --sce_file "${unfiltered_rds}" \
-            --library_id "${meta.library_id}" \
-            --submitter_cell_types_file "${submitter_cell_types_file}"
-        fi
+    # Only run scripts if annotations are available:
+    if [[ -f "${submitter_cell_types_file}" ]]; then
+      add_submitter_annotations.R \
+        --sce_file "${unfiltered_rds}" \
+        --library_id "${meta.library_id}" \
+        --submitter_cell_types_file "${submitter_cell_types_file}"
+    fi
 
-        if [[ -f "${openscpca_cell_types_file}" ]]; then
-          add_openscpca_annotations.R \
-            --sce_file "${unfiltered_rds}" \
-            --library_id "${meta.library_id}" \
-            --openscpca_cell_types_file "${openscpca_cell_types_file}"
-        fi
+    if [[ -f "${openscpca_cell_types_file}" ]]; then
+      add_openscpca_annotations.R \
+        --sce_file "${unfiltered_rds}" \
+        --library_id "${meta.library_id}" \
+        --openscpca_cell_types_file "${openscpca_cell_types_file}"
+    fi
 
-        """
-    stub:
-        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
-        """
-        touch ${unfiltered_rds}
-        """
+    """
+  stub:
+    unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
+    """
+    echo "unfiltered" > ${unfiltered_rds}
+    """
 }
 
 // channels with RNA and feature data
 process make_unfiltered_sce_with_feature {
-    label 'mem_8'
-    tag "${rna_meta.unique_id}"
-    container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
-    input:
-        tuple val(feature_meta), path(feature_alevin_dir),
-              val(rna_meta), path(alevin_dir),
-              path(mito_file), path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
-        path sample_metafile
-    output:
-        tuple val(meta), path(unfiltered_rds)
-    script:
-        // add feature metadata as elements of the main meta object
-        meta = rna_meta.clone()
-        meta.feature_type = feature_meta.technology.split('_')[0]
-        meta.feature_meta = feature_meta
+  label 'mem_8'
+  tag "${rna_meta.unique_id}"
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
+  input:
+    tuple val(feature_meta), path(feature_alevin_dir),
+          val(rna_meta), path(alevin_dir),
+          path(mito_file), path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
+    path sample_metafile
+  output:
+    tuple val(meta), path(unfiltered_rds)
+  script:
+    // add feature metadata as elements of the main meta object
+    meta = rna_meta.clone()
+    meta.feature_type = feature_meta.technology.split('_')[0]
+    meta.feature_meta = feature_meta
 
-        // If feature_type is "CITEseq", make it "adt"
-        if (meta.feature_type.toLowerCase() == "citeseq") {
-          meta.feature_type = "adt"
-        }
+    // If feature_type is "CITEseq", make it "adt"
+    if (meta.feature_type.toLowerCase() == "citeseq") {
+      meta.feature_type = "adt"
+    }
 
-        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
-        """
-        generate_unfiltered_sce_alevin.R \
-          --alevin_dir ${alevin_dir} \
-          --feature_dir ${feature_alevin_dir} \
-          --feature_name ${meta.feature_type} \
-          --unfiltered_file ${unfiltered_rds} \
-          --technology ${meta.technology} \
-          --seq_unit ${meta.seq_unit} \
-          --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}" \
-          --project_id "${meta.project_id}" \
-          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
-          ${params.spliced_only ? '--spliced_only' : ''}
+    unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
+    """
+    generate_unfiltered_sce_alevin.R \
+      --alevin_dir ${alevin_dir} \
+      --feature_dir ${feature_alevin_dir} \
+      --feature_name ${meta.feature_type} \
+      --unfiltered_file ${unfiltered_rds} \
+      --technology ${meta.technology} \
+      --seq_unit ${meta.seq_unit} \
+      --library_id "${meta.library_id}" \
+      --sample_id "${meta.sample_id}" \
+      --project_id "${meta.project_id}" \
+      ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""} \
+      ${params.spliced_only ? '--spliced_only' : ''}
 
-        format_unfiltered_sce.R \
-          --sce_file ${unfiltered_rds} \
-          --mito_file ${mito_file} \
-          --gtf_file ${ref_gtf} \
-          --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}" \
-          --sample_metadata_file ${sample_metafile}
+    format_unfiltered_sce.R \
+      --sce_file ${unfiltered_rds} \
+      --mito_file ${mito_file} \
+      --gtf_file ${ref_gtf} \
+      --library_id "${meta.library_id}" \
+      --sample_id "${meta.sample_id}" \
+      --sample_metadata_file ${sample_metafile}
 
-        # Only run script if annotations are available:
-        if [[ -f "${submitter_cell_types_file}" ]]; then
-          add_submitter_annotations.R \
-            --sce_file "${unfiltered_rds}" \
-            --library_id "${meta.library_id}" \
-            --submitter_cell_types_file "${submitter_cell_types_file}"
-        fi
+    # Only run script if annotations are available:
+    if [[ -f "${submitter_cell_types_file}" ]]; then
+      add_submitter_annotations.R \
+        --sce_file "${unfiltered_rds}" \
+        --library_id "${meta.library_id}" \
+        --submitter_cell_types_file "${submitter_cell_types_file}"
+    fi
 
-        if [[ -f "${openscpca_cell_types_file}" ]]; then
-          add_openscpca_annotations.R \
-            --sce_file "${unfiltered_rds}" \
-            --library_id "${meta.library_id}" \
-            --openscpca_cell_types_file "${openscpca_cell_types_file}"
-        fi
-        """
-    stub:
-        meta = rna_meta.clone()
-        meta.feature_type = feature_meta.technology.split('_')[0]
-        meta.feature_meta = feature_meta
+    if [[ -f "${openscpca_cell_types_file}" ]]; then
+      add_openscpca_annotations.R \
+        --sce_file "${unfiltered_rds}" \
+        --library_id "${meta.library_id}" \
+        --openscpca_cell_types_file "${openscpca_cell_types_file}"
+    fi
+    """
+  stub:
+    meta = rna_meta.clone()
+    meta.feature_type = feature_meta.technology.split('_')[0]
+    meta.feature_meta = feature_meta
 
-        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
-        """
-        touch "${meta.unique_id}_unfiltered.rds"
-        """
+    unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
+    """
+    echo "unfiltered" > ${unfiltered_rds}
+    """
 }
 
 process make_unfiltered_sce_cellranger {
-    container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
-    label 'mem_8'
-    tag "${meta.unique_id}"
-    input:
-        tuple val(meta), path(cellranger_dir),
-              path(versions_file), path(metrics_file),
-              path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
-        path sample_metafile
-    output:
-        tuple val(meta), path(unfiltered_rds)
-    script:
-        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
-        """
-        generate_unfiltered_sce_cellranger.R \
-          --cellranger_dir ${cellranger_dir} \
-          --unfiltered_file ${unfiltered_rds} \
-          --versions_file ${versions_file} \
-          --metrics_file ${metrics_file} \
-          --reference_index ${meta.cellranger_index} \
-          --reference_probeset ${meta.flex_probeset} \
-          --technology ${meta.technology} \
-          --seq_unit ${meta.seq_unit} \
-          --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}" \
-          --project_id "${meta.project_id}" \
-          ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""}
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
+  label 'mem_8'
+  tag "${meta.unique_id}"
+  input:
+    tuple val(meta), path(cellranger_dir),
+          path(versions_file), path(metrics_file),
+          path(ref_gtf), path(submitter_cell_types_file), path(openscpca_cell_types_file)
+    path sample_metafile
+  output:
+    tuple val(meta), path(unfiltered_rds)
+  script:
+    unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
+    """
+    generate_unfiltered_sce_cellranger.R \
+      --cellranger_dir ${cellranger_dir} \
+      --unfiltered_file ${unfiltered_rds} \
+      --versions_file ${versions_file} \
+      --metrics_file ${metrics_file} \
+      --reference_index ${meta.cellranger_index} \
+      --reference_probeset ${meta.flex_probeset} \
+      --technology ${meta.technology} \
+      --seq_unit ${meta.seq_unit} \
+      --library_id "${meta.library_id}" \
+      --sample_id "${meta.sample_id}" \
+      --project_id "${meta.project_id}" \
+      ${meta.assay_ontology_term_id? "--assay_ontology_term_id ${meta.assay_ontology_term_id}" : ""}
 
-        format_unfiltered_sce.R \
-          --sce_file ${unfiltered_rds} \
-          --gtf_file ${ref_gtf} \
-          --library_id "${meta.library_id}" \
-          --sample_id "${meta.sample_id}" \
-          --sample_metadata_file ${sample_metafile}
+    format_unfiltered_sce.R \
+      --sce_file ${unfiltered_rds} \
+      --gtf_file ${ref_gtf} \
+      --library_id "${meta.library_id}" \
+      --sample_id "${meta.sample_id}" \
+      --sample_metadata_file ${sample_metafile}
 
-        # Only run script if annotations are available:
-        if [[ -f "${submitter_cell_types_file}" ]]; then
-          add_submitter_annotations.R \
-            --sce_file "${unfiltered_rds}" \
-            --library_id "${meta.library_id}" \
-            --submitter_cell_types_file "${submitter_cell_types_file}"
-        fi
+    # Only run script if annotations are available:
+    if [[ -f "${submitter_cell_types_file}" ]]; then
+      add_submitter_annotations.R \
+        --sce_file "${unfiltered_rds}" \
+        --library_id "${meta.library_id}" \
+        --submitter_cell_types_file "${submitter_cell_types_file}"
+    fi
 
-        if [[ -f "${openscpca_cell_types_file}" ]]; then
-          add_openscpca_annotations.R \
-            --sce_file "${unfiltered_rds}" \
-            --library_id "${meta.library_id}" \
-            --openscpca_cell_types_file "${openscpca_cell_types_file}"
-        fi
-
-        """
-    stub:
-        unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
-        """
-        echo "unfiltered" > ${unfiltered_rds}
-        """
+    if [[ -f "${openscpca_cell_types_file}" ]]; then
+      add_openscpca_annotations.R \
+        --sce_file "${unfiltered_rds}" \
+        --library_id "${meta.library_id}" \
+        --openscpca_cell_types_file "${openscpca_cell_types_file}"
+    fi
+    """
+  stub:
+    unfiltered_rds = "${meta.unique_id}_unfiltered.rds"
+    """
+    echo "unfiltered" > ${unfiltered_rds}
+    """
 }
 
 process filter_sce {
