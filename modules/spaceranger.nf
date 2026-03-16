@@ -10,14 +10,14 @@ process spaceranger {
   label 'disk_big'
   input: 
     tuple val(meta), path(index), path(probeset_file),
-      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type) 
+      path(fastq_dir), path(cytaimage_file), path(image_file)
   output:
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
     meta += getVersions()
     meta_json = makeJson(meta)
-    image_arg = image_type ? "--${image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     """
     spaceranger count \
       --id=${out_id} \
@@ -47,6 +47,10 @@ process spaceranger {
     """
     mkdir -p ${out_id}/outs
     echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    if [ "${meta.visium_image_type}" == "image" ]; then
+      mkdir -p ${out_id}/outs/segmented_outputs
+    fi
     """
 }
 
@@ -61,14 +65,14 @@ process spaceranger_hd {
   label 'disk_big'
   input: 
     tuple val(meta), path(index), path(probeset_file),
-      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type) 
+      path(fastq_dir), path(cytaimage_file), path(image_file)
   output:
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
     meta += getVersions()
     meta_json = makeJson(meta)
-    image_arg = image_type ? "--${image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     """
     spaceranger count \
       --id=${out_id} \
@@ -90,6 +94,10 @@ process spaceranger_hd {
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    if [ "${meta.visium_image_type}" == "image" ]; then
+      mkdir -p ${out_id}/outs/segmented_outputs
+    fi
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -320,9 +328,7 @@ workflow spaceranger_quant{
 
         // Simultaneously define the the image file itself and image_type (the spaceranger flag)
         def (selected_image_file, image_type) = present_images[0] ?: [[], ""]
-
-        // used for checking for segmented_results for hd technologies
-        meta.has_brightfield_image = image_type == "image"
+        meta.visium_image_type = image_type
 
         // prepared input to spaceranger process
         [
@@ -331,8 +337,7 @@ workflow spaceranger_quant{
           probeset_file,
           file("${meta.files_directory}/fastq", type: 'dir'),
           cytaimage_file, 
-          selected_image_file, 
-          image_type   
+          selected_image_file
         ]
     }
     .branch {
@@ -357,14 +362,12 @@ workflow spaceranger_quant{
     // log error about segmented_outputs as needed
     // don't log for stub libraries
     spaceranger_hd.out
-      .map{ meta, out_id ->
-        def has_segmented_outputs_dir = file("${meta.spaceranger_results_dir}/segmented_outputs").exists()
-        if (meta.has_brightfield_image && !has_segmented_outputs_dir && !meta.library_id.startsWith("STUBL")) {
+      .subscribe{ meta, out_id ->
+        def segmented_dir_exists = file("${meta.spaceranger_results_dir}/segmented_outputs", type: 'dir').exists()
+        if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
-        [meta, out_id]
       }
-
 
     spaceranger_output_ch = spaceranger.out
       .mix(spaceranger_hd.out)
