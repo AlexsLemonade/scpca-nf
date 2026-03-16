@@ -128,7 +128,6 @@ process spaceranger_publish {
     if [[ ${is_hd} == "true" ]]; then
       # ensure we are only copying over the count & spatial results, not nested analysis dirs, and that we aren't copying symlinks
 
-      cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}/
       cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
 
       for square_dir in square_002um square_008um square_016um; do
@@ -367,13 +366,13 @@ workflow spaceranger_quant{
       }
 
 
-    grouped_spaceranger_ch = spaceranger.out
+    spaceranger_output_ch = spaceranger.out
       .mix(spaceranger_hd.out)
       .mix(spaceranger_quants_ch)
 
 
-    // generate metadata.json
-    spaceranger_publish(grouped_spaceranger_ch)
+// generate metadata.json
+spaceranger_publish(spaceranger_output_ch)
 
   // tuple of metadata, path to spaceranger output directory, and path to metadata json file
   emit: spaceranger_publish.out
