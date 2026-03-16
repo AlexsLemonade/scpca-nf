@@ -121,21 +121,21 @@ def pullthroughContainer(image_url, pullthrough_url = ""){
 
 
 /**
-  * For a given directory, return its space ranger image files 
+  * For a given directory, return its space ranger image files
   *
   * @param dir Directory to search image files(s) in
   * @param cytaimage Boolean if the image file(s) to grab are the cytaimage
   * @return Array of file paths
   */
 def getImageFiles(dir, cytaimage = false) {
-  
+
   // https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/inputs/image-image-recommendation
   def image_extensions = cytaimage
-    ? ["tif", "tiff"] 
+    ? ["tif", "tiff"]
     : ["tif", "tiff", "btf", "tf2", "tf8", "jpg", "jpeg", "qptiff"]
 
   def f = files("${dir}/*")
-    .findAll { it =~ /(?i)\.(${image_extensions.join('|')})$/ }
+    .findAll { it.name.tokenize('.').last().toLowerCase() in image_extensions }
 
   return (f)
 }
