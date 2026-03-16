@@ -80,7 +80,7 @@ process spaceranger_hd {
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
-      --localmem=${task.memory.toGiga()} \
+      --localmem=${task.memory.toGiga() * 0.9} \
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} \
       --create-bam=false \
