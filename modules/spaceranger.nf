@@ -356,10 +356,11 @@ workflow spaceranger_quant{
       }
 
     // log error about segmented_outputs as needed
+    // don't log for stub libraries
     spaceranger_hd.out
       .map{ meta, out_id ->
         def has_segmented_outputs_dir = file("${meta.spaceranger_results_dir}/segmented_outputs").exists()
-        if (meta.has_brightfield_image && !has_segmented_outputs_dir) {
+        if (meta.has_brightfield_image && !has_segmented_outputs_dir && !meta.library_id.startsWith("STUBL")) {
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
         [meta, out_id]
