@@ -229,7 +229,7 @@ workflow {
       [it.project_id, it.library_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{ _project_id, library_id, processed, meta_json ->
+    .filter{ _project_id, _library_id, processed, meta_json ->
       (processed.exists() && processed.size() > 0 && getMetaVal(meta_json, "processed_cells") >= 3)
     }
     // remove metadata file
