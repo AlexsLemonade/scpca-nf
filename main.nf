@@ -242,8 +242,7 @@ workflow {
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
         flex_probeset: sample_refs.flex_probe_files ? "${params.ref_rootdir}/${sample_refs.flex_probe_files[it.technology.toLowerCase()]}" : '',
-        // TODO: UPDATE TO USE REFS DIRECTORY ONCE THIS IS IN THE PUBLIC BUCKET
-        cytassist_probe: sample_refs.cytassist_probe_files ? "${params.ref_rootdir}/${sample_refs.cytassist_probe_files[it.technology.toLowerCase()]}" : '',
+        visium_probe: sample_refs.visium_probe_files ? "${params.ref_rootdir}/${sample_refs.visium_probe_files[it.technology.toLowerCase()]}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
