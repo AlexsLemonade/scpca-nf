@@ -38,7 +38,7 @@ create_ref_entry <- function(
   include_star,
   include_infercnv,
   include_flex,
-  include_cytassist,
+  include_visium,
   reference_name
 ) {
   # create base reference directory
@@ -49,7 +49,7 @@ create_ref_entry <- function(
   fasta_dir <- file.path(ref_dir, "fasta")
   annotation_dir <- file.path(ref_dir, "annotation")
   flex_probe_dir <- file.path(ref_dir, "flex-probe-refs")
-  cytassist_probe_dir <- file.path(ref_dir, "visium-probe-refs")
+  visium_probe_dir <- file.path(ref_dir, "visium-probe-refs")
   # cell ranger uses these values in their file names rather than the proper organism name
   cellranger_organism_map <- c(
     "Homo_sapiens" = "Human",
@@ -86,7 +86,7 @@ create_ref_entry <- function(
     infercnv_gene_order = "",
     cytoband = "",
     flex_probe_files = "",
-    cytassist_probe_files = ""
+    visium_probe_files = ""
   )
 
   # fill in values related to salmon/alevin-fry index
@@ -156,16 +156,28 @@ create_ref_entry <- function(
     )
   }
 
-  # add directory for cytassist probes
-  if (include_cytassist) {
-    json_entry$cytassist_probe_files <- list(
-      "visium2" = file.path(
-        flex_probe_dir,
+  # add directory for visium probes
+  if (include_visium) {
+    json_entry$visium_probe_files <- list(
+      "visium1_v1.0" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v1.0_{assembly}-2024-A.csv")
+      ),
+      "visium2_v2.0" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{assembly}-2024-A.csv")
+      ),
+      "visium2_v2.1" = file.path(
+        visium_probe_dir,
         glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{assembly}-2024-A.csv")
       ),
-      "visium_hd_3prime" = file.path(
-        flex_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{assembly}-2024-A.csv")
+      "visium-hd_v2.0" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{assembly}-2024-A.csv")
+      ),
+      "visium-hd_v2.1" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1_{assembly}-2024-A.csv")
       )
     )
   }
