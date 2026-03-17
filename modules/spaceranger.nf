@@ -19,7 +19,7 @@ process spaceranger {
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     
-    // needs to be a rounded integer sans decimal
+    // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
@@ -59,12 +59,18 @@ process spaceranger {
 
 
 // this process is identical to spaceranger, but with more memory for HD & HD 3' datasets
+// we provide 16 CPU/128 RAM if there's a brightfield image, and 12 CPU/64 RAM otherwise to accommodate segmentation memory needs
 process spaceranger_hd {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
-  label 'cpus_12'
-  label 'mem_64'
+  memory {
+    def mem = meta.image_type == "image" ? 64.GB : 32.GB 
+    mem + mem * task.attempt
+  }
+  cpus {
+    meta.image_type == "image" ? 16 : 12
+  }
   label 'disk_big'
   input: 
     tuple val(meta), path(index), path(probeset_file),
@@ -77,7 +83,7 @@ process spaceranger_hd {
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     
-    // needs to be a rounded integer sans decimal
+    // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
