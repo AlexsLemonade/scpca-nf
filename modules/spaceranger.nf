@@ -385,7 +385,7 @@ workflow spaceranger_quant{
     // don't log for stub libraries
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
-        def segmented_dir_exists = ("${out_dir}/outs/segmented_outputs").isDirectory()
+        def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
         if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
