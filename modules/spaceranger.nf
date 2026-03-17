@@ -50,10 +50,6 @@ process spaceranger {
     """
     mkdir -p ${out_id}/outs
     echo '${meta_json}' > ${out_id}/scpca-meta.json
-
-    if [ "${meta.visium_image_type}" == "image" ]; then
-      mkdir -p ${out_id}/outs/segmented_outputs
-    fi
     """
 }
 
@@ -117,6 +113,7 @@ process spaceranger_hd {
 
     if [ "${meta.visium_image_type}" == "image" ]; then
       mkdir -p ${out_id}/outs/segmented_outputs
+      touch ${out_id}/outs/segmented_outputs/cell_segmentations.geojson # file so it exists on S3
     fi
     """
 }
