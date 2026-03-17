@@ -35,11 +35,7 @@
       "10xflex_v1.1_multi": "homo_sapiens/ensembl-110/flex-probe-refs/Chromimum_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv"
     },
     "visium_probe_files": {
-      "visium1_v1": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2024-A.csv",
-      "visium2_v2": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2024-A.csv",
-      "visium2_v2.1": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv",
-      "visium-hd_v2": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2024-A.csv",
-      "visium-hd_v2.1": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1_GRCh38-2024-A.csv"
+      "visium2_v2.1": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv"
     }
   },
   "Mus_musculus.GRCm39.104": {
@@ -75,11 +71,8 @@
     "cytoband": "",
     "flex_probe_files": "",
     "visium_probe_files": {
-      "visium1_v1": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2024-A.csv",
-      "visium2_v2": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2024-A.csv",
-      "visium2_v2.1": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv",
-      "visium-hd_v2": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2024-A.csv",
-      "visium-hd_v2.1": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1_GRCh38-2024-A.csv"
+      "visium1_v1": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
+      "visium2_v2": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
     }
   },
   "Mus_musculus.GRCm39.110": {
@@ -98,11 +91,7 @@
     "cytoband": "",
     "flex_probe_files": "",
     "visium_probe_files": {
-      "visium1_v1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_GRCm39-2024-A.csv",
-      "visium2_v2": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_GRCm39-2024-A.csv",
-      "visium2_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv",
-      "visium-hd_v2": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_GRCm39-2024-A.csv",
-      "visium-hd_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1_GRCm39-2024-A.csv"
+      "visium2_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv"
     }
   },
   "Mus_musculus.GRCm38.98": {
@@ -121,11 +110,8 @@
     "cytoband": "",
     "flex_probe_files": "",
     "visium_probe_files": {
-      "visium1_v1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_GRCm38-2024-A.csv",
-      "visium2_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_GRCm38-2024-A.csv",
-      "visium2_v2.1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm38-2024-A.csv",
-      "visium-hd_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_GRCm38-2024-A.csv",
-      "visium-hd_v2.1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1_GRCm38-2024-A.csv"
+      "visium1_v1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_mm10-2020-A.csv",
+      "visium2_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
     }
   }
 }

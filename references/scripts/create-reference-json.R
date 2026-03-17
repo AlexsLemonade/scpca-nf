@@ -57,6 +57,17 @@ create_ref_entry <- function(
   )
   cellranger_organism <- cellranger_organism_map[[organism]]
 
+  # map for visium probe files to ensure we only record the relevant ones
+  visium_probe_map <- tibble::tribble(
+    ~technology, ~organism, ~internal_assembly, ~ensembl_version, ~visium_assembly,
+    "visium1_v1",        "Human",   "GRCh38",   "98",  "GRCh38",
+    "visium2_v2",        "Human",   "GRCh38",   "98",   "GRCh38",
+    "visium2_v2.1",      "Human",   "GRCh38",   "110",  "GRCh38",
+    "visium1_v1",        "Mouse",   "GRCm38",   "98",   "mm10",
+    "visium2_v2",        "Mouse",   "GRCm38",   "98",   "mm10",
+    "visium2_v2.1",      "Mouse",   "GRCm39",   "110",  "GRCm39"
+  )
+
   # create a single json entry containing all necessary file paths
   json_entry <- list(
     ref_dir = ref_dir,
@@ -158,28 +169,52 @@ create_ref_entry <- function(
 
   # add directory for visium probes
   if (include_visium) {
-    json_entry$visium_probe_files <- list(
+
+    # override the assembly for naming these files
+    visium_assembly <- assembly
+    if (assembly == "GRCm38") {
+      visium_assembly <- "mm10"
+    }
+
+    # determine which visium probes to include
+    include_techs <- visium_probe_map |>
+      dplyr::filter(
+        organism == cellranger_organism,
+        internal_assembly == assembly,
+        ensembl_version == version
+      ) |>
+      dplyr::pull(technology)
+
+    # create all but keep only the include_techs
+    visium_probe_files <- list(
       "visium1_v1" = file.path(
         visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v1.0_{assembly}-2024-A.csv")
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v1.0_{visium_assembly}-2020-A.csv")
       ),
       "visium2_v2" = file.path(
         visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{assembly}-2024-A.csv")
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{visium_assembly}-2020-A.csv")
       ),
       "visium2_v2.1" = file.path(
         visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{assembly}-2024-A.csv")
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{visium_assembly}-2024-A.csv")
       ),
       "visium-hd_v2" = file.path(
         visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{assembly}-2024-A.csv")
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{visium_assembly}-2020-A.csv")
       ),
       "visium-hd_v2.1" = file.path(
         visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1_{assembly}-2024-A.csv")
-      )
-    )
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1_{visium_assembly}-2024-A.csv")
+      )) |>
+      purrr::keep_at(include_techs)
+
+    # add to json
+    if (length(visium_probe_files) > 0) {
+      json_entry$visium_probe_files <- visium_probe_files
+    } else {
+      json_entry$visium_probe_files <- ""
+    }
   }
   return(json_entry)
 }
