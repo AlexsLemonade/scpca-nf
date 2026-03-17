@@ -122,13 +122,13 @@ def getCRsamples(files_dir) {
 
 
 workflow spaceranger_quant{
-  take: spatial_channel // a channel with a map of metadata for each spatial library to process
+  take: 
+    spatial_channel // a channel with a map of metadata for each spatial library to process
   main:
-
-    // techs that use the probe file
-    def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+    // techs that require a probe file
+    def cytassist_probe_techs = spatial_techs.findAll{ it.contains("_v")}
     
-    // techs that are _not_ cytassist
+    // for image handling, techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
 
     spatial_channel = spatial_channel

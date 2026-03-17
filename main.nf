@@ -146,7 +146,18 @@ workflow {
   def single_cell_techs = cell_barcodes.keySet()
   def flex_techs = flex_probesets.keySet()
   def bulk_techs = ['single_end', 'paired_end']
-  def spatial_techs = ['visium', 'visium1', 'visium2', 'visium_hd', 'visium_hd_3prime'] // visium for legacy
+  def spatial_techs = [
+    // no probes
+    'visium',  // legacy from original portal data
+    'visium1',
+    'visium-hd-3prime',
+    // use probes
+    'visium1_v1.0',
+    'visium2_v2.0',
+    'visium2_v2.1',
+    'visium-hd_v2.0',
+    'visium-hd_v2.1'
+  ] 
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
