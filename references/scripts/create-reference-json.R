@@ -50,6 +50,12 @@ create_ref_entry <- function(
   annotation_dir <- file.path(ref_dir, "annotation")
   flex_probe_dir <- file.path(ref_dir, "flex-probe-refs")
   cytassist_probe_dir <- file.path(ref_dir, "visium-probe-refs")
+  # cell ranger uses these values in their file names rather than the proper organism name
+  cellranger_organism_map <- c(
+    "Homo_sapiens" = "Human",
+    "Mus_musculus" = "Mouse"
+  )
+  cellranger_organism <- cellranger_organism_map[[organism]]
 
   # create a single json entry containing all necessary file paths
   json_entry <- list(
@@ -79,8 +85,8 @@ create_ref_entry <- function(
     star_index = "",
     infercnv_gene_order = "",
     cytoband = "",
-    flex_probe_dir = "",
-    cytassist_probe_dir = ""
+    flex_probe_files = "",
+    cytassist_probe_files = ""
   )
 
   # fill in values related to salmon/alevin-fry index
@@ -138,12 +144,30 @@ create_ref_entry <- function(
 
   # add directory for flex probes
   if (include_flex) {
-    json_entry$flex_probe_dir <- flex_probe_dir
+    json_entry$flex_probe_files <- list(
+      "10xflex_v1.1_single" = file.path(
+        flex_probe_dir,
+        glue::glue("Chromimum_{cellranger_organism}_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
+      ),
+      "10xflex_v1.1_multi" = file.path(
+        flex_probe_dir,
+        glue::glue("Chromimum_{cellranger_organism}_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
+      )
+    )
   }
 
   # add directory for cytassist probes
   if (include_cytassist) {
-    json_entry$cytassist_probe_dir <- cytassist_probe_dir
+    json_entry$cytassist_probe_files <- list(
+      "visium2" = file.path(
+        flex_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{assembly}-2024-A.csv")
+      ),
+      "visium_hd_3prime" = file.path(
+        flex_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{assembly}-2024-A.csv")
+      )
+    )
   }
   return(json_entry)
 }
