@@ -60,12 +60,12 @@ create_ref_entry <- function(
   # map for visium probe files to ensure we only record the relevant ones
   visium_probe_map <- tibble::tribble(
     ~technology, ~organism, ~internal_assembly, ~ensembl_version, ~visium_assembly,
-    "visium1_v1",        "Human",   "GRCh38",   "98",  "GRCh38",
-    "visium2_v2",        "Human",   "GRCh38",   "98",   "GRCh38",
-    "visium2_v2.1",      "Human",   "GRCh38",   "110",  "GRCh38",
-    "visium1_v1",        "Mouse",   "GRCm38",   "98",   "mm10",
-    "visium2_v2",        "Mouse",   "GRCm38",   "98",   "mm10",
-    "visium2_v2.1",      "Mouse",   "GRCm39",   "110",  "GRCm39"
+    "visium1_v1", "Human", "GRCh38", "98", "GRCh38",
+    "visium2_v2", "Human", "GRCh38", "98", "GRCh38",
+    "visium2_v2.1", "Human", "GRCh38", "110", "GRCh38",
+    "visium1_v1", "Mouse", "GRCm38", "98", "mm10",
+    "visium2_v2", "Mouse", "GRCm38", "98", "mm10",
+    "visium2_v2.1", "Mouse", "GRCm39", "110", "GRCm39"
   )
 
   # create a single json entry containing all necessary file paths
@@ -169,7 +169,6 @@ create_ref_entry <- function(
 
   # add directory for visium probes
   if (include_visium) {
-
     # override the assembly for naming these files
     visium_assembly <- assembly
     if (assembly == "GRCm38") {
@@ -206,7 +205,8 @@ create_ref_entry <- function(
       "visium-hd_v2.1" = file.path(
         visium_probe_dir,
         glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1_{visium_assembly}-2024-A.csv")
-      )) |>
+      )
+    ) |>
       purrr::keep_at(include_techs)
 
     # add to json
