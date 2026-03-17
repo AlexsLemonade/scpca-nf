@@ -3,7 +3,7 @@ include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; get
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
-  publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
+  publishDir "${meta.spaceranger_checkpoint_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
   label 'mem_32'
@@ -58,7 +58,7 @@ process spaceranger {
 // use 12 CPU/64 RAM if no brightfield image, and 16 CPU/128 RAM if there is to accommodate segmentation memory needs
 process spaceranger_hd {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
-  publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
+  publishDir "${meta.spaceranger_checkpoint_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   memory {
     def mem = meta.visium_image_type == "image" ? 64.GB : 32.GB 
@@ -252,8 +252,8 @@ workflow spaceranger_quant{
       .map{ meta_in ->
         def meta = meta_in.clone()
         meta.cr_samples = getCRsamples("${meta.files_directory}/fastq")
-        meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
-        meta.spaceranger_results_dir = "${meta.spaceranger_publish_dir}/${meta.run_id}-spatial"
+        meta.spaceranger_checkpoint_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
+        meta.spaceranger_results_dir = "${meta.spaceranger_checkpoint_dir}/${meta.run_id}-spatial"
 
         meta // return modified meta object
       }
@@ -384,8 +384,8 @@ workflow spaceranger_quant{
     // log error about segmented_outputs as needed
     // don't log for stub libraries
     spaceranger_hd.out
-      .subscribe{ meta, out_id ->
-        def segmented_dir_exists = file("${meta.spaceranger_results_dir}/outs/segmented_outputs", type: 'dir').exists()
+      .subscribe{ meta, out_dir ->
+        def segmented_dir_exists = ("${out_dir}/outs/segmented_outputs").isDirectory()
         if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
