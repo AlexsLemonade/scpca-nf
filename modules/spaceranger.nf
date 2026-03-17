@@ -59,7 +59,7 @@ process spaceranger {
 
 
 // this process is identical to spaceranger, but with more memory for HD & HD 3' datasets
-// we provide 16 CPU/128 RAM if there's a brightfield image, and 12 CPU/64 RAM otherwise to accommodate segmentation memory needs
+// use 12 CPU/64 RAM if no brightfield image, and 16 CPU/128 RAM if there is to accommodate segmentation memory needs
 process spaceranger_hd {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
@@ -106,10 +106,6 @@ process spaceranger_hd {
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
-
-    if [ "${meta.visium_image_type}" == "image" ]; then
-      mkdir -p ${out_id}/outs/segmented_outputs
-    fi
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -118,6 +114,10 @@ process spaceranger_hd {
     """
     mkdir -p ${out_id}/outs
     echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    if [ "${meta.visium_image_type}" == "image" ]; then
+      mkdir -p ${out_id}/outs/segmented_outputs
+    fi
     """
 }
 
@@ -388,7 +388,7 @@ workflow spaceranger_quant{
     // don't log for stub libraries
     spaceranger_hd.out
       .subscribe{ meta, out_id ->
-        def segmented_dir_exists = file("${meta.spaceranger_results_dir}/segmented_outputs", type: 'dir').exists()
+        def segmented_dir_exists = file("${meta.spaceranger_results_dir}/outs/segmented_outputs", type: 'dir').exists()
         if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
