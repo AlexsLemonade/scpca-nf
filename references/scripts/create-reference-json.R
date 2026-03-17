@@ -37,6 +37,7 @@ create_ref_entry <- function(
   include_cellranger,
   include_star,
   include_infercnv,
+  include_flex,
   include_cytassist,
   reference_name
 ) {
@@ -47,6 +48,8 @@ create_ref_entry <- function(
   )
   fasta_dir <- file.path(ref_dir, "fasta")
   annotation_dir <- file.path(ref_dir, "annotation")
+  flex_probe_dir <- file.path(ref_dir, "flex-probe-refs")
+  cytassist_probe_dir <- file.path(ref_dir, "visium-probe-refs")
 
   # create a single json entry containing all necessary file paths
   json_entry <- list(
@@ -76,7 +79,8 @@ create_ref_entry <- function(
     star_index = "",
     infercnv_gene_order = "",
     cytoband = "",
-    cytassist_probe = ""
+    flex_probe_dir = "",
+    cytassist_probe_dir = ""
   )
 
   # fill in values related to salmon/alevin-fry index
@@ -132,16 +136,14 @@ create_ref_entry <- function(
     )
   }
 
-  # fill in values for cytassist probes
-  if (include_cytassist) {
-    # TODO: UPDATE THIS DIRECTORY to: file.path(ref_dir, "cytassist")
-    cytassist_probe_dir <- "s3://ccdl-scpca-nf-results-testing/example-data/visium-test-runs/cytassist-probes"
+  # add directory for flex probes
+  if (include_flex) {
+    json_entry$flex_probe_dir <- flex_probe_dir
+  }
 
-    # TODO: probe file name?
-    json_entry$cytassist_probe <- file.path(
-      cytassist_probe_dir,
-      glue::glue("{reference_name}_cytassist-v2.1.0.csv")
-    )
+  # add directory for cytassist probes
+  if (include_cytassist) {
+    json_entry$cytassist_probe_dir <- cytassist_probe_dir
   }
   return(json_entry)
 }

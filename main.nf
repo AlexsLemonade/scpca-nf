@@ -230,6 +230,7 @@ workflow {
         cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
+        flex_probes_dir: sample_refs.flex_probes_dir ? "${params.ref_rootdir}/${sample_refs.flex_probes_dir}" : '',
         // TODO: UPDATE TO USE REFS DIRECTORY ONCE THIS IS IN THE PUBLIC BUCKET
         cytassist_probe: sample_refs.cytassist_probe ? "${sample_refs.cytassist_probe}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,

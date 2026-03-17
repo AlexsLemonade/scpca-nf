@@ -124,6 +124,13 @@ def getCRsamples(files_dir) {
 workflow spaceranger_quant{
   take: spatial_channel // a channel with a map of metadata for each spatial library to process
   main:
+
+    // visium cytassist probe set files 
+    def cytassist_probesets = [
+      'visium2': 'Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv',
+      'visium_hd_3prime': 'Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv'
+    ]
+
     // techs that use the probe file
     def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
     
@@ -176,7 +183,7 @@ workflow spaceranger_quant{
       .map{ meta ->
         // probeset logic
         def use_probeset = meta.technology in cytassist_probe_techs
-        def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
+        def probeset_file = use_probeset ? file("${meta.cytassist_probe}/${cytassist_probesets[meta.technology]}") : []
 
         // image logic
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
