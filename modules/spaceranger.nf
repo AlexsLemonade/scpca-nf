@@ -65,11 +65,11 @@ process spaceranger_hd {
   publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   memory {
-    def mem = meta.image_type == "image" ? 64.GB : 32.GB 
+    def mem = meta.visium_image_type == "image" ? 64.GB : 32.GB 
     mem + mem * task.attempt
   }
   cpus {
-    meta.image_type == "image" ? 16 : 12
+    meta.visium_image_type == "image" ? 16 : 12
   }
   label 'disk_big'
   input: 
