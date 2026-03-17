@@ -160,12 +160,18 @@ if (opt$technology %in% c("visium", "visium1", "visium_hd_3prime")) {
 }
 
 if (opt$technology %in% c("visium_hd", "visium_hd_3prime")) {
-  tissue_spots_column <- "Number of Squares Under Tissue 2 µm"
+  tissue_spots_column <- "Number of Squares Under Tissue 8 µm"
   tissue_colname <- "tissue_squares"
+
+  filtered_colname <- "filtered_squares"
+  unfiltered_colname <- "unfiltered_squares"
 } else {
   # visium2 and visium(1)
   tissue_spots_column <- "Number of Spots Under Tissue"
   tissue_colname <- "tissue_spots"
+
+  filtered_colname <- "filtered_spots"
+  unfiltered_colname <- "unfiltered_spots"
 }
 
 # compile metadata list
@@ -174,8 +180,6 @@ metadata_list <- list(
   sample_id = opt$sample_id,
   technology = opt$technology,
   seq_unit = opt$seq_unit,
-  filtered_spots = nrow(filtered_barcodes),
-  unfiltered_spots = nrow(unfiltered_barcodes),
   total_reads = metrics_summary$`Number of Reads`,
   mapped_reads = metrics_summary[[reads_mapped_column]],
   genome_assembly = opt$genome_assembly,
@@ -191,9 +195,10 @@ metadata_list <- list(
     ifelse(is.null(x), NA, x)
   })
 
-# add the tissue field with a dependent name
+# add fields whose names depend on the visium technology
 metadata_list[[tissue_colname]] <- metrics_summary[[tissue_spots_column]]
-
+metadata_list[[filtered_colname]] <- nrow(filtered_barcodes)
+metadata_list[[unfiltered_colname]] <- nrow(unfiltered_barcodes)
 
 # Output metadata as JSON
 jsonlite::write_json(metadata_list, path = opt$metadata_json, auto_unbox = TRUE)
