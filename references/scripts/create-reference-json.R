@@ -159,11 +159,11 @@ create_ref_entry <- function(
   # add directory for visium probes
   if (include_visium) {
     json_entry$visium_probe_files <- list(
-      "visium1_v1.0" = file.path(
+      "visium1_v1" = file.path(
         visium_probe_dir,
         glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v1.0_{assembly}-2024-A.csv")
       ),
-      "visium2_v2.0" = file.path(
+      "visium2_v2" = file.path(
         visium_probe_dir,
         glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{assembly}-2024-A.csv")
       ),
@@ -171,7 +171,7 @@ create_ref_entry <- function(
         visium_probe_dir,
         glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{assembly}-2024-A.csv")
       ),
-      "visium-hd_v2.0" = file.path(
+      "visium-hd_v2" = file.path(
         visium_probe_dir,
         glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{assembly}-2024-A.csv")
       ),

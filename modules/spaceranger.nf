@@ -243,7 +243,7 @@ workflow spaceranger_quant{
     spatial_channel // a channel with a map of metadata for each spatial library to process
   main:
     // techs that require a probe file
-    def visium_probe_techs = spatial_techs.findAll{ it =~ /_v\d\.\d$/}
+    def visium_probe_techs = spatial_techs.findAll{ it =~ /_v\d\.*\d*$/}
 
     // for image handling, techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']

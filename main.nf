@@ -152,10 +152,10 @@ workflow {
     'visium1',
     'visium-hd-3prime',
     // use probes
-    'visium1_v1.0',
-    'visium2_v2.0',
+    'visium1_v1',
+    'visium2_v2',
     'visium2_v2.1',
-    'visium-hd_v2.0',
+    'visium-hd_v2',
     'visium-hd_v2.1'
   ] 
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
