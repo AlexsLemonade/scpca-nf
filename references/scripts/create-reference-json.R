@@ -61,12 +61,12 @@ create_ref_entry <- function(
   # this ensures we only record the relevant ones per reference
   visium_probe_map <- tibble::tribble(
     ~technology, ~map_organism, ~map_assembly, ~map_version, ~visium_assembly, ~visium_version,
-    "visium1_v1", "Human", "GRCh38", 98, "GRCh38", "2020-A",
-    "visium2_v2", "Human", "GRCh38", 98, "GRCh38", "2020-A",
-    "visium2_v2.1", "Human", "GRCh38", 110, "GRCh38", "2024-A",
-    "visium1_v1", "Mouse", "GRCm38", 98, "mm10", "2020-A",
-    "visium2_v2", "Mouse", "GRCm38", 98, "mm10", "2020-A",
-    "visium2_v2.1", "Mouse", "GRCm39", 110, "GRCm39", "2024-A"
+    "visium1_v1", "Human", "GRCh38", "98", "GRCh38", "2020-A",
+    "visium2_v2", "Human", "GRCh38", "98", "GRCh38", "2020-A",
+    "visium2_v2.1", "Human", "GRCh38", "110", "GRCh38", "2024-A",
+    "visium1_v1", "Mouse", "GRCm38", "98", "mm10", "2020-A",
+    "visium2_v2", "Mouse", "GRCm38", "98", "mm10", "2020-A",
+    "visium2_v2.1", "Mouse", "GRCm39", "110", "GRCm39", "2024-A"
   )
 
 
