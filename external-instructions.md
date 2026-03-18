@@ -754,7 +754,21 @@ Which specific files you will need depends on the Visium technology version you 
   * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
   * Only the directory that contains the optional image file needs to exist; empty directories are not necessary to include
 
-The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
+Your metadata must contain columns with the `slide_section` and `slide_serial_number`.
+The `technology` column in your metadata should be based on both a) the Visium technology used, and b) which [Visium probe set](https://www.10xgenomics.com/support/spatial-gene-expression-hd/documentation/steps/probe-sets/visium-ffpe-probe-sets-overview) (if applicable to the technology) was used.
+This table lists the possible technology values you can provide for spatial transcroptomics datasets:
+
+
+| Visium technology | Probe Set Version | Value for `technology` metadata column |
+|-------------------|-------------------|----------------------------------------|
+| First-generation Visium, fresh frozen tissue | _No probes used_   | `visium1`     |
+| First-generation Visium, FFPE                | `v1`               | `visium1_v1` |
+| Visium CytAssist                             | `v2`               | `visium2_v2` |
+| Visium CytAssist                             | `v2.1`             | `visium2_v2.1` |
+| Visium HD                                    | `v2`               | `visium-hd_v2` |
+| Visium HD                                    | `v2.1`             | `visium-hd_v2.1` |
+| Visium HD 3' Visium                          | _No probes used_   | `visium-hd-3prime`|
+
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest).
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
