@@ -60,14 +60,15 @@ create_ref_entry <- function(
   # map creating visium probe files
   # this ensures we only record the relevant ones per reference
   visium_probe_map <- tibble::tribble(
-    ~technology,     ~map_organism,    ~map_assembly, ~map_version, ~visium_assembly, ~visium_version, ~visium_probe_version,
-    "visium1_v1",    "Human",           "GRCh38",      98,           "GRCh38",         "2020-A",        "v1.0",
-    "visium2_v2",    "Human",           "GRCh38",      98,           "GRCh38",         "2020-A",        "v2.0",
-    "visium2_v2.1",  "Human",           "GRCh38",      110,          "GRCh38",         "2024-A",        "v2.1.0",
-    "visium1_v1",    "Mouse",           "GRCm38",      98,           "mm10",           "2020-A",        "v1.0",
-    "visium2_v2",    "Mouse",           "GRCm38",      98,           "mm10",           "2020-A",        "v2.0",
-    "visium2_v2.1",  "Mouse",           "GRCm39",      110,          "GRCm39",         "2024-A",        "v2.1.0"
+    ~technology,     ~map_organism,    ~map_assembly, ~map_version, ~visium_assembly, ~visium_version,
+    "visium1_v1",    "Human",           "GRCh38",      98,           "GRCh38",         "2020-A",
+    "visium2_v2",    "Human",           "GRCh38",      98,           "GRCh38",         "2020-A",
+    "visium2_v2.1",  "Human",           "GRCh38",      110,          "GRCh38",         "2024-A",
+    "visium1_v1",    "Mouse",           "GRCm38",      98,           "mm10",           "2020-A",
+    "visium2_v2",    "Mouse",           "GRCm38",      98,           "mm10",           "2020-A",
+    "visium2_v2.1",  "Mouse",           "GRCm39",      110,          "GRCm39",         "2024-A"
   )
+
 
   # create a single json entry containing all necessary file paths
   json_entry <- list(
@@ -178,8 +179,12 @@ create_ref_entry <- function(
         map_version == version
       ) |>
       dplyr::mutate(
+        # v1 --> v1.0, etc
+        probe_version = glue::glue(
+          "{stringr::str_split_i(technology, '_', 2)}.0"
+        ),
         probe_file = file.path(visium_probe_dir, glue::glue(
-          "Visium_{map_organism}_Transcriptome_Probe_Set_{visium_probe_version}_{visium_assembly}-{visium_version}.csv"
+          "Visium_{map_organism}_Transcriptome_Probe_Set_{probe_version}_{visium_assembly}-{visium_version}.csv"
         ))
       )
 
