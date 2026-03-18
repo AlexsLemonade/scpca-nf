@@ -234,6 +234,7 @@ def getCRsamples(files_dir) {
 workflow spaceranger_quant{
   take: 
     spatial_channel // a channel with a map of metadata for each spatial library to process
+    spatial_techs   // list of possible spatial technologies
   main:
     // techs that require a probe file
     def visium_probe_techs = spatial_techs.findAll{ it =~ /_v\d\.*\d*$/}

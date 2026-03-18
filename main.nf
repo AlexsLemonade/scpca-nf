@@ -283,7 +283,7 @@ workflow {
   bulk_quant_rna(runs_ch.bulk)
 
   // **** Process Spatial Transcriptomics data ****
-  spaceranger_quant(runs_ch.spatial)
+  spaceranger_quant(runs_ch.spatial, spatial_techs)
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
