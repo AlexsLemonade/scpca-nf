@@ -57,15 +57,16 @@ create_ref_entry <- function(
   )
   cellranger_organism <- cellranger_organism_map[[organism]]
 
-  # map for visium probe files to ensure we only record the relevant ones
+  # map creating visium probe files
+  # this ensures we only record the relevant ones per reference
   visium_probe_map <- tibble::tribble(
-    ~technology, ~organism, ~internal_assembly, ~ensembl_version, ~visium_assembly,
-    "visium1_v1",        "Human",   "GRCh38",   "98",  "GRCh38",
-    "visium2_v2",        "Human",   "GRCh38",   "98",   "GRCh38",
-    "visium2_v2.1",      "Human",   "GRCh38",   "110",  "GRCh38",
-    "visium1_v1",        "Mouse",   "GRCm38",   "98",   "mm10",
-    "visium2_v2",        "Mouse",   "GRCm38",   "98",   "mm10",
-    "visium2_v2.1",      "Mouse",   "GRCm39",   "110",  "GRCm39"
+    ~technology,     ~map_organism,    ~map_assembly, ~map_version, ~visium_assembly, ~visium_version, ~tenx_probe_version,
+    "visium1_v1",    "Human",           "GRCh38",      98,           "GRCh38",         "2020-A",        "v1.0",
+    "visium2_v2",    "Human",           "GRCh38",      98,           "GRCh38",         "2020-A",        "v2.0",
+    "visium2_v2.1",  "Human",           "GRCh38",      110,          "GRCh38",         "2024-A",        "v2.1.0",
+    "visium1_v1",    "Mouse",           "GRCm38",      98,           "mm10",           "2020-A",        "v1.0",
+    "visium2_v2",    "Mouse",           "GRCm38",      98,           "mm10",           "2020-A",        "v2.0",
+    "visium2_v2.1",  "Mouse",           "GRCm39",      110,          "GRCm39",         "2024-A",        "v2.1.0"
   )
 
   # create a single json entry containing all necessary file paths
@@ -169,53 +170,30 @@ create_ref_entry <- function(
 
   # add directory for visium probes
   if (include_visium) {
-
-    # override the assembly for naming these files
-    visium_assembly <- assembly
-    if (assembly == "GRCm38") {
-      visium_assembly <- "mm10"
-    }
-
     # determine which visium probes to include
-    include_techs <- visium_probe_map |>
+    probes_df <- visium_probe_map |>
       dplyr::filter(
-        organism == cellranger_organism,
-        internal_assembly == assembly,
-        ensembl_version == version
+        map_organism == cellranger_organism,
+        map_assembly == assembly,
+        map_version == version
       ) |>
-      dplyr::pull(technology)
+      dplyr::mutate(
+        probe_file = file.path(
+          visium_probe_dir,
+          glue::glue(
+            "Visium_{map_organism}_Transcriptome_Probe_Set_{tenx_probe_version}_{visium_assembly}-{visium_version}.csv"
+          ))
+      )
 
-    # create all but keep only the include_techs
-    visium_probe_files <- list(
-      "visium1_v1" = file.path(
-        visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v1.0_{visium_assembly}-2020-A.csv")
-      ),
-      "visium2_v2" = file.path(
-        visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{visium_assembly}-2020-A.csv")
-      ),
-      "visium2_v2.1" = file.path(
-        visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{visium_assembly}-2024-A.csv")
-      ),
-      "visium-hd_v2" = file.path(
-        visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{visium_assembly}-2020-A.csv")
-      ),
-      "visium-hd_v2.1" = file.path(
-        visium_probe_dir,
-        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1_{visium_assembly}-2024-A.csv")
-      )) |>
-      purrr::keep_at(include_techs)
-
-    # add to json
-    if (length(visium_probe_files) > 0) {
-      json_entry$visium_probe_files <- visium_probe_files
+    if (nrow(probes_df) == 0) {
+      visium_probe_files <- list(NULL)
     } else {
-      json_entry$visium_probe_files <- ""
+      visium_probe_files <- as.list(probes_df$probe_file) |>
+        purrr::set_names(probes_df$technology)
     }
+    json_entry$visium_probe_files <- visium_probe_files
   }
+
   return(json_entry)
 }
 
@@ -226,7 +204,7 @@ if (!file.exists(opt$ref_metadata)) {
   stop("ref_metadata file does not exist.")
 }
 
-ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = "c") |>
+ref_metadata <- readr::read_tsv(opt$ref_metadata) |>
   dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
 
 # get entries for all organisms provided
