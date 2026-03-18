@@ -3,21 +3,24 @@ include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; get
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
-  publishDir "${meta.spaceranger_publish_dir}", mode: 'copy'
+  publishDir "${meta.spaceranger_checkpoint_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   label 'cpus_12'
   label 'mem_32'
   label 'disk_big'
   input: 
     tuple val(meta), path(index), path(probeset_file),
-      path(fastq_dir), path(cytaimage_file), path(image_file), val(image_type) 
+      path(fastq_dir), path(cytaimage_file), path(image_file)
   output:
     tuple val(meta), path(out_id)
   script:
     out_id = file(meta.spaceranger_results_dir).name
     meta += getVersions()
     meta_json = makeJson(meta)
-    image_arg = image_type ? "--${image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    
+    // may help avoid OOM errors, but needs to be a rounded integer sans decimal
+    spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
       --id=${out_id} \
@@ -25,21 +28,20 @@ process spaceranger {
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
-      --localmem=${task.memory.toGiga()} \
+      --localmem=${spaceranger_mem} \
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} \
-      --create-bam false \
+      --create-bam=false \
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
 
+    # remove Space Ranger intermediates directory 
+    # do this before saving the json
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
+    
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
-
-    # TODO: Why is this still present in the checkpoints directory???
-    # TODO: Is there more we'd like to remove?
-    # remove Space Ranger intermediates directory
-    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -51,7 +53,71 @@ process spaceranger {
     """
 }
 
-// TODO: need to accommodate HD outputs which are slightly different
+
+// this process is identical to spaceranger, but with more memory for HD & HD 3' datasets
+// use 12 CPU/64 RAM if no brightfield image, and 16 CPU/128 RAM if there is to accommodate segmentation memory needs
+process spaceranger_hd {
+  container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
+  publishDir "${meta.spaceranger_checkpoint_dir}", mode: 'copy'
+  tag "${meta.run_id}-spatial"
+  memory {
+    def mem = meta.visium_image_type == "image" ? 64.GB : 32.GB 
+    mem + mem * task.attempt
+  }
+  cpus {
+    meta.visium_image_type == "image" ? 16 : 12
+  }
+  label 'disk_big'
+  input: 
+    tuple val(meta), path(index), path(probeset_file),
+      path(fastq_dir), path(cytaimage_file), path(image_file)
+  output:
+    tuple val(meta), path(out_id)
+  script:
+    out_id = file(meta.spaceranger_results_dir).name
+    meta += getVersions()
+    meta_json = makeJson(meta)
+    image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
+    
+    // may help avoid OOM errors, but needs to be a rounded integer sans decimal
+    spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
+    """
+    spaceranger count \
+      --id=${out_id} \
+      --transcriptome=${index} \
+      --fastqs=${fastq_dir} \
+      --sample=${meta.cr_samples} \
+      --localcores=${task.cpus} \
+      --localmem=${spaceranger_mem} \
+      --slide=${meta.slide_serial_number} \
+      --area=${meta.slide_section} \
+      --create-bam=false \
+      ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
+      ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
+      ${image_arg}
+    
+    # remove Space Ranger intermediates directory 
+    # do this before saving the json
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
+
+    # write metadata
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+    """
+  stub:
+    out_id = file(meta.spaceranger_results_dir).name
+    meta += getVersions()
+    meta_json = makeJson(meta)
+    """
+    mkdir -p ${out_id}/outs
+    echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    if [ "${meta.visium_image_type}" == "image" ]; then
+      mkdir -p ${out_id}/outs/segmented_outputs
+      touch ${out_id}/outs/segmented_outputs/cell_segmentations.geojson # file so it exists on S3
+    fi
+    """
+}
+
 process spaceranger_publish {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
@@ -65,21 +131,72 @@ process spaceranger_publish {
     metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     cellranger_index_name = file(meta.cellranger_index).name
+
+    is_hd = meta.technology.contains("_hd")
     """
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
 
-    # copy over needed files to outs directory
-    cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
-    cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
+    # copy over files present for all technologies
     cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}
     cp ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
+
+    # copy over files that depend on the technology, and define associated inputs to the R script
+    if [[ ${is_hd} != "true" ]]; then
+      cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
+      cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
+      
+      unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
+    else  
+      # For HD runs, ensure we are only copying over the count & spatial results, not any nested analysis dirs
+
+      cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
+
+      for square_src in ${spatial_out}/outs/binned_outputs/square_*; do
+        square_dest=${spatial_publish_dir}/binned_outputs/\$(basename \$square_src)
+        mkdir -p \${square_dest}
+
+        # spatial files
+        # currently we copy the full shared spatial files (can't do symlinks)
+        cp -r ${spatial_publish_dir}/spatial \${square_dest}/
+        cp \${square_src}/spatial/scalefactors_json.json \${square_dest}/spatial/ # avoid copying .fusion.symlinks
+        cp \${square_src}/spatial/tissue_positions.parquet \${square_dest}/spatial/
+
+        # count files
+        cp -r \${square_src}/raw_feature_bc_matrix \${square_dest}/
+        cp -r \${square_src}/filtered_feature_bc_matrix \${square_dest}/
+      done
+
+      # segmented_outputs are only present if a brightfield image was supplied, so copy conditionally
+      seg_src=${spatial_out}/outs/segmented_outputs      
+      if [[ -d \${seg_src} ]]; then
+        seg_dest=${spatial_publish_dir}/segmented_outputs
+        mkdir -p \${seg_dest}/spatial
+
+        # top-level files
+        cp \${seg_src}/cell_segmentations.geojson \${seg_dest}
+        cp \${seg_src}/nucleus_segmentations.geojson \${seg_dest}
+
+        # spatial files
+        cp -r ${spatial_publish_dir}/spatial \${seg_dest}
+        cp \${seg_src}/spatial/scalefactors_json.json \${seg_dest}/spatial/
+
+        # count files - these use `cell` instead of `bc` in count directory names
+        cp -r \${seg_src}/raw_feature_cell_matrix \${seg_dest}
+        cp -r \${seg_src}/filtered_feature_cell_matrix \${seg_dest}
+      fi
+
+      # use square_008um to match stats calculated in the R script and spaceranger web summary
+      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
+    fi
 
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
       --sample_id ${meta.sample_id} \
-      --unfiltered_barcodes_file "${spatial_publish_dir}/raw_feature_bc_matrix/barcodes.tsv.gz" \
-      --filtered_barcodes_file "${spatial_publish_dir}/filtered_feature_bc_matrix/barcodes.tsv.gz" \
+      --unfiltered_barcodes_file \${unfiltered_barcodes_file} \
+      --filtered_barcodes_file \${filtered_barcodes_file} \
       --metrics_summary_file "${spatial_out}/outs/metrics_summary.csv" \
       --spaceranger_versions_file "${spatial_out}/_versions" \
       --metadata_json ${metadata_json} \
@@ -126,7 +243,7 @@ workflow spaceranger_quant{
   main:
 
     // techs that use the probe file
-    def cytassist_probe_techs = ['visium2', 'visium_hd_3prime']
+    def cytassist_probe_techs = ['visium2', 'visium_hd']
     
     // techs that are _not_ cytassist
     def non_cytassist_techs = ['visium', 'visium1']
@@ -136,8 +253,8 @@ workflow spaceranger_quant{
       .map{ meta_in ->
         def meta = meta_in.clone()
         meta.cr_samples = getCRsamples("${meta.files_directory}/fastq")
-        meta.spaceranger_publish_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
-        meta.spaceranger_results_dir = "${meta.spaceranger_publish_dir}/${meta.run_id}-spatial"
+        meta.spaceranger_checkpoint_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
+        meta.spaceranger_results_dir = "${meta.spaceranger_checkpoint_dir}/${meta.run_id}-spatial"
 
         meta // return modified meta object
       }
@@ -174,12 +291,14 @@ workflow spaceranger_quant{
 
     // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file, image type]
     spaceranger_reads = spatial_channel.make_spatial
-      .map{ meta ->
+      .map{ meta_in ->
+        def meta = meta_in.clone()
+
         // probeset logic
         def use_probeset = meta.technology in cytassist_probe_techs
         def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
 
-        // image logic
+        // cytaimage logic
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
         if (meta.technology in non_cytassist_techs) {
           if (cytaimage_file) log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
@@ -232,21 +351,26 @@ workflow spaceranger_quant{
 
         // Simultaneously define the the image file itself and image_type (the spaceranger flag)
         def (selected_image_file, image_type) = present_images[0] ?: [[], ""]
+        meta.visium_image_type = image_type
 
-        // input to spaceranger process
+        // prepared input to spaceranger process
         [
           meta,
           file(meta.cellranger_index, type: 'dir'),
           probeset_file,
           file("${meta.files_directory}/fastq", type: 'dir'),
           cytaimage_file, 
-          selected_image_file, 
-          image_type   
+          selected_image_file
         ]
     }
+    .branch {
+      hd: it[0].technology.contains("_hd")
+      non_hd: true
+    }
 
-    // run spaceranger
-    spaceranger(spaceranger_reads)
+    // run spaceranger and mix back up
+    spaceranger(spaceranger_reads.non_hd)
+    spaceranger_hd(spaceranger_reads.hd)
 
     // gather spaceranger output for completed libraries
     // make a list of metadata (read from prior output) and prior results directory
@@ -258,10 +382,23 @@ workflow spaceranger_quant{
         ]
       }
 
-    grouped_spaceranger_ch = spaceranger.out.mix(spaceranger_quants_ch)
+    // log error about segmented_outputs as needed
+    // don't log for stub libraries
+    spaceranger_hd.out
+      .subscribe{ meta, out_dir ->
+        def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
+        if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
+          log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
+        }
+      }
 
-    // generate metadata.json
-    spaceranger_publish(grouped_spaceranger_ch)
+    spaceranger_output_ch = spaceranger.out
+      .mix(spaceranger_hd.out)
+      .mix(spaceranger_quants_ch)
+
+
+// generate metadata.json
+spaceranger_publish(spaceranger_output_ch)
 
   // tuple of metadata, path to spaceranger output directory, and path to metadata json file
   emit: spaceranger_publish.out
