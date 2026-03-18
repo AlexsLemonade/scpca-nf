@@ -194,7 +194,7 @@ create_ref_entry <- function(
       visium_probe_files <- as.list(probes_df$probe_file) |>
         purrr::set_names(probes_df$technology)
     }
-    json_entry$visium_probe_files <- visium_probe_files
+    json_entry["visium_probe_files"] <- visium_probe_files
   }
 
   return(json_entry)
