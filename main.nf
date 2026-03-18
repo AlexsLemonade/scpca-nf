@@ -205,6 +205,12 @@ workflow {
   unfiltered_runs_ch = all_runs_ch.valid
     .map{ it ->
       def sample_refs = ref_paths[it.sample_reference]
+
+      // set up for visium and flex probes to ensure we don't end up with null
+      def tech = it.technology.toLowerCase()
+      def has_flex_probeset = (sample_refs.flex_probe_files && sample_refs.flex_probe_files[tech])
+      def has_visium_probeset = (sample_refs.visium_probe_files && sample_refs.visium_probe_files[tech])
+
       [
         run_id: it.scpca_run_id,
         library_id: it.scpca_library_id,
@@ -212,7 +218,7 @@ workflow {
         unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : it.scpca_library_id,
         project_id: parseNA(it.scpca_project_id)?: "no_project",
         submitter: parseNA(it.submitter),
-        technology: it.technology.toLowerCase(),
+        technology: tech, 
         assay_ontology_term_id: parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
         submitter_cell_types_file: parseNA(it.submitter_cell_types_file),
@@ -235,8 +241,8 @@ workflow {
         cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
-        flex_probeset: sample_refs.flex_probe_files ? "${params.ref_rootdir}/${sample_refs.flex_probe_files[it.technology.toLowerCase()]}" : '',
-        visium_probe: sample_refs.visium_probe_files ? "${params.ref_rootdir}/${sample_refs.visium_probe_files[it.technology.toLowerCase()]}" : '',
+        flex_probeset: has_flex_probeset ? "${params.ref_rootdir}/${sample_refs.flex_probe_files[tech]}" : '',
+        visium_probeset: has_visium_probeset ? "${params.ref_rootdir}/${sample_refs.visium_probe_files[tech]}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]

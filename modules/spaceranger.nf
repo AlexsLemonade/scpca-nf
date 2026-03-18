@@ -290,7 +290,7 @@ workflow spaceranger_quant{
 
         // probeset logic
         def use_probeset = meta.technology in visium_probe_techs
-        def probeset_file = use_probeset ? file(meta.visium_probe) : []
+        def probeset_file = use_probeset ? file(meta.visium_probeset) : []
 
         // cytaimage logic
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
