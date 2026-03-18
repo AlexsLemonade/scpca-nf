@@ -118,11 +118,11 @@ if (is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versi
 
 # check that technology exists
 allowed_techs <- c(
-  "visium", 
+  "visium",
   "visium1",
   "visium1_v1",
   "visium2_v2",
-  "visium2_v2.1", 
+  "visium2_v2.1",
   "visium-hd_v2",
   "visium-hd_v2.1",
   "visium-hd-3prime"
