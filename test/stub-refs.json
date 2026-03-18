@@ -17,7 +17,7 @@
       "visium2_v2": "stub/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv",
       "visium2_v2.1": "stub/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv",
       "visium-hd_v2": "stub/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv",
-      "visium_hd_v2.1": "stub/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1_GRCh38-2024-A.csv"
+      "visium-hd_v2.1": "stub/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1_GRCh38-2024-A.csv"
     },
     "flex_probe_files": {
       "10xflex_v1.1_single": "stub/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
