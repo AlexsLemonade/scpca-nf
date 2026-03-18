@@ -18,9 +18,6 @@ process spaceranger {
     meta += getVersions()
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
-    
-    // may help avoid OOM errors, but needs to be a rounded integer sans decimal
-    spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
       --id=${out_id} \
@@ -28,7 +25,7 @@ process spaceranger {
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
-      --localmem=${spaceranger_mem} \
+      --localmem=${task.memory.toGiga()} \
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} \
       --create-bam=false \
@@ -78,9 +75,6 @@ process spaceranger_hd {
     meta += getVersions()
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
-    
-    // may help avoid OOM errors, but needs to be a rounded integer sans decimal
-    spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
       --id=${out_id} \
@@ -88,7 +82,7 @@ process spaceranger_hd {
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
       --localcores=${task.cpus} \
-      --localmem=${spaceranger_mem} \
+      --localmem=${task.memory.toGiga()} \
       --slide=${meta.slide_serial_number} \
       --area=${meta.slide_section} \
       --create-bam=false \
