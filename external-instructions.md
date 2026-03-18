@@ -146,8 +146,8 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_library_id`     | A unique library ID for each unique set of cells |
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use either `visium1` (first-generation Visium without CytAssist), `visium2` (second-generation Visium with CytAssist), `visium_hd`, or `visium_hd_3prime` <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
-| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `tech_version` |
+| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1`. <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics, see [this section](#spatial-transcriptomics-libraries) for possible technologies. <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
+| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `technology` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
 | `files_directory`       | The full path/uri to directory containing fastq files (unique per run) |
@@ -754,7 +754,21 @@ Which specific files you will need depends on the Visium technology version you 
   * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
   * Only the directory that contains the optional image file needs to exist; empty directories are not necessary to include
 
-The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
+Your metadata must contain columns with the `slide_section` and `slide_serial_number`.
+The `technology` column in your metadata should be based on both a) the Visium technology used, and b) which [Visium probe set](https://www.10xgenomics.com/support/spatial-gene-expression-hd/documentation/steps/probe-sets/visium-ffpe-probe-sets-overview) (if applicable to the technology) was used.
+This table lists the possible technology values you can provide for spatial transcriptomics datasets:
+
+
+| Visium technology | Probe Set Version | Value for `technology` metadata column | Suggested value for `assay_ontology_term_id` metadata column |
+|-------------------|-------------------|----------------------------------------|----------------------------------------------------|
+| First-generation Visium, fresh frozen tissue | _No probes used_   | `visium1`          | `EFO:0022857` |
+| First-generation Visium, FFPE                | `v1`               | `visium1_v1`       | `EFO:0022857` |
+| Visium CytAssist                             | `v2`               | `visium2_v2`       | `EFO:0022858` |
+| Visium CytAssist                             | `v2.1`             | `visium2_v2.1`     | `EFO:0022858` |
+| Visium HD                                    | `v2`               | `visium-hd_v2`     | `EFO:0920058` |
+| Visium HD                                    | `v2.1`             | `visium-hd_v2.1`   | `EFO:0920058` |
+| Visium HD 3' Visium                          | _No probes used_   | `visium-hd-3prime` | `EFO:0010961` |
+
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest).
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
