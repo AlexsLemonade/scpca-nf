@@ -5,7 +5,15 @@
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
 # to the organization used for storing references in `s3://scpca-nf-references`.
 # To create the json file, use a TSV file that contains the following columns:
-# `organism`, `assembly`, `version`, `include_salmon`, `include_cellranger`, `include_star`
+# - `organism`
+# - `assembly`
+# - `version`
+# - `include_salmon`
+# - `include_cellranger`
+# - `include_star`
+# - `include_infercnv`
+# - `include_flex`
+# - `include_visium`
 
 library(optparse)
 project_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
@@ -16,6 +24,16 @@ option_list <- list(
     type = "character",
     default = file.path(project_root, "references", "ref-metadata.tsv"),
     help = ""
+  ),
+  make_option(
+    opt_str = c("--visium_probe_metadata"),
+    type = "character",
+    default = file.path(project_root, "references", "visium-probes.json")
+  ),
+  make_option(
+    opt_str = c("--flex_probe_metadata"),
+    type = "character",
+    default = file.path(project_root, "references", "flex-probes.json")
   ),
   make_option(
     opt_str = c("--ref_json"),
@@ -50,25 +68,6 @@ create_ref_entry <- function(
   annotation_dir <- file.path(ref_dir, "annotation")
   flex_probe_dir <- file.path(ref_dir, "flex-probe-refs")
   visium_probe_dir <- file.path(ref_dir, "visium-probe-refs")
-  # cell ranger uses these values in their file names rather than the proper organism name
-  cellranger_organism_map <- c(
-    "Homo_sapiens" = "Human",
-    "Mus_musculus" = "Mouse"
-  )
-  cellranger_organism <- cellranger_organism_map[[organism]]
-
-  # map creating visium probe files
-  # this ensures we only record the relevant ones per reference
-  visium_probe_map <- tibble::tribble(
-    ~technology, ~map_organism, ~map_assembly, ~map_version, ~visium_assembly, ~visium_version,
-    "visium1_v1", "Human", "GRCh38", "98", "GRCh38", "2020-A",
-    "visium2_v2", "Human", "GRCh38", "98", "GRCh38", "2020-A",
-    "visium2_v2.1", "Human", "GRCh38", "110", "GRCh38", "2024-A",
-    "visium1_v1", "Mouse", "GRCm38", "98", "mm10", "2020-A",
-    "visium2_v2", "Mouse", "GRCm38", "98", "mm10", "2020-A",
-    "visium2_v2.1", "Mouse", "GRCm39", "110", "GRCm39", "2024-A"
-  )
-
 
   # create a single json entry containing all necessary file paths
   json_entry <- list(
@@ -157,43 +156,20 @@ create_ref_entry <- function(
 
   # add directory for flex probes
   if (include_flex) {
-    json_entry$flex_probe_files <- list(
-      "10xflex_v1.1_single" = file.path(
-        flex_probe_dir,
-        glue::glue("Chromimum_{cellranger_organism}_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
-      ),
-      "10xflex_v1.1_multi" = file.path(
-        flex_probe_dir,
-        glue::glue("Chromimum_{cellranger_organism}_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv")
+    json_entry$flex_probe_files <- flex_probe_map |>
+      purrr::pluck(reference_name) |>
+      purrr::map(
+        \(f) file.path(flex_probe_dir, f)
       )
-    )
   }
 
   # add directory for visium probes
   if (include_visium) {
-    # determine which visium probes to include
-    probes_df <- visium_probe_map |>
-      dplyr::filter(
-        map_organism == cellranger_organism,
-        map_assembly == assembly,
-        map_version == version
-      ) |>
-      dplyr::mutate(
-        # v1 --> v1.0, etc
-        probe_version = glue::glue(
-          "{stringr::str_split_i(technology, '_', 2)}.0"
-        ),
-        probe_file = file.path(visium_probe_dir, glue::glue(
-          "Visium_{map_organism}_Transcriptome_Probe_Set_{probe_version}_{visium_assembly}-{visium_version}.csv"
-        ))
+    json_entry$visium_probe_files <- visium_probe_map |>
+      purrr::pluck(reference_name) |>
+      purrr::map(
+        \(f) file.path(visium_probe_dir, f)
       )
-
-    if (nrow(probes_df) == 0) {
-      visium_probe_files["visium_probe_files"] <- list(NULL) # must use string here
-    } else {
-      json_entry$visium_probe_files <- as.list(probes_df$probe_file) |>
-        purrr::set_names(probes_df$technology)
-    }
   }
 
   return(json_entry)
@@ -202,12 +178,18 @@ create_ref_entry <- function(
 # Compile json file ------------------------------------------------------------
 
 # check that input metadata exists and read in
-if (!file.exists(opt$ref_metadata)) {
-  stop("ref_metadata file does not exist.")
-}
+stopifnot(
+  "ref_metadata tsv file does not exist" = file.exists(opt$ref_metadata),
+  "visium_probes json file does not exist" = file.exists(opt$visium_probe_metadata),
+  "flex_probes json file does not exist" = file.exists(opt$flex_probe_metadata)
+)
+
 
 ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = list(.default = "c")) |>
   dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
+
+visium_probe_map <- jsonlite::read_json(opt$visium_probe_metadata)
+flex_probe_map <- jsonlite::read_json(opt$flex_probe_metadata)
 
 # get entries for all organisms provided
 all_entries <- ref_metadata |>
