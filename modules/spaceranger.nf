@@ -246,7 +246,7 @@ workflow spaceranger_quant{
     def visium_probe_techs = spatial_techs.findAll{ it =~ /_v\d\.*\d*$/}
 
     // for image handling, techs that are _not_ cytassist
-    def non_cytassist_techs = ['visium', 'visium1']
+    def non_cytassist_techs = ['visium', 'visium1', 'visium1_v1']
 
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
