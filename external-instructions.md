@@ -756,7 +756,7 @@ Which specific files you will need depends on the Visium technology version you 
 
 Your metadata must contain columns with the `slide_section` and `slide_serial_number`.
 The `technology` column in your metadata should be based on both a) the Visium technology used, and b) which [Visium probe set](https://www.10xgenomics.com/support/spatial-gene-expression-hd/documentation/steps/probe-sets/visium-ffpe-probe-sets-overview) (if applicable to the technology) was used.
-This table lists the possible technology values you can provide for spatial transcroptomics datasets:
+This table lists the possible technology values you can provide for spatial transcriptomics datasets:
 
 
 | Visium technology | Probe Set Version | Value for `technology` metadata column | Suggested value for `assay_ontology_term_id` metadata column |
