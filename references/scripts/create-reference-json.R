@@ -188,8 +188,39 @@ create_ref_entry <- function(
         ))
       )
 
+<<<<<<< HEAD
     if (nrow(probes_df) == 0) {
       visium_probe_files <- list(NULL)
+=======
+    # create all but keep only the include_techs
+    visium_probe_files <- list(
+      "visium1_v1" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v1.0_{visium_assembly}-2020-A.csv")
+      ),
+      "visium2_v2" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{visium_assembly}-2020-A.csv")
+      ),
+      "visium2_v2.1" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1.0_{visium_assembly}-2024-A.csv")
+      ),
+      "visium-hd_v2" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.0_{visium_assembly}-2020-A.csv")
+      ),
+      "visium-hd_v2.1" = file.path(
+        visium_probe_dir,
+        glue::glue("Visium_{cellranger_organism}_Transcriptome_Probe_Set_v2.1_{visium_assembly}-2024-A.csv")
+      )
+    ) |>
+      purrr::keep_at(include_techs)
+
+    # add to json
+    if (length(visium_probe_files) > 0) {
+      json_entry$visium_probe_files <- visium_probe_files
+>>>>>>> 613f3d556399a97a57242f33881bb64c350d42ba
     } else {
       visium_probe_files <- as.list(probes_df$probe_file) |>
         purrr::set_names(probes_df$technology)
