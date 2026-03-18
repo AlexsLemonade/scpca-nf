@@ -117,7 +117,16 @@ if (is.null(opt$spaceranger_versions_file) || !file.exists(opt$spaceranger_versi
 }
 
 # check that technology exists
-allowed_techs <- c("visium", "visium1", "visium2", "visium_hd", "visium_hd_3prime")
+allowed_techs <- c(
+  "visium", 
+  "visium1",
+  "visium1_v1",
+  "visium2_v2",
+  "visium2_v2.1", 
+  "visium-hd_v2",
+  "visium-hd_v2.1",
+  "visium-hd-3prime"
+)
 if (!opt$technology %in% allowed_techs) {
   stop(
     glue::glue("The `technology` must be one of: {paste(allowed_techs, collapse = ', ')}.")
