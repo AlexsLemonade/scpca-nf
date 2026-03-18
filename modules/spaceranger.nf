@@ -125,7 +125,7 @@ process spaceranger_publish {
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     cellranger_index_name = file(meta.cellranger_index).name
 
-    is_hd = meta.technology.contains("_hd")
+    is_hd = meta.technology.contains("visium-hd")
     """
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
