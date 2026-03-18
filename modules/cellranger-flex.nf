@@ -126,7 +126,6 @@ process cellranger_flex_multi {
 workflow flex_quant{
   take:
     flex_channel // a channel with a map of metadata for each flex library to process
-    flex_probesets // map of probe set files for each technology
     pool_file // file object with barcode IDs for each sample when using multiplexed 10x flex
   main:
 

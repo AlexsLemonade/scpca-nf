@@ -136,15 +136,9 @@ workflow {
     'cellhash_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
   ]
 
-  // 10x flex probe set files
-  def flex_probesets = [
-    '10xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
-    '10xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
-  ]
-
   // supported technologies
   def single_cell_techs = cell_barcodes.keySet()
-  def flex_techs = flex_probesets.keySet()
+  def flex_techs = ['10xflex_v1.1_single', '10xflex_v1.1_multi']
   def bulk_techs = ['single_end', 'paired_end']
   def spatial_techs = [
     // no probes
@@ -288,7 +282,6 @@ workflow {
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
     runs_ch.flex,
-    flex_probesets,
     params.cellhash_pool_file ? file(params.cellhash_pool_file) : []
   )
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
