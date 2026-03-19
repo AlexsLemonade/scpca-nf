@@ -13,8 +13,8 @@
     "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx",
     "infercnv_gene_order": "homo_sapiens/ensembl-104/infercnv/Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz",
     "cytoband": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104_cytoband.txt.gz",
-    "flex_probe_files": "",
-    "visium_probe_files": ""
+    "flex_probe_files": {},
+    "visium_probe_files": {}
   },
   "Homo_sapiens.GRCh38.110": {
     "ref_dir": "homo_sapiens/ensembl-110",
@@ -53,8 +53,8 @@
     "star_index": "mus_musculus/ensembl-104/star_index/Mus_musculus.GRCm39.104.star_idx",
     "infercnv_gene_order": "mus_musculus/ensembl-104/infercnv/Mus_musculus.GRCm39.104_gene_order_arms.txt.gz",
     "cytoband": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104_cytoband.txt.gz",
-    "flex_probe_files": "",
-    "visium_probe_files": ""
+    "flex_probe_files": {},
+    "visium_probe_files": {}
   },
   "Homo_sapiens.GRCh38.98": {
     "ref_dir": "homo_sapiens/ensembl-98",
@@ -70,7 +70,7 @@
     "star_index": "",
     "infercnv_gene_order": "",
     "cytoband": "",
-    "flex_probe_files": "",
+    "flex_probe_files": {},
     "visium_probe_files": {
       "visium1_v1": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
       "visium2_v2": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv",
@@ -91,7 +91,7 @@
     "star_index": "",
     "infercnv_gene_order": "",
     "cytoband": "",
-    "flex_probe_files": "",
+    "flex_probe_files": {},
     "visium_probe_files": {
       "visium2_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv",
       "visium-hd_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv"
@@ -111,7 +111,7 @@
     "star_index": "",
     "infercnv_gene_order": "",
     "cytoband": "",
-    "flex_probe_files": "",
+    "flex_probe_files": {},
     "visium_probe_files": {
       "visium1_v1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_mm10-2020-A.csv",
       "visium2_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv",
