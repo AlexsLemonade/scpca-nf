@@ -157,23 +157,19 @@ json_entry["visium_probe_files"] <- list(NULL)
   }
 
   # add directory for flex probes
-  # need the else to ensure it's {} if empty
   if (include_flex) {
-    json_entry$flex_probe_files <- flex_probe_map |>
+    flex_probe_files <- flex_probe_map |>
       purrr::pluck(reference_name) |>
-      purrr::map(
-        \(f) file.path(flex_probe_dir, f)
-      )
+      purrr::map(\(f) file.path(flex_probe_dir, f))
+    if (length(flex_probe_files) > 0) json_entry$flex_probe_files <- flex_probe_files
   }
 
   # add directory for visium probes
-  # need the else to ensure it's {} if empty
   if (include_visium) {
-    probe_files <- visium_probe_map |>
+    visium_probe_files <- visium_probe_map |>
       purrr::pluck(reference_name) |>
       purrr::map(\(f) file.path(visium_probe_dir, f))
-    # only add if non-empty
-    if (length(probe_files) > 0) json_entry$visium_probe_files <- probe_files
+    if (length(visium_probe_files) > 0) json_entry$visium_probe_files <- visium_probe_files
   }
 
   return(json_entry)
