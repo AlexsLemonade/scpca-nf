@@ -87,7 +87,7 @@ Inside the `references` folder are files and scripts related to maintaining the 
    The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
    This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta`, `gtf`, and `cytoband` (used to build `inferCNV` gene order files) files are stored in the proper location on S3.
 
-2. `flex-probes.json` and `visium-probes.json` track probe set files used by 10X Flex and 10X Visium technologies, respectively.
+2. `flex-probes.json` and `visium-probes.json` track probe set files used by 10x Flex and 10x Visium technologies, respectively.
 
 3. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
    For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
