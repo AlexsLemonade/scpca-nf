@@ -364,7 +364,7 @@ workflow spaceranger_quant{
         ]
     }
     .branch {
-      hd: it[0].technology.contains("-hd")
+      hd: it[0].technology.contains("visium-hd")
       non_hd: true
     }
 

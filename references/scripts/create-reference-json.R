@@ -96,10 +96,12 @@ create_ref_entry <- function(
     cellranger_index = "",
     star_index = "",
     infercnv_gene_order = "",
-    cytoband = "",
-    flex_probe_files = "",
-    visium_probe_files = ""
-  )
+    cytoband = ""
+)
+
+# set default empty objects for probe files
+json_entry["flex_probe_files"] <- list(NULL)
+json_entry["visium_probe_files"] <- list(NULL)
 
   # fill in values related to salmon/alevin-fry index
   if (include_salmon) {
@@ -162,23 +164,16 @@ create_ref_entry <- function(
       purrr::map(
         \(f) file.path(flex_probe_dir, f)
       )
-    if (length(json_entry$flex_probe_files) == 0) {
-      json_entry["flex_probe_files"] <- list(NULL)
-    }
-  } else {
-    json_entry["flex_probe_files"] <- list(NULL)
   }
 
   # add directory for visium probes
   # need the else to ensure it's {} if empty
   if (include_visium) {
-    json_entry$visium_probe_files <- visium_probe_map |>
+    probe_files <- visium_probe_map |>
       purrr::pluck(reference_name) |>
-      purrr::map(
-        \(f) file.path(visium_probe_dir, f)
-      )
-  } else {
-    json_entry["visium_probe_files"] <- list(NULL)
+      purrr::map(\(f) file.path(visium_probe_dir, f))
+    # only add if non-empty
+    if (length(probe_files) > 0) json_entry$visium_probe_files <- probe_files
   }
 
   return(json_entry)
