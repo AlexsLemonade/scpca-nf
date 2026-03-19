@@ -97,11 +97,11 @@ create_ref_entry <- function(
     star_index = "",
     infercnv_gene_order = "",
     cytoband = ""
-)
+  )
 
-# set default empty objects for probe files
-json_entry["flex_probe_files"] <- list(NULL)
-json_entry["visium_probe_files"] <- list(NULL)
+  # set default empty objects for probe files
+  json_entry["flex_probe_files"] <- list(NULL)
+  json_entry["visium_probe_files"] <- list(NULL)
 
   # fill in values related to salmon/alevin-fry index
   if (include_salmon) {
