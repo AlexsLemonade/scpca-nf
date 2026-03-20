@@ -102,23 +102,23 @@ process spaceranger_hd {
 
     # remove files we dont want to publish
     for square_src in ${outdir_full}/outs/binned_outputs/square_*; do
-      rm -rf ${square_src}/analysis                     # only in 008, 016
-      rm -f ${square_src}/cloupe.cloupe                 # only in 008
-      rm -f ${square_src}/raw_feature_bc_matrix.h5      # all binned dirs
-      rm -f ${square_src}/filtered_feature_bc_matrix.h5 # all binned dirs
-      rm -f ${square_src}/spatial/.fusion.symlinks      # all binned dirs
+      rm -rf \${square_src}/analysis                     # only in 008, 016
+      rm -f \${square_src}/cloupe.cloupe                 # only in 008
+      rm -f \${square_src}/raw_feature_bc_matrix.h5      # all binned dirs
+      rm -f \${square_src}/filtered_feature_bc_matrix.h5 # all binned dirs
+      rm -f \${square_src}/spatial/.fusion.symlinks      # all binned dirs
     done
     seg_dir="${outdir_full}/outs/segmented_outputs"
-    if [ -d "${seg_dir}" ]; then
+    if [ -d "\${seg_dir}" ]; then
       # add output indicator to use for checks
       touch ${out_id}/segmented_exists.txt
       # now, remove files we don't need if segmentation was successful
-      if [ -d "${seg_dir}/filtered_feature_bc_matrix" ]; then
-        rm -rf ${seg_dir}/analysis
-        rm -f ${seg_dir}/cloupe.cloupe
-        rm -f ${seg_dir}/raw_feature_bc_matrix.h5
-        rm -f ${seg_dir}/filtered_feature_bc_matrix.h5
-        rm -f ${seg_dir}/spatial/.fusion.symlinks
+      if [ -d "\${seg_dir}/filtered_feature_bc_matrix" ]; then
+        rm -rf \${seg_dir}/analysis
+        rm -f \${seg_dir}/cloupe.cloupe
+        rm -f \${seg_dir}/raw_feature_bc_matrix.h5
+        rm -f \${seg_dir}/filtered_feature_bc_matrix.h5
+        rm -f \${seg_dir}/spatial/.fusion.symlinks
       fi
     fi
   
