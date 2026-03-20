@@ -79,11 +79,12 @@ process spaceranger_hd {
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     
+    outdir_full ="${out_id}_full"
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
-      --id=${out_id}-uncompressed \
+      --id=${outdir_full} \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
@@ -96,28 +97,47 @@ process spaceranger_hd {
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
 
+    # create publish dir
     mkdir -p ${out_id}/outs 
 
-    # remove the .fusion.symlinks files
-    find ${out_id}-uncompressed/outs -name ".fusion.symlinks" -delete
+    # remove files we dont want to publish
+    for square_src in ${outdir_full}/outs/binned_outputs/square_*; do
+      rm -rf ${square_src}/analysis                     # only in 008, 016
+      rm -f ${square_src}/cloupe.cloupe                 # only in 008
+      rm -f ${square_src}/raw_feature_bc_matrix.h5      # all binned dirs
+      rm -f ${square_src}/filtered_feature_bc_matrix.h5 # all binned dirs
+      rm -f ${square_src}/spatial/.fusion.symlinks      # all binned dirs
+    done
+    seg_dir="${outdir_full}/outs/segmented_outputs"
+    if [ -d "${seg_dir}" ]; then
+      # add output indicator to use for checks
+      touch ${out_id}/segmented_exists.txt
+      # now, remove files we don't need if segmentation was successful
+      if [ -d "${seg_dir}/filtered_feature_bc_matrix" ]; then
+        rm -rf ${seg_dir}/analysis
+        rm -f ${seg_dir}/cloupe.cloupe
+        rm -f ${seg_dir}/raw_feature_bc_matrix.h5
+        rm -f ${seg_dir}/filtered_feature_bc_matrix.h5
+        rm -f ${seg_dir}/spatial/.fusion.symlinks
+      fi
+    fi
   
     # compress outs/ into out_id
-    tar -czf ${out_id}/${meta.library_id}_spatial.tar.gz ${out_id}-uncompressed/outs
-
-    # add indicator if the segmented internal directories exist
-    if [ -d "${out_id}-uncompressed/outs/segmented_outputs/filtered_feature_bc_matrix" ]; then
-      touch ${out_id}/segmented_exists.txt
-    fi
+    tar -czf ${out_id}/${meta.library_id}_spatial.tar.gz ${outdir_full}/outs
 
     # get rest of the things into out_id
-    cp ${out_id}-uncompressed/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz ${out_id}/raw-barcodes.tsv.gz
-    cp ${out_id}-uncompressed/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz ${out_id}/filtered-barcodes.tsv.gz
-    cp ${out_id}-uncompressed/outs/metrics_summary.csv ${out_id}/outs/metrics_summary.csv
-    cp ${out_id}-uncompressed/outs/web_summary.html ${out_id}/outs/web_summary.html
-    cp ${out_id}-uncompressed/_versions ${out_id}/_versions
+    cp ${outdir_full}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz ${out_id}/raw-barcodes.tsv.gz
+    cp ${outdir_full}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz ${out_id}/filtered-barcodes.tsv.gz
+    cp ${outdir_full}/outs/metrics_summary.csv ${out_id}/outs/metrics_summary.csv
+    cp ${outdir_full}/outs/web_summary.html ${out_id}/outs/web_summary.html
+    cp ${outdir_full}/_versions ${out_id}/_versions
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
+
+    # TESTING 
+    ls -lahR ${outdir_full}/outs > ${out_id}/final_outdir_full_contents.txt
+    ls -lahR ${out_id} > ${out_id}/final_out_id_contents.txt
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
