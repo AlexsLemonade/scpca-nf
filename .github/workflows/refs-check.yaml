@@ -31,7 +31,7 @@ jobs:
           REF_CONFIG: config/reference_paths.config
         run: |
           # Get the default reference location from the config file
-          ref_root=$(grep -E '^ref_rootdir\s*=' "$REF_CONFIG" | cut -d'=' -f2 | tr -d '[:space:]')
+          ref_root=$(grep -E '^\s*ref_rootdir\s*=' "$REF_CONFIG" | cut -d'=' -f2 | tr -d '[:space:]')
 
           if [ -z "$ref_root" ]; then
             echo "Reference root directory not found in config file"
