@@ -97,6 +97,9 @@ process spaceranger_hd {
       ${image_arg}
 
     mkdir -p ${out_id}/outs 
+
+    # remove the .fusion.symlinks files
+    find ${out_id}-uncompressed/outs -name ".fusion.symlinks" -delete
   
     # compress outs/ into out_id
     tar -czf ${out_id}/${meta.library_id}_spatial.tar.gz ${out_id}-uncompressed/outs
