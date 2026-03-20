@@ -11,7 +11,7 @@ This file is used by `build-index.nf` to generate transcriptome references.
 - `visium-probes.json` and `flex-probes.json` contain mappings between `scpca-nf` reference names and their probe sets, organized for each technology.
 - `scpca-refs.json` contains the relative paths of the default reference files for mapping and quantification provided by the Data Lab, and is used for the `scpca-nf` workflow configuration parameter `ref_json`.
   The base location for the reference files is given by the configuration parameter `ref_rootdir`.
-  This file is produced by `scripts/create-reference-json.R`.
+  This file is produced by `scripts/create-reference-json.R` using `ref-metadata.tsv`, `visium-probes.json`, and `flex-probes.json`.
 
 
 ### Cell type reference files

@@ -4,16 +4,17 @@
 # used with scpca-nf. The output of this script will create a json file where each key corresponds
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
 # to the organization used for storing references in `s3://scpca-nf-references`.
-# To create the json file, use a TSV file that contains the following columns:
-# - `organism`
-# - `assembly`
-# - `version`
-# - `include_salmon`
-# - `include_cellranger`
-# - `include_star`
-# - `include_infercnv`
-# - `include_flex`
-# - `include_visium`
+# To create the json file, provide the following:
+# - JSON of flex probes, organized by reference name
+# - JSON of visium probes, organized by reference name
+# - TSV file that contains the following columns:
+#   - `organism`
+#   - `assembly`
+#   - `version`
+#   - `include_salmon`
+#   - `include_cellranger`
+#   - `include_star`
+#   - `include_infercnv`
 
 library(optparse)
 project_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
@@ -55,8 +56,6 @@ create_ref_entry <- function(
   include_cellranger,
   include_star,
   include_infercnv,
-  include_flex,
-  include_visium,
   reference_name
 ) {
   # create base reference directory
@@ -157,7 +156,7 @@ create_ref_entry <- function(
   }
 
   # add directory for flex probes
-  if (include_flex) {
+  if (reference_name %in% names(flex_probe_map)) {
     flex_probe_files <- flex_probe_map |>
       purrr::pluck(reference_name) |>
       purrr::map(\(f) file.path(flex_probe_dir, f))
@@ -165,7 +164,7 @@ create_ref_entry <- function(
   }
 
   # add directory for visium probes
-  if (include_visium) {
+  if (reference_name %in% names(visium_probe_map)) {
     visium_probe_files <- visium_probe_map |>
       purrr::pluck(reference_name) |>
       purrr::map(\(f) file.path(visium_probe_dir, f))
