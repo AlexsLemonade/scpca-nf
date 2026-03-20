@@ -9,6 +9,7 @@ on:
       - ".github/workflows/refs-check.yaml"
       - "references/scpca-refs.json"
       - "config/reference_paths.config"
+  workflow_dispatch:
 
 concurrency:
   # only one run per branch at a time
