@@ -101,8 +101,8 @@ process spaceranger_hd {
     # compress outs/ into out_id
     tar -czf ${out_id}/${meta.library_id}_spatial.tar.gz ${out_id}-uncompressed/outs
 
-    # add indicator if the segmented directory exists
-    if [ -d "${out_id}-uncompressed/outs/segmented_outputs" ]; then
+    # add indicator if the segmented internal directories exist
+    if [ -d "${out_id}-uncompressed/outs/segmented_outputs/filtered_feature_bc_matrix" ]; then
       touch ${out_id}/segmented_exists.txt
     fi
 
