@@ -3,8 +3,8 @@ name: Check reference paths
 on:
   pull_request:
     branches:
-      - development
       - main
+      # Only run on merge to main, as development branch has to be created before all references are built
     paths:
       - ".github/workflows/refs-check.yaml"
       - "references/scpca-refs.json"
