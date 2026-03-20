@@ -83,7 +83,7 @@ process spaceranger_hd {
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
-      --id=${out_id} \
+      --id=${out_id}-uncompressed \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
@@ -95,10 +95,23 @@ process spaceranger_hd {
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
-    
-    # remove Space Ranger intermediates directory 
-    # do this before saving the json
-    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
+
+    mkdir -p ${out_id}/outs 
+  
+    # compress outs/ into out_id
+    tar -czf ${out_id}/${meta.library_id}_spatial.tar.gz ${out_id}-uncompressed/outs
+
+    # add indicator if the segmented directory exists
+    if [ -d "${out_id}-uncompressed/outs/segmented_outputs" ]; then
+      touch ${out_id}/segmented_exists.txt
+    fi
+
+    # get rest of the things into out_id
+    cp ${out_id}-uncompressed/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz ${out_id}/raw-barcodes.tsv.gz
+    cp ${out_id}-uncompressed/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz ${out_id}/filtered-barcodes.tsv.gz
+    cp ${out_id}-uncompressed/outs/metrics_summary.csv ${out_id}/outs/metrics_summary.csv
+    cp ${out_id}-uncompressed/outs/web_summary.html ${out_id}/outs/web_summary.html
+    cp ${out_id}-uncompressed/_versions ${out_id}/_versions
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
@@ -110,9 +123,8 @@ process spaceranger_hd {
     """
     mkdir -p ${out_id}/outs
     echo '${meta_json}' > ${out_id}/scpca-meta.json
-
     if [ "${meta.visium_image_type}" == "image" ]; then
-      mkdir -p ${out_id}/outs/segmented_outputs
+      touch ${out_id}/segmented_exists.txt
     fi
     """
 }
@@ -136,59 +148,22 @@ process spaceranger_publish {
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
 
-    # copy over files present for all technologies
-    cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}
+    # copy over summary html, present for all technologies
     cp ${spatial_out}/outs/web_summary.html ${spatial_publish_dir}/${meta.library_id}_spaceranger-summary.html
 
     # copy over files that depend on the technology, and define associated inputs to the R script
-    if [[ ${is_hd} != "true" ]]; then
+    if [[ ${is_hd} == "true" ]]; then
+       cp ${spatial_out}/${meta.library_id}_spatial.tar.gz ${spatial_publish_dir}/
+
+      unfiltered_barcodes_file="${spatial_out}/raw-barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/filtered-barcodes.tsv.gz"
+    else 
       cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
+      cp -r ${spatial_out}/outs/spatial ${spatial_publish_dir}
       
       unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
-    else  
-      # For HD runs, ensure we are only copying over the count & spatial results, not any nested analysis dirs
-
-      cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
-
-      for square_src in ${spatial_out}/outs/binned_outputs/square_*; do
-        square_dest=${spatial_publish_dir}/binned_outputs/\$(basename \$square_src)
-        mkdir -p \${square_dest}
-
-        # spatial files
-        # currently we copy the full shared spatial files (can't do symlinks)
-        cp -r ${spatial_publish_dir}/spatial \${square_dest}/
-        cp \${square_src}/spatial/scalefactors_json.json \${square_dest}/spatial/ # avoid copying .fusion.symlinks
-        cp \${square_src}/spatial/tissue_positions.parquet \${square_dest}/spatial/
-
-        # count files
-        cp -r \${square_src}/raw_feature_bc_matrix \${square_dest}/
-        cp -r \${square_src}/filtered_feature_bc_matrix \${square_dest}/
-      done
-
-      # segmented_outputs are only present if a brightfield image was supplied, so copy conditionally
-      seg_src=${spatial_out}/outs/segmented_outputs      
-      if [[ -d \${seg_src} ]]; then
-        seg_dest=${spatial_publish_dir}/segmented_outputs
-        mkdir -p \${seg_dest}/spatial
-
-        # top-level files
-        cp \${seg_src}/cell_segmentations.geojson \${seg_dest}
-        cp \${seg_src}/nucleus_segmentations.geojson \${seg_dest}
-
-        # spatial files
-        cp -r ${spatial_publish_dir}/spatial \${seg_dest}
-        cp \${seg_src}/spatial/scalefactors_json.json \${seg_dest}/spatial/
-
-        # count files - these use `cell` instead of `bc` in count directory names
-        cp -r \${seg_src}/raw_feature_cell_matrix \${seg_dest}
-        cp -r \${seg_src}/filtered_feature_cell_matrix \${seg_dest}
-      fi
-
-      # use square_008um to match stats calculated in the R script and spaceranger web summary
-      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
-      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
     fi
 
     generate_spaceranger_metadata.R \
@@ -383,11 +358,9 @@ workflow spaceranger_quant{
       }
 
     // log error about segmented_outputs as needed
-    // don't log for stub libraries
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
-        def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
-        if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
+        if (meta.visium_image_type == "image" && !file("${out_dir}/segmented_exists.txt").exists()) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
       }
