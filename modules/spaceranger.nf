@@ -79,12 +79,11 @@ process spaceranger_hd {
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
     
-    outdir_full ="${out_id}_full"
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
     """
     spaceranger count \
-      --id=${outdir_full} \
+      --id=${out_id} \
       --transcriptome=${index} \
       --fastqs=${fastq_dir} \
       --sample=${meta.cr_samples} \
@@ -97,47 +96,26 @@ process spaceranger_hd {
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
 
-    # create publish dir
-    mkdir -p ${out_id}/outs 
 
     # remove files we dont want to publish
-    for square_src in ${outdir_full}/outs/binned_outputs/square_*; do
-      rm -rf \${square_src}/analysis                     # only in 008, 016
-      rm -f \${square_src}/cloupe.cloupe                 # only in 008
-      rm -f \${square_src}/raw_feature_bc_matrix.h5      # all binned dirs
-      rm -f \${square_src}/filtered_feature_bc_matrix.h5 # all binned dirs
-      rm -f \${square_src}/spatial/.fusion.symlinks      # all binned dirs
+    rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
+    find ${out_id} -type f -name "*.cloupe" -delete
+    find ${out_id} -type l -name "*.cloupe" -delete
+    find ${out_id} -type f -name "*.h5" -delete
+    find ${out_id} -type f -name ".fusion.symlinks" -delete
+    for square_src in ${out_id}/outs/binned_outputs/square_*; do
+      rm -rf \${square_src}/analysis # only in 008, 016
     done
-    seg_dir="${outdir_full}/outs/segmented_outputs"
+    seg_dir="${out_id}/outs/segmented_outputs"
     if [ -d "\${seg_dir}" ]; then
-      # add output indicator to use for checks
-      touch ${out_id}/segmented_exists.txt
-      # now, remove files we don't need if segmentation was successful
-      if [ -d "\${seg_dir}/filtered_feature_bc_matrix" ]; then
-        rm -rf \${seg_dir}/analysis
-        rm -f \${seg_dir}/cloupe.cloupe
-        rm -f \${seg_dir}/raw_feature_bc_matrix.h5
-        rm -f \${seg_dir}/filtered_feature_bc_matrix.h5
-        rm -f \${seg_dir}/spatial/.fusion.symlinks
-      fi
+      rm -rf \${seg_dir}/analysis
+      # we retain cell_segmentations.geojson and nucleus_segmentations.geojson but remove versions augmented with spaceranger clustering
+      rm -f \${seg_dir}/graphclust_annotated_cell_segmentations.geojson
+      rm -f \${seg_dir}/graphclust_annotated_nucleus_segmentations.geojson
     fi
-  
-    # compress outs/ into out_id
-    tar -czf ${out_id}/${meta.library_id}_spatial.tar.gz ${outdir_full}/outs
-
-    # get rest of the things into out_id
-    cp ${outdir_full}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz ${out_id}/raw-barcodes.tsv.gz
-    cp ${outdir_full}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz ${out_id}/filtered-barcodes.tsv.gz
-    cp ${outdir_full}/outs/metrics_summary.csv ${out_id}/outs/metrics_summary.csv
-    cp ${outdir_full}/outs/web_summary.html ${out_id}/outs/web_summary.html
-    cp ${outdir_full}/_versions ${out_id}/_versions
 
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
-
-    # TESTING 
-    ls -lahR ${outdir_full}/outs > ${out_id}/final_outdir_full_contents.txt
-    ls -lahR ${out_id} > ${out_id}/final_out_id_contents.txt
     """
   stub:
     out_id = file(meta.spaceranger_results_dir).name
@@ -146,9 +124,6 @@ process spaceranger_hd {
     """
     mkdir -p ${out_id}/outs
     echo '${meta_json}' > ${out_id}/scpca-meta.json
-    if [ "${meta.visium_image_type}" == "image" ]; then
-      touch ${out_id}/segmented_exists.txt
-    fi
     """
 }
 
@@ -176,10 +151,10 @@ process spaceranger_publish {
 
     # copy over files that depend on the technology, and define associated inputs to the R script
     if [[ ${is_hd} == "true" ]]; then
-       cp ${spatial_out}/${meta.library_id}_spatial.tar.gz ${spatial_publish_dir}/
+      tar -czf ${spatial_publish_dir}/${meta.library_id}_outs.tar.gz ${spatial_out}/outs
 
-      unfiltered_barcodes_file="${spatial_out}/raw-barcodes.tsv.gz"
-      filtered_barcodes_file="${spatial_out}/filtered-barcodes.tsv.gz"
+      unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
+      filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
     else 
       cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
@@ -383,7 +358,8 @@ workflow spaceranger_quant{
     // log error about segmented_outputs as needed
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
-        if (meta.visium_image_type == "image" && !file("${out_dir}/segmented_exists.txt").exists()) { 
+        def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
+        if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
       }
