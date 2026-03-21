@@ -102,7 +102,6 @@ process spaceranger_hd {
     find ${out_id} -type f -name "*.cloupe" -delete
     find ${out_id} -type l -name "*.cloupe" -delete
     find ${out_id} -type f -name "*.h5" -delete
-    find ${out_id} -type f -name ".fusion.symlinks" -delete
     for square_src in ${out_id}/outs/binned_outputs/square_*; do
       rm -rf \${square_src}/analysis # only in 008, 016
     done
@@ -152,7 +151,10 @@ process spaceranger_publish {
 
     # copy over files that depend on the technology, and define associated inputs to the R script
     if [[ ${is_hd} == "true" ]]; then
-      tar -czf ${spatial_publish_dir}/${meta.library_id}_outs.tar.gz ${spatial_out}/outs
+      # remove before tar'ing
+      find ${spatial_out}/outs -type f -name ".fusion.symlinks" -delete 
+      # -C to just get outs.tar.gz itself sans extra nesting
+      tar -czf ${spatial_publish_dir}/${meta.library_id}_outs.tar.gz -C ${spatial_out} outs 
 
       unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
