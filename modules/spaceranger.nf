@@ -107,7 +107,7 @@ process spaceranger_hd {
     done
     seg_dir="${out_id}/outs/segmented_outputs"
     if [ -d "\${seg_dir}" ]; then
-      touch ${out_id}/segmented_exists.txt
+      touch ${out_id}/segmented_exists.txt # for checking directory later
       rm -rf \${seg_dir}/analysis
       # we retain cell_segmentations.geojson and nucleus_segmentations.geojson but remove versions augmented with spaceranger clustering
       rm -f \${seg_dir}/graphclust_annotated_cell_segmentations.geojson
@@ -361,16 +361,9 @@ workflow spaceranger_quant{
     // log error about segmented_outputs as needed
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
-        log.info("Checking segmented_outputs at: ${out_dir}/outs/segmented_outputs")
-        def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
-        def segmented_exists_exists = out_dir.resolve("segmented_exists.txt").exists()
-        log.info("isDirectory result: ${segmented_dir_exists}")
-        log.info("segmented_exists.txt result: ${segmented_exists_exists}")
-        if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
+        def segmented_exists = out_dir.resolve("segmented_exists.txt").exists()
+        if (meta.visium_image_type == "image" && !segmented_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
-        }
-        if (meta.visium_image_type == "image" && !segmented_exists_exists) { 
-          log.error("Expected segmented_exists.txt file for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
       }
 
