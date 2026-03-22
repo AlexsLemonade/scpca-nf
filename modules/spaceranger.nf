@@ -153,8 +153,8 @@ process spaceranger_publish {
     if [[ ${is_hd} == "true" ]]; then
       # remove before tar'ing
       find ${spatial_out}/outs -type f -name ".fusion.symlinks" -delete 
-      # -C to just get outs.tar.gz itself sans extra nesting
-      tar -czf ${spatial_publish_dir}/${meta.library_id}_outs.tar.gz -C ${spatial_out} outs 
+      # -C to just get outs.tar.gz itself sans extra nesting, and need to give users permissions
+      tar -czf ${spatial_publish_dir}/${meta.library_id}_outs.tar.gz -C ${spatial_out} outs --mode='u+rw,go+r'
 
       unfiltered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/binned_outputs/square_008um/filtered_feature_bc_matrix/barcodes.tsv.gz"
@@ -362,7 +362,6 @@ workflow spaceranger_quant{
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
         log.info("Checking segmented_outputs at: ${out_dir}/outs/segmented_outputs")
-        log.info("out_dir real path: ${out_dir.toRealPath()}")
         def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
         def segmented_exists_exists = out_dir.resolve("segmented_exists.txt").exists()
         log.info("isDirectory result: ${segmented_dir_exists}")
