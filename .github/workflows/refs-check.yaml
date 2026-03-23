@@ -1,0 +1,110 @@
+name: Check reference paths
+
+on:
+  pull_request:
+    branches:
+      - main
+      # Only run on merge to main, as development branch has to be created before all references are built
+    paths:
+      - ".github/workflows/refs-check.yaml"
+      - "references/scpca-refs.json"
+      - "config/reference_paths.config"
+  workflow_dispatch:
+
+concurrency:
+  # only one run per branch at a time
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refs-check:
+    runs-on: ubuntu-latest
+    name: Check reference paths
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check that reference paths exist on S3
+        env:
+          REF_JSON: references/scpca-refs.json
+          REF_CONFIG: config/reference_paths.config
+        run: |
+          # Get the default reference location from the config file
+          ref_root_line=$(grep -E '^\s*ref_rootdir\s*=' "$REF_CONFIG" | head -n1)
+          # get the value, removing spaces and quotes
+          ref_root=$(echo "$ref_root_line" | cut -d'=' -f2- | tr -d "[:space:]'\"")
+
+          if [ -z "$ref_root" ]; then
+            echo "Reference root directory not found in config file"
+            exit 1
+          fi
+
+          if [[ ! "$ref_root" =~ ^s3:// ]]; then
+            echo "Default reference root directory is not an S3 path: $ref_root" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          # make sure the bucket is accessible (should be public)
+          if ! aws s3 ls --no-sign-request "$ref_root" > /dev/null 2>&1; then
+            echo "Default reference root directory is not accessible: $ref_root" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          # Get the list of reference files from the JSON file
+          mapfile -t ref_paths < <(
+            jq -r '.. | strings | select(length > 0)' "$REF_JSON" | sort -u
+          )
+
+          # separate any reference paths that are full uris (e.g. s3 or http))
+          ref_keys=()
+          ref_s3=()
+          ref_http=()
+          for path in "${ref_paths[@]}"; do
+            if [[ "$path" =~ ^s3:// ]]; then
+              ref_s3+=("$path")
+            elif [[ "$path" =~ ^https?:// ]]; then
+              ref_http+=("$path")
+            else
+              ref_keys+=("$path")
+            fi
+          done
+
+
+          missing_paths=()
+
+          # Check if each key exists in the S3 bucket
+          for ref in "${ref_keys[@]}"; do
+            if ! aws s3 ls --no-sign-request "$ref_root/$ref" > /dev/null 2>&1; then
+              echo "Reference file $ref_root/$ref does not exist"
+              missing_paths+=("$ref_root/$ref")
+            fi
+          done
+
+          # check that any s3 uris also exist
+          for ref in "${ref_s3[@]}"; do
+            if ! aws s3 ls --no-sign-request "$ref" > /dev/null 2>&1; then
+              echo "Reference file $ref does not exist"
+              missing_paths+=("$ref")
+            fi
+          done
+
+          # check that any http uris also exist (expecting 200 response)
+          for ref in "${ref_http[@]}"; do
+            if ! curl -s -o /dev/null -w "%{http_code}" "$ref" | grep -q "200"; then
+              echo "Reference file $ref does not exist (HTTP status code not 200)"
+              missing_paths+=("$ref")
+            fi
+          done
+
+
+          if [ ${#missing_paths[@]} -gt 0 ]; then
+            echo "${#missing_paths[@]} reference files are missing" >> $GITHUB_STEP_SUMMARY
+            echo "Missing reference files:" >> $GITHUB_STEP_SUMMARY
+            for key in "${missing_paths[@]}"; do
+             echo "- $key" >> $GITHUB_STEP_SUMMARY
+            done
+            exit 1
+          fi
