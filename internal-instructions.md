@@ -69,7 +69,7 @@ Once you have confirmed that the metadata looks correct, use the [Run scpca-nf w
 
 There are two example datasets available on S3 that can be used specifically for testing changes to the `cellranger-flex.nf` module.
 FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
-The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
+The information for these datasets was then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
 The datasets used are listed below:
 
 1. [library06 - Human Kidney Nuclei - Singleplexed](https://10x.vercel.app/datasets/Human_Kidney_4k_GEM-X_Flex)
@@ -84,7 +84,7 @@ To process only these datasets, use the `example` run mode with the [Run scpca-n
 
 There are four example datasets available on S3 that can be used specifically for testing changes to the `spaceranger.nf` module.
 FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
-The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
+The information for these datasets was then added to `examples/example_run_metadata.tsv` and `examples/example_sample_metadata.tsv`.
 The datasets used are listed below:
 
 1. [library08 - Human Lung Cancer - Visium CytAssist (v2)](https://www.10xgenomics.com/datasets/human-lung-cancer-ffpe-2-standard) 
