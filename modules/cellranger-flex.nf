@@ -126,7 +126,6 @@ process cellranger_flex_multi {
 workflow flex_quant{
   take:
     flex_channel // a channel with a map of metadata for each flex library to process
-    flex_probesets // map of probe set files for each technology
     pool_file // file object with barcode IDs for each sample when using multiplexed 10x flex
   main:
 
@@ -136,7 +135,6 @@ workflow flex_quant{
         def meta = meta_in.clone()
         meta.cellranger_multi_publish_dir =  "${params.checkpoints_dir}/cellranger-multi/${meta.library_id}"
         meta.cellranger_multi_results_dir = "${meta.cellranger_multi_publish_dir}/${meta.run_id}-cellranger-multi"
-        meta.flex_probeset = "${params.probes_dir}/${flex_probesets[meta.technology]}"
         meta // return modified meta object
       }
       .branch{ it ->

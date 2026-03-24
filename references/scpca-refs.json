@@ -13,7 +13,8 @@
     "star_index": "homo_sapiens/ensembl-104/star_index/Homo_sapiens.GRCh38.104.star_idx",
     "infercnv_gene_order": "homo_sapiens/ensembl-104/infercnv/Homo_sapiens.GRCh38.104_gene_order_arms.txt.gz",
     "cytoband": "homo_sapiens/ensembl-104/annotation/Homo_sapiens.GRCh38.104_cytoband.txt.gz",
-    "cytassist_probe": ""
+    "flex_probe_files": {},
+    "visium_probe_files": {}
   },
   "Homo_sapiens.GRCh38.110": {
     "ref_dir": "homo_sapiens/ensembl-110",
@@ -29,7 +30,14 @@
     "star_index": "",
     "infercnv_gene_order": "homo_sapiens/ensembl-110/infercnv/Homo_sapiens.GRCh38.110_gene_order_arms.txt.gz",
     "cytoband": "homo_sapiens/ensembl-110/annotation/Homo_sapiens.GRCh38.110_cytoband.txt.gz",
-    "cytassist_probe": "s3://ccdl-scpca-nf-results-testing/example-data/visium-test-runs/cytassist-probes/Homo_sapiens.GRCh38.110_cytassist-v2.1.0.csv"
+    "flex_probe_files": {
+      "10xflex_v1.1_single": "homo_sapiens/ensembl-110/flex-probe-refs/Chromimum_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
+      "10xflex_v1.1_multi": "homo_sapiens/ensembl-110/flex-probe-refs/Chromimum_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv"
+    },
+    "visium_probe_files": {
+      "visium2_v2.1": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv",
+      "visium-hd_v2.1": "homo_sapiens/ensembl-110/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv"
+    }
   },
   "Mus_musculus.GRCm39.104": {
     "ref_dir": "mus_musculus/ensembl-104",
@@ -45,6 +53,69 @@
     "star_index": "mus_musculus/ensembl-104/star_index/Mus_musculus.GRCm39.104.star_idx",
     "infercnv_gene_order": "mus_musculus/ensembl-104/infercnv/Mus_musculus.GRCm39.104_gene_order_arms.txt.gz",
     "cytoband": "mus_musculus/ensembl-104/annotation/Mus_musculus.GRCm39.104_cytoband.txt.gz",
-    "cytassist_probe": "s3://ccdl-scpca-nf-results-testing/example-data/visium-test-runs/cytassist-probes/Mus_musculus.GRCm39.104_cytassist-v2.1.0.csv"
+    "flex_probe_files": {},
+    "visium_probe_files": {}
+  },
+  "Homo_sapiens.GRCh38.98": {
+    "ref_dir": "homo_sapiens/ensembl-98",
+    "ref_fasta": "homo_sapiens/ensembl-98/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "homo_sapiens/ensembl-98/fasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai",
+    "ref_gtf": "homo_sapiens/ensembl-98/annotation/Homo_sapiens.GRCh38.98.gtf.gz",
+    "mito_file": "homo_sapiens/ensembl-98/annotation/Homo_sapiens.GRCh38.98.mitogenes.txt",
+    "t2g_3col_path": "",
+    "t2g_bulk_path": "",
+    "splici_index": "",
+    "salmon_bulk_index": "",
+    "cellranger_index": "homo_sapiens/ensembl-98/cellranger_index/Homo_sapiens.GRCh38.98_cellranger_full",
+    "star_index": "",
+    "infercnv_gene_order": "",
+    "cytoband": "",
+    "flex_probe_files": {},
+    "visium_probe_files": {
+      "visium1_v1": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
+      "visium2_v2": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv",
+      "visium-hd_v2": "homo_sapiens/ensembl-98/visium-probe-refs/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
+    }
+  },
+  "Mus_musculus.GRCm39.110": {
+    "ref_dir": "mus_musculus/ensembl-110",
+    "ref_fasta": "mus_musculus/ensembl-110/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "mus_musculus/ensembl-110/fasta/Mus_musculus.GRCm39.dna.primary_assembly.fa.fai",
+    "ref_gtf": "mus_musculus/ensembl-110/annotation/Mus_musculus.GRCm39.110.gtf.gz",
+    "mito_file": "mus_musculus/ensembl-110/annotation/Mus_musculus.GRCm39.110.mitogenes.txt",
+    "t2g_3col_path": "",
+    "t2g_bulk_path": "",
+    "splici_index": "",
+    "salmon_bulk_index": "",
+    "cellranger_index": "mus_musculus/ensembl-110/cellranger_index/Mus_musculus.GRCm39.110_cellranger_full",
+    "star_index": "",
+    "infercnv_gene_order": "",
+    "cytoband": "",
+    "flex_probe_files": {},
+    "visium_probe_files": {
+      "visium2_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv",
+      "visium-hd_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv"
+    }
+  },
+  "Mus_musculus.GRCm38.98": {
+    "ref_dir": "mus_musculus/ensembl-98",
+    "ref_fasta": "mus_musculus/ensembl-98/fasta/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz",
+    "ref_fasta_index": "mus_musculus/ensembl-98/fasta/Mus_musculus.GRCm38.dna.primary_assembly.fa.fai",
+    "ref_gtf": "mus_musculus/ensembl-98/annotation/Mus_musculus.GRCm38.98.gtf.gz",
+    "mito_file": "mus_musculus/ensembl-98/annotation/Mus_musculus.GRCm38.98.mitogenes.txt",
+    "t2g_3col_path": "",
+    "t2g_bulk_path": "",
+    "splici_index": "",
+    "salmon_bulk_index": "",
+    "cellranger_index": "mus_musculus/ensembl-98/cellranger_index/Mus_musculus.GRCm38.98_cellranger_full",
+    "star_index": "",
+    "infercnv_gene_order": "",
+    "cytoband": "",
+    "flex_probe_files": {},
+    "visium_probe_files": {
+      "visium1_v1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_mm10-2020-A.csv",
+      "visium2_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv",
+      "visium-hd_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
+    }
   }
 }

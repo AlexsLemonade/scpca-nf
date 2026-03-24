@@ -4,8 +4,17 @@
 # used with scpca-nf. The output of this script will create a json file where each key corresponds
 # to an organism and contains a dictionary of reference paths. The paths included here are specific
 # to the organization used for storing references in `s3://scpca-nf-references`.
-# To create the json file, use a TSV file that contains the following columns:
-# `organism`, `assembly`, `version`, `include_salmon`, `include_cellranger`, `include_star`
+# To create the json file, provide the following:
+# - JSON of flex probes, organized by reference name
+# - JSON of visium probes, organized by reference name
+# - TSV file that contains the following columns:
+#   - `organism`
+#   - `assembly`
+#   - `version`
+#   - `include_salmon`
+#   - `include_cellranger`
+#   - `include_star`
+#   - `include_infercnv`
 
 library(optparse)
 project_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
@@ -16,6 +25,16 @@ option_list <- list(
     type = "character",
     default = file.path(project_root, "references", "ref-metadata.tsv"),
     help = ""
+  ),
+  make_option(
+    opt_str = c("--visium_probe_metadata"),
+    type = "character",
+    default = file.path(project_root, "references", "visium-probes.json")
+  ),
+  make_option(
+    opt_str = c("--flex_probe_metadata"),
+    type = "character",
+    default = file.path(project_root, "references", "flex-probes.json")
   ),
   make_option(
     opt_str = c("--ref_json"),
@@ -37,7 +56,6 @@ create_ref_entry <- function(
   include_cellranger,
   include_star,
   include_infercnv,
-  include_cytassist,
   reference_name
 ) {
   # create base reference directory
@@ -47,6 +65,8 @@ create_ref_entry <- function(
   )
   fasta_dir <- file.path(ref_dir, "fasta")
   annotation_dir <- file.path(ref_dir, "annotation")
+  flex_probe_dir <- file.path(ref_dir, "flex-probe-refs")
+  visium_probe_dir <- file.path(ref_dir, "visium-probe-refs")
 
   # create a single json entry containing all necessary file paths
   json_entry <- list(
@@ -75,9 +95,12 @@ create_ref_entry <- function(
     cellranger_index = "",
     star_index = "",
     infercnv_gene_order = "",
-    cytoband = "",
-    cytassist_probe = ""
+    cytoband = ""
   )
+
+  # set default empty objects for probe files
+  json_entry["flex_probe_files"] <- list(NULL)
+  json_entry["visium_probe_files"] <- list(NULL)
 
   # fill in values related to salmon/alevin-fry index
   if (include_salmon) {
@@ -132,29 +155,40 @@ create_ref_entry <- function(
     )
   }
 
-  # fill in values for cytassist probes
-  if (include_cytassist) {
-    # TODO: UPDATE THIS DIRECTORY to: file.path(ref_dir, "cytassist")
-    cytassist_probe_dir <- "s3://ccdl-scpca-nf-results-testing/example-data/visium-test-runs/cytassist-probes"
-
-    # TODO: probe file name?
-    json_entry$cytassist_probe <- file.path(
-      cytassist_probe_dir,
-      glue::glue("{reference_name}_cytassist-v2.1.0.csv")
-    )
+  # add directory for flex probes
+  if (reference_name %in% names(flex_probe_map)) {
+    flex_probe_files <- flex_probe_map |>
+      purrr::pluck(reference_name) |>
+      purrr::map(\(f) file.path(flex_probe_dir, f))
+    if (length(flex_probe_files) > 0) json_entry$flex_probe_files <- flex_probe_files
   }
+
+  # add directory for visium probes
+  if (reference_name %in% names(visium_probe_map)) {
+    visium_probe_files <- visium_probe_map |>
+      purrr::pluck(reference_name) |>
+      purrr::map(\(f) file.path(visium_probe_dir, f))
+    if (length(visium_probe_files) > 0) json_entry$visium_probe_files <- visium_probe_files
+  }
+
   return(json_entry)
 }
 
 # Compile json file ------------------------------------------------------------
 
 # check that input metadata exists and read in
-if (!file.exists(opt$ref_metadata)) {
-  stop("ref_metadata file does not exist.")
-}
+stopifnot(
+  "ref_metadata tsv file does not exist" = file.exists(opt$ref_metadata),
+  "visium_probes json file does not exist" = file.exists(opt$visium_probe_metadata),
+  "flex_probes json file does not exist" = file.exists(opt$flex_probe_metadata)
+)
 
-ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = "c") |>
+
+ref_metadata <- readr::read_tsv(opt$ref_metadata, col_types = list(.default = "c")) |>
   dplyr::mutate(reference_name = glue::glue("{organism}.{assembly}.{version}"))
+
+visium_probe_map <- jsonlite::read_json(opt$visium_probe_metadata)
+flex_probe_map <- jsonlite::read_json(opt$flex_probe_metadata)
 
 # get entries for all organisms provided
 all_entries <- ref_metadata |>

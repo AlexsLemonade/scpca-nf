@@ -87,11 +87,14 @@ Inside the `references` folder are files and scripts related to maintaining the 
    The columns included specify the `organism` (e.g., `Homo_sapiens`), `assembly`(e.g.,`GRCh38`), and `version`(e.g., `104`) of the `fasta` obtained from [Ensembl](https://www.ensembl.org/index.html) that was used to build the reference files.
    This file is used as input to the `build-index.nf` workflow, which will create all required index files for `scpca-nf` for the listed organisms in the metadata file, provided the `fasta`, `gtf`, and `cytoband` (used to build `inferCNV` gene order files) files are stored in the proper location on S3.
 
-2. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
+2. `flex-probes.json` and `visium-probes.json` track probe set files used by 10x Flex and 10x Visium technologies, respectively.
+
+3. `scpca-refs.json`: Each entry of this file contains a supported reference for mapping with `scpca-nf` and the name used to refer to that supported reference, e.g., `Homo_sapiens.GRCh38.104`.
    For each supported reference, a list of all the reference files that are needed to run `scpca-nf` will be included.
    This file is required as input to `scpca-nf`.
+   It is created by running `scripts/create-reference.json` which takes `ref-metadata.tsv`, `flex-probes.json`, and `visium-probes.json` as input.
 
-3. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type annotation.
+4. `celltype-reference-metadata.tsv`: Each row of this TSV file corresponds to a supported cell type reference available for cell type annotation.
    This file is required as input to the `build-celltype-ref.nf` workflow to create and/or update cell type references.
    For all references, the following columns must be populated:
 
@@ -102,11 +105,11 @@ Inside the `references` folder are files and scripts related to maintaining the 
        This should be a comma-separated list of all organs to include.
        To find all possible organs, see the `organs` column of `PanglaoDB_markers_2020-03-27.tsv`.
 
-4. `PanglaoDB_markers_2020-03-27.tsv`: This file is used to build the cell type references from `PanglaoDB`.
+5. `PanglaoDB_markers_2020-03-27.tsv`: This file is used to build the cell type references from `PanglaoDB`.
    This file was obtained from clicking the `get tsv file` button on the [PanglaoDB Dataset page](https://panglaodb.se/markers.html?cell_type=%27choose%27) and replacing the date in the filename with a date in ISO8601 format.
    This file is required as input to the `build-celltype-ref.nf` workflow, which will create all required cell type references for the main workflow to use during cell type annotation.
 
-5. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow.
+6. The following files were generated in the `OpenScPCA-analysis` repository and copied to this repository for use in the workflow.
    They were initially obtained from the `OpenScPCA-analysis` repository at tag `v0.2.3`.
 
    The following files are used for cell typing, including assigning consensus cell types.

@@ -113,7 +113,7 @@ process spaceranger_hd {
 
     if [ "${meta.visium_image_type}" == "image" ]; then
       mkdir -p ${out_id}/outs/segmented_outputs
-      touch ${out_id}/outs/segmented_outputs/cell_segmentations.geojson # file so it exists on S3
+      touch ${out_id}/outs/segmented_outputs/cell_segmentations.geojson
     fi
     """
 }
@@ -132,7 +132,7 @@ process spaceranger_publish {
     workflow_url = workflow.repository ?: workflow.manifest.homePage
     cellranger_index_name = file(meta.cellranger_index).name
 
-    is_hd = meta.technology.contains("_hd")
+    is_hd = meta.technology.contains("visium-hd")
     """
     # make a new directory to hold only the outs file we want to publish
     mkdir ${spatial_publish_dir}
@@ -239,13 +239,15 @@ def getCRsamples(files_dir) {
 
 
 workflow spaceranger_quant{
-  take: spatial_channel // a channel with a map of metadata for each spatial library to process
+  take: 
+    spatial_channel // a channel with a map of metadata for each spatial library to process
+    spatial_techs   // list of possible spatial technologies
   main:
-    // techs that use the probe file
-    def cytassist_probe_techs = ['visium2', 'visium_hd']
-    
-    // techs that are _not_ cytassist
-    def non_cytassist_techs = ['visium', 'visium1']
+    // techs that require a probe file
+    def visium_probe_techs = spatial_techs.findAll{ it =~ /_v\d\.*\d*$/}
+
+    // for image handling, techs that are _not_ cytassist
+    def non_cytassist_techs = ['visium', 'visium1', 'visium1_v1']
 
     spatial_channel = spatial_channel
       // add sample names and spatial output directory to metadata
@@ -288,14 +290,14 @@ workflow spaceranger_quant{
     }
   
 
-    // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file, image type]
+    // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file]
     spaceranger_reads = spatial_channel.make_spatial
       .map{ meta_in ->
         def meta = meta_in.clone()
 
         // probeset logic
-        def use_probeset = meta.technology in cytassist_probe_techs
-        def probeset_file = use_probeset ? file(meta.cytassist_probe) : []
+        def use_probeset = meta.technology in visium_probe_techs
+        def probeset_file = use_probeset ? file(meta.visium_probeset) : []
 
         // cytaimage logic
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
@@ -363,7 +365,7 @@ workflow spaceranger_quant{
         ]
     }
     .branch {
-      hd: it[0].technology.contains("_hd")
+      hd: it[0].technology.contains("visium-hd")
       non_hd: true
     }
 
@@ -382,11 +384,10 @@ workflow spaceranger_quant{
       }
 
     // log error about segmented_outputs as needed
-    // don't log for stub libraries
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
-        def segmented_dir_exists = file("${out_dir}/outs/segmented_outputs").isDirectory()
-        if (meta.visium_image_type == "image" && !segmented_dir_exists) { 
+        def segmented_exists = out_dir.resolve("outs/segmented_outputs/cell_segmentations.geojson").exists()
+        if (meta.visium_image_type == "image" && !segmented_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
       }
