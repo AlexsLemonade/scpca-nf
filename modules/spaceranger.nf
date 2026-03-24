@@ -386,7 +386,7 @@ workflow spaceranger_quant{
     // log error about segmented_outputs as needed
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
-       def segmented_exists = out_dir.resolve("outs/segmented_outputs/cell_segmentations.geojson").exists()
+        def segmented_exists = out_dir.resolve("outs/segmented_outputs/cell_segmentations.geojson").exists()
         if (meta.visium_image_type == "image" && !segmented_exists) { 
           log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
