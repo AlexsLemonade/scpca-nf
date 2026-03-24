@@ -50,6 +50,8 @@ For more information, see the [Data Processing README](https://github.com/AlexsL
 ## Processing example data
 
 We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users.
+The example data described above includes 10x Chromium, 10x Flex data, and 10x Visium data.
+
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
 First, please check the metadata files present in `s3://scpca-nf-references/example-data` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
@@ -65,8 +67,6 @@ Once you have confirmed that the metadata looks correct, use the [Run scpca-nf w
 
 ### Processing example 10x Flex data
 
-The example data described above includes both 10x Chromium and 10x Flex data.
-
 There are two example datasets available on S3 that can be used specifically for testing changes to the `cellranger-flex.nf` module.
 FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
 The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
@@ -77,7 +77,25 @@ The datasets used are listed below:
 
 For the second dataset (Human PBMCs), only the GEX FASTQ files were saved to S3.
 
-To process only these datasets, use the `example` run mode with the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GitHub Actions workflow and specify the appropriate run ids, currently "library06,library07".
+To process only these datasets, use the `example` run mode with the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GitHub Actions workflow and specify the appropriate run ids, currently "library06,library07", or project id, currently "project02".
+
+
+### Processing example 10x Visium data
+
+There are four example datasets available on S3 that can be used specifically for testing changes to the `spaceranger.nf` module.
+FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
+The information for these datasets were then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
+The datasets used are listed below:
+
+1. [library08 - Human Lung Cancer - Visium CytAssist (v2)](https://www.10xgenomics.com/datasets/human-lung-cancer-ffpe-2-standard) 
+2. [library09 - Mouse Brain (fresh tissue) - Visium v1](https://www.10xgenomics.com/datasets/mouse-brain-section-coronal-1-standard-1-1-0)
+3. [library10 - Mouse Brain (FFPE) - Visium v1 with probes](https://www.10xgenomics.com/datasets/adult-mouse-brain-ffpe-1-standard-1-3-0)
+4. [library11 - Human Kidney - Visium HD](https://www.10xgenomics.com/datasets/visium-hd-cytassist-gene-expression-libraries-human-kidney-ffpe-v4)
+5. [library12 - Human Pancreatic Cancer - Visium HD 3'](https://www.10xgenomics.com/datasets/visium-hd-three-prime-human-pancreatic-cancer-fresh-frozen)
+
+
+To process only these datasets, use the `example` run mode with the [Run scpca-nf workflow on AWS Batch](https://github.com/AlexsLemonade/ScPCA-admin/actions/workflows/run-scpca-nf.yaml) GitHub Actions workflow and specify the appropriate run ids, currently "library08,library09,library10,library11,library12", or project id, currently "project03".
+
 
 ## Maintaining references for `scpca-nf`
 
