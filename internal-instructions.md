@@ -50,7 +50,7 @@ For more information, see the [Data Processing README](https://github.com/AlexsL
 ## Processing example data
 
 We provide an [example of the expected outputs](./examples/README.md#example-output) after running `scpca-nf` available for external users.
-The example data described above includes 10x Chromium, 10x Flex data, and 10x Visium data.
+The example data described here includes 10x Chromium (`project01`), 10x Flex data (`project02`), and 10x Visium (`project03`) data.
 
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
