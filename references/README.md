@@ -115,3 +115,23 @@ The table includes the following columns:
 | --- | --- |
 | `diagnosis_group` | Broad diagnosis group |
 | `celltype_groups` | Consensus cell type validation groups to include in an `inferCNV` normal reference for samples of the given broad diagnosis group  |
+
+### Formatting reference files 
+<!--TODO: Update these when we include merged reference-->
+
+This folder contains a set of files used as a reference for tracking the expected output formats of the `SingleCellExperiment` and `AnnData` objects output by the workflow.
+These files are produced by running the `create-formatting-reference.py` script in the `scripts` directory and contain arrays for `unfiltered`, `filtered`, and `processed` objects. 
+
+* `sce-formatting-reference.json` specifies formatting for all `SingleCellExperiment` objects
+* `anndata-formatting-reference.json` specifies formatting for all `AnnData` objects
+
+#### Updating the formatting reference
+
+If a new item is to be added to the objects output from `scpca-nf`, such as adding a new column in the `colData`, the formatting files will need to be updated. 
+
+1. Add the appropriate information to the `SCE` or `AnnData` section at the top of `create-formatting-reference.py`. 
+  * Note that any item that will only be present under certain conditions, should be included in the `_conditional` array, e.g., `colData_conditional`. 
+  * If something is being added to both `SingleCellExperiment` and `AnnData` objects, add it to the `SingleCellExperiment` reference arrays. 
+  The objects will be automatically converted to the appropriate type for `AnnData`.
+  In some cases, the type is not what we expect, so be sure to double check that the current conversion functions assign the appropriate type. 
+2. Run the `create-formatting-reference.py` script and file a PR to update both the script and appropriate reference files. 
