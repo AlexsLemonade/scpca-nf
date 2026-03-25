@@ -129,9 +129,9 @@ These files are produced by running the `create-formatting-reference.py` script 
 
 If a new item is to be added to the objects output from `scpca-nf`, such as adding a new column in the `colData`, the formatting files will need to be updated. 
 
-1. Add the appropriate information to the `SCE` or `AnnData` section at the top of `create-formatting-reference.py`. 
-  * Note that any item that will only be present under certain conditions, should be included in the `_conditional` array, e.g., `colData_conditional`. 
-  * If something is being added to both `SingleCellExperiment` and `AnnData` objects, add it to the `SingleCellExperiment` reference arrays. 
+1. Add the appropriate information to the `SCE` or `AnnData` dictionary at the top of `create-formatting-reference.py`. 
+  * Note that any item that will only be present under certain conditions, should be included in the `_conditional` dictionary, e.g., `colData_conditional`. 
+  * If something is being added to both `SingleCellExperiment` and `AnnData` objects, add it to the `SingleCellExperiment` reference dictionary. 
   The objects will be automatically converted to the appropriate type for `AnnData`.
   In some cases, the type is not what we expect, so be sure to double check that the current conversion functions assign the appropriate type. 
 2. Run the `create-formatting-reference.py` script and file a PR to update both the script and appropriate reference files. 
