@@ -8,8 +8,5 @@ run06	library04	sample05	project01	paired_end	EFO:0003747	bulk	Mus_musculus.GRCm
 run07	library05	sample06	project01	10Xv3.1	EFO:0009922	cell	Homo_sapiens.GRCh38.104	example_fastqs/run07	NA	NA	NA	NA	example_metadata_files/submitter_celltypes.tsv
 run08	library06	sample07	project02	10Xflex_v1.1_single	EFO:0022606	nucleus	Homo_sapiens.GRCh38.110	example_fastqs/run08	NA	NA	NA	NA	NA
 run09	library07	sample08;sample09;sample10;sample11	project02	10Xflex_v1.1_multi	EFO:0022606	cell	Homo_sapiens.GRCh38.110	example_fastqs/run09	NA	NA	NA	NA	NA
-run10	library08	sample02	project03	visium1	EFO:0022857	spot	Mus_musculus.GRCm39.104	example_files/run10	NA	NA	C1	V19L01-041	NA
-run11	library09	sample02	project03	visium1_v1	EFO:0022857	spot	Mus_musculus.GRCh38.98	example_files/run11	NA	NA	B1	V11J26-127	NA
-run12	library10	sample12	project03	visium2_v2.1	EFO:0022858	spot	Homo_sapiens.GRCh38.110	example_files/run12	NA	NA	D1	V42A20-354	NA
-run13	library11	sample13	project03	visium-hd_v2.1	EFO:0920058	square	Homo_sapiens.GRCh38.110	example_files/run13	NA	NA	A1	H1-NZKVVTH	NA
-run14	library12	sample14	project03	visium-hd-3prime	EFO:0010961	square	Homo_sapiens.GRCh38.110	example_files/run14	NA	NA	A1	H1-CWRFYX3	NA
+run10	library08	sample12	project03	visium2_v2.1	EFO:0022858	spot	Homo_sapiens.GRCh38.110	example_files/run10	NA	NA	D1	V42A20-354	NA
+run11	library09	sample13	project03	visium-hd-3prime	EFO:0010961	square	Homo_sapiens.GRCh38.110	example_files/run11	NA	NA	A1	H1-CWRFYX3	NA
