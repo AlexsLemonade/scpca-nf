@@ -8,6 +8,7 @@
   - [Test data runs](#test-data-runs)
 - [Processing example data](#processing-example-data)
   - [Processing example 10x Flex data](#processing-example-10x-flex-data)
+  - [Processing example 10x Visium data](#processing-example-10x-visium-data)
 - [Maintaining references for `scpca-nf`](#maintaining-references-for-scpca-nf)
   - [Adding and updating reference files](#adding-and-updating-reference-files)
 
