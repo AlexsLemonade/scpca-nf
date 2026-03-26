@@ -55,7 +55,7 @@ The example data described here includes 10x Chromium (`project01`), 10x Flex da
 
 If there have been major updates to the directory structure or the contents of the output, the example data should be re-processed such that the example output we provide mimics the current expected output from `scpca-nf`.
 
-First, please check the metadata files present in `s3://scpca-nf-references/example-data` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
+First, please check the metadata files present in `s3://scpca-nf-references/examples/` are up to date with changes in the workflow and reflect the contents of the files present in the `examples` directory of this repository.
 Each of these files should be present, with the expected input columns as described in each documentation link.
 
 
@@ -69,7 +69,7 @@ Once you have confirmed that the metadata looks correct, use the [Run scpca-nf w
 ### Processing example 10x Flex data
 
 There are two example datasets available on S3 that can be used specifically for testing changes to the `cellranger-flex.nf` module.
-FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
+FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/examples/example-data/`.
 The information for these datasets was then added to `examples/example_run_metadata.tsv`, `examples/example_sample_metadata.tsv`, and `example_multiplex_pools.tsv`.
 The datasets used are listed below:
 
@@ -84,7 +84,7 @@ To process only these datasets, use the `example` run mode with the [Run scpca-n
 ### Processing example 10x Visium data
 
 There are four example datasets available on S3 that can be used specifically for testing changes to the `spaceranger.nf` module.
-FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/example-data/example_fastqs`.
+FASTQ files were downloaded from 10x Genomics, unzipped, and then copied to `s3://scpca-nf-references/examples/example-data/`.
 The information for these datasets was then added to `examples/example_run_metadata.tsv` and `examples/example_sample_metadata.tsv`.
 The datasets used are listed below:
 
