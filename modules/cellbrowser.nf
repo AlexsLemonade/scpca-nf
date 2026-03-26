@@ -22,7 +22,8 @@ process cellbrowser_library {
       --h5ad-file "${h5ad_file}"
 
     # import data to library directory
-    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}"
+    # --proc flag uses the processed expression matrix (lognormalized)
+    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}" --proc
 
     # remove the h5ad from the imported files as we won't use it
     rm "${meta.library_id}"/*_processed_rna.h5ad
