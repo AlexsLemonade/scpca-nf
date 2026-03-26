@@ -302,7 +302,7 @@ workflow spaceranger_quant{
         // cytaimage logic
         def cytaimage_file = getImageFiles("${meta.files_directory}/cytaimage", true)
         if (meta.technology in non_cytassist_techs) {
-          if (cytaimage_file) log.error("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
+          if (cytaimage_file) log.warn("Did not expect a cytaimage file for ${meta.technology} in ${meta.files_directory}/cytaimage but found ${cytaimage_file.size()} files.")
           cytaimage_file = []
         } else { // we have a cytassist tech
           if (cytaimage_file.size() != 1) {
@@ -318,17 +318,17 @@ workflow spaceranger_quant{
         // look for any additional images and check that there are not too many
         def image_file = getImageFiles("${meta.files_directory}/image")
         if (image_file.size() > 1) {
-          log.error("Expected no more than 1 brightfield image file for ${meta.technology} in ${meta.files_directory}/image but found ${image_file.size()} files.")
+          log.warn("Expected no more than 1 brightfield image file for ${meta.technology} in ${meta.files_directory}/image but found ${image_file.size()} files.")
           image_file = []
         } 
         def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
         if (colorizedimage_file.size() > 1) {
-          log.error("Expected no more than 1 colorized image file for ${meta.technology} in ${meta.files_directory}/colorizedimage but found ${colorizedimage_file.size()} files.")
+          log.warn("Expected no more than 1 colorized image file for ${meta.technology} in ${meta.files_directory}/colorizedimage but found ${colorizedimage_file.size()} files.")
           colorizedimage_file = []
         } 
         def darkimage_file = getImageFiles("${meta.files_directory}/darkimage")
         if (darkimage_file.size() > 6) {
-          log.error("Expected between 1-6 dark image files for ${meta.technology} in ${meta.files_directory}/darkimage but found ${darkimage_file.size()} files.")
+          log.warn("Expected between 1-6 dark image files for ${meta.technology} in ${meta.files_directory}/darkimage but found ${darkimage_file.size()} files.")
           darkimage_file = []
         } 
 
@@ -388,7 +388,7 @@ workflow spaceranger_quant{
       .subscribe{ meta, out_dir ->
         def segmented_exists = out_dir.resolve("outs/segmented_outputs/cell_segmentations.geojson").exists()
         if (meta.visium_image_type == "image" && !segmented_exists) { 
-          log.error("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
+          log.warn("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
       }
 
