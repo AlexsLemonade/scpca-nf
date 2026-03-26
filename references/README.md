@@ -131,6 +131,7 @@ If a new item is to be added to the objects output from `scpca-nf`, such as addi
 
 1. Add the appropriate information to the `SCE` or `AnnData` dictionary at the top of `create-formatting-reference.py`. 
   * Note that any item that will only be present under certain conditions, should be included in the `_conditional` dictionary, e.g., `colData_conditional`. 
+  * If an item will be used in multiple dictionaries, indicate this in a comment, e.g., "used in both filtered and processed" 
   * If something is being added to both `SingleCellExperiment` and `AnnData` objects, add it to the `SingleCellExperiment` reference dictionary. 
   The objects will be automatically converted to the appropriate type for `AnnData`.
   In some cases, the type is not what we expect, so be sure to double check that the current conversion functions assign the appropriate type. 
