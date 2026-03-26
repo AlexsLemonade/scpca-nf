@@ -49,6 +49,7 @@ def write_library_configs(
         coords=[{{"file": "umap_coords.tsv", "shortLabel": "UMAP" }}]
         markers = [{{"file": "markers.tsv", "shortLabel":"Cluster Markers" }}]
         quickGenesFile="quickGenes.tsv"
+        unit = "LogNormalized UMI count"
     """
     library_cb_file.write_text(textwrap.dedent(library_cb_contents))
     # desc.conf
