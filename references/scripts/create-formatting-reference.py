@@ -134,6 +134,7 @@ unfiltered_experiment_metadata = {
     "sample_type": "character",
 }
 
+# also used for all adt object types
 unfiltered_experiment_metadata_conditional = {
     # experiment metadata that's based on mapping tool
     # stored in metadata(sce)$mapping_tool
@@ -556,6 +557,7 @@ unfiltered_uns_metadata = {
     **anndata_uns_metadata,
 }
 
+# also used for all adt object types
 unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
     copy.deepcopy(unfiltered_experiment_metadata_conditional)
 )
