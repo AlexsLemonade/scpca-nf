@@ -47,6 +47,7 @@ cell_metadata_conditional = {
 }
 
 # filtered cell metadata ------------
+# used in processed metadata too
 filtered_cell_metadata = {
     **cell_metadata,
     "prob_compromised": "numeric",
@@ -105,6 +106,7 @@ processed_cell_metadata_conditional = {
 }
 
 # row metadata ----------
+# this is the same for all object types
 feature_metadata = {
     "gene_ids": "character",
     "gene_symbol": "character",
@@ -113,6 +115,7 @@ feature_metadata = {
 }
 
 # reduced dimensionality ----------
+# only in processed object
 reduced_dims = ["PCA", "UMAP"]
 
 # experiment metadata --------------
@@ -131,6 +134,7 @@ unfiltered_experiment_metadata = {
     "sample_type": "character",
 }
 
+# also used for all adt object types
 unfiltered_experiment_metadata_conditional = {
     # experiment metadata that's based on mapping tool
     # stored in metadata(sce)$mapping_tool
@@ -235,6 +239,7 @@ processed_experiment_metadata_conditional = {
 
 # alt exps gell/gene metadata ------------
 # adt specific items
+# same for all object types
 altexp_adt_feature_metadata = {
     "adt_id": "character",
     "mean": "numeric",
@@ -242,6 +247,7 @@ altexp_adt_feature_metadata = {
     "target_type": "character",
 }
 
+# used for filtered and processed
 filtered_altexp_adt_cell_metadata = {
     "zero.ambient": "logical",
     "discard": "logical",
@@ -265,6 +271,7 @@ processed_altexp_adt_cell_metadata_conditional = {
     "sizeFactor": "numeric",
 }
 
+# use for both filtered and processed
 filtered_altexp_adt_experiment_metadata = {
     **unfiltered_experiment_metadata,
     "ambient_profile": "character",
@@ -276,12 +283,14 @@ unfiltered_altexp_cellhash_feature_metadata = {
     "detected": "numeric",
 }
 
+# used for both filtered and processed
 filtered_altexp_cellhash_feature_metadata = {
     **unfiltered_altexp_cellhash_feature_metadata,
     "barcode_id": "character",
     "sample_id": "character",
 }
 
+# used for both filtered and processed
 filtered_altexp_cellhash_cell_metadata_conditional = {
     # indicate columns that are conditionally present based on demultiplexing methods used
     # this is tracked based on demux columns in colData
@@ -471,6 +480,7 @@ def convert_experiment_metadata_types(metadata):
 
 
 # layer/assays ---------
+# used for all objects
 layers = ["spliced"]
 
 # unfiltered cell metadata ------------
@@ -503,6 +513,7 @@ obs_metadata_conditional = {
 }
 
 # filtered cell metadata ------------
+# used for both filtered and processed
 filtered_obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(filtered_cell_metadata)),
     **anndata_specific_obs_metadata,
@@ -525,6 +536,7 @@ processed_obs_metadata_conditional = {
 }
 
 # row metadata ----------
+# same for all object types
 var_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(feature_metadata)),
     "feature_is_filtered": "bool",
@@ -545,6 +557,7 @@ unfiltered_uns_metadata = {
     **anndata_uns_metadata,
 }
 
+# also used for all adt object types
 unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
     copy.deepcopy(unfiltered_experiment_metadata_conditional)
 )
@@ -582,6 +595,7 @@ altexp_adt_var_metadata = convert_cell_row_metadata_types(
     copy.deepcopy(altexp_adt_feature_metadata)
 )
 
+# used in both filtered and processed
 filtered_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
     copy.deepcopy(filtered_altexp_adt_cell_metadata)
 )
@@ -594,6 +608,7 @@ processed_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
     copy.deepcopy(processed_altexp_adt_cell_metadata_conditional)
 )
 
+# used in both filtered and processed
 filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
     copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
