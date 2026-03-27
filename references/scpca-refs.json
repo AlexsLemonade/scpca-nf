@@ -71,8 +71,8 @@
     "infercnv_gene_order": "",
     "cytoband": "",
     "flex_probe_files": {
-      "10xflex_v1.0_single": "homo_sapiens/ensembl-98/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
-      "10xflex_v1.0_multi": "homo_sapiens/ensembl-98/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
+      "10xflex_v1_single": "homo_sapiens/ensembl-98/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
+      "10xflex_v1_multi": "homo_sapiens/ensembl-98/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
       "10xflex_v1.0.1_single": "homo_sapiens/ensembl-98/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.0.1_GRCh38-2020-A.csv",
       "10xflex_v1.0.1_multi": "homo_sapiens/ensembl-98/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.0.1_GRCh38-2020-A.csv"
     },
