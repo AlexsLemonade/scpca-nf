@@ -258,6 +258,8 @@ workflow {
       flex: it.technology in flex_techs
     }
 
+  runs_ch.spatial.view()
+
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.feature
     .collect{ it.library_id }
