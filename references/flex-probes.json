@@ -1,6 +1,20 @@
 {
+  "Homo_sapiens.GRCh38.98": {
+    "10xflex_v1.0_single": "Chromium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
+    "10xflex_v1.0_multi": "Chromium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv",
+    "10xflex_v1.0.1_single": "Chromium_Human_Transcriptome_Probe_Set_v1.0.1_GRCh38-2020-A.csv",
+    "10xflex_v1.0.1_multi": "Chromium_Human_Transcriptome_Probe_Set_v1.0.1_GRCh38-2020-A.csv"
+  },
   "Homo_sapiens.GRCh38.110": {
     "10xflex_v1.1_single": "Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
     "10xflex_v1.1_multi": "Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv"
+  },
+  "Mus_musculus.GRCm38.98": {
+    "10xflex_v1.0.1_single": "Chromium_Mouse_Transcriptome_Probe_Set_v1.0.1_mm10-2020-A.csv",
+    "10xflex_v1.0.1_multi": "Chromium_Mouse_Transcriptome_Probe_Set_v1.0.1_mm10-2020-A.csv"
+  },
+  "Mus_musculus.GRCm39.110": {
+    "10xflex_v1.1.1_single": "Chromium_Mouse_Transcriptome_Probe_Set_v1.1.1_GRCm39-2024-A.csv",
+    "10xflex_v1.1.1_multi": "Chromium_Mouse_Transcriptome_Probe_Set_v1.1.1_GRCm39-2024-A.csv"
   }
 }
