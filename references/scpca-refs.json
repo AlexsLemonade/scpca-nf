@@ -101,7 +101,6 @@
       "10xflex_v1.1.1_multi": "mus_musculus/ensembl-110/flex-probe-refs/Chromium_Mouse_Transcriptome_Probe_Set_v1.1.1_GRCm39-2024-A.csv"
     },
     "visium_probe_files": {
-      "visium2_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv",
       "visium-hd_v2.1": "mus_musculus/ensembl-110/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.1.0_GRCm39-2024-A.csv"
     }
   },
@@ -127,7 +126,7 @@
     },
     "visium_probe_files": {
       "visium1_v1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_mm10-2020-A.csv",
-      "visium2_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv",
+      "visium2_v1": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v1.0_mm10-2020-A.csv",
       "visium-hd_v2": "mus_musculus/ensembl-98/visium-probe-refs/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
     }
   }
