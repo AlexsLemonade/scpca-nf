@@ -544,49 +544,49 @@
       "properties": {
         "scpcatools_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_slim_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_anndata_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_reports_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_seurat_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_scvi_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_infercnv_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_scimilarity_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
