@@ -147,6 +147,7 @@ workflow {
     'visium-hd-3prime',
     // use probes
     'visium1_v1',
+    'visium2_v1', // mouse v1 goes with visium2; mouse v2 does with hd
     'visium2_v2',
     'visium2_v2.1',
     'visium-hd_v2',
