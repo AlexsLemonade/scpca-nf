@@ -684,5 +684,13 @@
     {
       "$ref": "#/$defs/containers"
     }
-  ]
+  ],
+  "properties": {
+    "pullthrough_registry": {
+      "type": "string",
+      "hidden": true, 
+      "description": "Container registry for image pullthrough caching; disabled by default.",
+      "default": ""
+    }
+  }
 }
