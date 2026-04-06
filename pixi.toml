@@ -29,8 +29,3 @@ sbpack = { git = "https://github.com/rabix/sbpack", tag = "2024.10.30" }
 [environments]
 default = ["nfcore"]
 cavatica = ["sbpack"]
-
-
-[tasks.login-nf-runner]
-description = "Login to the Nextflow runner EC2 instance via AWS SSM."
-cmd = "bash scripts/aws/login_nf_runner.sh"
