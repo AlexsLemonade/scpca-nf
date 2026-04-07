@@ -1,6 +1,8 @@
 
+include { pullthroughContainer } from '../lib/utils.nf'
+
 process cellbrowser_library {
-  container "${params.CELLBROWSER_CONTAINER}"
+  container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
 
   input:
@@ -20,7 +22,8 @@ process cellbrowser_library {
       --h5ad-file "${h5ad_file}"
 
     # import data to library directory
-    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}"
+    # --proc flag uses the processed expression matrix (lognormalized)
+    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}" --proc
 
     # remove the h5ad from the imported files as we won't use it
     rm "${meta.library_id}"/*_processed_rna.h5ad
@@ -44,7 +47,7 @@ process cellbrowser_library {
 }
 
 process cellbrowser_site {
-  container "${params.CELLBROWSER_CONTAINER}"
+  container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}"
   input:
     tuple val(project_ids), path(library_dirs)

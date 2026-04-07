@@ -176,6 +176,14 @@
           "description": "Reference indices to build",
           "help_text": "A comma-separated list of references to build indices for, e.g. 'Homo_sapiens.GRCh38.104', or 'All' to build all reference indices.",
           "hidden": true
+        },
+        "ref_outdir": {
+          "type": "string",
+          "default": "scpca_ref_out",
+          "format": "directory-path",
+          "description": "Reference building output directory",
+          "help_text": "Directory to store built reference indices. Defaults to `scpca_ref_out`",
+          "fa_icon": "fas fa-folder-open"
         }
       },
       "fa_icon": "fas fa-laptop-code"
@@ -189,7 +197,7 @@
       "properties": {
         "ref_rootdir": {
           "type": "string",
-          "default": "s3://scpca-references",
+          "default": "s3://scpca-nf-references",
           "format": "directory-path",
           "description": "References root directory",
           "help_text": "Root location containing reference files.",
@@ -206,7 +214,7 @@
         },
         "barcode_dir": {
           "type": "string",
-          "default": "s3://scpca-references/barcodes/10X",
+          "default": "s3://scpca-nf-references/barcodes/10X",
           "format": "directory-path",
           "description": "Barcode file directory",
           "help_text": "Directory containing 10x barcode files.",
@@ -214,17 +222,17 @@
         },
         "probes_dir": {
           "type": "string",
-          "default": "s3://scpca-references/flex-probe-refs",
+          "default": "s3://scpca-nf-references/flex-probe-refs",
           "fa_icon": "fas fa-folder-open"
         },
         "flex_probeset_file": {
           "type": "string",
-          "default": "s3://scpca-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
+          "default": "s3://scpca-nf-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv",
           "fa_icon": "fas fa-file-alt"
         },
         "celltype_ref_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype",
+          "default": "s3://scpca-nf-references/celltype",
           "format": "directory-path",
           "description": "Cell type reference directory",
           "help_text": "Directory containing cell type reference files.",
@@ -232,7 +240,7 @@
         },
         "singler_models_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/singler_models",
+          "default": "s3://scpca-nf-references/celltype/singler_models",
           "format": "directory-path",
           "description": "SingleR models directory",
           "help_text": "Directory containing `SingleR` model files.",
@@ -240,7 +248,7 @@
         },
         "cellassign_ref_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/cellassign_references",
+          "default": "s3://scpca-nf-references/celltype/cellassign_references",
           "format": "directory-path",
           "description": "CellAssign reference directory",
           "help_text": "Directory containing `CellAssign` reference files.",
@@ -248,7 +256,7 @@
         },
         "scimilarity_model_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/scimilarity_references/model_v1.1",
+          "default": "s3://scpca-nf-references/celltype/scimilarity_references/model_v1.1",
           "format": "directory-path",
           "description": "SCimilarity reference model directory",
           "help_text": "Directory containing SCimilarity foundational model",
@@ -288,7 +296,7 @@
         },
         "singler_references_dir": {
           "type": "string",
-          "default": "s3://scpca-references/celltype/singler_references",
+          "default": "s3://scpca-nf-references/celltype/singler_references",
           "format": "directory-path",
           "description": "SingleR references directory",
           "help_text": "Directory of `SingleR` reference files, used in `build-celltype-ref.nf`.",
@@ -534,119 +542,119 @@
       "default": "",
       "fa_icon": "fab fa-docker",
       "properties": {
-        "SCPCATOOLS_CONTAINER": {
+        "scpcatools_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SLIM_CONTAINER": {
+        "scpcatools_slim_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_ANNDATA_CONTAINER": {
+        "scpcatools_anndata_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_REPORTS_CONTAINER": {
+        "scpcatools_reports_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SEURAT_CONTAINER": {
+        "scpcatools_seurat_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SCVI_CONTAINER": {
+        "scpcatools_scvi_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_INFERCNV_CONTAINER": {
+        "scpcatools_infercnv_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SCPCATOOLS_SCIMILARITY_CONTAINER": {
+        "scpcatools_scimilarity_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.4",
+          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.5",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "ALEVINFRY_CONTAINER": {
+        "alevinfry_container": {
           "type": "string",
           "default": "quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "BCFTOOLS_CONTAINER": {
+        "bcftools_container": {
           "type": "string",
           "default": "quay.io/biocontainers/bcftools:1.14--h88f3f91_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "CELLSNP_CONTAINER": {
+        "cellsnp_container": {
           "type": "string",
           "default": "quay.io/biocontainers/cellsnp-lite:1.2.2--h22771d5_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "FASTP_CONTAINER": {
+        "fastp_container": {
           "type": "string",
           "default": "quay.io/biocontainers/fastp:0.23.0--h79da9fb_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SALMON_CONTAINER": {
+        "salmon_container": {
           "type": "string",
           "default": "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_1",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SAMTOOLS_CONTAINER": {
+        "samtools_container": {
           "type": "string",
           "default": "quay.io/biocontainers/samtools:1.14--hb421002_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "STAR_CONTAINER": {
+        "star_container": {
           "type": "string",
           "default": "quay.io/biocontainers/star:2.7.9a--h9ee0642_0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "TIDYVERSE_CONTAINER": {
+        "tidyverse_container": {
           "type": "string",
-          "default": "rocker/tidyverse:4.4.0",
+          "default": "docker.io/rocker/tidyverse:4.4.0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "CELLBROWSER_CONTAINER": {
+        "cellbrowser_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.9.3",
+          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.0",
           "fa_icon": "fab fa-docker"
         },
-        "VIREO_CONTAINER": {
+        "vireo_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.9.3",
+          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.10.0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "CELLRANGER_CONTAINER": {
+        "cellranger_container": {
           "type": "string",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "SPACERANGER_CONTAINER": {
+        "spaceranger_container": {
           "type": "string",
           "hidden": true,
           "fa_icon": "fab fa-docker"
@@ -676,5 +684,13 @@
     {
       "$ref": "#/$defs/containers"
     }
-  ]
+  ],
+  "properties": {
+    "pullthrough_registry": {
+      "type": "string",
+      "hidden": true, 
+      "description": "Container registry for image pullthrough caching; disabled by default.",
+      "default": ""
+    }
+  }
 }

@@ -1,20 +1,21 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-include { build_celltype_ref } from './build-celltype-ref.nf'
+include { makeJson; readMeta; pullthroughContainer } from './lib/utils.nf'
 
 // generate fasta and annotation files with spliced cDNA + intronic reads
 process generate_reference {
-  container params.SCPCATOOLS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
   // publish fasta and annotation files within reference directory
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}", mode: 'copy'
   label 'mem_32'
+  tag "${ref_name}"
   maxRetries 1
   input:
     tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
     tuple val(ref_name), val(meta), emit: ref_info
-    tuple path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
+    tuple val(ref_name), path(splici_fasta), path(spliced_cdna_fasta), emit: fasta_files
     tuple path("annotation/*.gtf.gz"), path("annotation/*.tsv"), path("annotation/*.txt"),  emit: annotations
   script:
     splici_fasta = "fasta/" + file(meta.splici_index).name + ".fa.gz"
@@ -33,13 +34,14 @@ process generate_reference {
 
 
 process salmon_index {
-  container params.SALMON_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
+  container "${pullthroughContainer(params.salmon_container, params.pullthrough_registry)}"
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/salmon_index", mode: 'copy'
   label 'cpus_8'
-  label 'mem_16'
+  label 'mem_24'
+  tag "${ref_name}"
   input:
-    tuple path(splici_fasta), path(spliced_cdna_fasta)
-    tuple val(ref_name), val(meta), path(gtf), path(fasta)
+    tuple val(ref_name), path(splici_fasta), path(spliced_cdna_fasta), 
+          val(meta), path(gtf), path(fasta)
   output:
     path splici_index_dir
     path spliced_cdna_index_dir
@@ -68,10 +70,11 @@ process salmon_index {
 }
 
 process cellranger_index {
-  container params.CELLRANGER_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
+  container "${pullthroughContainer(params.cellranger_container, params.pullthrough_registry)}"
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/cellranger_index", mode: 'copy'
   label 'cpus_12'
   label 'mem_24'
+  tag "${ref_name}"
   input:
     tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
@@ -95,10 +98,11 @@ process cellranger_index {
 }
 
 process star_index {
-  container params.STAR_CONTAINER
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/star_index", mode: 'copy'
+  container "${pullthroughContainer(params.star_container, params.pullthrough_registry)}"
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/star_index", mode: 'copy'
   label 'cpus_12'
   memory '64.GB'
+  tag "${ref_name}"
   input:
     tuple val(ref_name), val(meta), path(gtf), path(fasta)
   output:
@@ -127,9 +131,10 @@ process star_index {
 }
 
 process infercnv_gene_order {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_8'
-  publishDir "${params.ref_rootdir}/${meta.ref_dir}/infercnv", mode: 'copy'
+  publishDir "${params.ref_outdir}/${meta.ref_dir}/infercnv", mode: 'copy'
+  tag "${ref_name}"
   input:
     tuple val(ref_name), val(meta), path(gtf), path(cytoband)
   output:
@@ -148,10 +153,10 @@ process infercnv_gene_order {
 workflow {
 
   // check which refs to build
-  build_all = params.build_refs == "All"
+  build_all = params.build_refs.toLowerCase() == "all"
 
   // read in json file with all reference paths
-  ref_paths = Utils.readMeta(file(params.ref_json))
+  ref_paths = readMeta(file(params.ref_json))
 
   // read in metadata with all organisms to create references for
   ref_ch = channel.fromPath(params.ref_metadata)
@@ -206,8 +211,11 @@ workflow {
 
   // generate splici and spliced cDNA reference fasta
   generate_reference(salmon_ref_ch)
+
+  salmon_ref_ch = generate_reference.out.fasta_files
+    .join(salmon_ref_ch, by: 0) // join by ref_name 
   // create index using reference fastas
-  salmon_index(generate_reference.out.fasta_files, salmon_ref_ch)
+  salmon_index(salmon_ref_ch)
 
   // create cellranger index
   cellranger_index(cellranger_ref_ch)

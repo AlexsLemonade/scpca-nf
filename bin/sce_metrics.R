@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# This script generates a QC report using scpcaTools from a pair of filtered and unfiltered SCE objects
+# This script generates a JSON file with SCE metrics used by the compare-metrics report
 
 # import libraries
 suppressPackageStartupMessages({
@@ -142,6 +142,7 @@ if (file.size(opt$processed_sce) > 0) {
   metrics$hv_genes <- metadata(processed_sce)$highly_variable_genes
   metrics$infercnv_total_cnv <- sum(processed_sce$infercnv_total_cnv)
   metrics$infercnv_reference_cells <- metadata(processed_sce)$infercnv_reference_celltypes
+  metrics$infercnv_num_reference_cells <- metadata(processed_sce)$infercnv_num_reference_cells
   metrics$cluster_algorithm <- metadata(processed_sce)$cluster_algorithm
   metrics$cluster_sizes <- as.vector(table(processed_sce$cluster)) # cluster counts as unnamed vector
 

@@ -25,7 +25,7 @@ def main():
     parser.add_argument(
         "--refdir",
         type=str,
-        default="scpca-references",
+        default="scpca-nf-references",
         help="destination directory for downloaded reference files",
     )
     parser.add_argument(

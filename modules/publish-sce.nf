@@ -1,9 +1,10 @@
 
 // generate QC report from SCE files and publish SCE files and JSONs
 
+include { pullthroughContainer } from '../lib/utils.nf'
 
 process qc_publish_sce {
-  container params.SCPCATOOLS_REPORTS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)}"
   label 'mem_16'
   tag "${meta.unique_id}"
   publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
@@ -41,15 +42,15 @@ process qc_publish_sce {
     celltype_report = "${meta.unique_id}_celltype-report.html" // rendered HTML
 
     """
-    # move files for output
+    # copy files for output if needed
     if [ "${unfiltered_rds}" != "${unfiltered_out}" ]; then
-        mv "${unfiltered_rds}" "${unfiltered_out}"
+      cp "${unfiltered_rds}" "${unfiltered_out}"
     fi
     if [ "${filtered_rds}" != "${filtered_out}" ]; then
-        mv "${filtered_rds}" "${filtered_out}"
+      cp "${filtered_rds}" "${filtered_out}"
     fi
     if [ "${processed_rds}" != "${processed_out}" ]; then
-        mv "${processed_rds}" "${processed_out}"
+      cp "${processed_rds}" "${processed_out}"
     fi
 
     # generate report and supplemental cell type report, if applicable

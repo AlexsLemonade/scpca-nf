@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// Include utility functions
+include { makeJson; getMetaVal; pullthroughContainer } from './lib/utils.nf'
+
 // Workflow to merge SCE objects into a single object.
 // This workflow does NOT perform integration, i.e. batch correction.
 
@@ -28,7 +31,7 @@ def check_parameters() {
 
 // merge individual SCE objects into one SCE object
 process merge_sce {
-  container params.SCPCATOOLS_SLIM_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   tag "${merge_group_id}"
   label 'mem_max'
   label 'long_running'
@@ -60,7 +63,7 @@ process merge_sce {
 
 // create merge report
 process generate_merge_report {
-  container params.SCPCATOOLS_REPORTS_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)}"
   tag "${merge_group_id}"
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   label 'mem_max'
@@ -88,7 +91,7 @@ process generate_merge_report {
 }
 
 process export_anndata {
-  container params.SCPCATOOLS_ANNDATA_CONTAINER
+  container "${pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)}"
   label 'mem_max'
   label 'long_running'
   tag "${merge_group_id}"
@@ -208,13 +211,13 @@ workflow {
       [it.library_id, processed, meta_json ]
     }
     .subscribe{ library_id, processed, meta_json ->
-      if (!processed.exists() || !(processed.size() > 0 || library_id.startsWith("STUBL"))) {
+      if (!processed.exists() || !(processed.size() > 0)) {
         log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
       }
       else if (!(meta_json.exists() && meta_json.size() > 0)) {
         log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
       }
-      else if (Utils.getMetaVal(meta_json, "processed_cells") < 3) {
+      else if (getMetaVal(meta_json, "processed_cells") < 3) {
         log.warn("Library ${library_id} has fewer than 3 cells. This library will not be included in the merged object.")
       }
     }
@@ -226,9 +229,8 @@ workflow {
       [it.project_id, it.library_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{ _project_id, library_id, processed, meta_json ->
-      (processed.exists() && processed.size() > 0 && Utils.getMetaVal(meta_json, "processed_cells") >= 3)
-      || library_id.startsWith("STUBL")
+    .filter{ _project_id, _library_id, processed, meta_json ->
+      (processed.exists() && processed.size() > 0 && getMetaVal(meta_json, "processed_cells") >= 3)
     }
     // remove metadata file
     .map{ project_id, library_id, processed, _meta_json ->

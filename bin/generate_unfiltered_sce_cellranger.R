@@ -161,7 +161,7 @@ metadata_list <- list(
   reference_probeset = basename(opt$reference_probeset),
   total_reads = total_reads,
   pct_mapped_reads = pct_mapped_reads,
-  mapping_tool = "cellranger-multi",
+  mapping_tool = "cellranger multi",
   cellranger_num_cells = ncol(unfiltered_sce),
   tech_version = opt$technology,
   assay_ontology_term_id = opt$assay_ontology_term_id,

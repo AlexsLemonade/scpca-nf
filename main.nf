@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// include utility functions
+include { readMeta; parseNA } from './lib/utils.nf'
+
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
 include { map_quant_feature } from './modules/af-features.nf'
@@ -14,6 +17,7 @@ include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { call_cnvs } from './modules/call-cnvs.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
+
 
 def check_parameters() {
   // parameter check function
@@ -132,17 +136,23 @@ workflow {
     'cellhash_10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
   ]
 
-  // 10x flex probe set files
-  def flex_probesets = [
-    '10xflex_v1.1_single': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv',
-    '10xflex_v1.1_multi': 'Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv'
-  ]
-
   // supported technologies
   def single_cell_techs = cell_barcodes.keySet()
-  def flex_techs = flex_probesets.keySet()
+  def flex_techs = ['10xflex_v1.1_single', '10xflex_v1.1_multi']
   def bulk_techs = ['single_end', 'paired_end']
-  def spatial_techs = ['visium']
+  def spatial_techs = [
+    // no probes
+    'visium',  // legacy from original portal data
+    'visium1',
+    'visium-hd-3prime',
+    // use probes
+    'visium1_v1',
+    'visium2_v1', // mouse v1 goes with visium2; mouse v2 does with hd
+    'visium2_v2',
+    'visium2_v2.1',
+    'visium-hd_v2',
+    'visium-hd_v2.1'
+  ] 
   def all_techs = single_cell_techs + bulk_techs + spatial_techs + flex_techs
   def rna_techs = single_cell_techs.findAll{ it.startsWith('10xv') }
   def citeseq_techs = single_cell_techs.findAll{ it.startsWith('citeseq') }
@@ -163,7 +173,7 @@ workflow {
     log.info("Executing workflow for all runs in the run metafile.")
   }
 
-  def ref_paths = Utils.readMeta(file(params.ref_json))
+  def ref_paths = readMeta(file(params.ref_json))
   all_runs_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // use only the rows in the run_id list (run, library, or sample can match)
@@ -182,6 +192,7 @@ workflow {
       unknown_ref: !(it.sample_reference in ref_paths)
       valid: true
     }
+
   // warn about unknown technologies
   all_runs_ch.unknown_tech.subscribe{ it ->
     log.warn("The technology '${it.technology}' for run '${it.scpca_run_id}' is not recognized and this run will not be processed.")
@@ -195,23 +206,29 @@ workflow {
   unfiltered_runs_ch = all_runs_ch.valid
     .map{ it ->
       def sample_refs = ref_paths[it.sample_reference]
+
+      // set up for visium and flex probes to ensure we don't end up with null
+      def tech = it.technology.toLowerCase()
+      def has_flex_probeset = (sample_refs.flex_probe_files && sample_refs.flex_probe_files[tech])
+      def has_visium_probeset = (sample_refs.visium_probe_files && sample_refs.visium_probe_files[tech])
+
       [
         run_id: it.scpca_run_id,
         library_id: it.scpca_library_id,
         sample_id: it.scpca_sample_id.split(";").sort().join(","),
         unique_id: (it.technology.toLowerCase() in ["10xflex_v1.1_multi"]) ? "${it.scpca_library_id}-${it.scpca_sample_id}" : it.scpca_library_id,
-        project_id: Utils.parseNA(it.scpca_project_id)?: "no_project",
-        submitter: Utils.parseNA(it.submitter),
-        technology: it.technology.toLowerCase(),
-        assay_ontology_term_id: Utils.parseNA(it.assay_ontology_term_id),
+        project_id: parseNA(it.scpca_project_id)?: "no_project",
+        submitter: parseNA(it.submitter),
+        technology: tech, 
+        assay_ontology_term_id: parseNA(it.assay_ontology_term_id),
         seq_unit: it.seq_unit,
-        submitter_cell_types_file: Utils.parseNA(it.submitter_cell_types_file),
-        openscpca_cell_types_file: Utils.parseNA(it.openscpca_cell_types_file),
-        feature_barcode_file: Utils.parseNA(it.feature_barcode_file),
-        feature_barcode_geom: Utils.parseNA(it.feature_barcode_geom),
-        files_directory: Utils.parseNA(it.files_directory),
-        slide_serial_number: Utils.parseNA(it.slide_serial_number),
-        slide_section: Utils.parseNA(it.slide_section),
+        submitter_cell_types_file: parseNA(it.submitter_cell_types_file),
+        openscpca_cell_types_file: parseNA(it.openscpca_cell_types_file),
+        feature_barcode_file: parseNA(it.feature_barcode_file),
+        feature_barcode_geom: parseNA(it.feature_barcode_geom),
+        files_directory: parseNA(it.files_directory),
+        slide_serial_number: parseNA(it.slide_serial_number),
+        slide_section: parseNA(it.slide_section),
         ref_assembly: it.sample_reference,
         ref_fasta: "${params.ref_rootdir}/${sample_refs.ref_fasta}",
         ref_fasta_index: "${params.ref_rootdir}/${sample_refs.ref_fasta_index}",
@@ -225,6 +242,8 @@ workflow {
         cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
+        flex_probeset: has_flex_probeset ? "${params.ref_rootdir}/${sample_refs.flex_probe_files[tech]}" : '',
+        visium_probeset: has_visium_probeset ? "${params.ref_rootdir}/${sample_refs.visium_probe_files[tech]}" : '',
         scpca_version: workflow.revision ?: workflow.manifest.version,
         nextflow_version: nextflow.version.toString()
       ]
@@ -239,6 +258,7 @@ workflow {
       spatial: it.technology in spatial_techs
       flex: it.technology in flex_techs
     }
+
 
   // generate lists of library ids for feature libraries & RNA-only
   feature_libs = runs_ch.feature
@@ -265,17 +285,16 @@ workflow {
   bulk_quant_rna(runs_ch.bulk)
 
   // **** Process Spatial Transcriptomics data ****
-  spaceranger_quant(runs_ch.spatial)
+  spaceranger_quant(runs_ch.spatial, spatial_techs)
 
   // **** Process 10x flex RNA-seq data ***
   flex_quant(
     runs_ch.flex,
-    flex_probesets,
     params.cellhash_pool_file ? file(params.cellhash_pool_file) : []
   )
   flex_sce_ch = generate_sce_cellranger(flex_quant.out, file(params.sample_metafile))
     .branch{ _meta, _unfiltered, filtered ->
-      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
+      continue_processing: filtered.size() > 0
       skip_processing: true
     }
 
@@ -295,7 +314,7 @@ workflow {
   rna_sce_ch = generate_sce(rna_quant_ch, file(params.sample_metafile))
     // only continue processing any samples with > 0 cells left after filtering
     .branch{ _meta, _unfiltered, filtered ->
-      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUBL")
+      continue_processing: filtered.size() > 0
       skip_processing: true
     }
 
@@ -319,7 +338,7 @@ workflow {
   // make rds for RNA with feature quants
   all_feature_ch = generate_sce_with_feature(feature_rna_quant_ch, file(params.sample_metafile))
     .branch{ _meta, _unfiltered, filtered ->
-      continue_processing: filtered.size() > 0 || filtered.name.startsWith("STUB")
+      continue_processing: filtered.size() > 0
       skip_processing: true
     }
 
@@ -377,7 +396,7 @@ workflow {
   post_process_ch = post_process_sce.out
     // only continue processing any samples with > 0 cells left after processing
     .branch{ _meta, _unfiltered, _filtered, processed ->
-      continue_processing: processed.size() > 0 || processed.name.startsWith("STUB")
+      continue_processing: processed.size() > 0
       skip_processing: true
     }
 

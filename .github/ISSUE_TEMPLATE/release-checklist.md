@@ -11,17 +11,17 @@ assignees: ''
 
 ### Preparing for the release
 
-- [ ] Are all of the issues planned for this release resolved? If there are any issues that are unresolved, mark this issue as blocked by those on ZenHub.
+- [ ] Are all of the issues planned for this release resolved? If there are any issues that are unresolved, mark this issue as blocked by those in the Science Team GitHub Project.
 - [ ] Update code and documentation with the latest version number in the `development` branch:
   - [ ] [`nextflow.config`](https://github.com/AlexsLemonade/scpca-nf/blob/main/nextflow.config)
-  - [ ] [`internal-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/internal-instructions.md)
   - [ ] [`external-instructions.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md)
-  - [ ] [`sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml) and [`sb_doc.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_doc.md)
-- [ ] Update the tag for `scpca-nf` containers in `config/containers.config` and `nextflow-schema.json`
+  - [ ] [`cavatica/sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml)
+  - [ ] [`cavatica/sb_doc.md`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_doc.md)
+- [ ] Update the tag for `scpca-nf` containers in `config/containers.config` and `nextflow_schema.json`
   _Note:_ Any processes that use those containers will not work until the new tag has been created.
-- [ ] Check that the `nextflow-schema.json` is up to date with `pixi run nf-core pipelines schema build`
-- [ ] Check that [`sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml) entries are up to date (sadly, no automated tool for this)
-- [ ] Test that the workflow is in good working order with `nextflow run alexslemonade/scpca-nf -latest -r development`
+- [ ] Check that the `nextflow_schema.json` is up to date with `pixi run nf-core pipelines schema build`
+- [ ] Check that [`cavatica/sb_nextflow_schema.yaml`](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica/sb_nextflow_schema.yaml) entries are up to date (sadly, no automated tool for this)
+- [ ] Test that the workflow is in good working order by running the workflow in `testing` mode from the `development` branch using [the `run-scpca-nf.yaml` workflow](https://github.com/AlexsLemonade/ScPCA-admin/blob/main/.github/workflows/run-scpca-nf.yaml)
 - [ ] File a PR from the `development` branch to the `main` branch. This should include all of the changes that will be associated with the next release.
 - [ ] (Optional) Generate new example `scpca-nf` output files.
 If updating the example output is not necessary for this release, check these boxes off for free.

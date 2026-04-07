@@ -96,12 +96,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.9.3` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.10.0` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.9.3 \
+  -r v0.10.0 \
   -config {path to config file}  \
   -profile {name of profile}
 ```
@@ -146,8 +146,8 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_library_id`     | A unique library ID for each unique set of cells |
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1` <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics use `visium` <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
-| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `tech_version` |
+| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1`. <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics, see [this section](#spatial-transcriptomics-libraries) for possible technologies. <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
+| `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `technology` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
 | `files_directory`       | The full path/uri to directory containing fastq files (unique per run) |
@@ -332,7 +332,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.9.3`, then you will want to set `-r v0.9.3` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.10.0`, then you will want to set `-r v0.10.0` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -353,12 +353,12 @@ You will also need to set the `singularity.cacheDir` variable to match this loca
 
 ## Cell type annotation
 
-`scpca-nf` can perform cell type annotation using three complementary methods: 
+`scpca-nf` can perform cell type annotation using three complementary methods:
 
   - the reference-based method [`SingleR`](https://bioconductor.org/packages/release/bioc/html/SingleR.html)
   - the marker-gene based method [`CellAssign`](https://github.com/Irrationone/cellassign)
   - the cell atlas foundation model [`SCimilarity`](https://genentech.github.io/scimilarity/index.html)
- 
+
 Additionally, annotations from these three methods are used to assign a consensus cell type annotation.
 For more on how consensus cell types are assigned, see the [`cell-type-consensus` module in `OpenScPCA-analysis`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.4/analyses/cell-type-consensus).
 
@@ -380,18 +380,18 @@ nextflow run AlexsLemonade/scpca-nf \
 
 ### Choosing reference datasets
 
-The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) to be used with `SingleR` and/or `CellAssign`. 
+The Data Lab has compiled several references, listed in [`celltype-reference-metadata.tsv`](references/celltype-reference-metadata.tsv) to be used with `SingleR` and/or `CellAssign`.
 All references listed in this table are publicly available on S3 for use with cell type annotation.
 Note that you must use one of the references described here to be eligible for inclusion in the ScPCA Portal.
 
 If you wish to use your own cell type reference rather than one of those we have compiled, please [refer to these instructions](./custom-celltype-references.md) for creating custom references for use with `SingleR` and/or `CellAssign`.
 
-`SCimilarity` uses a single foundation model as a reference that is publicly available on S3. 
+`SCimilarity` uses a single foundation model as a reference that is publicly available on S3.
 For more information on the model, see [Heimberg _et al._ 2025](https://doi.org/10.1038/s41586-024-08411-y).
 
 #### `SingleR` references
 
-The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
+The Data Lab has compiled `SingleR` references from the [`celldex` package](https://bioconductor.org/packages/release/data/experiment/html/celldex.html), as [described in this TSV file](https://scpca-nf-references.s3.amazonaws.com/celltype/singler_models/singler_models.tsv).
 In this file, the column `filename` provides the reference file name, and the `reference_name` column provides the name of the reference, and the `gene_set_version` column indicates which gene set was used to train the `SingleR` model.
 The chosen gene set should correspond to the original reference genome used for mapping (indicated in the `sample_reference` column of the [run metadata file](#prepare-the-run-metadata-file)).
 For any [10x flex libraries](#10x-flex-gene-expression-libraries), be sure to use the reference with the appropriate probe set version (e.g., for v1.1 use `10Xflex-v1-1`).
@@ -400,7 +400,7 @@ Please consult the [`celldex` documentation](https://bioconductor.org/packages/r
 
 #### `CellAssign` references
 
-The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
+The Data Lab has compiled `CellAssign` marker gene references from [PanglaoDB](https://panglaodb.se/), as [described in this TSV file](https://scpca-nf-references.s3.amazonaws.com/celltype/cellassign_references/cellassign_references.tsv).
 In this file, the column `filename` provides the reference file name, and the column `reference_name` provides the name of the reference.
 
 The Data Lab compiled each reference by combining marker gene lists from organ-specific sets of cell types described in `PanglaoDB`.
@@ -705,10 +705,10 @@ We have provided an example multiplex pool file for reference that can be found 
 Libraries processed with the [GEM-X Flex Gene Expression protocol from 10x Genomics](https://www.10xgenomics.com/products/flex-gene-expression) using either single or multiplexing will be quantified using [`cellranger multi`](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-flex-multi-frp) instead of `salmon` and `alevin-fry`.
 *Note:* Currently only libraries processed using the v1.1.0 probe set are supported.
 
-You will need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Cell Ranger software from 10X Genomics](https://www.10xgenomics.com/support/software/cell-ranger/downloads).
+You will need to provide a [Docker image](https://docs.docker.com/get-started/) that contains the [Cell Ranger software from 10X Genomics](https://www.10xgenomics.com/support/software/cell-ranger/downloads).
 For licensing reasons, we cannot provide a Docker container with Cell Ranger for you.
-As an example, the Dockerfile that we used to build Cell Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/cellranger).
-After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.CELLRANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
+As an example, the [Dockerfile that we used to build Cell Ranger](docker/cellranger/Dockerfile) can be found in the `docker/cellranger` directory of this repository.
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.cellranger_container` to the registry location and image ID in the `user_template.config` file.
 
 There are no special considerations for singleplexed libraries other than indicating the appropriate `technology` in the `run_metadata.tsv` file, `10Xflex_v1.1_single`.
 
@@ -727,16 +727,55 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 ### Spatial transcriptomics libraries
 
-To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated `.jpg` file must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file).
-The metadata file must also contain columns with the `slide_section` and `slide_serial_number`.
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
+
+```text
+{files_directory}
+├── fastq
+│   ├── X_L001_R1.fastq.gz
+│   ├── X_L001_R2.fastq.gz
+│   ├── Y_L002_R1.fastq.gz
+│   └── Y_L002_R2.fastq.gz
+├── cytaimage
+│   └── image.tiff
+├── image
+├── colorizedimage
+└── darkimage
+```
+
+Which specific files you will need depends on the Visium technology version you are using:
+
+* All technologies require a populated `fastq` directory
+* First-generation Visium libraries require a single type of image file
+  * The image file should be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
+  * These directory names correspond to the [`Space Ranger` flag](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/command-line-arguments) used to consume the image, so place your image in a directory named according to its type
+  * Only the directory that contains the image file needs to exist; empty directories are not necessary to include
+* Visium CytAssist, Visium HD, and Visium HD 3' libraries require a CytAssist image file provided in the `cytaimage/` directory
+  * Optionally, a single second image can be provided in either the `image/` (e.g. for a brightfield image), `colorizedimage/`, or the `darkimage/` directory
+  * Only the directory that contains the optional image file needs to exist; empty directories are not necessary to include
+
+Your metadata must contain columns with the `slide_section` and `slide_serial_number`.
+The `technology` column in your metadata should be based on both a) the Visium technology used, and b) which [Visium probe set](https://www.10xgenomics.com/support/spatial-gene-expression-hd/documentation/steps/probe-sets/visium-ffpe-probe-sets-overview) (if applicable to the technology) was used.
+This table lists the possible technology values you can provide for spatial transcriptomics datasets:
+
+
+| Visium technology | Probe Set Version | Value for `technology` metadata column | Suggested value for `assay_ontology_term_id` metadata column |
+|-------------------|-------------------|----------------------------------------|----------------------------------------------------|
+| First-generation Visium, fresh frozen tissue | _No probes used_   | `visium1`          | `EFO:0022857` |
+| First-generation Visium, FFPE                | `v1`               | `visium1_v1`       | `EFO:0022857` |
+| Visium CytAssist                             | `v2`               | `visium2_v2`       | `EFO:0022858` |
+| Visium CytAssist                             | `v2.1`             | `visium2_v2.1`     | `EFO:0022858` |
+| Visium HD                                    | `v2`               | `visium-hd_v2`     | `EFO:0920058` |
+| Visium HD                                    | `v2.1`             | `visium-hd_v2.1`   | `EFO:0920058` |
+| Visium HD 3' Visium                          | _No probes used_   | `visium-hd-3prime` | `EFO:0010961` |
+
 
 You will also need to provide a [docker image](https://docs.docker.com/get-started/) that contains the [Space Ranger software from 10X Genomics](https://support.10xgenomics.com/spatial-gene-expression/software/downloads/latest).
 For licensing reasons, we cannot provide a Docker container with Space Ranger for you.
-As an example, the Dockerfile that we used to build Space Ranger can be found [here](https://github.com/AlexsLemonade/alsf-scpca/tree/main/images/spaceranger).
+As an example, the [Dockerfile that we used to build Space Ranger](docker/spaceranger/Dockerfile) can be found in the `docker/spaceranger` directory of this repository.
 
-After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.SPACERANGER_CONTAINER` to the registry location and image ID in the `user_template.config` file.
-_Note: The workflow is currently set up to work only with spatial transcriptomic libraries produced from the [Visium Spatial Gene Expression protocol](https://www.10xgenomics.com/products/spatial-gene-expression) and has not been tested using output from other spatial transcriptomics methods._
-
+After building the docker image, you will need to push it to a [private docker registry](https://www.docker.com/blog/how-to-use-your-own-registry/) and set `params.spaceranger_container` to the registry location and image ID in the `user_template.config` file.
+_Note: The workflow is currently set up to run Space Ranger version `4.0.1` and has not been tested with other Space Ranger versions._
 
 ## Additional workflow settings
 
@@ -850,7 +889,7 @@ If any libraries contain HTO counts, the RNA counts will still be merged and exp
 
 The `build-cellbrowser.nf` workflow will create an instance of the [UCSC Cell Browser](https://cellbrowser.readthedocs.io/en/master/index.html)with the libraries in the run metadata file, organized by project.
 This uses as its primary input the `.h5ad` files produced by the main `scpca-nf` workflow, which must be run first.
-This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files. 
+This workflow uses the same `params.outdir` directory as was used for the `scpca-nf` workflow both for input of the `.h5ad` files and output of the Cell Browser website files.
 
 In addition to the [run](#prepare-the-run-metadata-file) and [sample](#prepare-the-sample-metadata-file) metadata files required by the main workflow, the `build-cellbrowser.nf` workflow also requires a project metadata file.
 This is a tab separate file file that contains, at a minimum, a column labeled `scpca_project_id` that contains all of the projects to be included in the Cell Browser.

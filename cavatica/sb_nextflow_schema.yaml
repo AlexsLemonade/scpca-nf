@@ -3,7 +3,7 @@ app_content:
   executor_version: 24.10.6
 class: nextflow
 cwlVersion: None
-doc: "# scpca-nf v0.9.3
+doc: "# scpca-nf v0.10.0
 
 
   The `scpca-nf` workflow is used to process 10x single-cell data as part of the
@@ -210,7 +210,7 @@ inputs:
     label: References root directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references
+    sbg:toolDefaultValue: s3://scpca-nf-references
     type:
       - "null"
       - Directory
@@ -233,7 +233,7 @@ inputs:
     label: Barcode file directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/barcodes/10X
+    sbg:toolDefaultValue: s3://scpca-nf-references/barcodes/10X
     type:
       - "null"
       - Directory
@@ -244,7 +244,7 @@ inputs:
     label: Probe files directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/flex-probe-refs
+    sbg:toolDefaultValue: s3://scpca-nf-references/flex-probe-refs
     type:
       - "null"
       - Directory
@@ -255,7 +255,7 @@ inputs:
     label: Probe files directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv
+    sbg:toolDefaultValue: s3://scpca-nf-references/flex-probe-refs/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.csv
     type:
       - "null"
       - File
@@ -266,7 +266,7 @@ inputs:
     label: Cell type reference directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype
     type:
       - "null"
       - Directory
@@ -277,7 +277,7 @@ inputs:
     label: SingleR models directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/singler_models
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype/singler_models
     type:
       - "null"
       - Directory
@@ -288,7 +288,7 @@ inputs:
     label: CellAssign reference directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/cellassign_references
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype/cellassign_references
     type:
       - "null"
       - Directory
@@ -299,7 +299,7 @@ inputs:
     label: SCimilarity reference model directory
     sbg:category: Reference files
     sbg:icon: fas fa-folder-open
-    sbg:toolDefaultValue: s3://scpca-references/celltype/scimilarity_references/model_v1.1
+    sbg:toolDefaultValue: s3://scpca-nf-references/celltype/scimilarity_references/model_v1.1
     type:
       - "null"
       - Directory
