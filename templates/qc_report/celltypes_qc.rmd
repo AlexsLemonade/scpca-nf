@@ -272,9 +272,13 @@ if (has_openscpca) {
   )
 }
 
+# we only render this report if there's at least 1 cell
+if (ncol(processed_sce) > 1) { 
 glue::glue("
-  \n\nFor additional information about cell typing, including the results from all methods used, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
-")
+    \n\nFor additional information about cell typing, including the results from all methods used, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+  ")  
+}
+
 ```
 
 ```{r}
