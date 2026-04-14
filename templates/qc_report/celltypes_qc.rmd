@@ -747,21 +747,23 @@ dotplot_df <- group_stats_df |>
 ```
 
 
-```{r, eval = has_consensus}
-n_markers <- length(unique(dotplot_df$gene_symbol))
-n_celltypes <- length(unique(dotplot_df$broad_celltype_group))
-
+```{r}
+# ensure these are defined to avoid bug in next chunk
 dotplot_height <- 8
 dotplot_width <- 15
-dotplot_text_size <- 14
 
-# update default sizing if we have a lot of info in the plot
-if (n_markers >= 50) {
-  dotplot_width <- pmin(n_markers * 0.3, 30)
-  dotplot_height <- 10
-  dotplot_text_size <- 18
-} else if (n_celltypes >= 20) {
-  dotplot_height <- dotplot_height * 1.25
+if (has_consensus) {
+  n_markers <- length(unique(dotplot_df$gene_symbol))
+  n_celltypes <- length(unique(dotplot_df$broad_celltype_group))
+
+  # update default sizing if we have a lot of info in the plot
+  if (n_markers >= 50) {
+    dotplot_width <- pmin(n_markers * 0.3, 30)
+    dotplot_height <- 10
+    dotplot_text_size <- 18
+  } else if (n_celltypes >= 20) {
+    dotplot_height <- dotplot_height * 1.25
+  }
 }
 ```
 
