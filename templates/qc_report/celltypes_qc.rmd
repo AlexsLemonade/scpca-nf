@@ -748,7 +748,7 @@ dotplot_df <- group_stats_df |>
 
 
 ```{r}
-# ensure these are defined to avoid bug in next chunk
+# ensure these are defined to avoid bug in next chunk in case there are no consensus
 dotplot_height <- 8
 dotplot_width <- 15
 
