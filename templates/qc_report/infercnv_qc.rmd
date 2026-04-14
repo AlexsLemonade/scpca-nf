@@ -57,7 +57,7 @@ if (infercnv_status == "unknown_diagnosis") {
     inferCNV was not run because reference cell types for the sample's diagnosis group were not present in the cell types metadata file.
     </div>
   ")
-} else if (infercnv_status == "unknown_reference_celltypes") {
+} else if (infercnv_status == "no_consensus") {
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because consensus cell type annotations were not assigned.

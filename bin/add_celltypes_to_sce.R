@@ -215,17 +215,17 @@ add_cellassign_results <- function(
 #' Add SCimilarity results to SCE object
 #'
 #' @param sce SingleCellExperiment object
-#' @param scimilarity_results_file Path to SCimilarity results file
+#' @param scimilarity_df Data frame with SCimilarity results
 #' @param scimilarity_model_dir Path to SCimilarity model directory
 #'
 #' @return Updated SCE object with SCimilarity annotations
 add_scimilarity_results <- function(
   sce,
-  scimilarity_results_file,
+  scimilarity_df,
   scimilarity_model_dir
 ) {
   # read in cell types
-  celltype_assignments <- readr::read_tsv(scimilarity_results_file) |>
+  celltype_assignments <- scimilarity_df |>
     # account for the fact that we could have lost some cells we had previously when re-processing through filtering steps
     dplyr::filter(barcode %in% colnames(sce)) |>
     # select the columns to include in the processed object and make sure they are named correctly
@@ -619,14 +619,13 @@ if (has_cellassign) {
     "Panglo ontology reference file does not exist" = file.exists(opt$panglao_ontology_ref)
   )
 
-  # if cell assign predictions file exists but is empty then cell assign failed and we want to account for that with Not Run
+  # if cell assign predictions file exists but is empty, account for that with Not Run
   if (file.size(opt$cellassign_predictions) > 0) {
     # read in predictions file
     cellassign_df <- readr::read_tsv(opt$cellassign_predictions) |>
       as.data.frame()
   } else {
     cellassign_df <- NULL
-    has_cellassign <- FALSE # reset to false so that we don't add in consensus cell types
   }
 
   # if the only column is the barcode column or if the predictions file was empty
@@ -635,7 +634,6 @@ if (has_cellassign) {
   if (is.null(cellassign_df) || all(colnames(cellassign_df) == "barcode")) {
     # if failed then note that in the cell type column
     sce$cellassign_celltype_annotation <- "Not run"
-    has_cellassign <- FALSE # reset to false if cellassign didn't complete so we don't add consensus
   } else {
     # add cellassign results to sce
     sce <- add_cellassign_results(
@@ -660,15 +658,30 @@ if (has_scimilarity) {
     "SCimilarity model directory name must be provided" = opt$scimilarity_model_dir != ""
   )
 
-  # add scimilarity results to sce
-  sce <- add_scimilarity_results(
-    sce,
-    opt$scimilarity_results,
-    opt$scimilarity_model_dir
-  )
+  # if scimilarity predictions file exists but is empty, account for that with Not Run
+  if (file.size(opt$scimilarity_results) > 0) {
+    scimilarity_df <- readr::read_tsv(opt$scimilarity_results)
+  } else {
+    scimilarity_df <- NULL
+  }
 
-  # add scimilarity as celltype method
-  automated_methods <- c(automated_methods, "scimilarity")
+  # if the only column is the barcode column or if the predictions file was empty
+  # then SCimilarity didn't complete successfully
+  # otherwise add in cell type annotations and metadata to SCE
+  if (is.null(scimilarity_df) || all(colnames(scimilarity_df) == "barcode")) {
+    # if failed then note that in the cell type column
+    sce$scimilarity_celltype_annotation <- "Not run"
+  } else {
+    # add scimilarity results to sce
+    sce <- add_scimilarity_results(
+      sce,
+      scimilarity_df,
+      opt$scimilarity_model_dir
+    )
+
+    # add scimilarity as celltype method
+    automated_methods <- c(automated_methods, "scimilarity")
+  }
 }
 
 # add automated methods to the metadata of the object
