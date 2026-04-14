@@ -682,7 +682,6 @@ if (has_scimilarity) {
     # add scimilarity as celltype method
     automated_methods <- c(automated_methods, "scimilarity")
   }
-
 }
 
 # add automated methods to the metadata of the object

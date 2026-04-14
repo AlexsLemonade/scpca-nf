@@ -99,7 +99,7 @@ if (is.null(available_celltypes)) {
   available_celltypes <- character()
 }
 
-  
+
 # check if these automated methods were run
 cellassign_not_run <- check_celltype_method_not_run(
   "CellAssign",

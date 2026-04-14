@@ -171,7 +171,7 @@ prepare_submitter_annotation_values <- function(df) {
 
 #' Check if a given automated cell type method was run or not
 #'
-#' @param celltype_method The celltype method 
+#' @param celltype_method The celltype method
 #' @param has_celltype_column Boolean indicating if cell type column is present
 #' @param sce_coldata colData slot of a processed SCE object
 #'
