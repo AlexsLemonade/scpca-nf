@@ -182,7 +182,7 @@ check_celltype_method_not_run <- function(
   sce_coldata
 ) {
   colname <- glue::glue("{tolower(celltype_method)}_celltype_annotation")
-  if (!celltype_method && colname %in% names(sce_coldata)) {
+  if (!has_celltype_column && colname %in% names(sce_coldata)) {
     # This means the values should all be `"Not run"`
     if (!(all(sce_coldata[[colname]] == "Not run"))) {
       stop(
