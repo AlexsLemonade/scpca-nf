@@ -99,11 +99,19 @@ if (is.null(available_celltypes)) {
   available_celltypes <- character()
 }
 
-# was cellassign run?
-cellassign_not_run <- check_cellassign_not_run(
+  
+# check if these automated methods were run
+cellassign_not_run <- check_celltype_method_not_run(
+  "CellAssign",
   has_cellassign,
   colData(processed_sce)
 )
+scimilarity_not_run <- check_celltype_method_not_run(
+  "SCimilarity",
+  has_scimilarity,
+  colData(processed_sce)
+)
+
 
 # vector of automated celltypes to include in comparison, including consensus
 automated_celltypes_available <- available_celltypes[!(available_celltypes %in% c("Submitter", "OpenScPCA"))]
@@ -237,6 +245,14 @@ glue::glue("{methods_text}")
 glue::glue("
    <div class=\"alert alert-info\">
    Cell type annotation with [`CellAssign`](https://github.com/Irrationone/cellassign), a marker-gene-based approach ([Zhang _et al._ 2019](https://doi.org/10.1038/s41592-019-0529-1)), was attempted but not run due to an insufficient number of cells.
+  </div>
+")
+```
+
+```{r eval=scimilarity_not_run, results='asis'}
+glue::glue("
+   <div class=\"alert alert-info\">
+   Cell type annotation with [`SCimilarity`](https://genentech.github.io/scimilarity/index.html), a cell type annotation approach that uses a foundation model ([Heimberg _et al._ 2024](https://doi.org/10.1038/s41586-024-08411-y)), was attempted but not run due to an insufficient number of cells.
   </div>
 ")
 ```
