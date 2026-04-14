@@ -619,7 +619,7 @@ if (has_cellassign) {
     "Panglo ontology reference file does not exist" = file.exists(opt$panglao_ontology_ref)
   )
 
-  # if cell assign predictions file exists but is empty then cell assign failed and we want to account for that with Not Run
+  # if cell assign predictions file exists but is empty, account for that with Not Run
   if (file.size(opt$cellassign_predictions) > 0) {
     # read in predictions file
     cellassign_df <- readr::read_tsv(opt$cellassign_predictions) |>
@@ -658,7 +658,7 @@ if (has_scimilarity) {
     "SCimilarity model directory name must be provided" = opt$scimilarity_model_dir != ""
   )
 
-  # if scimilarity predictions file exists but is empty then it - account for that with Not Run
+  # if scimilarity predictions file exists but is empty, account for that with Not Run
   if (file.size(opt$scimilarity_results) > 0) {
     scimilarity_df <- readr::read_tsv(opt$scimilarity_results)
   } else {
