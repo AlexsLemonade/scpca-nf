@@ -12,6 +12,177 @@ suppressPackageStartupMessages({
   library(optparse)
 })
 
+# Functions --------------------------------------------------------------------
+
+#' Check that expected names and types are present in a data slot
+#'
+#' @param data A data slot from an SCE object (e.g., colData, rowData, metadata)
+#' @param ref A named list mapping expected slots to their expected contents and types
+#'
+#' @return A data frame with columns: name, is_present, expected_type,
+#'   observed_type, and is_type_match
+check_names_and_types <- function(data, ref) {
+  ref |>
+    purrr::imap(\(type, name) {
+      is_present <- name %in% names(data)
+
+      if (!is_present) {
+        obs_type <- NULL
+      } else {
+        obs_type <- class(data[[name]])
+        # account for special cases where types should be considered equivalent
+        if ("data.frame" %in% obs_type && type == "data.frame") {
+          is_type_match <- TRUE
+        } else if (obs_type == "integer" && type == "numeric") {
+          # integers are valid numerics
+          is_type_match <- TRUE
+        } else {
+          is_type_match <- obs_type == type
+        }
+      }
+
+      list(
+        "is_present"     = is_present,
+        "expected_type"  = type,
+        "observed_type"  = obs_type,
+        "is_type_match"  = is_type_match
+      )
+    }) |>
+    dplyr::bind_rows(.id = "name")
+}
+
+
+#' Check names and types for conditional data slot entries
+#'
+#' For each condition that is TRUE for the given object, checks that the
+#' corresponding expected names and types are present in the data slot.
+#'
+#' @param conditions_present A character vector of condition names that are
+#'   TRUE for the given object (i.e., the subset of names from conditionals_vec
+#'   where the value is TRUE)
+#' @param data A data slot from an SCE object (e.g., colData, metadata)
+#' @param ref A named list where each element corresponds to a condition name
+#'   and contains a named list of expected column names and types
+#'
+#' @return A data frame with the same columns as check_names_and_types, plus
+#'   a `conditional` column indicating which condition triggered the check
+check_conditional_names_and_type <- function(conditions_present, data, ref) {
+  conditions_present |>
+    purrr::map(\(condition) {
+      df <- check_names_and_types(data, ref[[condition]])
+      df$conditional <- condition
+      return(df)
+    }) |>
+    dplyr::bind_rows()
+}
+
+
+#' Check required and conditional col/row/metadata slots of an SCE object
+#'
+#' Runs both required and conditional checks against a reference list,
+#' then combines the results into a single data frame.
+#'
+#' @param sce_exp A SingleCellExperiment exp (can be a main or alt experiment)
+#' @param ref_list A named list containing the reference for the object type,
+#'   with elements: colData, rowData, colData_conditional, metadata_conditional
+#' @param conditionals_vec A named logical vector indicating which conditions
+#'   are TRUE for the object being checked. Should be defined using the
+#'   top-level SCE (not an altExp) since many conditions depend on top-level
+#'   metadata (e.g., altExpNames, celltype_methods)
+#'
+#' @return A data frame combining required and conditional check results,
+#'   with a `slot` column indicating the source slot and a `conditional` column
+#'   (NA for required checks)
+check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
+  # required colData and rowData checks ----------------------------------------
+  match_df <- list(
+    "colData" = list(data = colData(sce_exp), ref = ref_list$colData),
+    "rowData" = list(data = rowData(sce_exp), ref = ref_list$rowData)
+  ) |>
+    purrr::map(\(x) check_names_and_types(x$data, x$ref)) |>
+    dplyr::bind_rows(.id = "slot")
+
+  # conditional colData and metadata checks ------------------------------------
+  # only check conditions that are true for this object
+  true_conditions <- names(conditionals_vec[which(conditionals_vec)])
+
+  conditional_match_df <- list(
+    colData  = list(data = colData(sce_exp), ref = ref_list$colData_conditional),
+    metadata = list(data = metadata(sce_exp), ref = ref_list$metadata_conditional)
+  ) |>
+    purrr::map(\(x) check_conditional_names_and_type(
+      intersect(true_conditions, names(x$ref)),
+      x$data,
+      x$ref
+    )) |>
+    dplyr::bind_rows(.id = "slot")
+
+  # combine required and conditional checks ------------------------------------
+  match_df |>
+    dplyr::mutate(conditional = NA) |>
+    dplyr::bind_rows(conditional_match_df)
+}
+
+
+#' Check that all expected assays are present in an SCE object
+#'
+#' @param sce_exp A SingleCellExperiment exp (can be a main or alt experiment)
+#' @param ref_assay_names A character vector of expected assay names
+#' @param label A string used in error messages to identify the object
+#'   (e.g., "main SCE", "adt altExp"). Default is "SCE".
+#'
+#' @return A character vector of error messages for any missing assays,
+#'   or an empty character vector if all assays are present
+check_assays <- function(sce_exp, ref_assay_names, label = "SCE") {
+  missing_assays <- ref_assay_names[!ref_assay_names %in% assayNames(sce_exp)]
+
+  if (length(missing_assays) > 0) {
+    glue::glue("Missing assay '{missing_assays}' from {label}.")
+  } else {
+    character(0)
+  }
+}
+
+
+#' Check col/row/metadata match results and append errors to the error string
+#'
+#' Takes the output of check_sce_object and adds formatted error messages
+#' for any missing fields or type mismatches.
+#'
+#' @param match_df A data frame returned by check_sce_object
+#' @param errors A string of accumulated error messages to append to
+#' @param label A string used in error messages to identify the object
+#'   (e.g., "main SCE", "adt altExp"). Default is "SCE".
+#'
+#' @return An updated error string with any new errors appended
+collect_match_errors <- function(match_df, errors, label = "SCE") {
+  # missing field errors
+  missing_df <- dplyr::filter(match_df, !is_present)
+  if (nrow(missing_df) > 0) {
+    errors <- glue::glue(
+      "{errors}
+       Missing '{missing_df$name}' from {label} {missing_df$slot}.
+      "
+    )
+  }
+
+  # type mismatch errors
+  mismatch_df <- dplyr::filter(match_df, is_present, !is_type_match)
+  if (nrow(mismatch_df) > 0) {
+    errors <- glue::glue(
+      "{errors}
+       Type mismatch in '{mismatch_df$name}' from {label} {mismatch_df$slot}.
+       Expected {mismatch_df$expected_type}, but found {mismatch_df$observed_type}.
+      "
+    )
+  }
+
+  return(errors)
+}
+
+
+# Arguments --------------------------------------------------------------------
+
 option_list <- list(
   make_option(
     opt_str = c("--sce_file"),
@@ -38,110 +209,129 @@ option_list <- list(
   )
 )
 
-# Parse options
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # TODO: Remove testing defaults before merging
-opt$sce_file <- "~/Downloads/SCPCL000001_processed.rds"
+opt$sce_file <- "~/Downloads/SCPCL000001_processed (1).rds"
 opt$object_type <- "processed"
 opt$reference_file <- "../scpca-nf/references/sce-formatting-reference.json"
 
 # Set up -----------------------------------------------------------------------
 
-# make sure inputs are correct/exist
 stopifnot(
   "sce file does not exist" = file.exists(opt$sce_file),
   "Object type must be one of unfiltered, filtered, or processed" = opt$object_type %in% c("unfiltered", "filtered", "processed"),
   "Reference file does not exist" = file.exists(opt$reference_file),
-  "output file must end in `.txt`" = stringr::str_ends(opt$gene_exp_output_file, "\\.txt")
+  "output file must end in `.txt`" = stringr::str_ends(opt$output_file, "\\.txt")
 )
 
-# read in sce
 sce <- readr::read_rds(opt$sce_file)
-
-# read in formatting file and subset to object type
 ref_list <- jsonlite::read_json(opt$reference_file)[[opt$object_type]]
 
-# set empty error messages
+# initialize empty error string
 errors <- ""
 
-# Check assays and ensure counts are rounded -----------------------------------
-missing_assays <- assayNames(sce)[!ref_list$assayNames %in% assayNames(sce)]
-if (length(missing_assays) > 0) {
-  errors <- glue::glue("{errors}
-                       Missing assay: {missing_assays}
-                       ")
-}
+# Check main SCE assays --------------------------------------------------------
 
+errors <- c(errors, check_assays(sce, ref_list$assayNames, label = "main SCE"))
+
+# check that counts assay contains rounded integers
 all_values <- as.vector(counts(sce))
 if (any(all_values != floor(all_values))) {
-  errors <- glue::glue("
-                       {errors}
-                       'counts' assay does not contain rounded integers
+  errors <- glue::glue("{errors}
+                       'counts' assay does not contain rounded integers.
                        ")
 }
 
-# check colData names and type -------------------------------------------------
+# Define conditionals for the main SCE object ----------------------------------
+# these are evaluated once on the top-level sce and reused for altExp checks
 
-check_names_and_types <- function(
-  data,
-  ref
-) {
-  match_df <- ref |>
-    purrr::imap(\(type, name){
-      is_present <- name %in% names(data)
-      if (is_present) {
-        obs_type <- class(data[[name]])
-        is_type_match <- obs_type == type
-      } else {
-        obs_type <- NULL
-      }
+has_adt <- "adt" %in% altExpNames(sce)
+has_cellhash <- "cellhash" %in% altExpNames(sce)
 
-      return(
-        list(
-          "is_present" = is_present,
-          "expected_type" = type,
-          "observed_type" = obs_type,
-          "is_type_match" = is_type_match
-        )
-      )
-    }) |>
-    dplyr::bind_rows(.id = "name")
-
-  return(match_df)
-}
-
-coldata_match_df <- check_names_and_types(colData(sce), ref_list$colData)
-rowdata_match_df <- check_names_and_types(rowData(sce), ref_list$rowData)
-metadata_match_df <- check_names_and_types(metadata(sce), ref_list$metadata)
-
-# conditional
-conditional_coldata_ref <- ref_list$colData_conditional
-
-# check for existence of specific results
 conditionals_vec <- c(
-  has_normalization,
-  has_infercnv,
+  # mapping tools
+  "alevin-fry" = metadata(sce)$mapping_tool == "alevin-fry",
+  "cellranger-multi" = metadata(sce)$mapping_tool == "cellranger multi",
+
+  # preprocessing
+  umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
+  has_miQC = !is.null(metadata(sce)$miQC_model),
+  has_normalization = metadata(sce)$normalization == "normalization",
+
+  # clustering and cell typing
   has_clusters = "cluster" %in% names(colData(sce)),
   has_consensus = "consensus_celltype_annotation" %in% names(colData(sce)),
   has_singler = "singler" %in% metadata(sce)$celltype_methods,
   has_cellassign = "cellassign" %in% metadata(sce)$celltype_methods,
   has_scimilarity = "scimilarity" %in% metadata(sce)$celltype_methods,
   has_openscpca = "openscpca" %in% metadata(sce)$celltype_methods,
+  # submitter annotations are only valid if not all NA
   has_submitter = "submitter" %in% metadata(sce)$celltype_methods &&
-    !all(is.na(sce$submitter_celltype_annotation)) # make sure they aren't all NA
+    !all(is.na(sce$submitter_celltype_annotation)),
+  has_infercnv = !is.null(metadata(sce)$infercnv_status),
+
+  # additional modalities
+  has_adt = has_adt,
+  has_cellhash = has_cellhash,
+  has_hashedDrops = "hashedDrops" %in% metadata(sce)$demux_methods,
+  has_HTODemux = "HTODemux" %in% metadata(sce)$demux_methods,
+  has_vireo = "vireo" %in% metadata(sce)$demux_methods
 )
 
-conditional_coldata_match_df <- names(conditionals_vec[which(conditionals_vec)]) |>
-  purrr::map(\(condition){
-    df <- check_names_and_types(colData(sce), conditional_coldata_ref[[condition]])
-    df$conditional <- condition
-    return(df)
-  }) |>
-  dplyr::bind_rows()
+# Check main SCE col/row/metadata ----------------------------------------------
 
-# check reduced Dim if processed
+all_match_df <- check_sce_object(sce, ref_list, conditionals_vec)
+errors <- collect_match_errors(all_match_df, errors, label = "main SCE")
 
-# TODO: handle altExps
+# Check ADT altExp -------------------------------------------------------------
 
-# cat error messages and export file
+if (has_adt) {
+  adt_sce <- altExp(sce, "adt")
+  adt_ref <- ref_list$altExp$adt
+
+  errors <- c(errors, check_assays(adt_sce, adt_ref$assayNames, label = "adt altExp"))
+
+  adt_conditionals_vec <- c(
+    "has_negative_control" = any(rowData(adt_sce)$target_type %in% c("neg_control")),
+    "no_negative_control" = all(rowData(adt_sce)$target_type %in% c("pos_control", "target")),
+    "alevin-fry" = metadata(sce)$mapping_tool == "alevin-fry",
+    "cellranger-multi" = metadata(sce)$mapping_tool == "cellranger multi"
+  )
+
+  adt_match_df <- check_sce_object(adt_sce, adt_ref, adt_conditionals_vec)
+  errors <- collect_match_errors(adt_match_df, errors, label = "adt altExp")
+}
+
+# Check cellhash altExp --------------------------------------------------------
+
+if (has_cellhash) {
+  cellhash_sce <- altExp(sce, "cellhash")
+  cellhash_ref <- ref_list$altExp$cellhash
+
+  errors <- c(errors, check_assays(cellhash_sce, cellhash_ref$assayNames, label = "cellhash altExp"))
+
+  cellhash_conditionals_vec <- c(
+    has_hashedDrops = "hashedDrops" %in% metadata(sce)$demux_methods,
+    has_HTODemux = "HTODemux" %in% metadata(sce)$demux_methods
+  )
+
+  cellhash_match_df <- check_sce_object(cellhash_sce, cellhash_ref, cellhash_conditionals_vec)
+  errors <- collect_match_errors(cellhash_match_df, errors, label = "cellhash altExp")
+}
+
+# Check reducedDims (processed objects only) -----------------------------------
+
+if (opt$object_type == "processed") {
+  if (all(reducedDimNames(sce) != ref_list$reducedDimNames)) {
+    errors <- glue::glue(
+      "{errors}
+       reducedDimNames do not match expected: {ref_list$reducedDimNames}.
+      "
+    )
+  }
+}
+
+# Write output -----------------------------------------------------------------
+
+writeLines(errors, opt$output_file)
