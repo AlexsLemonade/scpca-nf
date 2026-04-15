@@ -183,6 +183,22 @@
                 "schema_version": "str"
             },
             "uns_conditional": {
+                "alevin-fry": {
+                    "salmon_version": "str",
+                    "mapped_reads": "int",
+                    "alevinfry_version": "str",
+                    "af_permit_type": "str",
+                    "af_resolution": "str",
+                    "usa_mode": "bool",
+                    "af_num_cells": "int",
+                    "include_unspliced": "bool"
+                },
+                "cellranger-multi": {
+                    "cellranger_version": "str",
+                    "reference_probeset": "str",
+                    "pct_mapped_reads": "float",
+                    "cellranger_num_cells": "int"
+                },
                 "umi_filtering": {
                     "umi_cutoff": "float"
                 },

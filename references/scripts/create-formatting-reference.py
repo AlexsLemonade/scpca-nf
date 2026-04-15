@@ -166,6 +166,7 @@ filtered_experiment_metadata = {
 }
 
 filtered_experiment_metadata_conditional = {
+    **unfiltered_experiment_metadata_conditional,
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "numeric"},
     # if miQC is present, these should have specific contents
@@ -568,6 +569,9 @@ filtered_uns_metadata = {
 }
 
 filtered_uns_metadata_conditional = {
+    **convert_experiment_metadata_types(
+        copy.deepcopy(filtered_experiment_metadata_conditional)
+    ),
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "float"},
     # if miQC is present, the prob_compromised_cutoff column should be present

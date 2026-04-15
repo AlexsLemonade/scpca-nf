@@ -202,6 +202,22 @@
             "min_gene_cutoff": "integer"
         },
         "metadata_conditional": {
+            "alevin-fry": {
+                "salmon_version": "character",
+                "mapped_reads": "integer",
+                "alevinfry_version": "character",
+                "af_permit_type": "character",
+                "af_resolution": "character",
+                "usa_mode": "logical",
+                "af_num_cells": "integer",
+                "include_unspliced": "logical"
+            },
+            "cellranger-multi": {
+                "cellranger_version": "character",
+                "reference_probeset": "character",
+                "pct_mapped_reads": "numeric",
+                "cellranger_num_cells": "integer"
+            },
             "umi_filtering": {
                 "umi_cutoff": "numeric"
             },
