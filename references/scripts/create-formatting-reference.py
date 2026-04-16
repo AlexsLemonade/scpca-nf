@@ -272,10 +272,17 @@ processed_altexp_adt_cell_metadata_conditional = {
     "sizeFactor": "numeric",
 }
 
+unfiltered_altexp_adt_experiment_metadata = {
+    key: value
+    for key, value in unfiltered_experiment_metadata.items()
+    if key
+    not in {"sample_metadata", "sample_type"}  # these are not relevant for altExps
+}
+
 # use for both filtered and processed
 filtered_altexp_adt_experiment_metadata = {
-    **unfiltered_experiment_metadata,
-    "ambient_profile": "character",
+    **unfiltered_altexp_adt_experiment_metadata,
+    "ambient_profile": "numeric",
 }
 
 # cellhash specific items
@@ -332,7 +339,7 @@ unfiltered_sce = {
         "adt": {
             "assayNames": adt_assays,
             "rowData": altexp_adt_feature_metadata,
-            "metadata": unfiltered_experiment_metadata,
+            "metadata": unfiltered_altexp_adt_experiment_metadata,
             "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
         "cellhash": {

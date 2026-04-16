@@ -91,9 +91,7 @@
                     "tech_version": "character",
                     "assay_ontology_term_id": "character",
                     "seq_unit": "character",
-                    "transcript_type": "character",
-                    "sample_metadata": "data.frame",
-                    "sample_type": "character"
+                    "transcript_type": "character"
                 },
                 "metadata_conditional": {
                     "alevin-fry": {
@@ -262,9 +260,7 @@
                     "assay_ontology_term_id": "character",
                     "seq_unit": "character",
                     "transcript_type": "character",
-                    "sample_metadata": "data.frame",
-                    "sample_type": "character",
-                    "ambient_profile": "character"
+                    "ambient_profile": "numeric"
                 },
                 "metadata_conditional": {
                     "alevin-fry": {
@@ -527,9 +523,7 @@
                     "assay_ontology_term_id": "character",
                     "seq_unit": "character",
                     "transcript_type": "character",
-                    "sample_metadata": "data.frame",
-                    "sample_type": "character",
-                    "ambient_profile": "character"
+                    "ambient_profile": "numeric"
                 },
                 "metadata_conditional": {
                     "alevin-fry": {
