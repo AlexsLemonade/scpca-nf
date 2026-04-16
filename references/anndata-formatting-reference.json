@@ -239,9 +239,7 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
-                "sample_type": "str",
-                "ambient_profile": "str"
+                "ambient_profile": "float"
             }
         }
     },
@@ -466,9 +464,7 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
-                "sample_type": "str",
-                "ambient_profile": "str"
+                "ambient_profile": "float"
             }
         }
     }
