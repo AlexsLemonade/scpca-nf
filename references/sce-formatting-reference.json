@@ -455,8 +455,8 @@
                 "singler_reference_label": "character",
                 "singler_reference_source": "character",
                 "singler_reference_version": "character",
-                "singler_gene_set_version": "logical",
-                "singler_date": "logical"
+                "singler_gene_set_version": "character",
+                "singler_date": "character"
             },
             "has_cellassign": {
                 "celltype_methods": "character",

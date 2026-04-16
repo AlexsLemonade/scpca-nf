@@ -206,10 +206,8 @@ processed_experiment_metadata_conditional = {
         "singler_reference_label": "character",
         "singler_reference_source": "character",
         "singler_reference_version": "character",
-        # TODO: these are NA right now because we are using the old SingleR refs
-        # only projects that use the new refs will have these set correctly...
-        "singler_gene_set_version": "logical",
-        "singler_date": "logical",
+        "singler_gene_set_version": "character",
+        "singler_date": "character",
     },
     "has_cellassign": {
         "celltype_methods": "character",

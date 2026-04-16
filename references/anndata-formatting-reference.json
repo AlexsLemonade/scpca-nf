@@ -399,8 +399,8 @@
                     "singler_reference_label": "str",
                     "singler_reference_source": "str",
                     "singler_reference_version": "str",
-                    "singler_gene_set_version": "bool",
-                    "singler_date": "bool"
+                    "singler_gene_set_version": "str",
+                    "singler_date": "str"
                 },
                 "has_cellassign": {
                     "celltype_methods": "numpy.ndarray",
