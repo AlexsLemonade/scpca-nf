@@ -27,7 +27,8 @@ check_names_and_types <- function(data, ref) {
       is_present <- name %in% names(data)
 
       if (!is_present) {
-        obs_type <- NULL
+        obs_type <- NA
+        is_type_match <- NA
       } else {
         obs_type <- class(data[[name]])
         # account for special cases where types should be considered equivalent
@@ -35,6 +36,9 @@ check_names_and_types <- function(data, ref) {
           is_type_match <- TRUE
         } else if (obs_type == "integer" && type == "numeric") {
           # integers are valid numerics
+          is_type_match <- TRUE
+        } else if (name == "sample_type" && obs_type == "list") {
+          # if multiplex then sample type is a list not character so this is valid
           is_type_match <- TRUE
         } else {
           is_type_match <- obs_type == type
@@ -96,9 +100,13 @@ check_conditional_names_and_type <- function(conditions_present, data, ref) {
 check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
   # required colData and rowData checks ----------------------------------------
   match_df <- list(
-    "colData" = list(data = colData(sce_exp), ref = ref_list$colData),
-    "rowData" = list(data = rowData(sce_exp), ref = ref_list$rowData)
+    # use square brackets to avoid json doing any partial matching
+    "colData" = list(data = colData(sce_exp), ref = ref_list[["colData"]]),
+    "rowData" = list(data = rowData(sce_exp), ref = ref_list[["rowData"]]),
+    "metadata" = list(data = metadata(sce_exp), ref = ref_list[["metadata"]])
   ) |>
+    # skip slots that have no reference defined (e.g. row/colData absent for altExps)
+    purrr::keep(\(x) length(x$ref) > 0) |>
     purrr::map(\(x) check_names_and_types(x$data, x$ref)) |>
     dplyr::bind_rows(.id = "slot")
 
@@ -106,21 +114,29 @@ check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
   # only check conditions that are true for this object
   true_conditions <- names(conditionals_vec[which(conditionals_vec)])
 
-  conditional_match_df <- list(
-    colData  = list(data = colData(sce_exp), ref = ref_list$colData_conditional),
-    metadata = list(data = metadata(sce_exp), ref = ref_list$metadata_conditional)
-  ) |>
-    purrr::map(\(x) check_conditional_names_and_type(
-      intersect(true_conditions, names(x$ref)),
-      x$data,
-      x$ref
-    )) |>
-    dplyr::bind_rows(.id = "slot")
+  if (length(true_conditions) > 1) {
+    conditional_match_df <- list(
+      colData  = list(data = colData(sce_exp), ref = ref_list[["colData_conditional"]]),
+      metadata = list(data = metadata(sce_exp), ref = ref_list[["metadata_conditional"]])
+    ) |>
+      # skip slots that have no reference defined
+      purrr::keep(\(x) length(x$ref) > 0) |>
+      purrr::map(\(x) check_conditional_names_and_type(
+        intersect(true_conditions, names(x$ref)),
+        x$data,
+        x$ref
+      )) |>
+      dplyr::bind_rows(.id = "slot")
 
-  # combine required and conditional checks ------------------------------------
-  match_df |>
-    dplyr::mutate(conditional = NA) |>
-    dplyr::bind_rows(conditional_match_df)
+    # combine required and conditional checks
+    all_match_df <- match_df |>
+      dplyr::mutate(conditional = NA) |>
+      dplyr::bind_rows(conditional_match_df)
+  } else {
+    all_match_df <- match_df
+  }
+
+  return(all_match_df)
 }
 
 
@@ -156,24 +172,35 @@ check_assays <- function(sce_exp, ref_assay_names, label = "SCE") {
 #'
 #' @return An updated error string with any new errors appended
 collect_match_errors <- function(match_df, errors, label = "SCE") {
+  # remove double prob_compromised_cutoff if its present for conditional and regular metadata
+  # this value is present with or without miQC with a different type so we need to keep both checks in the reference
+  num_prob_compromised_checks <- match_df$name[stringr::str_detect(match_df$name, "prob_compromised_cutoff")]
+  if (length(num_prob_compromised_checks) == 2) {
+    match_df <- match_df |>
+      dplyr::filter(!(name == "prob_compromised_cutoff" & is.na(conditional)))
+  }
+
   # missing field errors
   missing_df <- dplyr::filter(match_df, !is_present)
   if (nrow(missing_df) > 0) {
-    errors <- glue::glue(
-      "{errors}
-       Missing '{missing_df$name}' from {label} {missing_df$slot}.
-      "
+    errors <- c(
+      errors,
+      glue::glue("
+      Missing '{missing_df$name}' from {label} {missing_df$slot}.
+        ")
     )
   }
 
   # type mismatch errors
   mismatch_df <- dplyr::filter(match_df, is_present, !is_type_match)
   if (nrow(mismatch_df) > 0) {
-    errors <- glue::glue(
-      "{errors}
-       Type mismatch in '{mismatch_df$name}' from {label} {mismatch_df$slot}.
-       Expected {mismatch_df$expected_type}, but found {mismatch_df$observed_type}.
-      "
+    errors <- c(
+      errors,
+      glue::glue("
+      Type mismatch in '{mismatch_df$name}' from {label} {mismatch_df$slot}.
+      Expected {mismatch_df$expected_type}, but found {mismatch_df$observed_type}.
+
+      ")
     )
   }
 
@@ -211,11 +238,6 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# TODO: Remove testing defaults before merging
-opt$sce_file <- "~/Downloads/SCPCL000001_processed (1).rds"
-opt$object_type <- "processed"
-opt$reference_file <- "../scpca-nf/references/sce-formatting-reference.json"
-
 # Set up -----------------------------------------------------------------------
 
 stopifnot(
@@ -226,14 +248,14 @@ stopifnot(
 )
 
 sce <- readr::read_rds(opt$sce_file)
-ref_list <- jsonlite::read_json(opt$reference_file)[[opt$object_type]]
+all_ref_list <- jsonlite::read_json(opt$reference_file)[[opt$object_type]]
 
 # initialize empty error string
 errors <- ""
 
 # Check main SCE assays --------------------------------------------------------
 
-errors <- c(errors, check_assays(sce, ref_list$assayNames, label = "main SCE"))
+errors <- c(errors, check_assays(sce, all_ref_list$assayNames, label = "main SCE"))
 
 # check that counts assay contains rounded integers
 all_values <- as.vector(counts(sce))
@@ -256,7 +278,8 @@ conditionals_vec <- c(
 
   # preprocessing
   umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
-  has_miQC = !is.null(metadata(sce)$miQC_model),
+  # the only way to confirm miQC was run successfully is if this cutoff is present and numeric
+  has_miQC = class(metadata(sce)$prob_compromised_cutoff) == "numeric",
   has_normalization = metadata(sce)$normalization == "normalization",
 
   # clustering and cell typing
@@ -274,23 +297,24 @@ conditionals_vec <- c(
   # additional modalities
   has_adt = has_adt,
   has_cellhash = has_cellhash,
-  has_hashedDrops = "hashedDrops" %in% metadata(sce)$demux_methods,
-  has_HTODemux = "HTODemux" %in% metadata(sce)$demux_methods,
-  has_vireo = "vireo" %in% metadata(sce)$demux_methods
+  has_hashedDrops =
+    any(stringr::str_detect(colnames(colData(sce)), "hashedDrops")),
+  has_HTODemux =
+    any(stringr::str_detect(colnames(colData(sce)), "HTODemux")),
+  has_vireo =
+    any(stringr::str_detect(colnames(colData(sce)), "vireo"))
 )
 
 # Check main SCE col/row/metadata ----------------------------------------------
 
-all_match_df <- check_sce_object(sce, ref_list, conditionals_vec)
+all_match_df <- check_sce_object(sce, all_ref_list, conditionals_vec)
 errors <- collect_match_errors(all_match_df, errors, label = "main SCE")
 
 # Check ADT altExp -------------------------------------------------------------
 
 if (has_adt) {
   adt_sce <- altExp(sce, "adt")
-  adt_ref <- ref_list$altExp$adt
-
-  errors <- c(errors, check_assays(adt_sce, adt_ref$assayNames, label = "adt altExp"))
+  adt_ref <- all_ref_list$altExp$adt
 
   adt_conditionals_vec <- c(
     "has_negative_control" = any(rowData(adt_sce)$target_type %in% c("neg_control")),
@@ -300,6 +324,10 @@ if (has_adt) {
   )
 
   adt_match_df <- check_sce_object(adt_sce, adt_ref, adt_conditionals_vec)
+
+  # check assay errors first
+  errors <- c(errors, check_assays(adt_sce, adt_ref$assayNames, label = "adt altExp"))
+  # now add in col/row/metadata
   errors <- collect_match_errors(adt_match_df, errors, label = "adt altExp")
 }
 
@@ -307,26 +335,30 @@ if (has_adt) {
 
 if (has_cellhash) {
   cellhash_sce <- altExp(sce, "cellhash")
-  cellhash_ref <- ref_list$altExp$cellhash
-
-  errors <- c(errors, check_assays(cellhash_sce, cellhash_ref$assayNames, label = "cellhash altExp"))
+  cellhash_ref <- all_ref_list$altExp$cellhash
 
   cellhash_conditionals_vec <- c(
-    has_hashedDrops = "hashedDrops" %in% metadata(sce)$demux_methods,
-    has_HTODemux = "HTODemux" %in% metadata(sce)$demux_methods
+    has_hashedDrops =
+      any(stringr::str_detect(colnames(colData(cellhash_sce)), "hashedDrops")),
+    has_HTODemux =
+      any(stringr::str_detect(colnames(colData(cellhash_sce)), "HTODemux"))
   )
 
   cellhash_match_df <- check_sce_object(cellhash_sce, cellhash_ref, cellhash_conditionals_vec)
+
+  # check assay errors first
+  errors <- c(errors, check_assays(cellhash_sce, cellhash_ref$assayNames, label = "cellhash altExp"))
+  # now check col/row/metadata
   errors <- collect_match_errors(cellhash_match_df, errors, label = "cellhash altExp")
 }
 
 # Check reducedDims (processed objects only) -----------------------------------
 
 if (opt$object_type == "processed") {
-  if (all(reducedDimNames(sce) != ref_list$reducedDimNames)) {
+  if (all(reducedDimNames(sce) != all_ref_list$reducedDimNames)) {
     errors <- glue::glue(
       "{errors}
-       reducedDimNames do not match expected: {ref_list$reducedDimNames}.
+       reducedDimNames do not match expected: {all_ref_list$reducedDimNames}.
       "
     )
   }
