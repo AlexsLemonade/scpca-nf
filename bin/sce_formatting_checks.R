@@ -255,8 +255,7 @@ errors <- ""
 errors <- c(errors, check_assays(sce, all_ref_list$assayNames, label = "main SCE"))
 
 # check that counts assay contains rounded integers
-all_values <- as.vector(counts(sce))
-if (any(all_values != floor(all_values))) {
+if (all(counts(sce)@x == floor(counts(sce)@x))) {
   errors <- glue::glue("{errors}
                        'counts' assay does not contain rounded integers.
                        ")
