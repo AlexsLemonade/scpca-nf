@@ -333,7 +333,7 @@ workflow annotate_celltypes {
         [meta, processed_h5ad, file(meta.cellassign_reference_file, checkIfExists: true) ]
       }
       // check that conversion didn't give and empty h5ad file, which would cause cellassign to fail; if so, skip cellassign
-      .branch{ meta, processed_h5ad, cellassign_ref ->
+      .branch{ _meta, processed_h5ad, _cellassign_ref ->
         conversion_fail: processed_h5ad.size() == 0
         do_cellassign: true
       }
@@ -402,7 +402,7 @@ workflow annotate_celltypes {
         ]
       }
       // check that conversion didn't give and empty h5ad file, which would cause scimilarity to fail; if so, skip scimilarity
-      .branch{ _meta, processed_h5ad, _scimilarity_ref ->
+      .branch{ _meta, processed_h5ad, _scimilarity_model_dir, _scimilarity_ontology_map_file  ->
         conversion_fail: processed_h5ad.size() == 0
         do_scimilarity: true
       }
