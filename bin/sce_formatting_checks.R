@@ -69,12 +69,11 @@ check_names_and_types <- function(data, ref) {
 #'   a `conditional` column indicating which condition triggered the check
 check_conditional_names_and_type <- function(conditions_present, data, ref) {
   conditions_present |>
+    purrr::set_names() |>
     purrr::map(\(condition) {
-      df <- check_names_and_types(data, ref[[condition]])
-      df$conditional <- condition
-      return(df)
+      check_names_and_types(data, ref[[condition]])
     }) |>
-    dplyr::bind_rows()
+    dplyr::bind_rows(.id = "conditional")
 }
 
 
@@ -255,7 +254,7 @@ errors <- ""
 errors <- c(errors, check_assays(sce, all_ref_list$assayNames, label = "main SCE"))
 
 # check that counts assay contains rounded integers
-if (all(counts(sce)@x == floor(counts(sce)@x))) {
+if (any(counts(sce)@x != floor(counts(sce)@x))) {
   errors <- glue::glue("{errors}
                        'counts' assay does not contain rounded integers.
                        ")
@@ -289,7 +288,7 @@ conditionals_vec <- c(
   # submitter annotations are only valid if not all NA
   has_submitter = "submitter" %in% metadata(sce)$celltype_methods &&
     !all(is.na(sce$submitter_celltype_annotation)),
-  has_infercnv = !is.null(metadata(sce)$infercnv_status),
+  has_infercnv = metadata(sce)$infercnv_status == "success"
 
   # additional modalities
   has_adt = has_adt,
@@ -352,7 +351,7 @@ if (has_cellhash) {
 # Check reducedDims (processed objects only) -----------------------------------
 
 if (opt$object_type == "processed") {
-  if (all(reducedDimNames(sce) != all_ref_list$reducedDimNames)) {
+  if (!setequal(reducedDimNames(sce), all_ref_list$reducedDimNames)) {
     errors <- glue::glue(
       "{errors}
        reducedDimNames do not match expected: {all_ref_list$reducedDimNames}.
