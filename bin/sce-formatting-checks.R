@@ -30,18 +30,11 @@ check_names_and_types <- function(data, ref) {
         obs_type <- NA
         is_type_match <- NA
       } else {
-        obs_type <- class(data[[name]])
-        # account for special cases where types should be considered equivalent
-        if ("data.frame" %in% obs_type && type == "data.frame") {
-          is_type_match <- TRUE
-        } else if (obs_type == "integer" && type == "numeric") {
-          # integers are valid numerics
-          is_type_match <- TRUE
-        } else if (name == "sample_type" && obs_type == "list") {
-          # if multiplex then sample type is a list not character so this is valid
-          is_type_match <- TRUE
+        if (name == "sample_type" && is(data[[name]], "list") =) {
+           # sample type may be a list for multiplexed
+           is_type_match <- is(data[[name]][[0]], type) 
         } else {
-          is_type_match <- obs_type == type
+          is_type_match <- is(data[[name]], type)
         }
       }
 
