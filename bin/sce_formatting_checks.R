@@ -169,6 +169,7 @@ check_assays <- function(sce_exp, ref_assay_names, label = "SCE") {
 #'
 #' @return An updated error string with any new errors appended
 collect_match_errors <- function(match_df, errors, label = "SCE") {
+  # TODO: Remove this if we accept using NA_real_
   # remove double prob_compromised_cutoff if its present for conditional and regular metadata
   # this value is present with or without miQC with a different type so we need to keep both checks in the reference
   num_prob_compromised_checks <- match_df$name[stringr::str_detect(match_df$name, "prob_compromised_cutoff")]
@@ -276,6 +277,7 @@ conditionals_vec <- c(
   # preprocessing
   umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
   # the only way to confirm miQC was run successfully is if this cutoff is present and numeric
+  # TODO: use the has_miQC entry instead
   has_miQC = class(metadata(sce)$prob_compromised_cutoff) == "numeric",
   has_normalization = metadata(sce)$normalization == "normalization",
 
