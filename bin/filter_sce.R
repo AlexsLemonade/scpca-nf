@@ -124,6 +124,7 @@ try({
     enforce_left_cutoff = opt$enforce_left_cutoff
   )
   metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
+  metadata(filtered_sce)$has_miQC <- TRUE
   miQC_worked <- TRUE
 })
 # set prob_compromised to NA if miQC failed
@@ -131,7 +132,8 @@ if (!miQC_worked) {
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
   filtered_sce$miQC_pass <- NA
-  metadata(filtered_sce)$prob_compromised_cutoff <- NA
+  metadata(filtered_sce)$prob_compromised_cutoff <- NA_real_
+  metadata(filtered_sce)$has_miQC <- FALSE
 }
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
