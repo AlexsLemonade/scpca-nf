@@ -95,7 +95,7 @@ check_conditional_names_and_type <- function(conditions_present, data, ref) {
 #'   with a `slot` column indicating the source slot and a `conditional` column
 #'   (NA for required checks)
 check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
-  # required colData and rowData checks ----------------------------------------
+  ############ required colData and rowData checks ############
   match_df <- list(
     # use square brackets to avoid json doing any partial matching
     "colData" = list(data = colData(sce_exp), ref = ref_list[["colData"]]),
@@ -107,7 +107,7 @@ check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
     purrr::map(\(x) check_names_and_types(x$data, x$ref)) |>
     dplyr::bind_rows(.id = "slot")
 
-  # conditional colData and metadata checks ------------------------------------
+  ####### conditional colData and metadata checks #######
   # only check conditions that are true for this object
   true_conditions <- names(conditionals_vec[which(conditionals_vec)])
 
@@ -197,7 +197,6 @@ collect_match_errors <- function(match_df, errors, label = "SCE") {
       glue::glue("
       Type mismatch in '{mismatch_df$name}' from {label} {mismatch_df$slot}.
       Expected {mismatch_df$expected_type}, but found {mismatch_df$observed_type}.
-
       ")
     )
   }
