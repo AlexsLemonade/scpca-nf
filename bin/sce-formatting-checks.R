@@ -30,9 +30,13 @@ check_names_and_types <- function(data, ref) {
         obs_type <- NA
         is_type_match <- NA
       } else {
-        if (name == "sample_type" && is(data[[name]], "list") =) {
-           # sample type may be a list for multiplexed
-           is_type_match <- is(data[[name]][[0]], type) 
+        # first get the observed type
+        obs_type <- class(data[[name]])
+
+        # now see if it matches the expected type
+        if (name == "sample_type" && is(data[[name]], "list")) {
+          # sample type may be a list for multiplexed
+          is_type_match <- is(data[[name]][[0]], type)
         } else {
           is_type_match <- is(data[[name]], type)
         }
