@@ -134,7 +134,7 @@ workflow call_cnvs {
             && it[0].infercnv_reference_cell_hash == stored_cell_hash
           )
           || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
-          || !it[2].exists() // if the gene order file doesn't exist, we can't run infercnv
+          || !(it[2] in Path && it[2].exists()) // if the gene order file doesn't exist, we can't run infercnv
        )
         run_infercnv: true
       }
