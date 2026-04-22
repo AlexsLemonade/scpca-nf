@@ -112,8 +112,9 @@ workflow call_cnvs {
         meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds"
         meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt"
         gene_order_file = meta.infercnv_gene_order ? file(meta.infercnv_gene_order, checkIfExists: true) : []
-        if not gene_order_file {
-          log.warn("Gene order file for ${meta.unique_id} was not found. inferCNV will be skipped for this library.")
+
+        if  (!gene_order_file){
+          log.warn("Gene order file for '${meta.unique_id}' was not found. inferCNV will be skipped for this library.")
         }
 
         // return simplified input with gene order file
