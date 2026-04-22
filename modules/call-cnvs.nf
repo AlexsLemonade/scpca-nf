@@ -102,6 +102,10 @@ workflow call_cnvs {
         tissue: true
       }
 
+  sce_files_channel_branched.tissue.view{ meta, _u, _f, _p -> 
+      "library_id=${meta.library_id} infercnv_gene_order=${meta.infercnv_gene_order}" 
+  }
+
     // create input for infercnv: [augmented meta, processed_sce, gene order file]
     infercnv_prepared_ch = sce_files_channel_branched.tissue
       .map{ meta_in, _unfiltered_sce, _filtered_sce, processed_sce ->
