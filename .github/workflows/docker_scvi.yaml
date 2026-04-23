@@ -4,6 +4,9 @@ concurrency:
   group: "docker_scvi_${{ github.ref }}"
   cancel-in-progress: true
 
+# default permissions
+permissions:
+  contents: read
 on:
   pull_request:
     branches:
