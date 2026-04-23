@@ -31,7 +31,7 @@ on:
 
 jobs:
   test-build:
-    name: Test Build Docker Image (${{ matrix.env }})
+    name: Test Build Docker Image (${{ matrix.pixi_env }})
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     strategy:
@@ -55,7 +55,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.pixi_env }}
 
   build-push:
-    name: Build and Push Docker Image (${{ matrix.env }})
+    name: Build and Push Docker Image (${{ matrix.pixi_env }})
     if: github.event_name == 'push'
     environment: prod
     runs-on: ubuntu-latest
