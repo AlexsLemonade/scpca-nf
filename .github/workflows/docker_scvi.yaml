@@ -52,7 +52,7 @@ jobs:
             PIXI_ENV=${{ matrix.pixi_env }}
             CONDA_OVERRIDE_CUDA=${{ matrix.pixi_env == 'gpu' && '12.9' || '' }}
           cache-from: type=gha,scope=${{ matrix.pixi_env }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.pixi_env }}
+          cache-to: type=gha,mode=min,scope=${{ matrix.pixi_env }},compression=zstd
 
   build-push:
     name: Build and Push Docker Image (${{ matrix.pixi_env }})
@@ -93,9 +93,9 @@ jobs:
             ${{ env.GH_REGISTRY }}/${{ env.GH_REGISTRY_USER }}/${{ env.IMAGE_NAME }}
             ${{ env.AWS_REGISTRY }}/${{ env.AWS_PREFIX }}/${{ env.GH_REGISTRY_USER }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{raw}},suffix=-${{ matrix.env }}
-            type=edge,branch=development,suffix=-${{ matrix.env }}
-            type=ref,event=branch,suffix=-${{ matrix.env }}
+            type=semver,pattern={{raw}},suffix=-${{ matrix.pixi_env }}
+            type=edge,branch=development,suffix=-${{ matrix.pixi_env }}
+            type=ref,event=branch,suffix=-${{ matrix.pixi_env }}
 
       - name: Docker metadata (no suffix))
         id: meta-nosuffix
@@ -132,4 +132,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.pixi_env }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.pixi_env }}
+          cache-to: type=gha,mode=min,scope=${{ matrix.pixi_env }},compression=zstd
