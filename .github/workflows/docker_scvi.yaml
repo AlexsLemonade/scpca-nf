@@ -51,8 +51,6 @@ jobs:
           build-args: |
             PIXI_ENV=${{ matrix.pixi_env }}
             CONDA_OVERRIDE_CUDA=${{ matrix.pixi_env == 'gpu' && '12.9' || '' }}
-          cache-from: type=gha,scope=${{ matrix.pixi_env }}
-          cache-to: type=gha,mode=min,scope=${{ matrix.pixi_env }},compression=zstd
 
   build-push:
     name: Build and Push Docker Image (${{ matrix.pixi_env }})
@@ -131,5 +129,3 @@ jobs:
             CONDA_OVERRIDE_CUDA=${{ matrix.pixi_env == 'gpu' && '12.9' || '' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.pixi_env }}
-          cache-to: type=gha,mode=min,scope=${{ matrix.pixi_env }},compression=zstd
