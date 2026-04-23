@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [ cpu, gpu ]
+        pixi_env: [ cpu, gpu ]
 
     steps:
       - name: Set up Docker Buildx
@@ -44,9 +44,12 @@ jobs:
         with:
           context: "{{defaultContext}}:docker/scvi"
           push: false
-          build-args: PIXI_ENV=${{ matrix.env }}
-          cache-from: type=gha,scope=${{ matrix.env }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.env }}
+          # allow build on cpu even if gpu image is selected
+          build-args: |
+            PIXI_ENV=${{ matrix.pixi_env }}
+            CONDA_OVERRIDE_CUDA=${{ matrix.pixi_env == 'gpu' && '12.9' || '' }}
+          cache-from: type=gha,scope=${{ matrix.pixi_env }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.pixi_env }}
 
   build-push:
     name: Build and Push Docker Image (${{ matrix.env }})
@@ -55,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [ cpu, gpu ]
+        pixi_env: [ cpu, gpu ]
     env:
       IMAGE_NAME: scpca-nf/scvi
       GH_REGISTRY: ghcr.io
@@ -120,8 +123,10 @@ jobs:
         with:
           context: "{{defaultContext}}:docker/scvi"
           push: true
-          build-args: PIXI_ENV=${{ matrix.env }}
+          build-args: |
+            PIXI_ENV=${{ matrix.pixi_env }}
+            CONDA_OVERRIDE_CUDA=${{ matrix.pixi_env == 'gpu' && '12.9' || '' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.env }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.env }}
+          cache-from: type=gha,scope=${{ matrix.pixi_env }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.pixi_env }}

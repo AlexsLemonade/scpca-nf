@@ -1,6 +1,9 @@
 FROM ghcr.io/prefix-dev/pixi:0.67.0 AS build
 
+# change to GPU at runtime with --build-arg PIXI_ENV=gpu
 ARG PIXI_ENV=cpu
+# allow for override to build gpu version on cpu instances
+ARG CONDA_OVERRIDE_CUDA=""
 
 COPY pixi.* /app/
 WORKDIR /app
@@ -11,7 +14,6 @@ RUN echo 'exec "$@"' >> /shell-hook.sh
 
 FROM ubuntu:24.04 AS production
 
-# change to GPU at runtime with --build-arg PIXI_ENV=gpu
 ARG PIXI_ENV=cpu
 
 LABEL org.opencontainers.image.title="scpca-nf/scvi"
