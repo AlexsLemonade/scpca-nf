@@ -288,7 +288,7 @@ conditionals_vec <- c(
   # submitter annotations are only valid if not all NA
   has_submitter = "submitter" %in% metadata(sce)$celltype_methods &&
     !all(is.na(sce$submitter_celltype_annotation)),
-  has_infercnv = metadata(sce)$infercnv_status == "success"
+  has_infercnv = metadata(sce)$infercnv_status == "success",
 
   # additional modalities
   has_adt = has_adt,
