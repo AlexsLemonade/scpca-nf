@@ -1,5 +1,8 @@
 
 include { getVersions; makeJson; readMeta; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
+// import utility process with aliases to allow multiple uses in this workflow
+include { convert_anndata as convert_cellassign } from './convert-anndata.nf'
+include { convert_anndata as convert_scimilarity } from './convert-anndata.nf'
 
 process classify_singler {
   container "${pullthroughContainer(params.scpcatools_container, params.pullthrough_registry)}"
@@ -50,12 +53,12 @@ process classify_cellassign {
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
     )
-  label 'mem_max'
+  label 'mem_128'
   label 'cpus_12'
   label 'long_running'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(cellassign_reference_file)
+    tuple val(meta), path(processed_h5ad), path(cellassign_reference_file)
   output:
     tuple val(meta.unique_id), path(cellassign_dir)
   script:
@@ -66,26 +69,13 @@ process classify_cellassign {
     # create output directory
     mkdir "${cellassign_dir}"
 
-    # Convert SCE to AnnData
-    sce_to_anndata.R \
-        --input_sce_file "${processed_rds}" \
-        --output_rna_h5 "processed.h5ad"
-
-    # only run cell assign if a h5ad file was able to be created
-    # otherwise create an empty predictions file
-    if [[ -e "processed.h5ad" ]]; then
-
-      # Run CellAssign
-      predict_cellassign.py \
-        --anndata_file "processed.h5ad" \
-        --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
-        --reference "${cellassign_reference_file}" \
-        --seed ${params.seed} \
-        --threads ${task.cpus}
-
-    else
-      touch "${cellassign_dir}/cellassign_predictions.tsv"
-    fi
+    # Run CellAssign
+    predict_cellassign.py \
+      --anndata_file "${processed_h5ad}" \
+      --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
+      --reference "${cellassign_reference_file}" \
+      --seed ${params.seed} \
+      --threads ${task.cpus}
 
     # write out meta file
     echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
@@ -112,7 +102,7 @@ process classify_scimilarity {
   label 'cpus_4'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(scimilarity_model_dir), path(scimilarity_ontology_map_file)
+    tuple val(meta), path(processed_h5ad), path(scimilarity_model_dir), path(scimilarity_ontology_map_file)
   output:
     tuple val(meta.unique_id), path(scimilarity_dir)
   script:
@@ -122,26 +112,13 @@ process classify_scimilarity {
     # create output directory
     mkdir "${scimilarity_dir}"
 
-    # Convert SCE to AnnData
-    sce_to_anndata.R \
-        --input_sce_file "${processed_rds}" \
-        --output_rna_h5 "processed.h5ad"
-
-    # only run cell assign if a h5ad file was able to be created
-    # otherwise create an empty predictions file
-    if [[ -e "processed.h5ad" ]]; then
-
-      # Run SCimilarity
-      run_scimilarity.py \
-        --model_dir "${scimilarity_model_dir}" \
-        --processed_h5ad_file "processed.h5ad" \
-        --ontology_map_file ${scimilarity_ontology_map_file} \
-        --predictions_tsv "${scimilarity_dir}/scimilarity_predictions.tsv" \
-        --seed ${params.seed}
-
-    else
-      touch "${scimilarity_dir}/scimilarity_predictions.tsv"
-    fi
+    # Run SCimilarity
+    run_scimilarity.py \
+      --model_dir "${scimilarity_model_dir}" \
+      --processed_h5ad_file "${processed_h5ad}" \
+      --ontology_map_file ${scimilarity_ontology_map_file} \
+      --predictions_tsv "${scimilarity_dir}/scimilarity_predictions.tsv" \
+      --seed ${params.seed}
 
     # write out meta file
     echo '${meta_json}' > "${scimilarity_dir}/scpca-meta.json"
@@ -344,7 +321,24 @@ workflow annotate_celltypes {
 
 
     // perform CellAssign celltyping and export results
-    classify_cellassign(cellassign_input_ch.do_cellassign)
+    cellassign_convert_input_ch = cellassign_input_ch.do_cellassign
+      // prep for h5ad conversion step
+      .map{ meta, processed_sce, _cellassign_ref ->
+        [meta, processed_sce]
+      }
+    // convert SCE to h5ad for CellAssign input; output is [meta, processed h5ad]
+    cellassign_converted_ch = convert_cellassign(cellassign_convert_input_ch)
+      // add back in cellassign reference for cellassign step (it should exist if we are here)
+      .map{ meta, processed_h5ad ->
+        [meta, processed_h5ad, file(meta.cellassign_reference_file, checkIfExists: true) ]
+      }
+      // check that conversion didn't give and empty h5ad file, which would cause cellassign to fail; if so, skip cellassign
+      .branch{ _meta, processed_h5ad, _cellassign_ref ->
+        conversion_fail: processed_h5ad.size() == 0
+        do_cellassign: true
+      }
+    // run cellassign classification
+    classify_cellassign(cellassign_converted_ch.do_cellassign)
 
     // cellassign output channel: [unique id, cellassign_dir]
     cellassign_output_ch = cellassign_input_ch.skip_cellassign
@@ -357,6 +351,8 @@ workflow annotate_celltypes {
       }
       // add missing ref samples
       .mix(cellassign_input_ch.missing_ref.map{ it -> [it[0].unique_id, []] })
+      // add in conversion failures as missing ref samples since cellassign won't run on them
+      .mix(cellassign_converted_ch.conversion_fail.map{ it -> [it[0].unique_id, []] })
       // add in channel outputs
       .mix(classify_cellassign.out)
 
@@ -389,8 +385,30 @@ workflow annotate_celltypes {
       }
 
 
-    // run SCimilarity and export results
-    classify_scimilarity(scimilarity_input_ch.do_scimilarity)
+    // convert SCE to h5ad for SCimilarity input; output is [meta, processed h5ad]
+    scimilarity_convert_input_ch = scimilarity_input_ch.do_scimilarity
+      // prep for h5ad conversion step
+      .map{ meta, processed_sce, _scimilarity_model_dir, _scimilarity_ontology_map_file ->
+        [meta, processed_sce]
+      }
+    scimilarity_converted_ch = convert_scimilarity(scimilarity_convert_input_ch)
+      // add back in scimilarity references for scimilarity step (should exist if we are here)
+      .map{ meta, processed_h5ad ->
+        [
+          meta,
+          processed_h5ad,
+          file(meta.scimilarity_model_dir, type: 'dir', checkIfExists: true),
+          file(meta.scimilarity_ontology_map_file, checkIfExists: true)
+        ]
+      }
+      // check that conversion didn't give and empty h5ad file, which would cause scimilarity to fail; if so, skip scimilarity
+      .branch{ _meta, processed_h5ad, _scimilarity_model_dir, _scimilarity_ontology_map_file  ->
+        conversion_fail: processed_h5ad.size() == 0
+        do_scimilarity: true
+      }
+
+    // run scimilarity classification
+    classify_scimilarity(scimilarity_converted_ch.do_scimilarity)
 
     // scimilarity output channel: [unique id, scimilarity_dir]
     scimilarity_output_ch = scimilarity_input_ch.skip_scimilarity
@@ -401,6 +419,8 @@ workflow annotate_celltypes {
           file(meta.scimilarity_dir, type: 'dir', checkIfExists: true)
         ]
       }
+      // add in conversion failures as missing results
+      .mix(scimilarity_converted_ch.conversion_fail.map{ it -> [it[0].unique_id, []] })
       // add in channel outputs
       .mix(classify_scimilarity.out)
 
@@ -485,7 +505,7 @@ workflow annotate_celltypes {
       // mix in cell line libraries which were not cell typed
       .mix(sce_files_channel_branched.cell_line)
       // ensure meta.infercnv_reference_cell_count exists
-      .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce -> 
+      .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce ->
         def meta = meta_in.clone()
         // make sure not to overwrite a literal 0 value with null
         meta.putIfAbsent('infercnv_reference_cell_count', null)
