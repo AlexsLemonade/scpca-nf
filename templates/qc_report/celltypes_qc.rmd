@@ -764,10 +764,12 @@ dotplot_df <- group_stats_df |>
 
 
 ```{r}
-# ensure these are defined to avoid bug in next chunk in case there are no consensus
+# default sizing for dotplot
 dotplot_height <- 8
 dotplot_width <- 15
+dotplot_text_size <- 11
 
+# update sizing if we have a lot of info to show in the plot
 if (has_consensus) {
   n_markers <- length(unique(dotplot_df$gene_symbol))
   n_celltypes <- length(unique(dotplot_df$broad_celltype_group))

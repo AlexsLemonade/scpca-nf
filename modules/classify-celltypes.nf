@@ -53,7 +53,7 @@ process classify_cellassign {
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
     )
-  label 'mem_96'
+  label 'mem_128'
   label 'cpus_12'
   label 'long_running'
   tag "${meta.unique_id}"
