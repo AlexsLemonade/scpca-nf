@@ -95,7 +95,7 @@ jobs:
             type=edge,branch=development,suffix=-${{ matrix.pixi_env }}
             type=ref,event=branch,suffix=-${{ matrix.pixi_env }}
 
-      - name: Docker metadata (no suffix))
+      - name: Docker metadata (no suffix)
         id: meta-nosuffix
         # no suffix for cpu image to be the default "latest" tag
         if: matrix.env == 'cpu'
