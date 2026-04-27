@@ -110,7 +110,9 @@ check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
   # only check conditions that are true for this object
   true_conditions <- names(conditionals_vec[which(conditionals_vec)])
 
-  if (length(true_conditions) > 1) {
+  if (length(true_conditions) == 0) {
+    all_match_df <- match_df
+  } else {
     conditional_match_df <- list(
       colData  = list(data = colData(sce_exp), ref = ref_list[["colData_conditional"]]),
       metadata = list(data = metadata(sce_exp), ref = ref_list[["metadata_conditional"]])
@@ -128,8 +130,6 @@ check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
     all_match_df <- match_df |>
       dplyr::mutate(conditional = NA) |>
       dplyr::bind_rows(conditional_match_df)
-  } else {
-    all_match_df <- match_df
   }
 
   return(all_match_df)
@@ -168,15 +168,6 @@ check_assays <- function(sce_exp, ref_assay_names, label = "SCE") {
 #'
 #' @return An updated error string with any new errors appended
 collect_match_errors <- function(match_df, errors, label = "SCE") {
-  # TODO: Remove this if we accept using NA_real_
-  # remove double prob_compromised_cutoff if its present for conditional and regular metadata
-  # this value is present with or without miQC with a different type so we need to keep both checks in the reference
-  num_prob_compromised_checks <- match_df$name[stringr::str_detect(match_df$name, "prob_compromised_cutoff")]
-  if (length(num_prob_compromised_checks) == 2) {
-    match_df <- match_df |>
-      dplyr::filter(!(name == "prob_compromised_cutoff" & is.na(conditional)))
-  }
-
   # missing field errors
   missing_df <- dplyr::filter(match_df, !is_present)
   if (nrow(missing_df) > 0) {
@@ -184,7 +175,7 @@ collect_match_errors <- function(match_df, errors, label = "SCE") {
       errors,
       glue::glue("
       Missing '{missing_df$name}' from {label} {missing_df$slot}.
-        ")
+      ")
     )
   }
 
@@ -273,9 +264,7 @@ conditionals_vec <- c(
 
   # preprocessing
   umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
-  # the only way to confirm miQC was run successfully is if this cutoff is present and numeric
-  # TODO: use the has_miQC entry instead
-  has_miQC = class(metadata(sce)$prob_compromised_cutoff) == "numeric",
+  has_miQC = metadata(sce)$has_miQC,
   has_normalization = metadata(sce)$normalization == "normalization",
 
   # clustering and cell typing
