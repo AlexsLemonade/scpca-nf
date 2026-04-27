@@ -570,7 +570,7 @@ filtered_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(filtered_experiment_metadata)),
     **anndata_uns_metadata,
     # this is NA or numeric so account for both possibilities in the reference
-    "prob_compromised_cutoff": "NoneType,float",
+    "prob_compromised_cutoff": ["NoneType", "float"],
 }
 
 filtered_uns_metadata_conditional = {
