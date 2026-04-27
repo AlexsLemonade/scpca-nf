@@ -195,7 +195,7 @@
             "sample_metadata": "data.frame",
             "sample_type": "character",
             "filtering_method": "character",
-            "prob_compromised_cutoff": "logical",
+            "prob_compromised_cutoff": "numeric",
             "scpca_filter_method": "character",
             "min_gene_cutoff": "integer"
         },
@@ -220,8 +220,7 @@
                 "umi_cutoff": "numeric"
             },
             "has_miQC": {
-                "miQC_model": "S4",
-                "prob_compromised_cutoff": "numeric"
+                "miQC_model": "S4"
             }
         },
         "altExp": {
@@ -421,7 +420,7 @@
             "sample_metadata": "data.frame",
             "sample_type": "character",
             "filtering_method": "character",
-            "prob_compromised_cutoff": "logical",
+            "prob_compromised_cutoff": "numeric",
             "scpca_filter_method": "character",
             "min_gene_cutoff": "integer",
             "normalization": "character",
@@ -430,9 +429,6 @@
         "metadata_conditional": {
             "umi_filtering": {
                 "umi_cutoff": "numeric"
-            },
-            "has_miQC": {
-                "prob_compromised_cutoff": "numeric"
             },
             "has_clusters": {
                 "cluster_algorithm": "character",

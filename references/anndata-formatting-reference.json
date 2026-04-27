@@ -176,7 +176,7 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "bool",
+                "prob_compromised_cutoff": "NoneType,float",
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "int",
                 "X_name": "str",
@@ -201,9 +201,6 @@
                 },
                 "umi_filtering": {
                     "umi_cutoff": "float"
-                },
-                "has_miQC": {
-                    "prob_compromised_cutoff": "float"
                 }
             }
         },
@@ -358,7 +355,7 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "bool",
+                "prob_compromised_cutoff": "NoneType,float",
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "int",
                 "normalization": "str",
@@ -374,9 +371,6 @@
             "uns_conditional": {
                 "umi_filtering": {
                     "umi_cutoff": "float"
-                },
-                "has_miQC": {
-                    "prob_compromised_cutoff": "float"
                 },
                 "has_clusters": {
                     "cluster_algorithm": "str",

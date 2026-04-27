@@ -160,7 +160,7 @@ filtered_experiment_metadata = {
     **unfiltered_experiment_metadata,
     "filtering_method": "character",
     # this is NA if miQC failed
-    "prob_compromised_cutoff": "logical",
+    "prob_compromised_cutoff": "numeric",
     "scpca_filter_method": "character",
     "min_gene_cutoff": "integer",
 }
@@ -169,9 +169,9 @@ filtered_experiment_metadata_conditional = {
     **unfiltered_experiment_metadata_conditional,
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "numeric"},
-    # if miQC is present, these should have specific contents
-    # miQC model is an S4 object and is removed from the processed
-    "has_miQC": {"miQC_model": "S4", "prob_compromised_cutoff": "numeric"},
+    # if miQC is present
+    # miQC model is an S4 object ONLY in filtered, gets removed from processed objects
+    "has_miQC": {"miQC_model": "S4"},
 }
 
 processed_experiment_metadata = {
@@ -184,8 +184,6 @@ processed_experiment_metadata_conditional = {
     ## reuse filtered conditional since miQC model gets removed for processed
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "numeric"},
-    # if miQC is present, these should have specific contents
-    "has_miQC": {"prob_compromised_cutoff": "numeric"},
     "has_clusters": {
         "cluster_algorithm": "character",
         "cluster_weighting": "character",
@@ -571,6 +569,8 @@ unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
 filtered_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(filtered_experiment_metadata)),
     **anndata_uns_metadata,
+    # this is NA or numeric so account for both possibilities in the reference
+    "prob_compromised_cutoff": "NoneType,float",
 }
 
 filtered_uns_metadata_conditional = {
@@ -579,14 +579,15 @@ filtered_uns_metadata_conditional = {
     ),
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "float"},
-    # if miQC is present, the prob_compromised_cutoff column should be present
-    # no miQC_model since we remove S4 objects
-    "has_miQC": {"prob_compromised_cutoff": "float"},
 }
+# drop has_miQC since we don't keep S4 objects
+filtered_uns_metadata_conditional.pop("has_miQC", None)
 
 processed_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
     **anndata_uns_metadata,
+    # this is NA or numeric so account for both possibilities in the reference
+    "prob_compromised_cutoff": "NoneType,float",
     "pca": {
         "param": "dict",
         "variance": "float64",
