@@ -116,7 +116,7 @@ filtered_sce <- filtered_sce |>
   scuttle::addPerFeatureQCMetrics()
 # add prob_compromised to colData and miQC model to metadata
 # since this can fail, we will check for success
-miQC_worked <- FALSE
+metadata(filtered_sce)$has_miQC <- FALSE
 try({
   filtered_sce <- scpcaTools::add_miQC(
     filtered_sce,
@@ -125,10 +125,9 @@ try({
   )
   metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
   metadata(filtered_sce)$has_miQC <- TRUE
-  miQC_worked <- TRUE
 })
 # set prob_compromised to NA if miQC failed
-if (!miQC_worked) {
+if (!metadata(filtered_sce)$has_miQC) {
   warning("miQC failed. Setting `prob_compromised` to NA.")
   filtered_sce$prob_compromised <- NA_real_
   filtered_sce$miQC_pass <- NA
