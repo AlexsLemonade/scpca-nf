@@ -48,7 +48,7 @@ repos:
         args: ["--maxkb=200"]
         exclude: 'pixi\.lock$'
       - id: end-of-file-fixer
-        exclude: '\.Rd$'
+        exclude: '\.Rd'
 ci:
   autofix_prs: true # set to false if we don't want fixes automatically applied by ci
   autoupdate_branch: development
