@@ -115,7 +115,7 @@ else:
     # train and assign cell types
     scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
     model = CellAssign(subset_adata, ref_matrix)
-    model.train()
+    model.train(accelerator="auto", devices="auto")
     predictions = model.predict()
     predictions["barcode"] = subset_adata.obs_names
 
