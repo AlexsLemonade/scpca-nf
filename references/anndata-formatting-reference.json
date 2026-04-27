@@ -176,7 +176,10 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "NoneType,float",
+                "prob_compromised_cutoff": [
+                    "NoneType",
+                    "float"
+                ],
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "int",
                 "X_name": "str",
