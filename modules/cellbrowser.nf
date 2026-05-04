@@ -69,14 +69,17 @@ process cellbrowser_site {
     library_dirs=(${library_dirs.join(" ")})
     project_ids=(${project_ids.join(" ")})
     for i in \${!library_dirs[@]}; do
-      # annotate the marker file and if it succeeds, replace the unannotated version with the annotated version.
-      cbAnnotateMarkers "\${library_dirs[\$i]}/markers.tsv" "\${library_dirs[\$i]}/markers_annotated.tsv" \
-        && mv "\${library_dirs[\$i]}/markers_annotated.tsv" "\${library_dirs[\$i]}/markers.tsv" \
-        || true # if annotation fails, keep the original file and continue with the build
-
-      # move files into place for cellbrowser build
+      # copy files into place for cellbrowser build
       library_id=\$(basename \${library_dirs[\$i]})
-      mv \${library_dirs[\$i]} "cb_data/\${project_ids[\$i]}/\${library_id}"
+      project_dir="cb_data/\${project_ids[\$i]}/"
+      mkdir -p "\${project_dir}"
+      mv \${library_dirs[\$i]} "\${project_dir}/\${library_id}"
+
+      # annotate the marker file and if it succeeds, replace the unannotated version with the annotated version.
+      cbMarkerAnnotate "\${project_dir}/\${library_id}/markers.tsv" "\${project_dir}/\${library_id}/markers_annotated.tsv"
+      if [ -f "\${project_dir}/\${library_id}/markers_annotated.tsv" ]; then
+        mv "\${project_dir}/\${library_id}/markers_annotated.tsv" "\${project_dir}/\${library_id}/markers.tsv"
+      fi
     done
 
     # build the site
