@@ -18,7 +18,7 @@ def write_project_configs(
     title = project_metadata.get("project_title", project)
     abstract = project_metadata.get("abstract", "No abstract available.")
     project_cb_file = project_dir / "cellbrowser.conf"
-    project_cb_file.write_text(f"name='{project}'\nshortLabel='{project}'\n")
+    project_cb_file.write_text(f"name='{project}'\nshortLabel='{project}: {title}'\n")
     # desc.conf
     project_desc_file = project_dir / "desc.conf"
     project_desc_contents = f"{title=}\n{abstract=}\nhideDownload=True\n"
