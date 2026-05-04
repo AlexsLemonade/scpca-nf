@@ -31,21 +31,17 @@ jobs:
         run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
 
       - name: Check Nextflow with checkpoints from previous run
-        run: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log
-          false
+        run: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log false
 
       - name: Check Nextflow workflow for building cell type references
-        run: nextflow -log celltype-ref-run.log run build-celltype-ref.nf -stub -profile
-          stub -ansi-log false
+        run: nextflow -log celltype-ref-run.log run build-celltype-ref.nf -stub -profile stub -ansi-log false
 
       - name: Check Nextflow workflow for merging objects
-        run: nextflow -log merge-run.log run merge.nf -stub -profile stub -ansi-log
-          false --project STUBP01
+        run: nextflow -log merge-run.log run merge.nf -stub -profile stub -ansi-log false --project STUBP01
 
       - name: Join log files
         if: ${{ !cancelled() }}
-        run: cat stub-run.log checkpoint-run.log celltype-ref-run.log merge-run.log >
-          nextflow-runs.log
+        run: cat stub-run.log checkpoint-run.log celltype-ref-run.log merge-run.log > nextflow-runs.log
 
       - name: Upload nextflow log
         if: ${{ !cancelled() }}
