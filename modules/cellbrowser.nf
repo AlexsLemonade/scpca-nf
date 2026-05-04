@@ -68,6 +68,12 @@ process cellbrowser_site {
     library_dirs=(${library_dirs.join(" ")})
     project_ids=(${project_ids.join(" ")})
     for i in \${!library_dirs[@]}; do
+      # annotate the marker file and if it succeeds, replace the unannotated version with the annotated version.
+      cbAnnotateMarkers "\${library_dirs[\$i]}/markers.tsv" "\${library_dirs[\$i]}/markers_annotated.tsv" \
+        && mv "\${library_dirs[\$i]}/markers_annotated.tsv" "\${library_dirs[\$i]}/markers.tsv" \
+        || true # if annotation fails, keep the original file and continue with the build
+
+      # move files into place for cellbrowser build
       library_id=\$(basename \${library_dirs[\$i]})
       mv \${library_dirs[\$i]} "cb_data/\${project_ids[\$i]}/\${library_id}"
     done
