@@ -64,7 +64,6 @@ if (infercnv_status == "unknown_diagnosis") {
     </div>
   ")
 } else if (infercnv_status == "insufficient_reference_cells") {
-  
   n_ref_cells <- sum(processed_sce$is_infercnv_reference)
   if (n_ref_cells == 0) {
     cell_text <- "no normal cells were"
