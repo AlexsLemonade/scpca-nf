@@ -135,11 +135,11 @@ def main():
         if args.h5ad_file:
             ad = anndata.read_h5ad(args.h5ad_file, backed="r")
             if default_label not in ad.obs.columns:
-                default_label = "cluster"  # fall back to cluster
                 print(
                     f"Warning: Label field {default_label} not found in H5AD metadata.",
                     file=sys.stderr,
                 )
+                default_label = "cluster"  # fall back to cluster
 
             # get all cell type annotations
             label_fields += [
