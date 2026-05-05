@@ -84,7 +84,7 @@ process cellbrowser_site {
     library_dirs=(${library_dirs.join(" ")})
     project_ids=(${project_ids.join(" ")})
     for i in \${!library_dirs[@]}; do
-      # copy files into place for cellbrowser build
+      # move files into place for cellbrowser build
       library_id=\$(basename \${library_dirs[\$i]})
       project_dir="cb_data/\${project_ids[\$i]}/"
       mkdir -p "\${project_dir}"
@@ -103,7 +103,7 @@ process cellbrowser_site {
 
     # fix the marker files to be complete (annotated gene symbols were lost in the cbBuild process)
     cellbrowser_rewritemarkers.py \
-      --library-ids "${library_dirs.collect{it.name}.join(",")}" \
+      --library-ids "${library_dirs.collect{d -> d.name}.join(",")}" \
       --project-ids "${project_ids.join(",")}" \
       --outdir ${params.cellbrowser_dirname}
     """
@@ -130,7 +130,7 @@ workflow cellbrowser_build {
     // create single channel of [[project_ids], [library_dirs]]
     project_libs_ch = cellbrowser_library.out
     // only include libraries with umap
-     .filter{ it[2] == "true" }
+     .filter{ it -> it[2] == "true" }
      // use dummy value to group everything together into tuples
      .map{ meta, library_dir, _has_umap ->
         [1, meta.project_id, library_dir]
