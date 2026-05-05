@@ -64,10 +64,16 @@ if (infercnv_status == "unknown_diagnosis") {
     </div>
   ")
 } else if (infercnv_status == "insufficient_reference_cells") {
+  n_ref_cells <- sum(processed_sce$is_infercnv_reference)
+  cell_text <- dplyr::case_when(
+    n_ref_cells == 0 ~ "no normal cells were",
+    n_ref_cells == 1 ~ "only one normal cell was",
+    .default = glue::glue("only {n_ref_cells} normal cells were")
+  )
   glue::glue("
     <div class=\"alert alert-info\">
     inferCNV was not run because there were not enough normal reference cells present in the processed object.
-    At least {params$infercnv_min_reference_cells} normal reference cells are required, but only {sum(processed_sce$is_infercnv_reference)} cells were present.
+    At least {params$infercnv_min_reference_cells} normal reference cells are required, but {cell_text} present.
     </div>
   ")
 } else if (infercnv_status == "failure") {
