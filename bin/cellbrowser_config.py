@@ -18,7 +18,7 @@ def write_project_configs(
     title = project_metadata.get("project_title", project)
     abstract = project_metadata.get("abstract", "No abstract available.")
     project_cb_file = project_dir / "cellbrowser.conf"
-    project_cb_file.write_text(f"name='{project}'\nshortLabel='{project}'\n")
+    project_cb_file.write_text(f"name='{project}'\nshortLabel='{project}: {title}'\n")
     # desc.conf
     project_desc_file = project_dir / "desc.conf"
     project_desc_contents = f"{title=}\n{abstract=}\nhideDownload=True\n"
@@ -135,11 +135,11 @@ def main():
         if args.h5ad_file:
             ad = anndata.read_h5ad(args.h5ad_file, backed="r")
             if default_label not in ad.obs.columns:
-                default_label = "cluster"  # fall back to cluster
                 print(
                     f"Warning: Label field {default_label} not found in H5AD metadata.",
                     file=sys.stderr,
                 )
+                default_label = "cluster"  # fall back to cluster
 
             # get all cell type annotations
             label_fields += [
