@@ -100,6 +100,12 @@ process cellbrowser_site {
     # build the site
     CBDATAROOT=cb_data cbBuild -r -i cb_data/cellbrowser.conf \
       --outDir ${params.cellbrowser_dirname}
+
+    # fix the marker files to be complete (annotated gene symbols were lost in the cbBuild process)
+    cellbrowser_rewritemarkers.py \
+      --library-ids "${library_dirs.collect{it.name}.join(",")}" \
+      --project-ids "${project_ids.join(",")}" \
+      --outdir ${params.cellbrowser_dirname}
     """
   stub:
     """
