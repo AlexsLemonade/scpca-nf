@@ -21,12 +21,27 @@ process cellbrowser_library {
       --sample-ids "${meta.sample_id}" \
       --h5ad-file "${h5ad_file}"
 
+    # Rename columns so cbImportScanpy uses the gene_symbols branch in geneStringsFromVar:
+    # with gene_ids absent and gene_symbols present it writes features.tsv.gz as ENSG<tab>symbol.
+    python3 << 'EOF'
+import anndata
+adata = anndata.read_h5ad("${h5ad_file}")
+adata.var = adata.var.rename(columns={"gene_ids": "ensembl_id"})
+if "gene_symbol" in adata.var.columns:
+    adata.var["gene_symbols"] = [
+        symbol if isinstance(symbol, str) else ensembl_id
+        for symbol, ensembl_id in zip(adata.var["gene_symbol"], adata.var["ensembl_id"])
+    ]
+adata.uns = {}  # remove uns to prevent export error
+adata.write_h5ad("cb_input.h5ad")
+EOF
+
     # import data to library directory
     # --proc flag uses the processed expression matrix (lognormalized)
-    cbImportScanpy -i "${h5ad_file}" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}" --proc
+    cbImportScanpy -i "cb_input.h5ad" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}" --proc
 
-    # remove the h5ad from the imported files as we won't use it
-    rm "${meta.library_id}"/*_processed_rna.h5ad
+    # remove the h5ad files from export
+    rm -f "${meta.library_id}"/*.h5ad
 
     # Check that the umap coordinates were output
     if [ -f "${meta.library_id}/umap_coords.tsv" ]; then
