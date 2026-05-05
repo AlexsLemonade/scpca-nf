@@ -11,9 +11,9 @@ repos:
         # Here they are specified by a full path from the repository root in a multiline regex.
         exclude: |
           (?x)^(
-            test/references/celltype/singler_models/singler_model_file.rds|
-            test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
-            test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
+            test/references/celltype/singler_models/singler_model_file\.rds|
+            test/output/results/STUBP01/STUBS01/STUBL01_processed\.rds|
+            test/output/results/STUBP01/STUBS16/STUBL16_processed\.rds
           )$
   - repo: https://github.com/crate-ci/typos
     rev: v1.41.0
@@ -46,6 +46,7 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=200"]
+        exclude: 'pixi\.lock$'
       - id: end-of-file-fixer
         exclude: '\.Rd'
 ci:

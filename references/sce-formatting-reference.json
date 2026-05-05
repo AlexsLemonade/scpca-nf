@@ -91,9 +91,7 @@
                     "tech_version": "character",
                     "assay_ontology_term_id": "character",
                     "seq_unit": "character",
-                    "transcript_type": "character",
-                    "sample_metadata": "data.frame",
-                    "sample_type": "character"
+                    "transcript_type": "character"
                 },
                 "metadata_conditional": {
                     "alevin-fry": {
@@ -197,17 +195,32 @@
             "sample_metadata": "data.frame",
             "sample_type": "character",
             "filtering_method": "character",
-            "prob_compromised_cutoff": "logical",
+            "prob_compromised_cutoff": "numeric",
             "scpca_filter_method": "character",
             "min_gene_cutoff": "integer"
         },
         "metadata_conditional": {
+            "alevin-fry": {
+                "salmon_version": "character",
+                "mapped_reads": "integer",
+                "alevinfry_version": "character",
+                "af_permit_type": "character",
+                "af_resolution": "character",
+                "usa_mode": "logical",
+                "af_num_cells": "integer",
+                "include_unspliced": "logical"
+            },
+            "cellranger-multi": {
+                "cellranger_version": "character",
+                "reference_probeset": "character",
+                "pct_mapped_reads": "numeric",
+                "cellranger_num_cells": "integer"
+            },
             "umi_filtering": {
                 "umi_cutoff": "numeric"
             },
             "has_miQC": {
-                "miQC_model": "S4",
-                "prob_compromised_cutoff": "numeric"
+                "miQC_model": "S4"
             }
         },
         "altExp": {
@@ -246,9 +259,7 @@
                     "assay_ontology_term_id": "character",
                     "seq_unit": "character",
                     "transcript_type": "character",
-                    "sample_metadata": "data.frame",
-                    "sample_type": "character",
-                    "ambient_profile": "character"
+                    "ambient_profile": "numeric"
                 },
                 "metadata_conditional": {
                     "alevin-fry": {
@@ -409,7 +420,7 @@
             "sample_metadata": "data.frame",
             "sample_type": "character",
             "filtering_method": "character",
-            "prob_compromised_cutoff": "logical",
+            "prob_compromised_cutoff": "numeric",
             "scpca_filter_method": "character",
             "min_gene_cutoff": "integer",
             "normalization": "character",
@@ -418,9 +429,6 @@
         "metadata_conditional": {
             "umi_filtering": {
                 "umi_cutoff": "numeric"
-            },
-            "has_miQC": {
-                "prob_compromised_cutoff": "numeric"
             },
             "has_clusters": {
                 "cluster_algorithm": "character",
@@ -443,8 +451,8 @@
                 "singler_reference_label": "character",
                 "singler_reference_source": "character",
                 "singler_reference_version": "character",
-                "singler_gene_set_version": "logical",
-                "singler_date": "logical"
+                "singler_gene_set_version": "character",
+                "singler_date": "character"
             },
             "has_cellassign": {
                 "celltype_methods": "character",
@@ -511,9 +519,7 @@
                     "assay_ontology_term_id": "character",
                     "seq_unit": "character",
                     "transcript_type": "character",
-                    "sample_metadata": "data.frame",
-                    "sample_type": "character",
-                    "ambient_profile": "character"
+                    "ambient_profile": "numeric"
                 },
                 "metadata_conditional": {
                     "alevin-fry": {

@@ -190,10 +190,18 @@ determine_umap_dimensions <- function(n_celltypes) {
 The plots and tables included here detail the results from performing cell type annotation.
 
 ```{r, eval = !is_supplemental, results = 'asis'}
-cellassign_not_run <- check_cellassign_not_run(
+# check if these automated methods were run
+cellassign_not_run <- check_celltype_method_not_run(
+  "CellAssign",
   has_cellassign,
   colData(processed_sce)
 )
+scimilarity_not_run <- check_celltype_method_not_run(
+  "SCimilarity",
+  has_scimilarity,
+  colData(processed_sce)
+)
+
 
 # define bullets glue string
 methods_bullets <- c(
@@ -236,6 +244,11 @@ if (cellassign_not_run) {
     "\n\nCell type annotation with `CellAssign` was attempted but not run due to an insufficient number of cells."
   )
 }
+if (scimilarity_not_run) {
+  glue::glue(
+    "\n\nCell type annotation with `SCimilarity` was attempted but not run due to an insufficient number of cells."
+  )
+}
 
 if (has_consensus) {
   glue::glue(
@@ -259,9 +272,12 @@ if (has_openscpca) {
   )
 }
 
-glue::glue("
-  \n\nFor additional information about cell typing, including the results from all methods used, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
-")
+# we only render this report if there's at least 1 cell
+if (ncol(processed_sce) > 1) {
+  glue::glue("
+    \n\nFor additional information about cell typing, including the results from all methods used, information about reference sources, comparisons among cell type annotation methods, and diagnostic plots, please refer to the [supplementary cell type QC report](`r params$celltype_report`).
+  ")
+}
 ```
 
 ```{r}
@@ -747,21 +763,25 @@ dotplot_df <- group_stats_df |>
 ```
 
 
-```{r, eval = has_consensus}
-n_markers <- length(unique(dotplot_df$gene_symbol))
-n_celltypes <- length(unique(dotplot_df$broad_celltype_group))
-
+```{r}
+# default sizing for dotplot
 dotplot_height <- 8
 dotplot_width <- 15
-dotplot_text_size <- 14
+dotplot_text_size <- 11
 
-# update default sizing if we have a lot of info in the plot
-if (n_markers >= 50) {
-  dotplot_width <- pmin(n_markers * 0.3, 30)
-  dotplot_height <- 10
-  dotplot_text_size <- 18
-} else if (n_celltypes >= 20) {
-  dotplot_height <- dotplot_height * 1.25
+# update sizing if we have a lot of info to show in the plot
+if (has_consensus) {
+  n_markers <- length(unique(dotplot_df$gene_symbol))
+  n_celltypes <- length(unique(dotplot_df$broad_celltype_group))
+
+  # update default sizing if we have a lot of info in the plot
+  if (n_markers >= 50) {
+    dotplot_width <- pmin(n_markers * 0.3, 30)
+    dotplot_height <- 10
+    dotplot_text_size <- 18
+  } else if (n_celltypes >= 20) {
+    dotplot_height <- dotplot_height * 1.25
+  }
 }
 ```
 

@@ -176,18 +176,34 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "bool",
+                "prob_compromised_cutoff": [
+                    "NoneType",
+                    "float"
+                ],
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "int",
                 "X_name": "str",
                 "schema_version": "str"
             },
             "uns_conditional": {
+                "alevin-fry": {
+                    "salmon_version": "str",
+                    "mapped_reads": "int",
+                    "alevinfry_version": "str",
+                    "af_permit_type": "str",
+                    "af_resolution": "str",
+                    "usa_mode": "bool",
+                    "af_num_cells": "int",
+                    "include_unspliced": "bool"
+                },
+                "cellranger-multi": {
+                    "cellranger_version": "str",
+                    "reference_probeset": "str",
+                    "pct_mapped_reads": "float",
+                    "cellranger_num_cells": "int"
+                },
                 "umi_filtering": {
                     "umi_cutoff": "float"
-                },
-                "has_miQC": {
-                    "prob_compromised_cutoff": "float"
                 }
             }
         },
@@ -223,9 +239,7 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
-                "sample_type": "str",
-                "ambient_profile": "str"
+                "ambient_profile": "float"
             }
         }
     },
@@ -344,7 +358,7 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "bool",
+                "prob_compromised_cutoff": "NoneType,float",
                 "scpca_filter_method": "str",
                 "min_gene_cutoff": "int",
                 "normalization": "str",
@@ -360,9 +374,6 @@
             "uns_conditional": {
                 "umi_filtering": {
                     "umi_cutoff": "float"
-                },
-                "has_miQC": {
-                    "prob_compromised_cutoff": "float"
                 },
                 "has_clusters": {
                     "cluster_algorithm": "str",
@@ -385,8 +396,8 @@
                     "singler_reference_label": "str",
                     "singler_reference_source": "str",
                     "singler_reference_version": "str",
-                    "singler_gene_set_version": "bool",
-                    "singler_date": "bool"
+                    "singler_gene_set_version": "str",
+                    "singler_date": "str"
                 },
                 "has_cellassign": {
                     "celltype_methods": "numpy.ndarray",
@@ -450,9 +461,7 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
-                "sample_type": "str",
-                "ambient_profile": "str"
+                "ambient_profile": "float"
             }
         }
     }
