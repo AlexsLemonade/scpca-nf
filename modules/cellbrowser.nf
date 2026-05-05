@@ -78,7 +78,7 @@ process cellbrowser_site {
       # annotate the marker file and if it succeeds, replace the unannotated version with the annotated version.
       cbMarkerAnnotate "\${project_dir}/\${library_id}/markers.tsv" "\${project_dir}/\${library_id}/markers_annotated.tsv"
       if [ -f "\${project_dir}/\${library_id}/markers_annotated.tsv" ]; then
-        mv "\${project_dir}/\${library_id}/markers_annotated.tsv" "\${project_dir}/\${library_id}/markers.tsv"
+        sed 's/markers.tsv/markers_annotated.tsv/g' -i "\${project_dir}/\${library_id}/cellbrowser.conf"
       fi
     done
 
