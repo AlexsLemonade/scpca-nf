@@ -333,8 +333,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.5](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.5) — 2021-03-31
 
-- Added option to skip spaceranger quantification for the spatial workflow using `--repeat_mapping`
-- Reorganized spaceranger output file structure
+- Added option to skip `spaceranger` quantification for the spatial workflow using `--repeat_mapping`
+- Reorganized `spaceranger` output file structure
 - Added a `ccdl` profile
 
 
