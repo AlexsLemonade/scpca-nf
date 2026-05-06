@@ -23,10 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.10.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.10.1) — 2026-05-05
+
+### Fixed
+
+- Fix type error for numerical clusters when making markers
 
 ## [0.10.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.10.1) — 2026-05-05
 
+### Changed
+
 - Updated display of project list and marker gene lists in Cell Browser
+
+### Fixed 
+
 - Fixed a bug that caused extra reruns of `inferCNV`
 - Grammar update in report
 
