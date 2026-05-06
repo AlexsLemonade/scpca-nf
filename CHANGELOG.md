@@ -1,0 +1,415 @@
+# Changelog
+
+All notable changes to [scpca-nf](https://github.com/AlexsLemonade/scpca-nf) are documented here.
+
+---
+
+## [v0.10.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.10.1) — 2026-05-05
+
+- Updated display of project list and marker gene lists in Cell Browser
+- Fixed a bug that caused extra reruns of `inferCNV`
+- Grammar update in report
+
+---
+
+## [v0.10.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.10.0) — 2026-04-07
+
+- Updated spatial transcriptomics processing to use Space Ranger v4; supported Visium technologies now include:
+  - First-generation Visium
+  - Visium CytAssist
+  - Visium HD and Visium HD 3'
+- Added support for additional Visium Flex Gene Expression probe set versions
+- Updated Cell Browser output to display normalized expression values instead of raw counts
+- Addressed a small error in reference building
+- Updated to `scpcaTools v0.4.5`, containing minor R version and infrastructure updates
+- Infrastructure updates:
+  - Cell Ranger and Space Ranger Docker containers used by `scpca-nf` are now hosted in this repository
+  - Added pull-through cache support for Docker containers
+- Initiated `scpca-nf` object formatting checks and updated internal metrics report
+
+---
+
+## [v0.9.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.9.3) — 2026-02-04
+
+- Refactored counting reference cells for `InferCNV`; the `infercnv_success` boolean in object metadata has been replaced with the `infercnv_status` string
+- Minor QC report updates to adjust dot plot sizing based on the number of validation markers for consensus cell types
+- Updated the consensus cell type reference to use `OpenScPCA-analysis v0.2.4`, fixing a bug where consensus cell types were incorrectly unassigned if 2/3 methods agreed but the third was unable to assign a cell type
+- Validation palette now contains colors for all possible validation groups as of `OpenScPCA-analysis v0.2.4`
+
+---
+
+## [v0.9.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.9.2) — 2025-12-04
+
+- Minor bug fix in `build-index.nf`
+- Ensure CellBrowser always rebuilds in `build-cellbrowser.nf`
+- Updated Cavatica configuration files and documentation
+
+---
+
+## [v0.9.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.9.1) — 2025-11-17
+
+- CNV inference is now skipped for samples with a diagnosis of `Non-cancerous`, even when `--perform_cnv_inference` is used
+- Added additional checks to improve handling of unknown diagnoses and QC report rendering when running with CNV inference
+- All technology values are now converted to lowercase when reading from existing checkpoint files
+- Added an explicit check that technology has not changed when skipping the mapping steps for a library
+
+---
+
+## [v0.9.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.9.0) — 2025-11-05
+
+- Added support for additional 10x Genomics kits:
+  - Flex Gene Expression (single and multiplexed)
+  - Chromium GEM-X single-cell 5' v3
+  - Chromium GEM-X single-cell 3' v4
+- Doublet detection now performed using [scDblFinder](https://bioconductor.org/packages/release/bioc/html/scDblFinder.html); results stored in filtered and processed objects
+- `--perform_celltyping` now additionally assigns cell types using [SCimilarity](https://genentech.github.io/scimilarity/index.html) alongside `SingleR` and `CellAssign`
+  - Consensus cell types determined by agreement of ≥2 of 3 methods in an ontology-aware manner using the updated consensus reference in [`OpenScPCA-analysis v0.2.3`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus)
+- Cell types annotated as part of the OpenScPCA Project can now be provided as input; annotations are added to cell metadata of all objects and summarized in QC and cell type reports
+- Added `--perform_cnv_inference` flag for CNV inference using a reference of non-malignant cells determined by consensus cell types
+- Added new [`build-cellbrowser.nf`](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#the-build-cellbrowsernf-workflow) workflow to build a UCSC Cell Browser instance from main workflow output
+- Added [Cavatica instructions](https://github.com/AlexsLemonade/scpca-nf/blob/main/cavatica-instructions.md)
+
+---
+
+## [v0.8.8](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.8) — 2024-07-15
+
+- Updated to `scpcaTools v0.4.3`, which fixes a bug where `cell_id` in merged objects now correctly includes both library ID and cell barcode
+- Bug fix for [#867](https://github.com/AlexsLemonade/scpca-nf/issues/867)
+
+---
+
+## [v0.8.7](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.7) — 2024-04-14
+
+- Bulk workflow now outputs both raw counts and TPM
+- Defined resource limits for individual processes
+- Updated manifest and schema formatting
+- Added two new profiles: `staging` and `production`
+- Output a metrics JSON file
+- Processed and merged objects now contain a consensus cell type assignment
+- Updated to `scpcaTools v0.4.2`, which saves `assays` in merged objects as sparse matrices rather than `DelayedArray`
+
+---
+
+## [v0.8.6](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.6) — 2024-01-28
+
+- `merge.nf` now requires a minimum of 3 cells for merging
+- Updated GHA artifacts to v4
+- Added support for samples categorized as both a patient-derived xenograft and a cell line
+
+---
+
+## [v0.8.5](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.5) — 2023-11-04
+
+- Updated to `scpcaTools v0.4.1`:
+  - Raw single-cell counts are now correctly rounded
+  - Security updates via upgraded `lightning` in dependent Python packages
+- Converted deprecated `addParams()` to `take` for future Nextflow compatibility
+- Fixed handling of the 2-cell case to allow PCA creation
+
+---
+
+## [v0.8.4](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.4) — 2023-08-09
+
+- Only count single-cell libraries toward the max merged limit
+- Account for different HVG name in merged object
+
+---
+
+## [v0.8.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.3) — 2023-08-05
+
+- Updated `AnnData` objects:
+  - PCA and UMAP embeddings now stored as `X_pca` and `X_umap` (previously `X_PCA` and `X_UMAP`)
+  - `.var` now contains a `highly_variable` column
+  - `.uns` now contains a `pca` object with parameters and variance weights
+- Added `max_merge_libraries` parameter for `merge.nf` to limit the number of libraries merged into a single object
+
+---
+
+## [v0.8.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.2) — 2023-07-16
+
+- Updated to use slimmer `scpcaTools` Docker containers (`v0.4.0`)
+- Bulk files (`bulk_quant.tsv` and `bulk_metadata.tsv`) are now saved to a `bulk` directory
+- QC and cell type reports now include a table summarizing sample metadata (age, sex, diagnosis, etc.)
+
+---
+
+## [v0.8.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.1) — 2023-04-29
+
+- Output HDF5 files now use the `.h5ad` extension instead of `.hdf5`
+- Bug fixes:
+  - Skip `CellAssign` if processed object has only 1 cell
+  - No cell type reports generated if processed objects have only 1 cell
+  - Account for no genetic demultiplexing when estimating sample cell counts for `metadata.json`
+  - Skip downstream processing if no cells remain after filtering empty droplets
+
+---
+
+## [v0.8.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.8.0) — 2023-03-15
+
+- Added `merge.nf` workflow for creating merged `SingleCellExperiment` and `AnnData` objects from a list of projects, including a summary report
+- Minor aesthetic fixes to cell type report
+- Use `bz2` compression for `SingleCellExperiment` objects to reduce file sizes
+- Added `nextflow_schema.json` to the repository
+
+---
+
+## [v0.7.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.7.3) — 2023-03-11
+
+- Skip clustering and cell type assignment for processed objects with 0 cells
+- Use new `max_mem` label for `CellAssign` classification, using `params.max_memory` after first failure
+
+---
+
+## [v0.7.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.7.2) — 2023-02-05
+
+- Skip `CellAssign` if too few cells are present
+- Bug fixes for running multiplexed samples through cell typing
+- Skip cell typing for cell line samples
+- Adjustments to UMAPs in the cell type report
+- Account for missing input files
+
+---
+
+## [v0.7.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.7.1) — 2023-01-03
+
+- Updated memory and CPU requests for `CellAssign`
+- Set max retries after AWS instance failure to 2
+- Use On Demand instances on 3rd retry
+- Added faceted UMAPs to the cell type report
+
+---
+
+## [v0.7.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.7.0) — 2022-11-28
+
+- Added cell type annotation to the main workflow:
+  - Annotation with `SingleR` or `CellAssign`
+  - New output includes processed `SingleCellExperiment` and `AnnData` objects with cell type annotations and a cell type summary report
+  - Documentation for adding cell type annotations
+- Cell type annotation is off by default; use `--perform_celltyping` to enable
+- By default, existing cell typing results are reused; use `--repeat_celltyping` to rerun
+- Added pre-commit to the repository
+
+---
+
+## [v0.6.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.6.3) — 2022-11-17
+
+- Ensure all RDS files are compressed
+- Support running multiple projects at once via the `--project` parameter
+
+---
+
+## [v0.6.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.6.2) — 2022-11-08
+
+- Fixed a bug to ensure at least one gene or feature is present in the `SingleCellExperiment` object prior to `AnnData` conversion
+- Temporarily removed cell type section from the main QC report
+
+---
+
+## [v0.6.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.6.1) — 2022-10-30
+
+- Fixed a bug when handling NA values in library metadata
+
+---
+
+## [v0.6.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.6.0) — 2022-10-12
+
+- Added cluster assignments to processed `SingleCellExperiment` objects
+- Incorporated sample metadata into `SingleCellExperiment` objects
+- Export all `SingleCellExperiment` objects as `AnnData` objects
+- Added a workflow for generating references for cell type annotation
+- Added `CellAssign` for cell type annotation
+- Initial cell type report additions
+- Allowed addition of submitter-provided cell types
+- Added style guide
+- Handle failures in modeling gene variance and PCA
+
+---
+
+## [v0.5.4](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.5.4) — 2022-09-14
+
+- Added error handling for modeling gene variance, calculating PCA, and calculating UMAP
+
+---
+
+## [v0.5.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.5.3) — 2022-07-19
+
+- Fixed intermittent ADT filtering bug
+- Improved memory usage for QC report
+
+---
+
+## [v0.5.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.5.2) — 2022-07-11
+
+- Added post-processing (filtering and normalization) for ADT data from CITE-seq experiments
+- Added support for additional organisms as references
+- QC report updates
+- Workflow development updates: improved behavior in limited-resource environments; added more `stub` block testing
+- Experimental features: sample integration; cell type annotation
+
+---
+
+## [v0.5.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.5.1) — 2022-05-31
+
+- Made genetic demultiplexing optional
+
+---
+
+## [v0.5.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.5.0) — 2022-05-12
+
+- Added support for processing libraries from multiple organisms
+- Available mapping references now include Human and Mouse Ensembl v104
+- Option to skip feature mapping if already completed
+- Publish checkpoints for feature mapping
+
+---
+
+## [v0.4.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.4.2) — 2022-05-05
+
+- Updated URL
+- Ensured feature barcode files provided to `salmon index` contain the correct columns
+
+---
+
+## [v0.4.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.4.1) — 2022-01-11
+
+- Catch errors in UMAP calculation in `post_process_sce.R`
+- Updated to `scpcaTools v0.2.1`
+
+---
+
+## [v0.4.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.4.0) — 2021-12-07
+
+- Added filtering, normalization, and dimensionality reduction of `SingleCellExperiment` objects
+- Metadata tracking at checkpoints
+- Added script for downloading local reference files and images
+- Added instructions for downloading local reference files
+- Updated to [`scpcaTools v0.2.0`](https://github.com/AlexsLemonade/scpcaTools/releases/tag/v0.2.0), including updates to reading alevin-fry data with `fishpond::loadFry()`
+- Reorganized documentation
+
+---
+
+## [v0.3.4](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.3.4) — 2021-09-28
+
+- Fixed potentially missing (unneeded) multiplex pool file
+- Made scripts executable
+- Added AWS anonymous access to example config for easier running on external systems
+
+---
+
+## [v0.3.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.3.3) — 2021-06-13
+
+- Updated to `scpcaTools v0.1.8`, including special handling of libraries with one sample and cell hashing in the QC report
+- Skip demultiplexing for cell-hashed libraries containing only one sample
+
+---
+
+## [v0.3.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.3.2) — 2021-06-06
+
+- Updated to `scpcaTools v0.1.7`, which adds a dedicated section in the QC report for multiplexed libraries
+
+---
+
+## [v0.3.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.3.1) — 2021-05-26
+
+- Updated Alevin-fry to 0.5.0 and Salmon to 0.8.0
+- Improved error handling for miQC failures
+- Changed default queue to use larger disk after first job failure
+- Added a new profile using autoscaling EBS
+
+---
+
+## [v0.3.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.3.0) — 2021-05-04
+
+- Initial support for multiplexed libraries:
+  - Added genetic demultiplexing workflow using cellsnp/vireo
+  - Report demultiplexing results based on cellhash data
+- Updated user instructions and example metadata
+
+---
+
+## [v0.2.7](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.7) — 2021-04-12
+
+- Spatial transcriptomics workflow output now includes the `<library_id>_metadata.json` file nested inside the `<library_id>_spatial` folder
+
+---
+
+## [v0.2.6](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.6) — 2021-04-07
+
+- Fixed a bug in the spaceranger workflow to ensure the index name is present in the metadata file even when the spaceranger process is skipped
+
+---
+
+## [v0.2.5](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.5) — 2021-03-31
+
+- Added option to skip spaceranger quantification for the spatial workflow using `--repeat_mapping`
+- Reorganized spaceranger output file structure
+- Added a `ccdl` profile
+
+---
+
+## [v0.2.4](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.4) — 2021-03-17
+
+- Split process settings from AWS profile
+- Added minimal parameter checks and manifest
+- Added template config for external users
+- Added instructions for external users to README
+
+---
+
+## [v0.2.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.3) — 2021-02-18
+
+- Increased maximum retry attempts from 2 to 3
+
+---
+
+## [v0.2.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.2) — 2021-02-17
+
+- Increased memory request for `fastp` in the bulk RNA-seq workflow to accommodate larger libraries
+- Memory request now doubles on every retry attempt
+
+---
+
+## [v0.2.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.1) — 2021-02-15
+
+- Split CPU and memory handling with labels
+- Updated error handling for cell filtering using `scpcaTools v0.1.4`
+- Added filtering method to `metadata.json`
+
+---
+
+## [v0.2.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.0) — 2021-02-07
+
+- Mapping steps are now skipped by default for bulk and single-cell RNA-seq data; use `--repeat_mapping` to force remapping
+- Removed implicit dependence on S3 for file locations
+- Moved index and barcode defaults to public reference bucket
+- Added bulk RNA-seq metadata file per project
+- Updated to `scpcaTools v0.1.3`, which rounds expression counts for single-cell data
+
+---
+
+## [v0.1.3](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.1.3) — 2021-01-14
+
+- Added bulk RNA-seq processing with Salmon
+- Added spatial expression analysis with Space Ranger
+- Memory and disk space updates for large samples
+- Reorganized configuration files and parameters
+- Updated to `scpcaTools v0.1.2`, changing filtering to use `emptyDropsCellRanger`
+
+---
+
+## [v0.1.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.1.2) — 2020-10-18
+
+- Changed default alevin-fry resolution to `cr-like-em`
+- Reduced default memory usage
+
+---
+
+## [v0.1.1](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.1.1) — 2020-10-08
+
+- More robust handling of miQC model fit failures via `scpcaTools v0.1.1`
+
+---
+
+## [v0.1.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.1.0) — 2020-10-07
+
+Initial release of the `scpca-nf` workflow.
