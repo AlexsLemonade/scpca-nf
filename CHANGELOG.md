@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Added a minimum cell threshold for running SCimilarity
-- H5AD conversion for CellAssign and SCimilarity is now done in a separate process to allow for separation of R and Python processes.
+- Added a minimum cell threshold for running `SCimilarity`
+- H5AD conversion for `CellAssign` and `SCimilarity` is now done in a separate process to allow for separation of R and Python processes.
 
 ### Fixed
 
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated display of project list and marker gene lists in Cell Browser
 
-### Fixed 
+### Fixed
 
 - Fixed a bug that caused extra reruns of `inferCNV`
 - Grammar update in report
@@ -68,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.9.2) — 2025-12-04
 
 - Minor bug fix in `build-index.nf`
-- Ensure CellBrowser always rebuilds in `build-cellbrowser.nf`
+- Ensure Cell Browser always rebuilds in `build-cellbrowser.nf`
 - Updated Cavatica configuration files and documentation
 
 
@@ -86,8 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Flex Gene Expression (single and multiplexed)
   - Chromium GEM-X single-cell 5' v3
   - Chromium GEM-X single-cell 3' v4
-- Doublet detection now performed using [scDblFinder](https://bioconductor.org/packages/release/bioc/html/scDblFinder.html); results stored in filtered and processed objects
-- `--perform_celltyping` now additionally assigns cell types using [SCimilarity](https://genentech.github.io/scimilarity/index.html) alongside `SingleR` and `CellAssign`
+- Doublet detection now performed using [`scDblFinder`](https://bioconductor.org/packages/release/bioc/html/scDblFinder.html); results stored in filtered and processed objects
+- `--perform_celltyping` now additionally assigns cell types using [`SCimilarity`](https://genentech.github.io/scimilarity/index.html) alongside `SingleR` and `CellAssign`
   - Consensus cell types determined by agreement of ≥2 of 3 methods in an ontology-aware manner using the updated consensus reference in [`OpenScPCA-analysis v0.2.3`](https://github.com/AlexsLemonade/OpenScPCA-analysis/tree/v0.2.3/analyses/cell-type-consensus)
 - Cell types annotated as part of the OpenScPCA Project can now be provided as input; annotations are added to cell metadata of all objects and summarized in QC and cell type reports
 - Added `--perform_cnv_inference` flag for CNV inference using a reference of non-malignant cells determined by consensus cell types
@@ -310,13 +310,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Alevin-fry to 0.5.0 and Salmon to 0.8.0
 - Improved error handling for miQC failures
 - Changed default queue to use larger disk after first job failure
-- Added a new profile using autoscaling EBS
+- Added a new profile using auto-scaling EBS
 
 
 ## [0.3.0](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.3.0) — 2021-05-04
 
 - Initial support for multiplexed libraries:
-  - Added genetic demultiplexing workflow using cellsnp/vireo
+  - Added genetic demultiplexing workflow using `cellsnp`/`vireo`
   - Report demultiplexing results based on cellhash data
 - Updated user instructions and example metadata
 
@@ -328,7 +328,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.6](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.6) — 2021-04-07
 
-- Fixed a bug in the spaceranger workflow to ensure the index name is present in the metadata file even when the spaceranger process is skipped
+- Fixed a bug in the `spaceranger` workflow to ensure the index name is present in the metadata file even when the `spaceranger` process is skipped
 
 
 ## [0.2.5](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.2.5) — 2021-03-31
