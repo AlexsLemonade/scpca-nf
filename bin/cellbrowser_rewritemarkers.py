@@ -86,7 +86,9 @@ def rewrite_markers(
     out_cols = ["id", "symbol", "z_score|float"] + other_cols
 
     for cluster_name, group in markers.groupby(cluster_col, sort=False):
-        out_path = markers_out_dir / (make_cluster_filename(cluster_name) + ".tsv.gz")
+        out_path = markers_out_dir / (
+            make_cluster_filename(str(cluster_name)) + ".tsv.gz"
+        )
         group[out_cols].to_csv(out_path, sep="\t", index=False, compression="gzip")
 
     return True
