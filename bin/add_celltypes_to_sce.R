@@ -746,5 +746,5 @@ if (length(automated_methods) > 1) {
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
 
 # export normal cell count and hash
-readr::write_file(reference_cell_count, opt$reference_cell_count_file)
-readr::write_file(reference_cell_hash, opt$reference_cell_hash_file)
+readr::write_lines(reference_cell_count, opt$reference_cell_count_file)
+readr::write_lines(reference_cell_hash, opt$reference_cell_hash_file)

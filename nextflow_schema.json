@@ -640,12 +640,12 @@
         },
         "cellbrowser_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.0",
+          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.2",
           "fa_icon": "fab fa-docker"
         },
         "vireo_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.10.0",
+          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.10.2",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -688,7 +688,7 @@
   "properties": {
     "pullthrough_registry": {
       "type": "string",
-      "hidden": true, 
+      "hidden": true,
       "description": "Container registry for image pullthrough caching; disabled by default.",
       "default": ""
     }
