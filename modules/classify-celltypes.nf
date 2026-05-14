@@ -194,23 +194,23 @@ workflow annotate_celltypes {
   take: sce_files_channel // channel of meta, unfiltered_sce, filtered_sce, processed_sce
   main:
 
-    // read in sample metadata and make a list of cell line samples; these won't be cell typed
-    cell_line_samples = channel.fromPath(params.sample_metafile)
+    // read in sample metadata and make a list of samples to skip celltyping on, including:
+    // cell line and non-human samples
+    skip_samples = channel.fromPath(params.sample_metafile)
       .splitCsv(header: true, sep: '\t')
-      .filter{ it.is_cell_line.toBoolean() }
+      .filter{ it.is_cell_line.toBoolean() || it.organism != "Homo sapiens"}
       .map{ it -> it.scpca_sample_id }
       .toList()
 
-    // branch to cell type the non-cell line libraries only
+    // branch to skip samples we don't cell type
     sce_files_channel_branched = sce_files_channel
       .branch{ meta, _unfiltered, _filtered, _processed ->
-        cell_line: meta.sample_id.split(",").every{ it in cell_line_samples.getVal() }
-        // only run cell typing on tissue samples
-        tissue: true
+        skip_celltype: meta.sample_id.split(",").every{ it in skip_samples.getVal() }
+        run_celltype: true
       }
 
-    // get just the meta and processed sce from the tissue (not cell line) samples
-    processed_sce_channel = sce_files_channel_branched.tissue
+    // get just the meta and processed sce from the samples we are running cell typing on
+    processed_sce_channel = sce_files_channel_branched.run_celltype
       .map{ meta, _unfiltered, _filtered, processed ->
         [meta, processed]
       }
@@ -490,9 +490,9 @@ workflow annotate_celltypes {
       .map{ meta, processed_sce ->
         [meta.unique_id, meta, processed_sce]
       }
-      // add in unfiltered and filtered sce files, for tissue samples only
+      // add in unfiltered and filtered sce files, for the samples we ran only
       .join(
-        sce_files_channel_branched.tissue
+        sce_files_channel_branched.run_celltype
           .map{ meta, unfiltered, filtered, _processed ->
             [meta.unique_id, unfiltered, filtered]
           },
@@ -502,8 +502,8 @@ workflow annotate_celltypes {
       .map{ _unique_id, meta, processed_sce, unfiltered_sce, filtered_sce ->
         [meta, unfiltered_sce, filtered_sce, processed_sce]
       }
-      // mix in cell line libraries which were not cell typed
-      .mix(sce_files_channel_branched.cell_line)
+      // mix in libraries which were not cell typed
+      .mix(sce_files_channel_branched.skip_celltype)
       // ensure meta.infercnv_reference_cell_count exists
       .map{ meta_in, unfiltered_sce, filtered_sce, processed_sce ->
         def meta = meta_in.clone()
