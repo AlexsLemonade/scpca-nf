@@ -663,7 +663,7 @@ gene_exp_df <- scuttle::makePerCellDF(
   use.dimred = FALSE
 ) |>
   tidyr::pivot_longer(
-    dplyr::all_of(expressed_markers), 
+    dplyr::all_of(expressed_markers),
     names_to = "ensembl_gene_id",
     values_to = "logcounts"
   ) |>
