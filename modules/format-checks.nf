@@ -6,7 +6,6 @@ process check_sce {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   label 'mem_16'
   tag "${meta.unique_id}"
-  publishDir "${params.results_dir}/${meta.project_id}/${meta.sample_id}", mode: 'copy'
   input:
     tuple val(meta), 
           path(sce_file), 
