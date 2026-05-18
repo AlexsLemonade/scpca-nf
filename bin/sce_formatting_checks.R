@@ -351,4 +351,9 @@ if (opt$object_type == "processed") {
 
 # Write output -----------------------------------------------------------------
 
-writeLines(errors, opt$output_file)
+# make sure that if there are no errors we have an empty file
+if (nchar(errors) == 0) {
+  file.create(opt$output_file)
+} else {
+  writeLines(errors, opt$output_file)
+}
