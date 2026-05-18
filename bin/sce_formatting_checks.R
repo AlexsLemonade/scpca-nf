@@ -349,9 +349,6 @@ if (opt$object_type == "processed") {
   }
 }
 
-# TODO: remove after testing
-message("error checking complete")
-
 # Write output -----------------------------------------------------------------
 
 writeLines(errors, opt$output_file)
