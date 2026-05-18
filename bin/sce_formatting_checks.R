@@ -352,7 +352,7 @@ if (opt$object_type == "processed") {
 # Write output -----------------------------------------------------------------
 
 # make sure that if there are no errors we have an empty file
-if (nchar(errors) == 0) {
+if (errors == "") {
   file.create(opt$output_file)
 } else {
   # add a header with library Id and object type information
