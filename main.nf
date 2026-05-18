@@ -462,7 +462,7 @@ workflow {
   )
 
   // check formatting for published sce files and generate error reports
-  format_checks(qc_publish_sce.out.data)
+  format_checks(qc_publish_sce.out.data, file(params.sce_format_reference_file))
 
   // convert SCE object to anndata
   anndata_ch = qc_publish_sce.out.data

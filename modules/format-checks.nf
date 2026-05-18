@@ -8,14 +8,13 @@ process check_sce {
   tag "${meta.unique_id}"
   input:
     tuple val(meta), 
-          path(sce_file), 
-          val(object_type)
+          path(sce_file)
     path(reference_sce_file)
   output:
     tuple val(meta), 
-          path("${meta.unique_id}_formatting_errors.txt"),
-          val(object_type)
+          path("${meta.unique_id}_formatting_errors.txt")
   script:
+    def object_type = sce_file.baseName.replace("${meta.library_id}_", "")
     """
     sce_formatting_checks.R \
         --sce_file ${sce_file} \
@@ -29,30 +28,58 @@ process check_sce {
     """
 }
 
+process compile_errors {
+  publishDir "${params.outdir}", mode: 'copy'
+  label 'mem_8'
+  input:
+   // more than one error file per library (unfiltered, filtered, processed), so use stageAs
+   path error_files, stageAs: "error_file_??.txt"
+  output:
+    path "format_check_errors.txt"
+  script:
+    """
+    # check if all files are empty, if so print a success message
+    # otherwise concatenate all error files into one output file
+    if [ -z "\$(cat ${error_files})" ]; then
+      echo "No formatting errors found." > format_check_errors.txt
+    else
+      cat ${error_files} > format_check_errors.txt
+    fi
+    """
+  stub: 
+    """
+    touch format_check_errors.txt
+    """
+}
+
 workflow format_checks {
   take: 
     sce_ch // [ meta, unfiltered sce, filtered sce, processed sce, metadata json]
+    sce_format_reference_file
   main: 
 
     sce_format_ch = sce_ch
       // drop the metadata json
       .map{ meta, unfiltered_sce, filtered_sce, processed_sce, metadata_json -> 
-      [meta, [unfiltered_sce, filtered_sce, processed_sce]]
+        [meta, [unfiltered_sce, filtered_sce, processed_sce]]
       } 
       .transpose() // [ [meta, unfiltered sce], [meta, filtered sce], [meta, processed sce] ]
-      .map{ meta, sce -> 
-        def object_type = sce.baseName.replace("${meta.library_id}_", "")
-        [meta, sce, object_type]
-      }
 
-    check_sce(sce_format_ch, file(params.sce_format_reference_file))
+    check_sce(sce_format_ch, sce_format_reference_file)
 
-    // check the contents of each error file and print any errors if present
+    // collect all error files and concatenate to print to a formatting errors output file
+    error_input_ch = check_sce.out
+      .map{ meta, error_file -> error_file } // get just the error file paths
+      .collect() // collect into a list of error files
+    
+    compile_errors(error_input_ch)
+
+    // collect all error files and print out an error to the log file
     check_sce.out
-      .map{ meta, error_file, object_type ->
-        if (error_file.size() > 0) {
-          log.error "Formatting errors for library ${meta.library_id} ${object_type}:\n${error_file.text}"
-        }
+      .filter{ meta, error_file -> error_file.size() > 0 } // only warn about libraries with errors
+      .subscribe{ meta, error_file -> 
+        log.error "Formatting errors for ${error_file.text}"
       }
+    
 
 }
