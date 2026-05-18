@@ -17,7 +17,7 @@ process check_sce {
           val(object_type)
   script:
     """
-    Rscript sce_formatting_checks.R \
+    sce_formatting_checks.R \
         --sce_file ${sce_file} \
         --object_type ${object_type} \
         --reference_file ${reference_sce_file} \
