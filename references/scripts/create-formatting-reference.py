@@ -171,7 +171,7 @@ filtered_experiment_metadata_conditional = {
     "umi_filtering": {"umi_cutoff": "numeric"},
     # if miQC is present
     # miQC model is an S4 object ONLY in filtered, gets removed from processed objects
-    "has_miQC": {"miQC_model": "S4"},
+    "has_miQC": {"miQC_model": "flexmix"},
 }
 
 processed_experiment_metadata = {
