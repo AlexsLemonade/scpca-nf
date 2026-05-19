@@ -220,7 +220,7 @@
                 "umi_cutoff": "numeric"
             },
             "has_miQC": {
-                "miQC_model": "S4"
+                "miQC_model": "flexmix"
             }
         },
         "altExp": {

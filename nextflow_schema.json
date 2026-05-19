@@ -397,6 +397,24 @@
           "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells.",
           "hidden": true,
           "fa_icon": "fas fa-file-alt"
+        },
+        "sce_format_reference_file": {
+          "type": "string",
+          "default": "${projectDir}/references/sce-formatting-reference.json",
+          "format": "file-path",
+          "mimetype": "application/json",
+          "description": "SCE formatting reference file",
+          "help_text": "JSON file describing the expected contents of SCE objects output by scpca-nf",
+          "fa_icon": "fas fa-file-alt"
+        },
+        "anndata_format_reference_file": {
+          "type": "string",
+          "default": "${projectDir}/references/anndata-formatting-reference.json",
+          "format": "file-path",
+          "mimetype": "application/json",
+          "description": "Anndata formatting reference file",
+          "help_text": "JSON file describing the expected contents of Anndata objects output by scpca-nf",
+          "fa_icon": "fas fa-file-alt"
         }
       },
       "fa_icon": "fas fa-copy"

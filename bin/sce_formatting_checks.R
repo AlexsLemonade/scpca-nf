@@ -351,4 +351,18 @@ if (opt$object_type == "processed") {
 
 # Write output -----------------------------------------------------------------
 
-writeLines(errors, opt$output_file)
+# make sure that if there are no errors we have an empty file
+if (errors == "") {
+  file.create(opt$output_file)
+} else {
+  # add a header with library Id and object type information
+  errors <- glue::glue(
+    "Formatting errors found for {metadata(sce)$library_id} {params$object_type}:
+
+    {errors}
+    "
+  )
+
+  # export file
+  writeLines(errors, opt$output_file)
+}
