@@ -29,6 +29,7 @@ process check_sce {
 }
 
 process compile_errors {
+  container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}", mode: 'copy'
   label 'mem_8'
   input:
@@ -44,7 +45,7 @@ process compile_errors {
     if [ -z \${errors} ]; then
       echo "No formatting errors found." > format_check_results.txt
     else
-      \${errors} > format_check_results.txt
+      echo \${errors} > format_check_results.txt
     fi
     """
   stub: 
