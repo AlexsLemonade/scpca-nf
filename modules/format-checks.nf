@@ -33,22 +33,23 @@ process compile_errors {
   label 'mem_8'
   input:
    // more than one error file per library (unfiltered, filtered, processed), so use stageAs
-   path error_files, stageAs: "error_file_??.txt"
+   path error_files, stageAs: "error_file_*.txt"
   output:
-    path "format_check_errors.txt"
+    path "format_check_results.txt"
   script:
     """
     # check if all files are empty, if so print a success message
     # otherwise concatenate all error files into one output file
-    if [ -z "\$(cat ${error_files})" ]; then
-      echo "No formatting errors found." > format_check_errors.txt
+    errors="\$(cat ${error_files})"
+    if [ -z \${errors} ]; then
+      echo "No formatting errors found." > format_check_results.txt
     else
-      cat ${error_files} > format_check_errors.txt
+      \${errors} > format_check_results.txt
     fi
     """
   stub: 
     """
-    touch format_check_errors.txt
+    touch format_check_results.txt
     """
 }
 
@@ -69,8 +70,7 @@ workflow format_checks {
 
     // collect all error files and concatenate to print to a formatting errors output file
     error_input_ch = check_sce.out
-      .map{ meta, error_file -> error_file } // get just the error file paths
-      .collect() // collect into a list of error files
+      .collect{ meta, error_file -> error_file } // collect into a list of just the error files
     
     compile_errors(error_input_ch)
 
