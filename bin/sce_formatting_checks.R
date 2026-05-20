@@ -266,7 +266,7 @@ conditionals_vec <- c(
   # preprocessing
   umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
   has_miQC = metadata(sce)$has_miQC,
-  has_normalization = metadata(sce)$normalization == "normalization",
+  has_normalization = metadata(sce)$normalization %in% c("deconvolution", "log-normalization"),
 
   # clustering and cell typing
   has_clusters = "cluster" %in% names(colData(sce)),
