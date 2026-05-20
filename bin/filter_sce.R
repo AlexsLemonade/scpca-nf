@@ -123,8 +123,13 @@ try({
     posterior_cutoff = opt$prob_compromised_cutoff,
     enforce_left_cutoff = opt$enforce_left_cutoff
   )
-  metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
-  metadata(filtered_sce)$has_miQC <- TRUE
+  # if it failed to fit a mixture model,
+  # all the prob_compromised values will be NA.
+  # so, only set to TRUE if values are not all NA
+  if (!all(is.na(filtered_sce$prob_compromised))) {
+    metadata(filtered_sce)$prob_compromised_cutoff <- opt$prob_compromised_cutoff
+    metadata(filtered_sce)$has_miQC <- TRUE
+  }
 })
 # set prob_compromised to NA if miQC failed
 if (!metadata(filtered_sce)$has_miQC) {
@@ -134,6 +139,8 @@ if (!metadata(filtered_sce)$has_miQC) {
   metadata(filtered_sce)$prob_compromised_cutoff <- NA_real_
   metadata(filtered_sce)$has_miQC <- FALSE
 }
+
+
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
 for (alt in alt_names) {
