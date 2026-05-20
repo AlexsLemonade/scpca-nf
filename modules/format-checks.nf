@@ -42,10 +42,10 @@ process compile_errors {
     # check if all files are empty, if so print a success message
     # otherwise concatenate all error files into one output file
     errors="\$(cat ${error_files})"
-    if [ -z \${errors} ]; then
+    if [ -z "\${errors}" ]; then
       echo "No formatting errors found." > format_check_results.txt
     else
-      echo \${errors} > format_check_results.txt
+      echo "\${errors}" > format_check_results.txt
     fi
     """
   stub: 
