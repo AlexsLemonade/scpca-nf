@@ -139,8 +139,6 @@ if (!metadata(filtered_sce)$has_miQC) {
   metadata(filtered_sce)$prob_compromised_cutoff <- NA_real_
   metadata(filtered_sce)$has_miQC <- FALSE
 }
-
-
 # grab names of altExp, if any
 alt_names <- altExpNames(filtered_sce)
 for (alt in alt_names) {
