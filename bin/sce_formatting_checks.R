@@ -247,7 +247,7 @@ errors <- c(errors, check_assays(sce, all_ref_list$assayNames, label = "main SCE
 # check that counts assay contains rounded integers
 if (any(counts(sce)@x != floor(counts(sce)@x))) {
   errors <- c(
-    errors, 
+    errors,
     "'counts' assay does not contain rounded integers."
   )
 }
