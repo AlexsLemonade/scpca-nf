@@ -238,7 +238,7 @@ sce <- readr::read_rds(opt$sce_file)
 all_ref_list <- jsonlite::read_json(opt$reference_file)[[opt$object_type]]
 
 # initialize empty error string
-errors <- ""
+errors <- character(0)
 
 # Check main SCE assays --------------------------------------------------------
 
@@ -246,9 +246,10 @@ errors <- c(errors, check_assays(sce, all_ref_list$assayNames, label = "main SCE
 
 # check that counts assay contains rounded integers
 if (any(counts(sce)@x != floor(counts(sce)@x))) {
-  errors <- glue::glue("{errors}
-                       'counts' assay does not contain rounded integers.
-                       ")
+  errors <- c(
+    errors,
+    "'counts' assay does not contain rounded integers."
+  )
 }
 
 # Define conditionals for the main SCE object ----------------------------------
@@ -265,7 +266,7 @@ conditionals_vec <- c(
   # preprocessing
   umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
   has_miQC = metadata(sce)$has_miQC,
-  has_normalization = metadata(sce)$normalization == "normalization",
+  has_normalization = metadata(sce)$normalization %in% c("deconvolution", "log-normalization"),
 
   # clustering and cell typing
   has_clusters = "cluster" %in% names(colData(sce)),
@@ -341,28 +342,17 @@ if (has_cellhash) {
 
 if (opt$object_type == "processed") {
   if (!setequal(reducedDimNames(sce), all_ref_list$reducedDimNames)) {
-    errors <- glue::glue(
-      "{errors}
-       reducedDimNames do not match expected: {all_ref_list$reducedDimNames}.
-      "
-    )
+    expected <- paste(all_ref_list$reducedDimNames, collapse = ", ")
+    errors <- c(errors, glue::glue("reducedDimNames do not match expected: {expected}."))
   }
 }
 
 # Write output -----------------------------------------------------------------
 
 # make sure that if there are no errors we have an empty file
-if (errors == "") {
-  file.create(opt$output_file)
+if (length(errors) == 0) {
+  fs::file_create(opt$output_file)
 } else {
-  # add a header with library Id and object type information
-  errors <- glue::glue(
-    "Formatting errors found for {metadata(sce)$library_id} {params$object_type}:
-
-    {errors}
-    "
-  )
-
-  # export file
-  writeLines(errors, opt$output_file)
+  header <- glue::glue("Formatting errors found for {metadata(sce)$library_id} {opt$object_type}:")
+  writeLines(c(header, "", errors), opt$output_file)
 }
