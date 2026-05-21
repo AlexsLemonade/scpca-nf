@@ -115,7 +115,9 @@ if (is.null(filtered_sce$subsets_mito_percent)) {
 
 # try to add miQC if it is missing
 if (is.null(metadata(filtered_sce)$miQC_model) && !skip_miQC) {
-  filtered_sce <- scpcaTools::add_miQC(filtered_sce)
+  suppressWarnings({
+    filtered_sce <- scpcaTools::add_miQC(filtered_sce)
+  })
 }
 
 ## Check for additional modalities
