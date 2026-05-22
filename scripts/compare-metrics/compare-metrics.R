@@ -36,6 +36,12 @@ option_list <- list(
     help = "Output file name for the rendered report. If not provided, a name will be generated with the current date and project ID(s)."
   ),
   make_option(
+    c("--profile"),
+    type = "character",
+    default = Sys.getenv("AWS_PROFILE", unset = "default"),
+    help = "Profile to use with AWS credentials"
+  ),
+  make_option(
     c("--use_cache"), # temporary option for testing
     action = "store_true",
     default = FALSE,
@@ -45,6 +51,10 @@ option_list <- list(
 
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
+
+# set AWS profile for use with paws
+# see https://github.com/paws-r/paws/blob/main/docs/credentials.md#use-aws-single-sign-on-sso
+Sys.setenv(AWS_PROFILE = opt$profile)
 
 # check parameters
 stopifnot(
