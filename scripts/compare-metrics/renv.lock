@@ -81,7 +81,8 @@
       "NeedsCompilation": "yes",
       "Author": "Brian Ripley [aut, cre, cph], Bill Venables [aut, cph], Douglas M. Bates [ctb], Kurt Hornik [trl] (partial port ca 1998), Albrecht Gebhardt [trl] (partial port ca 1998), David Firth [ctb] (support functions for polr)",
       "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "Matrix": {
       "Package": "Matrix",
@@ -224,7 +225,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>)",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "base64enc": {
       "Package": "base64enc",
@@ -277,7 +278,7 @@
       "NeedsCompilation": "yes",
       "Author": "Michael Chirico [aut, cre], Jens Oehlschlägel [aut], Brian Ripley [ctb]",
       "Maintainer": "Michael Chirico <MichaelChirico4@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "bit64": {
       "Package": "bit64",
@@ -311,7 +312,7 @@
       "NeedsCompilation": "yes",
       "Author": "Michael Chirico [aut, cre], Jens Oehlschlägel [aut], Leonardo Silvestri [ctb], Ofek Shilon [ctb]",
       "Maintainer": "Michael Chirico <michaelchirico4@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "bslib": {
       "Package": "bslib",
@@ -871,7 +872,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Yihui Xie [aut] (<https://orcid.org/0000-0003-0645-5666>), Michael Lawrence [ctb], Thomas Kluyver [ctb], Jeroen Ooms [ctb], Barret Schloerke [ctb], Adam Ryczkowski [ctb], Hiroaki Yutani [ctb], Michel Lang [ctb], Karolis Koncevičius [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "fansi": {
       "Package": "fansi",
@@ -1094,7 +1095,8 @@
       "NeedsCompilation": "no",
       "Author": "Henrik Bengtsson [aut, cre, cph] (<https://orcid.org/0000-0002-7579-5165>), R Core Team [cph, ctb]",
       "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "generics": {
       "Package": "generics",
@@ -1286,7 +1288,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jim Hester [aut] (<https://orcid.org/0000-0002-2739-7082>), Jennifer Bryan [aut, cre] (<https://orcid.org/0000-0002-6983-2759>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Jennifer Bryan <jenny@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "gtable": {
       "Package": "gtable",
@@ -1326,7 +1328,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut], Thomas Lin Pedersen [aut, cre], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "highr": {
       "Package": "highr",
@@ -1507,6 +1509,46 @@
       "NeedsCompilation": "yes",
       "Author": "Joe Cheng [aut], Winston Chang [aut, cre], Posit, PBC fnd [cph], Hector Corrada Bravo [ctb], Jeroen Ooms [ctb], Andrzej Krzemienski [cph] (optional.hpp), libuv project contributors [cph] (libuv library, see src/libuv/AUTHORS file), Joyent, Inc. and other Node contributors [cph] (libuv library, see src/libuv/AUTHORS file; and http-parser library, see src/http-parser/AUTHORS file), Niels Provos [cph] (libuv subcomponent: tree.h), Internet Systems Consortium, Inc. [cph] (libuv subcomponent: inet_pton and inet_ntop, contained in src/libuv/src/inet.c), Alexander Chemeris [cph] (libuv subcomponent: stdint-msvc2008.h (from msinttypes)), Google, Inc. [cph] (libuv subcomponent: pthread-fixes.c), Sony Mobile Communcations AB [cph] (libuv subcomponent: pthread-fixes.c), Berkeley Software Design Inc. [cph] (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c), Kenneth MacKay [cph] (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c), Emergya (Cloud4all, FP7/2007-2013, grant agreement no 289016) [cph] (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c), Steve Reid [aut] (SHA-1 implementation), James Brown [aut] (SHA-1 implementation), Bob Trower [aut] (base64 implementation), Alexander Peslyak [aut] (MD5 implementation), Trantor Standard Systems [cph] (base64 implementation), Igor Sysoev [cph] (http-parser)",
       "Maintainer": "Winston Chang <winston@posit.co>",
+      "Repository": "CRAN"
+    },
+    "httr": {
+      "Package": "httr",
+      "Version": "1.4.8",
+      "Source": "Repository",
+      "Title": "Tools for Working with URLs and HTTP",
+      "Authors@R": "c( person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
+      "Description": "Useful tools for working with HTTP organised by HTTP verbs (GET(), POST(), etc). Configuration functions make it easy to control additional request components (authenticate(), add_headers() and so on).",
+      "License": "MIT + file LICENSE",
+      "URL": "https://httr.r-lib.org/, https://github.com/r-lib/httr",
+      "BugReports": "https://github.com/r-lib/httr/issues",
+      "Depends": [
+        "R (>= 3.6)"
+      ],
+      "Imports": [
+        "curl (>= 5.1.0)",
+        "jsonlite",
+        "mime",
+        "openssl (>= 0.8)",
+        "R6"
+      ],
+      "Suggests": [
+        "covr",
+        "httpuv",
+        "jpeg",
+        "knitr",
+        "png",
+        "readr",
+        "rmarkdown",
+        "testthat (>= 0.8.0)",
+        "xml2"
+      ],
+      "VignetteBuilder": "knitr",
+      "Config/Needs/website": "tidyverse/tidytemplate",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.3",
+      "NeedsCompilation": "no",
+      "Author": "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd]",
+      "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "CRAN"
     },
     "httr2": {
@@ -1809,7 +1851,8 @@
       "NeedsCompilation": "yes",
       "Author": "Deepayan Sarkar [aut, cre] (<https://orcid.org/0000-0003-4107-1553>), Felix Andrews [ctb], Kevin Wright [ctb] (documentation), Neil Klepeis [ctb], Johan Larsson [ctb] (miscellaneous improvements), Zhijian (Jason) Wen [cph] (filled contour code), Paul Murrell [ctb], Stefan Eng [ctb] (violin plot improvements), Achim Zeileis [ctb] (modern colors), Alexandre Courtiol [ctb] (generics for larrows, lpolygon, lrect and lsegments)",
       "Maintainer": "Deepayan Sarkar <deepayan.sarkar@r-project.org>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "lazyeval": {
       "Package": "lazyeval",
@@ -2078,7 +2121,8 @@
       "ByteCompile": "yes",
       "License": "GPL (>= 2)",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "mime": {
       "Package": "mime",
@@ -2297,7 +2341,91 @@
       "Config/Needs/website": "gifski",
       "NeedsCompilation": "no",
       "Author": "Thomas Lin Pedersen [cre, aut] (<https://orcid.org/0000-0002-5147-4711>)",
-      "Repository": "RSPM"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
+    },
+    "paws": {
+      "Package": "paws",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "Amazon Web Services Software Development Kit",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to Amazon Web Services <https://aws.amazon.com>, including storage, database, and compute services, such as 'Simple Storage Service' ('S3'), 'DynamoDB' 'NoSQL' database, and 'Lambda' functions-as-a-service.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.analytics (>= 0.9.0)",
+        "paws.application.integration (>= 0.9.0)",
+        "paws.common (>= 0.8.0)",
+        "paws.compute (>= 0.9.0)",
+        "paws.cost.management (>= 0.9.0)",
+        "paws.customer.engagement (>= 0.9.0)",
+        "paws.database (>= 0.9.0)",
+        "paws.developer.tools (>= 0.9.0)",
+        "paws.end.user.computing (>= 0.9.0)",
+        "paws.machine.learning (>= 0.9.0)",
+        "paws.management (>= 0.9.0)",
+        "paws.networking (>= 0.9.0)",
+        "paws.security.identity (>= 0.9.0)",
+        "paws.storage (>= 0.9.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.analytics": {
+      "Package": "paws.analytics",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Analytics Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' 'analytics' services, including 'Elastic MapReduce' 'Hadoop' and 'Spark' big data service, 'Elasticsearch' search engine, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.analytics",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'athena_service.R' 'athena_interfaces.R' 'athena_operations.R' 'cloudsearch_service.R' 'cloudsearch_interfaces.R' 'cloudsearch_operations.R' 'cloudsearchdomain_service.R' 'cloudsearchdomain_interfaces.R' 'cloudsearchdomain_operations.R' 'datapipeline_service.R' 'datapipeline_interfaces.R' 'datapipeline_operations.R' 'datazone_service.R' 'datazone_interfaces.R' 'datazone_operations.R' 'elasticsearchservice_service.R' 'elasticsearchservice_interfaces.R' 'elasticsearchservice_operations.R' 'emr_service.R' 'emr_interfaces.R' 'emr_operations.R' 'entityresolution_service.R' 'entityresolution_interfaces.R' 'entityresolution_operations.R' 'firehose_service.R' 'firehose_interfaces.R' 'firehose_operations.R' 'glue_service.R' 'glue_interfaces.R' 'glue_operations.R' 'gluedatabrew_service.R' 'gluedatabrew_interfaces.R' 'gluedatabrew_operations.R' 'healthlake_service.R' 'healthlake_interfaces.R' 'healthlake_operations.R' 'ivs_service.R' 'ivs_interfaces.R' 'ivs_operations.R' 'ivsrealtime_service.R' 'ivsrealtime_interfaces.R' 'ivsrealtime_operations.R' 'kafka_service.R' 'kafka_interfaces.R' 'kafka_operations.R' 'kafkaconnect_service.R' 'kafkaconnect_interfaces.R' 'kafkaconnect_operations.R' 'kendra_service.R' 'kendra_interfaces.R' 'kendra_operations.R' 'kendraranking_service.R' 'kendraranking_interfaces.R' 'kendraranking_operations.R' 'kinesis_service.R' 'kinesis_interfaces.R' 'kinesis_operations.R' 'kinesisanalytics_service.R' 'kinesisanalytics_interfaces.R' 'kinesisanalytics_operations.R' 'kinesisanalyticsv2_service.R' 'kinesisanalyticsv2_interfaces.R' 'kinesisanalyticsv2_operations.R' 'mturk_service.R' 'mturk_interfaces.R' 'mturk_operations.R' 'opensearchingestion_service.R' 'opensearchingestion_interfaces.R' 'opensearchingestion_operations.R' 'opensearchservice_service.R' 'opensearchservice_interfaces.R' 'opensearchservice_operations.R' 'opensearchserviceserverless_service.R' 'opensearchserviceserverless_interfaces.R' 'opensearchserviceserverless_operations.R' 'quicksight_service.R' 'quicksight_interfaces.R' 'quicksight_operations.R' 'reexports_paws.common.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.application.integration": {
+      "Package": "paws.application.integration",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Application Integration Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' application integration services, including 'Simple Queue Service' ('SQS') message queue, 'Simple Notification Service' ('SNS') publish/subscribe messaging, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.application.integration",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'eventbridge_service.R' 'eventbridge_interfaces.R' 'eventbridge_operations.R' 'eventbridgepipes_service.R' 'eventbridgepipes_interfaces.R' 'eventbridgepipes_operations.R' 'eventbridgescheduler_service.R' 'eventbridgescheduler_interfaces.R' 'eventbridgescheduler_operations.R' 'locationservice_service.R' 'locationservice_interfaces.R' 'locationservice_operations.R' 'mq_service.R' 'mq_interfaces.R' 'mq_operations.R' 'mwaa_service.R' 'mwaa_interfaces.R' 'mwaa_operations.R' 'reexports_paws.common.R' 'resourceexplorer_service.R' 'resourceexplorer_interfaces.R' 'resourceexplorer_operations.R' 'schemas_service.R' 'schemas_interfaces.R' 'schemas_operations.R' 'sfn_service.R' 'sfn_interfaces.R' 'sfn_operations.R' 'sns_service.R' 'sns_interfaces.R' 'sns_operations.R' 'sqs_service.R' 'sqs_interfaces.R' 'sqs_operations.R' 'swf_service.R' 'swf_interfaces.R' 'swf_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
     },
     "paws.common": {
       "Package": "paws.common",
@@ -2339,6 +2467,246 @@
       "Collate": "'RcppExports.R' 'util.R' 'cache.R' 'struct.R' 'handlers.R' 'iniutil.R' 'config.R' 'logging.R' 'dateutil.R' 'credential_sso.R' 'credential_sts.R' 'url.R' 'net.R' 'credential_providers.R' 'credentials.R' 'client.R' 'convert.R' 'service.R' 'custom_dynamodb.R' 'custom_rds.R' 'head_bucket.R' 'http_status.R' 'error.R' 'custom_s3.R' 'handlers_core.R' 'handlers_ec2query.R' 'handlers_jsonrpc.R' 'handlers_query.R' 'handlers_rest.R' 'handlers_restjson.R' 'tags.R' 'xmlutil.R' 'handlers_restxml.R' 'handlers_stream.R' 'idempotency.R' 'jsonutil.R' 'mock_bindings.R' 'onLoad.R' 'paginate.R' 'populate.R' 'populateutil.R' 'queryutil.R' 'request.R' 'retry.R' 'service_parameter_helper.R' 'signer_v4.R' 'signer_s3.R' 'signer_s3v4.R' 'signer_v1.R' 'signer_v2.R' 'time.R'",
       "Config/testthat/edition": "3",
       "NeedsCompilation": "yes",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.compute": {
+      "Package": "paws.compute",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Compute Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' compute services, including 'Elastic Compute Cloud' ('EC2'), 'Lambda' functions-as-a-service, containers, batch processing, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.compute",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'apprunner_service.R' 'apprunner_interfaces.R' 'apprunner_operations.R' 'batch_service.R' 'batch_interfaces.R' 'batch_operations.R' 'braket_service.R' 'braket_interfaces.R' 'braket_operations.R' 'computeoptimizer_service.R' 'computeoptimizer_interfaces.R' 'computeoptimizer_operations.R' 'ec2_service.R' 'ec2_interfaces.R' 'ec2_operations.R' 'ec2instanceconnect_service.R' 'ec2instanceconnect_interfaces.R' 'ec2instanceconnect_operations.R' 'ecr_service.R' 'ecr_interfaces.R' 'ecr_operations.R' 'ecrpublic_service.R' 'ecrpublic_interfaces.R' 'ecrpublic_operations.R' 'ecs_service.R' 'ecs_interfaces.R' 'ecs_operations.R' 'eks_service.R' 'eks_interfaces.R' 'eks_operations.R' 'elasticbeanstalk_service.R' 'elasticbeanstalk_interfaces.R' 'elasticbeanstalk_operations.R' 'emrcontainers_service.R' 'emrcontainers_interfaces.R' 'emrcontainers_operations.R' 'emrserverless_service.R' 'emrserverless_interfaces.R' 'emrserverless_operations.R' 'imagebuilder_service.R' 'imagebuilder_interfaces.R' 'imagebuilder_operations.R' 'lambda_service.R' 'lambda_interfaces.R' 'lambda_operations.R' 'lightsail_service.R' 'lightsail_interfaces.R' 'lightsail_operations.R' 'proton_service.R' 'proton_interfaces.R' 'proton_operations.R' 'reexports_paws.common.R' 'serverlessapplicationrepository_service.R' 'serverlessapplicationrepository_interfaces.R' 'serverlessapplicationrepository_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.cost.management": {
+      "Package": "paws.cost.management",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Cost Management Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' cost management services, including cost and usage reports, budgets, pricing, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.cost.management",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'billing_service.R' 'billing_interfaces.R' 'billing_operations.R' 'billingconductor_service.R' 'billingconductor_interfaces.R' 'billingconductor_operations.R' 'budgets_service.R' 'budgets_interfaces.R' 'budgets_operations.R' 'costandusagereportservice_service.R' 'costandusagereportservice_interfaces.R' 'costandusagereportservice_operations.R' 'costexplorer_service.R' 'costexplorer_interfaces.R' 'costexplorer_operations.R' 'marketplacecatalog_service.R' 'marketplacecatalog_interfaces.R' 'marketplacecatalog_operations.R' 'marketplacecommerceanalytics_service.R' 'marketplacecommerceanalytics_interfaces.R' 'marketplacecommerceanalytics_operations.R' 'marketplaceentitlementservice_service.R' 'marketplaceentitlementservice_interfaces.R' 'marketplaceentitlementservice_operations.R' 'marketplacemetering_service.R' 'marketplacemetering_interfaces.R' 'marketplacemetering_operations.R' 'paymentcryptographycontrolplane_service.R' 'paymentcryptographycontrolplane_interfaces.R' 'paymentcryptographycontrolplane_operations.R' 'paymentcryptographydataplane_service.R' 'paymentcryptographydataplane_interfaces.R' 'paymentcryptographydataplane_operations.R' 'pricing_service.R' 'pricing_interfaces.R' 'pricing_operations.R' 'reexports_paws.common.R' 'savingsplans_service.R' 'savingsplans_interfaces.R' 'savingsplans_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.customer.engagement": {
+      "Package": "paws.customer.engagement",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Customer Engagement Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' customer engagement services, including 'Simple Email Service', 'Connect' contact center service, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.customer.engagement",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'connect_service.R' 'connect_interfaces.R' 'connect_operations.R' 'connectcampaignservice_service.R' 'connectcampaignservice_interfaces.R' 'connectcampaignservice_operations.R' 'connectcampaignservicev2_service.R' 'connectcampaignservicev2_interfaces.R' 'connectcampaignservicev2_operations.R' 'connectcases_service.R' 'connectcases_interfaces.R' 'connectcases_operations.R' 'connectcontactlens_service.R' 'connectcontactlens_interfaces.R' 'connectcontactlens_operations.R' 'connectparticipant_service.R' 'connectparticipant_interfaces.R' 'connectparticipant_operations.R' 'connectwisdomservice_service.R' 'connectwisdomservice_interfaces.R' 'connectwisdomservice_operations.R' 'customerprofiles_service.R' 'customerprofiles_interfaces.R' 'customerprofiles_operations.R' 'pinpoint_service.R' 'pinpoint_interfaces.R' 'pinpoint_operations.R' 'pinpointemail_service.R' 'pinpointemail_interfaces.R' 'pinpointemail_operations.R' 'pinpointsmsvoice_service.R' 'pinpointsmsvoice_interfaces.R' 'pinpointsmsvoice_operations.R' 'pinpointsmsvoicev2_service.R' 'pinpointsmsvoicev2_interfaces.R' 'pinpointsmsvoicev2_operations.R' 'reexports_paws.common.R' 'ses_service.R' 'ses_interfaces.R' 'ses_operations.R' 'sesv2_service.R' 'sesv2_interfaces.R' 'sesv2_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.database": {
+      "Package": "paws.database",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Database Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' database services, including 'Relational Database Service' ('RDS'), 'DynamoDB' 'NoSQL' database, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.database",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'dax_service.R' 'dax_interfaces.R' 'dax_operations.R' 'docdb_service.R' 'docdb_interfaces.R' 'docdb_operations.R' 'docdbelastic_service.R' 'docdbelastic_interfaces.R' 'docdbelastic_operations.R' 'dynamodb_service.R' 'dynamodb_interfaces.R' 'dynamodb_operations.R' 'dynamodbstreams_service.R' 'dynamodbstreams_interfaces.R' 'dynamodbstreams_operations.R' 'elasticache_service.R' 'elasticache_interfaces.R' 'elasticache_operations.R' 'keyspaces_service.R' 'keyspaces_interfaces.R' 'keyspaces_operations.R' 'lakeformation_service.R' 'lakeformation_interfaces.R' 'lakeformation_operations.R' 'memorydb_service.R' 'memorydb_interfaces.R' 'memorydb_operations.R' 'neptune_service.R' 'neptune_interfaces.R' 'neptune_operations.R' 'neptunedata_service.R' 'neptunedata_interfaces.R' 'neptunedata_operations.R' 'qldb_service.R' 'qldb_interfaces.R' 'qldb_operations.R' 'qldbsession_service.R' 'qldbsession_interfaces.R' 'qldbsession_operations.R' 'rds_service.R' 'rds_operations.R' 'rds_custom.R' 'rds_interfaces.R' 'rdsdataservice_service.R' 'rdsdataservice_interfaces.R' 'rdsdataservice_operations.R' 'redshift_service.R' 'redshift_interfaces.R' 'redshift_operations.R' 'redshiftdataapiservice_service.R' 'redshiftdataapiservice_interfaces.R' 'redshiftdataapiservice_operations.R' 'redshiftserverless_service.R' 'redshiftserverless_interfaces.R' 'redshiftserverless_operations.R' 'reexports_paws.common.R' 'simpledb_service.R' 'simpledb_interfaces.R' 'simpledb_operations.R' 'timestreamquery_service.R' 'timestreamquery_interfaces.R' 'timestreamquery_operations.R' 'timestreamwrite_service.R' 'timestreamwrite_interfaces.R' 'timestreamwrite_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.developer.tools": {
+      "Package": "paws.developer.tools",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Developer Tools Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' developer tools services, including version control, continuous integration and deployment, and more <https://aws.amazon.com/products/developer-tools/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.developer.tools",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'cloud9_service.R' 'cloud9_interfaces.R' 'cloud9_operations.R' 'cloudcontrolapi_service.R' 'cloudcontrolapi_interfaces.R' 'cloudcontrolapi_operations.R' 'codeartifact_service.R' 'codeartifact_interfaces.R' 'codeartifact_operations.R' 'codebuild_service.R' 'codebuild_interfaces.R' 'codebuild_operations.R' 'codecatalyst_service.R' 'codecatalyst_interfaces.R' 'codecatalyst_operations.R' 'codecommit_service.R' 'codecommit_interfaces.R' 'codecommit_operations.R' 'codeconnections_service.R' 'codeconnections_interfaces.R' 'codeconnections_operations.R' 'codedeploy_service.R' 'codedeploy_interfaces.R' 'codedeploy_operations.R' 'codeguruprofiler_service.R' 'codeguruprofiler_interfaces.R' 'codeguruprofiler_operations.R' 'codegurureviewer_service.R' 'codegurureviewer_interfaces.R' 'codegurureviewer_operations.R' 'codegurusecurity_service.R' 'codegurusecurity_interfaces.R' 'codegurusecurity_operations.R' 'codepipeline_service.R' 'codepipeline_interfaces.R' 'codepipeline_operations.R' 'codestarconnections_service.R' 'codestarconnections_interfaces.R' 'codestarconnections_operations.R' 'codestarnotifications_service.R' 'codestarnotifications_interfaces.R' 'codestarnotifications_operations.R' 'devopsguru_service.R' 'devopsguru_interfaces.R' 'devopsguru_operations.R' 'drs_service.R' 'drs_interfaces.R' 'drs_operations.R' 'fis_service.R' 'fis_interfaces.R' 'fis_operations.R' 'reexports_paws.common.R' 'wellarchitected_service.R' 'wellarchitected_interfaces.R' 'wellarchitected_operations.R' 'xray_service.R' 'xray_interfaces.R' 'xray_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.end.user.computing": {
+      "Package": "paws.end.user.computing",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' End User Computing Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' end user computing services, including collaborative document editing, mobile intranet, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.end.user.computing",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'appstream_service.R' 'appstream_interfaces.R' 'appstream_operations.R' 'chatbot_service.R' 'chatbot_interfaces.R' 'chatbot_operations.R' 'ivschat_service.R' 'ivschat_interfaces.R' 'ivschat_operations.R' 'reexports_paws.common.R' 'workdocs_service.R' 'workdocs_interfaces.R' 'workdocs_operations.R' 'workmail_service.R' 'workmail_interfaces.R' 'workmail_operations.R' 'workmailmessageflow_service.R' 'workmailmessageflow_interfaces.R' 'workmailmessageflow_operations.R' 'workspaces_service.R' 'workspaces_interfaces.R' 'workspaces_operations.R' 'workspacesweb_service.R' 'workspacesweb_interfaces.R' 'workspacesweb_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.machine.learning": {
+      "Package": "paws.machine.learning",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Machine Learning Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' machine learning services, including 'SageMaker' managed machine learning service, natural language processing, speech recognition, translation, and more <https://aws.amazon.com/machine-learning/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.machine.learning",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'augmentedairuntime_service.R' 'augmentedairuntime_interfaces.R' 'augmentedairuntime_operations.R' 'bedrock_service.R' 'bedrock_interfaces.R' 'bedrock_operations.R' 'bedrockagent_service.R' 'bedrockagent_interfaces.R' 'bedrockagent_operations.R' 'bedrockagentruntime_service.R' 'bedrockagentruntime_interfaces.R' 'bedrockagentruntime_operations.R' 'bedrockdataautomation_service.R' 'bedrockdataautomation_interfaces.R' 'bedrockdataautomation_operations.R' 'bedrockdataautomationruntime_service.R' 'bedrockdataautomationruntime_interfaces.R' 'bedrockdataautomationruntime_operations.R' 'bedrockruntime_service.R' 'bedrockruntime_interfaces.R' 'bedrockruntime_operations.R' 'comprehend_service.R' 'comprehend_interfaces.R' 'comprehend_operations.R' 'comprehendmedical_service.R' 'comprehendmedical_interfaces.R' 'comprehendmedical_operations.R' 'forecastqueryservice_service.R' 'forecastqueryservice_interfaces.R' 'forecastqueryservice_operations.R' 'forecastservice_service.R' 'forecastservice_interfaces.R' 'forecastservice_operations.R' 'frauddetector_service.R' 'frauddetector_interfaces.R' 'frauddetector_operations.R' 'lexmodelbuildingservice_service.R' 'lexmodelbuildingservice_interfaces.R' 'lexmodelbuildingservice_operations.R' 'lexmodelsv2_service.R' 'lexmodelsv2_interfaces.R' 'lexmodelsv2_operations.R' 'lexruntimeservice_service.R' 'lexruntimeservice_interfaces.R' 'lexruntimeservice_operations.R' 'lexruntimev2_service.R' 'lexruntimev2_interfaces.R' 'lexruntimev2_operations.R' 'lookoutequipment_service.R' 'lookoutequipment_interfaces.R' 'lookoutequipment_operations.R' 'lookoutmetrics_service.R' 'lookoutmetrics_interfaces.R' 'lookoutmetrics_operations.R' 'machinelearning_service.R' 'machinelearning_interfaces.R' 'machinelearning_operations.R' 'panorama_service.R' 'panorama_interfaces.R' 'panorama_operations.R' 'personalize_service.R' 'personalize_interfaces.R' 'personalize_operations.R' 'personalizeevents_service.R' 'personalizeevents_interfaces.R' 'personalizeevents_operations.R' 'personalizeruntime_service.R' 'personalizeruntime_interfaces.R' 'personalizeruntime_operations.R' 'polly_service.R' 'polly_interfaces.R' 'polly_operations.R' 'reexports_paws.common.R' 'rekognition_service.R' 'rekognition_interfaces.R' 'rekognition_operations.R' 'sagemaker_service.R' 'sagemaker_interfaces.R' 'sagemaker_operations.R' 'sagemakeredgemanager_service.R' 'sagemakeredgemanager_interfaces.R' 'sagemakeredgemanager_operations.R' 'sagemakerfeaturestoreruntime_service.R' 'sagemakerfeaturestoreruntime_interfaces.R' 'sagemakerfeaturestoreruntime_operations.R' 'sagemakergeospatialcapabilities_service.R' 'sagemakergeospatialcapabilities_interfaces.R' 'sagemakergeospatialcapabilities_operations.R' 'sagemakermetrics_service.R' 'sagemakermetrics_interfaces.R' 'sagemakermetrics_operations.R' 'sagemakerruntime_service.R' 'sagemakerruntime_interfaces.R' 'sagemakerruntime_operations.R' 'textract_service.R' 'textract_interfaces.R' 'textract_operations.R' 'transcribeservice_service.R' 'transcribeservice_interfaces.R' 'transcribeservice_operations.R' 'translate_service.R' 'translate_interfaces.R' 'translate_operations.R' 'voiceid_service.R' 'voiceid_interfaces.R' 'voiceid_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.management": {
+      "Package": "paws.management",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Management & Governance Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' management and governance services, including 'CloudWatch' application and infrastructure monitoring, 'Auto Scaling' for automatically scaling resources, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.management",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'applicationautoscaling_service.R' 'applicationautoscaling_interfaces.R' 'applicationautoscaling_operations.R' 'applicationcostprofiler_service.R' 'applicationcostprofiler_interfaces.R' 'applicationcostprofiler_operations.R' 'applicationinsights_service.R' 'applicationinsights_interfaces.R' 'applicationinsights_operations.R' 'appregistry_service.R' 'appregistry_interfaces.R' 'appregistry_operations.R' 'auditmanager_service.R' 'auditmanager_interfaces.R' 'auditmanager_operations.R' 'autoscaling_service.R' 'autoscaling_interfaces.R' 'autoscaling_operations.R' 'autoscalingplans_service.R' 'autoscalingplans_interfaces.R' 'autoscalingplans_operations.R' 'cloudformation_service.R' 'cloudformation_interfaces.R' 'cloudformation_operations.R' 'cloudtrail_service.R' 'cloudtrail_interfaces.R' 'cloudtrail_operations.R' 'cloudtraildataservice_service.R' 'cloudtraildataservice_interfaces.R' 'cloudtraildataservice_operations.R' 'cloudwatch_service.R' 'cloudwatch_interfaces.R' 'cloudwatch_operations.R' 'cloudwatchapplicationsignals_service.R' 'cloudwatchapplicationsignals_interfaces.R' 'cloudwatchapplicationsignals_operations.R' 'cloudwatchevidently_service.R' 'cloudwatchevidently_interfaces.R' 'cloudwatchevidently_operations.R' 'cloudwatchinternetmonitor_service.R' 'cloudwatchinternetmonitor_interfaces.R' 'cloudwatchinternetmonitor_operations.R' 'cloudwatchlogs_service.R' 'cloudwatchlogs_interfaces.R' 'cloudwatchlogs_operations.R' 'cloudwatchobservabilityaccessmanager_service.R' 'cloudwatchobservabilityaccessmanager_interfaces.R' 'cloudwatchobservabilityaccessmanager_operations.R' 'cloudwatchrum_service.R' 'cloudwatchrum_interfaces.R' 'cloudwatchrum_operations.R' 'configservice_service.R' 'configservice_interfaces.R' 'configservice_operations.R' 'controltower_service.R' 'controltower_interfaces.R' 'controltower_operations.R' 'finspace_service.R' 'finspace_interfaces.R' 'finspace_operations.R' 'health_service.R' 'health_interfaces.R' 'health_operations.R' 'licensemanager_service.R' 'licensemanager_interfaces.R' 'licensemanager_operations.R' 'licensemanagerlinuxsubscriptions_service.R' 'licensemanagerlinuxsubscriptions_interfaces.R' 'licensemanagerlinuxsubscriptions_operations.R' 'licensemanagerusersubscriptions_service.R' 'licensemanagerusersubscriptions_interfaces.R' 'licensemanagerusersubscriptions_operations.R' 'managedgrafana_service.R' 'managedgrafana_interfaces.R' 'managedgrafana_operations.R' 'opsworks_service.R' 'opsworks_interfaces.R' 'opsworks_operations.R' 'opsworkscm_service.R' 'opsworkscm_interfaces.R' 'opsworkscm_operations.R' 'organizations_service.R' 'organizations_interfaces.R' 'organizations_operations.R' 'pi_service.R' 'pi_interfaces.R' 'pi_operations.R' 'prometheusservice_service.R' 'prometheusservice_interfaces.R' 'prometheusservice_operations.R' 'reexports_paws.common.R' 'resiliencehub_service.R' 'resiliencehub_interfaces.R' 'resiliencehub_operations.R' 'resourcegroups_service.R' 'resourcegroups_interfaces.R' 'resourcegroups_operations.R' 'resourcegroupstaggingapi_service.R' 'resourcegroupstaggingapi_interfaces.R' 'resourcegroupstaggingapi_operations.R' 'servicecatalog_service.R' 'servicecatalog_interfaces.R' 'servicecatalog_operations.R' 'servicequotas_service.R' 'servicequotas_interfaces.R' 'servicequotas_operations.R' 'ssm_service.R' 'ssm_interfaces.R' 'ssm_operations.R' 'ssmcontacts_service.R' 'ssmcontacts_interfaces.R' 'ssmcontacts_operations.R' 'ssmincidents_service.R' 'ssmincidents_interfaces.R' 'ssmincidents_operations.R' 'ssmsap_service.R' 'ssmsap_interfaces.R' 'ssmsap_operations.R' 'support_service.R' 'support_interfaces.R' 'support_operations.R' 'supportapp_service.R' 'supportapp_interfaces.R' 'supportapp_operations.R' 'synthetics_service.R' 'synthetics_interfaces.R' 'synthetics_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.networking": {
+      "Package": "paws.networking",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Networking & Content Delivery Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' networking and content delivery services, including 'Route 53' Domain Name System service, 'CloudFront' content delivery, load balancing, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.networking",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'apigateway_service.R' 'apigateway_interfaces.R' 'apigateway_operations.R' 'apigatewaymanagementapi_service.R' 'apigatewaymanagementapi_interfaces.R' 'apigatewaymanagementapi_operations.R' 'apigatewayv2_service.R' 'apigatewayv2_interfaces.R' 'apigatewayv2_operations.R' 'appfabric_service.R' 'appfabric_interfaces.R' 'appfabric_operations.R' 'appmesh_service.R' 'appmesh_interfaces.R' 'appmesh_operations.R' 'arczonalshift_service.R' 'arczonalshift_interfaces.R' 'arczonalshift_operations.R' 'backupgateway_service.R' 'backupgateway_interfaces.R' 'backupgateway_operations.R' 'cloudfront_service.R' 'cloudfront_interfaces.R' 'cloudfront_operations.R' 'cloudfrontkeyvaluestore_service.R' 'cloudfrontkeyvaluestore_interfaces.R' 'cloudfrontkeyvaluestore_operations.R' 'directconnect_service.R' 'directconnect_interfaces.R' 'directconnect_operations.R' 'elb_service.R' 'elb_interfaces.R' 'elb_operations.R' 'elbv2_service.R' 'elbv2_interfaces.R' 'elbv2_operations.R' 'globalaccelerator_service.R' 'globalaccelerator_interfaces.R' 'globalaccelerator_operations.R' 'networkfirewall_service.R' 'networkfirewall_interfaces.R' 'networkfirewall_operations.R' 'networkmanager_service.R' 'networkmanager_interfaces.R' 'networkmanager_operations.R' 'reexports_paws.common.R' 'route53_service.R' 'route53_interfaces.R' 'route53_operations.R' 'route53domains_service.R' 'route53domains_interfaces.R' 'route53domains_operations.R' 'route53profiles_service.R' 'route53profiles_interfaces.R' 'route53profiles_operations.R' 'route53recoverycluster_service.R' 'route53recoverycluster_interfaces.R' 'route53recoverycluster_operations.R' 'route53recoverycontrolconfig_service.R' 'route53recoverycontrolconfig_interfaces.R' 'route53recoverycontrolconfig_operations.R' 'route53recoveryreadiness_service.R' 'route53recoveryreadiness_interfaces.R' 'route53recoveryreadiness_operations.R' 'route53resolver_service.R' 'route53resolver_interfaces.R' 'route53resolver_operations.R' 'servicediscovery_service.R' 'servicediscovery_interfaces.R' 'servicediscovery_operations.R' 'telconetworkbuilder_service.R' 'telconetworkbuilder_interfaces.R' 'telconetworkbuilder_operations.R' 'vpclattice_service.R' 'vpclattice_interfaces.R' 'vpclattice_operations.R'",
+      "NeedsCompilation": "no",
+      "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
+      "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "paws.security.identity": {
+      "Package": "paws.security.identity",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Title": "'Amazon Web Services' Security, Identity, & Compliance Services",
+      "Authors@R": "c( person(\"David\", \"Kretch\", , \"david.kretch@gmail.com\", role = \"aut\"), person(\"Adam\", \"Banker\", , \"adam.banker39@gmail.com\", role = \"aut\"), person(\"Dyfan\", \"Jones\", , \"dyfan.r.jones@gmail.com\", role = \"cre\"), person(\"Amazon.com, Inc.\", role = \"cph\") )",
+      "Description": "Interface to 'Amazon Web Services' security, identity, and compliance services, including the 'Identity & Access Management' ('IAM') service for managing access to services and resources, and more <https://aws.amazon.com/>.",
+      "License": "Apache License (>= 2.0)",
+      "URL": "https://github.com/paws-r/paws, https://paws-r.r-universe.dev/paws.security.identity",
+      "BugReports": "https://github.com/paws-r/paws/issues",
+      "Imports": [
+        "paws.common (>= 0.8.0)"
+      ],
+      "Suggests": [
+        "testthat"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'accessanalyzer_service.R' 'accessanalyzer_interfaces.R' 'accessanalyzer_operations.R' 'account_service.R' 'account_interfaces.R' 'account_operations.R' 'acm_service.R' 'acm_interfaces.R' 'acm_operations.R' 'acmpca_service.R' 'acmpca_interfaces.R' 'acmpca_operations.R' 'cleanroomsml_service.R' 'cleanroomsml_interfaces.R' 'cleanroomsml_operations.R' 'clouddirectory_service.R' 'clouddirectory_interfaces.R' 'clouddirectory_operations.R' 'cloudhsm_service.R' 'cloudhsm_interfaces.R' 'cloudhsm_operations.R' 'cloudhsmv2_service.R' 'cloudhsmv2_interfaces.R' 'cloudhsmv2_operations.R' 'cognitoidentity_service.R' 'cognitoidentity_interfaces.R' 'cognitoidentity_operations.R' 'cognitoidentityprovider_service.R' 'cognitoidentityprovider_interfaces.R' 'cognitoidentityprovider_operations.R' 'cognitosync_service.R' 'cognitosync_interfaces.R' 'cognitosync_operations.R' 'detective_service.R' 'detective_interfaces.R' 'detective_operations.R' 'directoryservice_service.R' 'directoryservice_interfaces.R' 'directoryservice_operations.R' 'fms_service.R' 'fms_interfaces.R' 'fms_operations.R' 'guardduty_service.R' 'guardduty_interfaces.R' 'guardduty_operations.R' 'iam_service.R' 'iam_interfaces.R' 'iam_operations.R' 'iamrolesanywhere_service.R' 'iamrolesanywhere_interfaces.R' 'iamrolesanywhere_operations.R' 'identitystore_service.R' 'identitystore_interfaces.R' 'identitystore_operations.R' 'inspector2_service.R' 'inspector2_interfaces.R' 'inspector2_operations.R' 'inspector_service.R' 'inspector_interfaces.R' 'inspector_operations.R' 'kms_service.R' 'kms_interfaces.R' 'kms_operations.R' 'macie2_service.R' 'macie2_interfaces.R' 'macie2_operations.R' 'pcaconnectorad_service.R' 'pcaconnectorad_interfaces.R' 'pcaconnectorad_operations.R' 'ram_service.R' 'ram_interfaces.R' 'ram_operations.R' 'reexports_paws.common.R' 'secretsmanager_service.R' 'secretsmanager_interfaces.R' 'secretsmanager_operations.R' 'securityhub_service.R' 'securityhub_interfaces.R' 'securityhub_operations.R' 'securitylake_service.R' 'securitylake_interfaces.R' 'securitylake_operations.R' 'shield_service.R' 'shield_interfaces.R' 'shield_operations.R' 'sso_service.R' 'sso_interfaces.R' 'sso_operations.R' 'ssoadmin_service.R' 'ssoadmin_interfaces.R' 'ssoadmin_operations.R' 'ssooidc_service.R' 'ssooidc_interfaces.R' 'ssooidc_operations.R' 'sts_service.R' 'sts_interfaces.R' 'sts_operations.R' 'verifiedpermissions_service.R' 'verifiedpermissions_interfaces.R' 'verifiedpermissions_operations.R' 'waf_service.R' 'waf_interfaces.R' 'waf_operations.R' 'wafregional_service.R' 'wafregional_interfaces.R' 'wafregional_operations.R' 'wafv2_service.R' 'wafv2_interfaces.R' 'wafv2_operations.R'",
+      "NeedsCompilation": "no",
       "Author": "David Kretch [aut], Adam Banker [aut], Dyfan Jones [cre], Amazon.com, Inc. [cph]",
       "Maintainer": "Dyfan Jones <dyfan.r.jones@gmail.com>",
       "Repository": "CRAN"
@@ -2422,7 +2790,7 @@
       "NeedsCompilation": "no",
       "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>), Hadley Wickham [aut], RStudio [cph]",
       "Maintainer": "Kirill Müller <kirill@cynkra.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
@@ -3178,7 +3546,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Gábor Csárdi [ctb]",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "tibble": {
       "Package": "tibble",
@@ -3395,7 +3763,7 @@
       "NeedsCompilation": "yes",
       "Author": "Davis Vaughan [aut, cre], Howard Hinnant [cph] (Author of the included date library), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Davis Vaughan <davis@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "utf8": {
       "Package": "utf8",
@@ -3609,7 +3977,7 @@
       "NeedsCompilation": "no",
       "Author": "Jim Hester [aut], Lionel Henry [aut, cre], Kirill Müller [aut], Kevin Ushey [aut], Hadley Wickham [aut], Winston Chang [aut], Jennifer Bryan [ctb], Richard Cotton [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Lionel Henry <lionel@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "xfun": {
       "Package": "xfun",
