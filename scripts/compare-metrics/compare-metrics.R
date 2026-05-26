@@ -81,11 +81,34 @@ if (opt$output_file != "") {
 }
 
 # check that S3 paths are reachable
-if (!(s3fs::s3_dir_exists(opt$ref_s3) && s3fs::s3_dir_exists(opt$comp_s3))) {
+s3_client <- paws::s3()
+
+# parse S3 uri into bucket and key
+parse_s3_path <- function(path) {
+  parsed <- httr2::url_parse(path)
+  list(
+    bucket = parsed$hostname,
+    key    = sub("^/", "", parsed$path) # strip leading slash
+  )
+}
+
+# check if a directory is accessible
+s3_accessible <- function(s3_path, s3_client) {
+  parsed <- parse_s3_path(s3_path)
+  tryCatch(
+    {
+      s3_client$list_objects_v2(Bucket = parsed$bucket, Prefix = parsed$key, MaxKeys = 1)
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+}
+
+if (!(s3_accessible(opt$ref_s3, s3_client) && s3_accessible(opt$comp_s3, s3_client))) {
   stop(
     "Cannot access S3 location: ",
     opt$ref_s3,
-    "and/or ",
+    " and/or ",
     opt$comp_s3,
     "\n",
     "Please check that the paths exist and you have appropriate AWS credentials."
