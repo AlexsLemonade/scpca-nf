@@ -38,7 +38,7 @@ option_list <- list(
   make_option(
     c("--profile"),
     type = "character",
-    default = Sys.getenv("AWS_PROFILE", unset = "default"),
+    default = "",
     help = "Profile to use with AWS credentials"
   ),
   make_option(
@@ -54,7 +54,9 @@ opt <- parse_args(opt_parser)
 
 # set AWS profile for use with paws
 # see https://github.com/paws-r/paws/blob/main/docs/credentials.md#use-aws-single-sign-on-sso
-Sys.setenv(AWS_PROFILE = opt$profile)
+if (opt$profile != "") {
+  Sys.setenv(AWS_PROFILE = opt$profile)
+}
 
 # check parameters
 stopifnot(
