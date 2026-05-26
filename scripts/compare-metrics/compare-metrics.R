@@ -36,6 +36,12 @@ option_list <- list(
     help = "Output file name for the rendered report. If not provided, a name will be generated with the current date and project ID(s)."
   ),
   make_option(
+    c("--profile"),
+    type = "character",
+    default = "",
+    help = "Profile to use with AWS credentials"
+  ),
+  make_option(
     c("--use_cache"), # temporary option for testing
     action = "store_true",
     default = FALSE,
@@ -45,6 +51,12 @@ option_list <- list(
 
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
+
+# set AWS profile for use with paws
+# see https://github.com/paws-r/paws/blob/main/docs/credentials.md#use-aws-single-sign-on-sso
+if (opt$profile != "") {
+  Sys.setenv(AWS_PROFILE = opt$profile)
+}
 
 # check parameters
 stopifnot(
@@ -69,11 +81,34 @@ if (opt$output_file != "") {
 }
 
 # check that S3 paths are reachable
-if (!(s3fs::s3_dir_exists(opt$ref_s3) && s3fs::s3_dir_exists(opt$comp_s3))) {
+s3_client <- paws::s3()
+
+# parse S3 uri into bucket and key
+parse_s3_path <- function(path) {
+  parsed <- httr2::url_parse(path)
+  list(
+    bucket = parsed$hostname,
+    key    = sub("^/", "", parsed$path) # strip leading slash
+  )
+}
+
+# check if a directory is accessible
+s3_accessible <- function(s3_path, s3_client) {
+  parsed <- parse_s3_path(s3_path)
+  tryCatch(
+    {
+      s3_client$list_objects_v2(Bucket = parsed$bucket, Prefix = parsed$key, MaxKeys = 1)
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+}
+
+if (!(s3_accessible(opt$ref_s3, s3_client) && s3_accessible(opt$comp_s3, s3_client))) {
   stop(
     "Cannot access S3 location: ",
     opt$ref_s3,
-    "and/or ",
+    " and/or ",
     opt$comp_s3,
     "\n",
     "Please check that the paths exist and you have appropriate AWS credentials."
