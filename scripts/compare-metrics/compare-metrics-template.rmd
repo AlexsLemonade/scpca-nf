@@ -1435,29 +1435,34 @@ ggplot(changed_total_infercnv_counts, aes(x = change_frac * 100)) +
 # the total number of cells in the reference, or the cell types themselves
 # a change in one may not appear in the other, so need to consider each separately
 
-infercnv_num_ref_changes <- metrics_df |>
-  dplyr::select(
-    project_id,
-    sample_id,
-    library_id,
-    starts_with("infercnv_num_reference_cells"),
-  ) |>
-  tidyr::pivot_longer(
-    cols = starts_with("infercnv_num_reference_cells"),
-    names_pattern = "(.+)\\.(ref|comp)$",
-    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
-  ) |>
-  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
-  dplyr::mutate(
-    change = comp - ref,
-    change_frac = change / ref
-  ) |>
-  dplyr::select(-field)
+# Num reference cells isn't in all versions yet, so explicitly check both columns are present first
+if (all(c("infercnv_num_reference_cells.comp", "infercnv_num_reference_cells.ref") %in% colnames(metrics_df))) {
+  infercnv_num_ref_changes <- metrics_df |>
+    dplyr::select(
+      project_id,
+      sample_id,
+      library_id,
+      starts_with("infercnv"),
+    ) |>
+    tidyr::pivot_longer(
+      cols = starts_with("infercnv_num_reference_cells"),
+      names_pattern = "(.+)\\.(ref|comp)$",
+      names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+    ) |>
+    dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+    dplyr::mutate(
+      change = comp - ref,
+      change_frac = change / ref
+    ) |>
+    dplyr::select(-field)
 
-changed_infercnv_num_ref_counts <- infercnv_num_ref_changes |>
-  dplyr::filter(is.na(change) | change != 0)
+  changed_infercnv_num_ref_counts <- infercnv_num_ref_changes |>
+    dplyr::filter(is.na(change) | change != 0)
 
-has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
+  has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
+} else {
+  has_infercnv_num_ref_changes <- FALSE
+}
 ```
 
 
