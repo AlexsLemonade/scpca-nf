@@ -312,7 +312,7 @@
                     "sizeFactor": "float64"
                 },
                 "has_clusters": {
-                    "cluster": "factor"
+                    "cluster": "category"
                 },
                 "has_singler": {
                     "singler_celltype_annotation": "category",

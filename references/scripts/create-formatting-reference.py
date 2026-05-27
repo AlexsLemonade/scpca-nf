@@ -418,6 +418,7 @@ CELL_ROW_METADATA_MAP = {
     "integer": "int32",
     "logical": "bool",
     "character": "category",
+    "factor": "category",
 }
 
 # outlier types for cell and row metadata
