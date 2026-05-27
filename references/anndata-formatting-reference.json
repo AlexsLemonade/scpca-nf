@@ -54,7 +54,7 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "int",
+                "total_reads": "numpy.integer",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
@@ -68,19 +68,19 @@
             "uns_conditional": {
                 "alevin-fry": {
                     "salmon_version": "str",
-                    "mapped_reads": "int",
+                    "mapped_reads": "numpy.integer",
                     "alevinfry_version": "str",
                     "af_permit_type": "str",
                     "af_resolution": "str",
-                    "usa_mode": "bool",
-                    "af_num_cells": "int",
-                    "include_unspliced": "bool"
+                    "usa_mode": "numpy.bool_",
+                    "af_num_cells": "numpy.integer",
+                    "include_unspliced": "numpy.bool_"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
-                    "pct_mapped_reads": "float",
-                    "cellranger_num_cells": "int"
+                    "pct_mapped_reads": "numpy.floating",
+                    "cellranger_num_cells": "numpy.integer"
                 }
             }
         },
@@ -167,7 +167,7 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "int",
+                "total_reads": "numpy.integer",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
@@ -181,26 +181,26 @@
                     "float"
                 ],
                 "scpca_filter_method": "str",
-                "min_gene_cutoff": "int",
+                "min_gene_cutoff": "numpy.integer",
                 "X_name": "str",
                 "schema_version": "str"
             },
             "uns_conditional": {
                 "alevin-fry": {
                     "salmon_version": "str",
-                    "mapped_reads": "int",
+                    "mapped_reads": "numpy.integer",
                     "alevinfry_version": "str",
                     "af_permit_type": "str",
                     "af_resolution": "str",
-                    "usa_mode": "bool",
-                    "af_num_cells": "int",
-                    "include_unspliced": "bool"
+                    "usa_mode": "numpy.bool_",
+                    "af_num_cells": "numpy.integer",
+                    "include_unspliced": "numpy.bool_"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
-                    "pct_mapped_reads": "float",
-                    "cellranger_num_cells": "int"
+                    "pct_mapped_reads": "numpy.floating",
+                    "cellranger_num_cells": "numpy.integer"
                 },
                 "umi_filtering": {
                     "umi_cutoff": "float"
@@ -233,13 +233,13 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "int",
+                "total_reads": "numpy.integer",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "ambient_profile": "float"
+                "ambient_profile": "numpy.floating"
             }
         }
     },
@@ -349,7 +349,7 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "int",
+                "total_reads": "numpy.integer",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
@@ -358,22 +358,25 @@
                 "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
-                "prob_compromised_cutoff": "NoneType,float",
+                "prob_compromised_cutoff": [
+                    "NoneType",
+                    "float"
+                ],
                 "scpca_filter_method": "str",
-                "min_gene_cutoff": "int",
+                "min_gene_cutoff": "numpy.integer",
                 "normalization": "str",
                 "highly_variable_genes": "numpy.ndarray",
                 "X_name": "str",
                 "schema_version": "str",
                 "pca": {
                     "param": "dict",
-                    "variance": "float64",
-                    "variance_ratio": "float64"
+                    "variance": "numpy.ndarray",
+                    "variance_ratio": "numpy.ndarray"
                 }
             },
             "uns_conditional": {
                 "umi_filtering": {
-                    "umi_cutoff": "float"
+                    "umi_cutoff": "numpy.floating"
                 },
                 "has_clusters": {
                     "cluster_algorithm": "str",
@@ -416,7 +419,7 @@
                 },
                 "has_infercnv": {
                     "infercnv_reference_celltypes": "numpy.ndarray",
-                    "infercnv_num_reference_cells": "int",
+                    "infercnv_num_reference_cells": "numpy.integer",
                     "infercnv_diagnosis_groups": "str",
                     "infercnv_status": "str",
                     "infercnv_options": "numpy.ndarray",
@@ -455,13 +458,13 @@
                 "sample_id": "str",
                 "project_id": "str",
                 "reference_index": "str",
-                "total_reads": "int",
+                "total_reads": "numpy.integer",
                 "mapping_tool": "str",
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "ambient_profile": "float"
+                "ambient_profile": "numpy.floating"
             }
         }
     }
