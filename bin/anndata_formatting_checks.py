@@ -18,38 +18,23 @@ import numpy
 import pandas
 
 
-# Maps reference type strings to Python types for uns value checking.
-# The reference uses these strings but actual uns values are numpy scalars/arrays,
-# so isinstance is needed rather than comparing type names directly.
-_UNS_TYPE_MAP = {
+_BUILTIN_TYPES = {
     "str": str,
-    "int": (int, numpy.integer),
-    "float": (float, numpy.floating),
-    "bool": (bool, numpy.bool_),
-    "numpy.ndarray": numpy.ndarray,
-    "pandas.DataFrame": pandas.DataFrame,
+    "int": int,
+    "float": float,
+    "bool": bool,
     "NoneType": type(None),
     "dict": dict,
 }
 
 
-def _uns_type_matches(val, expected):
-    """Check a uns value against one or more expected type strings."""
-    allowed = expected if isinstance(expected, list) else [expected]
-    for t in allowed:
-        if t is None:
-            continue
-        # float64 in nested uns (e.g. pca variance/variance_ratio) is a numpy float64 array
-        if t == "float64" and isinstance(val, numpy.ndarray):
-            if val.dtype == numpy.float64:
-                return True
-            continue
-        types = _UNS_TYPE_MAP.get(t)
-        if types is None:
-            return True  # unknown type string, skip
-        if isinstance(val, types):
-            return True
-    return False
+def _resolve_type(type_str):
+    """Resolve a reference type string to a Python type for isinstance checking."""
+    if type_str.startswith("numpy."):
+        return getattr(numpy, type_str[6:], None)
+    if type_str.startswith("pandas."):
+        return getattr(pandas, type_str[7:], None)
+    return _BUILTIN_TYPES.get(type_str)
 
 
 def check_names_and_types(data, ref, label, slot):
@@ -71,7 +56,13 @@ def check_names_and_types(data, ref, label, slot):
 
         elif expected_type is not None:
             if slot_is_uns:
-                if not _uns_type_matches(data[col], expected_type):
+                allowed = (
+                    expected_type
+                    if isinstance(expected_type, list)
+                    else [t.strip() for t in str(expected_type).split(",")]
+                )
+                py_types = [_resolve_type(t) for t in allowed if t]
+                if not any(isinstance(data[col], t) for t in py_types if t is not None):
                     obs_type = type(data[col]).__name__
                     errors.append(
                         f"Type mismatch in '{col}' from {label} {slot}. "
