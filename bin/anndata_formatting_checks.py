@@ -92,7 +92,7 @@ def check_names_and_types(data, ref, label, slot):
 
         elif isinstance(expected_type, dict):
             # nested dict: recurse (used for uns keys like "pca")
-            errors.extend(check_names_and_types(data[key], expected_type, label, slot))
+            errors.extend(check_names_and_types(data[key], expected_type, label, f"{slot}:{key}"))
 
         elif expected_type is not None:
             obj = data[key]
