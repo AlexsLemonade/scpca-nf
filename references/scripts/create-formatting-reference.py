@@ -449,9 +449,9 @@ def convert_cell_row_metadata_types(metadata):
 # types for uns metadata entries that are not cell or row metadata
 EXPERIMENT_METADATA_MAP = {
     "character": "str",
-    "integer": "numpy.integer",
-    "numeric": "numpy.floating",
-    "logical": "numpy.bool_",
+    "integer": "int",
+    "numeric": "float",
+    "logical": "bool",
     "data.frame": "pandas.DataFrame",
     "DFrame": "pandas.DataFrame",
 }
@@ -588,11 +588,11 @@ processed_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
     **anndata_uns_metadata,
     # this is NA or numeric so account for both possibilities in the reference
-    "prob_compromised_cutoff": ["NoneType", "float"],
+    "prob_compromised_cutoff": "NoneType,float",
     "pca": {
         "param": "dict",
-        "variance": "numpy.ndarray",
-        "variance_ratio": "numpy.ndarray",
+        "variance": "float64",
+        "variance_ratio": "float64",
     },
 }
 
