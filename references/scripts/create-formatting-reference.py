@@ -414,18 +414,16 @@ with open(sce_ref_file, "w") as f:
 
 # cell and row metadata are dtypes
 CELL_ROW_METADATA_MAP = {
-    "numeric": "float64",
-    "integer": "int32",
+    "numeric": "float",
+    "integer": "int",
     "logical": "bool",
-    "character": "category",
+    "character": "string",
+    "factor": "category",
 }
 
 # outlier types for cell and row metadata
 CELL_ROW_METADATA_EXCEPTIONS = {
-    "detected": "int32",
-    "barcodes": "object",
-    "gene_ids": "object",
-    "adt_id": "object",
+    "detected": "int",
 }
 
 
@@ -590,8 +588,8 @@ processed_uns_metadata = {
     "prob_compromised_cutoff": "NoneType,float",
     "pca": {
         "param": "dict",
-        "variance": "float64",
-        "variance_ratio": "float64",
+        "variance": "float",
+        "variance_ratio": "float",
     },
 }
 
