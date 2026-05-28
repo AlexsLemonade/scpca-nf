@@ -132,7 +132,7 @@ def get_conditionals(adata):
         has_neg_ctrl = (target_types == "neg_control").any()
         no_neg_ctrl = target_types.isin(["pos_control", "target"]).all()
 
-    condition_tests =  {
+    condition_tests = {
         # mapping tools
         "alevin-fry": uns.get("mapping_tool") == "alevin-fry",
         "cellranger-multi": uns.get("mapping_tool") == "cellranger multi",
@@ -158,7 +158,7 @@ def get_conditionals(adata):
         "has_negative_control": bool(has_neg_ctrl),
         "no_negative_control": bool(no_neg_ctrl),
     }
-    
+
     return set(cond for cond, is_true in condition_tests.items() if is_true)
 
 
