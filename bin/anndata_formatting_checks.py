@@ -14,9 +14,20 @@ import sys
 from pathlib import Path
 
 import anndata
-import numpy
-import pandas
+import numpy as np
+import pandas as pd
 
+
+# Maps simplified type names to pandas dtype-checking functions.
+# These work for both numpy arrays and pandas Series regardless of backend.
+_DTYPE_CHECKERS = {
+    "int": pd.api.types.is_integer_dtype,
+    "float": pd.api.types.is_float_dtype,
+    "string": pd.api.types.is_string_dtype,
+    "bool": pd.api.types.is_bool_dtype,
+    # account for deprecated pd.CategoricalDtype in older pandas versions
+    "category": lambda obj: isinstance(getattr(obj, "dtype", obj), pd.CategoricalDtype),
+}
 
 _BUILTIN_TYPES = {
     "str": str,
@@ -25,57 +36,77 @@ _BUILTIN_TYPES = {
     "bool": bool,
     "NoneType": type(None),
     "dict": dict,
+    "numpy.ndarray": np.ndarray,
 }
 
 
-def _resolve_type(type_str):
-    """Resolve a reference type string to a Python type for isinstance checking."""
-    if type_str.startswith("numpy."):
-        return getattr(numpy, type_str[6:], None)
-    if type_str.startswith("pandas."):
-        return getattr(pandas, type_str[7:], None)
-    return _BUILTIN_TYPES.get(type_str)
+def _check_type(obj, expected_type):
+    """
+    Check whether obj matches expected_type.
+
+    For pandas Series and numpy arrays, uses pd.api.types functions so that
+    type checking is robust across pandas backends and numpy dtype variations.
+    For plain Python objects, falls back to isinstance with built-in types.
+
+    Returns True if the type matches, False otherwise.
+    """
+
+    # first check for numpy arrays, since these can be present in uns
+    # and require a different check than plain Python objects or pandas Series
+    if expected_type == "numpy.ndarray":
+        return isinstance(obj, np.ndarray)
+
+    # if the object is a Series or array, use the dtype checker
+    # this runs pd.api.types to check the dtype
+    if isinstance(obj, (pd.Series, np.ndarray)):
+        checker = _DTYPE_CHECKERS.get(expected_type)
+        if checker is None:
+            return False
+        return checker(obj)
+    else:
+        # otherwise check against built in python types
+        # account for expected_type being a single type or a comma-separated list of types in the reference
+        allowed = (
+            expected_type
+            if isinstance(expected_type, list)
+            else [t.strip() for t in str(expected_type).split(",")]
+        )
+        py_types = [_BUILTIN_TYPES.get(t) for t in allowed]
+        return any(isinstance(obj, t) for t in py_types if t is not None)
 
 
 def check_names_and_types(data, ref, label, slot):
     """
-    Check obs or var columns or uns dict for presence and correct type.
-    If slot == "uns", data is a dict and types are checked with isinstance.
-    If slot == "obs" or "var", data is a DataFrame and types are checked via dtype.name.
+    Check obs/var columns or uns dict for presence and correct type.
+
+    For obs/var slots, data is a DataFrame; column values are pd.Series.
+    For uns slot, data is a dict; values may be plain Python objects,
+    numpy arrays, or pandas Series — _check_type handles all cases.
     """
     errors = []
-    slot_is_uns = slot == "uns"
+    keys = data.keys() if slot == "uns" else data.columns
 
-    for col, expected_type in ref.items():
-        if col not in (data.keys() if slot_is_uns else data.columns):
-            errors.append(f"Missing '{col}' from {label} {slot}.")
+    for key, expected_type in ref.items():
+        if key not in keys:
+            errors.append(f"Missing '{key}' from {label} {slot}.")
 
         elif isinstance(expected_type, dict):
             # nested dict: recurse (used for uns keys like "pca")
-            errors.extend(check_names_and_types(data[col], expected_type, label, slot))
+            errors.extend(check_names_and_types(data[key], expected_type, label, slot))
 
         elif expected_type is not None:
-            if slot_is_uns:
-                allowed = (
-                    expected_type
-                    if isinstance(expected_type, list)
-                    else [t.strip() for t in str(expected_type).split(",")]
+            obj = data[key]
+            if not _check_type(obj, expected_type):
+                # get the observed type based on if the object is a Series/array or a plain Python object
+                obs_type = (
+                    obj.dtype.name
+                    if isinstance(obj, (pd.Series, np.ndarray))
+                    else type(obj).__name__
                 )
-                py_types = [_resolve_type(t) for t in allowed if t]
-                if not any(isinstance(data[col], t) for t in py_types if t is not None):
-                    obs_type = type(data[col]).__name__
-                    errors.append(
-                        f"Type mismatch in '{col}' from {label} {slot}. "
-                        f"Expected {expected_type}, but found {obs_type}."
-                    )
-            else:
-                # need to use dtype.name for obs/var columns since they are numpy dtypes
-                obs_type = data[col].dtype.name
-                if obs_type != expected_type:
-                    errors.append(
-                        f"Type mismatch in '{col}' from {label} {slot}. "
-                        f"Expected {expected_type}, but found {obs_type}."
-                    )
+                errors.append(
+                    f"Type mismatch in '{key}' from {label} {slot}. "
+                    f"Expected {expected_type}, but found {obs_type}."
+                )
 
     return errors
 
@@ -92,7 +123,7 @@ def safe_uns_array(uns, key):
     val = uns.get(key)
     if val is None:
         return []
-    if isinstance(val, numpy.ndarray):
+    if isinstance(val, np.ndarray):
         return val.tolist()
     if isinstance(val, list):
         return val
@@ -117,7 +148,7 @@ def get_conditionals(adata):
         or "adt_scpca_filter" in obs_cols
     )
     # is multiplexed if sample_id in uns is a list/array (indicating multiple samples), rather than a single string for non-multiplexed data
-    is_multiplexed = isinstance(uns.get("sample_id"), (list, numpy.ndarray))
+    is_multiplexed = isinstance(uns.get("sample_id"), (list, np.ndarray))
 
     # check for submitter annotations based on column and all not being NA
     has_submitter = "submitter" in celltype_methods and (
@@ -125,6 +156,7 @@ def get_conditionals(adata):
         and not adata.obs["submitter_celltype_annotation"].isna().all()
     )
 
+    # set neg post control based on target types if adt
     has_neg_ctrl = False
     no_neg_ctrl = False
     if "target_type" in adata.var.columns:
@@ -176,15 +208,13 @@ def check_anndata(adata, ref, label):
 
     # get conditionals dict based on adata contents and uns values, to determine which conditional checks to run
     conditions = get_conditionals(adata)
-    # only keep true conditions and return as a list of conditionals
-    true_conditions = [cond for cond, is_true in conditions.items() if is_true]
 
     if "obs" in ref:
         errors.extend(check_names_and_types(adata.obs, ref["obs"], label, "obs"))
 
     if "obs_conditional" in ref:
         for condition, cols_dict in ref["obs_conditional"].items():
-            if isinstance(cols_dict, dict) and condition in true_conditions:
+            if isinstance(cols_dict, dict) and condition in conditions:
                 errors.extend(check_names_and_types(adata.obs, cols_dict, label, "obs"))
             elif isinstance(cols_dict, str):
                 # condition key is also the column name; always check when present in ref
@@ -202,7 +232,7 @@ def check_anndata(adata, ref, label):
 
     if "uns_conditional" in ref:
         for condition, keys_dict in ref["uns_conditional"].items():
-            if isinstance(keys_dict, dict) and condition in true_conditions:
+            if isinstance(keys_dict, dict) and condition in conditions:
                 errors.extend(check_names_and_types(adata.uns, keys_dict, label, "uns"))
 
     return errors
