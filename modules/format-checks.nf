@@ -42,7 +42,7 @@ process check_anndata {
   script:
     def object_type = anndata_file.baseName.replace("${meta.library_id}_", "").replaceAll(/_(rna|adt)$/, "")
     """
-    anndata_formatting_checks.R \
+    anndata_formatting_checks.py \
         --anndata_file ${anndata_file} \
         --object_type ${object_type} \
         --reference_file ${reference_anndata_file} \
