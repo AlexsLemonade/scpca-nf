@@ -421,11 +421,6 @@ CELL_ROW_METADATA_MAP = {
     "factor": "category",
 }
 
-# outlier types for cell and row metadata
-CELL_ROW_METADATA_EXCEPTIONS = {
-    "detected": "int",
-}
-
 
 def convert_cell_row_metadata_types(metadata):
     for key, value in metadata.items():
@@ -433,9 +428,6 @@ def convert_cell_row_metadata_types(metadata):
         # use recursion to do this
         if isinstance(value, dict):
             convert_cell_row_metadata_types(value)
-        # check if the key is one of the exceptions where the types aren't what we expect
-        elif key in CELL_ROW_METADATA_EXCEPTIONS.keys():
-            metadata[key] = CELL_ROW_METADATA_EXCEPTIONS[key]
         # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
         elif value in CELL_ROW_METADATA_MAP.keys():
             metadata[key] = CELL_ROW_METADATA_MAP[value]
@@ -507,6 +499,8 @@ anndata_specific_obs_metadata_conditional = {
 obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata)),
     **anndata_specific_obs_metadata,
+    # detected in cell metadata only is int
+    "detected": "int",
 }
 
 obs_metadata_conditional = {
@@ -519,6 +513,8 @@ obs_metadata_conditional = {
 filtered_obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(filtered_cell_metadata)),
     **anndata_specific_obs_metadata,
+    # detected in cell metadata only is int
+    "detected": "int",
 }
 
 filtered_cell_metadata_conditional = {
@@ -542,8 +538,6 @@ processed_obs_metadata_conditional = {
 unfiltered_var_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(feature_metadata)),
     "feature_is_filtered": "bool",
-    # overwrite detected since its a float in var but an int in obs
-    "detected": "float",
 }
 
 # highly variable is only in the processed object

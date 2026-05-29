@@ -86,7 +86,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "target_type": "string"
             }
         }
@@ -211,7 +211,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "target_type": "string"
             },
             "obs_conditional": {
@@ -431,7 +431,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "target_type": "string"
             },
             "obs_conditional": {
