@@ -84,7 +84,7 @@ def check_names_and_types(data, ref, label, slot):
     numpy arrays, or pandas Series — _check_type handles all cases.
     """
     errors = []
-    keys = data.keys() if slot == "uns" else data.columns
+    keys = data.keys() if hasattr(data, "keys") else data.columns
 
     for key, expected_type in ref.items():
         if key not in keys:
@@ -301,9 +301,7 @@ def main():
         output_path.touch()
     else:
         library_id = adata.uns.get("library_id", "unknown")
-        header = (
-            f"Formatting errors found for {library_id} {args.object_type} {modality}:"
-        )
+        header = f"Formatting errors found for {library_id} {args.object_type} {modality} AnnData object:"
         with open(output_path, "w") as error_file:
             error_file.write(f"{header}\n\n")
             for error in errors:
