@@ -31,9 +31,9 @@ _DTYPE_CHECKERS = {
 
 _BUILTIN_TYPES = {
     "str": str,
-    "int": int,
-    "float": float,
-    "bool": bool,
+    "int": (int, np.integer),  # covers int64, int32, etc.
+    "float": (float, np.floating),  # covers float64, float32, etc.
+    "bool": (bool, np.bool_),  # covers numpy.bool_
     "NoneType": type(None),
     "dict": dict,
     "numpy.ndarray": np.ndarray,
@@ -64,7 +64,7 @@ def _check_type(obj, expected_type):
             return False
         return checker(obj)
     else:
-        # otherwise check against built in python types
+        # otherwise check against built in python or numpy types
         # account for expected_type being a single type or a comma-separated list of types in the reference
         allowed = (
             expected_type
