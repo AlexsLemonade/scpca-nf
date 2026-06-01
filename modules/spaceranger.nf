@@ -21,12 +21,21 @@ process spaceranger {
     
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
+
+    // if spaceranger_prefix is set, files are already conformant: use fastq_dir directly.
+    // otherwise, run the Python script to stage renamed symlinks and capture the prefix.
+    prefix_cmd = meta.spaceranger_prefix ?
+      "spaceranger_prefix=${meta.spaceranger_prefix}" :
+      "spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1"
+    fastqs_dir = meta.spaceranger_prefix ? "${fastq_dir}" : "fastq_staged"
     """
+    ${prefix_cmd}
+
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastq_dir} \
-      --sample=${meta.cr_samples} \
+      --fastqs=${fastqs_dir} \
+      --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
       --slide=${meta.slide_serial_number} \
@@ -36,10 +45,10 @@ process spaceranger {
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
 
-    # remove Space Ranger intermediates directory 
+    # remove Space Ranger intermediates directory
     # do this before saving the json
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
-    
+
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
@@ -81,12 +90,21 @@ process spaceranger_hd {
     
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
+
+    // if spaceranger_prefix is set, files are already conformant: use fastq_dir directly.
+    // otherwise, run the Python script to stage renamed symlinks and capture the prefix.
+    prefix_cmd = meta.spaceranger_prefix ?
+      "spaceranger_prefix=${meta.spaceranger_prefix}" :
+      "spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1"
+    fastqs_dir = meta.spaceranger_prefix ? "${fastq_dir}" : "fastq_staged"
     """
+    ${prefix_cmd}
+
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastq_dir} \
-      --sample=${meta.cr_samples} \
+      --fastqs=${fastqs_dir} \
+      --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
       --slide=${meta.slide_serial_number} \
@@ -95,8 +113,8 @@ process spaceranger_hd {
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
-    
-    # remove Space Ranger intermediates directory 
+
+    # remove Space Ranger intermediates directory
     # do this before saving the json
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
 
