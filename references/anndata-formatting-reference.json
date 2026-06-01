@@ -23,9 +23,8 @@
                 "gene_ids": "string",
                 "gene_symbol": "string",
                 "mean": "float",
-                "detected": "int",
-                "feature_is_filtered": "bool",
-                "highly_variable": "bool"
+                "detected": "float",
+                "feature_is_filtered": "bool"
             },
             "obs_conditional": {
                 "has_submitter": {
@@ -60,7 +59,6 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "X_name": "str",
                 "schema_version": "str"
@@ -88,7 +86,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "target_type": "string"
             }
         }
@@ -122,9 +120,8 @@
                 "gene_ids": "string",
                 "gene_symbol": "string",
                 "mean": "float",
-                "detected": "int",
-                "feature_is_filtered": "bool",
-                "highly_variable": "bool"
+                "detected": "float",
+                "feature_is_filtered": "bool"
             },
             "obs_conditional": {
                 "has_submitter": {
@@ -173,7 +170,6 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": [
@@ -215,7 +211,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "target_type": "string"
             },
             "obs_conditional": {
@@ -272,7 +268,7 @@
                 "gene_ids": "string",
                 "gene_symbol": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "feature_is_filtered": "bool",
                 "highly_variable": "bool"
             },
@@ -355,7 +351,6 @@
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
-                "sample_metadata": "pandas.DataFrame",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": "NoneType,float",
@@ -436,7 +431,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "int",
+                "detected": "float",
                 "target_type": "string"
             },
             "obs_conditional": {

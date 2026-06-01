@@ -353,6 +353,6 @@ if (opt$object_type == "processed") {
 if (length(errors) == 0) {
   fs::file_create(opt$output_file)
 } else {
-  header <- glue::glue("Formatting errors found for {metadata(sce)$library_id} {opt$object_type}:")
+  header <- glue::glue("Formatting errors found for {metadata(sce)$library_id} {opt$object_type} SingleCellExperiment:")
   writeLines(c(header, "", errors, ""), opt$output_file)
 }

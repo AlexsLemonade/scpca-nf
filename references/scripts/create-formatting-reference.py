@@ -421,11 +421,6 @@ CELL_ROW_METADATA_MAP = {
     "factor": "category",
 }
 
-# outlier types for cell and row metadata
-CELL_ROW_METADATA_EXCEPTIONS = {
-    "detected": "int",
-}
-
 
 def convert_cell_row_metadata_types(metadata):
     for key, value in metadata.items():
@@ -433,9 +428,6 @@ def convert_cell_row_metadata_types(metadata):
         # use recursion to do this
         if isinstance(value, dict):
             convert_cell_row_metadata_types(value)
-        # check if the key is one of the exceptions where the types aren't what we expect
-        elif key in CELL_ROW_METADATA_EXCEPTIONS.keys():
-            metadata[key] = CELL_ROW_METADATA_EXCEPTIONS[key]
         # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
         elif value in CELL_ROW_METADATA_MAP.keys():
             metadata[key] = CELL_ROW_METADATA_MAP[value]
@@ -507,6 +499,8 @@ anndata_specific_obs_metadata_conditional = {
 obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata)),
     **anndata_specific_obs_metadata,
+    # detected in cell metadata only is int
+    "detected": "int",
 }
 
 obs_metadata_conditional = {
@@ -519,6 +513,8 @@ obs_metadata_conditional = {
 filtered_obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(filtered_cell_metadata)),
     **anndata_specific_obs_metadata,
+    # detected in cell metadata only is int
+    "detected": "int",
 }
 
 filtered_cell_metadata_conditional = {
@@ -538,12 +534,14 @@ processed_obs_metadata_conditional = {
 }
 
 # row metadata ----------
-# same for all object types
-var_metadata = {
+# same for unfilterd and filtered
+unfiltered_var_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(feature_metadata)),
     "feature_is_filtered": "bool",
-    "highly_variable": "bool",
 }
+
+# highly variable is only in the processed object
+processed_var_metadata = {**unfiltered_var_metadata, "highly_variable": "bool"}
 
 # reduced dimensionality ----------
 processed_obsm = ["X_pca", "X_umap"]
@@ -558,6 +556,8 @@ unfiltered_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(unfiltered_experiment_metadata)),
     **anndata_uns_metadata,
 }
+# drop sample_metadata since we don't keep it in AnnData objects
+unfiltered_uns_metadata.pop("sample_metadata", None)
 
 # also used for all adt object types
 unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
@@ -570,6 +570,8 @@ filtered_uns_metadata = {
     # this is NA or numeric so account for both possibilities in the reference
     "prob_compromised_cutoff": ["NoneType", "float"],
 }
+# drop sample_metadata since we don't keep it in AnnData objects
+filtered_uns_metadata.pop("sample_metadata", None)
 
 filtered_uns_metadata_conditional = {
     **convert_experiment_metadata_types(
@@ -592,6 +594,8 @@ processed_uns_metadata = {
         "variance_ratio": "float",
     },
 }
+# again remove sample metadata
+processed_uns_metadata.pop("sample_metadata", None)
 
 processed_uns_metadata_conditional = convert_experiment_metadata_types(
     copy.deepcopy(processed_experiment_metadata_conditional)
@@ -628,7 +632,7 @@ unfiltered_anndata = {
         "has_raw.X": False,
         "layers": layers,
         "obs": obs_metadata,
-        "var": var_metadata,
+        "var": unfiltered_var_metadata,
         "obs_conditional": obs_metadata_conditional,
         "uns": unfiltered_uns_metadata,
         "uns_conditional": unfiltered_uns_metadata_conditional,
@@ -646,7 +650,7 @@ filtered_anndata = {
         "has_raw.X": False,
         "layers": layers,
         "obs": filtered_obs_metadata,
-        "var": var_metadata,
+        "var": unfiltered_var_metadata,
         "obs_conditional": filtered_cell_metadata_conditional,
         "uns": filtered_uns_metadata,
         "uns_conditional": filtered_uns_metadata_conditional,
@@ -666,7 +670,7 @@ processed_anndata = {
         "has_raw.X": True,
         "layers": layers,
         "obs": filtered_obs_metadata,
-        "var": var_metadata,
+        "var": processed_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,
         "obsm": processed_obsm,
         "uns": processed_uns_metadata,
