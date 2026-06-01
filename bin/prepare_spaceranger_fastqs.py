@@ -2,7 +2,7 @@
 # prepare_spaceranger_fastqs.py
 # Usage: prepare_spaceranger_fastqs.py <fastq_dir> <sample_name> <staged_dir>
 #
-# Stages non-conformant FASTQ files for Space Ranger by creating a
+# Stages allowed FASTQ files for Space Ranger by creating a
 # 'fastq_staged' directory with symlinks named per the Space Ranger convention:
 #   {sample_name}_S1_L{lane:03d}_{R1|R2}_001.fastq.gz
 #
@@ -15,19 +15,19 @@ import re
 import sys
 from pathlib import Path
 
-NONCONFORMANT_PATTERN = re.compile(r"^(.+)_(R?[12])\.fastq\.gz$")
+ALLOWED_PATTERN = re.compile(r"^(.+)_(R?[12])\.fastq\.gz$")
 
 
 def parse_fastq(filename):
-    """Return (original_prefix, read_pair) for a non-conformant FASTQ filename."""
-    m = NONCONFORMANT_PATTERN.match(filename)
+    """Return (original_prefix, read_pair) for an allowed FASTQ filename."""
+    m = ALLOWED_PATTERN.match(filename)
     if m:
         orig_prefix = m.group(1)
         # Ensure read_pair is in the form R1 or R2
         read_pair = m.group(2) if m.group(2).startswith("R") else f"R{m.group(2)}"
         return orig_prefix, read_pair
     print(
-        f"Error: {filename} does not match a recognized non-conformant FASTQ naming pattern "
+        f"Error: {filename} does not match a recognized allowed FASTQ naming pattern "
         "(_R1.fastq.gz, _R2.fastq.gz, _1.fastq.gz, or _2.fastq.gz).",
         file=sys.stderr,
     )
@@ -36,7 +36,7 @@ def parse_fastq(filename):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Stage and rename non-conformant FASTQ files for Space Ranger."
+        description="Stage and rename allowed FASTQ files for Space Ranger."
     )
     parser.add_argument("fastq_dir", type=Path, help="Directory containing FASTQ files")
     parser.add_argument(

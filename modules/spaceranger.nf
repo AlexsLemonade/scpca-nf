@@ -217,24 +217,37 @@ process spaceranger_publish {
     """
 }
 
-def getCRsamples(files_dir) {
-  // takes the path to the directory holding the fastq files for each sample
-  // returns just the 'sample info' portion of the file names,
-  // as spaceranger would interpret them, comma separated
-  if (!files_dir) { // return empty string if no files directory
-    return ""
-  }
+def getSpaceRangerPrefix(files_dir) {
+  // Returns the Space Ranger sample prefix(es) for FASTQs in files_dir.
+  // Space Ranger accepts two conformant naming conventions:
+  //   full:    {sample}_S{n}_L{lane}_{R1|R2|I1|I2}_001.fastq.gz
+  //   no-lane: {sample}_S{n}_{R1|R2|I1|I2}_001.fastq.gz
+  // For conformant files, returns comma-separated unique prefixes.
+  // For non-conformant but allowed files (_R1/R2.fastq.gz or _1/2.fastq.gz),
+  // returns "" to signal that Python-based renaming is needed.
+  // Asserts with an error if files don't match any recognized pattern or if no files are found.
+  assert files_dir : "No FASTQ directory was provided to getSpaceRangerPrefix()."
   def fastq_files = files("${files_dir}/*.fastq.gz")
-  def samples = []
-  fastq_files.each{ it ->
-    // append sample names to list, using regex to extract element before S001, etc.
-    // [0] for the first match set, [1] for the first extracted element
-    // use .name to ensure we aren't getting a full path
-    samples << (it.name =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
+  assert fastq_files : "No FASTQ files found in ${files_dir}."
+
+  def spaceranger_pattern = /^(.+)_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
+  def allowed_pattern = /^.+_(R?[12])\.fastq\.gz$/
+
+  def all_conformant = fastq_files.every { it.name =~ spaceranger_pattern }
+
+  if (all_conformant) {
+    return fastq_files
+      .collect { f -> (f.name =~ spaceranger_pattern)[0][1] }
+      .toSet()
+      .join(',')
   }
-  // convert samples list to a `set` to remove duplicate entries,
-  // then join to a comma separated string.
-  return samples.toSet().join(',')
+
+  def all_allowed = fastq_files.every { it.name =~ allowed_pattern }
+  assert all_allowed :
+    "FASTQ files in ${files_dir} do not match any recognized naming convention for Space Ranger. " +
+    "Files must follow the Space Ranger convention: [Sample Name]_S1_L00[Lane Number]_[Read Type]_001.fastq.gz " +
+    "or [Sample Name]_S1_[Read Type]_001.fastq.gz, or alternatively a simplified pattern ({sample}_{R1|R2|1|2}.fastq.gz)."
+  return ""
 }
 
 
@@ -253,7 +266,7 @@ workflow spaceranger_quant{
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
         def meta = meta_in.clone()
-        meta.cr_samples = getCRsamples("${meta.files_directory}/fastq")
+        meta.spaceranger_prefix = getSpaceRangerPrefix("${meta.files_directory}/fastq")
         meta.spaceranger_checkpoint_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
         meta.spaceranger_results_dir = "${meta.spaceranger_checkpoint_dir}/${meta.run_id}-spatial"
 
