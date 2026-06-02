@@ -22,19 +22,14 @@ process spaceranger {
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
 
-    // if spaceranger_prefix is set, files are already conformant: use fastq_dir directly.
-    // otherwise, run the Python script to stage renamed symlinks and capture the prefix.
-    prefix_cmd = meta.spaceranger_prefix ?
-      "spaceranger_prefix=${meta.spaceranger_prefix}" :
-      "spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1"
-    fastqs_dir = meta.spaceranger_prefix ? "${fastq_dir}" : "fastq_staged"
     """
-    ${prefix_cmd}
+    # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
+    spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1
 
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastqs_dir} \
+      --fastqs=fastq_staged \
       --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
@@ -91,19 +86,14 @@ process spaceranger_hd {
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
 
-    // if spaceranger_prefix is set, files are already conformant: use fastq_dir directly.
-    // otherwise, run the Python script to stage renamed symlinks and capture the prefix.
-    prefix_cmd = meta.spaceranger_prefix ?
-      "spaceranger_prefix=${meta.spaceranger_prefix}" :
-      "spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1"
-    fastqs_dir = meta.spaceranger_prefix ? "${fastq_dir}" : "fastq_staged"
     """
-    ${prefix_cmd}
+    # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
+    spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1
 
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastqs_dir} \
+      --fastqs=fastq_staged \
       --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
@@ -235,40 +225,6 @@ process spaceranger_publish {
     """
 }
 
-def getSpaceRangerPrefix(files_dir) {
-  // Returns the Space Ranger sample prefix(es) for FASTQs in files_dir.
-  // Space Ranger accepts two conformant naming conventions:
-  //   full:    {sample}_S{n}_L{lane}_{R1|R2|I1|I2}_001.fastq.gz
-  //   no-lane: {sample}_S{n}_{R1|R2|I1|I2}_001.fastq.gz
-  // For conformant files, returns comma-separated unique prefixes.
-  // For non-conformant but allowed files (_R1/R2.fastq.gz or _1/2.fastq.gz),
-  // returns "" to signal that Python-based renaming is needed.
-  // Returns null if files don't match any recognized pattern; caller logs and skips the run.
-  // Asserts if no files are found.
-  assert files_dir : "No FASTQ directory was provided to getSpaceRangerPrefix()."
-  def fastq_files = files("${files_dir}/*.fastq.gz")
-  assert fastq_files : "No FASTQ files found in ${files_dir}."
-
-  def spaceranger_pattern = /^(.+)_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
-  def allowed_pattern = /^.+_(R?[12])\.fastq\.gz$/
-
-  def all_conformant = fastq_files.every { it.name =~ spaceranger_pattern }
-
-  if (all_conformant) {
-    return fastq_files
-      .collect { f -> (f.name =~ spaceranger_pattern)[0][1] }
-      .toSet()
-      .join(',')
-  }
-
-  def all_allowed = fastq_files.every { it.name =~ allowed_pattern }
-  if (!all_allowed) {
-    return null
-  }
-  return ""
-}
-
-
 workflow spaceranger_quant{
   take: 
     spatial_channel // a channel with a map of metadata for each spatial library to process
@@ -284,7 +240,11 @@ workflow spaceranger_quant{
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
         def meta = meta_in.clone()
-        meta.spaceranger_prefix = getSpaceRangerPrefix("${meta.files_directory}/fastq")
+        def sr_pattern = /^(.+)_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
+        def allowed_pattern = /^.+_(R?[12])\.fastq\.gz$/
+        meta.fastq_format_recognized = files("${meta.files_directory}/fastq/*.fastq.gz").every { f ->
+          (f.name =~ sr_pattern) || (f.name =~ allowed_pattern)
+        }
         meta.spaceranger_checkpoint_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
         meta.spaceranger_results_dir = "${meta.spaceranger_checkpoint_dir}/${meta.run_id}-spatial"
 
@@ -294,7 +254,7 @@ workflow spaceranger_quant{
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
         // branch for invalid cases
-        unrecognized_fastq_format: it.spaceranger_prefix == null
+        unrecognized_fastq_format: !it.fastq_format_recognized
         missing_slide_serial: !it.slide_serial_number
         missing_slide_section: !it.slide_section
         make_spatial: (

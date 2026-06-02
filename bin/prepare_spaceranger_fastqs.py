@@ -2,28 +2,34 @@
 # prepare_spaceranger_fastqs.py
 # Usage: prepare_spaceranger_fastqs.py <fastq_dir> <sample_name> <staged_dir>
 #
-# Stages allowed FASTQ files for Space Ranger by creating a
-# 'fastq_staged' directory with symlinks named per the Space Ranger convention:
-#   {sample_name}_S1_L{lane:03d}_{R1|R2}_001.fastq.gz
+# Stages FASTQ files for Space Ranger by creating a directory of symlinks and
+# captures the sample prefix(es) for input to Space Ranger.
 #
-# Input files must end in _<R1/R2/1/2>.fastq.gz.
+# Conformant files (already Space Ranger formatted) are symlinked with their
+# original names; the original sample prefix(es) are printed to stdout.
+#
+# Non-conformant allowed files (_R1/R2/1/2.fastq.gz) are symlinked with names
+# following the Space Ranger convention:
+#   {sample_name}_S1_L{lane:03d}_{R1|R2}_001.fastq.gz
 # Files are grouped by their original sample prefix; each group gets its own lane.
-# Prints the sample_name prefix to stdout.
+# sample_name is printed to stdout.
+#
+# Exits non-zero if files don't match either recognized pattern.
 
 import argparse
 import re
 import sys
 from pathlib import Path
 
+CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$")
 ALLOWED_PATTERN = re.compile(r"^(.+)_(R?[12])\.fastq\.gz$")
 
 
-def parse_fastq(filename):
-    """Return (original_prefix, read_pair) for an allowed FASTQ filename."""
+def parse_allowed_fastq(filename):
+    """Return (original_prefix, read_pair) for an allowed non-conformant FASTQ filename."""
     m = ALLOWED_PATTERN.match(filename)
     if m:
         orig_prefix = m.group(1)
-        # Ensure read_pair is in the form R1 or R2
         read_pair = m.group(2) if m.group(2).startswith("R") else f"R{m.group(2)}"
         return orig_prefix, read_pair
     print(
@@ -35,15 +41,14 @@ def parse_fastq(filename):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Stage and rename allowed FASTQ files for Space Ranger."
-    )
+    parser = argparse.ArgumentParser(description="Stage FASTQ files for Space Ranger.")
     parser.add_argument("fastq_dir", type=Path, help="Directory containing FASTQ files")
     parser.add_argument(
-        "sample_name", help="Library ID to use as the shared sample prefix"
+        "sample_name",
+        help="Library ID to use as the shared sample prefix for non-conformant files",
     )
     parser.add_argument(
-        "staged_dir", type=Path, help="Directory to create with renamed symlinks"
+        "staged_dir", type=Path, help="Directory to create with symlinks"
     )
     args = parser.parse_args()
 
@@ -69,23 +74,30 @@ def main():
     # Note their existence was confirmed in nextflow code already
     fastqs = sorted(fastq_dir.glob("*.fastq.gz"))
 
-    # Create directory where we will stage the renamed symlinks
+    # Create directory where we will stage all symlinks
     staged_dir.mkdir(exist_ok=True)
 
-    # Group files by original sample prefix, preserving sort order for lane assignment
-    groups = {}
-    for f in fastqs:
-        orig_prefix, read_pair = parse_fastq(f.name)
-        groups.setdefault(orig_prefix, {})[read_pair] = f
+    if all(CONFORMANT_PATTERN.match(f.name) for f in fastqs):
+        # Files are already conformant; symlink with original names and return the unique sample prefixes
+        prefixes = set(CONFORMANT_PATTERN.match(f.name).group(1) for f in fastqs)
+        for f in fastqs:
+            (staged_dir / f.name).symlink_to(f.absolute())
+        print(",".join(sorted(prefixes)))
+    else:
+        # Group files by original sample prefix, preserving sort order for lane assignment
+        groups = {}
+        for f in fastqs:
+            orig_prefix, read_pair = parse_allowed_fastq(f.name)
+            groups.setdefault(orig_prefix, {})[read_pair] = f
 
-    # Create the symlinks with new names according to the Space Ranger convention
-    for lane, orig_prefix in enumerate(sorted(groups), start=1):
-        for read_pair, f in sorted(groups[orig_prefix].items()):
-            new_name = f"{sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
-            (staged_dir / new_name).symlink_to(f.absolute())
+        # Create the symlinks with new names according to the Space Ranger convention
+        for lane, orig_prefix in enumerate(sorted(groups), start=1):
+            for read_pair, f in sorted(groups[orig_prefix].items()):
+                new_name = f"{sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
+                (staged_dir / new_name).symlink_to(f.absolute())
 
-    # send to stdout so we can capture it for input to spaceranger
-    print(sample_name)
+        # send to stdout so we can capture it for input to spaceranger
+        print(sample_name)
 
 
 if __name__ == "__main__":
