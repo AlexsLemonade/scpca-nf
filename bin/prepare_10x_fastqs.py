@@ -75,9 +75,9 @@ def main():
         print("Error: staged_dir must not be empty.", file=sys.stderr)
         sys.exit(1)
 
-    # List all FASTQ files in order
+    # List all FASTQ files
     # Note their existence was confirmed in nextflow code already
-    fastqs = sorted(fastq_dir.glob("*.fastq.gz"))
+    fastqs = list(fastq_dir.glob("*.fastq.gz"))
 
     # Create directory where we will stage all symlinks
     staged_dir.mkdir()
@@ -89,15 +89,15 @@ def main():
             (staged_dir / f.name).symlink_to(f.absolute())
         print(",".join(sorted(prefixes)))
     else:
-        # Group files by original sample prefix, preserving sort order for lane assignment
+        # Group files by original sample prefix; each group gets its own lane
         groups = {}
         for f in fastqs:
             orig_prefix, read_pair = parse_allowed_fastq(f.name)
             groups.setdefault(orig_prefix, {})[read_pair] = f
 
         # Create the symlinks with new names according to the 10x Genomics convention
-        for lane, orig_prefix in enumerate(sorted(groups), start=1):
-            for read_pair, f in sorted(groups[orig_prefix].items()):
+        for lane, orig_prefix in enumerate(groups, start=1):
+            for read_pair, f in groups[orig_prefix].items():
                 new_name = f"{sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
                 (staged_dir / new_name).symlink_to(f.absolute())
 
