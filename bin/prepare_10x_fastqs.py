@@ -80,7 +80,7 @@ def main():
     fastqs = sorted(fastq_dir.glob("*.fastq.gz"))
 
     # Create directory where we will stage all symlinks
-    staged_dir.mkdir(exist_ok=True)
+    staged_dir.mkdir()
 
     if all(CONFORMANT_PATTERN.match(f.name) for f in fastqs):
         # Files are already conformant; symlink with original names and return the unique sample prefixes
