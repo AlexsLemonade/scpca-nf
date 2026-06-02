@@ -461,14 +461,19 @@ workflow {
     file(params.validation_palette_file)
   )
 
-  // check formatting for published sce files and generate error reports
-  format_checks(qc_publish_sce.out.data, file(params.sce_format_reference_file))
-
   // convert SCE object to anndata
   anndata_ch = qc_publish_sce.out.data
     // skip multiplexed libraries
     .filter{ !(it[0].library_id in multiplex_libs.getVal()) }
   sce_to_anndata(anndata_ch)
+
+  // check formatting for published sce and anndata files and generate error reports
+  format_checks(
+    qc_publish_sce.out.data, 
+    sce_to_anndata.out.complete,
+    file(params.sce_format_reference_file),
+    file(params.anndata_format_reference_file)
+  )
 
 
 }

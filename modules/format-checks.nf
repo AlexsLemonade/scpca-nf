@@ -28,6 +28,32 @@ process check_sce {
     """
 }
 
+process check_anndata {
+  container "${pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)}"
+  label 'mem_16'
+  tag "${meta.unique_id}"
+  input:
+    tuple val(meta), 
+          path(anndata_file)
+    path(reference_anndata_file)
+  output:
+    tuple val(meta), 
+          path("${meta.unique_id}_formatting_errors.txt")
+  script:
+    def object_type = anndata_file.baseName.replace("${meta.library_id}_", "").replaceAll(/_(rna|adt)$/, "")
+    """
+    anndata_formatting_checks.py \
+        --anndata_file ${anndata_file} \
+        --object_type ${object_type} \
+        --reference_file ${reference_anndata_file} \
+        --output_file ${meta.unique_id}_formatting_errors.txt
+    """
+  stub:
+    """
+    touch ${meta.unique_id}_formatting_errors.txt
+    """
+}
+
 process compile_errors {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}", mode: 'copy'
@@ -57,7 +83,9 @@ process compile_errors {
 workflow format_checks {
   take: 
     sce_ch // [ meta, unfiltered sce, filtered sce, processed sce, metadata json]
+    anndata_ch // [ meta, h5ad files]
     sce_format_reference_file
+    anndata_format_reference_file
   main: 
 
     sce_format_ch = sce_ch
@@ -69,8 +97,14 @@ workflow format_checks {
 
     check_sce(sce_format_ch, sce_format_reference_file)
 
+    anndata_format_ch = anndata_ch
+      .transpose() // [ [meta, unfiltered rna h5ad], [meta, unfiltered adt h5ad]  ... ] 
+
+    check_anndata(anndata_format_ch, anndata_format_reference_file)
+
     // collect all error files and concatenate to print to a formatting errors output file
     error_input_ch = check_sce.out
+      .mix(check_anndata.out) // mix with the anndata error files
       .collect{ meta, error_file -> error_file } // collect into a list of just the error files
     
     compile_errors(error_input_ch)
