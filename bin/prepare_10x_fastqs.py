@@ -69,7 +69,7 @@ def main():
         print("Error: sample-name must not be empty.", file=sys.stderr)
         sys.exit(1)
     if not args.staged_dir.name:
-        print("Error: staged-dir must not be empty.", file=sys.stderr)
+        print("Error: staged-dir must be provided.", file=sys.stderr)
         sys.exit(1)
 
     # List all FASTQ files
