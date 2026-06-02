@@ -21,16 +21,19 @@ import re
 import sys
 from pathlib import Path
 
-CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$")
-ALLOWED_PATTERN = re.compile(r"^(.+)_(R?[12])\.fastq\.gz$")
+CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(?:L\d+_)?(?:R[12]|I[12])_001\.fastq\.gz$")
+ALLOWED_PATTERN = re.compile(
+    r"^(?P<prefix>.+)_(?P<read>R?[12])(?:_(?P<lane>\d{3}))?\.fastq\.gz$"
+)
 
 
 def parse_allowed_fastq(filename):
     """Return (original_prefix, read_pair) for an allowed non-conformant FASTQ filename."""
     m = ALLOWED_PATTERN.match(filename)
     if m:
-        orig_prefix = m.group(1)
-        read_pair = m.group(2) if m.group(2).startswith("R") else f"R{m.group(2)}"
+        orig_prefix = m.group("prefix")
+        read = m.group("read")
+        read_pair = read if read.startswith("R") else f"R{read}"
         return orig_prefix, read_pair
     print(
         f"Error: {filename} does not match a recognized allowed FASTQ naming pattern "

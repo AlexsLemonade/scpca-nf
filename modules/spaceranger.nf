@@ -240,8 +240,8 @@ workflow spaceranger_quant{
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
         def meta = meta_in.clone()
-        def sr_pattern = /^(.+)_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
-        def allowed_pattern = /^.+_(R?[12])\.fastq\.gz$/
+        def sr_pattern = /^.+_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
+        def allowed_pattern = /^.+_(R?[12])(_\d{3})?\.fastq\.gz$/
         meta.fastq_format_recognized = files("${meta.files_directory}/fastq/*.fastq.gz").every { f ->
           (f.name =~ sr_pattern) || (f.name =~ allowed_pattern)
         }
