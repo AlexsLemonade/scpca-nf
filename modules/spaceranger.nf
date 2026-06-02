@@ -24,7 +24,7 @@ process spaceranger {
 
     """
     # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
-    spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1
+    spaceranger_prefix=\$(prepare_10x_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1
 
     spaceranger count \
       --id=${out_id} \
@@ -88,7 +88,7 @@ process spaceranger_hd {
 
     """
     # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
-    spaceranger_prefix=\$(prepare_spaceranger_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1
+    spaceranger_prefix=\$(prepare_10x_fastqs.py ${fastq_dir} ${meta.library_id} fastq_staged) || exit 1
 
     spaceranger count \
       --id=${out_id} \

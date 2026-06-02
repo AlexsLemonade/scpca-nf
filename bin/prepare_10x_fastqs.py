@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-# prepare_spaceranger_fastqs.py
-# Usage: prepare_spaceranger_fastqs.py <fastq_dir> <sample_name> <staged_dir>
+# prepare_10x_fastqs.py
+# Usage: prepare_10x_fastqs.py <fastq_dir> <sample_name> <staged_dir>
 #
-# Stages FASTQ files for Space Ranger by creating a directory of symlinks and
-# captures the sample prefix(es) for input to Space Ranger.
+# Stages FASTQ files for Space Ranger or Cell Ranger input by creating a directory
+# of symlinks and captures the sample prefix(es) for input to 10x Genomics.
 #
-# Conformant files (already Space Ranger formatted) are symlinked with their
+# Conformant files (already 10x-formatted) are symlinked with their
 # original names; the original sample prefix(es) are printed to stdout.
 #
-# Non-conformant allowed files (_R1/R2/1/2.fastq.gz) are symlinked with names
-# following the Space Ranger convention:
+# Non-conformant allowed files are symlinked with names
+# following the 10x Genomics convention:
 #   {sample_name}_S1_L{lane:03d}_{R1|R2}_001.fastq.gz
 # Files are grouped by their original sample prefix; each group gets its own lane.
 # sample_name is printed to stdout.
@@ -44,7 +44,9 @@ def parse_allowed_fastq(filename):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Stage FASTQ files for Space Ranger.")
+    parser = argparse.ArgumentParser(
+        description="Stage FASTQ files for input to Space Ranger or Cell Ranger."
+    )
     parser.add_argument("fastq_dir", type=Path, help="Directory containing FASTQ files")
     parser.add_argument(
         "sample_name",
@@ -93,13 +95,13 @@ def main():
             orig_prefix, read_pair = parse_allowed_fastq(f.name)
             groups.setdefault(orig_prefix, {})[read_pair] = f
 
-        # Create the symlinks with new names according to the Space Ranger convention
+        # Create the symlinks with new names according to the 10x Genomics convention
         for lane, orig_prefix in enumerate(sorted(groups), start=1):
             for read_pair, f in sorted(groups[orig_prefix].items()):
                 new_name = f"{sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
                 (staged_dir / new_name).symlink_to(f.absolute())
 
-        # send to stdout so we can capture it for input to spaceranger
+        # send to stdout so we can capture it for input to Space Ranger/Cell Ranger
         print(sample_name)
 
 
