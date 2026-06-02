@@ -47,46 +47,43 @@ def main():
     parser = argparse.ArgumentParser(
         description="Stage FASTQ files for input to Space Ranger or Cell Ranger."
     )
-    parser.add_argument("fastq_dir", type=Path, help="Directory containing FASTQ files")
     parser.add_argument(
-        "sample_name",
+        "--fastq-dir", type=Path, help="Directory containing FASTQ files"
+    )
+    parser.add_argument(
+        "--sample-name",
         help="Library ID to use as the shared sample prefix for non-conformant files",
     )
     parser.add_argument(
-        "staged_dir", type=Path, help="Directory to create with symlinks"
+        "--staged-dir", type=Path, help="Directory to create with symlinks"
     )
     args = parser.parse_args()
 
-    # Parse args and checks
-    fastq_dir = args.fastq_dir
-    sample_name = args.sample_name
-    staged_dir = args.staged_dir
-
-    if not fastq_dir.is_dir():
+    if not args.fastq_dir.is_dir():
         print(
-            f"Error: fastq_dir {fastq_dir} does not exist or is not a directory.",
+            f"Error: fastq-dir {args.fastq_dir} does not exist or is not a directory.",
             file=sys.stderr,
         )
         sys.exit(1)
-    if not sample_name:
-        print("Error: sample_name must not be empty.", file=sys.stderr)
+    if not args.sample_name:
+        print("Error: sample-name must not be empty.", file=sys.stderr)
         sys.exit(1)
-    if not staged_dir.name:
-        print("Error: staged_dir must not be empty.", file=sys.stderr)
+    if not args.staged_dir.name:
+        print("Error: staged-dir must not be empty.", file=sys.stderr)
         sys.exit(1)
 
     # List all FASTQ files
     # Note their existence was confirmed in nextflow code already
-    fastqs = list(fastq_dir.glob("*.fastq.gz"))
+    fastqs = list(args.fastq_dir.glob("*.fastq.gz"))
 
     # Create directory where we will stage all symlinks
-    staged_dir.mkdir()
+    args.staged_dir.mkdir()
 
     if all(CONFORMANT_PATTERN.match(f.name) for f in fastqs):
         # Files are already conformant; symlink with original names and return the unique sample prefixes
         prefixes = set(CONFORMANT_PATTERN.match(f.name).group(1) for f in fastqs)
         for f in fastqs:
-            (staged_dir / f.name).symlink_to(f.absolute())
+            (args.staged_dir / f.name).symlink_to(f.absolute())
         print(",".join(sorted(prefixes)))
     else:
         # Group files by original sample prefix; each group gets its own lane
@@ -98,11 +95,11 @@ def main():
         # Create the symlinks with new names according to the 10x Genomics convention
         for lane, orig_prefix in enumerate(groups, start=1):
             for read_pair, f in groups[orig_prefix].items():
-                new_name = f"{sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
-                (staged_dir / new_name).symlink_to(f.absolute())
+                new_name = f"{args.sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
+                (args.staged_dir / new_name).symlink_to(f.absolute())
 
         # send to stdout so we can capture it for input to Space Ranger/Cell Ranger
-        print(sample_name)
+        print(args.sample_name)
 
 
 if __name__ == "__main__":
