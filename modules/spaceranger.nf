@@ -243,7 +243,8 @@ def getSpaceRangerPrefix(files_dir) {
   // For conformant files, returns comma-separated unique prefixes.
   // For non-conformant but allowed files (_R1/R2.fastq.gz or _1/2.fastq.gz),
   // returns "" to signal that Python-based renaming is needed.
-  // Asserts with an error if files don't match any recognized pattern or if no files are found.
+  // Returns null if files don't match any recognized pattern; caller logs and skips the run.
+  // Asserts if no files are found.
   assert files_dir : "No FASTQ directory was provided to getSpaceRangerPrefix()."
   def fastq_files = files("${files_dir}/*.fastq.gz")
   assert fastq_files : "No FASTQ files found in ${files_dir}."
@@ -261,10 +262,9 @@ def getSpaceRangerPrefix(files_dir) {
   }
 
   def all_allowed = fastq_files.every { it.name =~ allowed_pattern }
-  assert all_allowed :
-    "FASTQ files in ${files_dir} do not match any recognized naming convention for Space Ranger. " +
-    "Files must follow the Space Ranger convention: [Sample Name]_S1_L00[Lane Number]_[Read Type]_001.fastq.gz " +
-    "or [Sample Name]_S1_[Read Type]_001.fastq.gz, or alternatively a simplified pattern ({sample}_{R1|R2|1|2}.fastq.gz)."
+  if (!all_allowed) {
+    return null
+  }
   return ""
 }
 
@@ -294,6 +294,7 @@ workflow spaceranger_quant{
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
         // branch for invalid cases
+        unrecognized_fastq_format: it.spaceranger_prefix == null
         missing_slide_serial: !it.slide_serial_number
         missing_slide_section: !it.slide_section
         make_spatial: (
@@ -310,6 +311,13 @@ workflow spaceranger_quant{
         missing_inputs: true
       }
 
+    spatial_channel.unrecognized_fastq_format.subscribe{ it ->
+      log.error(
+        "FASTQ files in '${it.files_directory}/fastq' for run '${it.run_id}' do not match any recognized naming convention for Space Ranger and will not be processed. " +
+        "Files must follow the Space Ranger convention: [Sample Name]_S1_L00[Lane Number]_[Read Type]_001.fastq.gz " +
+        "or [Sample Name]_S1_[Read Type]_001.fastq.gz, or alternatively a simplified pattern ({sample}_{R1|R2|1|2}.fastq.gz)."
+      )
+    }
     spatial_channel.missing_slide_serial.subscribe{ it ->
       log.error("Run '${it.run_id}' is missing a slide serial number and will not be processed.")
     }
