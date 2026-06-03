@@ -253,7 +253,7 @@ workflow spaceranger_quant{
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
 
-        def allowed_pattern = /^.+_(R?[12])(_\d{3})?\.fastq\.gz$/
+        def allowed_pattern = /^.+_([RI]?[12])(_\d{3})?\.fastq\.gz$/
         def fastq_format_recognized = files("${it.files_directory}/fastq/*.fastq.gz")
           .every { f -> f.name =~ allowed_pattern }
 
