@@ -24,7 +24,7 @@ process spaceranger {
 
     """
     # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
-    spaceranger_prefix=\$(prepare_10x_fastqs.py \
+    spaceranger_prefix=\$(prepare_ranger_fastqs.py \
       --fastq-dir ${fastq_dir} \
       --staged-dir fastq_staged) || exit 1
 
@@ -90,7 +90,7 @@ process spaceranger_hd {
 
     """
     # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
-    spaceranger_prefix=\$(prepare_10x_fastqs.py \
+    spaceranger_prefix=\$(prepare_ranger_fastqs.py \
       --fastq-dir ${fastq_dir} \
       --staged-dir fastq_staged) || exit 1
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# prepare_10x_fastqs.py
-# Usage: prepare_10x_fastqs.py --fastq-dir <fastq_dir> --staged-dir <staged_dir>
+# prepare_ranger_fastqs.py
+# Usage: prepare_ranger_fastqs.py --fastq-dir <fastq_dir> --staged-dir <staged_dir>
 #
 # Stages FASTQ files for Space Ranger or Cell Ranger input by creating a directory
-# of symlinks and captures the sample prefix(es) for input to 10x Genomics.
+# of symlinks and captures the sample prefix(es) for input.
 #
 # Conformant files (already 10x-formatted) are symlinked with their original names.
 #
