@@ -20,7 +20,9 @@ import sys
 from pathlib import Path
 
 CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(L\d+_)?[RI][12]_\d{3}\.fastq\.gz$")
-ALLOWED_PATTERN = re.compile(r"^(?P<prefix>.+)_(?P<read>[RI]?[12])(?:_\d{3})?\.fastq\.gz$")
+ALLOWED_PATTERN = re.compile(
+    r"^(?P<prefix>.+)_(?P<read>[RI]?[12])(?:_\d{3})?\.fastq\.gz$"
+)
 
 
 def parse_allowed_fastq(filename):
