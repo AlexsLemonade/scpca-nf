@@ -21,7 +21,7 @@ import re
 import sys
 from pathlib import Path
 
-CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(?:L\d+_)?(?:R[12]|I[12])_001\.fastq\.gz$")
+CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(L\d+_)?[RI][12]_\d{3}\.fastq\.gz$")
 ALLOWED_PATTERN = re.compile(
     r"^(?P<prefix>.+)_(?P<read>R?[12])(?:_(?P<lane>\d{3}))?\.fastq\.gz$"
 )
