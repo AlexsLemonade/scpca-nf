@@ -35,8 +35,7 @@ process spaceranger {
       --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
-      --slide=${meta.slide_serial_number} \
-      --area=${meta.slide_section} \
+      --unknown_slide \ 
       --create-bam=false \
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
