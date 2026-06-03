@@ -26,7 +26,6 @@ process spaceranger {
     # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
     spaceranger_prefix=\$(prepare_10x_fastqs.py \
       --fastq-dir ${fastq_dir} \
-      --sample-name ${meta.library_id} \
       --staged-dir fastq_staged) || exit 1
 
     spaceranger count \
@@ -93,7 +92,6 @@ process spaceranger_hd {
     # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
     spaceranger_prefix=\$(prepare_10x_fastqs.py \
       --fastq-dir ${fastq_dir} \
-      --sample-name ${meta.library_id} \
       --staged-dir fastq_staged) || exit 1
 
     spaceranger count \
@@ -246,11 +244,6 @@ workflow spaceranger_quant{
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
         def meta = meta_in.clone()
-        def sr_pattern = /^.+_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
-        def allowed_pattern = /^.+_(R?[12])(_\d{3})?\.fastq\.gz$/
-        meta.fastq_format_recognized = files("${meta.files_directory}/fastq/*.fastq.gz").every { f ->
-          (f.name =~ sr_pattern) || (f.name =~ allowed_pattern)
-        }
         meta.spaceranger_checkpoint_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
         meta.spaceranger_results_dir = "${meta.spaceranger_checkpoint_dir}/${meta.run_id}-spatial"
 
@@ -259,8 +252,15 @@ workflow spaceranger_quant{
       .branch{ it ->
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
+
+        def sr_pattern = /^.+_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
+        def allowed_pattern = /^.+_(R?[12])(_\d{3})?\.fastq\.gz$/
+        def fastq_format_recognized = files("${meta.files_directory}/fastq/*.fastq.gz").every { f ->
+          (f.name =~ sr_pattern) || (f.name =~ allowed_pattern)
+        }
+
         // branch for invalid cases
-        unrecognized_fastq_format: !it.fastq_format_recognized
+        unrecognized_fastq_format: !fastq_format_recognized
         missing_slide_serial: !it.slide_serial_number
         missing_slide_section: !it.slide_section
         make_spatial: (
