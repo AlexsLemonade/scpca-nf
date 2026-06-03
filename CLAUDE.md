@@ -13,6 +13,7 @@ This project is Nextflow pipeline that processes data for the [Single-cell Pedia
 
 ## Expectations
 
+- When the user asks a question about existing code or design ("why is X here?", "do we need Y?", "should this be Z?"), treat it as a discussion prompt and not as a request to make changes. Only modify code after the user has explicitly agreed on a course of action following discussion.
 - When you have made changes, stop and describe what you changed and why so the human can review.
 - If you are unsure whether an action is allowed, ask rather than proceeding.
 - Keep changes small and incremental. Prefer multiple small steps over one large batch of changes. This helps to ensure the human can make tightly-scoped commits.
