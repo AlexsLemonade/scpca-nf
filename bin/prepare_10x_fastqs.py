@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 # prepare_10x_fastqs.py
-# Usage: prepare_10x_fastqs.py <fastq_dir> <sample_name> <staged_dir>
+# Usage: prepare_10x_fastqs.py --fastq-dir <fastq_dir> --staged-dir <staged_dir>
 #
 # Stages FASTQ files for Space Ranger or Cell Ranger input by creating a directory
 # of symlinks and captures the sample prefix(es) for input to 10x Genomics.
 #
-# Conformant files (already 10x-formatted) are symlinked with their
-# original names; the original sample prefix(es) are printed to stdout.
+# Conformant files (already 10x-formatted) are symlinked with their original names.
 #
-# Non-conformant allowed files are symlinked with names
-# following the 10x Genomics convention:
-#   {sample_name}_S1_L{lane:03d}_{R1|R2}_001.fastq.gz
-# Files are grouped by their original sample prefix; each group gets its own lane.
-# sample_name is printed to stdout.
+# Non-conformant allowed files (_R1/R2.fastq.gz or _1/2.fastq.gz) are symlinked
+# with names following the 10x Genomics convention:
+#   {prefix}_S1_{R1|R2}_001.fastq.gz
 #
-# Exits non-zero if files don't match either recognized pattern.
+# The comma-separated list of sample prefixes is printed to stdout.
+# Exits non-zero if any file does not match either recognized pattern.
 
 import argparse
 import re
@@ -51,10 +49,6 @@ def main():
         "--fastq-dir", type=Path, help="Directory containing FASTQ files"
     )
     parser.add_argument(
-        "--sample-name",
-        help="Library ID to use as the shared sample prefix for non-conformant files",
-    )
-    parser.add_argument(
         "--staged-dir", type=Path, help="Directory to create with symlinks"
     )
     args = parser.parse_args()
@@ -64,9 +58,6 @@ def main():
             f"Error: fastq-dir {args.fastq_dir} does not exist or is not a directory.",
             file=sys.stderr,
         )
-        sys.exit(1)
-    if not args.sample_name:
-        print("Error: sample-name must not be empty.", file=sys.stderr)
         sys.exit(1)
     if not args.staged_dir.name:
         print("Error: staged-dir must be provided.", file=sys.stderr)
@@ -79,27 +70,28 @@ def main():
     # Create directory where we will stage all symlinks
     args.staged_dir.mkdir()
 
-    if all(CONFORMANT_PATTERN.match(f.name) for f in fastqs):
-        # Files are already conformant; symlink with original names and return the unique sample prefixes
-        prefixes = set(CONFORMANT_PATTERN.match(f.name).group(1) for f in fastqs)
-        for f in fastqs:
-            (args.staged_dir / f.name).symlink_to(f.absolute())
-        print(",".join(sorted(prefixes)))
-    else:
-        # Group files by original sample prefix; each group gets its own lane
-        groups = {}
-        for f in fastqs:
-            orig_prefix, read_pair = parse_allowed_fastq(f.name)
-            groups.setdefault(orig_prefix, {})[read_pair] = f
+    return_prefixes = set()
+    for f in fastqs:
+        # don't change the name if it's already conformant
+        if m := CONFORMANT_PATTERN.match(f.name):
+            prefix = m.group(1)
+            new_name = f.name
+        # add _S1_ and _001 to conform to 10x convention
+        else:
+            prefix, read_pair = parse_allowed_fastq(f.name)
+            new_name = f"{prefix}_S1_{read_pair}_001.fastq.gz"
+        (args.staged_dir / new_name).symlink_to(f.absolute())
+        return_prefixes.add(prefix)
 
-        # Create the symlinks with new names according to the 10x Genomics convention
-        for lane, orig_prefix in enumerate(groups, start=1):
-            for read_pair, f in groups[orig_prefix].items():
-                new_name = f"{args.sample_name}_S1_L{lane:03d}_{read_pair}_001.fastq.gz"
-                (args.staged_dir / new_name).symlink_to(f.absolute())
+    if len(return_prefixes) == 0:
+        print(
+            "Error: Could not identify sample prefixes from the FASTQ files.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-        # send to stdout so we can capture it for input to Space Ranger/Cell Ranger
-        print(args.sample_name)
+    # Send to stdout so we can capture all prefixes for input to Space Ranger/Cell Ranger
+    print(",".join(return_prefixes))
 
 
 if __name__ == "__main__":
