@@ -46,10 +46,13 @@ def main():
         description="Stage FASTQ files for input to Space Ranger or Cell Ranger."
     )
     parser.add_argument(
-        "--fastq-dir", type=Path, help="Directory containing FASTQ files"
+        "--fastq-dir", required=True, type=Path, help="Directory containing FASTQ files"
     )
     parser.add_argument(
-        "--staged-dir", type=Path, help="Directory to create with symlinks"
+        "--staged-dir",
+        required=True,
+        type=Path,
+        help="Directory to create with symlinks",
     )
     args = parser.parse_args()
 
@@ -58,9 +61,6 @@ def main():
             f"Error: fastq-dir {args.fastq_dir} does not exist or is not a directory.",
             file=sys.stderr,
         )
-        sys.exit(1)
-    if not args.staged_dir.name:
-        print("Error: staged-dir must be provided.", file=sys.stderr)
         sys.exit(1)
 
     # List all FASTQ files
@@ -83,7 +83,7 @@ def main():
         (args.staged_dir / new_name).symlink_to(f.absolute())
         return_prefixes.add(prefix)
 
-    if len(return_prefixes) == 0:
+    if not return_prefixes:
         print(
             "Error: Could not identify sample prefixes from the FASTQ files.",
             file=sys.stderr,
