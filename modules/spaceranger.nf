@@ -255,7 +255,7 @@ workflow spaceranger_quant{
 
         def sr_pattern = /^.+_S\d+_(L\d+_)?(R[12]|I[12])_001\.fastq\.gz$/
         def allowed_pattern = /^.+_(R?[12])(_\d{3})?\.fastq\.gz$/
-        def fastq_format_recognized = files("${meta.files_directory}/fastq/*.fastq.gz").every { f ->
+        def fastq_format_recognized = files("${it.files_directory}/fastq/*.fastq.gz").every { f ->
           (f.name =~ sr_pattern) || (f.name =~ allowed_pattern)
         }
 
