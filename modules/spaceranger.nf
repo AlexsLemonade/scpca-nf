@@ -21,12 +21,18 @@ process spaceranger {
     
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
+
     """
+    # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
+    spaceranger_prefix=\$(prepare_ranger_fastqs.py \
+      --fastq-dir ${fastq_dir} \
+      --staged-dir fastq_staged) || exit 1
+
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastq_dir} \
-      --sample=${meta.cr_samples} \
+      --fastqs=fastq_staged \
+      --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
       --slide=${meta.slide_serial_number} \
@@ -36,10 +42,10 @@ process spaceranger {
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
 
-    # remove Space Ranger intermediates directory 
+    # remove Space Ranger intermediates directory
     # do this before saving the json
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
-    
+
     # write metadata
     echo '${meta_json}' > ${out_id}/scpca-meta.json
     """
@@ -81,12 +87,18 @@ process spaceranger_hd {
     
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
+
     """
+    # symlink files into fastq_staged with updated names as needed, and grab the prefix for input to spaceranger
+    spaceranger_prefix=\$(prepare_ranger_fastqs.py \
+      --fastq-dir ${fastq_dir} \
+      --staged-dir fastq_staged) || exit 1
+
     spaceranger count \
       --id=${out_id} \
       --transcriptome=${index} \
-      --fastqs=${fastq_dir} \
-      --sample=${meta.cr_samples} \
+      --fastqs=fastq_staged \
+      --sample=\${spaceranger_prefix} \
       --localcores=${task.cpus} \
       --localmem=${spaceranger_mem} \
       --slide=${meta.slide_serial_number} \
@@ -95,8 +107,8 @@ process spaceranger_hd {
       ${probeset_file ? "--probe-set ${probeset_file}" : ""} \
       ${cytaimage_file ? "--cytaimage ${cytaimage_file}" : ""} \
       ${image_arg}
-    
-    # remove Space Ranger intermediates directory 
+
+    # remove Space Ranger intermediates directory
     # do this before saving the json
     rm -rf ${out_id}/SPATIAL_RNA_COUNTER_CS
 
@@ -217,27 +229,6 @@ process spaceranger_publish {
     """
 }
 
-def getCRsamples(files_dir) {
-  // takes the path to the directory holding the fastq files for each sample
-  // returns just the 'sample info' portion of the file names,
-  // as spaceranger would interpret them, comma separated
-  if (!files_dir) { // return empty string if no files directory
-    return ""
-  }
-  def fastq_files = files("${files_dir}/*.fastq.gz")
-  def samples = []
-  fastq_files.each{ it ->
-    // append sample names to list, using regex to extract element before S001, etc.
-    // [0] for the first match set, [1] for the first extracted element
-    // use .name to ensure we aren't getting a full path
-    samples << (it.name =~ /^(.+)_S.+_L.+_[R|I].+.fastq.gz$/)[0][1]
-  }
-  // convert samples list to a `set` to remove duplicate entries,
-  // then join to a comma separated string.
-  return samples.toSet().join(',')
-}
-
-
 workflow spaceranger_quant{
   take: 
     spatial_channel // a channel with a map of metadata for each spatial library to process
@@ -253,7 +244,6 @@ workflow spaceranger_quant{
       // add sample names and spatial output directory to metadata
       .map{ meta_in ->
         def meta = meta_in.clone()
-        meta.cr_samples = getCRsamples("${meta.files_directory}/fastq")
         meta.spaceranger_checkpoint_dir =  "${params.checkpoints_dir}/spaceranger/${meta.library_id}"
         meta.spaceranger_results_dir = "${meta.spaceranger_checkpoint_dir}/${meta.run_id}-spatial"
 
@@ -262,7 +252,13 @@ workflow spaceranger_quant{
       .branch{ it ->
         def stored_ref_assembly = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "ref_assembly")
         def stored_tech = getMetaVal(file("${it.spaceranger_results_dir}/scpca-meta.json"), "technology") ?: ""
+
+        def allowed_pattern = /^.+_([RI]?[12])(_\d{3})?\.fastq\.gz$/
+        def fastq_format_recognized = files("${it.files_directory}/fastq/*.fastq.gz")
+          .every { f -> f.name =~ allowed_pattern }
+
         // branch for invalid cases
+        unrecognized_fastq_format: !fastq_format_recognized
         missing_slide_serial: !it.slide_serial_number
         missing_slide_section: !it.slide_section
         make_spatial: (
@@ -279,6 +275,13 @@ workflow spaceranger_quant{
         missing_inputs: true
       }
 
+    spatial_channel.unrecognized_fastq_format.subscribe{ it ->
+      log.error(
+        "FASTQ files in '${it.files_directory}/fastq' for run '${it.run_id}' do not match any recognized naming convention for Space Ranger and will not be processed. " +
+        "Files must follow the Space Ranger convention: [Sample Name]_S1_L00[Lane Number]_[Read Type]_001.fastq.gz " +
+        "or [Sample Name]_S1_[Read Type]_001.fastq.gz, or alternatively a simplified pattern ({sample}_{R1|R2|1|2}.fastq.gz)."
+      )
+    }
     spatial_channel.missing_slide_serial.subscribe{ it ->
       log.error("Run '${it.run_id}' is missing a slide serial number and will not be processed.")
     }
