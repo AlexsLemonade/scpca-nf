@@ -7,8 +7,8 @@
 #
 # Conformant files (already 10x-formatted) are symlinked with their original names.
 #
-# Non-conformant allowed files (_R1/R2.fastq.gz or _1/2.fastq.gz) are symlinked
-# with names following the 10x Genomics convention:
+# Non-conformant allowed files (_R1/R2.fastq.gz or _1/2.fastq.gz, optionally with
+# a _\d{3} suffix) are symlinked with names following the 10x Genomics convention:
 #   {prefix}_S1_{R1|R2}_001.fastq.gz
 #
 # The comma-separated list of sample prefixes is printed to stdout.
@@ -20,9 +20,7 @@ import sys
 from pathlib import Path
 
 CONFORMANT_PATTERN = re.compile(r"^(.+)_S\d+_(L\d+_)?[RI][12]_\d{3}\.fastq\.gz$")
-ALLOWED_PATTERN = re.compile(
-    r"^(?P<prefix>.+)_(?P<read>R?[12])(?:_(?P<lane>\d{3}))?\.fastq\.gz$"
-)
+ALLOWED_PATTERN = re.compile(r"^(?P<prefix>.+)_(?P<read>R?[12])(?:_\d{3})?\.fastq\.gz$")
 
 
 def parse_allowed_fastq(filename):
