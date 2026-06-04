@@ -121,6 +121,7 @@ allowed_techs <- c(
   "visium",
   "visium1",
   "visium1_v1",
+  "visium2_v1",
   "visium2_v2",
   "visium2_v2.1",
   "visium-hd_v2",
