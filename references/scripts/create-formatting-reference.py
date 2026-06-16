@@ -13,7 +13,7 @@ anndata_ref_file = "../anndata-formatting-reference.json"
 # --------------------- SCE ---------------------------
 # assays
 assays = ["counts", "spliced"]
-processed_assays = ["counts", "spliced", "logcounts"]
+processed_assays = ["logcounts"]
 adt_assays = ["counts"]
 cellhash_assays = ["counts"]
 
@@ -430,7 +430,7 @@ filtered_sce = {
 # build processed SCE  ------
 
 processed_sce = {
-    "assayNames": processed_assays,
+    "assayNames": assays + processed_assays,
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
@@ -457,7 +457,7 @@ processed_sce = {
 # build merged sce -----
 
 merged_sce = {
-    "assayNames": processed_assays,
+    "assayNames": assays + processed_assays,
     "colData": merged_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
