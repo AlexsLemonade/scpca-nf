@@ -208,7 +208,9 @@ def expand_merged_var_ref(var, ref_var):
     mean_type = ref_var.get("mean")
     detected_type = ref_var.get("detected")
 
-    expanded = dict(ref_var)
+    # remove mean and detected so they don't get flagged as missing
+    expanded = {k: v for k, v in ref_var.items() if k not in ("mean", "detected")}
+
     for col in var.columns:
         if col.endswith(".mean"):
             expanded[col] = mean_type

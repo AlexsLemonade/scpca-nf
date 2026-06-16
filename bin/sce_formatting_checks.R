@@ -102,6 +102,9 @@ expand_merged_rowdata_ref <- function(rowdata, ref_rowdata) {
     purrr::set_names(rep(list(detected_type), length(detected_cols)), detected_cols)
   )
 
+  # remove mean and detected from ref so they don't get flagged as missing
+  ref_rowdata[c("mean", "detected")] <- NULL
+
   return(
     c(ref_rowdata, extra_ref)
   )
