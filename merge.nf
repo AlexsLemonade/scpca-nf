@@ -182,21 +182,21 @@ process compile_errors {
    // more than one error file per library (unfiltered, filtered, processed), so use stageAs
    path error_files, stageAs: "error_file_*.txt"
   output:
-    path "format_check_results.txt"
+    path "merged-format_check_results.txt"
   script:
     """
     # check if all files are empty, if so print a success message
     # otherwise concatenate all error files into one output file
     errors="\$(cat ${error_files})"
     if [ -z "\${errors}" ]; then
-      echo "No formatting errors found." > format_check_results.txt
+      echo "No formatting errors found." > merged-format_check_results.txt
     else
-      echo "\${errors}" > format_check_results.txt
+      echo "\${errors}" > merged-format_check_results.txt
     fi
     """
   stub: 
     """
-    touch format_check_results.txt
+    touch merged-format_check_results.txt
     """
 }
 
@@ -356,10 +356,10 @@ workflow {
     .collect{ merge_group_id, error_file -> error_file } // collect into a list of just the error files
   
   compile_errors(error_files_ch)
-  
+
   // collect all error files and print out an error to the log file
   error_output_ch
-    .filter{ meta, error_file -> error_file.size() > 0 } // only warn about libraries with errors
+    .filter{ meta, error_file -> error_file.size() > 0 } // only warn about objects with errors
     .subscribe{ meta, error_file -> 
       log.error "Formatting errors for ${error_file.text}"
     }
