@@ -139,7 +139,8 @@ merged_cell_metadata = {
 
 # row metadata ----------
 # this is the same for all object types
-# for merged objects, check that library_id-mean and library_id-detected are correct in the script
+# for merged objects, check that {library_id}-mean and {library_id}-detected are correct in the script
+# these will use the same types as `mean` and `detected`
 feature_metadata = {
     "gene_ids": "character",
     "gene_symbol": "character",
