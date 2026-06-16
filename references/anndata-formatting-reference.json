@@ -13,10 +13,10 @@
                 "subsets_mito_detected": "int",
                 "subsets_mito_percent": "float",
                 "total": "float",
-                "library_id": "category",
-                "sample_id": "category",
-                "assay_ontology_term_id": "category",
-                "suspension_type": "category",
+                "library_id": "string",
+                "sample_id": "string",
+                "assay_ontology_term_id": "string",
+                "suspension_type": "string",
                 "is_primary_data": "bool"
             },
             "var": {
@@ -110,10 +110,10 @@
                 "scpca_filter": "string",
                 "scDblFinder_class": "string",
                 "scDblFinder_score": "float",
-                "library_id": "category",
-                "sample_id": "category",
-                "assay_ontology_term_id": "category",
-                "suspension_type": "category",
+                "library_id": "string",
+                "sample_id": "string",
+                "assay_ontology_term_id": "string",
+                "suspension_type": "string",
                 "is_primary_data": "bool"
             },
             "var": {
@@ -258,10 +258,10 @@
                 "scpca_filter": "string",
                 "scDblFinder_class": "string",
                 "scDblFinder_score": "float",
-                "library_id": "category",
-                "sample_id": "category",
-                "assay_ontology_term_id": "category",
-                "suspension_type": "category",
+                "library_id": "string",
+                "sample_id": "string",
+                "assay_ontology_term_id": "string",
+                "suspension_type": "string",
                 "is_primary_data": "bool"
             },
             "var": {
@@ -457,6 +457,167 @@
                 "seq_unit": "str",
                 "transcript_type": "numpy.ndarray",
                 "ambient_profile": "float"
+            }
+        }
+    },
+    "merged": {
+        "rna": {
+            "has_raw.X": true,
+            "layers": [
+                "spliced"
+            ],
+            "obs": {
+                "barcodes": "string",
+                "sum": "float",
+                "detected": "int",
+                "subsets_mito_sum": "float",
+                "subsets_mito_detected": "int",
+                "subsets_mito_percent": "float",
+                "total": "float",
+                "prob_compromised": "float",
+                "miQC_pass": "bool",
+                "scpca_filter": "string",
+                "scDblFinder_class": "string",
+                "scDblFinder_score": "float",
+                "additional_modalities": "string",
+                "library_id": "string",
+                "cell_id": "string",
+                "sample_id": "string",
+                "scpca_project_id": "string",
+                "submitter_id": "string",
+                "participant_id": "string",
+                "submitter": "string",
+                "age": "string",
+                "age_timing": "string",
+                "sex": "string",
+                "diagnosis": "string",
+                "subdiagnosis": "string",
+                "tissue_location": "string",
+                "disease_timing": "string",
+                "organism": "string",
+                "is_xenograft": "bool",
+                "is_cell_line": "bool",
+                "development_stage_ontology_term_id": "string",
+                "sex_ontology_term_id": "string",
+                "organism_ontology_term_id": "string",
+                "self_reported_ethnicity_ontology_term_id": "string",
+                "disease_ontology_term_id": "string",
+                "tissue_ontology_term_id": "string",
+                "tech_version": "string",
+                "assay_ontology_term_id": "string",
+                "suspension_type": "string",
+                "is_primary_data": "bool"
+            },
+            "var": {
+                "gene_ids": "string",
+                "gene_symbol": "string",
+                "mean": "float",
+                "detected": "float",
+                "feature_is_filtered": "bool",
+                "highly_variable": "bool"
+            },
+            "obs_conditional": {
+                "has_submitter": {
+                    "submitter_celltype_annotation": "string"
+                },
+                "has_openscpca": {
+                    "openscpca_celltype_annotation": "string",
+                    "openscpca_celltype_ontology": "string"
+                },
+                "has_adt": {
+                    "adt_scpca_filter": "string"
+                },
+                "has_cellhash": {
+                    "altexps_cellhash_sum": "float",
+                    "altexps_cellhash_detected": "int",
+                    "altexps_cellhash_percent": "float"
+                },
+                "has_hashedDrops": {
+                    "hashedDrops_sampleid": "string"
+                },
+                "has_HTODemux": {
+                    "HTODemux_sampleid": "string"
+                },
+                "has_vireo": {
+                    "vireo_sampleid": "string",
+                    "vireo_donor_id": "string",
+                    "vireo_prob_max": "float",
+                    "vireo_prob_doublet": "float",
+                    "vireo_n_vars": "float",
+                    "vireo_best_singlet": "string",
+                    "vireo_best_doublet": "string",
+                    "vireo_doublet_logLikRatio": "float"
+                },
+                "has_normalization": {
+                    "sizeFactor": "float"
+                },
+                "has_clusters": {
+                    "cluster": "category"
+                },
+                "has_singler": {
+                    "singler_celltype_annotation": "string",
+                    "singler_celltype_ontology": "string"
+                },
+                "has_cellassign": {
+                    "cellassign_celltype_annotation": "string",
+                    "cellassign_celltype_ontology": "string",
+                    "cellassign_max_prediction": "float"
+                },
+                "has_scimilarity": {
+                    "scimilarity_celltype_annotation": "string",
+                    "scimilarity_celltype_ontology": "string",
+                    "scimilarity_min_distance": "float"
+                },
+                "has_consensus": {
+                    "consensus_celltype_annotation": "string",
+                    "consensus_celltype_ontology": "string"
+                },
+                "has_infercnv": {
+                    "is_infercnv_reference": "bool",
+                    "infercnv_total_cnv": "int"
+                },
+                "is_multiplexed": {
+                    "sample_id": null
+                }
+            },
+            "obsm": [
+                "X_pca",
+                "X_umap"
+            ],
+            "uns": {
+                "library_id": "string",
+                "sample_id": "string",
+                "merged_highly_variable_genes": "string"
+            }
+        },
+        "adt": {
+            "obs": {
+                "zero.ambient": "bool",
+                "discard": "bool",
+                "library_id": "string",
+                "cell_id": "string"
+            },
+            "var": {
+                "adt_id": "string",
+                "mean": "float",
+                "detected": "float",
+                "target_type": "string"
+            },
+            "obs_conditional": {
+                "has_negative_control": {
+                    "sum.controls": "int",
+                    "high.control": "bool"
+                },
+                "no_negative_control": {
+                    "ambient.scale": "float",
+                    "high.ambient": "bool"
+                },
+                "sizeFactor": "float"
+            },
+            "uns": {
+                "library_id": "string",
+                "sample_id": "string",
+                "library_metadata": "string"
             }
         }
     }
