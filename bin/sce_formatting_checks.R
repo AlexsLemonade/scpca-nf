@@ -77,6 +77,36 @@ check_conditional_names_and_type <- function(conditions_present, data, ref) {
 }
 
 
+#' Expand rowData reference for merged objects to include per-library columns
+#'
+#' For merged SCE objects, rowData contains `libraryid-mean` and
+#' `libraryid-detected` columns for each library.
+#' This function finds those columns and adds them to the reference
+#' with the same expected types as `mean` and `detected`.
+#'
+#' @param rowdata The rowData slot from the SCE object
+#' @param ref_rowdata The rowData reference list from the JSON
+#'
+#' @return An updated rowData reference list including per-library columns
+expand_merged_rowdata_ref <- function(rowdata, ref_rowdata) {
+  # grab the expected type
+  mean_type <- ref_rowdata[["mean"]]
+  detected_type <- ref_rowdata[["detected"]]
+
+  # find all libraryid-mean and libraryid-detected columns
+  mean_cols <- grep("-mean$", names(rowdata), value = TRUE)
+  detected_cols <- grep("-detected$", names(rowdata), value = TRUE)
+
+  extra_ref <- c(
+    purrr::set_names(rep(list(mean_type), length(mean_cols)), mean_cols),
+    purrr::set_names(rep(list(detected_type), length(detected_cols)), detected_cols)
+  )
+
+  return(
+    c(ref_rowdata, extra_ref)
+  )
+}
+
 #' Check required and conditional col/row/metadata slots of an SCE object
 #'
 #' Runs both required and conditional checks against a reference list,
@@ -207,7 +237,7 @@ option_list <- list(
   make_option(
     opt_str = c("--object_type"),
     type = "character",
-    help = "Type of object from scpca-nf, either unfiltered, filtered, or processed"
+    help = "Type of object from scpca-nf, either unfiltered, filtered, processed, or merged"
   ),
   make_option(
     opt_str = c("--reference_file"),
@@ -229,7 +259,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 stopifnot(
   "sce file does not exist" = file.exists(opt$sce_file),
-  "Object type must be one of unfiltered, filtered, or processed" = opt$object_type %in% c("unfiltered", "filtered", "processed"),
+  "Object type must be one of unfiltered, filtered, processed, or merged" = opt$object_type %in% c("unfiltered", "filtered", "processed", "merged"),
   "Reference file does not exist" = file.exists(opt$reference_file),
   "output file must end in `.txt`" = stringr::str_ends(opt$output_file, "\\.txt")
 )
@@ -239,6 +269,11 @@ all_ref_list <- jsonlite::read_json(opt$reference_file)[[opt$object_type]]
 
 # initialize empty error string
 errors <- character(0)
+
+# For merged objects, expand rowData ref to include per-library columns
+if (opt$object_type == "merged") {
+  all_ref_list$rowData <- expand_merged_rowdata_ref(rowData(sce), all_ref_list$rowData)
+}
 
 # Check main SCE assays --------------------------------------------------------
 

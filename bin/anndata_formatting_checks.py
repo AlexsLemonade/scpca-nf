@@ -196,7 +196,29 @@ def get_conditionals(adata):
     return set(cond for cond, is_true in condition_tests.items() if is_true)
 
 
-def check_anndata(adata, ref, label):
+def expand_merged_var_ref(var, ref_var):
+    """
+    Expand the var reference for merged AnnData objects to include per-library columns.
+
+    For merged objects, var contains `libraryid.mean` and `libraryid.detected`
+    columns for each library.
+    This function finds those columns and adds them to the reference
+    with the same expected types as `mean` and `detected`.
+    """
+    mean_type = ref_var.get("mean")
+    detected_type = ref_var.get("detected")
+
+    expanded = dict(ref_var)
+    for col in var.columns:
+        if col.endswith(".mean"):
+            expanded[col] = mean_type
+        elif col.endswith(".detected"):
+            expanded[col] = detected_type
+
+    return expanded
+
+
+def check_anndata(adata, ref, label, object_type):
     """Run all formatting checks for an AnnData object."""
     errors = []
 
@@ -227,6 +249,8 @@ def check_anndata(adata, ref, label):
                 )
 
     if "var" in ref:
+        if object_type == "merged":
+            ref["var"] = expand_merged_var_ref(adata.var, ref["var"])
         errors.extend(check_names_and_types(adata.var, ref["var"], label, "var"))
 
     if "uns" in ref:
@@ -250,8 +274,8 @@ def main():
     parser.add_argument(
         "--object_type",
         required=True,
-        choices=["unfiltered", "filtered", "processed"],
-        help="Type of object: unfiltered, filtered, or processed",
+        choices=["unfiltered", "filtered", "processed", "merged"],
+        help="Type of object: unfiltered, filtered, processed, or merged",
     )
     parser.add_argument(
         "--reference_file", required=True, type=Path, help="Path to reference JSON"
@@ -293,7 +317,7 @@ def main():
     label = f"{modality.upper()} AnnData"
 
     # check contents of the anndata object against a reference
-    errors = check_anndata(adata, ref, label)
+    errors = check_anndata(adata, ref, label, args.object_type)
 
     # export errors to output file, or create empty file if no errors
     output_path = Path(args.output_file)
