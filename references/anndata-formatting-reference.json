@@ -585,9 +585,9 @@
                 "X_umap"
             ],
             "uns": {
-                "library_id": "numpy.ndarray",
-                "sample_id": "numpy.ndarray",
-                "merged_highly_variable_genes": "numpy.ndarray"
+                "library_id": "string",
+                "sample_id": "string",
+                "merged_highly_variable_genes": "string"
             }
         },
         "adt": {
@@ -615,9 +615,9 @@
                 "sizeFactor": "float"
             },
             "uns": {
-                "library_id": "numpy.ndarray",
-                "sample_id": "numpy.ndarray",
-                "library_metadata": "numpy.ndarray"
+                "library_id": "string",
+                "sample_id": "string",
+                "library_metadata": "string"
             }
         }
     }

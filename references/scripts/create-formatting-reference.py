@@ -686,11 +686,10 @@ processed_uns_metadata_conditional = convert_experiment_metadata_types(
 )
 
 # merged metadata is the same as sce but no library_metadata list
-# these are character vectors in R which get converted to numpy.ndarrays in Python
 merged_uns_metadata = {
-    "library_id": "numpy.ndarray",
-    "sample_id": "numpy.ndarray",
-    "merged_highly_variable_genes": "numpy.ndarray",
+    "library_id": "string",
+    "sample_id": "string",
+    "merged_highly_variable_genes": "string",
 }
 
 # alt exps gell/gene metadata ------------
@@ -722,9 +721,9 @@ filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
 )
 
 merged_altexp_adt_uns_metadata = {
-    "library_id": "numpy.ndarray",
-    "sample_id": "numpy.ndarray",
-    "library_metadata": "numpy.ndarray",
+    "library_id": "string",
+    "sample_id": "string",
+    "library_metadata": "string",
 }
 
 # build unfiltered AnnData -----------------
