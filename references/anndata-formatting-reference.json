@@ -499,21 +499,19 @@
                 "is_cell_line": "bool",
                 "development_stage_ontology_term_id": "string",
                 "sex_ontology_term_id": "string",
-                "organism_ontology_term_id": "string",
+                "organism_ontology_id": "string",
                 "self_reported_ethnicity_ontology_term_id": "string",
                 "disease_ontology_term_id": "string",
                 "tissue_ontology_term_id": "string",
                 "tech_version": "string",
                 "assay_ontology_term_id": "string",
-                "suspension_type": "string",
-                "is_primary_data": "bool"
+                "suspension_type": "string"
             },
             "var": {
                 "gene_ids": "string",
                 "gene_symbol": "string",
                 "mean": "float",
                 "detected": "float",
-                "feature_is_filtered": "bool",
                 "highly_variable": "bool"
             },
             "obs_conditional": {
