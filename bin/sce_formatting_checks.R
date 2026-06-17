@@ -238,6 +238,12 @@ option_list <- list(
     help = "Path to RDS file containing a SingleCellExperiment object from scpca-nf"
   ),
   make_option(
+    opt_str = c("--object_id"),
+    type = "character",
+    default = "",
+    help = "Identifier for the object (e.g. library ID) to include in error messages"
+  ),
+  make_option(
     opt_str = c("--object_type"),
     type = "character",
     help = "Type of object from scpca-nf, either unfiltered, filtered, processed, or merged"
@@ -391,6 +397,6 @@ if (opt$object_type == "processed") {
 if (length(errors) == 0) {
   fs::file_create(opt$output_file)
 } else {
-  header <- glue::glue("Formatting errors found for {metadata(sce)$library_id} {opt$object_type} SingleCellExperiment:")
+  header <- glue::glue("Formatting errors found for {opt$object_id} {opt$object_type} SingleCellExperiment:")
   writeLines(c(header, "", errors, ""), opt$output_file)
 }

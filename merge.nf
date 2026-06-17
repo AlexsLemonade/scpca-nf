@@ -139,6 +139,7 @@ process check_sce {
     """
     sce_formatting_checks.R \
         --sce_file ${merged_sce_file} \
+        --object_id ${merge_group_id} \
         --object_type merged \
         --reference_file ${reference_sce_file} \
         --output_file ${merge_group_id}_formatting_errors.txt
@@ -164,6 +165,7 @@ process check_anndata {
     """
     anndata_formatting_checks.py \
         --anndata_file ${anndata_file} \
+        --object_id ${merge_group_id} \
         --object_type merged \
         --reference_file ${reference_anndata_file} \
         --output_file ${merge_group_id}_formatting_errors.txt

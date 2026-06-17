@@ -274,6 +274,11 @@ def main():
         "--anndata_file", required=True, type=Path, help="Path to .h5ad file"
     )
     parser.add_argument(
+        "--object_id",
+        required=True,
+        help="Identifier for the object (e.g. library ID) to include in error messages",
+    )
+    parser.add_argument(
         "--object_type",
         required=True,
         choices=["unfiltered", "filtered", "processed", "merged"],
@@ -326,8 +331,7 @@ def main():
     if not errors:
         output_path.touch()
     else:
-        library_id = adata.uns.get("library_id", "unknown")
-        header = f"Formatting errors found for {library_id} {args.object_type} {modality} AnnData object:"
+        header = f"Formatting errors found for {args.object_id} {args.object_type} {modality} AnnData object:"
         with open(output_path, "w") as error_file:
             error_file.write(f"{header}\n\n")
             for error in errors:
