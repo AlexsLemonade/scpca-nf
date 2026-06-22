@@ -631,9 +631,8 @@ unfiltered_var_metadata = {
 processed_var_metadata = {**unfiltered_var_metadata, "highly_variable": "bool"}
 
 # merged var contains everything but feature_is_filtered
-merged_var_metadata = {
-    k: v for k, v in processed_var_metadata.items() if k != "feature_is_filtered"
-}
+merged_var_metadata = processed_var_metadata.copy()
+merged_var_metadata.pop("feature_is_filtered", None)
 
 # reduced dimensionality ----------
 processed_obsm = ["X_pca", "X_umap"]
