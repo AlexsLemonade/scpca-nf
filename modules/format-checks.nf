@@ -18,7 +18,6 @@ process check_sce {
     """
     sce_formatting_checks.R \
         --sce_file ${sce_file} \
-        --object_id ${meta.library_id} \
         --object_type ${object_type} \
         --reference_file ${reference_sce_file} \
         --output_file ${meta.unique_id}_formatting_errors.txt
@@ -45,7 +44,6 @@ process check_anndata {
     """
     anndata_formatting_checks.py \
         --anndata_file ${anndata_file} \
-        --object_id ${meta.library_id} \
         --object_type ${object_type} \
         --reference_file ${reference_anndata_file} \
         --output_file ${meta.unique_id}_formatting_errors.txt
