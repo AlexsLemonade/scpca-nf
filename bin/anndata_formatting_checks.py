@@ -206,7 +206,7 @@ def expand_merged_var_ref(var, ref_var):
     with the same expected types as `mean` and `detected`.
     """
     expanded = ref_var.copy()
-    
+
     # get mean and detected values, while removing them so they don't get flagged as missing
     mean_type = expanded.pop("mean")
     detected_type = expanded.pop("detected")
