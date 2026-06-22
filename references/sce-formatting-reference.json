@@ -616,7 +616,7 @@
             "is_cell_line": "logical",
             "development_stage_ontology_term_id": "character",
             "sex_ontology_term_id": "character",
-            "organism_ontology_term_id": "character",
+            "organism_ontology_id": "character",
             "self_reported_ethnicity_ontology_term_id": "character",
             "disease_ontology_term_id": "character",
             "tissue_ontology_term_id": "character",

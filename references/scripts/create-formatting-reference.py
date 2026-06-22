@@ -128,7 +128,7 @@ merged_cell_metadata = {
     "is_cell_line": "logical",
     "development_stage_ontology_term_id": "character",
     "sex_ontology_term_id": "character",
-    "organism_ontology_term_id": "character",
+    "organism_ontology_id": "character",
     "self_reported_ethnicity_ontology_term_id": "character",
     "disease_ontology_term_id": "character",
     "tissue_ontology_term_id": "character",
@@ -616,6 +616,9 @@ merged_obs_metadata = {
     **anndata_specific_obs_metadata,
     "detected": "int",
 }
+merged_obs_metadata.pop(
+    "is_primary_data", None
+)  # this column gets dropped for merged objects
 
 # row metadata ----------
 # same for unfilterd and filtered
@@ -626,6 +629,10 @@ unfiltered_var_metadata = {
 
 # highly variable is only in the processed object
 processed_var_metadata = {**unfiltered_var_metadata, "highly_variable": "bool"}
+
+# merged var contains everything but feature_is_filtered
+merged_var_metadata = processed_var_metadata.copy()
+merged_var_metadata.pop("feature_is_filtered", None)
 
 # reduced dimensionality ----------
 processed_obsm = ["X_pca", "X_umap"]
@@ -792,7 +799,7 @@ merged_anndata = {
         "has_raw.X": True,
         "layers": layers,
         "obs": merged_obs_metadata,
-        "var": processed_var_metadata,
+        "var": merged_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,
         "obsm": processed_obsm,
         "uns": merged_uns_metadata,

@@ -103,14 +103,16 @@ workflow format_checks {
     check_anndata(anndata_format_ch, anndata_format_reference_file)
 
     // collect all error files and concatenate to print to a formatting errors output file
-    error_input_ch = check_sce.out
+    error_output_ch = check_sce.out
       .mix(check_anndata.out) // mix with the anndata error files
+
+    error_files_ch = error_output_ch
       .collect{ meta, error_file -> error_file } // collect into a list of just the error files
     
-    compile_errors(error_input_ch)
+    compile_errors(error_files_ch)
 
     // collect all error files and print out an error to the log file
-    check_sce.out
+    error_output_ch
       .filter{ meta, error_file -> error_file.size() > 0 } // only warn about libraries with errors
       .subscribe{ meta, error_file -> 
         log.error "Formatting errors for ${error_file.text}"
