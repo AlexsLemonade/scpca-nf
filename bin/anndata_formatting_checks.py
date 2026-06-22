@@ -205,11 +205,11 @@ def expand_merged_var_ref(var, ref_var):
     This function finds those columns and adds them to the reference
     with the same expected types as `mean` and `detected`.
     """
-    mean_type = ref_var.get("mean")
-    detected_type = ref_var.get("detected")
-
-    # remove mean and detected so they don't get flagged as missing
-    expanded = {k: v for k, v in ref_var.items() if k not in ("mean", "detected")}
+    expanded = ref_var.copy()
+    
+    # get mean and detected values, while removing them so they don't get flagged as missing
+    mean_type = expanded.pop("mean")
+    detected_type = expanded.pop("detected")
 
     for col in var.columns:
         if col.endswith(".mean"):
