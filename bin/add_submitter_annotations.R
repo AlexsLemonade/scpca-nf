@@ -65,9 +65,17 @@ sce <- readr::read_rds(opt$sce_file)
 
 # Identify any extra columns beyond the required ones in the submitters file
 # and CL ontology Id which will get its own name if present
+# specify any columns that might be present that we don't need to include in the output object (e.g., scpca_sample_id or submitter_id)
 extra_cols <- setdiff(
   names(submitter_df),
-  c("scpca_library_id", "cell_barcode", "cell_type_assignment", "CL_ontology_id")
+  c(
+    "scpca_library_id",
+    "submitter_id",
+    "scpca_sample_id",
+    "cell_barcode",
+    "cell_type_assignment",
+    "CL_ontology_id"
+  )
 )
 
 # Rename extra columns with `submitter_` prefix, replacing dashes/periods/spaces
@@ -84,8 +92,6 @@ extra_col_rename <- setNames(extra_cols, renamed_extra_cols)
 submitter_df <- submitter_df |>
   # filter to relevant library
   dplyr::filter(scpca_library_id == opt$library_id) |>
-  # remove library id column
-  dplyr::select(-scpca_library_id) |>
   # rename specific columns for barcode and cell type assignment
   dplyr::rename(
     barcodes = cell_barcode,
@@ -103,19 +109,25 @@ submitter_df <- submitter_df |>
 # specifically rename CL ontology id if present
 if ("CL_ontology_id" %in% colnames(submitter_df)) {
   submitter_df <- submitter_df |>
-    dplyr::rename(
-      submitter_celltype_ontology = CL_ontology_id
-    ) |>
-    # this column should appear right after the submitter celltypes column
-    dplyr::relocate(
-      submitter_celltype_ontology,
-      .after = submitter_celltype_annotation
+    # select only the columns we want to include and rename ontology ID
+    dplyr::select(
+      barcodes,
+      submitter_celltype_annotation,
+      submitter_celltype_ontology = CL_ontology_id,
+      renamed_extra_cols
     )
 
   # assign the new column to a variable to input to the list of columns
   # to replace NA with submitter-excluded
   ontology_column <- "submitter_celltype_ontology"
 } else {
+  submitter_df <- submitter_df |>
+    dplyr::select(
+      barcodes,
+      submitter_celltype_annotation,
+      renamed_extra_cols
+    )
+
   ontology_column <- NULL
 }
 
