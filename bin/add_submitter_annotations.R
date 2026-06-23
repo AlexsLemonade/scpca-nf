@@ -28,6 +28,10 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
+opt$sce_file <- "~/Documents/ALSF/git_repos/ews-nf/scpca-nf-out/SCPCP000015/SCPCS000490/SCPCL000822_processed.rds"
+opt$submitter_cell_types_file <- "../scpca-nf/SCPCL000822-SCPCS000490_annotations.tsv"
+opt$library_id <- "SCPCL000822"
+
 # check that output file name ends in .rds
 if (!(stringr::str_ends(opt$sce_file, ".rds"))) {
   stop("SingleCellExperiment file name must end in .rds")
@@ -51,8 +55,7 @@ submitter_df <- readr::read_tsv(
   na = character()
 )
 
-# Check columns before proceeding for faster failing:
-# TODO: WHAT IF THEY PROVIDE AN ONTOLOGY COLUMN? WE NEED TO PARSE THAT TOO. WILL NEED MORE IF BELOW.
+# Check required columns before proceeding for faster failing:
 if (!all(c("cell_barcode", "cell_type_assignment") %in% names(submitter_df))) {
   stop("The submitter TSV file must contain columns `cell_barcode` and `cell_type_assignment`.")
 }
@@ -60,17 +63,64 @@ if (!all(c("cell_barcode", "cell_type_assignment") %in% names(submitter_df))) {
 # Now that we are confident to proceed, read in the sce
 sce <- readr::read_rds(opt$sce_file)
 
+# Identify any extra columns beyond the required ones in the submitters file
+# and CL ontology Id which will get its own name if present
+extra_cols <- setdiff(
+  names(submitter_df),
+  c("scpca_library_id", "cell_barcode", "cell_type_assignment", "CL_ontology_id")
+)
+
+# Rename extra columns with `submitter_` prefix, replacing dashes/periods/spaces
+# with underscores and converting to lower case
+renamed_extra_cols <- extra_cols |>
+  tolower() |>
+  stringr::str_replace_all("[\\-\\.\\s]", "_") |>
+  (\(x) paste0("submitter_", x))()
+
+# Build a named vector for renaming: old name -> new name
+extra_col_rename <- setNames(extra_cols, renamed_extra_cols)
+
 # Create submitter_celltype_annotation column
 submitter_df <- submitter_df |>
   # filter to relevant library
   dplyr::filter(scpca_library_id == opt$library_id) |>
-  # keep columns of interest
-  # TODO: WE NEED TO ALLOW FOR AN ONTOLOGY COLUMN
-  dplyr::select(
+  # remove library id column
+  dplyr::select(-scpca_library_id) |>
+  # rename specific columns for barcode and cell type assignment
+  dplyr::rename(
     barcodes = cell_barcode,
     submitter_celltype_annotation = cell_type_assignment
   ) |>
-  dplyr::distinct()
+  # rename extra columns with submitter_ prefix
+  dplyr::rename(!!!extra_col_rename) |>
+  dplyr::distinct() |>
+  dplyr::relocate(
+    # make sure barcodes and submitter celltypes are the first columns
+    c("barcodes", "submitter_celltype_annotation"),
+    .before = 0
+  )
+
+# specifically rename CL ontology id if present
+if ("CL_ontology_id" %in% colnames(submitter_df)) {
+  submitter_df <- submitter_df |>
+    dplyr::rename(
+      submitter_celltype_ontology = CL_ontology_id
+    ) |>
+    # this column should appear right after the submitter celltypes column
+    dplyr::relocate(
+      submitter_celltype_ontology,
+      .after = submitter_celltype_annotation
+    )
+
+  # assign the new column to a variable to input to the list of columns
+  # to replace NA with submitter-excluded
+  ontology_column <- "submitter_celltype_ontology"
+} else {
+  ontology_column <- NULL
+}
+
+# All submitter columns (used for NA replacement below)
+submitter_annotation_cols <- c("submitter_celltype_annotation", ontology_column, renamed_extra_cols)
 
 # join with colData.
 # noting by using `left_join()` we preserve the correct order
@@ -80,13 +130,12 @@ coldata_df <- colData(sce) |>
     submitter_df,
     by = "barcodes"
   ) |>
-  # make any NA values induced by joining into "submitter-excluded"
+  # replace any NA values in submitter annotation columns with "Submitter-excluded"
   dplyr::mutate(
-    # use dplyr::if_else, not base, to ensure we end up with character only
-    submitter_celltype_annotation = dplyr::if_else(
-      is.na(submitter_celltype_annotation),
-      "Submitter-excluded",
-      submitter_celltype_annotation
+    dplyr::across(
+      dplyr::all_of(submitter_annotation_cols),
+      # use dplyr::if_else, not base, to ensure we end up with character only
+      \(x) dplyr::if_else(is.na(x), "Submitter-excluded", x)
     )
   )
 
