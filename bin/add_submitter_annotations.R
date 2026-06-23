@@ -131,8 +131,8 @@ if ("CL_ontology_id" %in% colnames(submitter_df)) {
   ontology_column <- NULL
 }
 
-# All submitter columns which will either just be annotations or annotations and ontology ids
-submitter_annotation_cols <- c("submitter_celltype_annotation", ontology_column)
+# All submitter columns
+submitter_annotation_cols <- c("submitter_celltype_annotation", ontology_column, renamed_extra_cols)
 
 # join with colData.
 # noting by using `left_join()` we preserve the correct order
@@ -142,12 +142,13 @@ coldata_df <- colData(sce) |>
     submitter_df,
     by = "barcodes"
   ) |>
-  # replace any NA values in submitter annotation columns with "Submitter-excluded"
+  # for cells that are not present in the submitter file
+  # fill in values in submitter columns with "Submitter-excluded"
   dplyr::mutate(
     dplyr::across(
       dplyr::all_of(submitter_annotation_cols),
       # use dplyr::if_else, not base, to ensure we end up with character only
-      \(x) dplyr::if_else(is.na(x), "Submitter-excluded", x)
+      \(x) dplyr::if_else(!barcodes %in% submitter_df$barcodes, "Submitter-excluded", x)
     )
   )
 
