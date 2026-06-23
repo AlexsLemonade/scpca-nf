@@ -131,8 +131,8 @@ if ("CL_ontology_id" %in% colnames(submitter_df)) {
   ontology_column <- NULL
 }
 
-# All submitter columns (used for NA replacement below)
-submitter_annotation_cols <- c("submitter_celltype_annotation", ontology_column, renamed_extra_cols)
+# All submitter columns which will either just be annotations or annotations and ontology ids
+submitter_annotation_cols <- c("submitter_celltype_annotation", ontology_column)
 
 # join with colData.
 # noting by using `left_join()` we preserve the correct order
