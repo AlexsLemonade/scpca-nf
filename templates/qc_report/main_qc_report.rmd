@@ -340,7 +340,7 @@ if (mapping_tool == "alevin-fry") {
       "Percent of RNA-seq reads mapped to transcripts" =
         paste0(round((unfiltered_meta$mapped_reads / unfiltered_meta$total_reads) * 100, 2), "%"),
     )
-} else if (mapping_tool == "cellranger-multi") {
+} else if (mapping_tool == "cellranger multi") {
   library_information <- library_information |>
     mutate(
       "Cells reported by cellranger multi" =
@@ -419,7 +419,7 @@ if (mapping_tool == "alevin-fry") {
   ) |>
     reformat_nulls() |>
     t()
-} else if (mapping_tool == "cellranger-multi") {
+} else if (mapping_tool == "cellranger multi") {
   processing_info <- tibble::tibble(
     "Cellranger version" = format(unfiltered_meta$cellranger_version),
     "Transcriptome index" = format(unfiltered_meta$reference_index),
