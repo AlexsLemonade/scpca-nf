@@ -77,14 +77,14 @@ sce <- readr::read_rds(opt$sce_file)
 # define list of columns to exclude based on columns in the sample metadata
 # anything that's in the sample metadata that's not required must be excluded
 sample_df_cols <- names(metadata(sce)$sample_metadata)
-exclude_cols <- setdiff(sample_df_cols, required_col)
+exclude_cols <- setdiff(sample_df_cols, c(required_cols, optional_cols))
 
 # Identify any extra columns beyond the required ones in the submitters file
 # and CL ontology Id which will get its own name if present
 # specify any columns that might be present that we don't need to include in the output object (e.g., scpca_sample_id or submitter_id)
 extra_cols <- setdiff(
   names(submitter_df),
-  c(required_cols, exclude_cols)
+  c(required_cols, optional_cols, exclude_cols)
 )
 
 # Rename extra columns with `submitter_` prefix, replacing dashes/periods/spaces
