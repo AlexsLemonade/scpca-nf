@@ -28,10 +28,6 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-opt$sce_file <- "~/Documents/ALSF/git_repos/ews-nf/scpca-nf-out/SCPCP000015/SCPCS000490/SCPCL000822_processed.rds"
-opt$submitter_cell_types_file <- "../scpca-nf/SCPCL000822-SCPCS000490_annotations.tsv"
-opt$library_id <- "SCPCL000822"
-
 # check that output file name ends in .rds
 if (!(stringr::str_ends(opt$sce_file, ".rds"))) {
   stop("SingleCellExperiment file name must end in .rds")
@@ -82,7 +78,7 @@ extra_cols <- setdiff(
 # with underscores and converting to lower case
 renamed_extra_cols <- extra_cols |>
   tolower() |>
-  stringr::str_replace_all("[\\-\\.\\s]", "_") |>
+  stringr::str_replace_all("[\\-\\.\\s]+", "_") |>
   (\(x) paste0("submitter_", x))()
 
 # Build a named vector for renaming: old name -> new name
@@ -99,12 +95,7 @@ submitter_df <- submitter_df |>
   ) |>
   # rename extra columns with submitter_ prefix
   dplyr::rename(!!!extra_col_rename) |>
-  dplyr::distinct() |>
-  dplyr::relocate(
-    # make sure barcodes and submitter celltypes are the first columns
-    c("barcodes", "submitter_celltype_annotation"),
-    .before = 0
-  )
+  dplyr::distinct() 
 
 # specifically rename CL ontology id if present
 if ("CL_ontology_id" %in% colnames(submitter_df)) {
