@@ -79,7 +79,7 @@ extra_cols <- setdiff(
 renamed_extra_cols <- extra_cols |>
   tolower() |>
   stringr::str_replace_all("[\\-\\.\\s]+", "_") |>
-  (\(x) paste0("submitter_", x))()
+  (\(x) paste0("submitter_data_", x))()
 
 # Build a named vector for renaming: old name -> new name
 extra_col_rename <- setNames(extra_cols, renamed_extra_cols)
