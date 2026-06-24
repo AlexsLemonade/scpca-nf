@@ -14,7 +14,7 @@ process check_sce {
     tuple val(meta), 
           path("${meta.unique_id}_formatting_errors.txt")
   script:
-    def object_type = sce_file.baseName.replace("${meta.library_id}_", "")
+    def object_type = sce_file.baseName.replace("${meta.unique_id}_", "")
     """
     sce_formatting_checks.R \
         --sce_file ${sce_file} \
@@ -40,7 +40,7 @@ process check_anndata {
     tuple val(meta), 
           path("${meta.unique_id}_formatting_errors.txt")
   script:
-    def object_type = anndata_file.baseName.replace("${meta.library_id}_", "").replaceAll(/_(rna|adt)$/, "")
+    def object_type = anndata_file.baseName.replace("${meta.unique_id}_", "").replaceAll(/_(rna|adt)$/, "")
     """
     anndata_formatting_checks.py \
         --anndata_file ${anndata_file} \
