@@ -95,7 +95,7 @@ submitter_df <- submitter_df |>
   ) |>
   # rename extra columns with submitter_ prefix
   dplyr::rename(!!!extra_col_rename) |>
-  dplyr::distinct() 
+  dplyr::distinct()
 
 # specifically rename CL ontology id if present
 if ("CL_ontology_id" %in% colnames(submitter_df)) {
