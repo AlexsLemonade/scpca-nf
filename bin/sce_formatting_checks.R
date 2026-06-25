@@ -389,7 +389,7 @@ if (opt$object_type == "processed") {
 
 if (opt$object_type == "merged") {
   # if the object type is merged, then grab the project id from the filename to print in the header for error messages
-  header_id <- stringr::remove(basename(opt$sce_file), "_merged.rds")
+  header_id <- stringr::str_remove(basename(opt$sce_file), "_merged.rds")
 } else {
   # otherwise just grab the library id from the metadata
   header_id <- metadata(sce)$library_id
