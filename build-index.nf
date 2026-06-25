@@ -82,9 +82,9 @@ process cellranger_index {
   script:
     cellranger_index = file(meta.cellranger_index).name
     // extract assembly from ref_name
-    // if ref_name is GRCm38, use mm10 to match spaceranger probe files;
-    // the final output directory will still have GRCm38 in it though
-    assembly = ref_name == "GRCm38" ? "mm10" : ref_name.split("\\.")[1] 
+    // if ref_name is Mus_musculus.GRCm38.98, use mm10 and not GRCm38 to match spaceranger 
+    // probe files; the final output directory will still have GRCm38 in it though
+    assembly = ref_name == "Mus_musculus.GRCm38.98" ? "mm10" : ref_name.split("\\.")[1] 
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
