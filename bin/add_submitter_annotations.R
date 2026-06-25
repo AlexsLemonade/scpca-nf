@@ -66,7 +66,7 @@ submitter_df <- readr::read_tsv(
 if (!all(required_cols %in% names(submitter_df))) {
   stop(
     glue::glue(
-      "The submitter TSV file must contain the following columns: {paste0(required_cols, collapse = ',')}."
+      "The submitter TSV file must contain the following columns: {paste0(required_cols, collapse = ', ')}."
     )
   )
 }
@@ -84,7 +84,7 @@ exclude_cols <- setdiff(sample_df_cols, c(required_cols, optional_cols))
 # specify any columns that might be present that we don't need to include in the output object (e.g., scpca_sample_id or submitter_id)
 extra_cols <- setdiff(
   names(submitter_df),
-  c(required_cols, optional_cols, exclude_cols)
+  c(required_cols, optional_cols, sample_df_cols)
 )
 
 # Rename extra columns with `submitter_` prefix, replacing dashes/periods/spaces
