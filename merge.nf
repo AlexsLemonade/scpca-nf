@@ -344,9 +344,13 @@ workflow {
   // export merged objects to AnnData
   export_anndata(merged_ch)
 
+  // transpose so each h5ad file is checked separately
+  anndata_format_ch = export_anndata.out
+    .transpose()  // [merge_group_id, rna.h5ad], [merge_group_id, adt.h5ad]
+
   // check formatting of merged objects 
   check_sce(merged_ch, file(params.sce_format_reference_file))
-  check_anndata(export_anndata.out, file(params.anndata_format_reference_file))
+  check_anndata(anndata_format_ch, file(params.anndata_format_reference_file))
 
   // collect all error files and concatenate to print to a formatting errors output file
   error_output_ch = check_sce.out

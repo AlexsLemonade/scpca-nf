@@ -96,7 +96,7 @@ workflow sce_to_anndata {
       // pull out just 1 meta object and h5ad files
       // [meta, [h5ad files]]
       .map{ _unique_id, meta_list, h5ad_files ->
-        [meta_list[0], h5ad_files]
+        [meta_list[0], h5ad_files.flatten()]  // flatten to get a single list of all h5ad files
       }
 
   emit:
