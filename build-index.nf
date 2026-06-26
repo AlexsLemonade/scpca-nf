@@ -85,7 +85,7 @@ process cellranger_index {
     assembly = ref_name.split("\\.")[1] 
     
     //  use mm10 instead of GRCm38 to match spaceranger probe files; 
-    // the final output directory will still have GRCm38 in it though
+    // the final output directory will still be named with GRCm38
     if (assembly == "GRCm38") assembly = "mm10"
 ``
     """
