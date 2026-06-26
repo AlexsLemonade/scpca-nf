@@ -240,8 +240,7 @@ workflow {
         t2g_3col_path: sample_refs.t2g_3col_path ? "${params.ref_rootdir}/${sample_refs.t2g_3col_path}" : '',
         salmon_bulk_index: sample_refs.salmon_bulk_index ? "${params.ref_rootdir}/${sample_refs.salmon_bulk_index}" : '',
         t2g_bulk_path: sample_refs.t2g_bulk_path ? "${params.ref_rootdir}/${sample_refs.t2g_bulk_path}" : '',
-        // TEMPORARY FOR TESTING INDEX BUILDING CHANGES
-        cellranger_index: "s3://ccdl-scpca-nf-results-testing/references/mus_musculus/ensembl-98/cellranger_index/Mus_musculus.GRCm38.98_cellranger_full" // sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
+        cellranger_index: sample_refs.cellranger_index ? "${params.ref_rootdir}/${sample_refs.cellranger_index}" : '',
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
         flex_probeset: has_flex_probeset ? "${params.ref_rootdir}/${sample_refs.flex_probe_files[tech]}" : '',
