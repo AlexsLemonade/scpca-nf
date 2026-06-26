@@ -87,7 +87,6 @@ process cellranger_index {
     //  use mm10 instead of GRCm38 to match spaceranger probe files; 
     // the final output directory will still be named with GRCm38
     if (assembly == "GRCm38") assembly = "mm10"
-``
     """
     gunzip -c ${fasta} > genome.fasta
     gunzip -c ${gtf} > genome.gtf
