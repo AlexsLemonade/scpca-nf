@@ -36,7 +36,7 @@ check_names_and_types <- function(data, ref) {
         # now see if it matches the expected type
         if (name == "sample_type" && is(data[[name]], "list")) {
           # sample type may be a list for multiplexed
-          is_type_match <- is(data[[name]][[0]], type)
+          is_type_match <- is(data[[name]][[1]], type)
         } else {
           is_type_match <- is(data[[name]], type)
         }
