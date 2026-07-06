@@ -201,7 +201,7 @@ metadata_list <- list(
   workflow_commit = opt$workflow_commit
 ) |>
   # convert any NULLS to NA
-  purrr::map(\(x){
+  purrr::map(\(x) {
     ifelse(is.null(x), NA, x)
   })
 

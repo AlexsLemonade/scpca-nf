@@ -43,10 +43,10 @@ check_names_and_types <- function(data, ref) {
       }
 
       list(
-        "is_present"     = is_present,
-        "expected_type"  = type,
-        "observed_type"  = obs_type,
-        "is_type_match"  = is_type_match
+        "is_present" = is_present,
+        "expected_type" = type,
+        "observed_type" = obs_type,
+        "is_type_match" = is_type_match
       )
     }) |>
     dplyr::bind_rows(.id = "name")
@@ -147,16 +147,18 @@ check_sce_object <- function(sce_exp, ref_list, conditionals_vec) {
     all_match_df <- match_df
   } else {
     conditional_match_df <- list(
-      colData  = list(data = colData(sce_exp), ref = ref_list[["colData_conditional"]]),
+      colData = list(data = colData(sce_exp), ref = ref_list[["colData_conditional"]]),
       metadata = list(data = metadata(sce_exp), ref = ref_list[["metadata_conditional"]])
     ) |>
       # skip slots that have no reference defined
       purrr::keep(\(x) length(x$ref) > 0) |>
-      purrr::map(\(x) check_conditional_names_and_type(
-        intersect(true_conditions, names(x$ref)),
-        x$data,
-        x$ref
-      )) |>
+      purrr::map(\(x) {
+        check_conditional_names_and_type(
+          intersect(true_conditions, names(x$ref)),
+          x$data,
+          x$ref
+        )
+      }) |>
       dplyr::bind_rows(.id = "slot")
 
     # combine required and conditional checks
@@ -206,9 +208,11 @@ collect_match_errors <- function(match_df, errors, label = "SCE") {
   if (nrow(missing_df) > 0) {
     errors <- c(
       errors,
-      glue::glue("
+      glue::glue(
+        "
       Missing '{missing_df$name}' from {label} {missing_df$slot}.
-      ")
+      "
+      )
     )
   }
 
@@ -217,10 +221,12 @@ collect_match_errors <- function(match_df, errors, label = "SCE") {
   if (nrow(mismatch_df) > 0) {
     errors <- c(
       errors,
-      glue::glue("
+      glue::glue(
+        "
       Type mismatch in '{mismatch_df$name}' from {label} {mismatch_df$slot}.
       Expected {mismatch_df$expected_type}, but found {mismatch_df$observed_type}.
-      ")
+      "
+      )
     )
   }
 
@@ -314,19 +320,17 @@ conditionals_vec <- c(
   has_scimilarity = "scimilarity" %in% metadata(sce)$celltype_methods,
   has_openscpca = "openscpca" %in% metadata(sce)$celltype_methods,
   # submitter annotations are only valid if not all NA
-  has_submitter = "submitter" %in% metadata(sce)$celltype_methods &&
+  has_submitter = "submitter" %in%
+    metadata(sce)$celltype_methods &&
     !all(is.na(sce$submitter_celltype_annotation)),
   has_infercnv = metadata(sce)$infercnv_status == "success",
 
   # additional modalities
   has_adt = has_adt,
   has_cellhash = has_cellhash,
-  has_hashedDrops =
-    any(stringr::str_detect(colnames(colData(sce)), "hashedDrops")),
-  has_HTODemux =
-    any(stringr::str_detect(colnames(colData(sce)), "HTODemux")),
-  has_vireo =
-    any(stringr::str_detect(colnames(colData(sce)), "vireo"))
+  has_hashedDrops = any(stringr::str_detect(colnames(colData(sce)), "hashedDrops")),
+  has_HTODemux = any(stringr::str_detect(colnames(colData(sce)), "HTODemux")),
+  has_vireo = any(stringr::str_detect(colnames(colData(sce)), "vireo"))
 )
 
 # Check main SCE col/row/metadata ----------------------------------------------
@@ -362,16 +366,17 @@ if (has_cellhash) {
   cellhash_ref <- all_ref_list$altExp$cellhash
 
   cellhash_conditionals_vec <- c(
-    has_hashedDrops =
-      any(stringr::str_detect(colnames(colData(cellhash_sce)), "hashedDrops")),
-    has_HTODemux =
-      any(stringr::str_detect(colnames(colData(cellhash_sce)), "HTODemux"))
+    has_hashedDrops = any(stringr::str_detect(colnames(colData(cellhash_sce)), "hashedDrops")),
+    has_HTODemux = any(stringr::str_detect(colnames(colData(cellhash_sce)), "HTODemux"))
   )
 
   cellhash_match_df <- check_sce_object(cellhash_sce, cellhash_ref, cellhash_conditionals_vec)
 
   # check assay errors first
-  errors <- c(errors, check_assays(cellhash_sce, cellhash_ref$assayNames, label = "cellhash altExp"))
+  errors <- c(
+    errors,
+    check_assays(cellhash_sce, cellhash_ref$assayNames, label = "cellhash altExp")
+  )
   # now check col/row/metadata
   errors <- collect_match_errors(cellhash_match_df, errors, label = "cellhash altExp")
 }
@@ -399,6 +404,8 @@ if (opt$object_type == "merged") {
 if (length(errors) == 0) {
   fs::file_create(opt$output_file)
 } else {
-  header <- glue::glue("Formatting errors found for {header_id} {opt$object_type} SingleCellExperiment:")
+  header <- glue::glue(
+    "Formatting errors found for {header_id} {opt$object_type} SingleCellExperiment:"
+  )
   writeLines(c(header, "", errors, ""), opt$output_file)
 }
