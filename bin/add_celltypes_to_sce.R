@@ -399,13 +399,15 @@ assign_infercnv_status <- function(
   # Assign remaining statuses for edge cases
   if (length(broad_diagnosis) > 1) {
     infercnv_status <- "multiple_diagnosis_groups_multiplexed"
-  } else if (broad_diagnosis == "Non-cancerous") { # at this point we know it's length 1
+  } else if (broad_diagnosis == "Non-cancerous") {
+    # at this point we know it's length 1
     infercnv_status <- "skipped_non_cancerous"
   } else if (nrow(diagnosis_celltype_df) == 0) {
     infercnv_status <- "no_diagnosis_celltype_reference"
   } else if (!(broad_diagnosis %in% diagnosis_celltype_df$diagnosis_group)) {
     infercnv_status <- "unknown_reference_celltypes"
-  } else { # no edge case - we can feasibly run inferCNV
+  } else {
+    # no edge case - we can feasibly run inferCNV
     infercnv_status <- "feasible"
   }
 
@@ -698,7 +700,6 @@ metadata(sce)$celltype_methods <- c(
 # define the prefix of the column in the consensus reference that contains the appropriate consensus term given the provided methods
 # e.g., all three methods use the main consensus_annotation column
 # if the library only has scimilarity and singler, use singler_scimilarity_pair_annotation column, etc.
-
 
 # if there's at least two methods then assign consensus using the available methods
 if (length(automated_methods) > 1) {

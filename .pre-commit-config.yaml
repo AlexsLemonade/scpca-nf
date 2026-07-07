@@ -33,14 +33,11 @@ repos:
       - id: ruff
       # Run the formatter.
       - id: ruff-format
-  - repo: https://github.com/lorenzwalthert/precommit
-    # R styling and linting
-    rev: v0.4.3.9028
+  - repo: https://github.com/posit-dev/air-pre-commit
+    # air for formatting R code
+    rev: 0.10.0 
     hooks:
-      - id: style-files
-        args: [--style_pkg=styler, --style_fun=tidyverse_style]
-      # - id: lintr #skip R linting for now...
-      - id: parsable-R
+      - id: air-format
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
