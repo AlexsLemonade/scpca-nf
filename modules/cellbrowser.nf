@@ -238,9 +238,8 @@ workflow cellbrowser_build {
       file(params.project_metafile),
       file(params.cellbrowser_template_dir, type: 'dir', checkIfExists: true)
     )
-    // .first() converts the single-element queue channel into a value channel
-    // so it can be consumed by every cellbrowser_dataset task
-    skeleton_ch = cellbrowser_project.out.first()
+    // should be a value channel, since project_ids_ch is a value channel
+    skeleton_ch = cellbrowser_project.out
 
     // convert each library in parallel
     cellbrowser_dataset(libraries_ch, skeleton_ch)
