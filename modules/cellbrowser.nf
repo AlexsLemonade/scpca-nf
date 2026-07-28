@@ -65,6 +65,7 @@ process cellbrowser_site {
   container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   publishDir "${params.outdir}"
   stageInMode 'copy'
+  label 'long_running'
   input:
     tuple val(project_ids), path(library_dirs)
     path project_metadata
