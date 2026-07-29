@@ -109,7 +109,6 @@ process cellbrowser_project {
 process cellbrowser_dataset {
   container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
   tag "${meta.library_id}"
-  label 'long_running'
 
   input:
     tuple val(meta), path(library_dir)
