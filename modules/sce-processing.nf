@@ -214,11 +214,17 @@ process filter_sce {
       ${params.seed ? "--random_seed ${params.seed}" : ""} \
       --no_sce_compression
 
-    detect_doublets.R \
-      --input_sce_file "filtered.rds" \
-      --output_sce_file ${filtered_rds} \
-      ${params.seed ? "--random_seed ${params.seed}" : ""} \
-      --threads ${task.cpus}
+    # only run doublet detection if the filtered file is not empty
+    if [ -s "filtered.rds" ]; then
+      detect_doublets.R \
+        --input_sce_file "filtered.rds" \
+        --output_sce_file ${filtered_rds} \
+        ${params.seed ? "--random_seed ${params.seed}" : ""} \
+        --threads ${task.cpus}
+    else
+      mv filtered.rds ${filtered_rds}
+    fi
+    
     """
   stub:
     filtered_rds = "${meta.unique_id}_filtered.rds"
