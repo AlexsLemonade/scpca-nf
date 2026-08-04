@@ -23,6 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+
+## [v0.10.3](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.3)
+
+### Added
+
+- New citation for the published manuscript 
+
+### Changed
+
+- Skip `scDblFinder` for libraries with a low number of cells
+- Cell typing is only performed if the `organism` listed is `Homo sapiens`
+- Update handling of FASTQ file names for Space Ranger
+
+### Fixed
+
+- `mapping tool` is now `cellranger multi` instead of `cellranger-multi` for GEM-X 10x Flex libraries
+
+
 ## [0.10.2](https://github.com/AlexsLemonade/scpca-nf/releases/tag/v0.10.1) — 2026-05-05
 
 ### Fixed
