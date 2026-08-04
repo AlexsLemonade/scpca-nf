@@ -1,6 +1,8 @@
 # scpca-nf
 
 <!-- badges start -->
+[![Cell Genomics publication](https://img.shields.io/badge/Publication-Cell_Genomics-blue
+)](https://doi.org/10.1016/j.xgen.2026.101283)
 [![bioRxiv preprint](https://img.shields.io/badge/Preprint-bioRxiv-B31B1B.svg)](https://doi.org/10.1101/2024.04.19.590243)
 <!-- badges end -->
 
@@ -49,6 +51,6 @@ For ALSF Data Lab users, please refer to the [internal instructions](internal-in
 
 ## Citation
 
-If you use the `scpca-nf` workflow in your research, please cite the following preprint:
+If you use the `scpca-nf` workflow in your research, please cite the following publication:
 
-> Hawkins AG, Shapiro JA, Spielman SJ, Mejia DS, Prasad DV, Ichihara N, et al. The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. *bioRxiv*; 2024. [doi:10.1101/2024.04.19.590243](https://doi.org/10.1101/2024.04.19.590243)
+> Hawkins AG, Shapiro JA, Spielman SJ, Mejia DS, Prasad DV, Ichihara N, et al. The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. *Cell Genomics*; 2026. [https://doi.org/10.1016/j.xgen.2026.101283](https://doi.org/10.1016/j.xgen.2026.101283)

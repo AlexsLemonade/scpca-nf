@@ -65,6 +65,7 @@ JSON
 lockfile
 logcounts
 Lun
+md
 miQC
 Nextflow
 Nextflow's

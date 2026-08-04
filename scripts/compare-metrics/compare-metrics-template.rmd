@@ -39,16 +39,33 @@ set.seed(1234)
 # Functions
 #| include: false
 
-read_metrics_files <- function(urls) {
-  # read a set of metrics files
-  # url: URL of the metrics files, each in json format
-  # returns: data frame (tibble) of combined metrics
-  purrr::map(urls, \(url) {
-    jsonlite::read_json(url, simplifyVector = TRUE) |>
-      # handle bare NAs, which may be quoted
-      purrr::modify_if(\(x){
-        length(x) == 1 && !is.na(x) && x == "NA"
-      }, ~NA)
+# parse S3 uri into bucket and key
+parse_s3_path <- function(path) {
+  parsed <- httr2::url_parse(path)
+  list(
+    bucket = parsed$hostname,
+    key    = sub("^/", "", parsed$path) # strip leading slash
+  )
+}
+
+# list all objects that match the regex
+list_s3_metrics <- function(s3_uri, metrics_regex, s3_client) {
+  p <- parse_s3_path(s3_uri)
+
+  s3_client$list_objects_v2(Bucket = p$bucket, Prefix = p$key) |>
+    paws.common::paginate() |> # return more than 1000 entries
+    purrr::map(\(page) purrr::map_chr(page$Contents, \(obj) obj$Key)) |>
+    purrr::list_c() |>
+    stringr::str_subset(metrics_regex) |>
+    (\(keys) glue::glue("s3://{p$bucket}/{keys}"))()
+}
+
+read_metrics_files <- function(paths, s3_client) {
+  purrr::map(paths, \(path) {
+    p <- parse_s3_path(path)
+    raw <- s3_client$get_object(Bucket = p$bucket, Key = p$key)
+    jsonlite::fromJSON(rawToChar(raw$Body), simplifyVector = TRUE) |>
+      purrr::modify_if(\(x) length(x) == 1 && !is.na(x) && x == "NA", ~NA)
   }) |>
     purrr::list_transpose(default = NA) |>
     tibble::as_tibble()
@@ -268,26 +285,19 @@ if (tolower(params$project_id[1]) == "all") {
   metrics_regex <- paste0("(", params$project_id, ".+SCPCL[0-9]{6}_metrics.json$)", collapse = "|")
 }
 
-ref_metrics_files <- s3fs::s3_dir_ls(
-  params$reference_s3,
-  recurse = TRUE,
-  regexp = metrics_regex
-) |>
-  s3fs::s3_file_url() # get signed URLs for reading
+# setup s3 connection
+s3_client <- paws::s3()
 
-comp_metrics_paths <- s3fs::s3_dir_ls(
-  params$comparison_s3,
-  recurse = TRUE,
-  regexp = metrics_regex
-) |>
-  s3fs::s3_file_url()
+ref_metrics_files <- list_s3_metrics(params$reference_s3, metrics_regex, s3_client)
+comp_metrics_paths <- list_s3_metrics(params$comparison_s3, metrics_regex, s3_client)
 ```
+
 
 ```{r, eval=!use_cache}
 #| include: false
 # read metrics files from S3
-ref_data <- read_metrics_files(ref_metrics_files)
-comp_data <- read_metrics_files(comp_metrics_paths)
+ref_data <- read_metrics_files(ref_metrics_files, s3_client)
+comp_data <- read_metrics_files(comp_metrics_paths, s3_client)
 
 # join the two data frames
 metrics_df <- dplyr::full_join(
@@ -1425,29 +1435,34 @@ ggplot(changed_total_infercnv_counts, aes(x = change_frac * 100)) +
 # the total number of cells in the reference, or the cell types themselves
 # a change in one may not appear in the other, so need to consider each separately
 
-infercnv_num_ref_changes <- metrics_df |>
-  dplyr::select(
-    project_id,
-    sample_id,
-    library_id,
-    starts_with("infercnv_num_reference_cells"),
-  ) |>
-  tidyr::pivot_longer(
-    cols = starts_with("infercnv_num_reference_cells"),
-    names_pattern = "(.+)\\.(ref|comp)$",
-    names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
-  ) |>
-  dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
-  dplyr::mutate(
-    change = comp - ref,
-    change_frac = change / ref
-  ) |>
-  dplyr::select(-field)
+# Num reference cells isn't in all versions yet, so explicitly check both columns are present first
+if (all(c("infercnv_num_reference_cells.comp", "infercnv_num_reference_cells.ref") %in% colnames(metrics_df))) {
+  infercnv_num_ref_changes <- metrics_df |>
+    dplyr::select(
+      project_id,
+      sample_id,
+      library_id,
+      starts_with("infercnv"),
+    ) |>
+    tidyr::pivot_longer(
+      cols = starts_with("infercnv_num_reference_cells"),
+      names_pattern = "(.+)\\.(ref|comp)$",
+      names_to = c("field", ".value") # .value separates into `ref` and `comp` fields
+    ) |>
+    dplyr::filter(is.finite(comp) | is.finite(ref)) |> # keep where at least one is finite
+    dplyr::mutate(
+      change = comp - ref,
+      change_frac = change / ref
+    ) |>
+    dplyr::select(-field)
 
-changed_infercnv_num_ref_counts <- infercnv_num_ref_changes |>
-  dplyr::filter(is.na(change) | change != 0)
+  changed_infercnv_num_ref_counts <- infercnv_num_ref_changes |>
+    dplyr::filter(is.na(change) | change != 0)
 
-has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
+  has_infercnv_num_ref_changes <- nrow(changed_infercnv_num_ref_counts) > 0
+} else {
+  has_infercnv_num_ref_changes <- FALSE
+}
 ```
 
 

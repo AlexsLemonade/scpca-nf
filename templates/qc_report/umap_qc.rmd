@@ -119,7 +119,7 @@ if (!is.null(processed_meta$highly_variable_genes)) {
     left_join(umap_df, by = "barcode") |>
     # combine all genes into a single column for easy faceting
     tidyr::pivot_longer(
-      cols = starts_with("ENSG"),
+      cols = dplyr::all_of(top_genes),
       names_to = "ensembl_id",
       values_to = "gene_expression"
     ) |>

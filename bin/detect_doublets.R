@@ -59,24 +59,37 @@ if (opt$threads > 1) {
 sce <- readr::read_rds(opt$input_sce_file)
 
 # run scDblFinder -----------
-doublet_result <- scDblFinder::scDblFinder(
-  sce,
-  BPPARAM = bp_param,
-  returnType = "table" # keep as table in case we eventually want to provide additional output
+doublet_result <- tryCatch(
+  scDblFinder::scDblFinder(
+    sce,
+    BPPARAM = bp_param,
+    returnType = "table" # keep as table in case we eventually want to provide additional output
+  ),
+  error = function(e) {
+    message("scDblFinder failed: doublet columns will be NA")
+    message(conditionMessage(e))
+    NULL
+  }
 )
 
-# store the `score` and `class` columns in the colData
-doublet_result_cells <- doublet_result |>
-  as.data.frame() |>
-  tibble::rownames_to_column("barcodes") |>
-  # keep only actual barcodes to remove the artificial doublets
-  dplyr::filter(barcodes %in% colnames(sce)) |>
-  dplyr::select(barcodes, scDblFinder_class = class, scDblFinder_score = score)
+if (is.null(doublet_result)) {
+  # if scDblFinder fails, fill columns with NA
+  sce$scDblFinder_class <- NA_character_
+  sce$scDblFinder_score <- NA_real_
+} else {
+  # store the `score` and `class` columns in the colData
+  doublet_result_cells <- doublet_result |>
+    as.data.frame() |>
+    tibble::rownames_to_column("barcodes") |>
+    # keep only actual barcodes to remove the artificial doublets
+    dplyr::filter(barcodes %in% colnames(sce)) |>
+    dplyr::select(barcodes, scDblFinder_class = class, scDblFinder_score = score)
 
-colData(sce) <- colData(sce) |>
-  as.data.frame() |>
-  dplyr::left_join(doublet_result_cells, by = "barcodes") |>
-  DataFrame(row.names = colnames(sce))
+  colData(sce) <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::left_join(doublet_result_cells, by = "barcodes") |>
+    DataFrame(row.names = colnames(sce))
+}
 
 # Export updated SCE with doublet information
 readr::write_rds(sce, opt$output_sce_file, compress = "bz2")
