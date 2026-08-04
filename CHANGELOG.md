@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New citation for the published manuscript 
-- Added guidelines for development with Claude Code in `Claude.md`
+- Added guidelines for development with Claude Code in `CLAUDE.md`
 
 ### Changed
 
