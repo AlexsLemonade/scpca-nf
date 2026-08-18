@@ -25,6 +25,7 @@ process alevin_rad {
       '10xv3': '--chromiumV3',
       '10xv3.1': '--chromiumV3',
       '10xv3_5prime': '--chromiumV3',
+      '10xv3.1_multiome_v1': '--chromiumV3',
       '10xv4': '--chromiumV3'
     ]
     // get meta to write as file
