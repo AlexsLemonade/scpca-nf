@@ -22,7 +22,7 @@ jobs:
       - name: Setup Nextflow
         uses: nf-core/setup-nextflow@v3
         with:
-          version: "25.10.4"
+          version: "25.10.7"
 
       - name: Check Nextflow workflow
         timeout-minutes: 20
