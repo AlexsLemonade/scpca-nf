@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [v0.10.4](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.4)
+
+### Added
+
+- Included support for running gene expression libraries from 10x Multiome (GEX + ATAC) v1 kit
 
 ## [v0.10.3](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.3)
 
