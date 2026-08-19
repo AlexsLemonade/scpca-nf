@@ -8,6 +8,7 @@ altExp
 AMI
 AnnData
 ARI
+ATAC
 barcode
 bioinformatics
 bioRxiv
@@ -68,6 +69,7 @@ logcounts
 Lun
 md
 miQC
+multiome
 Nextflow
 Nextflow's
 nf

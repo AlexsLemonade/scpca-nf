@@ -124,6 +124,7 @@ workflow {
     '10xv2_5prime': '737K-august-2016.txt',
     '10xv3': '3M-february-2018.txt',
     '10xv3.1': '3M-february-2018.txt',
+    '10xv3.1_multiome_v1': '737K-arc-v1.txt.gz',
     '10xv3_5prime': '3M-5pgex-jan-2023.txt.gz',
     '10xv4': '3M-3pgex-may-2023_TRU.txt.gz',
     'citeseq_10xv2': '737K-august-2016.txt',
