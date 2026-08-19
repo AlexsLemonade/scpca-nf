@@ -96,12 +96,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.10.3` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.10.4` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.10.3 \
+  -r v0.10.4 \
   -config {path to config file}  \
   -profile {name of profile}
 ```
@@ -146,7 +146,7 @@ To run the workflow, you will need to create a tab separated values (TSV) metada
 | `scpca_library_id`     | A unique library ID for each unique set of cells |
 | `scpca_sample_id`      | A unique sample ID for each tissue or unique source. <br> For multiplexed libraries, separate multiple samples with semicolons (`;`) |
 | `scpca_project_id`     | A unique ID for each group of related samples. All results for samples with the same project ID will be returned in the same folder labeled with the project ID. |
-| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1`. <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics, see [this section](#spatial-transcriptomics-libraries) for possible technologies. <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi`|
+| `technology`           | Sequencing/library technology used <br> For single-cell/single-nuclei libraries use either `10Xv2`, `10Xv2_5prime`, `10Xv3`, `10Xv3.1`, `10Xv3_5prime`, or `10Xv4`. <br> For ADT (CITE-seq) libraries use either `CITEseq_10Xv2`, `CITEseq_10Xv3`, or `CITEseq_10Xv3.1` <br> For cellhash libraries use either `cellhash_10Xv2`, `cellhash_10Xv3`, or `cellhash_10Xv3.1`. <br> For bulk RNA-seq use either `single_end` or `paired_end`. <br> For spatial transcriptomics, see [this section](#spatial-transcriptomics-libraries) for possible technologies. <br> For GEM-X Flex with probe set version 1.1 use either `10Xflex_v1.1_single` or `10Xflex_v1.1_multi` <br> For processing gene expression data generated using the 10x Multiome kit (ATAC + GEX v1), use `10Xv3.1_multiome_v1`|
 | `assay_ontology_term_id`| [Experimental Factor Ontology](https://www.ebi.ac.uk/ols/ontologies/efo) term ID associated with the `technology` |
 | `seq_unit`              | Sequencing unit (one of: `cell`, `nucleus`, `bulk`, or `spot`) |
 | `sample_reference`      | The name of the reference to use for mapping, available references include `Homo_sapiens.GRCh38.104` and `Mus_musculus.GRCm39.104` |
@@ -332,7 +332,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.10.3`, then you will want to set `-r v0.10.3` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.10.4`, then you will want to set `-r v0.10.4` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
