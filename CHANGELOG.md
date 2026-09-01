@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Accommodate other columns besides `cell_type_annotation` that may be present in submitter cell types file. 
+- Accommodate other columns besides `cell_type_annotation` that may be present in the submitter cell types file. 
 All columns present in the input file are now included in the cell metadata of all objects. 
 
 ## [v0.10.4](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.4)
