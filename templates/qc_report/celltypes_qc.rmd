@@ -451,7 +451,7 @@ if (length(all_unclassified_methods) > 0) {
     "\n  All cells in this library were unclassified by {all_unclassified_string}, so no tables or plots are shown for {method_word}."
   )
 } else {
-  skippted_text <- ""
+  skipped_text <- ""
 }
 
 # print out a warning about unclassified cells
