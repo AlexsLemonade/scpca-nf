@@ -8,7 +8,24 @@ This file is meant to be run as a child report within either `main_qc_report.rmd
 ```{r}
 ## function definitions ##
 
+#' Check whether a cell type annotation column has any annotations to display
+#'
+#' A column will be entirely `NA` if the given method was unable to classify any
+#'  cells in the library. In that case, we cannot build tables or plots from it.
+#'
+#' @param df Data frame with cell types
+#' @param column Name of the annotation column, as a string
+#'
+#' @return TRUE if the column exists and has at least one non-NA value
+has_celltype_annotations <- function(df, column) {
+  column %in% colnames(df) && !all(is.na(df[[column]]))
+}
+
 #' Create tables of cell type annotation counts
+#'
+#' Cells with an `NA` annotation (e.g., cells that a given method was unable to
+#'  classify because it was run on a different set of cells) are excluded from
+#'  both the counts and the percentage calculation.
 #'
 #' @param df Data frame with cell types
 #' @param celltype_column Column with cell type annotations, not a string.
@@ -16,6 +33,9 @@ This file is meant to be run as a child report within either `main_qc_report.rmd
 #' @return table with cell type counts
 create_celltype_n_table <- function(df, celltype_column) {
   df |>
+    # drop cells this method did not annotate so they are not counted and do not
+    #  contribute to the percentage denominator
+    dplyr::filter(!is.na({{ celltype_column }})) |>
     dplyr::count({{ celltype_column }}) |>
     # Add percentage column
     dplyr::mutate(
@@ -68,6 +88,12 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
 
 #' Create a faceted UMAP panel where each panel has only one cell type colored
 #'
+#' Cells with an `NA` value in `annotation_column` are removed before plotting,
+#'  so they appear neither as colored points nor as grey background points, and
+#'  no `NA` facet or legend entry is created.
+#' If no cells remain after removing `NA` values, `NULL` is returned rather than
+#'  attempting to build a plot with no data.
+#'
 #' @param umap_df Data frame with UMAP1 and UMAP2 columns
 #' @param n_celltypes The number of cell types (facets) displayed in the plot
 #' @param annotation_column Column containing cell type annotations
@@ -76,11 +102,23 @@ lump_wrap_celltypes <- function(df, n_celltypes = 7, wrap = 35) {
 #'
 #' @return ggplot object containing a faceted UMAP where each cell type is a facet.
 #'   In each panel, the cell type of interest is colored and all other cells are grey.
+#'   Returns NULL if there are no annotated cells to plot.
 faceted_umap <- function(umap_df,
                          n_celltypes,
                          annotation_column,
                          point_size = 1,
                          palette = NULL) {
+  # remove cells that this method did not annotate; this keeps them out of both
+  #  the colored points and the grey "all other cells" background layer
+  umap_df <- umap_df |>
+    dplyr::filter(!is.na({{ annotation_column }}))
+
+  # guard against a method that classified no cells at all; the chunks below
+  #  should already skip this case, but bail out safely rather than error
+  if (nrow(umap_df) == 0 || n_celltypes == 0) {
+    return(NULL)
+  }
+
   # Determine legend y-coordinate based on n_celltypes
   if (n_celltypes %in% 7:8) {
     legend_y <- 0.33
@@ -124,12 +162,13 @@ faceted_umap <- function(umap_df,
     )
 
   # Add colors from palette if provided
+  # in both cases, `na.translate = FALSE` ensures no NA legend entry is drawn
   if (!is.null(palette)) {
     faceted_umap <- faceted_umap +
-      scale_color_manual(values = palette)
+      scale_color_manual(values = palette, na.translate = FALSE)
   } else {
     faceted_umap <- faceted_umap +
-      scale_color_brewer(palette = "Dark2")
+      scale_color_brewer(palette = "Dark2", na.translate = FALSE)
   }
 
   # Determine legend placement based on total_celltypes
@@ -280,14 +319,6 @@ if (ncol(processed_sce) > 1) {
 }
 ```
 
-```{r}
-if (has_consensus & !(has_submitter | has_openscpca) & !is_supplemental) {
-  knitr::asis_output("## Statistics")
-} else {
-  knitr::asis_output("## Statistics {.tabset}")
-}
-```
-
 
 ```{r, warning = FALSE}
 # Create data frame of cell types
@@ -300,72 +331,140 @@ umap_facet_point_size <- umap_points_sizes[2]
 ```
 
 
-```{r, eval = (has_cellassign || has_singler || has_scimilarity) && (is_supplemental || !has_consensus), results='asis'}
+```{r, eval = (has_cellassign || has_singler || has_scimilarity) && (is_supplemental || !has_consensus)}
+# list of all methods that have at least 1 cell labeled as unclassified
 unclassified_methods <- c()
 
+# list of all methods where ALL cells contain unclassified as the label
+# this is used to list any methods that will be removed from plots
+methods_with_all_unclassified_cells <- c()
+
+# For each method below, any cells labeled "Unclassified cell" are set to NA in
+#  that method's annotation column rather than removed from `celltype_df`.
+# This is important because a cell can be unclassified by one method but
+#  classified by another; removing the row entirely would discard the
+#  annotations that other methods did assign to that cell.
+# Setting the value to NA keeps the cell in the data frame while excluding it
+#  from that method's tables, plots, and summary calculations.
+# If every cell in the library is unclassified by a method, the column becomes
+#  entirely NA and we record the method so its output can be skipped.
+
 # check for unclassified SingleR cells
-if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified cell")) {
+if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified cell", na.rm = TRUE)) {
   unclassified_methods <- c(unclassified_methods, "SingleR")
 
-  # remove all unclassified cells
+  # set unclassified cells to NA, which also drops the now-unused level
   celltype_df <- celltype_df |>
-    dplyr::filter(
-      singler_celltype_annotation != "Unclassified cell"
-    ) |>
     dplyr::mutate(
-      singler_celltype_annotation = forcats::fct_drop(
+      singler_celltype_annotation = forcats::fct_recode(
         singler_celltype_annotation,
-        only = "Unclassified cell"
+        NULL = "Unclassified cell"
       )
     )
+
+  if (all(is.na(celltype_df$singler_celltype_annotation))) {
+    methods_with_all_unclassified_cells <- c(methods_with_all_unclassified_cells, "SingleR")
+  }
 }
 
 # check for unclassified cellassign cells
-if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclassified cell")) {
+if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclassified cell", na.rm = TRUE)) {
   unclassified_methods <- c(unclassified_methods, "CellAssign")
 
-  # remove unclassified cells
+  # set unclassified cells to NA, which also drops the now-unused level
   celltype_df <- celltype_df |>
-    dplyr::filter(
-      cellassign_celltype_annotation != "Unclassified cell"
-    ) |>
     dplyr::mutate(
-      cellassign_celltype_annotation = forcats::fct_drop(
+      cellassign_celltype_annotation = forcats::fct_recode(
         cellassign_celltype_annotation,
-        only = "Unclassified cell"
+        NULL = "Unclassified cell"
       )
     )
+
+  if (all(is.na(celltype_df$cellassign_celltype_annotation))) {
+    methods_with_all_unclassified_cells <- c(methods_with_all_unclassified_cells, "CellAssign")
+  }
 }
 
 # check for unclassified scimilarity cells
-if (has_scimilarity && any(celltype_df$scimilarity_celltype_annotation == "Unclassified cell")) {
+if (has_scimilarity && any(celltype_df$scimilarity_celltype_annotation == "Unclassified cell", na.rm = TRUE)) {
   unclassified_methods <- c(unclassified_methods, "SCimilarity")
 
-  # remove unclassified cells
+  # set unclassified cells to NA, which also drops the now-unused level
   celltype_df <- celltype_df |>
-    dplyr::filter(
-      scimilarity_celltype_annotation != "Unclassified cell"
-    ) |>
     dplyr::mutate(
-      scimilarity_celltype_annotation = forcats::fct_drop(
+      scimilarity_celltype_annotation = forcats::fct_recode(
         scimilarity_celltype_annotation,
-        only = "Unclassified cell"
+        NULL = "Unclassified cell"
       )
     )
+
+  if (all(is.na(celltype_df$scimilarity_celltype_annotation))) {
+    methods_with_all_unclassified_cells <- c(methods_with_all_unclassified_cells, "SCimilarity")
+  }
+}
+```
+
+
+```{r}
+# Determine which automated methods have results we can actually display.
+# A method is skipped entirely if it is absent, or if it classified no cells at
+#  all (in which case its annotation column is entirely NA and any tables or
+#  plots built from it would be empty and error out).
+# This chunk is always evaluated so these flags are defined for every report.
+show_singler <- has_singler && has_celltype_annotations(celltype_df, "singler_celltype_annotation")
+show_cellassign <- has_cellassign && has_celltype_annotations(celltype_df, "cellassign_celltype_annotation")
+show_scimilarity <- has_scimilarity && has_celltype_annotations(celltype_df, "scimilarity_celltype_annotation")
+
+# is there anything at all left to show in the statistics and UMAP sections?
+show_any_celltypes <- any(
+  has_submitter,
+  has_openscpca,
+  has_consensus,
+  show_singler,
+  show_cellassign,
+  show_scimilarity
+)
+```
+
+
+```{r, eval = (has_cellassign || has_singler || has_scimilarity) && (is_supplemental || !has_consensus), results='asis'}
+# add an extra note for any method that was unable to classify a single cell
+if (length(methods_with_all_unclassified_cells) > 0) {
+  all_unclassified_string <- stringr::str_flatten_comma(methods_with_all_unclassified_cells, last = ", and ")
+  method_word <- ifelse(length(methods_with_all_unclassified_cells) > 1, "these methods", "this method")
+  skipped_text <- glue::glue(
+    "\n  All cells in this library were unclassified by {all_unclassified_string}, so no tables or plots are shown for {method_word}."
+  )
+} else {
+  skipped_text <- ""
 }
 
-# print a warning if either singleR or cellAssign have any unclassified cells
-if (length(unclassified_methods) > 0) {
-  unclassified_methods <- stringr::str_flatten_comma(unclassified_methods, last = ", and ")
+# print out a warning about unclassified cells
+if(length(unclassified_methods) > 0 ) {
+  unclassified_string <- stringr::str_flatten_comma(unclassified_methods, last = ", and ")
   glue::glue("
  <div class=\"alert alert-info\">
 
-  When reprocessing this library, old results from running {unclassified_methods} were used.
+  When reprocessing this library, old results from running {unclassified_string} were used.
   This means results were calculated with a slightly different set of cells.
-  Any cells that are missing have been annotated as `Unclassified cell` in the object and will not be shown in any plots.
+  Any cells that are missing have been annotated as `Unclassified cell` in the object.
+  These cells are excluded from the tables and plots for the affected method, but they are still included in results from all other cell type annotation methods.
+  
+ {skipped_text}
 
   </div>
 ")
+}
+```
+
+
+```{r}
+if (show_any_celltypes) {
+  if (has_consensus & !(has_submitter | has_openscpca) & !is_supplemental) {
+    knitr::asis_output("## Statistics")
+  } else {
+    knitr::asis_output("## Statistics {.tabset}")
+  }
 }
 ```
 
@@ -399,7 +498,7 @@ create_celltype_n_table(celltype_df, consensus_celltype_annotation) |>
   format_datatable()
 ```
 
-```{r, eval = has_singler && (!has_consensus || is_supplemental)}
+```{r, eval = show_singler && (!has_consensus || is_supplemental)}
 knitr::asis_output('### `SingleR` annotations
 
 In this table, cells labeled "Unknown cell type" are those which `SingleR` pruned due to low-quality assignments.
@@ -409,7 +508,7 @@ create_celltype_n_table(celltype_df, singler_celltype_annotation) |>
   format_datatable()
 ```
 
-```{r, eval = has_cellassign && (!has_consensus || is_supplemental)}
+```{r, eval = show_cellassign && (!has_consensus || is_supplemental)}
 knitr::asis_output('### `CellAssign` annotations
 
 In this table, cells labeled "Unknown cell type" are those which `CellAssign` could not confidently assign to a label in the reference list.
@@ -419,7 +518,7 @@ create_celltype_n_table(celltype_df, cellassign_celltype_annotation) |>
   format_datatable()
 ```
 
-```{r, eval = has_scimilarity && (!has_consensus || is_supplemental)}
+```{r, eval = show_scimilarity && (!has_consensus || is_supplemental)}
 knitr::asis_output("### `SCimilarity` annotations
 
 ")
@@ -434,7 +533,7 @@ umap_df <- lump_wrap_celltypes(celltype_df)
 ```
 
 
-```{r, eval = has_umap && has_celltypes }
+```{r, eval = has_umap && has_celltypes && show_any_celltypes}
 # only mention multiple annotations if we're actually showing multiple annotations
 if (has_consensus && !(has_submitter | has_openscpca) && !is_supplemental) {
   header_text <- "## UMAPs"
@@ -531,7 +630,7 @@ faceted_umap(
 ```
 
 ```{r}
-if (has_singler & has_umap && (is_supplemental || !has_consensus)) {
+if (show_singler & has_umap && (is_supplemental || !has_consensus)) {
   singler_n_celltypes <- length(levels(umap_df$singler_celltype_annotation_lumped))
   singler_dims <- determine_umap_dimensions(singler_n_celltypes)
   knitr::asis_output("### `SingleR` annotations")
@@ -542,8 +641,8 @@ if (has_singler & has_umap && (is_supplemental || !has_consensus)) {
 ```
 
 
-```{r, eval=has_singler && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = singler_dims[1], fig.height = singler_dims[2], fig.align = "center"}
-# umap for cell assign annotations
+```{r, eval=show_singler && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = singler_dims[1], fig.height = singler_dims[2], fig.align = "center"}
+# umap for singleR annotations
 faceted_umap(
   umap_df,
   singler_n_celltypes,
@@ -554,7 +653,7 @@ faceted_umap(
 
 
 ```{r}
-if (has_cellassign & has_umap && (is_supplemental || !has_consensus)) {
+if (show_cellassign & has_umap && (is_supplemental || !has_consensus)) {
   cellassign_n_celltypes <- length(levels(umap_df$cellassign_celltype_annotation_lumped))
   cellassign_dims <- determine_umap_dimensions(cellassign_n_celltypes)
   knitr::asis_output("### `CellAssign` annotations")
@@ -564,7 +663,7 @@ if (has_cellassign & has_umap && (is_supplemental || !has_consensus)) {
 }
 ```
 
-```{r, eval = has_cellassign && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = cellassign_dims[1], fig.height = cellassign_dims[2], fig.align = "center"}
+```{r, eval = show_cellassign && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = cellassign_dims[1], fig.height = cellassign_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
@@ -575,7 +674,7 @@ faceted_umap(
 ```
 
 ```{r}
-if (has_scimilarity & has_umap && (is_supplemental || !has_consensus)) {
+if (show_scimilarity & has_umap && (is_supplemental || !has_consensus)) {
   scimilarity_n_celltypes <- length(levels(umap_df$scimilarity_celltype_annotation_lumped))
   scimilarity_dims <- determine_umap_dimensions(scimilarity_n_celltypes)
   knitr::asis_output("### `SCimilarity` annotations")
@@ -585,7 +684,7 @@ if (has_scimilarity & has_umap && (is_supplemental || !has_consensus)) {
 }
 ```
 
-```{r, eval = has_scimilarity && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = scimilarity_dims[1], fig.height = scimilarity_dims[2], fig.align = "center"}
+```{r, eval = show_scimilarity && has_umap && (is_supplemental || !has_consensus), message=FALSE, warning=FALSE, fig.width = scimilarity_dims[1], fig.height = scimilarity_dims[2], fig.align = "center"}
 # umap for cell assign annotations
 faceted_umap(
   umap_df,
@@ -673,6 +772,8 @@ gene_exp_df <- scuttle::makePerCellDF(
   )
 
 # Join all consensus results and marker gene info
+# note that this uses the consensus annotation, which is never set to NA by the
+#  unclassified handling above, so all cells are still represented here
 consensus_df <- celltype_df |>
   dplyr::select(barcodes, consensus_celltype_annotation) |>
   dplyr::left_join(validation_groups_df, by = c("consensus_celltype_annotation" = "consensus_annotation")) |>
@@ -843,8 +944,10 @@ if (length(unique(dotplot_df$validation_group_annotation)) > 0) {
 
 ```{r}
 # boolean for whether or not to include heatmaps comparing submitter or openscpca
-submitter_heatmaps <- (has_submitter & (has_consensus | has_cellassign | has_singler | has_scimilarity))
-openscpca_heatmaps <- (has_openscpca & (has_consensus | has_cellassign | has_singler | has_scimilarity))
+# use the show_* flags so a fully unclassified method does not pull in a heatmap
+#  section that has nothing to compare against
+submitter_heatmaps <- (has_submitter & (has_consensus | show_cellassign | show_singler | show_scimilarity))
+openscpca_heatmaps <- (has_openscpca & (has_consensus | show_cellassign | show_singler | show_scimilarity))
 ```
 
 ```{r, eval= (submitter_heatmaps | openscpca_heatmaps) | (has_consensus & is_supplemental), results = 'asis'}
