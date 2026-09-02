@@ -363,7 +363,7 @@ if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified 
     )
 
   if (all(is.na(celltype_df$singler_celltype_annotation))) {
-    all_unclassified_methods <- c(all_unclassified_methods, "SingleR")
+    methods_with_all_unclassified_cells <- c(methods_with_all_unclassified_cells, "SingleR")
   }
 }
 
@@ -381,7 +381,7 @@ if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclass
     )
 
   if (all(is.na(celltype_df$cellassign_celltype_annotation))) {
-    all_unclassified_methods <- c(all_unclassified_methods, "CellAssign")
+    methods_with_all_unclassified_cells <- c(methods_with_all_unclassified_cells, "CellAssign")
   }
 }
 
@@ -399,7 +399,7 @@ if (has_scimilarity && any(celltype_df$scimilarity_celltype_annotation == "Uncla
     )
 
   if (all(is.na(celltype_df$scimilarity_celltype_annotation))) {
-    all_unclassified_methods <- c(all_unclassified_methods, "SCimilarity")
+    methods_with_all_unclassified_cells <- c(methods_with_all_unclassified_cells, "SCimilarity")
   }
 }
 ```
@@ -429,9 +429,9 @@ show_any_celltypes <- any(
 
 ```{r, eval = (has_cellassign || has_singler || has_scimilarity) && (is_supplemental || !has_consensus), results='asis'}
 # add an extra note for any method that was unable to classify a single cell
-if (length(all_unclassified_methods) > 0) {
-  all_unclassified_string <- stringr::str_flatten_comma(all_unclassified_methods, last = ", and ")
-  method_word <- ifelse(length(all_unclassified_methods) > 1, "these methods", "this method")
+if (length(methods_with_all_unclassified_cells) > 0) {
+  all_unclassified_string <- stringr::str_flatten_comma(methods_with_all_unclassified_cells, last = ", and ")
+  method_word <- ifelse(length(methods_with_all_unclassified_cells) > 1, "these methods", "this method")
   skipped_text <- glue::glue(
     "\n  All cells in this library were unclassified by {all_unclassified_string}, so no tables or plots are shown for {method_word}."
   )
