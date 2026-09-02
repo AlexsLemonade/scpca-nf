@@ -21,6 +21,25 @@ has_celltype_annotations <- function(df, column) {
   column %in% colnames(df) && !all(is.na(df[[column]]))
 }
 
+#' Convert a factor level to NA
+#'
+#' Values with the given level become NA and the level itself is dropped, so the
+#'  cells remain in the data frame but are excluded from that column's tables and
+#'  plots. This is a base R stand-in for `forcats::fct_na_level_to_na()`, which
+#'  requires forcats >= 1.0.0.
+#'
+#' @param f Factor (or character vector, which will be coerced to a factor)
+#' @param level The level to convert to NA, as a string
+#'
+#' @return Factor with `level` converted to NA and removed from the levels
+level_to_na <- function(f, level) {
+  if (!is.factor(f)) {
+    f <- factor(f)
+  }
+  levels(f)[levels(f) == level] <- NA
+  return(f)
+}
+
 #' Create tables of cell type annotation counts
 #'
 #' Cells with an `NA` annotation (e.g., cells that a given method was unable to
@@ -352,7 +371,7 @@ if (has_singler && any(celltype_df$singler_celltype_annotation == "Unclassified 
   # set unclassified cells to NA, which also drops the now-unused level
   celltype_df <- celltype_df |>
     dplyr::mutate(
-      singler_celltype_annotation = forcats::fct_na_level_to_na(
+      singler_celltype_annotation = level_to_na(
         singler_celltype_annotation,
         "Unclassified cell"
       )
@@ -370,7 +389,7 @@ if (has_cellassign && any(celltype_df$cellassign_celltype_annotation == "Unclass
   # set unclassified cells to NA, which also drops the now-unused level
   celltype_df <- celltype_df |>
     dplyr::mutate(
-      cellassign_celltype_annotation = forcats::fct_na_level_to_na(
+      cellassign_celltype_annotation = level_to_na(
         cellassign_celltype_annotation,
         "Unclassified cell"
       )
@@ -388,7 +407,7 @@ if (has_scimilarity && any(celltype_df$scimilarity_celltype_annotation == "Uncla
   # set unclassified cells to NA, which also drops the now-unused level
   celltype_df <- celltype_df |>
     dplyr::mutate(
-      scimilarity_celltype_annotation = forcats::fct_na_level_to_na(
+      scimilarity_celltype_annotation = level_to_na(
         scimilarity_celltype_annotation,
         "Unclassified cell"
       )
