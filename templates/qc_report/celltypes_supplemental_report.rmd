@@ -89,9 +89,11 @@ available_celltypes <- c(
   if (has_submitter) "Submitter",
   if (has_openscpca) "OpenScPCA",
   if (has_consensus) "Consensus",
-  if (has_singler) "SingleR",
-  if (has_cellassign) "CellAssign",
-  if (has_scimilarity) "SCimilarity"
+  # only include methods that have 0 cells left after removing unclassified cells
+  # the show_<method> variables are true when this is the case
+  if (show_singler) "SingleR",
+  if (show_cellassign) "CellAssign",
+  if (show_scimilarity) "SCimilarity"
 )
 
 # use an empty character vector if no celltypes present
