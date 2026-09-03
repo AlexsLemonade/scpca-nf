@@ -396,8 +396,15 @@ Note that due to different annotations references, these methods may use differe
 ```
 
 ```{r, eval = has_consensus}
+# remove any cell types that have 0 cells left after removing unclassified cells
+# the show_<method> variables are true when this is the case
+celltypes_to_show <- names(automated_celltype_names)[c(show_singler, show_cellassign, show_scimilarity)]
+
 # celltypes used to generate consensus, all automated - consensus
-consensus_input_celltypes <- automated_celltypes_available[!(automated_celltypes_available == "Consensus")]
+# remove any celltypes with show_<method> = FALSE 
+# consensus also gets removed from the list since it's not part of the automated_celltype_names
+consensus_input_celltypes <- automated_celltypes_available[automated_celltypes_available %in% celltypes_to_show] 
+
 
 # calculate matrices comparing to consensus
 jaccard_consensus_matrices <- consensus_input_celltypes |>
