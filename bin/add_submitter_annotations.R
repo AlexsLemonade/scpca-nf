@@ -87,13 +87,17 @@ extra_cols <- setdiff(
 
 # Rename extra columns with `submitter_` prefix, replacing dashes/periods/spaces
 # with underscores and converting to lower case
-renamed_extra_cols <- extra_cols |>
-  tolower() |>
-  stringr::str_replace_all("[\\-\\.\\s]+", "_") |>
-  (\(x) paste0("submitter_data_", x))()
+if (length(extra_cols) == 0) {
+  extra_col_rename <- NULL
+} else {
+  renamed_extra_cols <- extra_cols |>
+    tolower() |>
+    stringr::str_replace_all("[\\-\\.\\s]+", "_") |>
+    (\(x) paste0("submitter_data_", x))()
 
-# Build a named vector for renaming: old name -> new name
-extra_col_rename <- setNames(extra_cols, renamed_extra_cols)
+  # Build a named vector for renaming: old name -> new name
+  extra_col_rename <- setNames(extra_cols, renamed_extra_cols)
+}
 
 # Create submitter_celltype_annotation column
 submitter_df <- submitter_df |>
