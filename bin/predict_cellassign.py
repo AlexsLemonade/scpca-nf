@@ -6,6 +6,7 @@
 
 
 import argparse
+import gc
 import os
 import re
 
@@ -90,7 +91,7 @@ annotated_adata = adata.read_h5ad(args.anndata_file)
 # subset anndata to contain only genes in the reference file
 # note that the gene names must be the rownames of the reference matrix
 # first get a list of shared genes
-shared_genes = list(set(ref_matrix.index) & set(annotated_adata.var_names))
+shared_genes = sorted(set(ref_matrix.index) & set(annotated_adata.var_names))
 
 # check that shared_genes actually has some genes
 if not shared_genes:
@@ -98,13 +99,22 @@ if not shared_genes:
         "--reference does not include any genes found in the provided --anndata_file."
     )
 
-# create a new anndata object with only shared genes
-subset_adata = annotated_adata[:, shared_genes].copy()
-subset_adata.X = subset_adata.X.tocsr()
+# create a new anndata object with only shared genes and minimal info
+subset_adata = adata.AnnData(
+    X=annotated_adata[:, shared_genes].X.tocsr(),
+    obs=pd.DataFrame(
+        index=annotated_adata.obs_names.copy(),
+    ),
+    var=pd.DataFrame(index=pd.Index(shared_genes)),
+)
 
 # add size factor to subset adata (calculated from full data)
 lib_size = annotated_adata.X.sum(1)
 subset_adata.obs["size_factor"] = lib_size / np.mean(lib_size)
+
+# remove original annotated adata to save memory
+del annotated_adata
+gc.collect()
 
 # only run CellAssign if enough cells
 if subset_adata.n_obs < 30:
