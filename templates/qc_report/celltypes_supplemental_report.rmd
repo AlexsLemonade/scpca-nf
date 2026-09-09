@@ -89,11 +89,9 @@ available_celltypes <- c(
   if (has_submitter) "Submitter",
   if (has_openscpca) "OpenScPCA",
   if (has_consensus) "Consensus",
-  # only include methods that have 0 cells left after removing unclassified cells
-  # the show_<method> variables are true when this is the case
-  if (show_singler) "SingleR",
-  if (show_cellassign) "CellAssign",
-  if (show_scimilarity) "SCimilarity"
+  if (has_singler) "SingleR",
+  if (has_cellassign) "CellAssign",
+  if (has_scimilarity) "SCimilarity"
 )
 
 # use an empty character vector if no celltypes present
@@ -403,7 +401,10 @@ Note that due to different annotations references, these methods may use differe
 celltypes_to_show <- c("SingleR", "CellAssign", "SCimilarity")[c(show_singler, show_cellassign, show_scimilarity)]
 
 # celltypes used to generate consensus, all automated - consensus
-consensus_input_celltypes <- automated_celltypes_available[automated_celltypes_available != "Consensus"]
+# remove any celltypes with show_<method> = FALSE 
+# consensus also gets removed from the list since it's not part of the automated_celltype_names
+consensus_input_celltypes <- automated_celltypes_available[automated_celltypes_available %in% celltypes_to_show] 
+
 
 
 # calculate matrices comparing to consensus
