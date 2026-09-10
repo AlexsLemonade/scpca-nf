@@ -89,11 +89,9 @@ available_celltypes <- c(
   if (has_submitter) "Submitter",
   if (has_openscpca) "OpenScPCA",
   if (has_consensus) "Consensus",
-  # only include methods that have 0 cells left after removing unclassified cells
-  # the show_<method> variables are true when this is the case
-  if (show_singler) "SingleR",
-  if (show_cellassign) "CellAssign",
-  if (show_scimilarity) "SCimilarity"
+  if (has_singler) "SingleR",
+  if (has_cellassign) "CellAssign",
+  if (has_scimilarity) "SCimilarity"
 )
 
 # use an empty character vector if no celltypes present
@@ -398,8 +396,16 @@ Note that due to different annotations references, these methods may use differe
 ```
 
 ```{r, eval = has_consensus}
+# remove any cell types that have 0 cells left after removing unclassified cells
+# the show_<method> variables are true when this is the case
+celltypes_to_show <- c("SingleR", "CellAssign", "SCimilarity")[c(show_singler, show_cellassign, show_scimilarity)]
+
 # celltypes used to generate consensus, all automated - consensus
-consensus_input_celltypes <- automated_celltypes_available[automated_celltypes_available != "Consensus"]
+# remove any celltypes with show_<method> = FALSE 
+# consensus also gets removed from the list since it's not part of the automated_celltype_names
+consensus_input_celltypes <- automated_celltypes_available[automated_celltypes_available %in% celltypes_to_show] 
+
+
 
 # calculate matrices comparing to consensus
 jaccard_consensus_matrices <- consensus_input_celltypes |>
@@ -713,14 +719,10 @@ plot_height <- pmax(
 # define bandwidth for all calculations
 density_bw <- 0.03
 
-# cells actually classified with cellassign 
-cellassign_df <- celltype_df |> 
-  dplyr::filter(!is.na(cellassign_celltype_annotation))
-
 # find the maximum density across all distributions, and
 #  save the maximum for determining geom_segment height
-y_max <- cellassign_df$cellassign_max_prediction |>
-  split(cellassign_df$cellassign_celltype_annotation) |>
+y_max <- celltype_df$cellassign_max_prediction |>
+  split(celltype_df$cellassign_celltype_annotation) |>
   # make sure we get rid of any small groups
   purrr::discard(\(x) sum(is.finite(x)) <= 2) |>
   # remove any NA's that may have slipped in
@@ -729,8 +731,8 @@ y_max <- cellassign_df$cellassign_max_prediction |>
   ) |>
   max(na.rm = TRUE)
 
-# add count to cellassign_df for setting alpha and yend values
-cellassign_df <- cellassign_df |>
+# add count to celltype_df for setting alpha and yend values
+celltype_df <- celltype_df |>
   dplyr::add_count(cellassign_celltype_annotation) |>
   dplyr::mutate(
     cellassign_celltype_annotation = forcats::fct_lump_min(cellassign_celltype_annotation, 3) |>
@@ -738,7 +740,7 @@ cellassign_df <- cellassign_df |>
   )
 
 # make the plot!
-ggplot(cellassign_df) +
+ggplot(celltype_df) +
   aes(x = cellassign_max_prediction) +
   geom_density(
     bw = density_bw,
@@ -812,7 +814,7 @@ scimilarity_df <- celltype_df |>
   # just keep the scimilarity columns for simplicity
   dplyr::select(barcodes, starts_with("scimilarity")) |>
   # only look at cells that have scimilarity annotations
-  dplyr::filter(!is.na(scimilarity_celltype_annotation)) |>
+  dplyr::filter(scimilarity_celltype_annotation != "Unclassified cell") |>
   # wrap text for easier labeling
   dplyr::mutate(
     annotation_wrapped = factor(scimilarity_celltype_annotation,
