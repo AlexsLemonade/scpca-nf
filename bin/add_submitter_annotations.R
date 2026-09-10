@@ -120,7 +120,7 @@ if ("CL_ontology_id" %in% colnames(submitter_df)) {
       barcodes,
       submitter_celltype_annotation,
       submitter_celltype_ontology = CL_ontology_id,
-      renamed_extra_cols
+      names(extra_col_rename)
     )
 
   # assign the new column to a variable to input to the list of columns
@@ -131,14 +131,18 @@ if ("CL_ontology_id" %in% colnames(submitter_df)) {
     dplyr::select(
       barcodes,
       submitter_celltype_annotation,
-      renamed_extra_cols
+      names(extra_col_rename)
     )
 
   ontology_column <- NULL
 }
 
 # All submitter columns
-submitter_annotation_cols <- c("submitter_celltype_annotation", ontology_column, renamed_extra_cols)
+submitter_annotation_cols <- c(
+  "submitter_celltype_annotation",
+  ontology_column,
+  names(extra_col_rename)
+)
 
 # join with colData.
 # noting by using `left_join()` we preserve the correct order
