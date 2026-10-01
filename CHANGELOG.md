@@ -23,12 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-## [v0.10.5](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.5)
+## [v0.10.6](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.6)
 
 ### Added
 
-- Accommodate other columns besides `cell_type_annotation` that may be present in the submitter cell types file. 
-All columns present in the input file are now included in the cell metadata of all objects. 
+- Accommodate other columns besides `cell_type_annotation` that may be present in the submitter cell types file.
+All columns present in the input file are now included in the cell metadata of all objects.
 
 ## [v0.10.4](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.4)
 
@@ -40,7 +40,7 @@ All columns present in the input file are now included in the cell metadata of a
 
 ### Added
 
-- New citation for the published manuscript 
+- New citation for the published manuscript
 - Added guidelines for development with Claude Code in `CLAUDE.md`
 
 ### Changed
