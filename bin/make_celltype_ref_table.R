@@ -9,7 +9,6 @@
 # Usage:
 # Rscript make_celltype_ref_table.R <list,of,file,paths> <output_table.tsv>
 
-
 # not using optparse as to avoid dependencies
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2) {

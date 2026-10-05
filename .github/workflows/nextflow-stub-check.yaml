@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: "21"
           distribution: "corretto"
@@ -22,31 +22,41 @@ jobs:
       - name: Setup Nextflow
         uses: nf-core/setup-nextflow@v3
         with:
-          version: "25.10.4"
+          version: "25.10.7"
 
       - name: Check Nextflow workflow
-        run: nextflow -log stub-run.log run main.nf -stub -profile stub -ansi-log false
+        timeout-minutes: 20
+        run: >
+          nextflow -log stub-run.log run main.nf
+          -stub -profile stub -ansi-log false
 
       - name: Check Nextflow with checkpoints from previous run
-        run: nextflow -log checkpoint-run.log run main.nf -stub -profile stub -ansi-log
-          false
+        timeout-minutes: 20
+        run: >
+          nextflow -log checkpoint-run.log run main.nf
+          -stub -profile stub -ansi-log false
 
       - name: Check Nextflow workflow for building cell type references
-        run: nextflow -log celltype-ref-run.log run build-celltype-ref.nf -stub -profile
-          stub -ansi-log false
+        timeout-minutes: 20
+        run: >
+          nextflow -log celltype-ref-run.log run build-celltype-ref.nf
+          -stub -profile stub -ansi-log false
 
       - name: Check Nextflow workflow for merging objects
-        run: nextflow -log merge-run.log run merge.nf -stub -profile stub -ansi-log
-          false --project STUBP01
+        timeout-minutes: 20
+        run: >
+          nextflow -log merge-run.log run merge.nf
+          -stub -profile stub -ansi-log false --project STUBP01
 
       - name: Join log files
         if: ${{ !cancelled() }}
-        run: cat stub-run.log checkpoint-run.log celltype-ref-run.log merge-run.log >
-          nextflow-runs.log
+        run: >
+          cat stub-run.log checkpoint-run.log celltype-ref-run.log merge-run.log
+          > nextflow-runs.log || True
 
       - name: Upload nextflow log
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nextflow-log
           path: nextflow-runs.log

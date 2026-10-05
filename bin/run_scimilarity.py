@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Script to annotate processed ScPCA objects with SCimilarity
+# Script to annotate processed ScPCA objects with > 30 cells with SCimilarity
 # Follows this tutorial: https://genentech.github.io/scimilarity/notebooks/cell_annotation_tutorial.html
 
 # Adapted from: https://github.com/AlexsLemonade/OpenScPCA-nf/blob/v0.1.6/modules/cell-type-scimilarity/resources/usr/bin/run-scimilarity.py
@@ -145,44 +145,56 @@ def main() -> None:
 
     # Read and make sure object formatting is correct
     processed_anndata = anndata.read_h5ad(arg.processed_h5ad_file)
-    processed_anndata = format_scimilarity(processed_anndata)
 
-    # Preprocess the data
-    # Align the query dataset to the reference model
-    processed_anndata = align_dataset(processed_anndata, scimilarity_model.gene_order)
-    # Log-normalize the counts
-    processed_anndata = lognorm_counts(processed_anndata)
+    # Before proceeding, ensure sufficient cells
+    # We use 30 here to match what we do for CellAssign
+    if processed_anndata.n_obs < 30:
+        # make a predictions file that just has the barcode column
+        barcodes_column = processed_anndata.obs_names.to_list()
+        predictions_df = pandas.DataFrame(barcodes_column, columns=["barcode"])
+    else:
+        processed_anndata = format_scimilarity(processed_anndata)
 
-    ################################################
-    ############### Run Scimilarity ###############
-    ################################################
+        # Preprocess the data
+        # Align the query dataset to the reference model
+        processed_anndata = align_dataset(
+            processed_anndata, scimilarity_model.gene_order
+        )
+        # Log-normalize the counts
+        processed_anndata = lognorm_counts(processed_anndata)
 
-    # compute embeddings
-    processed_anndata.obsm["X_scimilarity"] = scimilarity_model.get_embeddings(
-        processed_anndata.X
-    )
+        ################################################
+        ############### Run Scimilarity ###############
+        ################################################
 
-    # Predict cell types
-    predictions, nn_idxs, nn_dists, nn_stats = scimilarity_model.get_predictions_knn(
-        processed_anndata.obsm["X_scimilarity"], weighting=True
-    )
+        # compute embeddings
+        processed_anndata.obsm["X_scimilarity"] = scimilarity_model.get_embeddings(
+            processed_anndata.X
+        )
 
-    ################################################
-    ################ Export annotations ############
-    ################################################
+        # Predict cell types
+        predictions, nn_idxs, nn_dists, nn_stats = (
+            scimilarity_model.get_predictions_knn(
+                processed_anndata.obsm["X_scimilarity"], weighting=True
+            )
+        )
 
-    # prepare the predictions with min distance for export
-    predictions_df = pandas.DataFrame(
-        {
-            "barcode": processed_anndata.obs_names.to_list(),
-            "scimilarity_celltype_annotation": predictions.values,
-            "min_dist": nn_stats["min_dist"],
-        }
-    )
-    # add in ontology IDs
-    predictions_df = predictions_df.join(
-        ontology_map, on="scimilarity_celltype_annotation", validate="many_to_one"
-    )
+        ################################################
+        ################ Export annotations ############
+        ################################################
+
+        # prepare the predictions with min distance for export
+        predictions_df = pandas.DataFrame(
+            {
+                "barcode": processed_anndata.obs_names.to_list(),
+                "scimilarity_celltype_annotation": predictions.values,
+                "min_dist": nn_stats["min_dist"],
+            }
+        )
+        # add in ontology IDs
+        predictions_df = predictions_df.join(
+            ontology_map, on="scimilarity_celltype_annotation", validate="many_to_one"
+        )
 
     # export TSV
     predictions_df.to_csv(arg.predictions_tsv, sep="\t", index=False)

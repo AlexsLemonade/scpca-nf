@@ -11,41 +11,39 @@ repos:
         # Here they are specified by a full path from the repository root in a multiline regex.
         exclude: |
           (?x)^(
-            test/references/celltype/singler_models/singler_model_file.rds|
-            test/output/results/STUBP01/STUBS01/STUBL01_processed.rds|
-            test/output/results/STUBP01/STUBS16/STUBL16_processed.rds
+            test/references/celltype/singler_models/singler_model_file\.rds|
+            test/output/results/STUBP01/STUBS01/STUBL01_processed\.rds|
+            test/output/results/STUBP01/STUBS16/STUBL16_processed\.rds
           )$
   - repo: https://github.com/crate-ci/typos
-    rev: v1.41.0
+    rev: v1.48.0
     hooks:
       - id: typos
   - repo: https://github.com/thlorenz/doctoc
     # Update TOCs
-    rev: v2.2.0
+    rev: v2.5.0
     hooks:
       - id: doctoc
         args: [--update-only, --title=**Table of Contents**]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff for linting and formatting python
-    rev: v0.14.10
+    rev: v0.15.20
     hooks:
       # Run the linter.
       - id: ruff
       # Run the formatter.
       - id: ruff-format
-  - repo: https://github.com/lorenzwalthert/precommit
-    # R styling and linting
-    rev: v0.4.3.9020
+  - repo: https://github.com/posit-dev/air-pre-commit
+    # air for formatting R code
+    rev: 0.10.0 
     hooks:
-      - id: style-files
-        args: [--style_pkg=styler, --style_fun=tidyverse_style]
-      # - id: lintr #skip R linting for now...
-      - id: parsable-R
+      - id: air-format
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=200"]
+        exclude: 'pixi\.lock$'
       - id: end-of-file-fixer
         exclude: '\.Rd'
 ci:

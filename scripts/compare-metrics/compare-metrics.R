@@ -88,7 +88,7 @@ parse_s3_path <- function(path) {
   parsed <- httr2::url_parse(path)
   list(
     bucket = parsed$hostname,
-    key    = sub("^/", "", parsed$path) # strip leading slash
+    key = sub("^/", "", parsed$path) # strip leading slash
   )
 }
 

@@ -4,7 +4,6 @@
 # The files are then imported use tximport to generate a gene x count matrix
 # Outputs a counts matrix and TPM matrix as separate TSV files.
 
-
 # load needed packages
 library(magrittr)
 library(tximport)

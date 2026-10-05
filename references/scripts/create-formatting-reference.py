@@ -105,8 +105,42 @@ processed_cell_metadata_conditional = {
     },
 }
 
+
+merged_cell_metadata = {
+    **filtered_cell_metadata,
+    "additional_modalities": "character",
+    "library_id": "character",
+    "cell_id": "character",
+    "sample_id": "character",
+    "scpca_project_id": "character",
+    "submitter_id": "character",
+    "participant_id": "character",
+    "submitter": "character",
+    "age": "character",
+    "age_timing": "character",
+    "sex": "character",
+    "diagnosis": "character",
+    "subdiagnosis": "character",
+    "tissue_location": "character",
+    "disease_timing": "character",
+    "organism": "character",
+    "is_xenograft": "logical",
+    "is_cell_line": "logical",
+    "development_stage_ontology_term_id": "character",
+    "sex_ontology_term_id": "character",
+    "organism_ontology_id": "character",
+    "self_reported_ethnicity_ontology_term_id": "character",
+    "disease_ontology_term_id": "character",
+    "tissue_ontology_term_id": "character",
+    "tech_version": "character",
+    "assay_ontology_term_id": "character",
+    "suspension_type": "character",
+}
+
 # row metadata ----------
 # this is the same for all object types
+# for merged objects, check that {library_id}-mean and {library_id}-detected are correct in the script
+# these will use the same types as `mean` and `detected`
 feature_metadata = {
     "gene_ids": "character",
     "gene_symbol": "character",
@@ -160,17 +194,18 @@ filtered_experiment_metadata = {
     **unfiltered_experiment_metadata,
     "filtering_method": "character",
     # this is NA if miQC failed
-    "prob_compromised_cutoff": "logical",
+    "prob_compromised_cutoff": "numeric",
     "scpca_filter_method": "character",
     "min_gene_cutoff": "integer",
 }
 
 filtered_experiment_metadata_conditional = {
+    **unfiltered_experiment_metadata_conditional,
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "numeric"},
-    # if miQC is present, these should have specific contents
-    # miQC model is an S4 object and is removed from the processed
-    "has_miQC": {"miQC_model": "S4", "prob_compromised_cutoff": "numeric"},
+    # if miQC is present
+    # miQC model is an S4 object ONLY in filtered, gets removed from processed objects
+    "has_miQC": {"miQC_model": "flexmix"},
 }
 
 processed_experiment_metadata = {
@@ -183,8 +218,6 @@ processed_experiment_metadata_conditional = {
     ## reuse filtered conditional since miQC model gets removed for processed
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "numeric"},
-    # if miQC is present, these should have specific contents
-    "has_miQC": {"prob_compromised_cutoff": "numeric"},
     "has_clusters": {
         "cluster_algorithm": "character",
         "cluster_weighting": "character",
@@ -205,10 +238,8 @@ processed_experiment_metadata_conditional = {
         "singler_reference_label": "character",
         "singler_reference_source": "character",
         "singler_reference_version": "character",
-        # TODO: these are NA right now because we are using the old SingleR refs
-        # only projects that use the new refs will have these set correctly...
-        "singler_gene_set_version": "logical",
-        "singler_date": "logical",
+        "singler_gene_set_version": "character",
+        "singler_date": "character",
     },
     "has_cellassign": {
         "celltype_methods": "character",
@@ -237,9 +268,17 @@ processed_experiment_metadata_conditional = {
     },
 }
 
+merged_experiment_metadata = {
+    "library_id": "character",
+    "sample_id": "character",
+    "library_metadata": "list",
+    "merged_highly_variable_genes": "character",
+}
+
 # alt exps gell/gene metadata ------------
 # adt specific items
 # same for all object types
+# again, for merged objects, check that library_id-mean and library_id-detected are correct in the script
 altexp_adt_feature_metadata = {
     "adt_id": "character",
     "mean": "numeric",
@@ -271,10 +310,30 @@ processed_altexp_adt_cell_metadata_conditional = {
     "sizeFactor": "numeric",
 }
 
+merged_altexp_adt_cell_metadata = {
+    **filtered_altexp_adt_cell_metadata,
+    "library_id": "character",
+    "cell_id": "character",
+}
+
+unfiltered_altexp_adt_experiment_metadata = {
+    key: value
+    for key, value in unfiltered_experiment_metadata.items()
+    if key
+    not in {"sample_metadata", "sample_type"}  # these are not relevant for altExps
+}
+
 # use for both filtered and processed
 filtered_altexp_adt_experiment_metadata = {
-    **unfiltered_experiment_metadata,
-    "ambient_profile": "character",
+    **unfiltered_altexp_adt_experiment_metadata,
+    "ambient_profile": "numeric",
+}
+
+# merged objects only have library_id, sample_id, and library_metdata as a list of the metadata from the original objects
+merged_altexp_adt_experiment_metadata = {
+    "library_id": "character",
+    "sample_id": "character",
+    "library_metadata": "list",
 }
 
 # cellhash specific items
@@ -331,7 +390,7 @@ unfiltered_sce = {
         "adt": {
             "assayNames": adt_assays,
             "rowData": altexp_adt_feature_metadata,
-            "metadata": unfiltered_experiment_metadata,
+            "metadata": unfiltered_altexp_adt_experiment_metadata,
             "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
         "cellhash": {
@@ -371,7 +430,7 @@ filtered_sce = {
 # build processed SCE  ------
 
 processed_sce = {
-    "assayNames": assays,
+    "assayNames": assays + processed_assays,
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
@@ -395,11 +454,33 @@ processed_sce = {
     },
 }
 
+# build merged sce -----
+
+merged_sce = {
+    "assayNames": assays + processed_assays,
+    "colData": merged_cell_metadata,
+    "rowData": feature_metadata,
+    "colData_conditional": processed_cell_metadata_conditional,
+    "reducedDimNames": reduced_dims,
+    "metadata": merged_experiment_metadata,
+    "altExp": {
+        "adt": {
+            "assayNames": adt_assays,
+            "colData": merged_altexp_adt_cell_metadata,
+            "rowData": altexp_adt_feature_metadata,
+            "colData_conditional": processed_altexp_adt_cell_metadata_conditional,
+            "metadata": merged_altexp_adt_experiment_metadata,
+        }
+    },
+}
+
+
 # build and export sce schema --------------
 sce_schema = {
     "unfiltered": unfiltered_sce,
     "filtered": filtered_sce,
     "processed": processed_sce,
+    "merged": merged_sce,
 }
 
 with open(sce_ref_file, "w") as f:
@@ -410,18 +491,11 @@ with open(sce_ref_file, "w") as f:
 
 # cell and row metadata are dtypes
 CELL_ROW_METADATA_MAP = {
-    "numeric": "float64",
-    "integer": "int32",
+    "numeric": "float",
+    "integer": "int",
     "logical": "bool",
-    "character": "category",
-}
-
-# outlier types for cell and row metadata
-CELL_ROW_METADATA_EXCEPTIONS = {
-    "detected": "int32",
-    "barcodes": "object",
-    "gene_ids": "object",
-    "adt_id": "object",
+    "character": "string",
+    "factor": "category",
 }
 
 
@@ -431,9 +505,6 @@ def convert_cell_row_metadata_types(metadata):
         # use recursion to do this
         if isinstance(value, dict):
             convert_cell_row_metadata_types(value)
-        # check if the key is one of the exceptions where the types aren't what we expect
-        elif key in CELL_ROW_METADATA_EXCEPTIONS.keys():
-            metadata[key] = CELL_ROW_METADATA_EXCEPTIONS[key]
         # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
         elif value in CELL_ROW_METADATA_MAP.keys():
             metadata[key] = CELL_ROW_METADATA_MAP[value]
@@ -487,11 +558,11 @@ layers = ["spliced"]
 anndata_specific_obs_metadata = {
     # sample metadata is present in obs for anndata
     # this minimally includes library id and sample id
-    "library_id": "category",
-    "sample_id": "category",
+    "library_id": "string",
+    "sample_id": "string",
     # columns that we explicitly add in sce_to_annndata
-    "assay_ontology_term_id": "category",
-    "suspension_type": "category",
+    "assay_ontology_term_id": "string",
+    "suspension_type": "string",
     "is_primary_data": "bool",
 }
 
@@ -505,6 +576,8 @@ anndata_specific_obs_metadata_conditional = {
 obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(cell_metadata)),
     **anndata_specific_obs_metadata,
+    # detected in cell metadata only is int
+    "detected": "int",
 }
 
 obs_metadata_conditional = {
@@ -517,6 +590,8 @@ obs_metadata_conditional = {
 filtered_obs_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(filtered_cell_metadata)),
     **anndata_specific_obs_metadata,
+    # detected in cell metadata only is int
+    "detected": "int",
 }
 
 filtered_cell_metadata_conditional = {
@@ -535,13 +610,29 @@ processed_obs_metadata_conditional = {
     **anndata_specific_obs_metadata_conditional,
 }
 
+# merged cell metadata ------------
+merged_obs_metadata = {
+    **convert_cell_row_metadata_types(copy.deepcopy(merged_cell_metadata)),
+    **anndata_specific_obs_metadata,
+    "detected": "int",
+}
+merged_obs_metadata.pop(
+    "is_primary_data", None
+)  # this column gets dropped for merged objects
+
 # row metadata ----------
-# same for all object types
-var_metadata = {
+# same for unfilterd and filtered
+unfiltered_var_metadata = {
     **convert_cell_row_metadata_types(copy.deepcopy(feature_metadata)),
     "feature_is_filtered": "bool",
-    "highly_variable": "bool",
 }
+
+# highly variable is only in the processed object
+processed_var_metadata = {**unfiltered_var_metadata, "highly_variable": "bool"}
+
+# merged var contains everything but feature_is_filtered
+merged_var_metadata = processed_var_metadata.copy()
+merged_var_metadata.pop("feature_is_filtered", None)
 
 # reduced dimensionality ----------
 processed_obsm = ["X_pca", "X_umap"]
@@ -556,6 +647,8 @@ unfiltered_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(unfiltered_experiment_metadata)),
     **anndata_uns_metadata,
 }
+# drop sample_metadata since we don't keep it in AnnData objects
+unfiltered_uns_metadata.pop("sample_metadata", None)
 
 # also used for all adt object types
 unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
@@ -565,29 +658,46 @@ unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
 filtered_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(filtered_experiment_metadata)),
     **anndata_uns_metadata,
+    # this is NA or numeric so account for both possibilities in the reference
+    "prob_compromised_cutoff": ["NoneType", "float"],
 }
+# drop sample_metadata since we don't keep it in AnnData objects
+filtered_uns_metadata.pop("sample_metadata", None)
 
 filtered_uns_metadata_conditional = {
+    **convert_experiment_metadata_types(
+        copy.deepcopy(filtered_experiment_metadata_conditional)
+    ),
     # if empty drops filtering_method is UMI cutoff
     "umi_filtering": {"umi_cutoff": "float"},
-    # if miQC is present, the prob_compromised_cutoff column should be present
-    # no miQC_model since we remove S4 objects
-    "has_miQC": {"prob_compromised_cutoff": "float"},
 }
+# drop has_miQC since we don't keep S4 objects
+filtered_uns_metadata_conditional.pop("has_miQC", None)
 
 processed_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
     **anndata_uns_metadata,
+    # this is NA or numeric so account for both possibilities in the reference
+    "prob_compromised_cutoff": "NoneType,float",
     "pca": {
         "param": "dict",
-        "variance": "float64",
-        "variance_ratio": "float64",
+        "variance": "float",
+        "variance_ratio": "float",
     },
 }
+# again remove sample metadata
+processed_uns_metadata.pop("sample_metadata", None)
 
 processed_uns_metadata_conditional = convert_experiment_metadata_types(
     copy.deepcopy(processed_experiment_metadata_conditional)
 )
+
+# merged metadata is the same as sce but no library_metadata list
+merged_uns_metadata = {
+    "library_id": "string",
+    "sample_id": "string",
+    "merged_highly_variable_genes": "string",
+}
 
 # alt exps gell/gene metadata ------------
 # adt specific items
@@ -608,10 +718,20 @@ processed_altexp_adt_obs_metadata_conditional = convert_cell_row_metadata_types(
     copy.deepcopy(processed_altexp_adt_cell_metadata_conditional)
 )
 
+merged_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
+    copy.deepcopy(merged_altexp_adt_cell_metadata)
+)
+
 # used in both filtered and processed
 filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
     copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
+
+merged_altexp_adt_uns_metadata = {
+    "library_id": "string",
+    "sample_id": "string",
+    "library_metadata": "string",
+}
 
 # build unfiltered AnnData -----------------
 
@@ -620,7 +740,7 @@ unfiltered_anndata = {
         "has_raw.X": False,
         "layers": layers,
         "obs": obs_metadata,
-        "var": var_metadata,
+        "var": unfiltered_var_metadata,
         "obs_conditional": obs_metadata_conditional,
         "uns": unfiltered_uns_metadata,
         "uns_conditional": unfiltered_uns_metadata_conditional,
@@ -638,7 +758,7 @@ filtered_anndata = {
         "has_raw.X": False,
         "layers": layers,
         "obs": filtered_obs_metadata,
-        "var": var_metadata,
+        "var": unfiltered_var_metadata,
         "obs_conditional": filtered_cell_metadata_conditional,
         "uns": filtered_uns_metadata,
         "uns_conditional": filtered_uns_metadata_conditional,
@@ -658,7 +778,7 @@ processed_anndata = {
         "has_raw.X": True,
         "layers": layers,
         "obs": filtered_obs_metadata,
-        "var": var_metadata,
+        "var": processed_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,
         "obsm": processed_obsm,
         "uns": processed_uns_metadata,
@@ -672,11 +792,32 @@ processed_anndata = {
     },
 }
 
+# build merged AnnData  ------
+
+merged_anndata = {
+    "rna": {
+        "has_raw.X": True,
+        "layers": layers,
+        "obs": merged_obs_metadata,
+        "var": merged_var_metadata,
+        "obs_conditional": processed_obs_metadata_conditional,
+        "obsm": processed_obsm,
+        "uns": merged_uns_metadata,
+    },
+    "adt": {
+        "obs": merged_altexp_adt_obs_metadata,
+        "var": altexp_adt_var_metadata,
+        "obs_conditional": processed_altexp_adt_obs_metadata_conditional,
+        "uns": merged_altexp_adt_uns_metadata,
+    },
+}
+
 # build and export anndata schema --------------
 anndata_schema = {
     "unfiltered": unfiltered_anndata,
     "filtered": filtered_anndata,
     "processed": processed_anndata,
+    "merged": merged_anndata,
 }
 
 with open(anndata_ref_file, "w") as f:

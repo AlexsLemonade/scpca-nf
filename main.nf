@@ -17,6 +17,7 @@ include { annotate_celltypes } from './modules/classify-celltypes.nf'
 include { call_cnvs } from './modules/call-cnvs.nf'
 include { qc_publish_sce } from './modules/publish-sce.nf'
 include { sce_to_anndata } from './modules/export-anndata.nf'
+include { format_checks } from './modules/format-checks.nf'
 
 
 def check_parameters() {
@@ -466,5 +467,14 @@ workflow {
     // skip multiplexed libraries
     .filter{ !(it[0].library_id in multiplex_libs.getVal()) }
   sce_to_anndata(anndata_ch)
+
+  // check formatting for published sce and anndata files and generate error reports
+  format_checks(
+    qc_publish_sce.out.data, 
+    sce_to_anndata.out.complete,
+    file(params.sce_format_reference_file),
+    file(params.anndata_format_reference_file)
+  )
+
 
 }
