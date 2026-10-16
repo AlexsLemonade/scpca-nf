@@ -48,7 +48,7 @@ process classify_singler {
 
 
 process classify_cellassign {
-  container "${pullthroughContainer(params.scpcatools_scvi_container, params.pullthrough_registry)}"
+  container "${pullthroughContainer(params.scvi_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
