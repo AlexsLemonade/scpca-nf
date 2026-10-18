@@ -56,6 +56,7 @@ process classify_cellassign {
   label 'mem_96'
   label 'cpus_12'
   label 'long_running'
+  label 'gpu'
   tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_h5ad), path(cellassign_reference_file)
