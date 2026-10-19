@@ -76,7 +76,7 @@ process classify_cellassign {
       --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
       --reference "${cellassign_reference_file}" \
       --seed ${params.seed} \
-      --threads ${task.cpus}
+      --threads ${task.cpus} \
       --batch_size ${256 / 2 ** (task.attempt - 1)} # reduce batch size for each retry to avoid memory issues
 
     # write out meta file
