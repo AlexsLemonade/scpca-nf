@@ -56,27 +56,29 @@ process check_anndata {
 
 process compile_errors {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir "${params.format_checks_dir}", mode: 'copy'
   label 'mem_8'
   input:
    // more than one error file per library (unfiltered, filtered, processed), so use stageAs
    path error_files, stageAs: "error_file_*.txt"
+   val output_filename
   output:
-    path "format_check_results.txt"
+    path output_filename
   script:
+
     """
     # check if all files are empty, if so print a success message
     # otherwise concatenate all error files into one output file
     errors="\$(cat ${error_files})"
     if [ -z "\${errors}" ]; then
-      echo "No formatting errors found." > format_check_results.txt
+      echo "No formatting errors found." > ${output_filename}
     else
-      echo "\${errors}" > format_check_results.txt
+      echo "\${errors}" > ${output_filename}
     fi
     """
   stub: 
     """
-    touch format_check_results.txt
+    touch ${output_filename}
     """
 }
 
@@ -109,7 +111,11 @@ workflow format_checks {
     error_files_ch = error_output_ch
       .collect{ meta, error_file -> error_file } // collect into a list of just the error files
     
-    compile_errors(error_files_ch)
+    // use the provided filename, or default to one that includes today's date (ISO 8601: YYYY-MM-DD)
+    def run_date = java.time.LocalDate.now().toString()
+    def output_filename = params.format_check_filename ?: "${run_date}_format_check_results.txt"
+
+    compile_errors(error_files_ch, output_filename)
 
     // collect all error files and print out an error to the log file
     error_output_ch
