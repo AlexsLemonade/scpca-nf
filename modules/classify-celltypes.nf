@@ -71,12 +71,13 @@ process classify_cellassign {
     mkdir "${cellassign_dir}"
 
     # Run CellAssign
-    predict_cellassign.py \
+    run_cellassign.py \
       --anndata_file "${processed_h5ad}" \
       --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
       --reference "${cellassign_reference_file}" \
       --seed ${params.seed} \
       --threads ${task.cpus}
+      --batch_size ${256 / 2 ** (task.attempt - 1)} # reduce batch size for each retry to avoid memory issues
 
     # write out meta file
     echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"
