@@ -53,10 +53,9 @@ process classify_cellassign {
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
     )
-  label 'mem_96'
-  label 'cpus_12'
   label 'long_running'
   label 'process_gpu'
+  // cpu and memory requirements are set in modules.config for this process
   tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_h5ad), path(cellassign_reference_file)
