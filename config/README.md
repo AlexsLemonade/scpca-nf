@@ -4,7 +4,8 @@ To use a configuration file, it must be referenced in the main configuration fil
 
 - `containers.config`: Docker containers used by `scpca-nf` workflow processes
 - `ccdl_inputs.config` and `ccdl_profiles.config`: file locations and settings for Data Lab users only, as described in [`internal-instructions.md`](../internal-instructions.md#running-scpca-nf-as-a-data-lab-staff-member)
-- `process_base.config`: default resource settings for `scpca-nf` workflow processes
+- `base.config`: default resource settings for `scpca-nf` workflow processes
+- `module.config`: module and process-specific configuration settings
 - `profile_awsbatch.config`: AWS Batch configuration for Data Lab users
 - `profile_stub.config`: file locations used for testing `scpca-nf` workflow logic, as described in [`internal-instructions.md`](../internal-instructions.md#testing-the-workflow)
 - `profile_example.config`: file locations for re-generating example `scpca-nf` workflow output, as described in [`internal-instructions.md`](../internal-instructions.md#processing-example-data)
