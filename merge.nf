@@ -176,27 +176,28 @@ process check_anndata {
 
 process compile_errors {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir "${params.format_checks_dir}", mode: 'copy'
   label 'mem_8'
   input:
    // more than one error file per library (unfiltered, filtered, processed), so use stageAs
    path error_files, stageAs: "error_file_*.txt"
+   path output_filename
   output:
-    path "merged-format_check_results.txt"
+    path output_filename
   script:
     """
     # check if all files are empty, if so print a success message
     # otherwise concatenate all error files into one output file
     errors="\$(cat ${error_files})"
     if [ -z "\${errors}" ]; then
-      echo "No formatting errors found." > merged-format_check_results.txt
+      echo "No formatting errors found." > ${output_filename}
     else
-      echo "\${errors}" > merged-format_check_results.txt
+      echo "\${errors}" > ${output_filename}
     fi
     """
   stub: 
     """
-    touch merged-format_check_results.txt
+    touch ${output_filename}
     """
 }
 
@@ -358,8 +359,8 @@ workflow {
 
   error_files_ch = error_output_ch
     .collect{ merge_group_id, error_file -> error_file } // collect into a list of just the error files
-  
-  compile_errors(error_files_ch)
+
+  compile_errors(error_files_ch, params.merged_format_check_filename)
 
   // collect all error files and print out an error to the log file
   error_output_ch

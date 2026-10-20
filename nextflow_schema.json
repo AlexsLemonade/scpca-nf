@@ -91,6 +91,19 @@
           "description": "Fully rebuild the Cell Browser site",
           "help_text": "If true, the CellBrowser site will be fully rebuilt. If false, only metadata will be updated.",
           "hidden": true
+        },
+        "format_checks_dir": {
+          "type": "string",
+          "default": "scpca_out/format_checks",
+          "description": "Directory to store files output from formatting checks"
+        },
+        "format_check_filename": {
+          "type": "string",
+          "description": "File name for format check summary"
+        },
+        "merged_format_check_filename": {
+          "type": "string",
+          "description": "File name for merged format check summary"
         }
       }
     },
