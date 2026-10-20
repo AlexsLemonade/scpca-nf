@@ -7,6 +7,6 @@ To use a configuration file, it must be referenced in the main configuration fil
 - `base.config`: default resource settings for `scpca-nf` workflow processes
 - `module.config`: module and process-specific configuration settings
 - `profile_awsbatch.config`: AWS Batch configuration for Data Lab users
-- `profile_stub.config`: file locations used for testing `scpca-nf` workflow logic, as described in [`internal-instructions.md`](../internal-instructions.md#testing-the-workflow)
+- `profile_stub.config`: file locations used for testing `scpca-nf` workflow logic, as described in [`internal-instructions.md`](../internal-instructions.md#testing-the-workflow-during-development)
 - `profile_example.config`: file locations for re-generating example `scpca-nf` workflow output, as described in [`internal-instructions.md`](../internal-instructions.md#processing-example-data)
 - `reference_paths.config`: file locations for reference data
