@@ -1,9 +1,12 @@
-FROM ghcr.io/prefix-dev/pixi:0.67.0 AS build
+FROM ghcr.io/prefix-dev/pixi:0.82.0 AS build
 
-# change to GPU at runtime with --build-arg PIXI_ENV=gpu
-ARG PIXI_ENV=cpu
-# allow for override to build gpu version on cpu instances
-ARG CONDA_OVERRIDE_CUDA=""
+# change to CPU-only at build time with --build-arg PIXI_ENV=cpu
+ARG PIXI_ENV=gpu
+# the `gpu` environment requires a CUDA virtual package to solve; this lets
+# you build the gpu image on a host with no GPU (e.g. CI runners). The CUDA
+# runtime libs are bundled by conda regardless of host, so the resulting env
+# imports and runs fine on CPU-only machines too.
+ARG CONDA_OVERRIDE_CUDA=12.9
 
 COPY pixi.* /app/
 WORKDIR /app
@@ -14,7 +17,7 @@ RUN echo 'exec "$@"' >> /shell-hook.sh
 
 FROM ubuntu:24.04 AS production
 
-ARG PIXI_ENV=cpu
+ARG PIXI_ENV=gpu
 
 LABEL org.opencontainers.image.title="scpca-nf/scvi"
 LABEL org.opencontainers.image.description="scvi-tools Docker image for scpca-nf"
