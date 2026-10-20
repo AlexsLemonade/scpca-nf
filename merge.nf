@@ -360,11 +360,7 @@ workflow {
   error_files_ch = error_output_ch
     .collect{ merge_group_id, error_file -> error_file } // collect into a list of just the error files
 
-  // use the provided filename, or default to one that includes today's date (ISO 8601: YYYY-MM-DD)
-  def run_date = java.time.LocalDate.now().toString()
-  def output_filename = params.merged_format_check_filename ?: "${run_date}_merged_format_check_results.txt"
-
-  compile_errors(error_files_ch, output_filename)
+  compile_errors(error_files_ch, params.merged_format_check_filename)
 
   // collect all error files and print out an error to the log file
   error_output_ch
