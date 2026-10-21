@@ -37,11 +37,14 @@ process merge_sce {
   label 'long_running'
   publishDir "${params.results_dir}/${merge_group_id}/merged"
   input:
-    tuple val(merge_group_id), val(has_adt), val(library_ids), path(scpca_nf_file)
+    tuple val(merge_group_id), val(has_adt), val(unique_ids), path(scpca_nf_file)
   output:
     tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   script:
-    input_library_ids = library_ids.join(',')
+    // TODO: update the merge script and function to refer to things as unique IDs 
+    // that's how they are treated but we use library_ids throughout the code and as the name of the batch_column that gets saved in the merged object
+    // I think we want to keep "library_id" since unique_ids don't mean anything on the portal side so changing a column name seems not ideal? 
+    input_library_ids = unique_ids.join(',')
     input_sces = scpca_nf_file.join(',')
     merged_sce_file = "${merge_group_id}_merged.rds"
     """
@@ -216,27 +219,51 @@ workflow {
   // if no run ids, run all
   def run_all = run_ids[0] == "All"
 
-  // read in run metafile and filter to projects of interest
+  // technologies where each sample in a library should become its own row
+  def flex_technologies = ["10xflex_v1.1_multi"]
+  // seq units that are included in merging
+  def seq_units_for_merge = ['cell', 'nucleus', 'nucleus-FFPE']
+
   libraries_ch = channel.fromPath(params.run_metafile)
-    .splitCsv(header: true, sep: '\t')
-    // filter to only include specified project ids
-    .filter{ it.scpca_project_id in project_ids }
-    // filter to run all ids or just specified ones
-    .filter{ it ->
-      run_all
-      || (it.scpca_run_id in run_ids)
-      || (it.scpca_library_id in run_ids)
-      || (it.scpca_sample_id in run_ids)
-    }
-    .map{ it ->
-      [
-        project_id: it.scpca_project_id,
-        library_id: it.scpca_library_id,
-        sample_id: it.scpca_sample_id.split(";").sort().join(","),
-        seq_unit: it.seq_unit,
-        technology: it.technology.toLowerCase()
-      ]
-    }
+      .splitCsv(header: true, sep: '\t')
+      // filter to only include specified project ids
+      .filter{ it.scpca_project_id in project_ids }
+      // filter to run all ids or just specified ones
+      .filter{ it ->
+        run_all
+        || (it.scpca_run_id in run_ids)
+        || (it.scpca_library_id in run_ids)
+        || (it.scpca_sample_id in run_ids)
+      }
+      .flatMap{ row ->
+        def technology = row.technology.toLowerCase()
+        def sample_ids = row.scpca_sample_id.split(";").sort()
+        def library_meta = [
+          project_id: row.scpca_project_id,
+          library_id: row.scpca_library_id,
+          seq_unit: row.seq_unit,
+          technology: technology
+        ]
+
+        if (technology in flex_technologies) {
+          // flex: one row per library-sample pair
+          return sample_ids.collect{ sample_id ->
+            library_meta + [
+              sample_id: sample_id,
+              unique_id: "${row.scpca_library_id}-${sample_id}".toString()
+            ]
+          }
+        } else {
+          // everything else, including cellhash multiplexed libraries: one row per library
+          return [
+            library_meta + [
+              sample_id: sample_ids.join(","),
+              unique_id: row.scpca_library_id
+            ]
+          ]
+        }
+      }
+
 
   // get all projects that contain at least one library with CITEseq
   adt_projects = libraries_ch
@@ -259,7 +286,7 @@ workflow {
 
   filtered_libraries_ch = libraries_ch
     // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
-    .filter{ it.seq_unit in ['cell', 'nucleus'] }
+    .filter{ it.seq_unit in seq_units_for_merge }
     // remove any multiplexed projects or oversized projects
     // future TODO: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
     .branch{ it ->
@@ -283,43 +310,43 @@ workflow {
   // print out warning message for any libraries not included in merging
   filtered_libraries_ch.single_sample
     .map{ it ->
-      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
-      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
-      [it.library_id, processed, meta_json ]
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_metadata.json")
+      [it.unique_id, processed, meta_json ]
     }
-    .subscribe{ library_id, processed, meta_json ->
+    .subscribe{ unique_id, processed, meta_json ->
       if (!processed.exists() || !(processed.size() > 0)) {
-        log.warn("Processed files do not exist for ${library_id}. This library will not be included in the merged object.")
+        log.warn("Processed files do not exist for ${unique_id}. This library will not be included in the merged object.")
       }
       else if (!(meta_json.exists() && meta_json.size() > 0)) {
-        log.warn("Metadata file does not exist for ${library_id}. This library will not be included in the merged object.")
+        log.warn("Metadata file does not exist for ${unique_id}. This library will not be included in the merged object.")
       }
       else if (getMetaVal(meta_json, "processed_cells") < 3) {
-        log.warn("Library ${library_id} has fewer than 3 cells. This library will not be included in the merged object.")
+        log.warn("Library ${unique_id} has fewer than 3 cells. This library will not be included in the merged object.")
       }
     }
 
   grouped_libraries_ch = filtered_libraries_ch.single_sample
     .map{ it ->
-      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_processed.rds")
-      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.library_id}_metadata.json")
-      [it.project_id, it.library_id, processed, meta_json]
+      def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_processed.rds")
+      def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_metadata.json")
+      [it.project_id, it.unique_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{ _project_id, _library_id, processed, meta_json ->
+    .filter{ _project_id, _unique_id, processed, meta_json ->
       (processed.exists() && processed.size() > 0 && getMetaVal(meta_json, "processed_cells") >= 3)
     }
     // remove metadata file
-    .map{ project_id, library_id, processed, _meta_json ->
-      [project_id, library_id, processed]
+    .map{ project_id, unique_id, processed, _meta_json ->
+      [project_id, unique_id, processed]
     }
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
-    // group tuple by project id: [project_id, [library_id1, library_id2, ...], [sce_file1, sce_file2, ...]]
+    // group tuple by project id: [project_id, [unique_id1, unique_id2, ...], [sce_file1, sce_file2, ...]]
     .groupTuple(by: 0)
     // add in boolean for if project contains samples with adt
-    .map{ project_id, library_id_list, sce_file_list ->
-      [project_id, project_id in adt_projects.getVal(), library_id_list, sce_file_list]
+    .map{ project_id, unique_id_list, sce_file_list ->
+      [project_id, project_id in adt_projects.getVal(), unique_id_list, sce_file_list]
     }
     .branch{ it ->
       def merged_sce = file("${params.results_dir}/${it[0]}/merged/${it[0]}_merged.rds")
@@ -328,7 +355,7 @@ workflow {
     }
 
   pre_merged_ch = grouped_libraries_ch.has_merge
-    .map{ project_id, has_adt, _library_id_list, _sce_file_list ->
+    .map{ project_id, has_adt, _unique_id_list, _sce_file_list ->
       def merged_file = file("${params.results_dir}/${project_id}/merged/${project_id}_merged.rds")
       [project_id, merged_file, has_adt]
     }
