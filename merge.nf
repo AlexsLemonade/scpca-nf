@@ -228,18 +228,12 @@ workflow {
       .splitCsv(header: true, sep: '\t')
       // filter to only include specified project ids
       .filter{ it.scpca_project_id in project_ids }
-      // filter to run all ids or just specified ones
-      .filter{ it ->
-        run_all
-        || (it.scpca_run_id in run_ids)
-        || (it.scpca_library_id in run_ids)
-        || (it.scpca_sample_id in run_ids)
-      }
       .flatMap{ row ->
         def technology = row.technology.toLowerCase()
         def sample_ids = row.scpca_sample_id.split(";").sort()
         def library_meta = [
           project_id: row.scpca_project_id,
+          run_id: row.scpca_run_id,
           library_id: row.scpca_library_id,
           seq_unit: row.seq_unit,
           technology: technology
@@ -263,7 +257,14 @@ workflow {
           ]
         }
       }
-
+      // filter to run all ids or just specified ones
+      // done after splitting flex libraries so individual sample ids can be matched
+      .filter{ it ->
+        run_all
+        || (it.run_id in run_ids)
+        || (it.library_id in run_ids)
+        || it.sample_id.split(",").any{ sample_id -> sample_id in run_ids }
+      }
 
   // get all projects that contain at least one library with CITEseq
   adt_projects = libraries_ch
