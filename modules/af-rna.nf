@@ -183,7 +183,8 @@ workflow map_quant_rna {
     rna_rad_ch = rna_channel.has_rad
       .map{ meta ->
         [
-          readMeta(file("${meta.rad_dir}/scpca-meta.json")),
+          // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
+          meta + readMeta(file("${meta.rad_dir}/scpca-meta.json")),
           file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
         ]
       }

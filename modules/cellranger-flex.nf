@@ -233,7 +233,7 @@ workflow flex_quant{
       .map{ meta ->
         [
           meta.sample_id.tokenize(","),
-          readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
+          meta + readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
         ]
       }
       .transpose() // [sample id, meta]
