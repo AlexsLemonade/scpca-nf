@@ -71,7 +71,8 @@ workflow genetic_demux_vireo {
     demux_out = multiplex_ch.has_demux
       .map{ meta ->
         [
-          readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
+          // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
+          meta + readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
           file(meta.vireo_dir, type: 'dir', checkIfExists: true)
         ]
       }
