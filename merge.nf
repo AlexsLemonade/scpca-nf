@@ -41,9 +41,6 @@ process merge_sce {
   output:
     tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   script:
-    // TODO: update the merge script and function to refer to things as unique IDs 
-    // that's how they are treated but we use library_ids throughout the code and as the name of the batch_column that gets saved in the merged object
-    // I think we want to keep "library_id" since unique_ids don't mean anything on the portal side so changing a column name seems not ideal? 
     input_library_ids = unique_ids.join(',')
     input_sces = scpca_nf_file.join(',')
     merged_sce_file = "${merge_group_id}_merged.rds"
