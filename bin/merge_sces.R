@@ -275,9 +275,15 @@ colData(merged_sce) <- colData(merged_sce) |>
 # flex multiplexed libraries have unique ids of the form library_id-sample_id
 has_sample_suffix <- any(stringr::str_detect(sce_names, "-"))
 if (has_sample_suffix) {
-  id_df <- data.frame(unique_id = sce_names) |>
+  updated_coldata_df <- colData(merged_sce) |>
+    as.data.frame() |>
     dplyr::mutate(
+      # first add in the unique id column using the current contents of library id
+      unique_id = library_id
+      # pull out just the library id
       library_id = stringr::word(unique_id, 1, sep = "-"),
+      # define the sample id as either the suffix of the unique id 
+      # OR from the library metadata in the object
       sample_id = purrr::map_chr(unique_id, \(id) {
         if (stringr::str_detect(id, "-")) {
           stringr::word(id, 2, sep = "-")
@@ -286,10 +292,14 @@ if (has_sample_suffix) {
           metadata(merged_sce)$library_metadata[[id]]$sample_id
         }
       })
-    )
-  id_match <- match(unique_ids, id_df$unique_id)
-  merged_sce$library_id <- id_df$library_id[id_match]
-  merged_sce$sample_id <- id_df$sample_id[id_match]
+    ) |> 
+    # now drop the unique id column 
+    dplyr::select(-unique_id)
+
+  # replace existing colData
+  colData(merged_sce) <- DataFrame(updated_coldata_df, row_names = colnames(merged_sce))
+
+  # define columns to join for flex 
   join_columns <- c("library_id", "sample_id")
 } else {
   join_columns <- "library_id"
