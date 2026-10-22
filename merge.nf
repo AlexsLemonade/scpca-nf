@@ -227,7 +227,7 @@ workflow {
       .filter{ it.scpca_project_id in project_ids }
       .flatMap{ row ->
         def technology = row.technology.toLowerCase()
-        def sample_ids = row.scpca_sample_id.split(";").sort()
+        def sample_ids = row.scpca_sample_id.split("[;,]").sort()
         def library_meta = [
           project_id: row.scpca_project_id,
           run_id: row.scpca_run_id,
