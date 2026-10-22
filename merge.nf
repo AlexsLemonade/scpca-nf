@@ -277,22 +277,13 @@ workflow {
     .collect{ it.project_id }
     .map{ it -> it.unique() }
 
-  oversized_projects = libraries_ch
-    .filter{ it.technology.startsWith("10x") } // only count single-cell or single-nuclei libraries, no cell hash, ADT, bulk or spatial
-    // pull out project id for grouping
-    .map{ it -> [it.project_id, it] }
-    .groupTuple(by: 0) // group by project id
-    .filter{ it[1].size() > params.max_merge_libraries } // get projects with more samples than max merge
-    .collect{ it[0] } // in this specific case, it[0] is the project_id
-
   filtered_libraries_ch = libraries_ch
     // only include single-cell/single-nuclei which ensures we don't try to merge libraries from spatial or bulk data
     .filter{ it.seq_unit in seq_units_for_merge }
-    // remove any multiplexed projects or oversized projects
+    // remove any multiplexed projects
     // future TODO: only filter library ids that are multiplexed, but keep all other non-multiplexed libraries
     .branch{ it ->
       multiplexed: it.project_id in multiplex_projects.getVal()
-      oversized: it.project_id in oversized_projects.getVal()
       single_sample: true
     }
 
@@ -300,12 +291,6 @@ workflow {
     .unique{ it.project_id }
     .subscribe{ it ->
       log.warn("Not merging ${it.project_id} because it contains multiplexed libraries.")
-    }
-
-  filtered_libraries_ch.oversized
-    .unique{ it.project_id }
-    .subscribe{ it ->
-      log.warn("Not merging ${it.project_id} because it contains too many libraries.")
     }
 
   // print out warning message for any libraries not included in merging
@@ -327,7 +312,7 @@ workflow {
       }
     }
 
-  grouped_libraries_ch = filtered_libraries_ch.single_sample
+  present_libraries_ch = filtered_libraries_ch.single_sample
     .map{ it ->
       def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_processed.rds")
       def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_metadata.json")
@@ -345,6 +330,18 @@ workflow {
     .unique()
     // group tuple by project id: [project_id, [unique_id1, unique_id2, ...], [sce_file1, sce_file2, ...]]
     .groupTuple(by: 0)
+    // remove any projects with more libraries present than the max allowed for merging
+    .branch{ _project_id, unique_id_list, _sce_file_list ->
+      oversized: unique_id_list.size() > params.max_merge_libraries
+      within_limit: true
+    }
+
+  present_libraries_ch.oversized
+    .subscribe{ project_id, unique_id_list, _sce_file_list ->
+      log.warn("Not merging ${project_id} because it contains too many libraries (${unique_id_list.size()} > ${params.max_merge_libraries}).")
+    }
+
+  grouped_libraries_ch = present_libraries_ch.within_limit
     // add in boolean for if project contains samples with adt
     .map{ project_id, unique_id_list, sce_file_list ->
       [project_id, project_id in adt_projects.getVal(), unique_id_list, sce_file_list]
