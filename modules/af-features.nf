@@ -213,7 +213,8 @@ workflow map_quant_feature {
     feature_rad_ch = feature_ch.has_rad
       .map{ meta ->
         [
-          readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
+          // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
+          meta + readMeta(file("${meta.feature_rad_dir}/scpca-meta.json")),
           file(meta.feature_rad_dir, type: 'dir', checkIfExists: true)
         ]
       }

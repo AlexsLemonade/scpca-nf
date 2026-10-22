@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
 // import utility process with aliases to allow multiple uses in this workflow
 include { convert_anndata as convert_cellassign } from './convert-anndata.nf'
 include { convert_anndata as convert_scimilarity } from './convert-anndata.nf'
