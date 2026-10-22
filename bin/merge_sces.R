@@ -279,7 +279,7 @@ if (has_sample_suffix) {
     as.data.frame() |>
     dplyr::mutate(
       # first add in the unique id column using the current contents of library id
-      unique_id = library_id
+      unique_id = library_id,
       # pull out just the library id
       library_id = stringr::word(unique_id, 1, sep = "-"),
       # define the sample id as either the suffix of the unique id 
@@ -297,7 +297,7 @@ if (has_sample_suffix) {
     dplyr::select(-unique_id)
 
   # replace existing colData
-  colData(merged_sce) <- DataFrame(updated_coldata_df, row_names = colnames(merged_sce))
+  colData(merged_sce) <- DataFrame(updated_coldata_df, row.names = colnames(merged_sce))
 
   # define columns to join for flex 
   join_columns <- c("library_id", "sample_id")
