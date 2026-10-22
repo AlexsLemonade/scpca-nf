@@ -282,7 +282,7 @@ if (has_sample_suffix) {
       unique_id = library_id,
       # pull out just the library id
       library_id = stringr::word(unique_id, 1, sep = "-"),
-      # define the sample id as either the suffix of the unique id 
+      # define the sample id as either the suffix of the unique id
       # OR from the library metadata in the object
       sample_id = purrr::map_chr(unique_id, \(id) {
         if (stringr::str_detect(id, "-")) {
@@ -292,14 +292,14 @@ if (has_sample_suffix) {
           metadata(merged_sce)$library_metadata[[id]]$sample_id
         }
       })
-    ) |> 
-    # now drop the unique id column 
+    ) |>
+    # now drop the unique id column
     dplyr::select(-unique_id)
 
   # replace existing colData
   colData(merged_sce) <- DataFrame(updated_coldata_df, row.names = colnames(merged_sce))
 
-  # define columns to join for flex 
+  # define columns to join for flex
   join_columns <- c("library_id", "sample_id")
 } else {
   join_columns <- "library_id"
