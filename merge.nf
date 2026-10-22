@@ -184,7 +184,7 @@ process compile_errors {
   input:
    // more than one error file per library (unfiltered, filtered, processed), so use stageAs
    path error_files, stageAs: "error_file_*.txt"
-   path output_filename
+   val output_filename
   output:
     path output_filename
   script:
