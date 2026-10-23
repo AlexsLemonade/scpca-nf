@@ -250,13 +250,32 @@ gc(verbose = FALSE)
 # these are used as the batch for HVG selection and PCA
 unique_ids <- merged_sce$unique_id
 
-# split unique ids into library id and sample id
-# if the unique id does not contain sample id (non-flex), then use the sample id stored in sample metadata
+# grab technology and EFO from metadata$library_metadata
+# build a table with one row per library/sample combination
+library_df <- metadata(merged_sce)$library_metadata |>
+  purrr::imap(\(lib_meta, unique_id) {
+    data.frame(
+      unique_id = unique_id, 
+      library_id = lib_meta$library_id,
+      tech_version = lib_meta$tech_version,
+      assay_ontology_term_id = lib_meta$assay_ontology_term_id,
+      # rename to suspension_type for consistency with merged AnnData objects
+      suspension_type = lib_meta$seq_unit
+    )
+  }) |>
+  dplyr::bind_rows()
+
+# join tech and EFO with colData using the unique_id column 
+colData(merged_sce) <- colData(merged_sce) |>
+  as.data.frame() |>
+  dplyr::left_join(library_df, by = "unique_id", relationship = "many-to-one") |>
+  DataFrame(row.names = colnames(merged_sce))
+
+# add sample id columm which either comes from unique id or
+# if the unique id does not contain sample id (non-flex), then use the sample id stored in library metadata
 colData(merged_sce) <- colData(merged_sce) |>
   as.data.frame() |>
   dplyr::mutate(
-    # pull out just the library id
-    library_id = stringr::word(unique_id, 1, sep = "-"),
     # define the sample id as either the suffix of the unique id
     # OR from the library metadata in the object
     sample_id = purrr::map_chr(unique_id, \(id) {
@@ -271,29 +290,6 @@ colData(merged_sce) <- colData(merged_sce) |>
   # now drop the unique id column
   dplyr::select(-unique_id) |>
   DataFrame(row.names = colnames(merged_sce))
-
-# grab technology and EFO from metadata$library_metadata
-# use library IDs to grab this information so first need a list of all library ids
-library_ids <- unique(merged_sce$library_id)
-library_df <- library_ids |>
-  purrr::map(\(library_id) {
-    lib_meta <- metadata(merged_sce) |>
-      purrr::pluck("library_metadata", library_id)
-    data.frame(
-      library_id = library_id,
-      tech_version = lib_meta$tech_version,
-      assay_ontology_term_id = lib_meta$assay_ontology_term_id,
-      # rename to suspension_type for consistency with merged AnnData objects
-      suspension_type = lib_meta$seq_unit
-    )
-  }) |>
-  dplyr::bind_rows()
-
-# join tech and EFO with colData
-colData(merged_sce) <- colData(merged_sce) |>
-  as.data.frame() |>
-  dplyr::left_join(library_df, by = c("library_id"), relationship = "many-to-one") |>
-  DataFrame(row.names = rownames(colData(merged_sce)))
 
 # add sample metadata to colData as long as there are no multiplexed data
 # join on both library_id and sample_id
