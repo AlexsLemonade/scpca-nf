@@ -41,12 +41,12 @@ process merge_sce {
   output:
     tuple val(merge_group_id), path(merged_sce_file), val(has_adt)
   script:
-    input_library_ids = unique_ids.join(',')
+    input_unique_ids = unique_ids.join(',')
     input_sces = scpca_nf_file.join(',')
     merged_sce_file = "${merge_group_id}_merged.rds"
     """
     merge_sces.R \
-      --input_library_ids "${input_library_ids}" \
+      --input_unique_ids "${input_unique_ids}" \
       --input_sce_files "${input_sces}" \
       --output_sce_file "${merged_sce_file}" \
       --n_hvg ${params.num_hvg} \

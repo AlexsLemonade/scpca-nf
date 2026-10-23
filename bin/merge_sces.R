@@ -7,9 +7,9 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("--input_library_ids"),
+    opt_str = c("--input_unique_ids"),
     type = "character",
-    help = "Comma separated list of library IDs corresponding to the libraries being merged."
+    help = "Comma separated list of unique IDs corresponding to the libraries being merged."
   ),
   make_option(
     opt_str = c("--input_sce_files"),
@@ -71,16 +71,16 @@ if (length(input_sce_files) == 1) {
   stop("Only 1 input file provided, no merging will be performed for this group")
 }
 
-# use library ids to name list of input files
-if (is.null(opt$input_library_ids)) {
-  # extract library ids from filename
+# use unique ids to name list of input files
+if (is.null(opt$input_unique_ids)) {
+  # extract unique ids from filename
   names(input_sce_files) <- stringr::word(basename(input_sce_files), 1, sep = "_")
 } else {
-  # pull library ids from list
-  names(input_sce_files) <- unlist(stringr::str_split(opt$input_library_ids, ","))
+  # pull unique ids from list
+  names(input_sce_files) <- unlist(stringr::str_split(opt$input_unique_ids, ","))
 }
 
-# sort inputs by library id
+# sort inputs by unique id
 input_sce_files <- input_sce_files[order(names(input_sce_files))]
 
 # check that input files exist
@@ -233,7 +233,7 @@ sce_names <- names(sce_list)
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
-  batch_column = "library_id",
+  batch_column = "unique_id",
   cell_id_column = "cell_id",
   retain_coldata_cols = retain_coldata_columns,
   include_altexp = opt$include_altexp,
@@ -248,10 +248,34 @@ gc(verbose = FALSE)
 
 # save the unique ids (library id or library id-sample id) before any splitting
 # these are used as the batch for HVG selection and PCA
-unique_ids <- merged_sce$library_id
+unique_ids <- merged_sce$unique_id
+
+# split unique ids into library id and sample id
+# if the unique id does not contain sample id (non-flex), then use the sample id stored in sample metadata
+colData(merged_sce) <- colData(merged_sce) |>
+    as.data.frame() |>
+    dplyr::mutate(
+      # pull out just the library id
+      library_id = stringr::word(unique_id, 1, sep = "-"),
+      # define the sample id as either the suffix of the unique id
+      # OR from the library metadata in the object
+      sample_id = purrr::map_chr(unique_id, \(id) {
+        if (stringr::str_detect(id, "-")) {
+          stringr::word(id, 2, sep = "-")
+        } else {
+          # non-flex libraries: pull sample id from library metadata
+          metadata(merged_sce)$library_metadata[[id]]$sample_id
+        }
+      })
+    ) |>
+    # now drop the unique id column
+    dplyr::select(-unique_id) |> 
+    DataFrame(row.names = colnames(merged_sce))
 
 # grab technology and EFO from metadata$library_metadata
-library_df <- sce_names |>
+# use library IDs to grab this information so first need a list of all library ids 
+library_ids <- unique(merged_sce$library_id)
+library_df <- library_ids |>
   purrr::map(\(library_id) {
     lib_meta <- metadata(merged_sce) |>
       purrr::pluck("library_metadata", library_id)
@@ -271,45 +295,12 @@ colData(merged_sce) <- colData(merged_sce) |>
   dplyr::left_join(library_df, by = c("library_id"), relationship = "many-to-one") |>
   DataFrame(row.names = rownames(colData(merged_sce)))
 
-# split unique ids into library id and sample id if needed
-# flex multiplexed libraries have unique ids of the form library_id-sample_id
-has_sample_suffix <- any(stringr::str_detect(sce_names, "-"))
-if (has_sample_suffix) {
-  updated_coldata_df <- colData(merged_sce) |>
-    as.data.frame() |>
-    dplyr::mutate(
-      # first add in the unique id column using the current contents of library id
-      unique_id = library_id,
-      # pull out just the library id
-      library_id = stringr::word(unique_id, 1, sep = "-"),
-      # define the sample id as either the suffix of the unique id
-      # OR from the library metadata in the object
-      sample_id = purrr::map_chr(unique_id, \(id) {
-        if (stringr::str_detect(id, "-")) {
-          stringr::word(id, 2, sep = "-")
-        } else {
-          # non-flex libraries: pull sample id from library metadata
-          metadata(merged_sce)$library_metadata[[id]]$sample_id
-        }
-      })
-    ) |>
-    # now drop the unique id column
-    dplyr::select(-unique_id)
-
-  # replace existing colData
-  colData(merged_sce) <- DataFrame(updated_coldata_df, row.names = colnames(merged_sce))
-
-  # define columns to join for flex
-  join_columns <- c("library_id", "sample_id")
-} else {
-  join_columns <- "library_id"
-}
-
 # add sample metadata to colData as long as there are no multiplexed data
+# join on both library_id and sample_id
 if (!opt$multiplexed) {
   merged_sce <- scpcaTools::metadata_to_coldata(
     merged_sce,
-    join_columns = join_columns
+    join_columns = c("library_id", "sample_id")
   )
 
   # remove sample metadata
