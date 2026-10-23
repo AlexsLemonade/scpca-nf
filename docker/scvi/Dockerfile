@@ -1,4 +1,4 @@
-FROM ghcr.io/prefix-dev/pixi:0.82.0 AS build
+FROM ghcr.io/prefix-dev/pixi:0.83.0 AS build
 
 # change to CPU-only at build time with --build-arg PIXI_ENV=cpu
 ARG PIXI_ENV=gpu
