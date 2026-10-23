@@ -253,27 +253,27 @@ unique_ids <- merged_sce$unique_id
 # split unique ids into library id and sample id
 # if the unique id does not contain sample id (non-flex), then use the sample id stored in sample metadata
 colData(merged_sce) <- colData(merged_sce) |>
-    as.data.frame() |>
-    dplyr::mutate(
-      # pull out just the library id
-      library_id = stringr::word(unique_id, 1, sep = "-"),
-      # define the sample id as either the suffix of the unique id
-      # OR from the library metadata in the object
-      sample_id = purrr::map_chr(unique_id, \(id) {
-        if (stringr::str_detect(id, "-")) {
-          stringr::word(id, 2, sep = "-")
-        } else {
-          # non-flex libraries: pull sample id from library metadata
-          metadata(merged_sce)$library_metadata[[id]]$sample_id
-        }
-      })
-    ) |>
-    # now drop the unique id column
-    dplyr::select(-unique_id) |> 
-    DataFrame(row.names = colnames(merged_sce))
+  as.data.frame() |>
+  dplyr::mutate(
+    # pull out just the library id
+    library_id = stringr::word(unique_id, 1, sep = "-"),
+    # define the sample id as either the suffix of the unique id
+    # OR from the library metadata in the object
+    sample_id = purrr::map_chr(unique_id, \(id) {
+      if (stringr::str_detect(id, "-")) {
+        stringr::word(id, 2, sep = "-")
+      } else {
+        # non-flex libraries: pull sample id from library metadata
+        metadata(merged_sce)$library_metadata[[id]]$sample_id
+      }
+    })
+  ) |>
+  # now drop the unique id column
+  dplyr::select(-unique_id) |>
+  DataFrame(row.names = colnames(merged_sce))
 
 # grab technology and EFO from metadata$library_metadata
-# use library IDs to grab this information so first need a list of all library ids 
+# use library IDs to grab this information so first need a list of all library ids
 library_ids <- unique(merged_sce$library_id)
 library_df <- library_ids |>
   purrr::map(\(library_id) {
