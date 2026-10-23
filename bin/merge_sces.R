@@ -255,7 +255,7 @@ unique_ids <- merged_sce$unique_id
 library_df <- metadata(merged_sce)$library_metadata |>
   purrr::imap(\(lib_meta, unique_id) {
     data.frame(
-      unique_id = unique_id, 
+      unique_id = unique_id,
       library_id = lib_meta$library_id,
       tech_version = lib_meta$tech_version,
       assay_ontology_term_id = lib_meta$assay_ontology_term_id,
@@ -265,13 +265,13 @@ library_df <- metadata(merged_sce)$library_metadata |>
   }) |>
   dplyr::bind_rows()
 
-# join tech and EFO with colData using the unique_id column 
+# join tech and EFO with colData using the unique_id column
 colData(merged_sce) <- colData(merged_sce) |>
   as.data.frame() |>
   dplyr::left_join(library_df, by = "unique_id", relationship = "many-to-one") |>
   DataFrame(row.names = colnames(merged_sce))
 
-# add sample id columm which either comes from unique id or
+# add sample id column which either comes from unique id or
 # if the unique id does not contain sample id (non-flex), then use the sample id stored in library metadata
 colData(merged_sce) <- colData(merged_sce) |>
   as.data.frame() |>
