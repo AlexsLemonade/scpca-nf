@@ -22,6 +22,22 @@ def readMeta(file) {
 }
 
 /**
+  * Update a metadata map with values from a stored metadata file in JSON format
+  * Stored values are used unless they are blank or NA, in which case the current value is kept
+  * Keys that are only present in the stored file are kept, even if blank
+  *
+  * @param meta The current metadata map
+  * @param meta_file A Nextflow file object with metadata in JSON format
+  * @return A new metadata map
+  */
+def updateMetaFromFile(meta, meta_file) {
+  // readMeta converts null and NA values to ""
+  def stored_meta = readMeta(meta_file)
+  // current values are only used where the stored value is blank or missing
+  return (stored_meta + meta.findAll { key, _value -> stored_meta[key] == null || stored_meta[key] == '' })
+}
+
+/**
   * Write a metadata map to a JSON string
   *
   * @param meta A metadata map
