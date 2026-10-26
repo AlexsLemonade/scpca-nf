@@ -129,11 +129,11 @@ process check_sce {
   label 'mem_16'
   tag "${merge_group_id}"
   input:
-    tuple val(merge_group_id), 
+    tuple val(merge_group_id),
           path(merged_sce_file)
     path(reference_sce_file)
   output:
-    tuple val(merge_group_id), 
+    tuple val(merge_group_id),
           path("${merge_group_id}_formatting_errors.txt")
   script:
     """
@@ -150,15 +150,15 @@ process check_sce {
 }
 
 process check_anndata {
-  container "${pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)}"
+  container "${pullthroughContainer(params.scvi_container, params.pullthrough_registry)}"
   label 'mem_16'
   tag "${merge_group_id}"
   input:
-    tuple val(merge_group_id), 
+    tuple val(merge_group_id),
           path(anndata_file)
     path(reference_anndata_file)
   output:
-    tuple val(merge_group_id), 
+    tuple val(merge_group_id),
           path("${merge_group_id}_formatting_errors.txt")
   script:
     """
@@ -195,7 +195,7 @@ process compile_errors {
       echo "\${errors}" > ${output_filename}
     fi
     """
-  stub: 
+  stub:
     """
     touch ${output_filename}
     """
@@ -371,7 +371,7 @@ workflow {
   anndata_format_ch = export_anndata.out
     .transpose()  // [merge_group_id, rna.h5ad], [merge_group_id, adt.h5ad]
 
-  // check formatting of merged objects 
+  // check formatting of merged objects
   check_sce(merged_ch, file(params.sce_format_reference_file))
   check_anndata(anndata_format_ch, file(params.anndata_format_reference_file))
 
@@ -387,7 +387,7 @@ workflow {
   // collect all error files and print out an error to the log file
   error_output_ch
     .filter{ meta, error_file -> error_file.size() > 0 } // only warn about objects with errors
-    .subscribe{ meta, error_file -> 
+    .subscribe{ meta, error_file ->
       log.error "Formatting errors for ${error_file.text}"
     }
 }

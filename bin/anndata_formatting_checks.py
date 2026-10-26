@@ -193,7 +193,7 @@ def get_conditionals(adata):
         "no_negative_control": bool(no_neg_ctrl),
     }
 
-    return set(cond for cond, is_true in condition_tests.items() if is_true)
+    return {cond for cond, is_true in condition_tests.items() if is_true}
 
 
 def expand_merged_var_ref(var, ref_var):
@@ -335,8 +335,7 @@ def main():
         header = f"Formatting errors found for {header_id} {args.object_type} {modality} AnnData object:"
         with open(output_path, "w") as error_file:
             error_file.write(f"{header}\n\n")
-            for error in errors:
-                error_file.write(f"{error}\n")
+            error_file.writelines(f"{error}\n" for error in errors)
             error_file.write("\n")
 
 
