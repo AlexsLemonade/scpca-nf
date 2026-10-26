@@ -59,26 +59,23 @@ def getMetaVal(file, key) {
 
 
 /**
-  * Replace a string with an NA value with ""
+  * Replace a null or a string with an NA value with ""
   * (which evaluates as false in boolean contexts)
   *
-  * @param str A string
-  * @return The input string unless it was NA or a variant thereof, in which case returns ""
+  * @param str A string, or any other value
+  * @return The input unless it was null or an NA string or variant thereof, in which case returns ""
   */
 def parseNA(str) {
-  if (str) {
-    if (str instanceof String) {
-      // has to be a string to have NA vals replaced
-      str.toLowerCase() in ['na', 'n/a', 'nan'] ? '' : str
-    }
-    else {
-      // not a string, so just return the unmodified value
-      str
-    }
+  if (str == null) {
+    ''
+  }
+  else if (str instanceof String) {
+    // has to be a string to have NA vals replaced
+    str.toLowerCase() in ['na', 'n/a', 'nan'] ? '' : str
   }
   else {
-    // all falsey values get turned into empty strings
-    ''
+    // not a string, so just return the unmodified value (including false and 0)
+    str
   }
 }
 
