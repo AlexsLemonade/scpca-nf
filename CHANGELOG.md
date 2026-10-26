@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- removed `max_memory` option; use `resourceLimits` directly
+
 
 ## [v0.10.6](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.6)
 
