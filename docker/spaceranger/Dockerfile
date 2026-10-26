@@ -8,6 +8,8 @@ LABEL org.opencontainers.image.description="Docker image to run Space Ranger in 
 LABEL org.opencontainers.image.authors="Childhood Cancer Data Lab, Alex's Lemonade Stand Foundation <scpca@ccdatalab.org>"
 LABEL org.opencontainers.image.source="https://github.com/AlexsLemonade/scpca-nf/tree/main/docker/spaceranger"
 
+RUN dnf update -y ca-certificates && dnf clean all
+
 # Install dependencies to use with Nextflow
 RUN dnf install -y procps-ng && dnf clean all
 

@@ -164,10 +164,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -362,10 +362,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -560,10 +560,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -759,10 +759,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -839,10 +839,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -1156,10 +1156,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -1354,10 +1354,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -1552,10 +1552,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -1751,10 +1751,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -1831,10 +1831,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -2174,10 +2174,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anndata-0.13.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart_linux-64-12.9.79-h3f2d84a_0.conda
@@ -2401,10 +2401,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/arm-variant-1.2.0-sbsa.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/array-api-compat-1.15.0-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.14.8-py314hd8ed1ab_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart_linux-aarch64-12.9.79-h3ae8b8a_0.conda
@@ -7289,15 +7289,15 @@ packages:
   run_exports: {}
   size: 62003
   timestamp: 1780923775972
-- conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
-  sha256: 0a0544cf95f64394fe4959286f5c71f5444ad58feb0602e53becb27448d24da6
-  md5: 0f51e2391ade309db462a55611263e9c
+- conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
+  sha256: 9404ee878c6bd5b260655ab651366db43fac6be8d465fcc0acd0f7a50be91acb
+  md5: a1d1bf676059d2863f000d5e2777743f
   depends:
   - __unix
   license: ISC
   run_exports: {}
-  size: 131780
-  timestamp: 1784754889428
+  size: 131396
+  timestamp: 1792483552251
 - conda: https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda
   sha256: 39358005c3cc44d8315ed79789b18a960d69365be979970cc6bae8f7a6177703
   md5: 70e764e549c6c25de5e429d6e4a28b39
@@ -7319,15 +7319,15 @@ packages:
   run_exports: {}
   size: 16597
   timestamp: 1787678456483
-- conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.7.22-pyhd8ed1ab_0.conda
-  sha256: fb167de4388e64e52aa3907ed099afab944c1fa6e5f74b281a312dae1bcf7f3b
-  md5: 37e13edbe3b48f1095a9d085ef9cd83b
+- conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2026.10.19-pyhd8ed1ab_0.conda
+  sha256: ee3bca803cac13760131b6147e2fe60c97e769978e7542d678842b65e285d239
+  md5: 94480ec10238da5dd5659ae0b933634b
   depends:
   - python >=3.10
   license: ISC
   run_exports: {}
-  size: 137015
-  timestamp: 1784717699092
+  size: 136752
+  timestamp: 1792488039424
 - conda: https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda
   sha256: 4c287c2721d8a34c94928be8fe0e9a85754e90189dd4384a31b1806856b50a67
   md5: 61b8078a0905b12529abc622406cb62c
