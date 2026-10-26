@@ -207,6 +207,7 @@ process spaceranger_publish {
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
       --sample_id ${meta.sample_id} \
+      --project_id ${meta.project_id} \
       --unfiltered_barcodes_file \${unfiltered_barcodes_file} \
       --filtered_barcodes_file \${filtered_barcodes_file} \
       --metrics_summary_file "${spatial_out}/outs/metrics_summary.csv" \
