@@ -76,7 +76,7 @@ def rewrite_markers(
         for c in markers.columns
         if c not in [cluster_col, "gene", "z_score"]
         # remove expression links (_expr column) unless --keep-expression is set
-        and (keep_expression or not c == "_expr")
+        and (keep_expression or c != "_expr")
     ]
 
     # add id column (Ensembl ID), falling back to the symbol itself if not in the dict

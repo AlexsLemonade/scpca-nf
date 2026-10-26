@@ -6,15 +6,15 @@
 # Adapted from: https://github.com/AlexsLemonade/OpenScPCA-nf/blob/v0.1.6/modules/cell-type-scimilarity/resources/usr/bin/run-scimilarity.py
 
 import argparse
+import random
 import sys
 from pathlib import Path
-import random
 
 import anndata
 import pandas
-from scipy.sparse import csr_matrix
 from scimilarity import CellAnnotation
 from scimilarity.utils import align_dataset, lognorm_counts
+from scipy.sparse import csr_matrix
 
 
 def format_scimilarity(adata: anndata.AnnData) -> anndata.AnnData:
@@ -173,7 +173,7 @@ def main() -> None:
         )
 
         # Predict cell types
-        predictions, nn_idxs, nn_dists, nn_stats = (
+        predictions, _nn_idxs, _nn_dists, nn_stats = (
             scimilarity_model.get_predictions_knn(
                 processed_anndata.obsm["X_scimilarity"], weighting=True
             )
