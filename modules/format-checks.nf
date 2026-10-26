@@ -7,11 +7,11 @@ process check_sce {
   label 'mem_16'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), 
+    tuple val(meta),
           path(sce_file)
     path(reference_sce_file)
   output:
-    tuple val(meta), 
+    tuple val(meta),
           path("${meta.unique_id}_formatting_errors.txt")
   script:
     def object_type = sce_file.baseName.replace("${meta.unique_id}_", "")
@@ -29,15 +29,15 @@ process check_sce {
 }
 
 process check_anndata {
-  container "${pullthroughContainer(params.scpcatools_anndata_container, params.pullthrough_registry)}"
+  container "${pullthroughContainer(params.scvi_container, params.pullthrough_registry)}"
   label 'mem_16'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), 
+    tuple val(meta),
           path(anndata_file)
     path(reference_anndata_file)
   output:
-    tuple val(meta), 
+    tuple val(meta),
           path("${meta.unique_id}_formatting_errors.txt")
   script:
     def object_type = anndata_file.baseName.replace("${meta.unique_id}_", "").replaceAll(/_(rna|adt)$/, "")
@@ -56,49 +56,51 @@ process check_anndata {
 
 process compile_errors {
   container "${pullthroughContainer(params.scpcatools_slim_container, params.pullthrough_registry)}"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir "${params.format_checks_dir}", mode: 'copy'
   label 'mem_8'
   input:
    // more than one error file per library (unfiltered, filtered, processed), so use stageAs
    path error_files, stageAs: "error_file_*.txt"
+   val output_filename
   output:
-    path "format_check_results.txt"
+    path output_filename
   script:
+
     """
     # check if all files are empty, if so print a success message
     # otherwise concatenate all error files into one output file
     errors="\$(cat ${error_files})"
     if [ -z "\${errors}" ]; then
-      echo "No formatting errors found." > format_check_results.txt
+      echo "No formatting errors found." > ${output_filename}
     else
-      echo "\${errors}" > format_check_results.txt
+      echo "\${errors}" > ${output_filename}
     fi
     """
-  stub: 
+  stub:
     """
-    touch format_check_results.txt
+    touch ${output_filename}
     """
 }
 
 workflow format_checks {
-  take: 
+  take:
     sce_ch // [ meta, unfiltered sce, filtered sce, processed sce, metadata json]
     anndata_ch // [ meta, h5ad files]
     sce_format_reference_file
     anndata_format_reference_file
-  main: 
+  main:
 
     sce_format_ch = sce_ch
       // drop the metadata json
-      .map{ meta, unfiltered_sce, filtered_sce, processed_sce, metadata_json -> 
+      .map{ meta, unfiltered_sce, filtered_sce, processed_sce, metadata_json ->
         [meta, [unfiltered_sce, filtered_sce, processed_sce]]
-      } 
+      }
       .transpose() // [ [meta, unfiltered sce], [meta, filtered sce], [meta, processed sce] ]
 
     check_sce(sce_format_ch, sce_format_reference_file)
 
     anndata_format_ch = anndata_ch
-      .transpose() // [ [meta, unfiltered rna h5ad], [meta, unfiltered adt h5ad]  ... ] 
+      .transpose() // [ [meta, unfiltered rna h5ad], [meta, unfiltered adt h5ad]  ... ]
 
     check_anndata(anndata_format_ch, anndata_format_reference_file)
 
@@ -108,15 +110,15 @@ workflow format_checks {
 
     error_files_ch = error_output_ch
       .collect{ meta, error_file -> error_file } // collect into a list of just the error files
-    
-    compile_errors(error_files_ch)
+
+    compile_errors(error_files_ch, params.format_check_filename)
 
     // collect all error files and print out an error to the log file
     error_output_ch
       .filter{ meta, error_file -> error_file.size() > 0 } // only warn about libraries with errors
-      .subscribe{ meta, error_file -> 
+      .subscribe{ meta, error_file ->
         log.error "Formatting errors for ${error_file.text}"
       }
-    
+
 
 }

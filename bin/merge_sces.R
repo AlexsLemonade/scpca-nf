@@ -7,9 +7,9 @@ library(SingleCellExperiment)
 # Set up optparse options
 option_list <- list(
   make_option(
-    opt_str = c("--input_library_ids"),
+    opt_str = c("--input_unique_ids"),
     type = "character",
-    help = "Comma separated list of library IDs corresponding to the libraries being merged."
+    help = "Comma separated list of unique IDs corresponding to the libraries being merged."
   ),
   make_option(
     opt_str = c("--input_sce_files"),
@@ -71,16 +71,16 @@ if (length(input_sce_files) == 1) {
   stop("Only 1 input file provided, no merging will be performed for this group")
 }
 
-# use library ids to name list of input files
-if (is.null(opt$input_library_ids)) {
-  # extract library ids from filename
+# use unique ids to name list of input files
+if (is.null(opt$input_unique_ids)) {
+  # extract unique ids from filename
   names(input_sce_files) <- stringr::word(basename(input_sce_files), 1, sep = "_")
 } else {
-  # pull library ids from list
-  names(input_sce_files) <- unlist(stringr::str_split(opt$input_library_ids, ","))
+  # pull unique ids from list
+  names(input_sce_files) <- unlist(stringr::str_split(opt$input_unique_ids, ","))
 }
 
-# sort inputs by library id
+# sort inputs by unique id
 input_sce_files <- input_sce_files[order(names(input_sce_files))]
 
 # check that input files exist
@@ -233,7 +233,7 @@ sce_names <- names(sce_list)
 # create combined SCE object
 merged_sce <- scpcaTools::merge_sce_list(
   sce_list,
-  batch_column = "library_id",
+  batch_column = "unique_id",
   cell_id_column = "cell_id",
   retain_coldata_cols = retain_coldata_columns,
   include_altexp = opt$include_altexp,
@@ -246,24 +246,17 @@ merged_sce <- scpcaTools::merge_sce_list(
 rm(sce_list)
 gc(verbose = FALSE)
 
-# add sample metadata to colData as long as there are no multiplexed data
-if (!opt$multiplexed) {
-  merged_sce <- scpcaTools::metadata_to_coldata(
-    merged_sce,
-    join_columns = "library_id"
-  )
-
-  # remove sample metadata
-  metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
-}
+# save the unique ids (library id or library id-sample id) before any splitting
+# these are used as the batch for HVG selection and PCA
+unique_ids <- merged_sce$unique_id
 
 # grab technology and EFO from metadata$library_metadata
-library_df <- sce_names |>
-  purrr::map(\(library_id) {
-    lib_meta <- metadata(merged_sce) |>
-      purrr::pluck("library_metadata", library_id)
+# build a table with one row per library/sample combination
+library_df <- metadata(merged_sce)$library_metadata |>
+  purrr::imap(\(lib_meta, unique_id) {
     data.frame(
-      library_id = library_id,
+      unique_id = unique_id,
+      library_id = lib_meta$library_id,
       tech_version = lib_meta$tech_version,
       assay_ontology_term_id = lib_meta$assay_ontology_term_id,
       # rename to suspension_type for consistency with merged AnnData objects
@@ -272,16 +265,48 @@ library_df <- sce_names |>
   }) |>
   dplyr::bind_rows()
 
-# join tech and EFO with colData
+# join tech and EFO with colData using the unique_id column
 colData(merged_sce) <- colData(merged_sce) |>
   as.data.frame() |>
-  dplyr::left_join(library_df, by = c("library_id"), relationship = "many-to-one") |>
-  DataFrame(row.names = rownames(colData(merged_sce)))
+  dplyr::left_join(library_df, by = "unique_id", relationship = "many-to-one") |>
+  DataFrame(row.names = colnames(merged_sce))
+
+# add sample id column which either comes from unique id or
+# if the unique id does not contain sample id (non-flex), then use the sample id stored in library metadata
+colData(merged_sce) <- colData(merged_sce) |>
+  as.data.frame() |>
+  dplyr::mutate(
+    # define the sample id as either the suffix of the unique id
+    # OR from the library metadata in the object
+    sample_id = purrr::map_chr(unique_id, \(id) {
+      if (stringr::str_detect(id, "-")) {
+        stringr::word(id, 2, sep = "-")
+      } else {
+        # non-flex libraries: pull sample id from library metadata
+        metadata(merged_sce)$library_metadata[[id]]$sample_id
+      }
+    })
+  ) |>
+  # now drop the unique id column
+  dplyr::select(-unique_id) |>
+  DataFrame(row.names = colnames(merged_sce))
+
+# add sample metadata to colData as long as there are no multiplexed data
+# join on both library_id and sample_id
+if (!opt$multiplexed) {
+  merged_sce <- scpcaTools::metadata_to_coldata(
+    merged_sce,
+    join_columns = c("library_id", "sample_id")
+  )
+
+  # remove sample metadata
+  metadata(merged_sce) <- metadata(merged_sce)[names(metadata(merged_sce)) != "sample_metadata"]
+}
 
 # HVG selection ----------------------------------------------------------------
 
-# extract the column with the block variable
-batch_column <- merged_sce$library_id
+# use the unique ids as the block variable
+batch_column <- unique_ids
 
 # model gene variance
 gene_var_block <- scran::modelGeneVar(

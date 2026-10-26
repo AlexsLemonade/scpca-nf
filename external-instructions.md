@@ -59,7 +59,7 @@ After identifying the system that you will use to execute the Nextflow workflow,
 Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
-   You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that `scpca-nf` relies on.
+   You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: - [Nextflow](https://docs.seqera.io/nextflow/install#installation), the main workflow engine that `scpca-nf` relies on.
    This can be downloaded and installed by any user, with minimal external requirements. - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
    These usually require installation by system administrators, but most HPC systems have one available (usually Singularity). - Other software dependencies, as well as the workflow files themselves, are handled by Nextflow, which will download Docker or Singularity images as required.
    The `scpca-nf` workflow does not need to be downloaded separately.
@@ -96,12 +96,12 @@ Using the above command will run the workflow from the `main` branch of the work
 To update to the latest released version you can run `nextflow pull AlexsLemonade/scpca-nf` before the `nextflow run` command.
 
 To be sure that you are using a consistent version, you can specify use of a release tagged version of the workflow, set below with the `-r` flag.
-The command below will pull the `scpca-nf` workflow directly from Github using the `v0.10.5` version.
+The command below will pull the `scpca-nf` workflow directly from Github using the `v0.10.6` version.
 Released versions can be found on the [`scpca-nf` repository releases page](https://github.com/AlexsLemonade/scpca-nf/releases).
 
 ```sh
 nextflow run AlexsLemonade/scpca-nf \
-  -r v0.10.5 \
+  -r v0.10.6 \
   -config {path to config file}  \
   -profile {name of profile}
 ```
@@ -112,7 +112,7 @@ For a complete description of the expected output files, see the section describ
 ## File organization
 
 You will need to have files organized so that all the sequencing files for each library are in their own directory or folder.
-Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-metadata-file).
+Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-run-metadata-file).
 Any sequencing runs that contain multiple libraries must be demultiplexed and FASTQ files must be placed into separate distinct folders, with distinct run IDs as the folder name.
 If the same sequencing library was sequenced across multiple flow cells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
 If a library has a corresponding ADT library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the ADT library should be in their own folder, with a unique run ID.
@@ -209,17 +209,12 @@ These parameters can be set at the command line using `--run_metafile {path to r
 
 Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
-There are also a number of optional parameters that can be set, either at the command line or in a configuration file, including:
-
-- `max_cpus`: the maximum number of CPU cores to use for a single process (default: 24)
-- `max_memory`: the maximum amount of memory to use for a single process (default: `96.GB`)
-
 Other customizable parameters can be found in the `nextflow.config` file in the repository.
 Note that all parameters can be overridden with a user config file or at the command line; `nextflow.config` itself should not need modification.
 
 ### Configuration files
 
-Workflow parameters can also be set in a [configuration file](https://www.nextflow.io/docs/latest/config.html#configuration-file) by setting the values `params.run_metafile`, `params.sample_metafile`, and `params.outdir` as follows.
+Workflow parameters can also be set in a [configuration file](https://docs.seqera.io/nextflow/config#configuration-file) by setting the values `params.run_metafile`, `params.sample_metafile`, and `params.outdir` as follows.
 
 We could first create a file `my_config.config` (or a filename of your choice) with the following contents:
 
@@ -243,12 +238,12 @@ Under the `standard` profile, Nextflow will attempt to run the workflow locally 
 This will most likely result in an error unless the minimum computing requirements (24 GB of RAM and 12 CPUs) are met on the local machine.
 For more on [creating and using a profile](#setting-up-a-profile-in-the-configuration-file) see the section below.
 
-See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) and the below sections for more detail on creating your own configuration file.
+See the [Nextflow documentation](https://docs.seqera.io/nextflow/config) and the below sections for more detail on creating your own configuration file.
 
 ### Setting up a profile in the configuration file
 
-Processing single-cell and single-nuclei samples requires access to 24 GB of RAM and 12 CPUs so you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
-To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
+Processing single-cell and single-nuclei samples requires access to at least 24 GB of RAM and 12 CPUs so you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
+To do this, we recommend using [Nextflow profiles](https://docs.seqera.io/nextflow/config#config-profiles) to encapsulate settings like [`resourceLimits`](https://docs.seqera.io/nextflow/reference/process/directives/resource-limits) and [`executor`](https://docs.seqera.io/nextflow/executor) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://docs.seqera.io/nextflow/container/docker) or [Singularity](https://docs.seqera.io/nextflow/container/singularity)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
 **Note:** To use the default index files and default cell type reference files, which are stored on S3, compute nodes must have access to the internet.
@@ -267,9 +262,9 @@ nextflow run AlexsLemonade/scpca-nf \
 At the Data Lab, we use Nextflow with the [Amazon Web Services (AWS) Batch](https://aws.amazon.com/batch/) compute environment.
 If you are interested in using AWS batch with `scpca-nf`, we provide some basic instructions here to get you started.
 Be aware, AWS management can be quite complex, with many interacting parts and mysterious acronyms.
-We encourage you to read the official Nextflow instructions for [running pipelines on AWS](https://www.nextflow.io/docs/latest/awscloud.html), which includes information about security and permission settings that are beyond the scope of this document.
+We encourage you to read the official Nextflow instructions for [running pipelines on AWS](https://docs.seqera.io/nextflow/reference/executor/aws-batch), which includes information about security and permission settings that are beyond the scope of this document.
 
-To run `scpca-nf`, you will need to set up at least one batch queue and an associated compute environment configured with a custom Amazon Machine Image (AMI) prepared according to the [Nextflow instructions](https://www.nextflow.io/docs/latest/awscloud.html#custom-ami).
+To run `scpca-nf`, you will need to set up at least one batch queue and an associated compute environment configured with a custom Amazon Machine Image (AMI) prepared according to the [Nextflow instructions](https://docs.seqera.io/nextflow/guides/aws-custom-ami).
 You will also need an [S3 bucket](https://aws.amazon.com/s3/) path to use as the Nextflow `work` directory for intermediate files.
 As the intermediate files can get quite large, you will likely want to set up a [life cycle rule](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) to delete files from this location after a fixed period of time (e.g., 30 days).
 
@@ -314,7 +309,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Note that other configuration settings such as [profiles](#setting-up-a-profile-in-the-configuration-file), must still be set in the configuration file directly.
-However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://www.nextflow.io/docs/latest/config.html#configuration-file).
+However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://docs.seqera.io/nextflow/config#configuration-file).
 The `ref_rootdir` parameter should _only_ be specified in a parameter file or at the command line with the `--ref_rootdir` argument.
 
 #### Additional reference files
@@ -332,7 +327,7 @@ If you will be analyzing spatial expression data, you will also need the Cell Ra
 
 If your compute nodes do not have internet access, you will likely have to pre-pull the required container images as well.
 When doing this, it is important to be sure that you also specify the revision (version tag) of the `scpca-nf` workflow that you are using.
-For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.10.5`, then you will want to set `-r v0.10.5` for `get_refs.py` as well to be sure you have the correct containers.
+For example, if you would run `nextflow run AlexsLemonade/scpca-nf -r v0.10.6`, then you will want to set `-r v0.10.6` for `get_refs.py` as well to be sure you have the correct containers.
 By default, `get_refs.py` will download files and images associated with the latest release.
 
 If your system uses Docker, you can add the `--docker` flag:
@@ -685,7 +680,7 @@ nextflow run AlexsLemonade/scpca-nf \
   --skip_genetic_demux
 ```
 
-The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file).
+The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-run-metadata-file).
 
 The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
@@ -727,7 +722,7 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 ### Spatial transcriptomics libraries
 
-To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-run-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
 
 ```text
 {files_directory}

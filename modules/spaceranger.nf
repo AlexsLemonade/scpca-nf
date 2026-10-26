@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
@@ -8,7 +8,7 @@ process spaceranger {
   label 'cpus_12'
   label 'mem_32'
   label 'disk_big'
-  input: 
+  input:
     tuple val(meta), path(index), path(probeset_file),
       path(fastq_dir), path(cytaimage_file), path(image_file)
   output:
@@ -18,7 +18,7 @@ process spaceranger {
     meta += getVersions()
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
-    
+
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
 
@@ -67,14 +67,14 @@ process spaceranger_hd {
   publishDir "${meta.spaceranger_checkpoint_dir}", mode: 'copy'
   tag "${meta.run_id}-spatial"
   memory {
-    def mem = meta.visium_image_type == "image" ? 64.GB : 32.GB 
+    def mem = meta.visium_image_type == "image" ? 64.GB : 32.GB
     mem + mem * task.attempt
   }
   cpus {
     meta.visium_image_type == "image" ? 16 : 12
   }
   label 'disk_big'
-  input: 
+  input:
     tuple val(meta), path(index), path(probeset_file),
       path(fastq_dir), path(cytaimage_file), path(image_file)
   output:
@@ -84,7 +84,7 @@ process spaceranger_hd {
     meta += getVersions()
     meta_json = makeJson(meta)
     image_arg = meta.visium_image_type ? "--${meta.visium_image_type} ${image_file.join(',')}" : "" // join in case of multiple darkimages
-    
+
     // may help avoid OOM errors, but needs to be a rounded integer sans decimal
     spaceranger_mem = Math.ceil(task.memory.toGiga() * 0.9) as int
 
@@ -157,10 +157,10 @@ process spaceranger_publish {
     if [[ ${is_hd} != "true" ]]; then
       cp -r ${spatial_out}/outs/raw_feature_bc_matrix ${spatial_publish_dir}
       cp -r ${spatial_out}/outs/filtered_feature_bc_matrix ${spatial_publish_dir}
-      
+
       unfiltered_barcodes_file="${spatial_out}/outs/raw_feature_bc_matrix/barcodes.tsv.gz"
       filtered_barcodes_file="${spatial_out}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz"
-    else  
+    else
       # For HD runs, ensure we are only copying over the count & spatial results, not any nested analysis dirs
 
       cp ${spatial_out}/outs/barcode_mappings.parquet ${spatial_publish_dir}/${meta.library_id}_barcode_mappings.parquet
@@ -181,7 +181,7 @@ process spaceranger_publish {
       done
 
       # segmented_outputs are only present if a brightfield image was supplied, so copy conditionally
-      seg_src=${spatial_out}/outs/segmented_outputs      
+      seg_src=${spatial_out}/outs/segmented_outputs
       if [[ -d \${seg_src} ]]; then
         seg_dest=${spatial_publish_dir}/segmented_outputs
         mkdir -p \${seg_dest}/spatial
@@ -207,6 +207,7 @@ process spaceranger_publish {
     generate_spaceranger_metadata.R \
       --library_id ${meta.library_id} \
       --sample_id ${meta.sample_id} \
+      --project_id ${meta.project_id} \
       --unfiltered_barcodes_file \${unfiltered_barcodes_file} \
       --filtered_barcodes_file \${filtered_barcodes_file} \
       --metrics_summary_file "${spatial_out}/outs/metrics_summary.csv" \
@@ -230,7 +231,7 @@ process spaceranger_publish {
 }
 
 workflow spaceranger_quant{
-  take: 
+  take:
     spatial_channel // a channel with a map of metadata for each spatial library to process
     spatial_techs   // list of possible spatial technologies
   main:
@@ -291,7 +292,7 @@ workflow spaceranger_quant{
     spatial_channel.missing_inputs.subscribe{ it ->
       log.error("The expected input files or Space Ranger results files for ${it.run_id} are missing.")
     }
-  
+
 
     // create tuple of [metadata, index, probeset file, fastq_dir, cytaimage file, image file]
     spaceranger_reads = spatial_channel.make_spatial
@@ -316,33 +317,33 @@ workflow spaceranger_quant{
             // we correctly have one cytaimage file, so index it out
             cytaimage_file = cytaimage_file[0]
           }
-        } 
+        }
 
         // look for any additional images and check that there are not too many
         def image_file = getImageFiles("${meta.files_directory}/image")
         if (image_file.size() > 1) {
           log.warn("Expected no more than 1 brightfield image file for ${meta.technology} in ${meta.files_directory}/image but found ${image_file.size()} files.")
           image_file = []
-        } 
+        }
         def colorizedimage_file = getImageFiles("${meta.files_directory}/colorizedimage")
         if (colorizedimage_file.size() > 1) {
           log.warn("Expected no more than 1 colorized image file for ${meta.technology} in ${meta.files_directory}/colorizedimage but found ${colorizedimage_file.size()} files.")
           colorizedimage_file = []
-        } 
+        }
         def darkimage_file = getImageFiles("${meta.files_directory}/darkimage")
         if (darkimage_file.size() > 6) {
           log.warn("Expected between 1-6 dark image files for ${meta.technology} in ${meta.files_directory}/darkimage but found ${darkimage_file.size()} files.")
           darkimage_file = []
-        } 
+        }
 
-        // Determine which image file to pass in to spaceranger 
+        // Determine which image file to pass in to spaceranger
         // Pair files and their types, and subset to only existing files
         def present_images = [
             [image_file, "image"],
             [colorizedimage_file, "colorizedimage"],
             [darkimage_file, "darkimage"]
           ]
-          .findAll{ it[0].size() > 0 } 
+          .findAll{ it[0].size() > 0 }
 
         // confirm we have the right number of images:
         // no more than 1 image for any technology, but require 1 for non-cytassist
@@ -363,7 +364,7 @@ workflow spaceranger_quant{
           file(meta.cellranger_index, type: 'dir'),
           probeset_file,
           file("${meta.files_directory}/fastq", type: 'dir'),
-          cytaimage_file, 
+          cytaimage_file,
           selected_image_file
         ]
     }
@@ -381,7 +382,8 @@ workflow spaceranger_quant{
     spaceranger_quants_ch = spatial_channel.has_spatial
       .map{ meta ->
         [
-          readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
+          // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
+          updateMetaFromFile(meta, file("${meta.spaceranger_results_dir}/scpca-meta.json")),
           file(meta.spaceranger_results_dir, type: 'dir')
         ]
       }
@@ -390,7 +392,7 @@ workflow spaceranger_quant{
     spaceranger_hd.out
       .subscribe{ meta, out_dir ->
         def segmented_exists = out_dir.resolve("outs/segmented_outputs/cell_segmentations.geojson").exists()
-        if (meta.visium_image_type == "image" && !segmented_exists) { 
+        if (meta.visium_image_type == "image" && !segmented_exists) {
           log.warn("Expected segmented_outputs directory for ${meta.library_id} with brightfield image, but Space Ranger did not create it.")
         }
       }

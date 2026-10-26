@@ -3,7 +3,7 @@ app_content:
   executor_version: 24.10.6
 class: nextflow
 cwlVersion: None
-doc: "# scpca-nf v0.10.5
+doc: "# scpca-nf v0.10.6
 
 
   The `scpca-nf` workflow is used to process 10x single-cell data as part of the
@@ -378,20 +378,6 @@ inputs:
     type:
       - "null"
       - int
-  - doc:
-      Use to set a limit for the highest memory jobs. Should be a string in the
-      format integer-unit e.g. `512.GB`
-    id: max_memory
-    inputBinding:
-      prefix: --max_memory
-    label: Maximum memory used for high memory jobs.
-    sbg:category: Resource maximums
-    sbg:icon: fas fa-memory
-    sbg:pattern: ^\d+(\.\d+)?\.?\s*(K|M|G|T)?B$
-    sbg:toolDefaultValue: 512 GB
-    type:
-      - "null"
-      - string
   - doc:
       List of files not added as explicit workflow inputs but required for workflow
       execution.

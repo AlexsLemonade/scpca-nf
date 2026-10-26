@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process fastp {
   container "${pullthroughContainer(params.fastp_container, params.pullthrough_registry)}"
@@ -164,7 +164,8 @@ workflow bulk_quant_rna {
     quants_ch = bulk_channel.has_quants
       .map{ meta ->
         [
-          readMeta(file("${meta.salmon_results_dir}/scpca-meta.json")),
+          // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
+          updateMetaFromFile(meta, file("${meta.salmon_results_dir}/scpca-meta.json")),
           file(meta.salmon_results_dir, type: 'dir', checkIfExists: true)
         ]
       }
