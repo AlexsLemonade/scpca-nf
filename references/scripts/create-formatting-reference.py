@@ -2,8 +2,8 @@
 
 # Creates the reference json file for formatting checks for scpca-nf output
 
-import json
 import copy
+import json
 
 # output reference files
 sce_ref_file = "../sce-formatting-reference.json"
@@ -506,7 +506,7 @@ def convert_cell_row_metadata_types(metadata):
         if isinstance(value, dict):
             convert_cell_row_metadata_types(value)
         # otherwise convert the value as long as the value is in the CELL_ROW_METADATA_MAP
-        elif value in CELL_ROW_METADATA_MAP.keys():
+        elif value in CELL_ROW_METADATA_MAP:
             metadata[key] = CELL_ROW_METADATA_MAP[value]
 
     return metadata
@@ -541,10 +541,10 @@ def convert_experiment_metadata_types(metadata):
         if isinstance(value, dict):
             convert_experiment_metadata_types(value)
         # account for exceptions to the conversion
-        elif key in EXPERIMENT_METADATA_EXCEPTIONS_MAP.keys():
+        elif key in EXPERIMENT_METADATA_EXCEPTIONS_MAP:
             metadata[key] = EXPERIMENT_METADATA_EXCEPTIONS_MAP[key]
         # otherwise convert any values that are present in the map
-        elif value in EXPERIMENT_METADATA_MAP.keys():
+        elif value in EXPERIMENT_METADATA_MAP:
             metadata[key] = EXPERIMENT_METADATA_MAP[value]
 
     return metadata
