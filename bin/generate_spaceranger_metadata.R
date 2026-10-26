@@ -19,6 +19,11 @@ option_list <- list(
     help = "Sample identifier for metadata file"
   ),
   make_option(
+    opt_str = c("--project_id"),
+    type = "character",
+    help = "Project identifier for metadata file"
+  ),
+  make_option(
     opt_str = c("-u", "--unfiltered_barcodes_file"),
     type = "character",
     help = "path to file containing list of all spot barcodes identified in library with no filtering"
@@ -188,6 +193,7 @@ if (opt$technology %in% c("visium_hd", "visium_hd_3prime")) {
 metadata_list <- list(
   library_id = opt$library_id,
   sample_id = opt$sample_id,
+  project_id = opt$project_id,
   technology = opt$technology,
   seq_unit = opt$seq_unit,
   total_reads = metrics_summary$`Number of Reads`,
