@@ -156,7 +156,7 @@ workflow call_cnvs {
         // ensure the infercnv_checkpoints_dir exists before proceeding; all these files are in the same dir
         infercnv_results.parent.mkdirs()
         // create empty files if they don't exist
-        // https://www.nextflow.io/docs/latest/working-with-files.html#reading-and-writing-an-entire-file
+        // https://docs.seqera.io/nextflow/working-with-files#reading-and-writing-an-entire-file
         if (!infercnv_results.exists()) infercnv_results.text = ''
         if (!infercnv_table.exists())   infercnv_table.text = ''
         if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
