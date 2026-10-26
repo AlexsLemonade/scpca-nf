@@ -66,7 +66,7 @@ Although highly recommended, it is not required that this workflow passes before
 
 ## Stub workflows
 
-All Nextflow processes should include a [`stub` block](https://www.nextflow.io/docs/latest/process.html#stub) with a minimal script that can be run quickly to produce files in the expected output locations.
+All Nextflow processes should include a [`stub` block](https://docs.seqera.io/nextflow/process#stub) with a minimal script that can be run quickly to produce files in the expected output locations.
 At this stage this is purely used to allow for testing of the main workflow logic rather than the internal logic of each process.
 
 The [`test/stub-run-metadata.tsv`](test/stub-run-metadata.tsv) file is used to define input libraries that will be used for testing.
@@ -111,7 +111,7 @@ ${meta.unique_id}
 ```
 
 
-#### Declaring groovy variables 
+#### Declaring groovy variables
 
 Variables in Groovy are set as global by default, which can have some unexpected consequences.
 To avoid this, any variables declared in functions or closures (such as `.map{ }` statements) should be prefixed with `def`, which defines them as locally-scoped variables.
@@ -135,7 +135,7 @@ Using `def` also improves code readability in closures:
 ```groovy
 // do this:
 // note that we preface unused variables with underscores
-good.map{ meta, thing1, _thing2 -> 
+good.map{ meta, thing1, _thing2 ->
   // define the long item first for clarity in the returned list
   def long_file = file(meta.long_file_name_in_meta, checkIfExists: true)
   [meta, thing1, long_file]
@@ -143,7 +143,7 @@ good.map{ meta, thing1, _thing2 ->
 
 
 // don't do this:
-bad.map{ meta, thing1, _thing2 -> 
+bad.map{ meta, thing1, _thing2 ->
   [meta, thing1, file(meta.long_file_name_in_meta, checkIfExists: true)]
 }
 ```
@@ -157,7 +157,7 @@ In multi-line channel transformations, the `->` should appear at the _end_ of a 
 
 ```groovy
 // do this:
-good.map{ meta, thing1, _thing2 -> 
+good.map{ meta, thing1, _thing2 ->
   def long_file = file(meta.long_file_name_in_meta, checkIfExists: true)
   [meta, thing1, long_file]
 }
@@ -168,10 +168,10 @@ bad.map{ meta, thing1 -> [meta, thing1, file(meta.long_file_name_in_meta, checkI
 
 // also don't do this:
 bad.map{ meta, thing1 -> tuple(
-    meta, 
-    thing1, 
+    meta,
+    thing1,
     file(meta.long_file_name_in_meta, checkIfExists: true)
-  ) 
+  )
 }
 ```
 
@@ -183,13 +183,13 @@ We use explicit variables in closures for all `.map{ }` statements and all other
 
 ```groovy
 // do this:
-good.map{ it -> 
+good.map{ it ->
   def id = it[0].unique_id
   [it, id]
 }
 
 // don't do this:
-bad.map{ 
+bad.map{
   def id = it[0].unique_id
   [it, id]
 }
@@ -201,12 +201,12 @@ If specifying just `it` as the explicit closure variable would require additiona
 
 ```groovy
 // do this:
-good.map{ meta, _unfiltered, _filtered, processed -> 
+good.map{ meta, _unfiltered, _filtered, processed ->
   [meta, processed]
 }
 
 // don't do this:
-bad.map{ it -> 
+bad.map{ it ->
   [it[0], it[3]]
 }
 ```
@@ -238,7 +238,7 @@ For example, when defining a Path variable to stage for a process, we use the fo
 
 ```groovy
 // do this:
-// define as Path variable if file exists, or [] if not 
+// define as Path variable if file exists, or [] if not
 def file_to_stage = variable_with_filename ? file(variable_with_filename, checkIfExists: true) : []
 ```
 
