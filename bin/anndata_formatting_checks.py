@@ -17,7 +17,6 @@ import anndata
 import numpy as np
 import pandas as pd
 
-
 # Maps simplified type names to pandas dtype-checking functions.
 # These work for both numpy arrays and pandas Series regardless of backend.
 _DTYPE_CHECKERS = {
@@ -37,6 +36,7 @@ _BUILTIN_TYPES = {
     "NoneType": type(None),
     "dict": dict,
     "numpy.ndarray": np.ndarray,
+    "pandas.DataFrame": pd.DataFrame,
 }
 
 
