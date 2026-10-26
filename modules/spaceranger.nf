@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
@@ -382,7 +382,7 @@ workflow spaceranger_quant{
       .map{ meta ->
         [
           // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
-          meta + readMeta(file("${meta.spaceranger_results_dir}/scpca-meta.json")),
+          updateMetaFromFile(meta, file("${meta.spaceranger_results_dir}/scpca-meta.json")),
           file(meta.spaceranger_results_dir, type: 'dir')
         ]
       }

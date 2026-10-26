@@ -1,6 +1,6 @@
 
 // Include utility functions
-include { readMeta; getMetaVal } from '../lib/utils.nf'
+include { updateMetaFromFile; getMetaVal } from '../lib/utils.nf'
 // include processes
 include { star_bulk } from './bulk-star.nf'
 include { pileup_multibulk } from './bulk-pileup.nf'
@@ -72,7 +72,7 @@ workflow genetic_demux_vireo {
       .map{ meta ->
         [
           // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
-          meta + readMeta(file("${meta.vireo_dir}/scpca-meta.json")),
+          updateMetaFromFile(meta, file("${meta.vireo_dir}/scpca-meta.json")),
           file(meta.vireo_dir, type: 'dir', checkIfExists: true)
         ]
       }

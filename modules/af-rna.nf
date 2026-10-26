@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 
 // generates RAD file using alevin
@@ -183,8 +183,8 @@ workflow map_quant_rna {
     rna_rad_ch = rna_channel.has_rad
       .map{ meta ->
         [
-          // update metadata with stored values (+ means any empty values in the stored meta will be filled in with the current meta values)
-          meta + readMeta(file("${meta.rad_dir}/scpca-meta.json")),
+          // update metadata with stored values (any empty values in the stored meta will be filled in with the current meta values)
+          updateMetaFromFile(meta, file("${meta.rad_dir}/scpca-meta.json")),
           file(meta.rad_dir, type: 'dir', checkIfExists: true) // fail if no rad directory
         ]
       }
