@@ -648,7 +648,7 @@
         },
         "cellbrowser_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.3",
+          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.6",
           "fa_icon": "fab fa-docker"
         },
         "scvi_container": {
@@ -659,7 +659,7 @@
         },
         "vireo_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.10.3",
+          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.10.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -688,9 +688,6 @@
     },
     {
       "$ref": "#/$defs/algorithm_parameters"
-    },
-    {
-      "$ref": "#/$defs/resource_maximums"
     },
     {
       "$ref": "#/$defs/template_files"
