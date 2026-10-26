@@ -112,7 +112,7 @@ For a complete description of the expected output files, see the section describ
 ## File organization
 
 You will need to have files organized so that all the sequencing files for each library are in their own directory or folder.
-Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-metadata-file).
+Each folder should be named with a unique ID, corresponding to the [`scpca_run_id` column of the metadata file](#prepare-the-run-metadata-file).
 Any sequencing runs that contain multiple libraries must be demultiplexed and FASTQ files must be placed into separate distinct folders, with distinct run IDs as the folder name.
 If the same sequencing library was sequenced across multiple flow cells (e.g., to increase coverage), all FASTQ files should be combined into the same folder.
 If a library has a corresponding ADT library and therefore a separate set of FASTQ files, the FASTQ files corresponding to the ADT library should be in their own folder, with a unique run ID.
@@ -209,11 +209,6 @@ These parameters can be set at the command line using `--run_metafile {path to r
 
 Note that _workflow_ parameters such as `--run_metafile` and `--outdir` are denoted at the command line with double hyphen prefix, while options that affect Nextflow itself have only a single hyphen.
 
-There are also a number of optional parameters that can be set, either at the command line or in a configuration file, including:
-
-- `max_cpus`: the maximum number of CPU cores to use for a single process (default: 24)
-- `max_memory`: the maximum amount of memory to use for a single process (default: `96.GB`)
-
 Other customizable parameters can be found in the `nextflow.config` file in the repository.
 Note that all parameters can be overridden with a user config file or at the command line; `nextflow.config` itself should not need modification.
 
@@ -247,8 +242,8 @@ See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html
 
 ### Setting up a profile in the configuration file
 
-Processing single-cell and single-nuclei samples requires access to 24 GB of RAM and 12 CPUs so you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
-To do this, we recommend using [Nextflow profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles) to encapsulate settings like the [`executor`](https://www.nextflow.io/docs/latest/executor.html) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://www.nextflow.io/docs/latest/docker.html) or [Singularity](https://www.nextflow.io/docs/latest/singularity.html)) your system uses.
+Processing single-cell and single-nuclei samples requires access to at least 24 GB of RAM and 12 CPUs so you will most likely want to run your workflow in a high performance computing environment (HPC), such as an institutional computing cluster or on a cloud service like AWS.
+To do this, we recommend using [Nextflow profiles](https://docs.seqera.io/nextflow/config#config-profiles) to encapsulate settings like [`resourceLimits`](https://docs.seqera.io/nextflow/reference/process/directives/resource-limits) and [`executor`](https://docs.seqera.io/nextflow/executor) that will be used to run each process and associated details that may be required, such as queue names or the container engine (i.e., [Docker](https://docs.seqera.io/nextflow/container/docker) or [Singularity](https://docs.seqera.io/nextflow/container/singularity)) your system uses.
 You will likely want to consult your HPC documentation and/or support staff to determine recommended settings.
 
 **Note:** To use the default index files and default cell type reference files, which are stored on S3, compute nodes must have access to the internet.
@@ -685,7 +680,7 @@ nextflow run AlexsLemonade/scpca-nf \
   --skip_genetic_demux
 ```
 
-The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-metadata-file).
+The `feature_barcode_file` for each library should be listed in the [metadata file](#prepare-the-run-metadata-file).
 
 The `cellhash_pool_file` location will be defined as a parameter in the [configuration file](#configuration-files), and should contain information for all libraries to be processed.
 This file will contain one row for each library-sample pair (i.e. a library containing 4 samples will have 4 rows, one for each sample within), and should contain the following required columns:
@@ -727,7 +722,7 @@ This file will contain one row for each library-sample pair (i.e. a library cont
 
 ### Spatial transcriptomics libraries
 
-To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
+To process spatial transcriptomic libraries, all FASTQ files for each sequencing run and the associated image file(s) must be inside the `files_directory` listed in the [metadata file](#prepare-the-run-metadata-file), organized into subdirectories named as exactly as shown based on the file type:
 
 ```text
 {files_directory}

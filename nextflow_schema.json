@@ -517,23 +517,6 @@
       },
       "fa_icon": "fas fa-tasks"
     },
-    "resource_maximums": {
-      "title": "Resource maximums",
-      "type": "object",
-      "fa_icon": "fab fa-acquisitions-incorporated",
-      "description": "Set the top limit for requested resources for any single job.",
-      "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-      "properties": {
-        "max_memory": {
-          "type": "string",
-          "description": "Maximum memory used for high memory jobs.",
-          "default": "512 GB",
-          "fa_icon": "fas fa-memory",
-          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `512.GB`"
-        }
-      }
-    },
     "template_files": {
       "title": "Template Files",
       "type": "object",
@@ -603,12 +586,6 @@
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "scpcatools_scvi_container": {
-          "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.5",
-          "hidden": true,
-          "fa_icon": "fab fa-docker"
-        },
         "scpcatools_infercnv_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.5",
@@ -672,6 +649,12 @@
         "cellbrowser_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.3",
+          "fa_icon": "fab fa-docker"
+        },
+        "scvi_container": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpca-nf/scvi:edge-gpu",
+          "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "vireo_container": {
