@@ -59,7 +59,7 @@ After identifying the system that you will use to execute the Nextflow workflow,
 Here we provide an overview of the steps you will need to complete:
 
 1. **Install the necessary dependencies.**
-   You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), the main workflow engine that `scpca-nf` relies on.
+   You will need to make sure you have the following software installed on your HPC where you plan to execute the workflow: - [Nextflow](https://docs.seqera.io/nextflow/install#installation), the main workflow engine that `scpca-nf` relies on.
    This can be downloaded and installed by any user, with minimal external requirements. - [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#installation), which allows the use of container images that encapsulate other dependencies used by the workflow reproducibly.
    These usually require installation by system administrators, but most HPC systems have one available (usually Singularity). - Other software dependencies, as well as the workflow files themselves, are handled by Nextflow, which will download Docker or Singularity images as required.
    The `scpca-nf` workflow does not need to be downloaded separately.
@@ -214,7 +214,7 @@ Note that all parameters can be overridden with a user config file or at the com
 
 ### Configuration files
 
-Workflow parameters can also be set in a [configuration file](https://www.nextflow.io/docs/latest/config.html#configuration-file) by setting the values `params.run_metafile`, `params.sample_metafile`, and `params.outdir` as follows.
+Workflow parameters can also be set in a [configuration file](https://docs.seqera.io/nextflow/config#configuration-file) by setting the values `params.run_metafile`, `params.sample_metafile`, and `params.outdir` as follows.
 
 We could first create a file `my_config.config` (or a filename of your choice) with the following contents:
 
@@ -238,7 +238,7 @@ Under the `standard` profile, Nextflow will attempt to run the workflow locally 
 This will most likely result in an error unless the minimum computing requirements (24 GB of RAM and 12 CPUs) are met on the local machine.
 For more on [creating and using a profile](#setting-up-a-profile-in-the-configuration-file) see the section below.
 
-See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) and the below sections for more detail on creating your own configuration file.
+See the [Nextflow documentation](https://docs.seqera.io/nextflow/config) and the below sections for more detail on creating your own configuration file.
 
 ### Setting up a profile in the configuration file
 
@@ -262,9 +262,9 @@ nextflow run AlexsLemonade/scpca-nf \
 At the Data Lab, we use Nextflow with the [Amazon Web Services (AWS) Batch](https://aws.amazon.com/batch/) compute environment.
 If you are interested in using AWS batch with `scpca-nf`, we provide some basic instructions here to get you started.
 Be aware, AWS management can be quite complex, with many interacting parts and mysterious acronyms.
-We encourage you to read the official Nextflow instructions for [running pipelines on AWS](https://www.nextflow.io/docs/latest/awscloud.html), which includes information about security and permission settings that are beyond the scope of this document.
+We encourage you to read the official Nextflow instructions for [running pipelines on AWS](https://docs.seqera.io/nextflow/reference/executor/aws-batch), which includes information about security and permission settings that are beyond the scope of this document.
 
-To run `scpca-nf`, you will need to set up at least one batch queue and an associated compute environment configured with a custom Amazon Machine Image (AMI) prepared according to the [Nextflow instructions](https://www.nextflow.io/docs/latest/awscloud.html#custom-ami).
+To run `scpca-nf`, you will need to set up at least one batch queue and an associated compute environment configured with a custom Amazon Machine Image (AMI) prepared according to the [Nextflow instructions](https://docs.seqera.io/nextflow/guides/aws-custom-ami).
 You will also need an [S3 bucket](https://aws.amazon.com/s3/) path to use as the Nextflow `work` directory for intermediate files.
 As the intermediate files can get quite large, you will likely want to set up a [life cycle rule](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) to delete files from this location after a fixed period of time (e.g., 30 days).
 
@@ -309,7 +309,7 @@ nextflow run AlexsLemonade/scpca-nf \
 ```
 
 Note that other configuration settings such as [profiles](#setting-up-a-profile-in-the-configuration-file), must still be set in the configuration file directly.
-However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://www.nextflow.io/docs/latest/config.html#configuration-file).
+However, you should **not** put `params.ref_rootdir` in the configuration file, as Nextflow may not properly create the sub-paths for the various reference files due to [Nextflow's precedence rules of setting parameters](https://docs.seqera.io/nextflow/config#configuration-file).
 The `ref_rootdir` parameter should _only_ be specified in a parameter file or at the command line with the `--ref_rootdir` argument.
 
 #### Additional reference files
