@@ -2,9 +2,12 @@
     "unfiltered": {
         "rna": {
             "has_raw.X": false,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -94,9 +97,12 @@
     "filtered": {
         "rna": {
             "has_raw.X": false,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -242,9 +248,12 @@
     "processed": {
         "rna": {
             "has_raw.X": true,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -463,9 +472,12 @@
     "merged": {
         "rna": {
             "has_raw.X": true,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",

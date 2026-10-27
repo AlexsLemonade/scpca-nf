@@ -12,7 +12,10 @@ anndata_ref_file = "../anndata-formatting-reference.json"
 # define names of slots and their types for each object type
 # --------------------- SCE ---------------------------
 # assays
-assays = ["counts", "spliced"]
+assays = ["counts"]
+# spliced assay is only present for alevin-fry, not cellranger multi
+# stored in metadata(sce)$mapping_tool, or per library in metadata(sce)$library_metadata for merged
+assays_conditional = {"alevin-fry": ["spliced"]}
 processed_assays = ["logcounts"]
 adt_assays = ["counts"]
 cellhash_assays = ["counts"]
@@ -381,6 +384,7 @@ filtered_altexp_cellhash_cell_metadata_conditional = {
 
 unfiltered_sce = {
     "assayNames": assays,
+    "assayNames_conditional": assays_conditional,
     "colData": cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": cell_metadata_conditional,
@@ -405,6 +409,7 @@ unfiltered_sce = {
 
 filtered_sce = {
     "assayNames": assays,
+    "assayNames_conditional": assays_conditional,
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": filtered_cell_metadata_conditional,
@@ -431,6 +436,7 @@ filtered_sce = {
 
 processed_sce = {
     "assayNames": assays + processed_assays,
+    "assayNames_conditional": assays_conditional,
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
@@ -458,6 +464,7 @@ processed_sce = {
 
 merged_sce = {
     "assayNames": assays + processed_assays,
+    "assayNames_conditional": assays_conditional,
     "colData": merged_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
@@ -552,7 +559,10 @@ def convert_experiment_metadata_types(metadata):
 
 # layer/assays ---------
 # used for all objects
-layers = ["spliced"]
+layers = []
+# spliced layer is only present for alevin-fry, not cellranger multi
+# stored in uns["mapping_tool"], or per library in uns["library_metadata"] for merged
+layers_conditional = copy.deepcopy(assays_conditional)
 
 # unfiltered cell metadata ------------
 anndata_specific_obs_metadata = {
@@ -739,6 +749,7 @@ unfiltered_anndata = {
     "rna": {
         "has_raw.X": False,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": obs_metadata,
         "var": unfiltered_var_metadata,
         "obs_conditional": obs_metadata_conditional,
@@ -757,6 +768,7 @@ filtered_anndata = {
     "rna": {
         "has_raw.X": False,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": filtered_obs_metadata,
         "var": unfiltered_var_metadata,
         "obs_conditional": filtered_cell_metadata_conditional,
@@ -777,6 +789,7 @@ processed_anndata = {
     "rna": {
         "has_raw.X": True,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": filtered_obs_metadata,
         "var": processed_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,
@@ -798,6 +811,7 @@ merged_anndata = {
     "rna": {
         "has_raw.X": True,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": merged_obs_metadata,
         "var": merged_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,
