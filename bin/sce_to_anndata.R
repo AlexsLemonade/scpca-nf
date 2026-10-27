@@ -79,6 +79,14 @@ if (!is.null(opt$output_pca_tsv) && !stringr::str_ends(opt$output_pca_tsv, ".tsv
 format_merged_sce <- function(sce) {
   # paste X to any present reduced dim names
   reducedDimNames(sce) <- glue::glue("X_{tolower(reducedDimNames(sce))}")
+
+  # convert any colData columns that are all NA to empty strings
+  # all NA columns are not handled properly when converting to AnnData
+  colData(sce) <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::mutate(dplyr::across(dplyr::where(\(x) all(is.na(x))), \(x) "")) |>
+    DataFrame(row.names = colnames(sce))
+
   return(sce)
 }
 
