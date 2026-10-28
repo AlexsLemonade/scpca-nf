@@ -188,6 +188,12 @@ def get_conditionals(adata):
         and not adata.obs["submitter_celltype_annotation"].isna().all()
     )
 
+    # miQC status is stored as a logical in uns for filtered and processed objects
+    # if miQC failed, prob_compromised is all NA and gets converted to bool
+    has_miqc = uns.get("has_miQC")
+    if has_miqc is not None:
+        has_miqc = bool(np.ravel(has_miqc)[0])
+
     # set neg post control based on target types if adt
     has_neg_ctrl = False
     no_neg_ctrl = False
@@ -203,6 +209,8 @@ def get_conditionals(adata):
         # preprocessing steps
         "umi_filtering": uns.get("filtering_method") == "UMI cutoff",
         "has_normalization": "sizeFactor" in obs_cols,
+        "has_miQC": has_miqc is True,
+        "miQC_failed": has_miqc is False,
         # clustering and cell type annotation
         "has_clusters": "cluster" in obs_cols,
         "has_consensus": "consensus_celltype_annotation" in obs_cols,
