@@ -82,8 +82,7 @@
                 "rowData": {
                     "adt_id": "character",
                     "mean": "numeric",
-                    "detected": "numeric",
-                    "target_type": "character"
+                    "detected": "numeric"
                 },
                 "metadata": {
                     "library_id": "character",

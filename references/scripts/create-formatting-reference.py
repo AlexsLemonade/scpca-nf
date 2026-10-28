@@ -289,6 +289,13 @@ altexp_adt_feature_metadata = {
     "target_type": "character",
 }
 
+# target_type is added during filtering, so it is not present in unfiltered objects
+unfiltered_altexp_adt_feature_metadata = {
+    key: value
+    for key, value in altexp_adt_feature_metadata.items()
+    if key != "target_type"
+}
+
 # used for filtered and processed
 filtered_altexp_adt_cell_metadata = {
     "zero.ambient": "logical",
@@ -393,7 +400,7 @@ unfiltered_sce = {
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
-            "rowData": altexp_adt_feature_metadata,
+            "rowData": unfiltered_altexp_adt_feature_metadata,
             "metadata": unfiltered_altexp_adt_experiment_metadata,
             "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
@@ -536,8 +543,6 @@ EXPERIMENT_METADATA_EXCEPTIONS_MAP = {
     "consensus_celltype_methods": "numpy.ndarray",
     "highly_variable_genes": "numpy.ndarray",
     "infercnv_reference_celltypes": "numpy.ndarray",
-    "infercnv_options": "numpy.ndarray",
-    "transcript_type": "numpy.ndarray",
     "cluster_nn": "int",
 }
 
@@ -555,6 +560,21 @@ def convert_experiment_metadata_types(metadata):
             metadata[key] = EXPERIMENT_METADATA_MAP[value]
 
     return metadata
+
+
+# transcript_type is stored as a single string for cellranger multi,
+# but as an array for alevin-fry (multiple transcript types)
+transcript_type_conditional = {
+    "alevin-fry": {"transcript_type": "numpy.ndarray"},
+    "cellranger-multi": {"transcript_type": "str"},
+}
+
+
+def add_transcript_type_conditional(metadata_conditional):
+    for condition, cond_metadata in transcript_type_conditional.items():
+        metadata_conditional.setdefault(condition, {}).update(cond_metadata)
+
+    return metadata_conditional
 
 
 # layer/assays ---------
@@ -604,11 +624,21 @@ filtered_obs_metadata = {
     "detected": "int",
 }
 
+# prob_compromised depends on whether miQC succeeded, so remove it from the required obs
+filtered_obs_metadata.pop("prob_compromised", None)
+
+# if miQC fails, prob_compromised is all NA, which gets converted to bool in AnnData
+miqc_obs_metadata_conditional = {
+    "has_miQC": {"prob_compromised": "float"},
+    "miQC_failed": {"prob_compromised": "bool"},
+}
+
 filtered_cell_metadata_conditional = {
     **convert_cell_row_metadata_types(
         copy.deepcopy(filtered_cell_metadata_conditional)
     ),
     **anndata_specific_obs_metadata_conditional,
+    **miqc_obs_metadata_conditional,
 }
 
 # processed cell metadata ------------
@@ -618,6 +648,7 @@ processed_obs_metadata_conditional = {
         copy.deepcopy(processed_cell_metadata_conditional)
     ),
     **anndata_specific_obs_metadata_conditional,
+    **miqc_obs_metadata_conditional,
 }
 
 # merged cell metadata ------------
@@ -659,10 +690,13 @@ unfiltered_uns_metadata = {
 }
 # drop sample_metadata since we don't keep it in AnnData objects
 unfiltered_uns_metadata.pop("sample_metadata", None)
+# transcript_type depends on mapping tool
+unfiltered_uns_metadata.pop("transcript_type", None)
 
-# also used for all adt object types
-unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
-    copy.deepcopy(unfiltered_experiment_metadata_conditional)
+unfiltered_uns_metadata_conditional = add_transcript_type_conditional(
+    convert_experiment_metadata_types(
+        copy.deepcopy(unfiltered_experiment_metadata_conditional)
+    )
 )
 
 filtered_uns_metadata = {
@@ -673,6 +707,8 @@ filtered_uns_metadata = {
 }
 # drop sample_metadata since we don't keep it in AnnData objects
 filtered_uns_metadata.pop("sample_metadata", None)
+# transcript_type depends on mapping tool
+filtered_uns_metadata.pop("transcript_type", None)
 
 filtered_uns_metadata_conditional = {
     **convert_experiment_metadata_types(
@@ -683,6 +719,7 @@ filtered_uns_metadata_conditional = {
 }
 # drop has_miQC since we don't keep S4 objects
 filtered_uns_metadata_conditional.pop("has_miQC", None)
+add_transcript_type_conditional(filtered_uns_metadata_conditional)
 
 processed_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
@@ -697,10 +734,16 @@ processed_uns_metadata = {
 }
 # again remove sample metadata
 processed_uns_metadata.pop("sample_metadata", None)
+# transcript_type depends on mapping tool
+processed_uns_metadata.pop("transcript_type", None)
 
-processed_uns_metadata_conditional = convert_experiment_metadata_types(
-    copy.deepcopy(processed_experiment_metadata_conditional)
+processed_uns_metadata_conditional = add_transcript_type_conditional(
+    convert_experiment_metadata_types(
+        copy.deepcopy(processed_experiment_metadata_conditional)
+    )
 )
+# infercnv_options is an R list that does not get exported to AnnData
+processed_uns_metadata_conditional["has_infercnv"].pop("infercnv_options", None)
 
 # merged metadata is the same as sce but no library_metadata list
 merged_uns_metadata = {
@@ -713,6 +756,10 @@ merged_uns_metadata = {
 # adt specific items
 altexp_adt_var_metadata = convert_cell_row_metadata_types(
     copy.deepcopy(altexp_adt_feature_metadata)
+)
+
+unfiltered_altexp_adt_var_metadata = convert_cell_row_metadata_types(
+    copy.deepcopy(unfiltered_altexp_adt_feature_metadata)
 )
 
 # used in both filtered and processed
@@ -736,6 +783,12 @@ merged_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
 filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
     copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
+# transcript_type depends on mapping tool
+filtered_altexp_adt_uns_metadata.pop("transcript_type", None)
+
+filtered_altexp_adt_uns_metadata_conditional = copy.deepcopy(
+    transcript_type_conditional
+)
 
 merged_altexp_adt_uns_metadata = {
     "library_id": "string",
@@ -757,7 +810,7 @@ unfiltered_anndata = {
         "uns_conditional": unfiltered_uns_metadata_conditional,
     },
     "adt": {
-        "var": altexp_adt_var_metadata,
+        "var": unfiltered_altexp_adt_var_metadata,
     },
 }
 
@@ -780,6 +833,7 @@ filtered_anndata = {
         "var": altexp_adt_var_metadata,
         "obs_conditional": filtered_altexp_adt_obs_metadata_conditional,
         "uns": filtered_altexp_adt_uns_metadata,
+        "uns_conditional": filtered_altexp_adt_uns_metadata_conditional,
     },
 }
 
@@ -802,6 +856,7 @@ processed_anndata = {
         "var": altexp_adt_var_metadata,
         "obs_conditional": processed_altexp_adt_obs_metadata_conditional,
         "uns": filtered_altexp_adt_uns_metadata,
+        "uns_conditional": filtered_altexp_adt_uns_metadata_conditional,
     },
 }
 

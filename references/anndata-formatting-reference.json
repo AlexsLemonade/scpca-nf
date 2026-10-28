@@ -61,7 +61,6 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
                 "sample_type": "str",
                 "X_name": "str",
                 "schema_version": "str"
@@ -75,13 +74,15 @@
                     "af_resolution": "str",
                     "usa_mode": "bool",
                     "af_num_cells": "int",
-                    "include_unspliced": "bool"
+                    "include_unspliced": "bool",
+                    "transcript_type": "numpy.ndarray"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
                     "pct_mapped_reads": "float",
-                    "cellranger_num_cells": "int"
+                    "cellranger_num_cells": "int",
+                    "transcript_type": "str"
                 }
             }
         },
@@ -89,8 +90,7 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "float",
-                "target_type": "string"
+                "detected": "float"
             }
         }
     },
@@ -111,7 +111,6 @@
                 "subsets_mito_detected": "int",
                 "subsets_mito_percent": "float",
                 "total": "float",
-                "prob_compromised": "float",
                 "miQC_pass": "bool",
                 "scpca_filter": "string",
                 "scDblFinder_class": "string",
@@ -163,6 +162,12 @@
                 },
                 "is_multiplexed": {
                     "sample_id": null
+                },
+                "has_miQC": {
+                    "prob_compromised": "float"
+                },
+                "miQC_failed": {
+                    "prob_compromised": "bool"
                 }
             },
             "uns": {
@@ -175,7 +180,6 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": [
@@ -196,13 +200,15 @@
                     "af_resolution": "str",
                     "usa_mode": "bool",
                     "af_num_cells": "int",
-                    "include_unspliced": "bool"
+                    "include_unspliced": "bool",
+                    "transcript_type": "numpy.ndarray"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
                     "pct_mapped_reads": "float",
-                    "cellranger_num_cells": "int"
+                    "cellranger_num_cells": "int",
+                    "transcript_type": "str"
                 },
                 "umi_filtering": {
                     "umi_cutoff": "float"
@@ -240,8 +246,15 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
                 "ambient_profile": "float"
+            },
+            "uns_conditional": {
+                "alevin-fry": {
+                    "transcript_type": "numpy.ndarray"
+                },
+                "cellranger-multi": {
+                    "transcript_type": "str"
+                }
             }
         }
     },
@@ -262,7 +275,6 @@
                 "subsets_mito_detected": "int",
                 "subsets_mito_percent": "float",
                 "total": "float",
-                "prob_compromised": "float",
                 "miQC_pass": "bool",
                 "scpca_filter": "string",
                 "scDblFinder_class": "string",
@@ -343,6 +355,12 @@
                 },
                 "is_multiplexed": {
                     "sample_id": null
+                },
+                "has_miQC": {
+                    "prob_compromised": "float"
+                },
+                "miQC_failed": {
+                    "prob_compromised": "bool"
                 }
             },
             "obsm": [
@@ -359,7 +377,6 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": "NoneType,float",
@@ -423,12 +440,17 @@
                     "infercnv_num_reference_cells": "int",
                     "infercnv_diagnosis_groups": "str",
                     "infercnv_status": "str",
-                    "infercnv_options": "numpy.ndarray",
                     "infercnv_table": "pandas.DataFrame"
                 },
                 "has_adt": {
                     "adt_scpca_filter_method": "str",
                     "adt_normalization": "str"
+                },
+                "alevin-fry": {
+                    "transcript_type": "numpy.ndarray"
+                },
+                "cellranger-multi": {
+                    "transcript_type": "str"
                 }
             }
         },
@@ -464,8 +486,15 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
                 "ambient_profile": "float"
+            },
+            "uns_conditional": {
+                "alevin-fry": {
+                    "transcript_type": "numpy.ndarray"
+                },
+                "cellranger-multi": {
+                    "transcript_type": "str"
+                }
             }
         }
     },
@@ -588,6 +617,12 @@
                 },
                 "is_multiplexed": {
                     "sample_id": null
+                },
+                "has_miQC": {
+                    "prob_compromised": "float"
+                },
+                "miQC_failed": {
+                    "prob_compromised": "bool"
                 }
             },
             "obsm": [
