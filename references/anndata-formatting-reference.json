@@ -61,6 +61,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
+                "transcript_type": "str",
                 "sample_type": "str",
                 "X_name": "str",
                 "schema_version": "str"
@@ -74,15 +75,13 @@
                     "af_resolution": "str",
                     "usa_mode": "bool",
                     "af_num_cells": "int",
-                    "include_unspliced": "bool",
-                    "transcript_type": "numpy.ndarray"
+                    "include_unspliced": "bool"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
                     "pct_mapped_reads": "float",
-                    "cellranger_num_cells": "int",
-                    "transcript_type": "str"
+                    "cellranger_num_cells": "int"
                 }
             }
         },
@@ -180,6 +179,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
+                "transcript_type": "str",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": [
@@ -200,15 +200,13 @@
                     "af_resolution": "str",
                     "usa_mode": "bool",
                     "af_num_cells": "int",
-                    "include_unspliced": "bool",
-                    "transcript_type": "numpy.ndarray"
+                    "include_unspliced": "bool"
                 },
                 "cellranger-multi": {
                     "cellranger_version": "str",
                     "reference_probeset": "str",
                     "pct_mapped_reads": "float",
-                    "cellranger_num_cells": "int",
-                    "transcript_type": "str"
+                    "cellranger_num_cells": "int"
                 },
                 "umi_filtering": {
                     "umi_cutoff": "float"
@@ -370,6 +368,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
+                "transcript_type": "str",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": "NoneType,float",
@@ -438,12 +437,6 @@
                 "has_adt": {
                     "adt_scpca_filter_method": "str",
                     "adt_normalization": "str"
-                },
-                "alevin-fry": {
-                    "transcript_type": "numpy.ndarray"
-                },
-                "cellranger-multi": {
-                    "transcript_type": "str"
                 }
             }
         },
