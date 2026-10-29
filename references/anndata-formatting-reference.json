@@ -246,15 +246,8 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
+                "transcript_type": "str",
                 "ambient_profile": "float"
-            },
-            "uns_conditional": {
-                "alevin-fry": {
-                    "transcript_type": "numpy.ndarray"
-                },
-                "cellranger-multi": {
-                    "transcript_type": "str"
-                }
             }
         }
     },
@@ -486,15 +479,8 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
+                "transcript_type": "str",
                 "ambient_profile": "float"
-            },
-            "uns_conditional": {
-                "alevin-fry": {
-                    "transcript_type": "numpy.ndarray"
-                },
-                "cellranger-multi": {
-                    "transcript_type": "str"
-                }
             }
         }
     },

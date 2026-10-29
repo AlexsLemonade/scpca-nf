@@ -783,12 +783,8 @@ merged_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
 filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
     copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
-# transcript_type depends on mapping tool
-filtered_altexp_adt_uns_metadata.pop("transcript_type", None)
-
-filtered_altexp_adt_uns_metadata_conditional = copy.deepcopy(
-    transcript_type_conditional
-)
+# adt is quantified without unspliced reads, so transcript_type is always a single string
+filtered_altexp_adt_uns_metadata["transcript_type"] = "str"
 
 merged_altexp_adt_uns_metadata = {
     "library_id": "string",
@@ -833,7 +829,6 @@ filtered_anndata = {
         "var": altexp_adt_var_metadata,
         "obs_conditional": filtered_altexp_adt_obs_metadata_conditional,
         "uns": filtered_altexp_adt_uns_metadata,
-        "uns_conditional": filtered_altexp_adt_uns_metadata_conditional,
     },
 }
 
@@ -856,7 +851,6 @@ processed_anndata = {
         "var": altexp_adt_var_metadata,
         "obs_conditional": processed_altexp_adt_obs_metadata_conditional,
         "uns": filtered_altexp_adt_uns_metadata,
-        "uns_conditional": filtered_altexp_adt_uns_metadata_conditional,
     },
 }
 
