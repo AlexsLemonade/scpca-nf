@@ -562,21 +562,6 @@ def convert_experiment_metadata_types(metadata):
     return metadata
 
 
-# transcript_type is stored as a single string for cellranger multi,
-# but as an array for alevin-fry (multiple transcript types)
-transcript_type_conditional = {
-    "alevin-fry": {"transcript_type": "numpy.ndarray"},
-    "cellranger-multi": {"transcript_type": "str"},
-}
-
-
-def add_transcript_type_conditional(metadata_conditional):
-    for condition, cond_metadata in transcript_type_conditional.items():
-        metadata_conditional.setdefault(condition, {}).update(cond_metadata)
-
-    return metadata_conditional
-
-
 # layer/assays ---------
 # used for all objects
 layers = []
@@ -690,13 +675,10 @@ unfiltered_uns_metadata = {
 }
 # drop sample_metadata since we don't keep it in AnnData objects
 unfiltered_uns_metadata.pop("sample_metadata", None)
-# transcript_type depends on mapping tool
-unfiltered_uns_metadata.pop("transcript_type", None)
 
-unfiltered_uns_metadata_conditional = add_transcript_type_conditional(
-    convert_experiment_metadata_types(
-        copy.deepcopy(unfiltered_experiment_metadata_conditional)
-    )
+# also used for all adt object types
+unfiltered_uns_metadata_conditional = convert_experiment_metadata_types(
+    copy.deepcopy(unfiltered_experiment_metadata_conditional)
 )
 
 filtered_uns_metadata = {
@@ -707,8 +689,6 @@ filtered_uns_metadata = {
 }
 # drop sample_metadata since we don't keep it in AnnData objects
 filtered_uns_metadata.pop("sample_metadata", None)
-# transcript_type depends on mapping tool
-filtered_uns_metadata.pop("transcript_type", None)
 
 filtered_uns_metadata_conditional = {
     **convert_experiment_metadata_types(
@@ -719,7 +699,6 @@ filtered_uns_metadata_conditional = {
 }
 # drop has_miQC since we don't keep S4 objects
 filtered_uns_metadata_conditional.pop("has_miQC", None)
-add_transcript_type_conditional(filtered_uns_metadata_conditional)
 
 processed_uns_metadata = {
     **convert_experiment_metadata_types(copy.deepcopy(processed_experiment_metadata)),
@@ -734,13 +713,9 @@ processed_uns_metadata = {
 }
 # again remove sample metadata
 processed_uns_metadata.pop("sample_metadata", None)
-# transcript_type depends on mapping tool
-processed_uns_metadata.pop("transcript_type", None)
 
-processed_uns_metadata_conditional = add_transcript_type_conditional(
-    convert_experiment_metadata_types(
-        copy.deepcopy(processed_experiment_metadata_conditional)
-    )
+processed_uns_metadata_conditional = convert_experiment_metadata_types(
+    copy.deepcopy(processed_experiment_metadata_conditional)
 )
 # infercnv_options is an R list that does not get exported to AnnData
 processed_uns_metadata_conditional["has_infercnv"].pop("infercnv_options", None)
@@ -783,8 +758,6 @@ merged_altexp_adt_obs_metadata = convert_cell_row_metadata_types(
 filtered_altexp_adt_uns_metadata = convert_experiment_metadata_types(
     copy.deepcopy(filtered_altexp_adt_experiment_metadata)
 )
-# adt is quantified without unspliced reads, so transcript_type is always a single string
-filtered_altexp_adt_uns_metadata["transcript_type"] = "str"
 
 merged_altexp_adt_uns_metadata = {
     "library_id": "string",
