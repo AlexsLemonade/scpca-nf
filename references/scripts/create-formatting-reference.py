@@ -12,7 +12,10 @@ anndata_ref_file = "../anndata-formatting-reference.json"
 # define names of slots and their types for each object type
 # --------------------- SCE ---------------------------
 # assays
-assays = ["counts", "spliced"]
+assays = ["counts"]
+# spliced assay is only present for alevin-fry, not cellranger multi
+# stored in metadata(sce)$mapping_tool, or per library in metadata(sce)$library_metadata for merged
+assays_conditional = {"alevin-fry": ["spliced"]}
 processed_assays = ["logcounts"]
 adt_assays = ["counts"]
 cellhash_assays = ["counts"]
@@ -286,6 +289,13 @@ altexp_adt_feature_metadata = {
     "target_type": "character",
 }
 
+# target_type is added during filtering, so it is not present in unfiltered objects
+unfiltered_altexp_adt_feature_metadata = {
+    key: value
+    for key, value in altexp_adt_feature_metadata.items()
+    if key != "target_type"
+}
+
 # used for filtered and processed
 filtered_altexp_adt_cell_metadata = {
     "zero.ambient": "logical",
@@ -381,6 +391,7 @@ filtered_altexp_cellhash_cell_metadata_conditional = {
 
 unfiltered_sce = {
     "assayNames": assays,
+    "assayNames_conditional": assays_conditional,
     "colData": cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": cell_metadata_conditional,
@@ -389,7 +400,7 @@ unfiltered_sce = {
     "altExp": {
         "adt": {
             "assayNames": adt_assays,
-            "rowData": altexp_adt_feature_metadata,
+            "rowData": unfiltered_altexp_adt_feature_metadata,
             "metadata": unfiltered_altexp_adt_experiment_metadata,
             "metadata_conditional": unfiltered_experiment_metadata_conditional,
         },
@@ -405,6 +416,7 @@ unfiltered_sce = {
 
 filtered_sce = {
     "assayNames": assays,
+    "assayNames_conditional": assays_conditional,
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": filtered_cell_metadata_conditional,
@@ -431,6 +443,7 @@ filtered_sce = {
 
 processed_sce = {
     "assayNames": assays + processed_assays,
+    "assayNames_conditional": assays_conditional,
     "colData": filtered_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
@@ -458,6 +471,7 @@ processed_sce = {
 
 merged_sce = {
     "assayNames": assays + processed_assays,
+    "assayNames_conditional": assays_conditional,
     "colData": merged_cell_metadata,
     "rowData": feature_metadata,
     "colData_conditional": processed_cell_metadata_conditional,
@@ -529,8 +543,6 @@ EXPERIMENT_METADATA_EXCEPTIONS_MAP = {
     "consensus_celltype_methods": "numpy.ndarray",
     "highly_variable_genes": "numpy.ndarray",
     "infercnv_reference_celltypes": "numpy.ndarray",
-    "infercnv_options": "numpy.ndarray",
-    "transcript_type": "numpy.ndarray",
     "cluster_nn": "int",
 }
 
@@ -552,7 +564,10 @@ def convert_experiment_metadata_types(metadata):
 
 # layer/assays ---------
 # used for all objects
-layers = ["spliced"]
+layers = []
+# spliced layer is only present for alevin-fry, not cellranger multi
+# stored in uns["mapping_tool"], or per library in uns["library_metadata"] for merged
+layers_conditional = copy.deepcopy(assays_conditional)
 
 # unfiltered cell metadata ------------
 anndata_specific_obs_metadata = {
@@ -594,11 +609,21 @@ filtered_obs_metadata = {
     "detected": "int",
 }
 
+# prob_compromised depends on whether miQC succeeded, so remove it from the required obs
+filtered_obs_metadata.pop("prob_compromised", None)
+
+# if miQC fails, prob_compromised is all NA, which gets converted to bool in AnnData
+miqc_obs_metadata_conditional = {
+    "has_miQC": {"prob_compromised": "float"},
+    "miQC_failed": {"prob_compromised": "bool"},
+}
+
 filtered_cell_metadata_conditional = {
     **convert_cell_row_metadata_types(
         copy.deepcopy(filtered_cell_metadata_conditional)
     ),
     **anndata_specific_obs_metadata_conditional,
+    **miqc_obs_metadata_conditional,
 }
 
 # processed cell metadata ------------
@@ -608,6 +633,7 @@ processed_obs_metadata_conditional = {
         copy.deepcopy(processed_cell_metadata_conditional)
     ),
     **anndata_specific_obs_metadata_conditional,
+    **miqc_obs_metadata_conditional,
 }
 
 # merged cell metadata ------------
@@ -691,6 +717,8 @@ processed_uns_metadata.pop("sample_metadata", None)
 processed_uns_metadata_conditional = convert_experiment_metadata_types(
     copy.deepcopy(processed_experiment_metadata_conditional)
 )
+# infercnv_options is an R list that does not get exported to AnnData
+processed_uns_metadata_conditional["has_infercnv"].pop("infercnv_options", None)
 
 # merged metadata is the same as sce but no library_metadata list
 merged_uns_metadata = {
@@ -703,6 +731,10 @@ merged_uns_metadata = {
 # adt specific items
 altexp_adt_var_metadata = convert_cell_row_metadata_types(
     copy.deepcopy(altexp_adt_feature_metadata)
+)
+
+unfiltered_altexp_adt_var_metadata = convert_cell_row_metadata_types(
+    copy.deepcopy(unfiltered_altexp_adt_feature_metadata)
 )
 
 # used in both filtered and processed
@@ -739,6 +771,7 @@ unfiltered_anndata = {
     "rna": {
         "has_raw.X": False,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": obs_metadata,
         "var": unfiltered_var_metadata,
         "obs_conditional": obs_metadata_conditional,
@@ -746,7 +779,7 @@ unfiltered_anndata = {
         "uns_conditional": unfiltered_uns_metadata_conditional,
     },
     "adt": {
-        "var": altexp_adt_var_metadata,
+        "var": unfiltered_altexp_adt_var_metadata,
     },
 }
 
@@ -757,6 +790,7 @@ filtered_anndata = {
     "rna": {
         "has_raw.X": False,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": filtered_obs_metadata,
         "var": unfiltered_var_metadata,
         "obs_conditional": filtered_cell_metadata_conditional,
@@ -777,6 +811,7 @@ processed_anndata = {
     "rna": {
         "has_raw.X": True,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": filtered_obs_metadata,
         "var": processed_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,
@@ -798,6 +833,7 @@ merged_anndata = {
     "rna": {
         "has_raw.X": True,
         "layers": layers,
+        "layers_conditional": layers_conditional,
         "obs": merged_obs_metadata,
         "var": merged_var_metadata,
         "obs_conditional": processed_obs_metadata_conditional,

@@ -1,9 +1,13 @@
 {
     "unfiltered": {
         "assayNames": [
-            "counts",
-            "spliced"
+            "counts"
         ],
+        "assayNames_conditional": {
+            "alevin-fry": [
+                "spliced"
+            ]
+        },
         "colData": {
             "barcodes": "character",
             "sum": "numeric",
@@ -78,8 +82,7 @@
                 "rowData": {
                     "adt_id": "character",
                     "mean": "numeric",
-                    "detected": "numeric",
-                    "target_type": "character"
+                    "detected": "numeric"
                 },
                 "metadata": {
                     "library_id": "character",
@@ -125,9 +128,13 @@
     },
     "filtered": {
         "assayNames": [
-            "counts",
-            "spliced"
+            "counts"
         ],
+        "assayNames_conditional": {
+            "alevin-fry": [
+                "spliced"
+            ]
+        },
         "colData": {
             "barcodes": "character",
             "sum": "numeric",
@@ -319,9 +326,13 @@
     "processed": {
         "assayNames": [
             "counts",
-            "spliced",
             "logcounts"
         ],
+        "assayNames_conditional": {
+            "alevin-fry": [
+                "spliced"
+            ]
+        },
         "colData": {
             "barcodes": "character",
             "sum": "numeric",
@@ -580,9 +591,13 @@
     "merged": {
         "assayNames": [
             "counts",
-            "spliced",
             "logcounts"
         ],
+        "assayNames_conditional": {
+            "alevin-fry": [
+                "spliced"
+            ]
+        },
         "colData": {
             "barcodes": "character",
             "sum": "numeric",
