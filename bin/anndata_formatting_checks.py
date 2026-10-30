@@ -172,10 +172,10 @@ def get_conditionals(adata):
     )
     # mapping tool conditions are only True if all libraries used the same mapping tool
     mapping_tools = get_mapping_tools(uns)
-    is_alevin_fry = bool(mapping_tools) and all(
+    is_alevin_fry = len(mapping_tools) > 0 and all(
         tool == "alevin-fry" for tool in mapping_tools
     )
-    is_cellranger_multi = bool(mapping_tools) and all(
+    is_cellranger_multi = len(mapping_tools) > 0 and all(
         tool == "cellranger multi" for tool in mapping_tools
     )
 
