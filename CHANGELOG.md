@@ -5,7 +5,20 @@ All notable changes to [scpca-nf](https://github.com/AlexsLemonade/scpca-nf) are
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.10.6...HEAD)
+## [Unreleased](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.11.0...HEAD)
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+
+## [v0.11.0](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.11.0)
 
 ### Added
 
@@ -17,13 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a minimum cell threshold for running `SCimilarity`
 - Configuration files modified slightly to better match nf-core conventions
+- `has_miQC`, indicating if `miQC` was successful is included in the metadata of all objects
+- CellBrowser now builds datasets for each library in parallel
 
 ### Fixed
+
+- Accounted for potential failures in `scDblFinder`
 
 ### Deprecated
 
 ### Removed
-
+ 
 - removed `max_memory` option; use `resourceLimits` directly
 
 
