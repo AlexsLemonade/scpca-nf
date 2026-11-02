@@ -2,11 +2,11 @@
 
 # This script creates the required configuration file for running cellranger multi
 
-from pathlib import Path
 import argparse
-import textwrap
-import re
 import csv
+import re
+import textwrap
+from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -77,7 +77,7 @@ config_content = textwrap.dedent(
     reference,{args.transcriptome_reference.resolve()}
     probe-set,{args.probe_set_reference.resolve()}
     create-bam,false
-    
+
     [libraries]
     fastq_id,fastqs,feature_types
     """.lstrip()  # remove leading newline

@@ -9,6 +9,7 @@ LABEL org.opencontainers.image.source="https://github.com/AlexsLemonade/scpca-nf
 
 ## Install ps for nextflow
 RUN apt-get update \
+    && apt-get install --only-upgrade -y ca-certificates \
     && apt-get install -y procps \
     && rm -rf /var/lib/apt/lists/*
 

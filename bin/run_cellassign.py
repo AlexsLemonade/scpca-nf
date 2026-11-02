@@ -54,6 +54,14 @@ parser.add_argument(
     type=int,
     help="Number of threads to use when training the CellAssign model",
 )
+parser.add_argument(
+    "-b",
+    "--batch_size",
+    dest="batch_size",
+    default=256,
+    type=int,
+    help="Batch size to use when training the CellAssign model",
+)
 
 args = parser.parse_args()
 
@@ -126,7 +134,7 @@ else:
     scvi.external.CellAssign.setup_anndata(subset_adata, size_factor_key="size_factor")
     model = CellAssign(subset_adata, ref_matrix)
     # smaller than default batch to preserve memory
-    model.train(accelerator="auto", devices="auto", batch_size=256)
+    model.train(accelerator="auto", devices="auto", batch_size=args.batch_size)
     predictions = model.predict()
     predictions["barcode"] = subset_adata.obs_names
 

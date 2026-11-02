@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; readMeta; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
 // import utility process with aliases to allow multiple uses in this workflow
 include { convert_anndata as convert_cellassign } from './convert-anndata.nf'
 include { convert_anndata as convert_scimilarity } from './convert-anndata.nf'
@@ -48,14 +48,14 @@ process classify_singler {
 
 
 process classify_cellassign {
-  container "${pullthroughContainer(params.scpcatools_scvi_container, params.pullthrough_registry)}"
+  container "${pullthroughContainer(params.scvi_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'
     )
-  label 'mem_96'
-  label 'cpus_12'
   label 'long_running'
+  label 'process_gpu'
+  // cpu and memory requirements are set in modules.config for this process
   tag "${meta.unique_id}"
   input:
     tuple val(meta), path(processed_h5ad), path(cellassign_reference_file)
@@ -70,12 +70,13 @@ process classify_cellassign {
     mkdir "${cellassign_dir}"
 
     # Run CellAssign
-    predict_cellassign.py \
+    run_cellassign.py \
       --anndata_file "${processed_h5ad}" \
       --output_predictions "${cellassign_dir}/cellassign_predictions.tsv" \
       --reference "${cellassign_reference_file}" \
       --seed ${params.seed} \
-      --threads ${task.cpus}
+      --threads ${task.cpus} \
+      --batch_size ${256 / 2 ** (task.attempt - 1)} # reduce batch size for each retry to avoid memory issues
 
     # write out meta file
     echo '${meta_json}' > "${cellassign_dir}/scpca-meta.json"

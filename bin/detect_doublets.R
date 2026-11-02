@@ -55,7 +55,12 @@ if (opt$threads > 1) {
   bp_param <- BiocParallel::SerialParam()
 }
 
-# read SCE
+# read SCE, if it's not size 0 occurs if all droplets were removed during filtering
+# in this case, just make an empty file and quit, but detect doublets otherwise
+if (file.size(opt$input_sce_file) == 0) {
+  file.create(opt$output_sce_file)
+  quit(save = "no")
+}
 sce <- readr::read_rds(opt$input_sce_file)
 
 # run scDblFinder -----------

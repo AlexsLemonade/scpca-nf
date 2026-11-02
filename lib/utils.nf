@@ -22,6 +22,22 @@ def readMeta(file) {
 }
 
 /**
+  * Update a metadata map with values from a stored metadata file in JSON format
+  * Stored values are used unless they are blank or NA, in which case the current value is kept
+  * Keys that are only present in the stored file are kept, even if blank
+  *
+  * @param meta The current metadata map
+  * @param meta_file A Nextflow file object with metadata in JSON format
+  * @return A new metadata map
+  */
+def updateMetaFromFile(meta, meta_file) {
+  // readMeta converts null and NA values to ""
+  def stored_meta = readMeta(meta_file)
+  // current values are only used where the stored value is blank or missing
+  return (stored_meta + meta.findAll { key, _value -> stored_meta[key] == null || stored_meta[key] == '' })
+}
+
+/**
   * Write a metadata map to a JSON string
   *
   * @param meta A metadata map
@@ -59,26 +75,23 @@ def getMetaVal(file, key) {
 
 
 /**
-  * Replace a string with an NA value with ""
+  * Replace a null or a string with an NA value with ""
   * (which evaluates as false in boolean contexts)
   *
-  * @param str A string
-  * @return The input string unless it was NA or a variant thereof, in which case returns ""
+  * @param str A string, or any other value
+  * @return The input unless it was null or an NA string or variant thereof, in which case returns ""
   */
 def parseNA(str) {
-  if (str) {
-    if (str instanceof String) {
-      // has to be a string to have NA vals replaced
-      str.toLowerCase() in ['na', 'n/a', 'nan'] ? '' : str
-    }
-    else {
-      // not a string, so just return the unmodified value
-      str
-    }
+  if (str == null) {
+    ''
+  }
+  else if (str instanceof String) {
+    // has to be a string to have NA vals replaced
+    str.toLowerCase() in ['na', 'n/a', 'nan'] ? '' : str
   }
   else {
-    // all falsey values get turned into empty strings
-    ''
+    // not a string, so just return the unmodified value (including false and 0)
+    str
   }
 }
 

@@ -91,7 +91,7 @@ for key, value in adata.obsm.items():
 # convert highly variable genes to a column if given
 use_hvg = args.hvg_name.casefold() != "none"
 if use_hvg:
-    if args.hvg_name not in adata.uns.keys():
+    if args.hvg_name not in adata.uns:
         raise ValueError("`hvg_name` must be present in the `uns` data for the object")
     adata.var["highly_variable"] = adata.var.gene_ids.isin(adata.uns[args.hvg_name])
 

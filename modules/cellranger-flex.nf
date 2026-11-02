@@ -1,6 +1,6 @@
 
 // Include utility functions
-include { getVersions; makeJson; readMeta; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
 
 process cellranger_flex_single {
   container "${pullthroughContainer(params.cellranger_container, params.pullthrough_registry)}"
@@ -233,7 +233,7 @@ workflow flex_quant{
       .map{ meta ->
         [
           meta.sample_id.tokenize(","),
-          readMeta(file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
+          updateMetaFromFile(meta, file("${meta.cellranger_multi_results_dir}/scpca-meta.json"))
         ]
       }
       .transpose() // [sample id, meta]

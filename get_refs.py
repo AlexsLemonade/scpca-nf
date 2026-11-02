@@ -93,7 +93,7 @@ def main():
         print(e.reason)
         print("Reference file path download failed.")
         print(f"Is `{args.revision}` a valid release tag?")
-        exit(1)
+        sys.exit(1)
 
     # parse main reference file
     # gets all of the `param` variables that are set in `reference_paths.config`
@@ -436,7 +436,7 @@ def download_containers(
     if get_docker and not dry_run:
         print("Pulling docker images...")
         for loc in containers.values():
-            subprocess.run(["docker", "pull", loc])
+            subprocess.run(["docker", "pull", loc], check=False)
         print("Done pulling docker images\n")
 
     # pull singularity images if requested (to optionally specified cache location)
@@ -453,7 +453,8 @@ def download_containers(
             if image_path.exists():
                 image_path.unlink()
             subprocess.run(
-                ["singularity", "pull", "--name", image_path, f"docker://{loc}"]
+                ["singularity", "pull", "--name", image_path, f"docker://{loc}"],
+                check=False,
             )
         print("Done pulling singularity images")
         print(

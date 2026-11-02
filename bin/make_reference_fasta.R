@@ -139,7 +139,8 @@ splici_grl <- splici_grl[names(splici_seqs)]
 # write splici to fasta
 Biostrings::writeXStringSet(
   splici_seqs,
-  filepath = spliced_intron_fasta, compress = TRUE
+  filepath = spliced_intron_fasta,
+  compress = TRUE
 )
 
 # write the associated annotations to gtf
@@ -190,7 +191,8 @@ spliced_cdna_seqs <- GenomicFeatures::extractTranscriptSeqs(
 # write spliced sequences only to fasta file
 Biostrings::writeXStringSet(
   spliced_cdna_seqs,
-  filepath = spliced_cdna_fasta, compress = TRUE
+  filepath = spliced_cdna_fasta,
+  compress = TRUE
 )
 
 # write the associated annotations to gtf

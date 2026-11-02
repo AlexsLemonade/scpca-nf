@@ -70,10 +70,12 @@ if (!file.exists(opt$filtered_sce_file)) {
 }
 
 # check that output file names end in .rds
-if (!all(stringr::str_ends(
-  c(opt$out_filtered_sce_file, opt$out_processed_sce_file),
-  ".rds"
-))) {
+if (
+  !all(stringr::str_ends(
+    c(opt$out_filtered_sce_file, opt$out_processed_sce_file),
+    ".rds"
+  ))
+) {
   stop("Output SCE file names must end in .rds")
 }
 
@@ -210,7 +212,9 @@ if (alt_exp %in% altExpNames(processed_sce)) {
   }
 
   # If any size factors are not positive or there was no filtering, simply use log1p
-  if (any(adt_sce$sizeFactor <= 0) || metadata(processed_sce)$adt_scpca_filter_method == "No filter") {
+  if (
+    any(adt_sce$sizeFactor <= 0) || metadata(processed_sce)$adt_scpca_filter_method == "No filter"
+  ) {
     metadata(processed_sce)$adt_normalization <- "log-normalization"
     logcounts(adt_sce) <- log1p(counts(adt_sce))
   } else {
@@ -223,7 +227,7 @@ if (alt_exp %in% altExpNames(processed_sce)) {
 
   # first, get the counts matrix and make it NA
   result_matrix <- counts(altExp(processed_sce, alt_exp))
-  result_matrix[, ] <- NA
+  result_matrix[,] <- NA
 
   # now get the computed logcounts & fill them in
   result_matrix[, colnames(adt_sce)] <- logcounts(adt_sce)

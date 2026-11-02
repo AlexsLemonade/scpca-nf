@@ -85,12 +85,14 @@ library_ids <- readLines(opt$salmon_dirs)
 # only keep metadata columns of interest
 bulk_metadata_df <- library_metadata |>
   dplyr::filter(
-    scpca_library_id %in% library_ids &
-      scpca_project_id %in% opt$project_id
+    scpca_library_id %in% library_ids & scpca_project_id %in% opt$project_id
   ) |>
   dplyr::select(
-    scpca_project_id, scpca_sample_id, scpca_library_id,
-    seq_unit, technology
+    scpca_project_id,
+    scpca_sample_id,
+    scpca_library_id,
+    seq_unit,
+    technology
   ) |>
   # rename column names to match format of metadata files from other modalities
   dplyr::rename(

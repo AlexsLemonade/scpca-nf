@@ -4,7 +4,6 @@
 # This script was adapted from:
 # https://github.com/AlexsLemonade/OpenScPCA-nf/blob/d314a9fc9aa8f52e938755c03a5303f0a9e48eb0/modules/infercnv-gene-order/resources/usr/bin/prepare-gene-order-files.R
 
-
 library(optparse)
 
 option_list <- list(

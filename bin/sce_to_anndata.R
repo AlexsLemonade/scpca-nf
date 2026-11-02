@@ -79,6 +79,14 @@ if (!is.null(opt$output_pca_tsv) && !stringr::str_ends(opt$output_pca_tsv, ".tsv
 format_merged_sce <- function(sce) {
   # paste X to any present reduced dim names
   reducedDimNames(sce) <- glue::glue("X_{tolower(reducedDimNames(sce))}")
+
+  # convert any colData columns that are all NA to empty strings
+  # all NA columns are not handled properly when converting to AnnData
+  colData(sce) <- colData(sce) |>
+    as.data.frame() |>
+    dplyr::mutate(dplyr::across(dplyr::where(\(x) all(is.na(x))), \(x) "")) |>
+    DataFrame(row.names = colnames(sce))
+
   return(sce)
 }
 
@@ -195,8 +203,10 @@ if (!is.null(opt$feature_name)) {
 
     # if the feature name is cell hash, skip conversion
   } else if (opt$feature_name == "cellhash") {
-    warning("Conversion of altExp data from multiplexed data is not supported.
-             The altExp will not be converted.")
+    warning(
+      "Conversion of altExp data from multiplexed data is not supported.
+             The altExp will not be converted."
+    )
 
     # convert altExp
   } else {
@@ -225,10 +235,12 @@ if (!is.null(opt$feature_name)) {
     } else {
       # warn that the altExp cannot be converted
       warning(
-        glue::glue("
+        glue::glue(
+          "
           Only 1 row found in altExp named: {opt$feature_name}.
           This altExp will not be converted to an AnnData object.
-        ")
+        "
+        )
       )
     }
     message("Exported alt")

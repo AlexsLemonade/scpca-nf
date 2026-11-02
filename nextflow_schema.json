@@ -91,6 +91,19 @@
           "description": "Fully rebuild the Cell Browser site",
           "help_text": "If true, the CellBrowser site will be fully rebuilt. If false, only metadata will be updated.",
           "hidden": true
+        },
+        "format_checks_dir": {
+          "type": "string",
+          "default": "scpca_out/format_checks",
+          "description": "Directory to store files output from formatting checks"
+        },
+        "format_check_filename": {
+          "type": "string",
+          "description": "File name for format check summary"
+        },
+        "merged_format_check_filename": {
+          "type": "string",
+          "description": "File name for merged format check summary"
         }
       }
     },
@@ -397,6 +410,24 @@
           "description": "Reference file mapping broad diagnoses to validation cell type groups for counting inferCNV normal reference cells.",
           "hidden": true,
           "fa_icon": "fas fa-file-alt"
+        },
+        "sce_format_reference_file": {
+          "type": "string",
+          "default": "${projectDir}/references/sce-formatting-reference.json",
+          "format": "file-path",
+          "mimetype": "application/json",
+          "description": "SCE formatting reference file",
+          "help_text": "JSON file describing the expected contents of SCE objects output by scpca-nf",
+          "fa_icon": "fas fa-file-alt"
+        },
+        "anndata_format_reference_file": {
+          "type": "string",
+          "default": "${projectDir}/references/anndata-formatting-reference.json",
+          "format": "file-path",
+          "mimetype": "application/json",
+          "description": "Anndata formatting reference file",
+          "help_text": "JSON file describing the expected contents of Anndata objects output by scpca-nf",
+          "fa_icon": "fas fa-file-alt"
         }
       },
       "fa_icon": "fas fa-copy"
@@ -486,23 +517,6 @@
       },
       "fa_icon": "fas fa-tasks"
     },
-    "resource_maximums": {
-      "title": "Resource maximums",
-      "type": "object",
-      "fa_icon": "fab fa-acquisitions-incorporated",
-      "description": "Set the top limit for requested resources for any single job.",
-      "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-      "properties": {
-        "max_memory": {
-          "type": "string",
-          "description": "Maximum memory used for high memory jobs.",
-          "default": "512 GB",
-          "fa_icon": "fas fa-memory",
-          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "help_text": "Use to set a limit for the highest memory jobs. Should be a string in the format integer-unit e.g. `512.GB`"
-        }
-      }
-    },
     "template_files": {
       "title": "Template Files",
       "type": "object",
@@ -544,49 +558,43 @@
       "properties": {
         "scpcatools_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_slim_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools-slim:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_anndata_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools-anndata:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_reports_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools-reports:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_seurat_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.5",
-          "hidden": true,
-          "fa_icon": "fab fa-docker"
-        },
-        "scpcatools_scvi_container": {
-          "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scvi:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools-seurat:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_infercnv_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools-infercnv:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "scpcatools_scimilarity_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.5",
+          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.6",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -640,12 +648,18 @@
         },
         "cellbrowser_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.10.3",
+          "default": "ghcr.io/alexslemonade/scpca-nf/cellbrowser:v0.11.0",
+          "fa_icon": "fab fa-docker"
+        },
+        "scvi_container": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpca-nf/scvi:v0.11.0-gpu",
+          "hidden": true,
           "fa_icon": "fab fa-docker"
         },
         "vireo_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.10.3",
+          "default": "ghcr.io/alexslemonade/scpca-nf/vireo-snp:v0.11.0",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
@@ -674,9 +688,6 @@
     },
     {
       "$ref": "#/$defs/algorithm_parameters"
-    },
-    {
-      "$ref": "#/$defs/resource_maximums"
     },
     {
       "$ref": "#/$defs/template_files"

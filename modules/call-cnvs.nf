@@ -111,9 +111,14 @@ workflow call_cnvs {
         meta.infercnv_heatmap_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-heatmap.png"
         meta.infercnv_results_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-results.rds"
         meta.infercnv_table_file = "${meta.infercnv_checkpoints_dir}/${meta.unique_id}_infercnv-table.txt"
+        def gene_order_file = meta.infercnv_gene_order ? file(meta.infercnv_gene_order, checkIfExists: true) : []
+
+        if (!gene_order_file) {
+          log.warn("Gene order file for '${meta.unique_id}' was not found. inferCNV will be skipped for this library.")
+        }
 
         // return simplified input with gene order file
-        [meta, processed_sce, file(meta.infercnv_gene_order, checkIfExists: true)]
+        [meta, processed_sce, gene_order_file]
       }
 
 
@@ -125,14 +130,16 @@ workflow call_cnvs {
         def stored_cell_hash = getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
         skip_infercnv: (
-        (
-          !params.repeat_cnv_inference
-          && file(it[0].infercnv_heatmap_file).exists()
-          && file(it[0].infercnv_results_file).exists()
-          && file(it[0].infercnv_table_file).exists()
-          && it[0].infercnv_reference_cell_hash == stored_cell_hash
-        ) || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
-        )
+          (
+            !params.repeat_cnv_inference
+            && file(it[0].infercnv_heatmap_file).exists()
+            && file(it[0].infercnv_results_file).exists()
+            && file(it[0].infercnv_table_file).exists()
+            && it[0].infercnv_reference_cell_hash == stored_cell_hash
+          )
+          || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
+          || !(it[2] in Path && it[2].exists()) // if the gene order file doesn't exist, we can't run infercnv
+       )
         run_infercnv: true
       }
 
@@ -149,7 +156,7 @@ workflow call_cnvs {
         // ensure the infercnv_checkpoints_dir exists before proceeding; all these files are in the same dir
         infercnv_results.parent.mkdirs()
         // create empty files if they don't exist
-        // https://www.nextflow.io/docs/latest/working-with-files.html#reading-and-writing-an-entire-file
+        // https://docs.seqera.io/nextflow/working-with-files#reading-and-writing-an-entire-file
         if (!infercnv_results.exists()) infercnv_results.text = ''
         if (!infercnv_table.exists())   infercnv_table.text = ''
         if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
