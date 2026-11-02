@@ -653,7 +653,7 @@
         },
         "scvi_container": {
           "type": "string",
-          "default": "ghcr.io/alexslemonade/scpca-nf/scvi:edge-gpu",
+          "default": "ghcr.io/alexslemonade/scpca-nf/scvi:v0.11.0-gpu",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },

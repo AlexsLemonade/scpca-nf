@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 
-## [v0.11.0](https://github.com/AlexsLemonade.com/scpca-nf/compare/v0.11.0)
+## [v0.11.0](https://github.com/AlexsLemonade/scpca-nf/compare/v0.10.6...v0.11.0)
 
 ### Added
 
