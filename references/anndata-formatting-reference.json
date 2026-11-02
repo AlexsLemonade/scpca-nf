@@ -2,9 +2,12 @@
     "unfiltered": {
         "rna": {
             "has_raw.X": false,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -58,7 +61,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
+                "transcript_type": "str",
                 "sample_type": "str",
                 "X_name": "str",
                 "schema_version": "str"
@@ -86,17 +89,19 @@
             "var": {
                 "adt_id": "string",
                 "mean": "float",
-                "detected": "float",
-                "target_type": "string"
+                "detected": "float"
             }
         }
     },
     "filtered": {
         "rna": {
             "has_raw.X": false,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -105,7 +110,6 @@
                 "subsets_mito_detected": "int",
                 "subsets_mito_percent": "float",
                 "total": "float",
-                "prob_compromised": "float",
                 "miQC_pass": "bool",
                 "scpca_filter": "string",
                 "scDblFinder_class": "string",
@@ -157,6 +161,12 @@
                 },
                 "is_multiplexed": {
                     "sample_id": null
+                },
+                "has_miQC": {
+                    "prob_compromised": "float"
+                },
+                "miQC_failed": {
+                    "prob_compromised": "bool"
                 }
             },
             "uns": {
@@ -169,7 +179,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
+                "transcript_type": "str",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": [
@@ -234,7 +244,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
+                "transcript_type": "str",
                 "ambient_profile": "float"
             }
         }
@@ -242,9 +252,12 @@
     "processed": {
         "rna": {
             "has_raw.X": true,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -253,7 +266,6 @@
                 "subsets_mito_detected": "int",
                 "subsets_mito_percent": "float",
                 "total": "float",
-                "prob_compromised": "float",
                 "miQC_pass": "bool",
                 "scpca_filter": "string",
                 "scDblFinder_class": "string",
@@ -334,6 +346,12 @@
                 },
                 "is_multiplexed": {
                     "sample_id": null
+                },
+                "has_miQC": {
+                    "prob_compromised": "float"
+                },
+                "miQC_failed": {
+                    "prob_compromised": "bool"
                 }
             },
             "obsm": [
@@ -350,7 +368,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
+                "transcript_type": "str",
                 "sample_type": "str",
                 "filtering_method": "str",
                 "prob_compromised_cutoff": "NoneType,float",
@@ -414,7 +432,6 @@
                     "infercnv_num_reference_cells": "int",
                     "infercnv_diagnosis_groups": "str",
                     "infercnv_status": "str",
-                    "infercnv_options": "numpy.ndarray",
                     "infercnv_table": "pandas.DataFrame"
                 },
                 "has_adt": {
@@ -455,7 +472,7 @@
                 "tech_version": "str",
                 "assay_ontology_term_id": "str",
                 "seq_unit": "str",
-                "transcript_type": "numpy.ndarray",
+                "transcript_type": "str",
                 "ambient_profile": "float"
             }
         }
@@ -463,9 +480,12 @@
     "merged": {
         "rna": {
             "has_raw.X": true,
-            "layers": [
-                "spliced"
-            ],
+            "layers": [],
+            "layers_conditional": {
+                "alevin-fry": [
+                    "spliced"
+                ]
+            },
             "obs": {
                 "barcodes": "string",
                 "sum": "float",
@@ -576,6 +596,12 @@
                 },
                 "is_multiplexed": {
                     "sample_id": null
+                },
+                "has_miQC": {
+                    "prob_compromised": "float"
+                },
+                "miQC_failed": {
+                    "prob_compromised": "bool"
                 }
             },
             "obsm": [

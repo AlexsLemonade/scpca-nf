@@ -132,6 +132,27 @@ def safe_uns_array(uns, key):
     return []
 
 
+def get_mapping_tools(uns):
+    """
+    Get a list of mapping tools used for the AnnData object.
+    Single objects store mapping_tool directly in uns, while merged objects
+    store mapping_tool for each library in uns["library_metadata"].
+    """
+    if "mapping_tool" in uns:
+        mapping_tools = [uns["mapping_tool"]]
+    elif isinstance(uns.get("library_metadata"), dict):
+        mapping_tools = [
+            lib_meta.get("mapping_tool")
+            for lib_meta in uns["library_metadata"].values()
+            if isinstance(lib_meta, dict)
+        ]
+    else:
+        mapping_tools = []
+
+    # values may be stored as length 1 arrays, so flatten to a list of strings
+    return [str(np.ravel(tool)[0]) for tool in mapping_tools if tool is not None]
+
+
 def get_conditionals(adata):
     """
     Build the conditionals dict for an RNA AnnData object.
@@ -149,6 +170,15 @@ def get_conditionals(adata):
         any(c.startswith("altexps_adt_") for c in obs_cols)
         or "adt_scpca_filter" in obs_cols
     )
+    # mapping tool conditions are only True if all libraries used the same mapping tool
+    mapping_tools = get_mapping_tools(uns)
+    is_alevin_fry = len(mapping_tools) > 0 and all(
+        tool == "alevin-fry" for tool in mapping_tools
+    )
+    is_cellranger_multi = len(mapping_tools) > 0 and all(
+        tool == "cellranger multi" for tool in mapping_tools
+    )
+
     # is multiplexed if sample_id in uns is a list/array (indicating multiple samples), rather than a single string for non-multiplexed data
     is_multiplexed = isinstance(uns.get("sample_id"), (list, np.ndarray))
 
@@ -157,6 +187,12 @@ def get_conditionals(adata):
         "submitter_celltype_annotation" in obs_cols
         and not adata.obs["submitter_celltype_annotation"].isna().all()
     )
+
+    # miQC status is stored as a logical in uns for filtered and processed objects
+    # if miQC failed, prob_compromised is all NA and gets converted to bool
+    has_miqc = uns.get("has_miQC")
+    if has_miqc is not None:
+        has_miqc = bool(np.ravel(has_miqc)[0])
 
     # set neg post control based on target types if adt
     has_neg_ctrl = False
@@ -168,11 +204,13 @@ def get_conditionals(adata):
 
     condition_tests = {
         # mapping tools
-        "alevin-fry": uns.get("mapping_tool") == "alevin-fry",
-        "cellranger-multi": uns.get("mapping_tool") == "cellranger multi",
+        "alevin-fry": is_alevin_fry,
+        "cellranger-multi": is_cellranger_multi,
         # preprocessing steps
         "umi_filtering": uns.get("filtering_method") == "UMI cutoff",
         "has_normalization": "sizeFactor" in obs_cols,
+        "has_miQC": has_miqc is True,
+        "miQC_failed": has_miqc is False,
         # clustering and cell type annotation
         "has_clusters": "cluster" in obs_cols,
         "has_consensus": "consensus_celltype_annotation" in obs_cols,
@@ -228,12 +266,18 @@ def check_anndata(adata, ref, label, object_type):
     if ref.get("has_raw.X") and adata.raw is None:
         errors.append(f"Missing raw.X from {label}.")
 
-    for layer in ref.get("layers", []):
-        if layer not in adata.layers:
-            errors.append(f"Missing layer '{layer}' from {label}.")
-
     # get conditionals dict based on adata contents and uns values, to determine which conditional checks to run
     conditions = get_conditionals(adata)
+
+    # include any layers that are conditionally present (e.g., spliced only for alevin-fry)
+    ref_layers = list(ref.get("layers", []))
+    for condition, cond_layers in ref.get("layers_conditional", {}).items():
+        if condition in conditions:
+            ref_layers.extend(cond_layers)
+
+    for layer in ref_layers:
+        if layer not in adata.layers:
+            errors.append(f"Missing layer '{layer}' from {label}.")
 
     if "obs" in ref:
         errors.extend(check_names_and_types(adata.obs, ref["obs"], label, "obs"))

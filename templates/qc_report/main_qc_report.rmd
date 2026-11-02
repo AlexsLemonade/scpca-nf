@@ -402,7 +402,12 @@ knitr::kable(library_information, align = "r") |>
 
 ```{r }
 # define transcript type
-transcript_type <- paste(unfiltered_meta$transcript_type, collapse = " ")
+transcript_type <- unfiltered_meta$transcript_type
+
+# transcript type may be missing (e.g., simulated data), which case_when can't handle
+if (is.null(transcript_type)) {
+  transcript_type <- NA_character_
+}
 
 if (mapping_tool == "alevin-fry") {
   processing_info <- tibble::tibble(

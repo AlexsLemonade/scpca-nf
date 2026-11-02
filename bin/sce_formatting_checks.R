@@ -284,28 +284,26 @@ if (opt$object_type == "merged") {
   all_ref_list$rowData <- expand_merged_rowdata_ref(rowData(sce), all_ref_list$rowData)
 }
 
-# Check main SCE assays --------------------------------------------------------
-
-errors <- c(errors, check_assays(sce, all_ref_list$assayNames, label = "main SCE"))
-
-# check that counts assay contains rounded integers
-if (any(counts(sce)@x != floor(counts(sce)@x))) {
-  errors <- c(
-    errors,
-    "'counts' assay does not contain rounded integers."
-  )
-}
-
 # Define conditionals for the main SCE object ----------------------------------
 # these are evaluated once on the top-level sce and reused for altExp checks
 
 has_adt <- "adt" %in% altExpNames(sce)
 has_cellhash <- "cellhash" %in% altExpNames(sce)
 
+# merged objects store mapping_tool for each library in library_metadata
+if (opt$object_type == "merged") {
+  mapping_tools <- purrr::map_chr(metadata(sce)$library_metadata, "mapping_tool")
+} else {
+  mapping_tools <- metadata(sce)$mapping_tool
+}
+# mapping tool conditions are only TRUE if all libraries used the same mapping tool
+is_alevin_fry <- length(mapping_tools) > 0 && all(mapping_tools == "alevin-fry")
+is_cellranger_multi <- length(mapping_tools) > 0 && all(mapping_tools == "cellranger multi")
+
 conditionals_vec <- c(
   # mapping tools
-  "alevin-fry" = metadata(sce)$mapping_tool == "alevin-fry",
-  "cellranger-multi" = metadata(sce)$mapping_tool == "cellranger multi",
+  "alevin-fry" = is_alevin_fry,
+  "cellranger-multi" = is_cellranger_multi,
 
   # preprocessing
   umi_filtering = metadata(sce)$filtering_method == "UMI cutoff",
@@ -333,6 +331,25 @@ conditionals_vec <- c(
   has_vireo = any(stringr::str_detect(colnames(colData(sce)), "vireo"))
 )
 
+# Check main SCE assays --------------------------------------------------------
+
+# include any assays that are conditionally present (e.g., spliced only for alevin-fry)
+true_conditions <- names(conditionals_vec[which(conditionals_vec)])
+ref_assay_names <- unlist(
+  c(all_ref_list$assayNames, all_ref_list$assayNames_conditional[true_conditions]),
+  use.names = FALSE
+)
+
+errors <- c(errors, check_assays(sce, ref_assay_names, label = "main SCE"))
+
+# check that counts assay contains rounded integers
+if (any(counts(sce)@x != floor(counts(sce)@x))) {
+  errors <- c(
+    errors,
+    "'counts' assay does not contain rounded integers."
+  )
+}
+
 # Check main SCE col/row/metadata ----------------------------------------------
 
 all_match_df <- check_sce_object(sce, all_ref_list, conditionals_vec)
@@ -347,8 +364,8 @@ if (has_adt) {
   adt_conditionals_vec <- c(
     "has_negative_control" = any(rowData(adt_sce)$target_type %in% c("neg_control")),
     "no_negative_control" = all(rowData(adt_sce)$target_type %in% c("pos_control", "target")),
-    "alevin-fry" = metadata(sce)$mapping_tool == "alevin-fry",
-    "cellranger-multi" = metadata(sce)$mapping_tool == "cellranger multi"
+    "alevin-fry" = is_alevin_fry,
+    "cellranger-multi" = is_cellranger_multi
   )
 
   adt_match_df <- check_sce_object(adt_sce, adt_ref, adt_conditionals_vec)
