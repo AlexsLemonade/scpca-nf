@@ -94,7 +94,7 @@ process classify_cellassign {
 }
 
 process classify_scimilarity {
-  container "${pullthroughContainer(params.scpcatools_scimilarity_container, params.pullthrough_registry)}"
+  container "${pullthroughContainer(params.scimilarity_container, params.pullthrough_registry)}"
     publishDir (
       path: "${meta.celltype_checkpoints_dir}",
       mode: 'copy'

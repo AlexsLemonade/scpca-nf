@@ -592,12 +592,6 @@
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
-        "scpcatools_scimilarity_container": {
-          "type": "string",
-          "default": "ghcr.io/alexslemonade/scpcatools-scimilarity:v0.4.6",
-          "hidden": true,
-          "fa_icon": "fab fa-docker"
-        },
         "alevinfry_container": {
           "type": "string",
           "default": "quay.io/biocontainers/alevin-fry:0.7.0--h9f5acd7_1",
@@ -654,6 +648,12 @@
         "scvi_container": {
           "type": "string",
           "default": "ghcr.io/alexslemonade/scpca-nf/scvi:v0.11.0-gpu",
+          "hidden": true,
+          "fa_icon": "fab fa-docker"
+        },
+        "scimilarity_container": {
+          "type": "string",
+          "default": "ghcr.io/alexslemonade/scpca-nf/scimilarity:edge",
           "hidden": true,
           "fa_icon": "fab fa-docker"
         },
