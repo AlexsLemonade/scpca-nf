@@ -1,7 +1,7 @@
 name: Build Docker images scpca-nf/scimilarity
 
 concurrency:
-  group: "docker_scvi_${{ github.ref }}"
+  group: "docker_scimilarity_${{ github.ref }}"
   cancel-in-progress: true
 
 # default permissions
@@ -65,7 +65,7 @@ jobs:
       GH_REGISTRY: ghcr.io
       GH_REGISTRY_USER: alexslemonade
       AWS_REGISTRY: "${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com"
-      AWS_PREFIX: scpca_nf_scimilarity
+      AWS_PREFIX: ghcr_io
     permissions:
       contents: read
       packages: write
