@@ -122,26 +122,28 @@ workflow call_cnvs {
       }
 
 
-    // branch to skip libraries when either:
-    // - repeat is off and there are unchanged existing results
+    // branch libraries into one of three paths:
+    // - cannot_run: inferCNV prerequisites are not met (not enough normal reference cells or no gene order file)
+    //   these libraries get empty placeholder results, and any existing checkpoint files are ignored
+    // - reuse_checkpoint: repeat is off and there are unchanged existing results
     //   (if this is a release run, existing results must also have been created by a release)
-    // - there are not enough normal reference cells
+    // - run_infercnv: everything else
     infercnv_input_ch = infercnv_prepared_ch
       .branch{ meta, _processed_sce, gene_order_file ->
         def stored_cell_hash = getMetaVal(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
-        skip_infercnv: (
-          (
-            !params.repeat_cnv_inference
-            && file(meta.infercnv_heatmap_file).exists()
-            && file(meta.infercnv_results_file).exists()
-            && file(meta.infercnv_table_file).exists()
-            && meta.infercnv_reference_cell_hash == stored_cell_hash
-            && checkpointIsReusable(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"))
-          )
-          || meta.infercnv_reference_cell_count < params.infercnv_min_reference_cells
+        cannot_run: (
+          meta.infercnv_reference_cell_count < params.infercnv_min_reference_cells
           || !(gene_order_file in Path && gene_order_file.exists()) // if the gene order file doesn't exist, we can't run infercnv
-       )
+        )
+        reuse_checkpoint: (
+          !params.repeat_cnv_inference
+          && file(meta.infercnv_heatmap_file).exists()
+          && file(meta.infercnv_results_file).exists()
+          && file(meta.infercnv_table_file).exists()
+          && meta.infercnv_reference_cell_hash == stored_cell_hash
+          && checkpointIsReusable(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"))
+        )
         run_infercnv: true
       }
 
@@ -149,24 +151,34 @@ workflow call_cnvs {
     // outputs: [meta, processed sce, results file, table file, heatmap file]
     run_infercnv(infercnv_input_ch.run_infercnv)
 
-    // prepare to add results for all eligible libraries: [meta, processed sce, results file]
-    add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
+    // existing checkpoint results: [meta, processed sce, results file, table file, heatmap file]
+    reuse_infercnv_ch = infercnv_input_ch.reuse_checkpoint
       .map{ meta, processed_sce, _gene_order_file ->
-        def infercnv_results = file(meta.infercnv_results_file)
-        def infercnv_table   = file(meta.infercnv_table_file)
-        def infercnv_heatmap = file(meta.infercnv_heatmap_file)
-        // ensure the infercnv_checkpoints_dir exists before proceeding; all these files are in the same dir
-        infercnv_results.parent.mkdirs()
-        // create empty files if they don't exist
-        // https://docs.seqera.io/nextflow/working-with-files#reading-and-writing-an-entire-file
-        if (!infercnv_results.exists()) infercnv_results.text = ''
-        if (!infercnv_table.exists())   infercnv_table.text = ''
-        if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
+        [meta, processed_sce, file(meta.infercnv_results_file), file(meta.infercnv_table_file), file(meta.infercnv_heatmap_file)]
+      }
 
-        // return simplified input with gene order file
+    // empty placeholder results for libraries where inferCNV cannot be run
+    // placeholders are written to the work directory so existing checkpoint files are never used or overwritten
+    // outputs: [meta, processed sce, results file, table file, heatmap file]
+    empty_infercnv_ch = infercnv_input_ch.cannot_run
+      .map{ meta, processed_sce, _gene_order_file ->
+        def placeholder_dir = file("${workflow.workDir}/infercnv-placeholders/${meta.unique_id}")
+        placeholder_dir.mkdirs()
+        def infercnv_results = placeholder_dir / "${meta.unique_id}_infercnv-results.rds"
+        def infercnv_table   = placeholder_dir / "${meta.unique_id}_infercnv-table.txt"
+        def infercnv_heatmap = placeholder_dir / "${meta.unique_id}_infercnv-heatmap.png"
+        // always write empty files, so add_infercnv_to_sce.R sets the status based on the reference cell count
+        // https://docs.seqera.io/nextflow/working-with-files#reading-and-writing-an-entire-file
+        infercnv_results.text = ''
+        infercnv_table.text = ''
+        infercnv_heatmap.text = ''
+
         [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
       }
-      .mix(run_infercnv.out.infercnv)
+
+    // combine all libraries to add inferCNV results to the SCE
+    add_infercnv_results_ch = reuse_infercnv_ch
+      .mix(empty_infercnv_ch, run_infercnv.out.infercnv)
 
 
     // add inferCNV results to the SCE object
