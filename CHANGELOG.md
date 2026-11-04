@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- When running a tagged release, existing checkpoint results (mapping, genetic demultiplexing, cell typing, and CNV inference) are only reused if they were created by a tagged release; otherwise these steps are repeated
+
 ### Fixed
 
 ### Deprecated
