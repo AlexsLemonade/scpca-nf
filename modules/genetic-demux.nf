@@ -1,6 +1,6 @@
 
 // Include utility functions
-include { updateMetaFromFile; getMetaVal } from '../lib/utils.nf'
+include { updateMetaFromFile; getMetaVal; checkpointIsReusable } from '../lib/utils.nf'
 // include processes
 include { star_bulk } from './bulk-star.nf'
 include { pileup_multibulk } from './bulk-pileup.nf'
@@ -33,6 +33,8 @@ workflow genetic_demux_vireo {
             params.repeat_genetic_demux
             || !file(it.vireo_dir).exists()
             || it.ref_assembly != stored_ref_assembly
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.vireo_dir}/scpca-meta.json"))
           )
         )
         has_demux: file(it.vireo_dir).exists()

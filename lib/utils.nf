@@ -110,6 +110,30 @@ def getVersions() {
 
 
 /**
+  * Check whether a version string is a tagged release (vX.Y.Z)
+  *
+  * @param version A version string, or any other value
+  * @return true if the version matches the release tag pattern, false otherwise
+  */
+def isRelease(version) {
+  return (version instanceof String && version ==~ /^v\d+\.\d+\.\d+$/)
+}
+
+
+/**
+  * Check whether an existing checkpoint can be reused based on the workflow version
+  * If the current run is not a tagged release, checkpoints can always be reused
+  * If the current run is a tagged release, checkpoints can only be reused if they were created by a tagged release
+  *
+  * @param meta_file A Nextflow file object for the checkpoint's metadata file in JSON format
+  * @return true if the checkpoint can be reused, false otherwise
+  */
+def checkpointIsReusable(meta_file) {
+  return (!isRelease(workflow.revision) || isRelease(getMetaVal(meta_file, "scpca_version")))
+}
+
+
+/**
   * Make a pullthrough container URL if a pullthrough URL is provided
   *
   * @param image_url The original image URL

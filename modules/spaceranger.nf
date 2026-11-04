@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; checkpointIsReusable; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
@@ -270,6 +270,8 @@ workflow spaceranger_quant{
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || it.technology.toLowerCase() != stored_tech.toLowerCase()
             || it.ref_assembly != stored_ref_assembly
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.spaceranger_results_dir}/scpca-meta.json"))
           )
         )
         has_spatial: file(it.spaceranger_results_dir).exists()

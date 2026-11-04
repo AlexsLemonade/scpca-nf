@@ -1,6 +1,6 @@
 
 // Include utility functions
-include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; checkpointIsReusable; pullthroughContainer } from '../lib/utils.nf'
 
 process cellranger_flex_single {
   container "${pullthroughContainer(params.cellranger_container, params.pullthrough_registry)}"
@@ -149,6 +149,8 @@ workflow flex_quant{
             || it.ref_assembly != stored_ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || it.technology.toLowerCase() != stored_tech.toLowerCase()
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.cellranger_multi_results_dir}/scpca-meta.json"))
           )
         )
         has_cellranger_flex: file(it.cellranger_multi_results_dir).exists()

@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; checkpointIsReusable; pullthroughContainer } from '../lib/utils.nf'
 
 
 // generates RAD file using alevin
@@ -151,6 +151,8 @@ workflow map_quant_rna {
             || it.ref_assembly != stored_ref_assembly
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || it.technology.toLowerCase() != stored_tech.toLowerCase()
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.rad_dir}/scpca-meta.json"))
           )
         )
         has_rad: file(it.rad_dir).exists()
