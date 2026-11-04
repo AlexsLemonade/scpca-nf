@@ -1,6 +1,6 @@
 // run inferCNV on an SCE object that has consensus cell types
 
-include { getVersions; makeJson; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; getMetaVal; checkpointIsReusable; pullthroughContainer } from '../lib/utils.nf'
 
 process run_infercnv {
   container "${pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)}"
@@ -124,21 +124,23 @@ workflow call_cnvs {
 
     // branch to skip libraries when either:
     // - repeat is off and there are unchanged existing results
+    //   (if this is a release run, existing results must also have been created by a release)
     // - there are not enough normal reference cells
     infercnv_input_ch = infercnv_prepared_ch
-      .branch{ it ->
-        def stored_cell_hash = getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
+      .branch{ meta, _processed_sce, gene_order_file ->
+        def stored_cell_hash = getMetaVal(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
         skip_infercnv: (
           (
             !params.repeat_cnv_inference
-            && file(it[0].infercnv_heatmap_file).exists()
-            && file(it[0].infercnv_results_file).exists()
-            && file(it[0].infercnv_table_file).exists()
-            && it[0].infercnv_reference_cell_hash == stored_cell_hash
+            && file(meta.infercnv_heatmap_file).exists()
+            && file(meta.infercnv_results_file).exists()
+            && file(meta.infercnv_table_file).exists()
+            && meta.infercnv_reference_cell_hash == stored_cell_hash
+            && checkpointIsReusable(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"))
           )
-          || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
-          || !(it[2] in Path && it[2].exists()) // if the gene order file doesn't exist, we can't run infercnv
+          || meta.infercnv_reference_cell_count < params.infercnv_min_reference_cells
+          || !(gene_order_file in Path && gene_order_file.exists()) // if the gene order file doesn't exist, we can't run infercnv
        )
         run_infercnv: true
       }
