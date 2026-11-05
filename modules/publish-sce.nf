@@ -1,7 +1,7 @@
 
 // generate QC report from SCE files and publish SCE files and JSONs
 
-include { pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; pullthroughContainer } from '../lib/utils.nf'
 
 process qc_publish_sce {
   container "${pullthroughContainer(params.scpcatools_reports_container, params.pullthrough_registry)}"
@@ -22,7 +22,7 @@ process qc_publish_sce {
     path metrics_json, emit: metrics
   script:
     workflow_url = workflow.repository ?: workflow.manifest.homePage
-    workflow_version = workflow.revision ?: workflow.manifest.version
+    workflow_version = getVersions().scpca_version
 
     // determine if we have a usable heatmap file
     has_infercnv = infercnv_heatmap_file && infercnv_heatmap_file.isFile() && infercnv_heatmap_file.size() > 0

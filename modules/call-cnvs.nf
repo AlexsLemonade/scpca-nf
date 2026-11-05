@@ -1,6 +1,6 @@
 // run inferCNV on an SCE object that has consensus cell types
 
-include { getVersions; makeJson; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; getMetaVal; checkpointIsReusable; pullthroughContainer } from '../lib/utils.nf'
 
 process run_infercnv {
   container "${pullthroughContainer(params.scpcatools_infercnv_container, params.pullthrough_registry)}"
@@ -60,17 +60,18 @@ process add_infercnv_to_sce {
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file), path(infercnv_heatmap_file)
+    // results and table files may be empty lists if inferCNV could not be run
+    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file)
   output:
-    tuple val(meta), path(infercnv_sce), path(infercnv_heatmap_file)
+    tuple val(meta), path(infercnv_sce)
   script:
     // call this sce to avoid confusing it with the infercnv rds results file
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
     """
     add_infercnv_to_sce.R \
       --input_sce_file ${processed_rds} \
-      --infercnv_results_file "${infercnv_results_file}" \
-      --infercnv_table_file "${infercnv_table_file}" \
+      ${infercnv_results_file ? "--infercnv_results_file '${infercnv_results_file}'" : ""} \
+      ${infercnv_table_file ? "--infercnv_table_file '${infercnv_table_file}'" : ""} \
       --infercnv_threshold ${params.infercnv_min_reference_cells} \
       --output_sce_file ${infercnv_sce}
     """
@@ -122,24 +123,28 @@ workflow call_cnvs {
       }
 
 
-    // branch to skip libraries when either:
-    // - repeat is off and there are unchanged existing results
-    // - there are not enough normal reference cells
+    // branch libraries into one of three paths:
+    // - cannot_run: inferCNV prerequisites are not met (not enough normal reference cells or no gene order file)
+    //   these libraries get empty placeholder results, and any existing checkpoint files are ignored
+    // - reuse_checkpoint: repeat is off and there are unchanged existing results
+    //   (if this is a release run, existing results must also have been created by a release)
+    // - run_infercnv: everything else
     infercnv_input_ch = infercnv_prepared_ch
-      .branch{ it ->
-        def stored_cell_hash = getMetaVal(file("${it[0].infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
+      .branch{ meta, _processed_sce, gene_order_file ->
+        def stored_cell_hash = getMetaVal(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"), "infercnv_reference_cell_hash")
 
-        skip_infercnv: (
-          (
-            !params.repeat_cnv_inference
-            && file(it[0].infercnv_heatmap_file).exists()
-            && file(it[0].infercnv_results_file).exists()
-            && file(it[0].infercnv_table_file).exists()
-            && it[0].infercnv_reference_cell_hash == stored_cell_hash
-          )
-          || it[0].infercnv_reference_cell_count < params.infercnv_min_reference_cells
-          || !(it[2] in Path && it[2].exists()) // if the gene order file doesn't exist, we can't run infercnv
-       )
+        cannot_run: (
+          meta.infercnv_reference_cell_count < params.infercnv_min_reference_cells
+          || !(gene_order_file in Path && gene_order_file.exists()) // if the gene order file doesn't exist, we can't run infercnv
+        )
+        reuse_checkpoint: (
+          !params.repeat_cnv_inference
+          && file(meta.infercnv_heatmap_file).exists()
+          && file(meta.infercnv_results_file).exists()
+          && file(meta.infercnv_table_file).exists()
+          && meta.infercnv_reference_cell_hash == stored_cell_hash
+          && checkpointIsReusable(file("${meta.infercnv_checkpoints_dir}/scpca-meta.json"))
+        )
         run_infercnv: true
       }
 
@@ -147,35 +152,46 @@ workflow call_cnvs {
     // outputs: [meta, processed sce, results file, table file, heatmap file]
     run_infercnv(infercnv_input_ch.run_infercnv)
 
-    // prepare to add results for all eligible libraries: [meta, processed sce, results file]
-    add_infercnv_results_ch = infercnv_input_ch.skip_infercnv
+    // existing checkpoint results: [meta, processed sce, results file, table file, heatmap file]
+    reuse_infercnv_ch = infercnv_input_ch.reuse_checkpoint
       .map{ meta, processed_sce, _gene_order_file ->
-        def infercnv_results = file(meta.infercnv_results_file)
-        def infercnv_table   = file(meta.infercnv_table_file)
-        def infercnv_heatmap = file(meta.infercnv_heatmap_file)
-        // ensure the infercnv_checkpoints_dir exists before proceeding; all these files are in the same dir
-        infercnv_results.parent.mkdirs()
-        // create empty files if they don't exist
-        // https://docs.seqera.io/nextflow/working-with-files#reading-and-writing-an-entire-file
-        if (!infercnv_results.exists()) infercnv_results.text = ''
-        if (!infercnv_table.exists())   infercnv_table.text = ''
-        if (!infercnv_heatmap.exists()) infercnv_heatmap.text = ''
-
-        // return simplified input with gene order file
-        [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
+        [meta, processed_sce, file(meta.infercnv_results_file), file(meta.infercnv_table_file), file(meta.infercnv_heatmap_file)]
       }
-      .mix(run_infercnv.out.infercnv)
 
+    // libraries where inferCNV cannot be run get empty lists in place of the results, table, and heatmap files
+    // existing checkpoint files are never used or overwritten for these libraries
+    // outputs: [meta, processed sce, [], [], []]
+    empty_infercnv_ch = infercnv_input_ch.cannot_run
+      .map{ meta, processed_sce, _gene_order_file ->
+        [meta, processed_sce, [], [], []]
+      }
+
+    // combine all libraries to add inferCNV results to the SCE
+    // [meta, processed sce, results file, table file, heatmap file]
+    add_infercnv_results_ch = reuse_infercnv_ch
+      .mix(empty_infercnv_ch, run_infercnv.out.infercnv)
 
     // add inferCNV results to the SCE object
-    // returns [ meta, processed sce, infercnv_heatmap_file ]
-    // note we keep the heatmap file to eventually stage for QC report
-    add_infercnv_to_sce(add_infercnv_results_ch)
+    // returns [ meta, processed sce ]
+    add_infercnv_to_sce(
+      add_infercnv_results_ch
+        .map{ meta, processed_sce, results_file, table_file, _heatmap_file ->
+          [meta, processed_sce, results_file, table_file]
+        }
+    )
+
+    // keep the heatmap file to eventually stage for QC report: [unique_id, heatmap file]
+    infercnv_heatmap_ch = add_infercnv_results_ch
+      .map{ meta, _processed_sce, _results_file, _table_file, heatmap_file ->
+        [meta.unique_id, heatmap_file]
+      }
 
     export_channel = add_infercnv_to_sce.out
-      .map{ meta, processed_sce, infercnv_heatmap_file ->
-        [meta.unique_id, meta, processed_sce, infercnv_heatmap_file]
+      .map{ meta, processed_sce ->
+        [meta.unique_id, meta, processed_sce]
       }
+      // add the heatmap file back in
+      .join(infercnv_heatmap_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
       // add in unfiltered and filtered sce files, for tissue samples only
       .join(
         sce_files_channel_branched.tissue.map{ meta, unfiltered, filtered, _processed ->

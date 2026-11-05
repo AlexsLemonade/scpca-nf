@@ -1,5 +1,5 @@
 
-include { getVersions; getMetaVal; makeJson; updateMetaFromFile; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; getMetaVal; makeJson; updateMetaFromFile; checkpointIsReusable; pullthroughContainer } from '../lib/utils.nf'
 
 //index a feature barcode file
 process index_feature{
@@ -178,6 +178,8 @@ workflow map_quant_feature {
             || !file(it.feature_rad_dir).exists()
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || it.technology.toLowerCase() != stored_tech.toLowerCase()
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.feature_rad_dir}/scpca-meta.json"))
           )
         )
         has_rad: file(it.feature_rad_dir).exists()

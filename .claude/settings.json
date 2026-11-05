@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git push)"
+    ]
+  },
+  "enabledPlugins": {
+    "nextflow@nextflow-plugin": true
+  }
+}

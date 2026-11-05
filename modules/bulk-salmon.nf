@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; checkpointIsReusable; pullthroughContainer } from '../lib/utils.nf'
 
 process fastp {
   container "${pullthroughContainer(params.fastp_container, params.pullthrough_registry)}"
@@ -84,6 +84,7 @@ process merge_bulk_quants {
     tpm_file = "${meta.project_id}_bulk_tpm.tsv"
     bulk_metadata_file = "${meta.project_id}_bulk_metadata.tsv"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
+    workflow_version = getVersions().scpca_version
     """
     ls -d ${salmon_directories} > salmon_directories.txt
 
@@ -101,7 +102,7 @@ process merge_bulk_quants {
       --metadata_output ${bulk_metadata_file} \
       --genome_assembly ${meta.ref_assembly} \
       --workflow_url "${workflow_url}" \
-      --workflow_version "${workflow.revision}" \
+      --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}"
     """
   stub:
@@ -147,6 +148,8 @@ workflow bulk_quant_rna {
             || it.t2g_bulk_path != stored_t2g_bulk_path
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || it.technology.toLowerCase() != stored_tech.toLowerCase()
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.salmon_results_dir}/scpca-meta.json"))
           )
         )
         has_quants: file(it.salmon_results_dir).exists()

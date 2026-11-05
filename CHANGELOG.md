@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `merge.nf` now skips projects based on their number of samples rather than libraries, using the `max_merge_samples` parameter (default 100), which replaces `max_merge_libraries`
+- When running a tagged release, existing checkpoint results (mapping, genetic demultiplexing, cell typing, and CNV inference) are only reused if they were created by a tagged release; otherwise these steps are repeated
 
 ### Fixed
 

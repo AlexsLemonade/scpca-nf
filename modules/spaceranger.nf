@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; updateMetaFromFile; getMetaVal; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
+include { getVersions; makeJson; updateMetaFromFile; getMetaVal; checkpointIsReusable; pullthroughContainer; getImageFiles } from '../lib/utils.nf'
 
 process spaceranger {
   container "${pullthroughContainer(params.spaceranger_container, params.pullthrough_registry)}"
@@ -142,6 +142,7 @@ process spaceranger_publish {
     spatial_publish_dir = "${meta.library_id}_spatial"
     metadata_json = "${spatial_publish_dir}/${meta.library_id}_metadata.json"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
+    workflow_version = getVersions().scpca_version
     cellranger_index_name = file(meta.cellranger_index).name
 
     is_hd = meta.technology.contains("visium-hd")
@@ -218,7 +219,7 @@ process spaceranger_publish {
       --genome_assembly ${meta.ref_assembly} \
       --index_filename ${cellranger_index_name} \
       --workflow_url "${workflow_url}" \
-      --workflow_version "${workflow.revision}" \
+      --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}"
     """
   stub:
@@ -270,6 +271,8 @@ workflow spaceranger_quant{
             // or the technology has changed (to ensure re-mapping if tech was updated)
             || it.technology.toLowerCase() != stored_tech.toLowerCase()
             || it.ref_assembly != stored_ref_assembly
+            // or this is a release run and the existing results were not created by a release
+            || !checkpointIsReusable(file("${it.spaceranger_results_dir}/scpca-meta.json"))
           )
         )
         has_spatial: file(it.spaceranger_results_dir).exists()

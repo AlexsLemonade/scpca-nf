@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 // include utility functions
-include { readMeta; parseNA } from './lib/utils.nf'
+include { readMeta; parseNA; getVersions } from './lib/utils.nf'
 
 // include processes from modules
 include { map_quant_rna } from './modules/af-rna.nf'
@@ -245,10 +245,8 @@ workflow {
         star_index: sample_refs.star_index ? "${params.ref_rootdir}/${sample_refs.star_index}" : '',
         infercnv_gene_order: sample_refs.infercnv_gene_order ? "${params.ref_rootdir}/${sample_refs.infercnv_gene_order}" : '',
         flex_probeset: has_flex_probeset ? "${params.ref_rootdir}/${sample_refs.flex_probe_files[tech]}" : '',
-        visium_probeset: has_visium_probeset ? "${params.ref_rootdir}/${sample_refs.visium_probe_files[tech]}" : '',
-        scpca_version: workflow.revision ?: workflow.manifest.version,
-        nextflow_version: nextflow.version.toString()
-      ]
+        visium_probeset: has_visium_probeset ? "${params.ref_rootdir}/${sample_refs.visium_probe_files[tech]}" : ''
+      ] + getVersions()
     }
 
   // branch runs by technology

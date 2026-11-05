@@ -440,6 +440,7 @@ checkpoints
 
 
 This saves substantial processing time if the cell type annotation reference versions are unchanged.
+When running a tagged release of `scpca-nf` (e.g., `-r v0.11.0`), existing results are only reused if they were also created by a tagged release; results created by any other version of the workflow (such as a development branch) will be regenerated.
 However, you may wish to repeat the cell typing process if there have been other changes to the data or analysis.
 
 To force repeating the cell type annotation process, use the `--repeat_celltyping` flag along with the `--perform_celltyping` flag at the command line:
@@ -524,6 +525,7 @@ checkpoints
 ```
 
 This saves substantial processing time if the normal reference cells are unchanged.
+When running a tagged release of `scpca-nf` (e.g., `-r v0.11.0`), existing results are only reused if they were also created by a tagged release; results created by any other version of the workflow (such as a development branch) will be regenerated.
 However, you may wish to repeat the CNV inference if there have been other changes to the data or analysis.
 
 To force repeating CNV inference, use the `--repeat_cnv_inference` flag along with the `--perform_cnv_inference` flag at the command line:
@@ -779,6 +781,7 @@ _Note: The workflow is currently set up to run Space Ranger version `4.0.1` and 
 By default, `scpca-nf` is set up to skip the `salmon` mapping steps for any libraries in which the output files from the mapping step exist in the `checkpoints` folder of the output directory (i.e. the `.rad` files from `salmon alevin` and `quant.sf` files from `salmon quant`).
 If the `salmon` version and transcriptome index are unchanged, this will save substantial processing time and cost, and avoids some of the sensitivity of the caching system used by `nextflow -resume`, which can sometimes result in rerunning steps unnecessarily.
 However, if there have been updates to the `scpca-nf` workflow that include changes to the salmon version or transcriptome index (or if you change those on your own), you may want to repeat the mapping process.
+When running a tagged release of `scpca-nf` (e.g., `-r v0.11.0`), existing results are only reused if they were also created by a tagged release; results created by any other version of the workflow (such as a development branch) will be regenerated.
 
 To force repeating the mapping process, use the `--repeat_mapping` flag at the command line:
 

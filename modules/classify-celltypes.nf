@@ -1,5 +1,5 @@
 
-include { getVersions; makeJson; getMetaVal; parseNA; pullthroughContainer } from '../lib/utils.nf'
+include { getVersions; makeJson; getMetaVal; checkpointIsReusable; parseNA; pullthroughContainer } from '../lib/utils.nf'
 // import utility process with aliases to allow multiple uses in this workflow
 include { convert_anndata as convert_cellassign } from './convert-anndata.nf'
 include { convert_anndata as convert_scimilarity } from './convert-anndata.nf'
@@ -273,6 +273,7 @@ workflow annotate_celltypes {
           !params.repeat_celltyping
           && file(meta.singler_results_file).exists()
           && meta.singler_model_file == stored_singler_model_file
+          && checkpointIsReusable(file("${meta.singler_dir}/scpca-meta.json"))
         )
         missing_ref: singler_model == []
         do_singler: true
@@ -315,6 +316,7 @@ workflow annotate_celltypes {
           !params.repeat_celltyping
           && file(meta.cellassign_predictions_file).exists()
           && meta.cellassign_reference_file == stored_cellassign_reference_file
+          && checkpointIsReusable(file("${meta.cellassign_dir}/scpca-meta.json"))
         )
         missing_ref: cellassign_ref == []
         do_cellassign: true
@@ -381,6 +383,7 @@ workflow annotate_celltypes {
           !params.repeat_celltyping
           && file(it[0].scimilarity_predictions_file).exists()
           && it[0].scimilarity_model_dir == stored_scimilarity_model_dir
+          && checkpointIsReusable(file("${it[0].scimilarity_dir}/scpca-meta.json"))
         )
         do_scimilarity: true
       }
