@@ -313,32 +313,37 @@ workflow {
     .map{ it ->
       def processed = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_processed.rds")
       def meta_json = file("${params.results_dir}/${it.project_id}/${it.sample_id}/${it.unique_id}_metadata.json")
-      [it.project_id, it.unique_id, processed, meta_json]
+      [it.project_id, it.unique_id, it.sample_id, processed, meta_json]
     }
     // only include libraries that have been processed through scpca-nf and have at least 3 cells
-    .filter{ _project_id, _unique_id, processed, meta_json ->
+    .filter{ _project_id, _unique_id, _sample_id, processed, meta_json ->
       (processed.exists() && processed.size() > 0 && getMetaVal(meta_json, "processed_cells") >= 3)
     }
     // remove metadata file
-    .map{ project_id, unique_id, processed, _meta_json ->
-      [project_id, unique_id, processed]
+    .map{ project_id, unique_id, sample_id, processed, _meta_json ->
+      [project_id, unique_id, sample_id, processed]
     }
     // only one row per library ID, this removes all the duplicates that may be present due to CITE/hashing
     .unique()
-    // group tuple by project id: [project_id, [unique_id1, unique_id2, ...], [sce_file1, sce_file2, ...]]
+    // group tuple by project id:
+    // [project_id, [unique_id1, unique_id2, ...], [sample_id1, sample_id2, ...], [sce_file1, sce_file2, ...]]
     .groupTuple(by: 0)
-    // remove any projects with more libraries present than the max allowed for merging
-    .branch{ _project_id, unique_id_list, _sce_file_list ->
-      oversized: unique_id_list.size() > params.max_merge_libraries
+    // remove any projects with more samples present than the max allowed for merging
+    .branch{ _project_id, _unique_id_list, sample_id_list, _sce_file_list ->
+      oversized: sample_id_list.toUnique().size() > params.max_merge_samples
       within_limit: true
     }
 
   present_libraries_ch.oversized
-    .subscribe{ project_id, unique_id_list, _sce_file_list ->
-      log.warn("Not merging ${project_id} because it contains too many libraries (${unique_id_list.size()} > ${params.max_merge_libraries}).")
+    .subscribe{ project_id, _unique_id_list, sample_id_list, _sce_file_list ->
+      log.warn("Not merging ${project_id} because it contains too many samples (${sample_id_list.toUnique().size()} > ${params.max_merge_samples}).")
     }
 
   grouped_libraries_ch = present_libraries_ch.within_limit
+    // remove sample id list
+    .map{ project_id, unique_id_list, _sample_id_list, sce_file_list ->
+      [project_id, unique_id_list, sce_file_list]
+    }
     // add in boolean for if project contains samples with adt
     .map{ project_id, unique_id_list, sce_file_list ->
       [project_id, project_id in adt_projects.getVal(), unique_id_list, sce_file_list]

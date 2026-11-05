@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `merge.nf` now skips projects based on their number of samples rather than libraries, using the `max_merge_samples` parameter (default 100), which replaces `max_merge_libraries`
+
 ### Fixed
 
 ### Deprecated
