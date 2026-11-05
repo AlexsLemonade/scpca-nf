@@ -1,12 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(nextflow -version)",
-      "Bash(mkdir -p ~/.nextflow-install)",
-      "Bash(curl -fsSL https://get.nextflow.io -o ~/.nextflow-install/install.sh)",
-      "Bash(cd ~/.nextflow-install)",
-      "Bash(mv ~/.nextflow-install/nextflow ~/.local/bin/nextflow)"
-    ],
     "deny": [
       "Bash(git commit *)",
       "Bash(git push *)",
