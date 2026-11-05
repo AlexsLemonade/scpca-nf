@@ -84,6 +84,7 @@ process merge_bulk_quants {
     tpm_file = "${meta.project_id}_bulk_tpm.tsv"
     bulk_metadata_file = "${meta.project_id}_bulk_metadata.tsv"
     workflow_url = workflow.repository ?: workflow.manifest.homePage
+    workflow_version = getVersions().scpca_version
     """
     ls -d ${salmon_directories} > salmon_directories.txt
 
@@ -101,7 +102,7 @@ process merge_bulk_quants {
       --metadata_output ${bulk_metadata_file} \
       --genome_assembly ${meta.ref_assembly} \
       --workflow_url "${workflow_url}" \
-      --workflow_version "${workflow.revision}" \
+      --workflow_version "${workflow_version}" \
       --workflow_commit "${workflow.commitId}"
     """
   stub:

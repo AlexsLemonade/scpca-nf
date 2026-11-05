@@ -129,7 +129,7 @@ def isRelease(version) {
   * @return true if the checkpoint can be reused, false otherwise
   */
 def checkpointIsReusable(meta_file) {
-  return (!isRelease(workflow.revision) || isRelease(getMetaVal(meta_file, "scpca_version")))
+  return (!isRelease(getVersions().scpca_version) || isRelease(getMetaVal(meta_file, "scpca_version")))
 }
 
 
