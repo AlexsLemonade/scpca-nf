@@ -176,11 +176,11 @@
           "help_text": "If merge results already exist, recreating them can be skipped if desired. Only used in the merge.nf workflow.",
           "hidden": true
         },
-        "max_merge_libraries": {
+        "max_merge_samples": {
           "type": "integer",
           "default": 100,
-          "description": "Maximum number of libraries to merge",
-          "help_text": "The maximum number of libraries to merge into a single object. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power. Only used in the merge.nf workflow.",
+          "description": "Maximum number of samples to merge",
+          "help_text": "The maximum number of samples to merge into a single object; projects with more samples are not merged. This is used to limit the size of the merged object and can be adjusted based on the available memory and processing power. Only used in the merge.nf workflow.",
           "hidden": true
         },
         "build_refs": {
