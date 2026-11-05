@@ -103,7 +103,7 @@ def parseNA(str) {
   */
 def getVersions() {
   [
-    scpca_version: workflow.revision ?: workflow.manifest.version,
+    scpca_version: workflow.revision ?: "${workflow.manifest.version}-local",
     nextflow_version: nextflow.version.toString(),
   ]
 }

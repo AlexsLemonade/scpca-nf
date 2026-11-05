@@ -5,7 +5,6 @@
       "Bash(mkdir -p ~/.nextflow-install)",
       "Bash(curl -fsSL https://get.nextflow.io -o ~/.nextflow-install/install.sh)",
       "Bash(cd ~/.nextflow-install)",
-      "Bash(bash install.sh)",
       "Bash(mv ~/.nextflow-install/nextflow ~/.local/bin/nextflow)"
     ],
     "deny": [
@@ -15,6 +14,6 @@
     ]
   },
   "enabledPlugins": {
-    "nextflow@nextflow-io-agent-skills": true
+    "nextflow@nextflow-plugin": true
   }
 }
