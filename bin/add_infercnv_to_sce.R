@@ -24,13 +24,13 @@ option_list <- list(
     opt_str = "--infercnv_results_file",
     type = "character",
     default = "",
-    help = "Path to the inferCNV results file."
+    help = "Path to the inferCNV results file. If not provided or empty, no inferCNV results are added."
   ),
   make_option(
     opt_str = "--infercnv_table_file",
     type = "character",
     default = "",
-    help = "Path to the inferCNV metadata table."
+    help = "Path to the inferCNV metadata table. Required if a non-empty results file is provided."
   ),
   make_option(
     opt_str = "--infercnv_threshold",
@@ -48,16 +48,24 @@ opts <- parse_args(OptionParser(option_list = option_list))
 
 stopifnot(
   "input_sce_file does not exist" = file.exists(opts$input_sce_file),
-  "infercnv_results_file does not exist" = file.exists(opts$infercnv_results_file),
-  "infercnv_table_file does not exist" = file.exists(opts$infercnv_table_file),
   "output_sce_file was not provided" = !is.null(opts$output_sce_file)
 )
+if (opts$infercnv_results_file != "") {
+  stopifnot("infercnv_results_file does not exist" = file.exists(opts$infercnv_results_file))
+}
+
+# results are present only if a non-empty results file was provided
+# (run_infercnv.R writes empty files if inferCNV fails)
+has_results <- opts$infercnv_results_file != "" && file.info(opts$infercnv_results_file)$size > 0
+if (has_results) {
+  stopifnot("infercnv_table_file does not exist" = file.exists(opts$infercnv_table_file))
+}
 
 # read SCE file
 sce <- readRDS(opts$input_sce_file)
 
-# check if we have inferCNV results based on file size
-if (file.info(opts$infercnv_results_file)$size == 0) {
+# check if we have inferCNV results
+if (!has_results) {
   # check reference cells
   if (metadata(sce)$infercnv_num_reference_cells < opts$infercnv_threshold) {
     metadata(sce)$infercnv_status <- "insufficient_reference_cells"

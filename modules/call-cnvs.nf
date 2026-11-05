@@ -60,17 +60,18 @@ process add_infercnv_to_sce {
   label 'mem_8'
   tag "${meta.unique_id}"
   input:
-    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file), path(infercnv_heatmap_file)
+    // results and table files may be empty lists if inferCNV could not be run
+    tuple val(meta), path(processed_rds), path(infercnv_results_file), path(infercnv_table_file)
   output:
-    tuple val(meta), path(infercnv_sce), path(infercnv_heatmap_file)
+    tuple val(meta), path(infercnv_sce)
   script:
     // call this sce to avoid confusing it with the infercnv rds results file
     infercnv_sce = "${processed_rds.baseName}_infercnv.rds"
     """
     add_infercnv_to_sce.R \
       --input_sce_file ${processed_rds} \
-      --infercnv_results_file "${infercnv_results_file}" \
-      --infercnv_table_file "${infercnv_table_file}" \
+      ${infercnv_results_file ? "--infercnv_results_file '${infercnv_results_file}'" : ""} \
+      ${infercnv_table_file ? "--infercnv_table_file '${infercnv_table_file}'" : ""} \
       --infercnv_threshold ${params.infercnv_min_reference_cells} \
       --output_sce_file ${infercnv_sce}
     """
@@ -157,39 +158,40 @@ workflow call_cnvs {
         [meta, processed_sce, file(meta.infercnv_results_file), file(meta.infercnv_table_file), file(meta.infercnv_heatmap_file)]
       }
 
-    // empty placeholder results for libraries where inferCNV cannot be run
-    // placeholders are written to the work directory so existing checkpoint files are never used or overwritten
-    // outputs: [meta, processed sce, results file, table file, heatmap file]
+    // libraries where inferCNV cannot be run get empty lists in place of the results, table, and heatmap files
+    // existing checkpoint files are never used or overwritten for these libraries
+    // outputs: [meta, processed sce, [], [], []]
     empty_infercnv_ch = infercnv_input_ch.cannot_run
       .map{ meta, processed_sce, _gene_order_file ->
-        def placeholder_dir = file("${workflow.workDir}/infercnv-placeholders/${meta.unique_id}")
-        placeholder_dir.mkdirs()
-        def infercnv_results = placeholder_dir / "${meta.unique_id}_infercnv-results.rds"
-        def infercnv_table   = placeholder_dir / "${meta.unique_id}_infercnv-table.txt"
-        def infercnv_heatmap = placeholder_dir / "${meta.unique_id}_infercnv-heatmap.png"
-        // always write empty files, so add_infercnv_to_sce.R sets the status based on the reference cell count
-        // https://docs.seqera.io/nextflow/working-with-files#reading-and-writing-an-entire-file
-        infercnv_results.text = ''
-        infercnv_table.text = ''
-        infercnv_heatmap.text = ''
-
-        [meta, processed_sce, infercnv_results, infercnv_table, infercnv_heatmap]
+        [meta, processed_sce, [], [], []]
       }
 
     // combine all libraries to add inferCNV results to the SCE
+    // [meta, processed sce, results file, table file, heatmap file]
     add_infercnv_results_ch = reuse_infercnv_ch
       .mix(empty_infercnv_ch, run_infercnv.out.infercnv)
 
-
     // add inferCNV results to the SCE object
-    // returns [ meta, processed sce, infercnv_heatmap_file ]
-    // note we keep the heatmap file to eventually stage for QC report
-    add_infercnv_to_sce(add_infercnv_results_ch)
+    // returns [ meta, processed sce ]
+    add_infercnv_to_sce(
+      add_infercnv_results_ch
+        .map{ meta, processed_sce, results_file, table_file, _heatmap_file ->
+          [meta, processed_sce, results_file, table_file]
+        }
+    )
+
+    // keep the heatmap file to eventually stage for QC report: [unique_id, heatmap file]
+    infercnv_heatmap_ch = add_infercnv_results_ch
+      .map{ meta, _processed_sce, _results_file, _table_file, heatmap_file ->
+        [meta.unique_id, heatmap_file]
+      }
 
     export_channel = add_infercnv_to_sce.out
-      .map{ meta, processed_sce, infercnv_heatmap_file ->
-        [meta.unique_id, meta, processed_sce, infercnv_heatmap_file]
+      .map{ meta, processed_sce ->
+        [meta.unique_id, meta, processed_sce]
       }
+      // add the heatmap file back in
+      .join(infercnv_heatmap_ch, by: 0, failOnMismatch: true, failOnDuplicate: true)
       // add in unfiltered and filtered sce files, for tissue samples only
       .join(
         sce_files_channel_branched.tissue.map{ meta, unfiltered, filtered, _processed ->
