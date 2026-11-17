@@ -52,14 +52,32 @@ workflow {
   libraries_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
     // filter to run all ids or just specified ones
-    .map{ it ->
-      [
-        project_id: it.scpca_project_id,
-        library_id: it.scpca_library_id,
-        sample_id: it.scpca_sample_id.split(";").sort().join(","),
-        run_id: it.scpca_run_id
+    .flatMap{ row ->
+      def sample_ids = row.scpca_sample_id.split("[;,]").sort()
+      def library_meta = [
+        project_id: row.scpca_project_id,
+        library_id: row.scpca_library_id,
+        run_id: row.scpca_run_id
       ]
+      if (row.technology.toLowerCase() in ["10xflex_v1.1_multi"]) {
+        // flex multi: one entry per library-sample pair
+        return sample_ids.collect{ sample_id ->
+          library_meta + [
+            sample_id: sample_id,
+            unique_id: "${row.scpca_library_id}-${sample_id}".toString()
+          ]
+        }
+      } else {
+        // everything else, including cellhash multiplexed libraries: one entry per library
+        return [
+          library_meta + [
+            sample_id: sample_ids.join(","),
+            unique_id: row.scpca_library_id
+          ]
+        ]
+      }
     }
+    // filter after splitting flex libraries so individual sample ids can be matched
     .filter{ it ->
       run_all
       || (it.run_id in run_ids)
@@ -67,9 +85,9 @@ workflow {
       || (it.sample_id in run_ids)
       || (it.project_id in project_ids)
     }
-    .unique{ it.library_id }
+    .unique{ it.unique_id }
     .map{ meta ->
-      def h5ad_file = file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.library_id}_processed_rna.h5ad")
+      def h5ad_file = file("${params.results_dir}/${meta.project_id}/${meta.sample_id}/${meta.unique_id}_processed_rna.h5ad")
       [meta, h5ad_file]
     }
     // only include libraries where the h5ad file exists
