@@ -48,41 +48,46 @@ workflow {
   if (!run_all) {
     log.warn("Some runs are not being included in the Cell Browser output; is this correct?")
   }
-  //
+  // technologies with multiple samples per library, which are split into one entry per library-sample combination
+  def flex_technologies = ["10xflex_v1.1_multi"]
+
   libraries_ch = channel.fromPath(params.run_metafile)
     .splitCsv(header: true, sep: '\t')
-    // filter to run all ids or just specified ones
+    // split each row into one or more library-sample combinations depending on the technology
     .flatMap{ row ->
-      def sample_ids = row.scpca_sample_id.split("[;,]").sort()
-      def library_meta = [
-        project_id: row.scpca_project_id,
-        library_id: row.scpca_library_id,
-        run_id: row.scpca_run_id
-      ]
-      if (row.technology.toLowerCase() in ["10xflex_v1.1_multi"]) {
-        // flex multi: one entry per library-sample pair
-        return sample_ids.collect{ sample_id ->
-          library_meta + [
-            sample_id: sample_id,
-            unique_id: "${row.scpca_library_id}-${sample_id}".toString()
+        def technology = row.technology.toLowerCase()
+        def sample_ids = row.scpca_sample_id.split("[;,]").sort()
+        def library_meta = [
+          project_id: row.scpca_project_id,
+          run_id: row.scpca_run_id,
+          library_id: row.scpca_library_id,
+          technology: technology
+        ]
+
+        if (technology in flex_technologies) {
+          // flex: one row per library-sample pair
+          return sample_ids.collect{ sample_id ->
+            library_meta + [
+              sample_id: sample_id,
+              unique_id: "${row.scpca_library_id}-${sample_id}".toString()
+            ]
+          }
+        } else {
+          // everything else, including cellhash multiplexed libraries: one row per library
+          return [
+            library_meta + [
+              sample_id: sample_ids.join(","),
+              unique_id: row.scpca_library_id
+            ]
           ]
         }
-      } else {
-        // everything else, including cellhash multiplexed libraries: one entry per library
-        return [
-          library_meta + [
-            sample_id: sample_ids.join(","),
-            unique_id: row.scpca_library_id
-          ]
-        ]
       }
-    }
     // filter after splitting flex libraries so individual sample ids can be matched
     .filter{ it ->
       run_all
       || (it.run_id in run_ids)
       || (it.library_id in run_ids)
-      || (it.sample_id in run_ids)
+      || it.sample_id.split(",").any{ sample_id -> sample_id in run_ids }
       || (it.project_id in project_ids)
     }
     .unique{ it.unique_id }
