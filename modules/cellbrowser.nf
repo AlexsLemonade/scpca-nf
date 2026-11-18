@@ -5,20 +5,24 @@ include { pullthroughContainer } from '../lib/utils.nf'
 // Also annotates the marker table
 process cellbrowser_library {
   container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
 
   input:
     tuple val(meta), path(h5ad_file, arity: '1')
 
   output:
-    tuple val(meta), path("${meta.library_id}"), env('has_umap')
+    tuple val(meta), path("${meta.unique_id}"), env('has_umap')
 
   script:
     """
     # create the library config files
+    # the dataset name and output directory use the unique id (<library_id>-<sample_id> for flex multi),
+    # so each library-sample combination gets its own dataset,
+    # while the displayed labels only use the sample and library ids
     cellbrowser_config.py \
       --conf_type library \
-      --ids "${meta.library_id}" \
+      --ids "${meta.unique_id}" \
+      --library-ids "${meta.library_id}" \
       --label-field ${params.cellbrowser_default_label} \
       --sample-ids "${meta.sample_id}" \
       --h5ad-file "${h5ad_file}"
@@ -40,20 +44,20 @@ EOF
 
     # import data to library directory
     # --proc flag uses the processed expression matrix (lognormalized)
-    cbImportScanpy -i "cb_input.h5ad" -o "${meta.library_id}" --clusterField="${params.cellbrowser_default_label}" --proc
+    cbImportScanpy -i "cb_input.h5ad" -o "${meta.unique_id}" --clusterField="${params.cellbrowser_default_label}" --proc
 
     # remove the h5ad files from export
-    rm -f "${meta.library_id}"/*.h5ad
+    rm -f "${meta.unique_id}"/*.h5ad
 
     # annotate the marker file and if it succeeds, replace the unannotated version
     # with the annotated version
-    cbMarkerAnnotate "${meta.library_id}/markers.tsv" "${meta.library_id}/markers_annotated.tsv"
-    if [ -f "${meta.library_id}/markers_annotated.tsv" ]; then
-      sed 's/markers.tsv/markers_annotated.tsv/g' -i "${meta.library_id}/cellbrowser.conf"
+    cbMarkerAnnotate "${meta.unique_id}/markers.tsv" "${meta.unique_id}/markers_annotated.tsv"
+    if [ -f "${meta.unique_id}/markers_annotated.tsv" ]; then
+      sed 's/markers.tsv/markers_annotated.tsv/g' -i "${meta.unique_id}/cellbrowser.conf"
     fi
 
     # Check that the umap coordinates were output
-    if [ -f "${meta.library_id}/umap_coords.tsv" ]; then
+    if [ -f "${meta.unique_id}/umap_coords.tsv" ]; then
       has_umap="true"
     else
       has_umap="false"
@@ -61,11 +65,11 @@ EOF
     """
   stub:
     """
-    mkdir -p "${meta.library_id}"
+    mkdir -p "${meta.unique_id}"
     # selection of expected files
-    touch "${meta.library_id}/cellbrowser.conf"
-    touch "${meta.library_id}/desc.conf"
-    touch "${meta.library_id}/matrix.mtx.gz"
+    touch "${meta.unique_id}/cellbrowser.conf"
+    touch "${meta.unique_id}/desc.conf"
+    touch "${meta.unique_id}/matrix.mtx.gz"
     has_umap="true"
     """
 }
@@ -108,7 +112,7 @@ process cellbrowser_project {
 // Convert one library dataset. This is the expensive step
 process cellbrowser_dataset {
   container "${pullthroughContainer(params.cellbrowser_container, params.pullthrough_registry)}"
-  tag "${meta.library_id}"
+  tag "${meta.unique_id}"
 
   input:
     tuple val(meta), path(library_dir)
@@ -117,28 +121,28 @@ process cellbrowser_dataset {
   output:
     tuple val(meta),
           // only output the subdirectory for this library, not the whole site
-          path("built/${meta.project_id}/${meta.library_id}"),
-          path("cb_input_${meta.library_id}")
+          path("built/${meta.project_id}/${meta.unique_id}"),
+          path("cb_input_${meta.unique_id}")
 
   script:
     """
     # assemble a minimal dataRoot: skeleton confs plus this one library
     cp -rL cb_skeleton cb_data
     mkdir -p "cb_data/${meta.project_id}"
-    mv ${library_dir} "cb_data/${meta.project_id}/${meta.library_id}"
+    mv ${library_dir} "cb_data/${meta.project_id}/${meta.unique_id}"
 
     # no -r: -r ignores -i entirely and globs **/cellbrowser.conf from the CWD
     CBDATAROOT=cb_data cbBuild \
-      -i "cb_data/${meta.project_id}/${meta.library_id}/cellbrowser.conf" \
+      -i "cb_data/${meta.project_id}/${meta.unique_id}/cellbrowser.conf" \
       -o built
 
     # cellbrowser_rewritemarkers.py runs in cellbrowser_site and reads
-    # cb_data/<project_id>/<library_id>/{markers_annotated.tsv,features.tsv.gz}.
+    # cb_data/<project_id>/<unique_id>/{markers_annotated.tsv,features.tsv.gz}.
     # Forward just those two files so the site process can reconstruct that
     # layout without staging the whole library input directory.
-    library_in="cb_data/${meta.project_id}/${meta.library_id}"
+    library_in="cb_data/${meta.project_id}/${meta.unique_id}"
     # keep the input directories unique for later staging
-    marker_in="cb_input_${meta.library_id}/${meta.project_id}/${meta.library_id}"
+    marker_in="cb_input_${meta.unique_id}/${meta.project_id}/${meta.unique_id}"
     mkdir -p "\${marker_in}"
     for marker_file in features.tsv.gz markers_annotated.tsv; do
       if [ -f "\${library_in}/\${marker_file}" ]; then
@@ -148,10 +152,10 @@ process cellbrowser_dataset {
     """
   stub:
     """
-    mkdir -p "built/${meta.project_id}/${meta.library_id}/markers/markers_0"
-    touch "built/${meta.project_id}/${meta.library_id}/dataset.json"
-    touch "built/${meta.project_id}/${meta.library_id}/cellbrowser.conf"
-    mkdir -p "cb_input_${meta.library_id}/${meta.project_id}/${meta.library_id}"
+    mkdir -p "built/${meta.project_id}/${meta.unique_id}/markers/markers_0"
+    touch "built/${meta.project_id}/${meta.unique_id}/dataset.json"
+    touch "built/${meta.project_id}/${meta.unique_id}/cellbrowser.conf"
+    mkdir -p "cb_input_${meta.unique_id}/${meta.project_id}/${meta.unique_id}"
     """
 }
 

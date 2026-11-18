@@ -28,6 +28,7 @@ def write_project_configs(
 
 
 def write_library_configs(
+    dataset_id: str,
     library_id: str,
     sample_id: str,
     library_dir: pathlib.Path,
@@ -35,10 +36,13 @@ def write_library_configs(
     label_fields: list[str],
 ) -> None:
     library_dir.mkdir(parents=True, exist_ok=True)
+    # the dataset name and output directory use dataset_id (the unique id, e.g., <library_id>-<sample_id>
+    # for flex multi libraries) so each library-sample combination gets its own dataset,
+    # while the displayed labels (shortLabel and title) only use the sample and library ids
     # cellbrowser.conf
     library_cb_file = library_dir / "cellbrowser.conf"
     library_cb_contents = f"""\
-        name='{library_id}'
+        name='{dataset_id}'
         shortLabel='{sample_id} {library_id}'
         exprMatrix='matrix.mtx.gz'
         meta='meta.tsv'
@@ -81,6 +85,15 @@ def main():
     parser.add_argument(
         "--ids", required=True, help="Comma separated list of project or library ids."
     )
+    # library ids are passed separately from --ids (which may be unique ids, e.g., <library_id>-<sample_id>
+    # for flex multi libraries) so that display labels don't depend on parsing the exact unique id format
+    parser.add_argument(
+        "--library-ids",
+        help=(
+            "Comma separated list of library ids used in display labels for library configs,"
+            " paired with --ids. Defaults to the values of --ids."
+        ),
+    )
     parser.add_argument("--sample-ids", help="Comma separated list of sample ids.")
     parser.add_argument("--project-metadata", help="Path to the project metadata file.")
     parser.add_argument(
@@ -104,6 +117,9 @@ def main():
     args.outdir.mkdir(parents=True, exist_ok=True)
     ids = args.ids.split(",") if args.ids else []
     sample_ids = args.sample_ids.split(",") if args.sample_ids else []
+    library_ids = args.library_ids.split(",") if args.library_ids else ids
+    if len(library_ids) != len(ids):
+        parser.error("--library-ids must have the same number of values as --ids.")
 
     if args.conf_type == "project":
         # Read project metadata and index by project ID
@@ -149,10 +165,13 @@ def main():
             ]
 
         # create directories and config files for each library
-        for library, sample in itertools.zip_longest(ids, sample_ids):
-            library_dir = args.outdir / library
+        for dataset, library, sample in itertools.zip_longest(
+            ids, library_ids, sample_ids
+        ):
+            library_dir = args.outdir / dataset
             sample = sample if sample else ""
             write_library_configs(
+                dataset,
                 library,
                 sample,
                 library_dir,
